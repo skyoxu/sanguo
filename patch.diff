@@ -1,0 +1,85 @@
+*** Begin Patch
+*** Update File: scripts/ci/export_windows.ps1
+@@
+-param(
+-  [string]$GodotBin = $env:GODOT_BIN,
+-  [string]$Preset = 'Windows Desktop',
+-  [string]$Output = 'build/Game.exe'
+-)
++param(
++  [string]$GodotBin = $env:GODOT_BIN,
++  [string]$Preset = 'Windows Desktop',
++  [string]$Output = 'build/Game.exe'
++)
+@@
+-New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Output) | Out-Null
+-Write-Host "Exporting $Preset to $Output"
++New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Output) | Out-Null
++Write-Host "Exporting $Preset to $Output"
+@@
+-if (-not $GodotBin -or -not (Test-Path $GodotBin)) {
++if (-not $GodotBin -or -not (Test-Path $GodotBin)) {
+   $msg = "GODOT_BIN is not set or file not found: '$GodotBin'"
+   Add-Content -Encoding UTF8 -Path $glog -Value $msg
+   Write-Error $msg
+ }
+@@
+ function Resolve-Preset([string]$requested) {
+@@
+   return ($names | Select-Object -First 1)
+ }
++
++# Quote arguments for Start-Process -ArgumentList to preserve spaces
++function Quote-Arg([string]$a) {
++  if ($null -eq $a) { return '""' }
++  if ($a -match '^[A-Za-z0-9_./\\:-]+$') { return $a }
++  # Escape embedded quotes
++  $q = '"' + ($a -replace '"', '\"') + '"'
++  return $q
++}
+@@
+-  $out = Join-Path $dest ("godot_build_solutions.out.log")
++  $out = Join-Path $dest ("godot_build_solutions.out.log")
+   $err = Join-Path $dest ("godot_build_solutions.err.log")
+-  $args = @('--headless','--verbose','--path','.', '--build-solutions', '--quit')
++  $args = @('--headless','--verbose','--path','.', '--build-solutions', '--quit')
++  $argStr = ($args | ForEach-Object { Quote-Arg $_ }) -join ' '
+   try {
+-    $p = Start-Process -FilePath $GodotBin -ArgumentList $args -PassThru -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden
++    $p = Start-Process -FilePath $GodotBin -ArgumentList $argStr -PassThru -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden
+   } catch {
+@@
+-function Invoke-Export([string]$mode) {
++function Invoke-Export([string]$mode) {
+   Write-Host "Invoking export: $mode"
+   $out = Join-Path $dest ("godot_export.$mode.out.log")
+   $err = Join-Path $dest ("godot_export.$mode.err.log")
+-  $args = @('--headless','--verbose','--path','.', "--export-$mode", $Preset, $Output)
+-  Add-Content -Encoding UTF8 -Path $glog -Value ("Using preset: '" + $Preset + "' output: '" + $Output + "'")
++  $resolved = Resolve-Preset $Preset
++  Add-Content -Encoding UTF8 -Path $glog -Value ("Using preset: '" + $resolved + "' output: '" + $Output + "'")
++  if ($resolved -ne $Preset) { Add-Content -Encoding UTF8 -Path $glog -Value ("Requested preset '" + $Preset + "' resolved to '" + $resolved + "'") }
++  $args = @('--headless','--verbose','--path','.', "--export-$mode", $resolved, $Output)
++  $argStr = ($args | ForEach-Object { Quote-Arg $_ }) -join ' '
+   try {
+-    $p = Start-Process -FilePath $GodotBin -ArgumentList $args -PassThru -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden
++    $p = Start-Process -FilePath $GodotBin -ArgumentList $argStr -PassThru -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden
+   } catch {
+@@
+-  Write-Warning "Export-release failed with exit code $exitCode. Trying export-debug as fallback."
++  Write-Warning "Export-release failed with exit code $exitCode. Trying export-debug as fallback."
+   $exitCode = Invoke-Export 'debug'
+   if ($exitCode -ne 0) {
+     Write-Warning "Both release and debug export failed, trying export-pack as fallback."
+     $pck = ($Output -replace '\.exe$','.pck')
+     $out = Join-Path $dest ("godot_export.pack.out.log")
+     $err = Join-Path $dest ("godot_export.pack.err.log")
+-    $args = @('--headless','--verbose','--path','.', '--export-pack', $Preset, $pck)
+-    $p = Start-Process -FilePath $GodotBin -ArgumentList $args -PassThru -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden
++    $resolved = Resolve-Preset $Preset
++    Add-Content -Encoding UTF8 -Path $glog -Value ("Using preset (pack): '" + $resolved + "' output: '" + $pck + "'")
++    $args = @('--headless','--verbose','--path','.', '--export-pack', $resolved, $pck)
++    $argStr = ($args | ForEach-Object { Quote-Arg $_ }) -join ' '
++    $p = Start-Process -FilePath $GodotBin -ArgumentList $argStr -PassThru -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden
+     $ok = $p.WaitForExit(600000)
+*** End Patch

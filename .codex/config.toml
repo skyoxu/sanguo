@@ -1,0 +1,18 @@
+[mcp_servers.context7]
+command   = 'C\\Program Files\\nodejs\\npx.cmd'
+args      = ['-y', '@upstash/context7-mcp']
+transport = 'stdio'
+
+[mcp_servers.sequential-thinking]
+command   = 'C\\Program Files\\nodejs\\npx.cmd'
+args      = ['-y', '@modelcontextprotocol/server-sequential-thinking']
+transport = 'stdio'
+
+[mcp_servers.serena]
+command   = 'py'
+args      = ['-3', '-m', 'serena', 'start-mcp-server', '--context', 'codex', '--enable-web-dashboard', 'False']
+transport = 'stdio'
+
+[mcp_servers.deepwiki]
+url       = 'https://mcp.deepwiki.com/mcp'
+transport = 'sse'

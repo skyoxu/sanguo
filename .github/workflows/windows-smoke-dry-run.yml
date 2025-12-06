@@ -1,0 +1,57 @@
+name: Windows Smoke (Dry Run)
+
+# Notes:
+# - Runs headless smoke and GdUnit tests only (no export/templates).
+# - Smoke markers recognized by scripts: [TEMPLATE_SMOKE_READY] (preferred), [DB] opened (fallback)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download Godot .NET (Windows)
+        shell: pwsh
+        run: |
+          $Version = '4.5.1'
+          New-Item -ItemType Directory -Force -Path godot | Out-Null
+          $zip = "godot/godot.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/godotengine/godot/releases/download/${Version}-stable/Godot_v${Version}-stable_mono_win64.zip" -OutFile $zip
+          Expand-Archive $zip -DestinationPath godot -Force
+          $exe = Get-ChildItem godot -Recurse -Filter *win64*.exe | Select-Object -First 1
+          if (-not $exe) { throw 'Godot exe not found after download.' }
+          "GODOT_BIN=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "GODOT_BIN=$($exe.FullName)"
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\AppData\Local\Temp\NuGetScratch
+            ~\.nuget\packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+
+      - name: Prepare test project link
+        shell: pwsh
+        run: |
+          ./scripts/ci/prepare_gd_tests.ps1 -ProjectPath 'Tests.Godot' -RuntimeDir 'Game.Godot'
+
+      - name: Run GdUnit4 tests
+        shell: pwsh
+        run: |
+          $env:Path = "$HOME\.dotnet;" + $env:Path
+          ./scripts/ci/run_gdunit_tests.ps1 -GodotBin "$env:GODOT_BIN" -ProjectPath 'Tests.Godot'
+
+      - name: Headless smoke (no export)
+        shell: pwsh
+        run: |
+          ./scripts/ci/smoke_headless.ps1 -GodotBin "$env:GODOT_BIN" -TimeoutSec 5 -ProjectPath '.'

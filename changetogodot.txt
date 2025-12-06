@@ -1,0 +1,178 @@
+• 直言不讳（先止损）
+
+  - 你这是“更换运行时与UI体系”的迁移，不是“换个打包器”：Electron/React/Phaser/Vite 的测试与门禁大多不可复用，若期待“小改脚本”会高风险、低可控。
+  - 现有 E2E（Playwright×Electron）的治理点（preload 白名单、CSP、openExternal 审计）在 Godot 没有一一对应，需要“重设基线”，而不是强行平移概念。
+  - 工程落地的最大不确定性在“测试栈与质量门禁”替代选择，请尽早拍板语言（GDScript vs C#）与测试框架（GUT/WAT vs NUnit/xUnit）再定 CI 方案。
+
+  我已阅读 cifix1.txt（编码有点乱码，但要点清晰）：你计划将桌面运行时+UI+渲染统一切换到 Godot 4.5（Windows），抛弃 Electron/React/Phaser；UI 用
+  Godot Control/Theme；分发用 Windows Desktop export（.exe+.pck）；观测侧换 Godot SDK 的 Sentry；CI 用 godot --headless 出包与跑测；事件通信用 Godot
+  signals+Autoload。以下按你的三个问题答复。
+
+  一、CI 门禁替换量有多大
+
+  - 总体评估：中到大规模（≈60–80% 脚本与工具需替换），但“门禁意图”可保留（类型/静态检查→lint；重复度→jscpd；覆盖率→测试框架；发布健康→Sentry）。
+  - 建议的替换矩阵（按 GDScript/C# 两档给出）
+      - 类型/静态检查
+          - GDScript：gdlint + gdformat --check；可辅以 gdscript-toolkit 静态规则。
+          - C#：dotnet build /warnaserror + Roslyn Analyzers（StyleCop、FxCop）+ dotnet format analyzers。
+      - 单元与场景测试
+          - GDScript：GUT（Godot Unit Test）/WAT；CI 运行 godot.exe --headless --run-tests 或加载测试 Runner 场景。
+          - C#：xUnit/NUnit（通过 Godot C# 层调用）或用 GUT 驱动场景级断言。
+      - E2E/冒烟
+          - 用 Godot 头less/窗口模式自举“启动即验”脚本，验证主场景加载、关键节点/信号、资源路径与配置（详见第二问）。
+      - 代码重复&复杂度
+          - jscpd 仍可用（对 .gd/.cs 扫描，阈值起步 3–5%）；复杂度门禁建议迁 SonarQube（Godot/C# 规则更完备），以“质量阈值=绿灯”替代 JS 专用 complexity-
+            report。
+      - 依赖与安全
+          - C#：dotnet list package --vulnerable + Snyk（可选）；GDScript：主要靠 Sonar 自定义规则与白名单出网校验。
+      - 可观测性/发布健康
+          - Sentry Godot SDK：在 Autoload 场景最早初始化，启用 Release+Sessions；沿用“24h Crash‑Free ≥ 99.5%”的门禁，CI 读取 Sentry API 计算。
+      - 出包与缓存
+          - Windows 出包：godot.exe --headless --export-release "Windows Desktop" build/Game.exe；配置 export_presets.cfg 并在 CI 缓存 export templates。
+      - 统一入口（保留 guard:ci 思路，用 Python 包装）
+          - scripts/python/quality_gates.py 统一调度 gdlint/gdformat/GUT/jscpd/Sonar；日志输出到 logs/ci/YYYY-MM-DD/。
+
+  二、是否还需要 E2E 测试（冒烟/全量）
+
+  - 必须要有“冒烟 E2E”，用于：
+      - 启动×退出稳定性（主场景加载、无阻塞报错、资源路径正确）
+      - UI 可见性/信号连通性（关键 Control 节点出现；核心 signal 发出/被接收）
+      - 外链/网络策略（见安全基线：open_url/HTTPRequest 白名单）
+  - 全量 E2E 视功能成熟度分阶段推进：
+      - 阶段1（立即）：仅冒烟（≤5条），跑时 < 2 分钟，作为必过门禁。
+      - 阶段2（玩法成形）：增加“竖切场景”用例（相当于你当前 ENABLE_PLAYABLE），默认 skip，通过 GD_ENABLE_PLAYABLE=1 启用并在合适分支跑。
+      - 框架建议：优先 GUT（可跑 headless 场景测试），用 Autoload TestRunner 汇总到 logs/e2e/YYYY-MM-DD/summary.json。不再使用 Playwright（除非你仍有 Web
+        UI）。
+  - Windows 命令（建议由 Python 包装）
+      - godot.exe --headless --run-tests（或加载 TestRunner.tscn，测试完 get_tree().quit(code)）
+      - Python 包装（示例思路）：py -3 scripts/python/godot_tests.py --headless --smoke 写 JUnit/XML+JSON 到 logs/
+
+  三、安全与性能两大基座需改多大
+
+  - 安全（重设基线，等价于 Electron 的 ADR‑0002，在 Godot 侧重“外链/IO/网络/自启动”）
+      - 外链/URL 打开：集中封装 OS.shell_open()（或同类 API），只允许 https + 域白名单；写入 logs/ci/<date>/security-audit.jsonl；提供 SECURITY_TEST_MODE 以
+        测试态触发更详细日志。
+      - HTTP 请求：统一 HTTPRequest 出网白名单（域/协议/路径前缀）；默认 deny 非 https；可注入环境变量临时放行；审计同上。
+      - 文件系统：强制 user:// 写入（配置/存档），禁止任意绝对路径写/读；资源加载仅限 res:// 与显式资产表。
+      - 代码执行：禁止外部脚本动态加载/反射（C# 侧禁 P/Invoke/DLL 注入）；GDScript 禁用 load() 非受控路径。
+      - 自启动/场景：入口场景固定为受控 main；插件仅白名单启用；Autoload 单例名单受控并在启动时自检 dump。
+      - 观测与隐私：Sentry 初始化于最早 Autoload；默认脱敏（用户标识 hash）；版本/环境/会话上报打开。
+      - 建议落地件：
+          - Autoload Security.gd（open_url/HTTPRequest gate + 审计）
+          - Autoload Observability.gd（Sentry + 结构化日志）
+          - 安全烟测（GUT）：外链 allow/deny、非 https 拒绝、无白名单域拒绝、审计文件存在且结构正确
+  - 性能（等价于 ADR‑0015：预算与门禁）
+      - P95 帧时预算：目标 ≤ 16.6ms（60FPS），CI 上建议软门（≤ 20ms），本地/性能分支硬门。
+      - 启动时间：主场景可交互 ≤ 3s（软门），≤ 5s（硬上限，低性能机型留余量）。
+      - 资源策略：打包 .pck 分块/流式加载；纹理压缩；音频解码预热；场景预加载池。
+      - 采集与门禁：
+          - Headless 难以测渲染帧，CI 采用“逻辑帧耗时+关键步骤计时”，本地/专用 runner 机测真实帧（Engine.get_frames_per_second() + Time.get_ticks_msec()）。
+          - Python 报告器聚合统计，写入 logs/perf/YYYY-MM-DD/perf.json，门禁脚本比对阈值。
+      - 性能烟测（GUT/脚本）：启动路径计时、场景切换计时、AI/物理/输入回放 500 帧统计 P50/P95
+
+  超出你既有框架的建议（思维发散）
+
+  - 双轨过渡（降风险）：短期保留“老项目门禁结构”（Node/Python 外壳 + logs/ 目录规范 + Sentry Release Gate），但把内部工具全部替换成 Godot/GUT/Sonar 的实现，
+    先保证“门禁意义不变”，再逐步裁剪历史脚本。
+  - 先定语言后定工具：如果选 C#，CI 与门禁会更成熟（Roslyn/Sonar/.NET 生态全）；若坚定 GDScript，尽量把“复杂度/重复/安全”转由 SonarQube 统一承接，避免自己拼
+    装一堆脚本。
+  - 保留“开关指纹”：把 GD_ENABLE_PLAYABLE、GD_SECURE_MODE、GD_SCENE_SAMPLES 等写入指纹 JSON，沿用你现在的 E2E 指纹体系，排障非常省心。
+  - 安全一致性验证：把 Electron 阶段“域白名单+审计”经验直接迁移成 Godot 的 Security.gd 测试用 IPC 等价物（即测试直接调 Autoload 方法返回 allow/deny），减少
+    UI 依赖。
+
+  落地 TODO（按优先级，小步快跑）
+
+  - [进行中] 决策语言栈：GDScript 或 C#（影响 80% 工具链）
+  - [下一步] 定“基座 ADR”草案（Accepted 后执行）
+      - ADR‑0012‑godot-runtime（运行时与分发）
+      - ADR‑0013‑godot-security-baseline（白名单/IO/审计/隐私）
+      - ADR‑0014‑godot-test-strategy（GUT/NUnit、冒烟/竖切开关）
+      - ADR‑0015 沿用（性能预算），补 Godot 采集方法
+  - [下一步] CI 雏形（Windows）
+      - Python 入口：scripts/python/quality_gates.py（logs/ci/*）
+      - 安装/缓存 Godot 4.5 + export templates
+      - 出包：godot.exe --headless --export-release "Windows Desktop" build/Game.exe
+      - 测试：godot.exe --headless --run-tests（GUT），写 JUnit/XML+JSON
+      - Sonar 扫描：C# 用 SonarScanner for MSBuild；GDScript 用自定义规则+通用度量
+  - [随后] 安全/性能烟测
+      - Autoload Security.gd + 审计文件；GUT 覆盖 allow/deny/invalid 场景
+      - 启动/场景切换/逻辑回放计时并出 JSON；设软/硬门
+
+  你的三个问题的简答结论
+
+  - CI 门禁变动量：中到大（工具替换为主、门禁目标不变）。先用 Python 壳保留 guard:ci 结构，把 tsc/eslint/playwright/electronegativity 等替换为 gdlint/gut/
+    sonar/dotnet 工具。
+  - E2E 测试：保留且必须。短期只冒烟（启动/外链/信号/退出）、全量等玩法成熟后再启；竖切用 GD_ENABLE_PLAYABLE=1 开关控制。
+  - 安全&性能基座：需要“重设基线”（Godot 版 ADR‑0002 & 0015）。外链/网络/IO 审计+白名单、Sentry 最早初始化、性能预算与统计采集方式改为 Godot 指标。
+
+  需要我帮你：我可以先起一套最小 CI 骨架（Python 驱动 Godot 出包+GUT+指纹+logs/），同时生成上述 3 个 ADR 的草案与 Security/Observability 两个 Autoload 模板。
+  你更倾向 GDScript 还是 C# 路线？（直接决定工具选型与CI实现细节）
+
+
+  • 先挑错+止损
+
+  - 风险误判：把“Godot+C#”当作“原栈替换件”。实际需要“重划测试分层 + 重设安全/性能基线”，否则 E2E/门禁会继续高噪声。
+  - 可测性误区：把 Node/Scene 逻辑直接写进脚本，会让 TDD 变慢且脆弱。必须先抽离“纯 C# 领域层”，让 80% 逻辑在不依赖 Godot 的环境里红绿灯循环。
+
+  我推荐的测试栈（C#，贴合 TDD）
+
+  - 单元测试（主力，红绿灯最快）
+      - xUnit + FluentAssertions + NSubstitute（或 Moq）
+      - 理由：社区生态最好、Fact/Theory 语义天然 TDD、断言语义化、Mock 轻量
+      - 项目布局（建议）
+          - Game.Core（.NET Class Library，不引用 Godot）
+          - Game.Core.Tests（xUnit，仅测纯逻辑），覆盖率门禁用 coverlet
+  - 领域集成测试（轻量集成，不触碰渲染）
+      - 仍用 xUnit，测试“适配层”对 Godot API 的封装（通过接口+适配器隔离 Godot 静态/单例）
+      - 规则：所有对 Godot 的调用经 ITime、IInput、IResourceLoader 等接口；测试用 Fake/Mock 注入
+  - 场景/节点级测试（Engine 内集成）
+      - 方案A（成熟度高）：GdUnit4（支持 C#/GDScript），可在 Windows headless 跑，断言/夹具完善
+      - 方案B（可控性高）：自建 TestRunner（C# Autoload/场景），枚举带 [TestCase] 标记的测试类，写入 JUnit XML 到 logs/；用 godot.exe --headless 运行
+      - 用途：验证 Node 生命周期、signal 交互、资源/路径、场景切换
+  - 竖切/E2E（最少但必须）
+      - 用 headless Godot 回放“最小关键信号流”（启动→进入一关→发出完成信号），并产出截图/指标（写 logs/e2e/**）
+      - 默认只跑“冒烟”，全量竖切通过 GD_ENABLE_PLAYABLE=1 打开（与当前开关设计一致）
+
+  TDD 落地做法（结构与约束）
+
+  - 分层与依赖
+      - Game.Core：纯算法/状态机/领域模型，不依赖 Godot
+      - Adapters：Godot 到 Core 的绑定，唯一可触碰 Godot API 的地方（通过接口注入）
+      - Scenes：仅装配/信号转发/少量 UI glue
+  - TDD 循环
+      - 先写 Game.Core.Tests（xUnit）红→绿→重构，覆盖核心机制（输入处理/碰撞/分数/状态机等）
+      - 再写 Adapters 的契约测试（xUnit + Mock）
+      - 最后用 GdUnit4/Runner 做场景验证（信号连通/资源路径/Ctrl 可见）
+  - 可重复与确定性
+      - 注入 IClock/IRandom，隔离 Godot 的时间/随机，提高可重复性
+      - Assets 用清单白名单化，测试内禁绝直接 load 任意路径
+
+  Windows 兼容与命令（示例）
+
+  - 初始化
+      - dotnet：dotnet new sln → dotnet new classlib -n Game.Core → dotnet new xunit -n Game.Core.Tests → dotnet add Game.Core.Tests reference Game.Core
+      - 覆盖率门禁：dotnet add Game.Core.Tests package coverlet.collector；跑：dotnet test --collect:"XPlat Code Coverage"
+  - 场景测试（两选一）
+      - GdUnit4：安装插件；CI 用 godot.exe --headless --path . --gdunit-run（按插件文档），输出 JUnit/XML 到 logs/ci/...
+      - 自建 Runner：godot.exe --headless --path . --scene res://Tests/TestRunner.tscn（Runner 启动后遍历测试、落盘 JUnit/XML）
+
+  建议的门禁映射（替代你当前的 guard:ci）
+
+  - typecheck/lint：dotnet build /warnaserror + Roslyn 分析器；GDScript 若存在，用 gdlint 仅扫脚本目录
+  - unit：dotnet test（覆盖率 ≥90% 行/≥85% 分支）
+  - scene/integration：GdUnit4/Runner（冒烟必过）
+  - duplication：jscpd 跑 .cs/.gd（阈值 2–3% 起步）
+  - release-health：Sentry Godot SDK 初始化最早；CI 拉取 24h Crash‑Free ≥ 99.5%，不达标阻断
+  - 输出路径统一：所有测试/构建/审计日志落在 logs/（按日期/模块分目录）
+
+  超出你问题框架之外的建议
+
+  - 筑“可测试架构”：先抽 Game.Core，把 Godot 依赖彻底压到 Adapters；无此步，TDD 的速度与稳定性会显著降低。
+  - 先搭“最小可运行”CI：只跑 xUnit + 场景冒烟；等 Core 覆盖到 70% 后，再补充竖切；避免一开始全铺开导致门禁不稳。
+  - 安全/性能基线要迁 Godot 口径（不是照搬 Electron）
+      - 安全：统一封装 OS.ShellOpen/HTTPRequest 白名单+审计 JSONL；user:// 写入约束；隐私脱敏；Sentry Autoload 初始化
+      - 性能：P95 帧时/启动时长软门→硬门演进；headless 下用“逻辑耗时指标”，本地 Runner 机测真实 FPS
+
+  结论
+
+  - 单元/集成首选 xUnit（+FluentAssertions+NSubstitute），场景测试用 GdUnit4 或自建 Runner；这套最贴合 TDD 的“红绿灯效率”与“工程可维护性”。

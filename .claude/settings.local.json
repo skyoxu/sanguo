@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Sort-Object LastWriteTime -Descending)",
+      "Bash(Select-Object -First 1)",
+      "Bash(Select-Object Name, LastWriteTime)",
+      "Bash(dotnet build:*)",
+      "Bash(\"C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe\" --headless --path \"C:\\buildgame\\godotgame\" --build-solutions --quit)",
+      "Bash(git checkout:*)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(Get-ChildItem -Path \"docs\" -Directory -Name)",
+      "Bash(Test-Path \"docs/release\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

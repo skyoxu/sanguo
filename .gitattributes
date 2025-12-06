@@ -1,0 +1,33 @@
+* text=auto eol=crlf
+
+# Text files (force as text with CRLF in working tree)
+*.md      text eol=crlf
+*.txt     text eol=crlf
+*.cs      text diff=csharp eol=crlf
+*.csproj  text eol=crlf
+*.sln     text eol=crlf
+*.gd      text eol=crlf
+*.tscn    text eol=crlf
+*.tres    text eol=crlf
+*.json    text eol=crlf
+*.yml     text eol=crlf
+*.yaml    text eol=crlf
+*.xml     text eol=crlf
+*.ps1     text eol=crlf
+
+# Binary files (no EOL conversions)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.bmp  binary
+*.ico  binary
+*.ogg  binary
+*.wav  binary
+*.mp3  binary
+*.zip  binary
+*.7z   binary
+*.exe  binary
+*.dll  binary
+*.pdb  binary
+*.pck  binary

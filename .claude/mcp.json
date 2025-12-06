@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["@anthropic/claude-code-context7"]
+    },
+    "serena": {
+      "command": "npx",
+      "args": ["@anthropic/claude-code-serena"]
+    },
+    "sequential": {
+      "command": "npx",
+      "args": ["@anthropic/claude-code-sequential"]
+    }
+  }
+}

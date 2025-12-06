@@ -1,0 +1,74 @@
+﻿# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Windows reserved names
+nul
+NUL
+CON
+con
+PRN
+prn
+AUX
+aux
+COM1
+COM2
+COM3
+COM4
+COM5
+COM6
+COM7
+COM8
+COM9
+LPT1
+LPT2
+LPT3
+LPT4
+LPT5
+LPT6
+LPT7
+LPT8
+LPT9
+
+# Build and test artifacts
+build/
+reports/
+logs/
+gitlog/
+godot_local/
+tmp/
+**/bin/
+**/obj/
+.vs/
+TestResults/
+# Keep GdUnit4 CLI runner scripts inside plugin bin
+!Tests.Godot/addons/gdUnit4/bin/
+!Tests.Godot/addons/gdUnit4/bin/**
+# Godot/VS misc metadata not for VCS
+*.uid
+tmp_patch.txt
+
+# Local .NET SDK/runtime placed in repo (should not be versioned)
+.dotnet/
+
+# IDE/editor caches (keep project configs if any are explicitly added elsewhere)
+.idea/
+.vscode/
+
+# Windows/macOS system files
+Thumbs.db
+.DS_Store
+
+# Common local user files
+*.user
+*.suo
+
+# Debug symbols/build outputs not meant for VCS
+*.pdb
+
+# Godot editor binaries/downloads (keep project assets only)
+Godot_v*.exe
+Godot_*.zip
+
+# Local: ignore cifix artifacts
+cifix*.*

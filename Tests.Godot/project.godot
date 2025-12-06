@@ -1,0 +1,18 @@
+; Godot test project for GdUnit4 (headless)
+
+config_version=5
+
+[application]
+
+config/name="Godot Tests"
+config/features=PackedStringArray("4.5")
+config/icon="res://icon.svg"
+
+[editor_plugins]
+
+enabled=PackedStringArray("gdUnit4")
+
+[dotnet]
+
+project/assembly_name="Tests.Godot"
+project/project_path="res://Tests.Godot.csproj"
