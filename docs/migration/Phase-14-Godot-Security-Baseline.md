@@ -1,24 +1,24 @@
-﻿# Phase 14: Godot 瀹夊叏鍩虹嚎涓庡璁?
+# Phase 14: Godot 安全基线与审计
 
-> **鏍稿績鐩爣**锛氬疄鐜颁笌 Electron ADR-0002 绛変环鐨?Godot 瀹夊叏鍩虹嚎锛屽缓绔?URL 鐧藉悕鍗曘€丠TTPRequest 绾︽潫銆佹枃浠剁郴缁熶繚鎶ゃ€佸璁℃棩蹇楃殑瀹屾暣浣撶郴銆? 
-> **宸ヤ綔閲?*锛?-7 浜哄ぉ  
-> **渚濊禆**锛歅hase 8锛堝満鏅璁★級銆丳hase 12锛圚eadless 娴嬭瘯锛? 
-> **浜や粯鐗?*锛歋ecurity.cs Autoload + 8+ 涓?GdUnit4 娴嬭瘯 + ADR-0018 鑽夋 + CI 闆嗘垚  
-> **楠屾敹鏍囧噯**锛氭湰鍦?`npm run test:security` 閫氳繃 + 瀹夊叏瀹¤ JSONL 鐢熸垚
+> **核心目标**：实现与 Electron ADR-0002 等价的 Godot 安全基线，建立 URL 白名单、HTTPRequest 约束、文件系统保护、审计日志的完整体系。  
+> **工作量**：5-7 人天  
+> **依赖**：Phase 8（场景设计）、Phase 12（Headless 测试）  
+> **交付物**：Security.cs Autoload + 8+ 个 GdUnit4 测试 + ADR-0018 草案 + CI 集成  
+> **验收标准**：本地 `npm run test:security` 通过 + 安全审计 JSONL 生成
 
 ---
 
-## 1. 鑳屾櫙涓庡姩鏈?
+## 1. 背景与动机
 
-### 鍘熺増锛坴itegame锛夊畨鍏ㄥ熀绾?
+### 原版（vitegame）安全基线
 
-**Electron 瀹炵幇锛圓DR-0002锛?*锛?
+**Electron 实现（ADR-0002）**：
 - nodeIntegration=false, contextIsolation=true, sandbox=true
-- 涓ユ牸 CSP锛氭棤 unsafe-inline/eval锛宑onnect-src 鐧藉悕鍗?
-- Preload 鑴氭湰鐧藉悕鍗曟毚闇?API锛屼富杩涚▼楠岃瘉鍙傛暟
-- HTTP 璇锋眰寮哄埗 HTTPS锛屽煙/璺緞鐧藉悕鍗?
+- 严格 CSP：无 unsafe-inline/eval，connect-src 白名单
+- Preload 脚本白名单暴露 API，主进程验证参数
+- HTTP 请求强制 HTTPS，域/路径白名单
 
-**浠ｇ爜绀轰緥**锛?
+**代码示例**：
 ```javascript
 // electron/main.ts
 const window = new BrowserWindow({
@@ -36,58 +36,37 @@ window.webContents.session.webRequest.onBeforeSendHeaders(
 );
 ```
 
-### Godot 鐗瑰畾鎸戞垬
+### Godot 特定挑战
 
-| 鎸戞垬 | 鏍瑰洜 | Godot 瑙ｅ喅鏂规 |
+| 挑战 | 根因 | Godot 解决方案 |
 |-----|-----|--------------|
-| 鏃犳祻瑙堝櫒 CSP | 鑴氭湰璇█鑷敱搴﹂珮 | 搴旂敤灞傜櫧鍚嶅崟 + 杩愯鏃舵鏌?|
-| HTTPRequest API 涓嶅悓 | Godot 鍐呯疆绫诲瀷 | 鑷畾涔夐€傞厤灞傦紙HTTPSecurityWrapper锛?|
-| 鏂囦欢绯荤粺鏃犳矙绠?| 鑴氭湰鍙闂换鎰忚矾寰?| user:// 绾︽潫 + 杩愯鏃跺畧鍗?|
-| Signal 鏃犵被鍨嬪畨鍏?| 寮辩被鍨嬩俊鍙风郴缁?| 濂戠害瀹氫箟 + 娴嬭瘯瑕嗙洊 + Lint |
-| 鏃犲師鐢熷璁?API | 鏃?Sentry SDK锛?Native锛?| JSONL 鏈湴 + Sentry.cs 涓诲姩涓婃姤 |
+| 无浏览器 CSP | 脚本语言自由度高 | 应用层白名单 + 运行时检查 |
+| HTTPRequest API 不同 | Godot 内置类型 | 自定义适配层（HTTPSecurityWrapper） |
+| 文件系统无沙箱 | 脚本可访问任意路径 | user:// 约束 + 运行时守卫 |
+| Signal 无类型安全 | 弱类型信号系统 | 契约定义 + 测试覆盖 + Lint |
+| 无原生审计 API | 无 Sentry SDK（ Native） | JSONL 本地 + Sentry.cs 主动上报 |
 
-### 瀹夊叏鍩虹嚎鐨勪环鍊?
+### 安全基线的价值
 
-1. **闃插尽鍏ヤ镜**锛氱櫧鍚嶅崟鏈哄埗闃绘鎭舵剰澶栬仈涓庢湰鍦版枃浠惰闂?
-2. **鍚堣瀹¤**锛氬畬鏁村璁℃棩蹇楁弧瓒?SOC2/ISO27001 璇佹槑闇€姹?
-3. **浜嬪悗婧簮**锛欽SONL 璁板綍鎵€鏈夊畨鍏ㄥ喅绛栦笌鎷掔粷鍘熷洜
-4. **娓愯繘澧炲己**锛氬熀纭€瑙勫垯 + 鍙墿灞曡嚜瀹氫箟瑙勫垯寮曟搸
+1. **防御入侵**：白名单机制阻止恶意外联与本地文件访问
+2. **合规审计**：完整审计日志满足 SOC2/ISO27001 证明需求
+3. **事后溯源**：JSONL 记录所有安全决策与拒绝原因
+4. **渐进增强**：基础规则 + 可扩展自定义规则引擎
 
 ---
 
-## 2. 瀹夊叏鍩虹嚎瀹氫箟
+## 2. 安全基线定义
 
-### 2.0 Godot+C# 鍙樹綋锛堝綋鍓嶆ā鏉垮疄鐜帮級
+### 2.1 5 大防守领域
 
-> 鏈妭鎻忚堪鐨勬槸 **godotgame 妯℃澘宸茬粡钀藉湴鐨勫畨鍏ㄥ熀绾垮疄鐜?*锛岀敤浜庡榻?ADR鈥?002/0006 涓庤繍琛屾椂浠ｇ爜銆備笅鏂囩粰鍑虹殑澶у彿 `Security : Node` 绀轰緥浠嶇劧鏄摑鍥剧骇鍙傝€冿紝涓嶄唬琛ㄥ綋鍓嶄粨搴撶殑鍞竴瀹炵幇褰㈠紡銆?
-- 鑷涓庡璁★紙鍚姩鍩虹嚎锛夛細
-  - Autoload锛歚SecurityAudit="res://Game.Godot/Scripts/Security/SecurityAudit.cs"` 宸插湪 `project.godot` 涓厤缃紱
-  - 鍚姩鏃跺啓鍏?`user://logs/security/security-audit.jsonl`锛岃褰曪細
-    - `ts`锛歎TC 鏃堕棿鎴筹紙ISO8601锛夛紱
-    - `event_type="SECURITY_BASELINE"`锛?    - `app`锛氬簲鐢ㄥ悕绉帮紙浠?`application/config/name` 鑾峰彇锛屽け璐ユ椂閫€鍖栦负 `GodotGame`锛夛紱
-    - `godot`锛欸odot 鐗堟湰瀛楃涓诧紱
-    - `db_backend`锛歚GODOT_DB_BACKEND` 鐜鍙橀噺鎴?`default`锛?    - `demo`锛歚TEMPLATE_DEMO` 鐜鍙橀噺鏄惁涓?`1`锛?    - `plugin_sqlite`锛氭槸鍚︽帰娴嬪埌 SQLite 鎻掍欢绫诲瓨鍦ㄣ€?
-- DB 瀹夊叏涓庡璁★紙鏁版嵁瀛樺偍鍙樹綋锛屽綊鍙?ADR鈥?006锛夛細
-  - 缁勪欢锛歚Game.Godot/Adapters/SqliteDataStore.cs` 瀹炵幇 `ISqlDatabase`锛屽苟鍦?`Open(string dbPath)` 涓己鍒讹細
-    - 浠呭厑璁?`user://` 鍓嶇紑璺緞锛?    - 绂佹鍖呭惈 `..` 鐨勮矾寰勭┛瓒婏紱
-    - 浣跨敤 `GlobalizePath` 鍚庝繚璇佺洰褰曞瓨鍦ㄣ€?  - 瀹¤锛?    - 鍦?`TryOpen/Execute/Query` 绛夊け璐ヨ矾寰勮皟鐢ㄥ唴閮?`Audit(action, reason, target)`锛?    - 鍐欏叆 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`锛?    - 瀛楁鏍煎紡锛歚{ ts, action, reason, target, caller }`锛屼笌 ADR鈥?006 / AGENTS.md 涓 DB 瀹¤鏃ュ織鐨勫彛寰勪竴鑷淬€?
-- HTTP 瀹夊叏涓庡璁★紙缃戠粶鐧藉悕鍗曞彉浣擄級锛?  - 缁勪欢锛歚Game.Godot/Scripts/Security/SecurityHttpClient.cs`锛屼綔涓?`Node` 绾?http 楠岃瘉鍣細
-    - `AllowedDomains` / `AllowedMethods` / `EnforceHttps` / `MaxBodyBytes` 閫氳繃 [Export] 鎻愪緵閰嶇疆锛?    - `Validate(method, url, contentType, bodyBytes)`锛?      - 鎷掔粷绌?URL銆乣file://`銆侀潪 https锛堝湪 `EnforceHttps==true` 鏃讹級锛?      - 鎷掔粷涓嶅湪 `AllowedDomains` 鍐呯殑鍩熷悕锛?      - 鎷掔粷缂哄皯 `Content-Type` 鐨?POST锛?      - 鎷掔粷瓒呰繃 `MaxBodyBytes` 鐨勮姹備綋锛?      - 鍏佽璇锋眰鏃惰 `HTTP_ALLOWED` 瀹¤浜嬩欢銆?  - 瀹¤杈撳嚭锛?    - 闃绘柇鏃讹細閫氳繃 `RequestBlocked(reason, url)` Signal 鏆撮湶缁?GDScript锛?    - 鎵€鏈夊厑璁?鎷掔粷璺緞璋冪敤 `Audit(eventType, url, reason)`锛屽啓鍏?`user://logs/security/audit-http.jsonl`锛?    - 瀛楁鏍煎紡锛歚{ ts, event_type, url, reason, source }`銆?
-- 宸叉湁瀹夊叏娴嬭瘯锛圙dUnit4锛夛細
-  - HTTP 鎷︽埅涓庡璁★細
-    - `Tests.Godot/tests/Integration/Security/test_security_http_client.gd`锛氶獙璇?http 鍗忚銆佹湭鐭ュ煙鍚嶃€丳OST 鏃?Content-Type/瓒呭ぇ body 琚嫆缁濓紱
-    - `Tests.Godot/tests/Integration/Security/test_security_http_audit.gd`锛氶獙璇佹嫆缁濊矾寰勪細鍐欏叆 `audit-http.jsonl`锛屼笖 `event_type` 鍖呭惈 `protocol_denied`锛?    - `Tests.Godot/tests/Integration/Security/test_security_http_allowed_audit.gd`锛氶獙璇佸厑璁歌矾寰勫啓鍏?`HTTP_ALLOWED` 浜嬩欢銆?  - DB 瀹¤涓庡け璐ヨ矾寰勶細
-    - `Tests.Godot/tests/Security/Backlog/test_db_audit_exec_query_fail.gd`锛氶獙璇?DB 鎵ц澶辫触鏃朵細鍦?`logs/ci/<date>/security-audit.jsonl` 涓拷鍔犲璁¤銆?
-> 鍚庣画濡傞渶鎵╁睍 URL/file/signal 绛夐澶栧畨鍏ㄨ鍒欙紝搴斾紭鍏堝湪涓婅堪缁勪欢鍩虹涓婂閲忓疄鐜帮紝骞跺湪 Phase-14 Backlog 涓櫥璁版墿灞曢」銆?
-### 2.1 5 澶ч槻瀹堥鍩?
-#### A. 缃戠粶鐧藉悕鍗曪紙URL / Domain锛?
+#### A. 网络白名单（URL / Domain）
 
-**瑙勫垯**锛?
-- [鍏佽]锛歨ttps://sentry.io, https://api.example.com 绛夊彈淇″煙
-- FAIL **Deny**锛氶潪鐧藉悕鍗曞煙銆乭ttp 鍗忚銆乫ile:// 鏈湴璺緞
-- FAIL **Deny**锛?./../../ 璺緞绌胯秺
+**规则**：
+- [允许]：https://sentry.io, https://api.example.com 等受信域
+- FAIL **Deny**：非白名单域、http 协议、file:// 本地路径
+- FAIL **Deny**：../../../ 路径穿越
 
-**瀹炵幇**锛?
+**实现**：
 ```csharp
 using Godot;
 using System;
@@ -153,15 +132,15 @@ public partial class Security : Node
 }
 ```
 
-#### B. HTTPRequest 绾︽潫
+#### B. HTTPRequest 约束
 
-**瑙勫垯**锛?
-- [鍏佽]锛欸ET锛堟暟鎹幏鍙栵級銆丳OST锛圫entry 涓婃姤锛?
-- FAIL **Deny**锛歅UT銆丏ELETE銆丳ATCH锛堜慨鏀规搷浣滐級
-- FAIL **Deny**锛氭棤 Content-Type 鐨?POST
-- FAIL **Deny**锛氳秴澶ц姹備綋锛?10MB锛?
+**规则**：
+- [允许]：GET（数据获取）、POST（Sentry 上报）
+- FAIL **Deny**：PUT、DELETE、PATCH（修改操作）
+- FAIL **Deny**：无 Content-Type 的 POST
+- FAIL **Deny**：超大请求体（>10MB）
 
-**瀹炵幇**锛?
+**实现**：
 ```csharp
 using Godot;
 using System;
@@ -227,15 +206,15 @@ public partial class Security : Node
 }
 ```
 
-#### C. 鏂囦欢绯荤粺淇濇姢
+#### C. 文件系统保护
 
-**瑙勫垯**锛?
-- [鍏佽]锛歳es:// 锛堣祫婧愮洰褰曪紝鍙锛?
-- [鍏佽]锛歶ser:// 锛堢敤鎴锋暟鎹洰褰曪紝璇诲啓锛?
-- FAIL **Deny**锛歰s.* 璺緞锛堢粷瀵硅矾寰勶級
-- FAIL **Deny**锛?./ 璺緞绌胯秺
+**规则**：
+- [允许]：res:// （资源目录，只读）
+- [允许]：user:// （用户数据目录，读写）
+- FAIL **Deny**：os.* 路径（绝对路径）
+- FAIL **Deny**：../ 路径穿越
 
-**瀹炵幇**锛?
+**实现**：
 ```csharp
 using Godot;
 using System;
@@ -301,24 +280,24 @@ public partial class Security : Node
 }
 ```
 
-#### D. 瀹¤鏃ュ織锛圝SONL锛?
+#### D. 审计日志（JSONL）
 
-**鏍煎紡**锛?
+**格式**：
 ```jsonl
 {"timestamp":"2025-11-07T10:30:45.123Z","event_type":"URL_ALLOWED","resource":"https://sentry.io/api/events/","decision":"ALLOW","reason":"passed all checks","source":"Security.is_url_allowed"}
 {"timestamp":"2025-11-07T10:30:46.456Z","event_type":"DOMAIN_DENIED","resource":"https://malicious.com/data","decision":"DENY","reason":"domain not in whitelist: malicious.com","source":"Security.is_url_allowed"}
 {"timestamp":"2025-11-07T10:30:47.789Z","event_type":"HTTP_REQUEST_INITIATED","resource":"https://api.example.com/user","decision":"ALLOW","reason":"method=GET","source":"HTTPSecurityWrapper.request_secure"}
 ```
 
-**瀛楁**锛?
-- timestamp锛欼SO 8601 鏍煎紡锛岀簿纭埌姣
-- event_type锛氭灇涓惧€硷紙URL_ALLOWED, DOMAIN_DENIED, HTTP_METHOD_DENIED 绛夛級
-- resource锛氭搷浣滅殑璧勬簮锛圲RL銆佹枃浠惰矾寰勶級
-- decision锛欰LLOW / DENY / ERROR
-- reason锛氫汉绫诲彲璇荤殑鍐崇瓥鍘熷洜
-- source锛氬彂鍑哄喅绛栫殑鍑芥暟/鏂规硶
+**字段**：
+- timestamp：ISO 8601 格式，精确到毫秒
+- event_type：枚举值（URL_ALLOWED, DOMAIN_DENIED, HTTP_METHOD_DENIED 等）
+- resource：操作的资源（URL、文件路径）
+- decision：ALLOW / DENY / ERROR
+- reason：人类可读的决策原因
+- source：发出决策的函数/方法
 
-**瀹炵幇**锛?
+**实现**：
 ```csharp
 using Godot;
 using System;
@@ -384,14 +363,14 @@ public partial class Security : Node
 }
 ```
 
-#### E. Signal 濂戠害楠岃瘉
+#### E. Signal 契约验证
 
-**瑙勫垯**锛?
-- [鍏佽]锛氶瀹氫箟鐨?Signal锛坓ame_started, game_over 绛夛級
-- FAIL **Deny**锛氭湭娉ㄥ唽鐨?Signal 鍙戦€?
-- FAIL **Deny**锛歋ignal 鍙傛暟绫诲瀷涓嶅尮閰?
+**规则**：
+- [允许]：预定义的 Signal（game_started, game_over 等）
+- FAIL **Deny**：未注册的 Signal 发送
+- FAIL **Deny**：Signal 参数类型不匹配
 
-**瀹炵幇**锛堥€氳繃 GdUnit4 娴嬭瘯楠岃瘉锛夛細
+**实现**（通过 GdUnit4 测试验证）：
 ```csharp
 using Godot;
 using System;
@@ -459,9 +438,9 @@ public partial class Security : Node
 
 ---
 
-## 3. Security.cs Autoload 瀹屾暣瀹炵幇
+## 3. Security.cs Autoload 完整实现
 
-### 3.1 鏍稿績缁撴瀯
+### 3.1 核心结构
 
  ```csharp
 using Godot;
@@ -530,302 +509,30 @@ public partial class Security : Node
 
 ---
 
-## 4. 鍙戝竷鍖呭畬鏁存€т笌鏉冮檺绛栫暐锛圵indows + C#锛?
+## 4. 发布包完整性与权限策略（Windows + C#）
 
-### 4.1 浠ｇ爜绛惧悕涓庡畬鏁存€ф牎楠?
-- 浣跨敤 signtool 瀵瑰鍑虹殑 `*.exe` 杩涜 SHA256 绛惧悕锛堣 Phase-17 闄勫綍 `scripts/sign_executable.py`锛夛紱
-- 鍦ㄥ彂甯冨墠鐢熸垚鏍￠獙鍜屾竻鍗曪紙SHA256锛夛紝鍦ㄥ彂甯冭鏄庝腑鎻愪緵涓嬭浇涓庢牎楠屾寚寮曪紱
-- CI 涓皢绛惧悕鏃ュ織涓庢牎楠屽拰钀界洏 `logs/ci/YYYY-MM-DD/security/`锛屽綊妗ｄ笌闂ㄧ涓€鍚屼繚瀛樸€?
+### 4.1 代码签名与完整性校验
+- 使用 signtool 对导出的 `*.exe` 进行 SHA256 签名（见 Phase-17 附录 `scripts/sign_executable.py`）；
+- 在发布前生成校验和清单（SHA256），在发布说明中提供下载与校验指引；
+- CI 中将签名日志与校验和落盘 `logs/ci/YYYY-MM-DD/security/`，归档与门禁一同保存。
 
-### 4.2 鏂囦欢绯荤粺涓?SQLite 鏉冮檺
-- 浠呭湪 `user://` 涓嬭鍐欒繍琛屾椂鏁版嵁锛宍res://` 涓ユ牸鍙锛?
-- SQLite 鏁版嵁搴撴枃浠跺缓璁斁缃簬 `user://data/`锛岃褰曟枃浠舵潈闄愮瓥鐣ヤ笌杞浆锛圵AL 妯″紡銆佸浠界洰褰曪級锛?
-- 鏃ュ織涓庡璁★紙JSONL锛夎矾寰勭粺涓€涓?`user://logs/<module>/`锛岄伩鍏嶅啓鍏ユ湭鐭ヤ綅缃紱
-- 绂佹浠ョ粷瀵硅矾寰勮闂郴缁熺洰褰曪紱鍦ㄥ璁′腑璁板綍鎷掔粷鍘熷洜涓庤皟鐢ㄦ簮銆?
+### 4.2 文件系统与 SQLite 权限
+- 仅在 `user://` 下读写运行时数据，`res://` 严格只读；
+- SQLite 数据库文件建议放置于 `user://data/`，记录文件权限策略与轮转（WAL 模式、备份目录）；
+- 日志与审计（JSONL）路径统一为 `user://logs/<module>/`，避免写入未知位置；
+- 禁止以绝对路径访问系统目录；在审计中记录拒绝原因与调用源。
 
-### 4.3 鍙嶅皠/鍔ㄦ€佸姞杞介檺鍒?
-- 绂佹浠庝笉鍙椾俊浠讳綅缃姩鎬佸姞杞?DLL/鑴氭湰锛圙DNative/Reflection 鍙楅檺锛夛紱
-- 鍦ㄤ唬鐮佸璁¤剼鏈腑鎵弿楂樺嵄 API锛堝弽灏勮皟鐢?DllImport/Process.Start 绛夛級锛?
-- 灏嗏€滃畨鍏ㄥ璁¤剼鏈€濊緭鍑鸿惤鐩樹负 `logs/ci/YYYY-MM-DD/security/security-audit.json`锛屼綔涓?Phase-13 鍙€夐棬绂佹潵婧愶紙閿欒鏁?0锛夈€?
+### 4.3 反射/动态加载限制
+- 禁止从不受信任位置动态加载 DLL/脚本（GDNative/Reflection 受限）；
+- 在代码审计脚本中扫描高危 API（反射调用/DllImport/Process.Start 等）；
+- 将“安全审计脚本”输出落盘为 `logs/ci/YYYY-MM-DD/security/security-audit.json`，作为 Phase-13 可选门禁来源（错误数=0）。
 
-### 4.4 闅愮涓庤劚鏁?
-- 瀵规棩蹇椾腑鍙兘鍖呭惈鐨勮矾寰?鐢ㄦ埛淇℃伅杩涜鑴辨晱锛?
-- Sentry 涓紑鍚?PII 绛栫暐涓庨噰鏍风巼锛屽噺灏戞晱鎰熶俊鎭毚闇诧紱
-- 灏嗚劚鏁忚鍒欎笌閲囨牱鐜囦綔涓烘瀯寤哄厓鏁版嵁鐨勪竴閮ㄥ垎锛堝弬鑰?Phase-16 涓?Phase-17锛夈€?
+### 4.4 隐私与脱敏
+- 对日志中可能包含的路径/用户信息进行脱敏；
+- Sentry 中开启 PII 策略与采样率，减少敏感信息暴露；
+- 将脱敏规则与采样率作为构建元数据的一部分（参考 Phase-16 与 Phase-17）。
 
-### 3.2 HTTPSecurityWrapper 瀹炵幇
-
-```csharp
-using Godot;
-using System;
-using System.Text.Json;
-using System.IO;
-
-public partial class Security : Node
-{
-    private static readonly string[] AllowedDomains = new []{"https://example.com","https://sentry.io"};
-
-    public bool OpenUrlSafe(string url)
-    {
-        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-        {
-            Audit("PROTOCOL_DENIED", url, "not https");
-            return false;
-        }
-        var allowed = false;
-        foreach (var d in AllowedDomains)
-        {
-            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase)) { allowed = true; break; }
-        }
-        if (!allowed)
-        {
-            Audit("DOMAIN_DENIED", url, "not in whitelist");
-            return false;
-        }
-        OS.ShellOpen(url);
-        Audit("URL_ALLOWED", url, "ok");
-        return true;
-    }
-
-    public FileAccess? OpenFileSecure(string path, FileAccess.ModeFlags mode)
-    {
-        if (!(path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("user://", StringComparison.OrdinalIgnoreCase)))
-        {
-            Audit("FILE_PATH_DENIED", path, "not res:// or user://");
-            return null;
-        }
-        if (path.Contains("../"))
-        {
-            Audit("FILE_TRAVERSAL_BLOCKED", path, "contains ../");
-            return null;
-        }
-        if (path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) && mode != FileAccess.ModeFlags.Read)
-        {
-            Audit("RES_WRITE_BLOCKED", path, "res:// read-only");
-            return null;
-        }
-        Audit("FILE_OPEN_ALLOWED", path, $"mode={mode}");
-        return FileAccess.Open(path, mode);
-    }
-
-    private void Audit(string eventType, string resource, string reason)
-    {
-        var entry = new { timestamp = DateTime.UtcNow.ToString("O"), event_type = eventType, resource, decision = eventType.EndsWith("ALLOWED")?"ALLOW":"DENY", reason, source = nameof(Security)};
-        var line = JsonSerializer.Serialize(entry) + "
-";
-        var dir = ProjectSettings.GlobalizePath("user://logs/security");
-        Directory.CreateDirectory(dir);
-        File.AppendAllText(Path.Combine(dir, "audit.jsonl"), line);
-    }
-}
-```
-
----
-
-## 4. GdUnit4 娴嬭瘯濂椾欢锛?+ 涓祴璇曪級
-
-### 4.1 URL 鐧藉悕鍗曟祴璇?
-
-```csharp
-using Godot;
-using System;
-using System.Text.Json;
-using System.IO;
-
-public partial class Security : Node
-{
-    private static readonly string[] AllowedDomains = new []{"https://example.com","https://sentry.io"};
-
-    public bool OpenUrlSafe(string url)
-    {
-        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-        {
-            Audit("PROTOCOL_DENIED", url, "not https");
-            return false;
-        }
-        var allowed = false;
-        foreach (var d in AllowedDomains)
-        {
-            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase)) { allowed = true; break; }
-        }
-        if (!allowed)
-        {
-            Audit("DOMAIN_DENIED", url, "not in whitelist");
-            return false;
-        }
-        OS.ShellOpen(url);
-        Audit("URL_ALLOWED", url, "ok");
-        return true;
-    }
-
-    public FileAccess? OpenFileSecure(string path, FileAccess.ModeFlags mode)
-    {
-        if (!(path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("user://", StringComparison.OrdinalIgnoreCase)))
-        {
-            Audit("FILE_PATH_DENIED", path, "not res:// or user://");
-            return null;
-        }
-        if (path.Contains("../"))
-        {
-            Audit("FILE_TRAVERSAL_BLOCKED", path, "contains ../");
-            return null;
-        }
-        if (path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) && mode != FileAccess.ModeFlags.Read)
-        {
-            Audit("RES_WRITE_BLOCKED", path, "res:// read-only");
-            return null;
-        }
-        Audit("FILE_OPEN_ALLOWED", path, $"mode={mode}");
-        return FileAccess.Open(path, mode);
-    }
-
-    private void Audit(string eventType, string resource, string reason)
-    {
-        var entry = new { timestamp = DateTime.UtcNow.ToString("O"), event_type = eventType, resource, decision = eventType.EndsWith("ALLOWED")?"ALLOW":"DENY", reason, source = nameof(Security)};
-        var line = JsonSerializer.Serialize(entry) + "
-";
-        var dir = ProjectSettings.GlobalizePath("user://logs/security");
-        Directory.CreateDirectory(dir);
-        File.AppendAllText(Path.Combine(dir, "audit.jsonl"), line);
-    }
-}
-```
-
-### 4.2 HTTPRequest 瀹夊叏娴嬭瘯
-
-```csharp
-using Godot;
-using System;
-using System.Text.Json;
-using System.IO;
-
-public partial class Security : Node
-{
-    private static readonly string[] AllowedDomains = new []{"https://example.com","https://sentry.io"};
-
-    public bool OpenUrlSafe(string url)
-    {
-        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-        {
-            Audit("PROTOCOL_DENIED", url, "not https");
-            return false;
-        }
-        var allowed = false;
-        foreach (var d in AllowedDomains)
-        {
-            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase)) { allowed = true; break; }
-        }
-        if (!allowed)
-        {
-            Audit("DOMAIN_DENIED", url, "not in whitelist");
-            return false;
-        }
-        OS.ShellOpen(url);
-        Audit("URL_ALLOWED", url, "ok");
-        return true;
-    }
-
-    public FileAccess? OpenFileSecure(string path, FileAccess.ModeFlags mode)
-    {
-        if (!(path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("user://", StringComparison.OrdinalIgnoreCase)))
-        {
-            Audit("FILE_PATH_DENIED", path, "not res:// or user://");
-            return null;
-        }
-        if (path.Contains("../"))
-        {
-            Audit("FILE_TRAVERSAL_BLOCKED", path, "contains ../");
-            return null;
-        }
-        if (path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) && mode != FileAccess.ModeFlags.Read)
-        {
-            Audit("RES_WRITE_BLOCKED", path, "res:// read-only");
-            return null;
-        }
-        Audit("FILE_OPEN_ALLOWED", path, $"mode={mode}");
-        return FileAccess.Open(path, mode);
-    }
-
-    private void Audit(string eventType, string resource, string reason)
-    {
-        var entry = new { timestamp = DateTime.UtcNow.ToString("O"), event_type = eventType, resource, decision = eventType.EndsWith("ALLOWED")?"ALLOW":"DENY", reason, source = nameof(Security)};
-        var line = JsonSerializer.Serialize(entry) + "
-";
-        var dir = ProjectSettings.GlobalizePath("user://logs/security");
-        Directory.CreateDirectory(dir);
-        File.AppendAllText(Path.Combine(dir, "audit.jsonl"), line);
-    }
-}
-```
-
-### 4.3 鏂囦欢绯荤粺淇濇姢娴嬭瘯
-
-```csharp
-using Godot;
-using System;
-using System.Text.Json;
-using System.IO;
-
-public partial class Security : Node
-{
-    private static readonly string[] AllowedDomains = new []{"https://example.com","https://sentry.io"};
-
-    public bool OpenUrlSafe(string url)
-    {
-        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-        {
-            Audit("PROTOCOL_DENIED", url, "not https");
-            return false;
-        }
-        var allowed = false;
-        foreach (var d in AllowedDomains)
-        {
-            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase)) { allowed = true; break; }
-        }
-        if (!allowed)
-        {
-            Audit("DOMAIN_DENIED", url, "not in whitelist");
-            return false;
-        }
-        OS.ShellOpen(url);
-        Audit("URL_ALLOWED", url, "ok");
-        return true;
-    }
-
-    public FileAccess? OpenFileSecure(string path, FileAccess.ModeFlags mode)
-    {
-        if (!(path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("user://", StringComparison.OrdinalIgnoreCase)))
-        {
-            Audit("FILE_PATH_DENIED", path, "not res:// or user://");
-            return null;
-        }
-        if (path.Contains("../"))
-        {
-            Audit("FILE_TRAVERSAL_BLOCKED", path, "contains ../");
-            return null;
-        }
-        if (path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) && mode != FileAccess.ModeFlags.Read)
-        {
-            Audit("RES_WRITE_BLOCKED", path, "res:// read-only");
-            return null;
-        }
-        Audit("FILE_OPEN_ALLOWED", path, $"mode={mode}");
-        return FileAccess.Open(path, mode);
-    }
-
-    private void Audit(string eventType, string resource, string reason)
-    {
-        var entry = new { timestamp = DateTime.UtcNow.ToString("O"), event_type = eventType, resource, decision = eventType.EndsWith("ALLOWED")?"ALLOW":"DENY", reason, source = nameof(Security)};
-        var line = JsonSerializer.Serialize(entry) + "
-";
-        var dir = ProjectSettings.GlobalizePath("user://logs/security");
-        Directory.CreateDirectory(dir);
-        File.AppendAllText(Path.Combine(dir, "audit.jsonl"), line);
-    }
-}
-```
-
-### 4.4 瀹¤鏃ュ織娴嬭瘯
+### 3.2 HTTPSecurityWrapper 实现
 
 ```csharp
 using Godot;
@@ -894,34 +601,306 @@ public partial class Security : Node
 
 ---
 
-## 5. ADR-0018 鑽夋
+## 4. GdUnit4 测试套件（8+ 个测试）
 
-### ADR-0018: Godot 瀹夊叏鍩虹嚎涓庤繍琛屾椂闃叉姢
+### 4.1 URL 白名单测试
+
+```csharp
+using Godot;
+using System;
+using System.Text.Json;
+using System.IO;
+
+public partial class Security : Node
+{
+    private static readonly string[] AllowedDomains = new []{"https://example.com","https://sentry.io"};
+
+    public bool OpenUrlSafe(string url)
+    {
+        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            Audit("PROTOCOL_DENIED", url, "not https");
+            return false;
+        }
+        var allowed = false;
+        foreach (var d in AllowedDomains)
+        {
+            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase)) { allowed = true; break; }
+        }
+        if (!allowed)
+        {
+            Audit("DOMAIN_DENIED", url, "not in whitelist");
+            return false;
+        }
+        OS.ShellOpen(url);
+        Audit("URL_ALLOWED", url, "ok");
+        return true;
+    }
+
+    public FileAccess? OpenFileSecure(string path, FileAccess.ModeFlags mode)
+    {
+        if (!(path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("user://", StringComparison.OrdinalIgnoreCase)))
+        {
+            Audit("FILE_PATH_DENIED", path, "not res:// or user://");
+            return null;
+        }
+        if (path.Contains("../"))
+        {
+            Audit("FILE_TRAVERSAL_BLOCKED", path, "contains ../");
+            return null;
+        }
+        if (path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) && mode != FileAccess.ModeFlags.Read)
+        {
+            Audit("RES_WRITE_BLOCKED", path, "res:// read-only");
+            return null;
+        }
+        Audit("FILE_OPEN_ALLOWED", path, $"mode={mode}");
+        return FileAccess.Open(path, mode);
+    }
+
+    private void Audit(string eventType, string resource, string reason)
+    {
+        var entry = new { timestamp = DateTime.UtcNow.ToString("O"), event_type = eventType, resource, decision = eventType.EndsWith("ALLOWED")?"ALLOW":"DENY", reason, source = nameof(Security)};
+        var line = JsonSerializer.Serialize(entry) + "
+";
+        var dir = ProjectSettings.GlobalizePath("user://logs/security");
+        Directory.CreateDirectory(dir);
+        File.AppendAllText(Path.Combine(dir, "audit.jsonl"), line);
+    }
+}
+```
+
+### 4.2 HTTPRequest 安全测试
+
+```csharp
+using Godot;
+using System;
+using System.Text.Json;
+using System.IO;
+
+public partial class Security : Node
+{
+    private static readonly string[] AllowedDomains = new []{"https://example.com","https://sentry.io"};
+
+    public bool OpenUrlSafe(string url)
+    {
+        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            Audit("PROTOCOL_DENIED", url, "not https");
+            return false;
+        }
+        var allowed = false;
+        foreach (var d in AllowedDomains)
+        {
+            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase)) { allowed = true; break; }
+        }
+        if (!allowed)
+        {
+            Audit("DOMAIN_DENIED", url, "not in whitelist");
+            return false;
+        }
+        OS.ShellOpen(url);
+        Audit("URL_ALLOWED", url, "ok");
+        return true;
+    }
+
+    public FileAccess? OpenFileSecure(string path, FileAccess.ModeFlags mode)
+    {
+        if (!(path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("user://", StringComparison.OrdinalIgnoreCase)))
+        {
+            Audit("FILE_PATH_DENIED", path, "not res:// or user://");
+            return null;
+        }
+        if (path.Contains("../"))
+        {
+            Audit("FILE_TRAVERSAL_BLOCKED", path, "contains ../");
+            return null;
+        }
+        if (path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) && mode != FileAccess.ModeFlags.Read)
+        {
+            Audit("RES_WRITE_BLOCKED", path, "res:// read-only");
+            return null;
+        }
+        Audit("FILE_OPEN_ALLOWED", path, $"mode={mode}");
+        return FileAccess.Open(path, mode);
+    }
+
+    private void Audit(string eventType, string resource, string reason)
+    {
+        var entry = new { timestamp = DateTime.UtcNow.ToString("O"), event_type = eventType, resource, decision = eventType.EndsWith("ALLOWED")?"ALLOW":"DENY", reason, source = nameof(Security)};
+        var line = JsonSerializer.Serialize(entry) + "
+";
+        var dir = ProjectSettings.GlobalizePath("user://logs/security");
+        Directory.CreateDirectory(dir);
+        File.AppendAllText(Path.Combine(dir, "audit.jsonl"), line);
+    }
+}
+```
+
+### 4.3 文件系统保护测试
+
+```csharp
+using Godot;
+using System;
+using System.Text.Json;
+using System.IO;
+
+public partial class Security : Node
+{
+    private static readonly string[] AllowedDomains = new []{"https://example.com","https://sentry.io"};
+
+    public bool OpenUrlSafe(string url)
+    {
+        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            Audit("PROTOCOL_DENIED", url, "not https");
+            return false;
+        }
+        var allowed = false;
+        foreach (var d in AllowedDomains)
+        {
+            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase)) { allowed = true; break; }
+        }
+        if (!allowed)
+        {
+            Audit("DOMAIN_DENIED", url, "not in whitelist");
+            return false;
+        }
+        OS.ShellOpen(url);
+        Audit("URL_ALLOWED", url, "ok");
+        return true;
+    }
+
+    public FileAccess? OpenFileSecure(string path, FileAccess.ModeFlags mode)
+    {
+        if (!(path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("user://", StringComparison.OrdinalIgnoreCase)))
+        {
+            Audit("FILE_PATH_DENIED", path, "not res:// or user://");
+            return null;
+        }
+        if (path.Contains("../"))
+        {
+            Audit("FILE_TRAVERSAL_BLOCKED", path, "contains ../");
+            return null;
+        }
+        if (path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) && mode != FileAccess.ModeFlags.Read)
+        {
+            Audit("RES_WRITE_BLOCKED", path, "res:// read-only");
+            return null;
+        }
+        Audit("FILE_OPEN_ALLOWED", path, $"mode={mode}");
+        return FileAccess.Open(path, mode);
+    }
+
+    private void Audit(string eventType, string resource, string reason)
+    {
+        var entry = new { timestamp = DateTime.UtcNow.ToString("O"), event_type = eventType, resource, decision = eventType.EndsWith("ALLOWED")?"ALLOW":"DENY", reason, source = nameof(Security)};
+        var line = JsonSerializer.Serialize(entry) + "
+";
+        var dir = ProjectSettings.GlobalizePath("user://logs/security");
+        Directory.CreateDirectory(dir);
+        File.AppendAllText(Path.Combine(dir, "audit.jsonl"), line);
+    }
+}
+```
+
+### 4.4 审计日志测试
+
+```csharp
+using Godot;
+using System;
+using System.Text.Json;
+using System.IO;
+
+public partial class Security : Node
+{
+    private static readonly string[] AllowedDomains = new []{"https://example.com","https://sentry.io"};
+
+    public bool OpenUrlSafe(string url)
+    {
+        if (!url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            Audit("PROTOCOL_DENIED", url, "not https");
+            return false;
+        }
+        var allowed = false;
+        foreach (var d in AllowedDomains)
+        {
+            if (url.StartsWith(d, StringComparison.OrdinalIgnoreCase)) { allowed = true; break; }
+        }
+        if (!allowed)
+        {
+            Audit("DOMAIN_DENIED", url, "not in whitelist");
+            return false;
+        }
+        OS.ShellOpen(url);
+        Audit("URL_ALLOWED", url, "ok");
+        return true;
+    }
+
+    public FileAccess? OpenFileSecure(string path, FileAccess.ModeFlags mode)
+    {
+        if (!(path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) || path.StartsWith("user://", StringComparison.OrdinalIgnoreCase)))
+        {
+            Audit("FILE_PATH_DENIED", path, "not res:// or user://");
+            return null;
+        }
+        if (path.Contains("../"))
+        {
+            Audit("FILE_TRAVERSAL_BLOCKED", path, "contains ../");
+            return null;
+        }
+        if (path.StartsWith("res://", StringComparison.OrdinalIgnoreCase) && mode != FileAccess.ModeFlags.Read)
+        {
+            Audit("RES_WRITE_BLOCKED", path, "res:// read-only");
+            return null;
+        }
+        Audit("FILE_OPEN_ALLOWED", path, $"mode={mode}");
+        return FileAccess.Open(path, mode);
+    }
+
+    private void Audit(string eventType, string resource, string reason)
+    {
+        var entry = new { timestamp = DateTime.UtcNow.ToString("O"), event_type = eventType, resource, decision = eventType.EndsWith("ALLOWED")?"ALLOW":"DENY", reason, source = nameof(Security)};
+        var line = JsonSerializer.Serialize(entry) + "
+";
+        var dir = ProjectSettings.GlobalizePath("user://logs/security");
+        Directory.CreateDirectory(dir);
+        File.AppendAllText(Path.Combine(dir, "audit.jsonl"), line);
+    }
+}
+```
+
+---
+
+## 5. ADR-0018 草案
+
+### ADR-0018: Godot 安全基线与运行时防护
 
 **Status**: Proposed  
-**Context**: 灏?Electron CSP + preload 瀹夊叏妯″瀷杩佺Щ鍒?Godot 鐜  
+**Context**: 将 Electron CSP + preload 安全模型迁移到 Godot 环境  
 **Decision**:
-1. 寤虹珛 Security.cs Autoload 浣滀负鍏ㄥ眬瀹夊叏瀹堝崼
-2. URL 鐧藉悕鍗曟満鍒讹紙纭紪鐮?+ 鍔ㄦ€佸姞杞斤級
-3. HTTPRequest 寮哄埗鍗忚/鏂规硶/澶у皬绾︽潫
-4. 鏂囦欢绯荤粺 user:// 绾︽潫 + 璺緞绌胯秺妫€鏌?
-5. JSONL 瀹¤鏃ュ織 + Sentry 涓婃姤闆嗘垚
+1. 建立 Security.cs Autoload 作为全局安全守卫
+2. URL 白名单机制（硬编码 + 动态加载）
+3. HTTPRequest 强制协议/方法/大小约束
+4. 文件系统 user:// 约束 + 路径穿越检查
+5. JSONL 审计日志 + Sentry 上报集成
 
 **Consequences**:
-- 鎵€鏈夌綉缁?鏂囦欢鎿嶄綔鍧囬€氳繃 Security.cs锛堟€ц兘 <1ms锛?
-- JSONL 鏃ュ織渚夸簬浜嬪悗婧簮涓庡悎瑙勫璁?
-- 鍙墿灞曡鍒欏紩鎿庢敮鎸佽嚜瀹氫箟瀹夊叏绛栫暐
-- 闇€瀹氭湡缁存姢鐧藉悕鍗曪紙鏂板煙鍚嶉渶鏇存柊锛?
+- 所有网络/文件操作均通过 Security.cs（性能 <1ms）
+- JSONL 日志便于事后溯源与合规审计
+- 可扩展规则引擎支持自定义安全策略
+- 需定期维护白名单（新域名需更新）
 
 **References**:
-- ADR-0002: Electron 瀹夊叏鍩虹嚎锛堝師鐗堝鏍囷級
-- OWASP Top 10: A01/A02/A04锛堟敞鍏ャ€佽璇併€佷笉瀹夊叏璁捐锛?
-- Godot 鏂囨。锛欶ile System Access锛坲ser:// 鏈哄埗锛?
-- Sentry Godot SDK锛欵rror Tracking
+- ADR-0002: Electron 安全基线（原版对标）
+- OWASP Top 10: A01/A02/A04（注入、认证、不安全设计）
+- Godot 文档：File System Access（user:// 机制）
+- Sentry Godot SDK：Error Tracking
 
 ---
 
-## 6. CI 闆嗘垚
+## 6. CI 集成
 
 ### 6.1 security-gate.ps1
 
@@ -940,7 +919,7 @@ $gutSecurityReport = "$LogDir/security-tests.json"
 
 Write-Host "Running security tests with GdUnit4..." -ForegroundColor Cyan
 
-# 杩愯 Security 鐩稿叧 GdUnit4 娴嬭瘯
+# 运行 Security 相关 GdUnit4 测试
 $gutCommand = @(
     "godot", "--headless", "--no-window",
     "--scene", "res://tests/SmokeTestRunner.tscn",
@@ -950,13 +929,13 @@ $gutCommand = @(
 Write-Host "Running: $($gutCommand -join ' ')" -ForegroundColor Cyan
 & $gutCommand[0] $gutCommand[1..($gutCommand.Length-1)]
 
-# 楠岃瘉瀹¤鏃ュ織瀛樺湪涓旀牸寮忔纭?
+# 验证审计日志存在且格式正确
 $auditLog = "user://logs/security-audit.jsonl"
 
 if (Test-Path $auditLog) {
     Write-Host "Audit log generated: $auditLog" -ForegroundColor Green
     
-    # 楠岃瘉 JSONL 鏍煎紡
+    # 验证 JSONL 格式
     $validLines = 0
     Get-Content $auditLog | ForEach-Object {
         if ($_ -match '^\{.*\}$') {
@@ -974,75 +953,73 @@ Write-Host "Security tests completed" -ForegroundColor Green
 exit 0
 ```
 
-### 6.2 Phase 13 璐ㄩ噺闂ㄧ鎵╁睍
+### 6.2 Phase 13 质量门禁扩展
 
-鍦?`quality_gates.py` 涓坊鍔?GATE-10 瀹¤鏃ュ織楠岃瘉锛堝凡鍦?Phase 13 涓畾涔夛級銆?
+在 `quality_gates.py` 中添加 GATE-10 审计日志验证（已在 Phase 13 中定义）。
 
 ---
 
-## 7. 瀹屾垚娓呭崟涓庨獙鏀舵爣鍑?
+## 7. 完成清单与验收标准
 
-### 7.1 瀹炵幇妫€鏌ユ竻鍗?
+### 7.1 实现检查清单
 
-- [ ] 瀹炵幇 Security.cs Autoload锛堟牳蹇冨姛鑳斤級
-  - [ ] URL 鐧藉悕鍗曠鐞?
-  - [ ] HTTPRequest 鍖呰涓庣害鏉?
-  - [ ] 鏂囦欢绯荤粺淇濇姢
-  - [ ] JSONL 瀹¤鏃ュ織
-- [ ] 缂栧啓 鈮? 涓?GdUnit4 瀹夊叏娴嬭瘯
-  - [ ] URL 鐧藉悕鍗曪紙6 涓級
-  - [ ] HTTPRequest锛? 涓級
-  - [ ] 鏂囦欢绯荤粺锛? 涓級
-  - [ ] 瀹¤鏃ュ織锛? 涓級
-  - [ ] 鎬昏锛氣墺20 涓祴璇曠敤渚?
-- [ ] 瀹炵幇 HTTPSecurityWrapper 鍖呰绫?
-- [ ] 闆嗘垚鍒板啋鐑熸祴璇曪紙Phase 12锛?
-- [ ] 鐢熸垚瀹夊叏瀹¤鎶ュ憡锛圚TML锛?
-- [ ] 缂栧啓 ADR-0018 鑽夋
-- [ ] CI 鑴氭湰闆嗘垚锛坮un_security_tests.ps1锛?
-- [ ] 鏂囨。鍖栫櫧鍚嶅崟绠＄悊娴佺▼
-- [ ] 鏈湴娴嬭瘯 `npm run test:security` 閫氳繃
+- [ ] 实现 Security.cs Autoload（核心功能）
+  - [ ] URL 白名单管理
+  - [ ] HTTPRequest 包装与约束
+  - [ ] 文件系统保护
+  - [ ] JSONL 审计日志
+- [ ] 编写 ≥8 个 GdUnit4 安全测试
+  - [ ] URL 白名单（6 个）
+  - [ ] HTTPRequest（5 个）
+  - [ ] 文件系统（6 个）
+  - [ ] 审计日志（3 个）
+  - [ ] 总计：≥20 个测试用例
+- [ ] 实现 HTTPSecurityWrapper 包装类
+- [ ] 集成到冒烟测试（Phase 12）
+- [ ] 生成安全审计报告（HTML）
+- [ ] 编写 ADR-0018 草案
+- [ ] CI 脚本集成（run_security_tests.ps1）
+- [ ] 文档化白名单管理流程
+- [ ] 本地测试 `npm run test:security` 通过
 
-### 7.2 楠屾敹鏍囧噯
+### 7.2 验收标准
 
-| 椤圭洰 | 楠屾敹鏍囧噯 | 纭 |
+| 项目 | 验收标准 | 确认 |
 |-----|--------|------|
-| Security.cs 瀹屾暣搴?| 5 澶ч槻瀹堥鍩熷叏瑕嗙洊 | 鈻?|
-| 娴嬭瘯瑕嗙洊 | 鈮?0 涓?GdUnit4 娴嬭瘯閫氳繃 | 鈻?|
-| 瀹¤鏃ュ織 | JSONL 鏍煎紡 100% 鏈夋晥 | 鈻?|
-| 鐧藉悕鍗曠鐞?| 纭紪鐮?+ 鍔ㄦ€佸姞杞介厤鍚?| 鈻?|
-| CI 闆嗘垚 | 鑷姩鐢熸垚 security-audit.jsonl | 鈻?|
-| 鏂囨。瀹屾暣 | Phase 14 鏂囨。 鈮?00 琛?| 鈻?|
-| ADR 璐ㄩ噺 | ADR-0018 鑽夋瀹屾垚 | 鈻?|
+| Security.cs 完整度 | 5 大防守领域全覆盖 | □ |
+| 测试覆盖 | ≥20 个 GdUnit4 测试通过 | □ |
+| 审计日志 | JSONL 格式 100% 有效 | □ |
+| 白名单管理 | 硬编码 + 动态加载配合 | □ |
+| CI 集成 | 自动生成 security-audit.jsonl | □ |
+| 文档完整 | Phase 14 文档 ≥900 行 | □ |
+| ADR 质量 | ADR-0018 草案完成 | □ |
 
 ---
 
-## 8. 椋庨櫓涓庣紦瑙?
+## 8. 风险与缓解
 
-| # | 椋庨櫓 | 绛夌骇 | 缂撹В |
+| # | 风险 | 等级 | 缓解 |
 |---|-----|------|-----|
-| 1 | 鐧藉悕鍗曡繃涓ュ鑷村姛鑳借闃?| 涓?| 鍓嶆湡瀹芥澗锛坅udit only锛夛紝閫愭寮哄埗 |
-| 2 | 瀹¤鏃ュ織鎬ц兘褰卞搷 | 浣?| 寮傛鍐欏叆锛屽彲閰嶇疆鍏抽棴 |
-| 3 | Signal 濂戠害闅句互寮哄埗 | 涓?| 閫氳繃 GdUnit4 娴嬭瘯 + Lint 瑙勫垯 |
-| 4 | HTTPRequest 瓒呮椂瀵艰嚧鍗￠】 | 浣?| timeout 閰嶇疆锛堥粯璁?10s锛夛紝鍙檷绾?|
-| 5 | 鐧藉悕鍗曠増鏈鐞嗘贩涔?| 涓?| 鐗堟湰鍖栭厤缃枃浠?+ PR 娴佺▼ |
+| 1 | 白名单过严导致功能被阻 | 中 | 前期宽松（audit only），逐步强制 |
+| 2 | 审计日志性能影响 | 低 | 异步写入，可配置关闭 |
+| 3 | Signal 契约难以强制 | 中 | 通过 GdUnit4 测试 + Lint 规则 |
+| 4 | HTTPRequest 超时导致卡顿 | 低 | timeout 配置（默认 10s），可降级 |
+| 5 | 白名单版本管理混乱 | 中 | 版本化配置文件 + PR 流程 |
 
 ---
 
-## 9. 鍙傝€冧笌閾炬帴
+## 9. 参考与链接
 
-- **ADR-0002**锛欵lectron 瀹夊叏鍩虹嚎锛堝師鐗堝鏍囷級
-- **ADR-0003**锛氬彲瑙傛祴鎬т笌瀹¤鏃ュ織
-- **Phase 8**锛氬満鏅璁★紙Signal 瀹氫箟锛?
-- **Phase 12**锛欻eadless 娴嬭瘯妗嗘灦
-- **Phase 13**锛氳川閲忛棬绂佽剼鏈紙GATE-10 瀹¤鏃ュ織楠岃瘉锛?
-- **Godot 鏂囨。**锛歔FileAccess](https://docs.godotengine.org/en/stable/classes/class_fileaccess.html)銆乕HTTPRequest](https://docs.godotengine.org/en/stable/classes/class_httprequest.html)銆乕Signal](https://docs.godotengine.org/en/stable/tutorials/step_by_step/signals.html)
+- **ADR-0002**：Electron 安全基线（原版对标）
+- **ADR-0003**：可观测性与审计日志
+- **Phase 8**：场景设计（Signal 定义）
+- **Phase 12**：Headless 测试框架
+- **Phase 13**：质量门禁脚本（GATE-10 审计日志验证）
+- **Godot 文档**：[FileAccess](https://docs.godotengine.org/en/stable/classes/class_fileaccess.html)、[HTTPRequest](https://docs.godotengine.org/en/stable/classes/class_httprequest.html)、[Signal](https://docs.godotengine.org/en/stable/tutorials/step_by_step/signals.html)
 
 ---
 
-**鏂囨。鐗堟湰**锛?.0  
-**瀹屾垚鏃ユ湡**锛?025-11-07  
-**浣滆€?*锛欳laude Code  
-**鐘舵€?*锛歊eady for Implementation
-
-
+**文档版本**：1.0  
+**完成日期**：2025-11-07  
+**作者**：Claude Code  
+**状态**：Ready for Implementation

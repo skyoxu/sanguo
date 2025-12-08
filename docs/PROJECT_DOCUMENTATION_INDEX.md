@@ -25,6 +25,19 @@
 - [README.md](README.md) — 文档导航中心
 - [CONTRIBUTING.md](../CONTRIBUTING.md) — 贡献指南
 
+### Release / Sentry / CI 流水线
+- [WINDOWS_MANUAL_RELEASE.md](release/WINDOWS_MANUAL_RELEASE.md) — Windows 手动发布与导出指引
+- [GM-NG-T2-playable-guide.md](workflows/GM-NG-T2-playable-guide.md) — sanguo 可玩度 / Release 工作流与 Sentry 软门禁说明
+- [serena-mcp-command-reference.md](workflows/serena-mcp-command-reference.md) — Serena / Codex CLI 命令与常用任务入口
+- [superclaude-command-reference.md](workflows/superclaude-command-reference.md) — SuperClaude 工作流与常见命令说明
+- [task-master-superclaude-integration.md](workflows/task-master-superclaude-integration.md) — Taskmaster + SuperClaude 集成与任务回链规范
+
+### Release / Sentry / CI 流水线
+- [WINDOWS_MANUAL_RELEASE.md](release/WINDOWS_MANUAL_RELEASE.md) — Windows 手动发布与导出指引
+- [PRD-NEWGUILD-VS-0001.md](prd/PRD-NEWGUILD-VS-0001.md) — 示例垂直切片 PRD（包含 Test-Refs 与 Release 约束）
+- [GM-NG-T2-playable-guide.md](workflows/GM-NG-T2-playable-guide.md) — newguild 可玩度 T2 流水线说明
+- [task-master-superclaude-integration.md](workflows/task-master-superclaude-integration.md) — Taskmaster + SuperClaude 集成与任务回链
+
 ---
 
 ## 1. ADR（架构决策记录）

@@ -143,7 +143,7 @@ sequenceDiagram
 
 - 场景与 Glue：
   - Tests.Godot/tests/Scenes/test_main_scene_smoke.gd
-  - Tests.Godot/tests/Scenes/test_glue_connections.gd
+  - Tests.Godot/tests/Scenes/Smoke/test_glue_connections.gd
 - UI/Glue：
   - Tests.Godot/tests/UI/test_main_menu_events.gd
   - Tests.Godot/tests/UI/test_hud_updates_on_events.gd
@@ -156,4 +156,3 @@ sequenceDiagram
 - Settings：
   - Tests.Godot/tests/UI/test_settings_panel_logic.gd
   - Tests.Godot/tests/UI/test_settings_locale_persist.gd
-

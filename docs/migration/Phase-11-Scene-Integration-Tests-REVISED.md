@@ -1,71 +1,52 @@
-﻿# Phase 11: 鍦烘櫙闆嗘垚娴嬭瘯锛圙dUnit4 + xUnit 鍙岃建锛?
+# Phase 11: 场景集成测试（GdUnit4 + xUnit 双轨）
 
-**闃舵鐩爣**: 寤虹珛瀹屾暣鐨?Godot 鍦烘櫙闆嗘垚娴嬭瘯妗嗘灦锛岄噰鐢?**GdUnit4**锛圙odot 鍘熺敓锛? **xUnit**锛圕# 棰嗗煙閫昏緫锛夊弻杞ㄦ柟妗堬紝閬垮厤閲嶅瀷 GdUnit4 渚濊禆
+**阶段目标**: 建立完整的 Godot 场景集成测试框架，采用 **GdUnit4**（Godot 原生）+ **xUnit**（C# 领域逻辑）双轨方案，避免重型 GdUnit4 依赖
 
-**宸ヤ綔閲?*: 8-10 浜哄ぉ  
-**椋庨櫓绛夌骇**: 浣庯紙GdUnit4 杞婚噺锛寈Unit 绀惧尯鎴愮啛锛? 
-**渚濊禆**: Phase 8锛堝満鏅璁★級銆丳hase 10锛坸Unit 鍗曞厓娴嬭瘯锛? 
-**鍚庣画渚濊禆**: Phase 12锛圗2E Headless 鍐掔儫娴嬭瘯锛?
+**工作量**: 8-10 人天  
+**风险等级**: 低（GdUnit4 轻量，xUnit 社区成熟）  
+**依赖**: Phase 8（场景设计）、Phase 10（xUnit 单元测试）  
+**后续依赖**: Phase 12（E2E Headless 冒烟测试）
 
 ---
 
-## 11.1 妗嗘灦閫夊瀷涓庢灦鏋?
+## 11.1 框架选型与架构
 
-### 11.1.1 涓轰粈涔堥€?GdUnit4 鑰岄潪 GdUnit4
+### 11.1.1 为什么选 GdUnit4 而非 GdUnit4
 
-| 瀵规瘮椤?| GdUnit4 | GdUnit4 |
+| 对比项 | GdUnit4 | GdUnit4 |
 |--------|-----|---------|
-| **瀛︿範鏇茬嚎** | 浣庯紙Godot 鍘熺敓锛?| 楂橈紙鐙珛妗嗘灦锛?|
-| **Headless 鏀寔** | 鍘熺敓鏀寔 | 闇€棰濆閰嶇疆 |
-| **CI 閫傞厤** | Headless 鍙嬪ソ | 闇€瑕侀澶栭┍鍔?|
-| **GDScript 鍙嬪ソ** | 瀹屽叏鍘熺敓 | C# 閫傞厤涓嶅 GDScript |
-| **渚濊禆绠＄悊** | 闆跺閮ㄤ緷璧?| 闇€鎵嬪姩 clone |
-| **鎬ц兘** | 杞婚噺蹇€?| 杈冮噸 |
+| **学习曲线** | 低（Godot 原生） | 高（独立框架） |
+| **Headless 支持** | 原生支持 | 需额外配置 |
+| **CI 适配** | Headless 友好 | 需要额外驱动 |
+| **GDScript 友好** | 完全原生 | C# 适配不如 GDScript |
+| **依赖管理** | 零外部依赖 | 需手动 clone |
+| **性能** | 轻量快速 | 较重 |
 
-**缁撹**: 閲囩敤 GdUnit4 浣滀负鍦烘櫙绾ф祴璇曚富鍔涳紝xUnit 璐熻矗 Game.Core 棰嗗煙閫昏緫銆?
-### Godot+C# 鍙樹綋锛圱ests.Godot + GdUnit4 6.x锛?
-- 鍦烘櫙/閫傞厤灞傛祴璇曢」鐩細`Tests.Godot`锛堢嫭绔?Godot 椤圭洰锛屽寘鍚?GdUnit4 鎻掍欢锛夈€?
-#### 娴嬭瘯鍒嗙被涓庝唬琛ㄧ敤渚?
-| 闆嗗悎 | 鐩綍 | 璇存槑 | 浠ｈ〃鎬х敤渚?|
-|------|------|------|------------|
-| Adapters | `tests/Adapters/**` | Db銆丆onfig銆丗eatureFlags 绛夐€傞厤灞傝涓轰笌璺ㄩ噸鍚涔?| `tests/Adapters/test_data_store_adapter.gd` |
-| Security | `tests/Security/Hard/**` | DB/Settings 璺緞瀹夊叏涓庡璁?| `tests/Security/test_db_audit_log.gd` |
-| Integration | `tests/Integration/**` | ScreenNavigator銆丠UD銆丼ettings 浜嬩欢閾句笌淇″彿杩為€?| `tests/Integration/test_screen_navigation_flow.gd`銆乣tests/Integration/test_settings_event_integration.gd` |
-| UI/Glue | `tests/UI/**` | MainMenu/HUD/SettingsPanel 绛?UI/Glue 琛屼负 | `tests/UI/test_main_menu_settings_button.gd`銆乣tests/UI/test_hud_updates_on_events.gd` |
+**结论**: 采用 GdUnit4 作为场景级测试主力，xUnit 负责 Game.Core 领域逻辑
 
-#### 杩愯鏂瑰紡
-
-- 鏈湴涓?CI 鍧囬€氳繃 Python 鑴氭湰 `scripts/python/run_gdunit.py` 椹卞姩 Godot Headless锛?  - 绀轰緥锛歚py -3 -E -X utf8 scripts/python/run_gdunit.py --prewarm --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" --project Tests.Godot --add tests/Adapters --add tests/Security/Hard --timeout-sec 600 --rd "logs/e2e/<date>/gdunit-reports"`銆?  - GdUnit4 鎻掍欢鍦?`Tests.Godot/addons/gdUnit4` 涓?vendored锛岀敱 `scripts/python/ensure_gdunit_plugin.py` 鍦?CI 涓厹搴曟牎楠屻€?
-#### CI 闆嗘垚
-
-- Windows CI锛堢‖闂ㄧ锛夛細鍦?`.github/workflows/ci-windows.yml` 涓皟鐢?`ci_pipeline.py` 璺?xUnit + Adapters/Security 灏忛泦锛?- Windows Quality Gate锛堣蒋闂ㄧ锛夛細鍦?`.github/workflows/windows-quality-gate.yml` 涓窇 Integration/UI/Db/A11y 灏忛泦锛屽苟涓婁紶 GdUnit4 鎶ュ憡銆?
-### 11.1.2 鍙岃建娴嬭瘯鏋舵瀯
+### 11.1.2 双轨测试架构
 
 ```
-鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
-鈹?                   Quality Gates                         鈹?
-鈹溾攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
-鈹?xUnit (Game.Core)     鈹?     GdUnit4 (Game.Godot Scenes)   鈹?
-鈹?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€     鈹?     鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€     鈹?
-鈹?鈥?鍩熼€昏緫锛堢孩缁跨伅锛?    鈹?鈥?鍦烘櫙鍔犺浇/鍒濆鍖?            鈹?
-鈹?鈥?100% 鐙珛 Godot     鈹?鈥?Signal 杩為€氭€?              鈹?
-鈹?鈥?瑕嗙洊鐜?鈮?0% 琛?     鈹?鈥?鑺傜偣浜や簰妯℃嫙                鈹?
-鈹?鈥?杩愯鏃?<5绉?        鈹?鈥?鍦烘櫙杞崲楠岃瘉                鈹?
-鈹?鈥?Headless 鍘熺敓      鈹?鈥?Headless 鍘熺敓              鈹?
-鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?
+┌─────────────────────────────────────────────────────────┐
+│                    Quality Gates                         │
+├─────────────────────────────────────────────────────────┤
+│ xUnit (Game.Core)     │      GdUnit4 (Game.Godot Scenes)   │
+│ ─────────────────     │      ──────────────────────     │
+│ • 域逻辑（红绿灯）     │ • 场景加载/初始化             │
+│ • 100% 独立 Godot     │ • Signal 连通性               │
+│ • 覆盖率 ≥90% 行      │ • 节点交互模拟                │
+│ • 运行时 <5秒         │ • 场景转换验证                │
+│ • Headless 原生      │ • Headless 原生              │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 11.2 GdUnit4 妗嗘灦闆嗘垚涓庤缃?
+## 11.2 GdUnit4 框架集成与设置
 
-### 11.2.1 瀹夎 GdUnit4
+### 11.2.1 安装 GdUnit4
 
-> 璇存槑锛氬綋鍓嶄粨搴撳凡鍦?`Tests.Godot/addons/gdUnit4` 涓洿鎺ュ寘鍚?GdUnit4 鎻掍欢锛屽苟閫氳繃
-> `scripts/python/ensure_gdunit_plugin.py` 鍦?CI 涓仛鍏滃簳鏍￠獙銆備笅闈㈢殑瀹夎鑴氭湰涓?Gut 鐩稿叧
-> 閰嶇疆淇濈暀涓哄巻鍙茬ず渚嬶紝鐢ㄤ簬璇存槑濡備綍鍦ㄥ叾浠栭」鐩腑浠庨浂闆嗘垚娴嬭瘯妗嗘灦锛涙湰椤圭洰瀹為檯杩愯
-> 鏃朵紭鍏堜娇鐢?Tests.Godot 鐜版湁缁撴瀯涓?Python runner銆?
-**Python 瀹夎鑴氭湰锛堝巻鍙茬ず渚嬶級** (`scripts/install_gut.py`):
+**Python 安装脚本（推荐）** (`scripts/install_gut.py`):
 
 ```python
 import sys
@@ -97,15 +78,15 @@ if __name__ == '__main__':
     sys.exit(main(sys.argv[1]))
 ```
 
-杩愯绀轰緥锛圵indows锛夛細
+运行示例（Windows）：
 
 ```
-py -3 scripts/install_gut.py C:\buildgame\sanguo
+py -3 scripts/install_gut.py C:\buildgame\godotgame
 ```
 
-### 11.2.2 椤圭洰閰嶇疆
+### 11.2.2 项目配置
 
-**project.godot 閰嶇疆**锛?
+**project.godot 配置**：
 
 ```ini
 [addons]
@@ -115,42 +96,15 @@ gut/runner_scene=res://addons/gut/runner.tscn
 
 [gut]
 
-# GdUnit4 閰嶇疆
+# GdUnit4 配置
 print_tests=true
 print_summary=true
 tests_like_name_containing=Test
 ```
 
-### 11.2.3 GdUnit4 鍩虹娴嬭瘯绫?
+### 11.2.3 GdUnit4 基础测试类
 
-**GdUnit4 鍩虹被** (`Game.Godot/Tests/GutTestBase.cs`):
-
-```csharp
-// C# equivalent (Godot 4 + C# + GdUnit4)
-using Godot;
-using System.Threading.Tasks;
-
-public partial class ExampleTest
-{
-    public async Task Example()
-    {
-        var scene = GD.Load<PackedScene>("res://Game.Godot/Scenes/MainScene.tscn");
-        var inst = scene?.Instantiate();
-        var tree = (SceneTree)Engine.GetMainLoop();
-        tree.Root.AddChild(inst);
-        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
-        inst.QueueFree();
-    }
-}
-```
-
----
-
-## 11.3 涓诲満鏅泦鎴愭祴璇曪紙GdUnit4锛?
-
-### 11.3.1 MainScene 娴嬭瘯
-
-**娴嬭瘯鏂囦欢** (`Game.Godot/Tests/Scenes/MainSceneTest.cs`):
+**GdUnit4 基类** (`Game.Godot/Tests/GutTestBase.cs`):
 
 ```csharp
 // C# equivalent (Godot 4 + C# + GdUnit4)
@@ -173,38 +127,11 @@ public partial class ExampleTest
 
 ---
 
-## 11.4 娓告垙鍦烘櫙闆嗘垚娴嬭瘯锛圙dUnit4锛?
+## 11.3 主场景集成测试（GdUnit4）
 
-### 11.4.1 GameScene 娴嬭瘯
+### 11.3.1 MainScene 测试
 
-**娴嬭瘯鏂囦欢** (`Game.Godot/Tests/Scenes/GameSceneTest.cs`):
-
-```csharp
-// C# equivalent (Godot 4 + C# + GdUnit4)
-using Godot;
-using System.Threading.Tasks;
-
-public partial class ExampleTest
-{
-    public async Task Example()
-    {
-        var scene = GD.Load<PackedScene>("res://Game.Godot/Scenes/MainScene.tscn");
-        var inst = scene?.Instantiate();
-        var tree = (SceneTree)Engine.GetMainLoop();
-        tree.Root.AddChild(inst);
-        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
-        inst.QueueFree();
-    }
-}
-```
-
----
-
-## 11.5 Signal 绯荤粺娴嬭瘯锛圙dUnit4锛?
-
-### 11.5.1 EventBus 娴嬭瘯
-
-**娴嬭瘯鏂囦欢** (`Game.Godot/Tests/Systems/EventBusTest.cs`):
+**测试文件** (`Game.Godot/Tests/Scenes/MainSceneTest.cs`):
 
 ```csharp
 // C# equivalent (Godot 4 + C# + GdUnit4)
@@ -227,11 +154,11 @@ public partial class ExampleTest
 
 ---
 
-## 11.6 瀹屾暣娴佺▼闆嗘垚娴嬭瘯锛圙dUnit4锛?
+## 11.4 游戏场景集成测试（GdUnit4）
 
-### 11.6.1 绔埌绔満鏅祦绋?
+### 11.4.1 GameScene 测试
 
-**娴嬭瘯鏂囦欢** (`Game.Godot/Tests/Scenes/FullFlowTest.cs`):
+**测试文件** (`Game.Godot/Tests/Scenes/GameSceneTest.cs`):
 
 ```csharp
 // C# equivalent (Godot 4 + C# + GdUnit4)
@@ -254,13 +181,67 @@ public partial class ExampleTest
 
 ---
 
-## 11.7 xUnit 棰嗗煙閫昏緫琛ュ厖娴嬭瘯
+## 11.5 Signal 系统测试（GdUnit4）
 
-**閲嶈**: Game.Core 涓殑绾€昏緫鐢?**Phase 10** 鐨?xUnit 璐熻矗锛岃繖閲屼粎琛ュ厖 Godot 閫傞厤灞傛祴璇曘€?
+### 11.5.1 EventBus 测试
 
-### 11.7.1 閫傞厤灞傚绾︽祴璇?
+**测试文件** (`Game.Godot/Tests/Systems/EventBusTest.cs`):
 
-**娴嬭瘯鏂囦欢** (`Game.Core.Tests/Adapters/GodotTimeAdapterTests.cs`):
+```csharp
+// C# equivalent (Godot 4 + C# + GdUnit4)
+using Godot;
+using System.Threading.Tasks;
+
+public partial class ExampleTest
+{
+    public async Task Example()
+    {
+        var scene = GD.Load<PackedScene>("res://Game.Godot/Scenes/MainScene.tscn");
+        var inst = scene?.Instantiate();
+        var tree = (SceneTree)Engine.GetMainLoop();
+        tree.Root.AddChild(inst);
+        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+        inst.QueueFree();
+    }
+}
+```
+
+---
+
+## 11.6 完整流程集成测试（GdUnit4）
+
+### 11.6.1 端到端场景流程
+
+**测试文件** (`Game.Godot/Tests/Scenes/FullFlowTest.cs`):
+
+```csharp
+// C# equivalent (Godot 4 + C# + GdUnit4)
+using Godot;
+using System.Threading.Tasks;
+
+public partial class ExampleTest
+{
+    public async Task Example()
+    {
+        var scene = GD.Load<PackedScene>("res://Game.Godot/Scenes/MainScene.tscn");
+        var inst = scene?.Instantiate();
+        var tree = (SceneTree)Engine.GetMainLoop();
+        tree.Root.AddChild(inst);
+        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+        inst.QueueFree();
+    }
+}
+```
+
+---
+
+## 11.7 xUnit 领域逻辑补充测试
+
+**重要**: Game.Core 中的纯逻辑由 **Phase 10** 的 xUnit 负责，这里仅补充 Godot 适配层测试。
+
+### 11.7.1 适配层契约测试
+
+**测试文件** (`Game.Core.Tests/Adapters/GodotTimeAdapterTests.cs`):
 
 ```csharp
 using Xunit;
@@ -303,71 +284,71 @@ public class GodotTimeAdapterTests
 
 ---
 
-## 11.8 Headless 娴嬭瘯杩愯鑴氭湰
+## 11.8 Headless 测试运行脚本
 
-### 11.8.1 GdUnit4 Headless 娴嬭瘯杩愯
+### 11.8.1 GdUnit4 Headless 测试运行
 
-**PowerShell 鑴氭湰** (`scripts/run-gut-tests.ps1`):
+**PowerShell 脚本** (`scripts/run-gut-tests.ps1`):
 
 ```powershell
 param(
-    [string]$ProjectRoot = "C:\buildgame\sanguo",
+    [string]$ProjectRoot = "C:\buildgame\godotgame",
     [switch]$Headless = $true,
     [string]$TestFilter = ""
 )
 
-Write-Host "杩愯 GdUnit4 鍦烘櫙闆嗘垚娴嬭瘯..." -ForegroundColor Green
+Write-Host "运行 GdUnit4 场景集成测试..." -ForegroundColor Green
 
 $godotExe = "godot"
 $projectPath = $ProjectRoot
 
-# 鏋勫缓 Godot 鍛戒护
+# 构建 Godot 命令
 $godotArgs = @(
     "--path", $projectPath,
     "-s", "addons/gut/runner.py"
 )
 
-# 濡傛灉鎸囧畾浜嗘祴璇曡繃婊ゅ櫒
+# 如果指定了测试过滤器
 if ($TestFilter) {
     $godotArgs += "-p", $TestFilter
 }
 
-# Headless 妯″紡
+# Headless 模式
 if ($Headless) {
     $godotArgs += "--headless"
 }
 
-# 杩愯娴嬭瘯
-Write-Host "鎵ц鍛戒护: $godotExe $($godotArgs -join ' ')" -ForegroundColor Gray
+# 运行测试
+Write-Host "执行命令: $godotExe $($godotArgs -join ' ')" -ForegroundColor Gray
 & $godotExe $godotArgs
 
 $lastExitCode = $LASTEXITCODE
 
 if ($lastExitCode -eq 0) {
-    Write-Host "PASS: GdUnit4 娴嬭瘯閫氳繃" -ForegroundColor Green
+    Write-Host "PASS: GdUnit4 测试通过" -ForegroundColor Green
 } else {
-    Write-Host "FAIL: GdUnit4 娴嬭瘯澶辫触 (exit code: $lastExitCode)" -ForegroundColor Red
+    Write-Host "FAIL: GdUnit4 测试失败 (exit code: $lastExitCode)" -ForegroundColor Red
 }
 
 exit $lastExitCode
 ```
 
-### 11.8.2 xUnit 娴嬭瘯杩愯
+### 11.8.2 xUnit 测试运行
 
-**PowerShell 鑴氭湰** (`scripts/run-xunit-tests.ps1`):
+**PowerShell 脚本** (`scripts/run-xunit-tests.ps1`):
 
 ```powershell
 param(
-    [string]$ProjectRoot = "C:\buildgame\sanguo",
+    [string]$ProjectRoot = "C:\buildgame\godotgame",
     [string]$Configuration = "Debug"
 )
 
-Write-Host "杩愯 xUnit 鍗曞厓娴嬭瘯..." -ForegroundColor Green
+Write-Host "运行 xUnit 单元测试..." -ForegroundColor Green
 
 $coreTestsPath = Join-Path $ProjectRoot "Game.Core.Tests"
 
-# 杩愯娴嬭瘯骞舵敹闆嗚鐩栫巼
-Write-Host "鎵ц: dotnet test --configuration $Configuration --collect:""XPlat Code Coverage""" -ForegroundColor Gray
+# 运行测试并收集覆盖率
+Write-Host "执行: dotnet test --configuration $Configuration --collect:""XPlat Code Coverage""" -ForegroundColor Gray
 
 Push-Location $coreTestsPath
 dotnet test --configuration $Configuration --collect:"XPlat Code Coverage"
@@ -375,9 +356,9 @@ $testExitCode = $LASTEXITCODE
 Pop-Location
 
 if ($testExitCode -eq 0) {
-    Write-Host "PASS: xUnit 娴嬭瘯閫氳繃" -ForegroundColor Green
+    Write-Host "PASS: xUnit 测试通过" -ForegroundColor Green
 } else {
-    Write-Host "FAIL: xUnit 娴嬭瘯澶辫触" -ForegroundColor Red
+    Write-Host "FAIL: xUnit 测试失败" -ForegroundColor Red
 }
 
 exit $testExitCode
@@ -385,17 +366,9 @@ exit $testExitCode
 
 ---
 
-## 11.9 CI 闆嗘垚宸ヤ綔娴?
-### 11.9.1 褰撳墠 Windows CI 宸ヤ綔娴侊紙Godot+C# 鍙樹綋锛?
-- **Windows CI锛堢‖闂ㄧ锛?*锛歚.github/workflows/ci-windows.yml`
-  - 浣跨敤 `scripts/python/ci_pipeline.py` 璺戯細
-    - Game.Core xUnit 鍗曞厓娴嬭瘯锛堝惈 coverlet 瑕嗙洊鐜囷級锛?    - Tests.Godot 涓殑 Adapters/Security GdUnit4 灏忛泦锛堥€氳繃 `run_gdunit.py`锛夛紱
-    - 缂栫爜鎵弿绛夊熀纭€闂ㄧ銆?- **Windows Quality Gate锛堣蒋闂ㄧ锛?*锛歚.github/workflows/windows-quality-gate.yml`
-  - 鍚屾牱閫氳繃 `ci_pipeline.py`/`run_gdunit.py` 璺?Integration/UI/Db/A11y 闆嗘垚娴嬭瘯锛?    骞跺皢 GdUnit4 鎶ュ憡涓婁紶鍒?`logs/e2e/<run_id>/gdunit-reports/**` 浣滀负宸ヤ欢銆?- 浠ヤ笂宸ヤ綔娴佸潎涓?Windows-only锛屼娇鐢?Python 鑰屼笉鏄?PowerShell 鑴氭湰浣滀负缁熶竴鍏ュ彛銆?
-### 11.9.2 绀轰緥宸ヤ綔娴侊紙鍘嗗彶鏂规锛?
-> 涓嬪垪鍩轰簬 `scene-integration-tests.yml`銆乣run-gut-tests.ps1`/`run-xunit-tests.ps1` 鐨勯厤缃?> 淇濈暀涓烘蹇电ず渚嬶紝鐢ㄤ簬璇存槑濡備綍鍦ㄥ叾浠栭」鐩腑缁勫悎 xUnit + GdUnit4銆傚綋鍓嶄粨搴撳疄闄呬娇鐢ㄧ殑
-> 鏄笂鏂囨墍杩扮殑 `ci-windows.yml` 涓?`windows-quality-gate.yml`銆?
-**GitHub Actions锛堢ず鎰忥級** (`.github/workflows/scene-integration-tests.yml`):
+## 11.9 CI 集成工作流
+
+**GitHub Actions** (`.github/workflows/scene-integration-tests.yml`):
 
 ```yaml
 name: Scene Integration Tests (GdUnit4 + xUnit)
@@ -412,15 +385,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: 璁剧疆 .NET
+      - name: 设置 .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0'
       
-      - name: 杩愯 xUnit 娴嬭瘯
+      - name: 运行 xUnit 测试
         run: .\scripts\run-xunit-tests.ps1
       
-      - name: 涓婁紶瑕嗙洊鐜?
+      - name: 上传覆盖率
         uses: codecov/codecov-action@v3
         with:
           files: ./Game.Core.Tests/coverage.xml
@@ -430,18 +403,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: 瀹夎 Godot 4.5
+      - name: 安装 Godot 4.5
         run: |
-          # Godot 瀹夎閫昏緫锛堟牴鎹」鐩厤缃級
-          Write-Host "Godot 瀹夎姝ラ"
+          # Godot 安装逻辑（根据项目配置）
+          Write-Host "Godot 安装步骤"
       
-      - name: 瀹夎 GdUnit4
+      - name: 安装 GdUnit4
         run: .\scripts\install-gut.ps1
       
-      - name: 杩愯 GdUnit4 娴嬭瘯
+      - name: 运行 GdUnit4 测试
         run: .\scripts\run-gut-tests.ps1 -Headless
       
-      - name: 涓婁紶 GdUnit4 鎶ュ憡
+      - name: 上传 GdUnit4 报告
         if: always()
         uses: actions/upload-artifact@v3
         with:
@@ -451,58 +424,58 @@ jobs:
 
 ---
 
-## 11.10 瀹屾垚娓呭崟
+## 11.10 完成清单
 
-- [ ] 瀹夎骞堕厤缃?GdUnit4 妗嗘灦
-- [ ] 缂栧啓 MainScene GdUnit4 娴嬭瘯锛堚墺4 涓祴璇曪級
-- [ ] 缂栧啓 GameScene GdUnit4 娴嬭瘯锛堚墺5 涓祴璇曪級
-- [ ] 缂栧啓 EventBus GdUnit4 娴嬭瘯锛堚墺4 涓祴璇曪級
-- [ ] 缂栧啓绔埌绔祦绋?GdUnit4 娴嬭瘯
-- [ ] 缂栧啓閫傞厤灞?xUnit 娴嬭瘯
-- [ ] 楠岃瘉鎵€鏈?GdUnit4 娴嬭瘯閫氳繃锛?00% 閫氳繃鐜囷級
-- [ ] 楠岃瘉鎵€鏈?xUnit 娴嬭瘯閫氳繃锛堣鐩栫巼 鈮?0%锛?
-- [ ] 闆嗘垚鍒?CI 娴佺▼
-- [ ] 鐢熸垚娴嬭瘯鎶ュ憡锛圙dUnit4 + xUnit锛?
+- [ ] 安装并配置 GdUnit4 框架
+- [ ] 编写 MainScene GdUnit4 测试（≥4 个测试）
+- [ ] 编写 GameScene GdUnit4 测试（≥5 个测试）
+- [ ] 编写 EventBus GdUnit4 测试（≥4 个测试）
+- [ ] 编写端到端流程 GdUnit4 测试
+- [ ] 编写适配层 xUnit 测试
+- [ ] 验证所有 GdUnit4 测试通过（100% 通过率）
+- [ ] 验证所有 xUnit 测试通过（覆盖率 ≥90%）
+- [ ] 集成到 CI 流程
+- [ ] 生成测试报告（GdUnit4 + xUnit）
 
-**瀹屾垚鏍囧織**:
+**完成标志**:
 
 ```bash
-# GdUnit4 娴嬭瘯
+# GdUnit4 测试
 .\scripts\run-gut-tests.ps1 -Headless
-# 杈撳嚭锛歅ASS GdUnit4 娴嬭瘯閫氳繃
+# 输出：PASS GdUnit4 测试通过
 
-# xUnit 娴嬭瘯
+# xUnit 测试
 .\scripts\run-xunit-tests.ps1
-# 杈撳嚭锛歅ASS xUnit 娴嬭瘯閫氳繃
-# 瑕嗙洊鐜? 鈮?0% 琛?/ 鈮?5% 鍒嗘敮
+# 输出：PASS xUnit 测试通过
+# 覆盖率: ≥90% 行 / ≥85% 分支
 ```
 
 ---
 
-## 11.11 鏀硅繘鐐规€荤粨
+## 11.11 改进点总结
 
-**鐩稿鍘?Phase 11 鐨勬敼杩涚偣**锛?
-1. GdUnit4 鏇夸唬 GdUnit4锛堟洿杞婚噺銆佹洿 Godot 鍘熺敓锛?
-2. Headless 鏀寔澶╃敓涓€绛夊叕姘?
-3. 鍙岃建妗嗘灦娓呮櫚鍒嗗伐锛坸Unit 閫昏緫 + GdUnit4 鍦烘櫙锛?
-4. CI 鎴愭湰鏇翠綆锛岄€熷害鏇村揩
-5. 铻嶅悎 cifix1.txt 鐨勫缓璁?
-
----
-
-## 11.12 鍚庣画 Phase
-
-**Phase 12: Headless 鍐掔儫娴嬭瘯**
-- 鍚姩/閫€鍑虹ǔ瀹氭€ф祴璇?
-- 澶栭摼鐧藉悕鍗曢獙璇?
-- 淇″彿娴佺▼鍩哄噯娴嬭瘯
-
+**相对原 Phase 11 的改进点**：
+1. GdUnit4 替代 GdUnit4（更轻量、更 Godot 原生）
+2. Headless 支持天生一等公民
+3. 双轨框架清晰分工（xUnit 逻辑 + GdUnit4 场景）
+4. CI 成本更低，速度更快
+5. 融合 cifix1.txt 的建议
 
 ---
 
-## 闄勫綍锛歅ython 绛夋晥锛坸Unit 鏈€灏忕ず渚嬶級
+## 11.12 后续 Phase
 
-涓轰究浜庢棤闇€ PowerShell 鍗冲彲鍦?Windows 涓婅繍琛?xUnit 骞舵敹闆嗚鐩栫巼锛屾彁渚涗互涓嬫渶灏?Python 绀轰緥锛?
+**Phase 12: Headless 冒烟测试**
+- 启动/退出稳定性测试
+- 外链白名单验证
+- 信号流程基准测试
+
+
+---
+
+## 附录：Python 等效（xUnit 最小示例）
+
+为便于无需 PowerShell 即可在 Windows 上运行 xUnit 并收集覆盖率，提供以下最小 Python 示例：
 
 ```python
 # scripts/run_xunit_tests.py
@@ -528,11 +501,11 @@ if __name__ == '__main__':
 
 ---
 
-## 闄勫綍锛欸dUnit4 C# 鍦烘櫙娴嬭瘯绛夋晥绀轰緥
+## 附录：GdUnit4 C# 场景测试等效示例
 
-浠ヤ笅绀轰緥灏嗗師 GUT锛圙DScript锛夋祴璇曢€愭鏇挎崲涓?C# 鍦烘櫙娴嬭瘯鍐欐硶銆?
+以下示例将原 GUT（GDScript）测试逐段替换为 C# 场景测试写法。
 
-### A. MainSceneTests.cs 鈥?鍦烘櫙鍒濆鍖栦笌 UI 鍙鎬?
+### A. MainSceneTests.cs — 场景初始化与 UI 可见性
 ```csharp
 // Game.Godot.Tests/Scenes/MainSceneTests.cs
 using Godot;
@@ -610,7 +583,7 @@ public partial class MainSceneTests : Node
 }
 ```
 
-### B. GameSceneTests.cs 鈥?鍦烘櫙绋冲畾鎬т笌鑻ュ共甯ц繍琛?
+### B. GameSceneTests.cs — 场景稳定性与若干帧运行
 ```csharp
 // Game.Godot.Tests/Scenes/GameSceneTests.cs
 using Godot;
@@ -638,7 +611,7 @@ public partial class GameSceneTests : Node
 }
 ```
 
-### C. SignalsTests.cs 鈥?淇″彿杩為€氭€ч獙璇?
+### C. SignalsTests.cs — 信号连通性验证
 ```csharp
 // Game.Godot.Tests/Signals/SignalsTests.cs
 using Godot;
@@ -669,5 +642,4 @@ public partial class SignalsTests : Node
 ```
 
 
-> 鍙傝€?Runner 鎺ュ叆鎸囧崡锛氳 docs/migration/gdunit4-csharp-runner-integration.md銆?
-
+> 参考 Runner 接入指南：见 docs/migration/gdunit4-csharp-runner-integration.md。
