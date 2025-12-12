@@ -21,4 +21,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Game.Core\Game.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Compile contract sources to ensure they stay valid and testable -->
+    <Compile Include="..\Scripts\Core\Contracts\Guild\*.cs" Link="Contracts\Guild\%(FileName)%(Extension)" />
+    <Compile Include="..\Scripts\Core\Contracts\Sanguo\*.cs" Link="Contracts\Sanguo\%(FileName)%(Extension)" />
+  </ItemGroup>
 </Project>

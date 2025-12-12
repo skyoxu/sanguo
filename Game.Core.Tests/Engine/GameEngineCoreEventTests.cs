@@ -101,4 +101,69 @@ public class GameEngineCoreEventTests
         evt.Source.Should().Be(nameof(GameEngineCore));
         evt.Data.Should().NotBeNull();
     }
+
+    [Fact]
+    public void Move_updates_position_and_publishes_event()
+    {
+        // Arrange
+        var engine = CreateEngineAndBus(out var bus);
+        engine.Start();
+        bus.Published.Clear();
+
+        // Act
+        var result = engine.Move(10, 20);
+
+        // Assert
+        result.Position.X.Should().Be(10);
+        bus.Published.Should().ContainSingle();
+        var evt = bus.Published[0];
+        evt.Type.Should().Be("player.moved");
+        evt.Source.Should().Be(nameof(GameEngineCore));
+    }
+
+    [Fact]
+    public void End_returns_game_result_with_statistics()
+    {
+        // Arrange
+        var engine = CreateEngineAndBus(out var bus);
+        engine.Start();
+        engine.Move(5, 10);
+        engine.AddScore(100);
+        bus.Published.Clear();
+
+        // Act
+        var result = engine.End();
+
+        // Assert
+        result.FinalScore.Should().Be(100);
+        result.LevelReached.Should().Be(1);
+        result.PlayTimeSeconds.Should().BeGreaterThan(0);
+        bus.Published.Should().ContainSingle();
+        var evt = bus.Published[0];
+        evt.Type.Should().Be("game.ended");
+    }
+
+    [Fact]
+    public void Engine_with_null_bus_does_not_throw()
+    {
+        // Arrange
+        var config = new GameConfig(
+            MaxLevel: 10,
+            InitialHealth: 100,
+            ScoreMultiplier: 1.0,
+            AutoSave: false,
+            Difficulty: Difficulty.Medium
+        );
+        var inventory = new Inventory();
+        var engine = new GameEngineCore(config, inventory, bus: null);
+
+        // Act & Assert - should not throw when bus is null
+        engine.Start();
+        engine.Move(1, 1);
+        engine.AddScore(10);
+        engine.ApplyDamage(new Damage(5, DamageType.Physical, false));
+        var result = engine.End();
+
+        result.Should().NotBeNull();
+    }
 }

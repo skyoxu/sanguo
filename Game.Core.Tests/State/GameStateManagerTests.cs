@@ -109,5 +109,114 @@ public class GameStateManagerTests
         var tooLong = new string('x', 101);
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await mgr.SaveGameAsync(tooLong));
     }
+
+    [Fact]
+    public async Task Save_and_load_without_compression_works()
+    {
+        // Arrange - use EnableCompression: false to test non-compressed path
+        var store = new InMemoryDataStore();
+        var opts = new GameStateManagerOptions(EnableCompression: false);
+        var mgr = new GameStateManager(store, opts);
+        mgr.SetState(MakeState(level: 10, score: 500), MakeConfig());
+
+        // Act
+        var saveId = await mgr.SaveGameAsync("uncompressed-save");
+
+        // Assert - verify non-compressed storage (should NOT start with "gz:")
+        Assert.True(store.Snapshot.ContainsKey(saveId));
+        Assert.DoesNotContain("gz:", store.Snapshot[saveId]);
+
+        // Verify can load back
+        var (state, config) = await mgr.LoadGameAsync(saveId);
+        Assert.Equal(10, state.Level);
+        Assert.Equal(500, state.Score);
+    }
+
+    [Fact]
+    public async Task Load_throws_when_checksum_mismatch()
+    {
+        // Arrange - save a valid state first
+        var store = new InMemoryDataStore();
+        var mgr = new GameStateManager(store);
+        mgr.SetState(MakeState(level: 7, score: 300), MakeConfig());
+        var saveId = await mgr.SaveGameAsync("corrupted-save");
+
+        // Act - manually corrupt the stored data to cause checksum mismatch
+        var corruptedData = await store.LoadAsync(saveId);
+        Assert.NotNull(corruptedData);
+
+        // Deserialize, modify the state (change level), but keep the old checksum
+        var saveData = JsonSerializer.Deserialize<SaveData>(corruptedData!)!;
+        var corruptedState = saveData.State with { Level = 999 }; // Change level to cause checksum mismatch
+        var corruptedSave = saveData with { State = corruptedState }; // Keep original metadata with old checksum
+        await store.SaveAsync(saveId, JsonSerializer.Serialize(corruptedSave));
+
+        // Assert - loading should throw due to checksum mismatch
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await mgr.LoadGameAsync(saveId));
+    }
+
+    [Fact]
+    public void GetState_returns_null_when_no_state_set()
+    {
+        // Arrange - create manager without setting state
+        var store = new InMemoryDataStore();
+        var mgr = new GameStateManager(store);
+
+        // Act
+        var state = mgr.GetState();
+
+        // Assert - should return null
+        Assert.Null(state);
+    }
+
+    [Fact]
+    public void GetConfig_returns_null_when_no_config_set()
+    {
+        // Arrange - create manager without setting config
+        var store = new InMemoryDataStore();
+        var mgr = new GameStateManager(store);
+
+        // Act
+        var config = mgr.GetConfig();
+
+        // Assert - should return null
+        Assert.Null(config);
+    }
+
+    [Fact]
+    public void GetState_returns_copy_when_state_exists()
+    {
+        // Arrange - set state
+        var store = new InMemoryDataStore();
+        var mgr = new GameStateManager(store);
+        var originalState = MakeState(level: 5, score: 1000);
+        mgr.SetState(originalState, MakeConfig());
+
+        // Act
+        var retrievedState = mgr.GetState();
+
+        // Assert - should return a copy with same values
+        Assert.NotNull(retrievedState);
+        Assert.Equal(5, retrievedState!.Level);
+        Assert.Equal(1000, retrievedState.Score);
+    }
+
+    [Fact]
+    public void GetConfig_returns_copy_when_config_exists()
+    {
+        // Arrange - set config
+        var store = new InMemoryDataStore();
+        var mgr = new GameStateManager(store);
+        var originalConfig = MakeConfig();
+        mgr.SetState(MakeState(), originalConfig);
+
+        // Act
+        var retrievedConfig = mgr.GetConfig();
+
+        // Assert - should return a copy with same values
+        Assert.NotNull(retrievedConfig);
+        Assert.Equal(100, retrievedConfig!.InitialHealth);
+        Assert.Equal(50, retrievedConfig.MaxLevel);
+    }
 }
 
