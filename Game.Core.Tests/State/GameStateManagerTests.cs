@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Game.Core.Contracts;
 using Game.Core.Domain;
 using Game.Core.Ports;
 using Game.Core.State;
 using Xunit;
+
+using static Game.Core.Contracts.CoreGameEvents;
 
 namespace Game.Core.Tests.State;
 
@@ -42,7 +45,7 @@ public class GameStateManagerTests
         );
 
     [Fact]
-    public async Task Save_load_delete_and_index_flow_works_with_compression()
+    public async Task SaveLoadDeleteAndIndex_WithCompression_WorksCorrectly()
     {
         var store = new InMemoryDataStore();
         var opts = new GameStateManagerOptions(MaxSaves: 2, EnableCompression: true);
@@ -53,14 +56,14 @@ public class GameStateManagerTests
 
         mgr.SetState(MakeState(level:2), MakeConfig());
         var id1 = await mgr.SaveGameAsync("slot1");
-        Assert.Contains("game.save.created", seen);
-        Assert.True(store.Snapshot.ContainsKey(id1));
-        Assert.StartsWith("gz:", store.Snapshot[id1]);
+        seen.Should().Contain(GameSaveCreated);
+        store.Snapshot.ContainsKey(id1).Should().BeTrue();
+        store.Snapshot[id1].Should().StartWith("gz:");
 
         mgr.SetState(MakeState(level:3), MakeConfig());
         var id2 = await mgr.SaveGameAsync("slot2");
         var list = await mgr.GetSaveListAsync();
-        Assert.True(list.Count >= 2);
+        list.Count.Should().BeGreaterThanOrEqualTo(2);
 
         // Trigger cleanup by saving third; MaxSaves=2 => first gets deleted from store
         mgr.SetState(MakeState(level:4), MakeConfig());
@@ -68,25 +71,25 @@ public class GameStateManagerTests
 
         var saveIndexKey = opts.StorageKey + ":index";
         var indexJson = await store.LoadAsync(saveIndexKey);
-        Assert.NotNull(indexJson);
+        indexJson.Should().NotBeNull();
         var ids = JsonSerializer.Deserialize<List<string>>(indexJson!)!;
-        Assert.Equal(2, ids.Count);
-        Assert.DoesNotContain(id1, ids);
+        ids.Count.Should().Be(2);
+        ids.Should().NotContain(id1);
 
         // load latest
         var (state, cfg) = await mgr.LoadGameAsync(id3);
-        Assert.Equal(4, state.Level);
-        Assert.Equal(100, cfg.InitialHealth);
+        state.Level.Should().Be(4);
+        cfg.InitialHealth.Should().Be(100);
 
         // delete second
         await mgr.DeleteSaveAsync(id2);
         indexJson = await store.LoadAsync(saveIndexKey);
         ids = JsonSerializer.Deserialize<List<string>>(indexJson!)!;
-        Assert.DoesNotContain(id2, ids);
+        ids.Should().NotContain(id2);
     }
 
     [Fact]
-    public async Task AutoSave_toggle_and_tick()
+    public async Task AutoSave_ToggleAndTick_WorksCorrectly()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -95,7 +98,7 @@ public class GameStateManagerTests
         await mgr.AutoSaveTickAsync();
         mgr.DisableAutoSave();
         var idx = await store.LoadAsync("guild-manager-game:index");
-        Assert.NotNull(idx);
+        idx.Should().NotBeNull();
     }
 
     [Fact]
@@ -123,13 +126,13 @@ public class GameStateManagerTests
         var saveId = await mgr.SaveGameAsync("uncompressed-save");
 
         // Assert - verify non-compressed storage (should NOT start with "gz:")
-        Assert.True(store.Snapshot.ContainsKey(saveId));
-        Assert.DoesNotContain("gz:", store.Snapshot[saveId]);
+        store.Snapshot.ContainsKey(saveId).Should().BeTrue();
+        store.Snapshot[saveId].Should().NotContain("gz:");
 
         // Verify can load back
         var (state, config) = await mgr.LoadGameAsync(saveId);
-        Assert.Equal(10, state.Level);
-        Assert.Equal(500, state.Score);
+        state.Level.Should().Be(10);
+        state.Score.Should().Be(500);
     }
 
     [Fact]
@@ -143,7 +146,7 @@ public class GameStateManagerTests
 
         // Act - manually corrupt the stored data to cause checksum mismatch
         var corruptedData = await store.LoadAsync(saveId);
-        Assert.NotNull(corruptedData);
+        corruptedData.Should().NotBeNull();
 
         // Deserialize, modify the state (change level), but keep the old checksum
         var saveData = JsonSerializer.Deserialize<SaveData>(corruptedData!)!;
@@ -156,7 +159,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public void GetState_returns_null_when_no_state_set()
+    public void GetStateReturnsNullWhenNoStateSet()
     {
         // Arrange - create manager without setting state
         var store = new InMemoryDataStore();
@@ -166,11 +169,11 @@ public class GameStateManagerTests
         var state = mgr.GetState();
 
         // Assert - should return null
-        Assert.Null(state);
+        state.Should().BeNull();
     }
 
     [Fact]
-    public void GetConfig_returns_null_when_no_config_set()
+    public void GetConfigReturnsNullWhenNoConfigSet()
     {
         // Arrange - create manager without setting config
         var store = new InMemoryDataStore();
@@ -180,11 +183,11 @@ public class GameStateManagerTests
         var config = mgr.GetConfig();
 
         // Assert - should return null
-        Assert.Null(config);
+        config.Should().BeNull();
     }
 
     [Fact]
-    public void GetState_returns_copy_when_state_exists()
+    public void GetStateReturnsCopyWhenStateExists()
     {
         // Arrange - set state
         var store = new InMemoryDataStore();
@@ -196,13 +199,13 @@ public class GameStateManagerTests
         var retrievedState = mgr.GetState();
 
         // Assert - should return a copy with same values
-        Assert.NotNull(retrievedState);
-        Assert.Equal(5, retrievedState!.Level);
-        Assert.Equal(1000, retrievedState.Score);
+        retrievedState.Should().NotBeNull();
+        retrievedState!.Level.Should().Be(5);
+        retrievedState.Score.Should().Be(1000);
     }
 
     [Fact]
-    public void GetConfig_returns_copy_when_config_exists()
+    public void GetConfigReturnsCopyWhenConfigExists()
     {
         // Arrange - set config
         var store = new InMemoryDataStore();
@@ -214,9 +217,9 @@ public class GameStateManagerTests
         var retrievedConfig = mgr.GetConfig();
 
         // Assert - should return a copy with same values
-        Assert.NotNull(retrievedConfig);
-        Assert.Equal(100, retrievedConfig!.InitialHealth);
-        Assert.Equal(50, retrievedConfig.MaxLevel);
+        retrievedConfig.Should().NotBeNull();
+        retrievedConfig!.InitialHealth.Should().Be(100);
+        retrievedConfig.MaxLevel.Should().Be(50);
     }
 }
 

@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Game.Core.Domain;
 using Xunit;
 
@@ -6,25 +7,25 @@ namespace Game.Core.Tests.Domain;
 public class PlayerTests
 {
     [Fact]
-    public void New_player_has_full_health_and_origin_position()
+    public void NewPlayerHasFullHealthAndOriginPosition()
     {
         var p = new Player(maxHealth: 50);
-        Assert.Equal(50, p.Health.Maximum);
-        Assert.Equal(50, p.Health.Current);
-        Assert.True(p.IsAlive);
-        Assert.Equal(0, p.Position.X);
-        Assert.Equal(0, p.Position.Y);
+        p.Health.Maximum.Should().Be(50);
+        p.Health.Current.Should().Be(50);
+        p.IsAlive.Should().BeTrue();
+        p.Position.X.Should().Be(0);
+        p.Position.Y.Should().Be(0);
     }
 
     [Fact]
-    public void Move_and_TakeDamage_update_state()
+    public void MoveAndTakeDamageUpdateState()
     {
         var p = new Player(maxHealth: 10);
         p.Move(1.5, -2);
-        Assert.Equal(1.5, p.Position.X);
-        Assert.Equal(-2, p.Position.Y);
+        p.Position.X.Should().Be(1.5);
+        p.Position.Y.Should().Be(-2);
         p.TakeDamage(7);
-        Assert.Equal(3, p.Health.Current);
+        p.Health.Current.Should().Be(3);
     }
 }
 

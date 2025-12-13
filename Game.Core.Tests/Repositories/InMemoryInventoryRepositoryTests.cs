@@ -9,17 +9,17 @@ namespace Game.Core.Tests.Repositories;
 public class InMemoryInventoryRepositoryTests
 {
     [Fact]
-    public async Task Add_get_all_flow()
+    public async Task AddGetAll_BasicFlow_WorksCorrectly()
     {
         var repo = new InMemoryInventoryRepository();
         var i1 = await repo.AddAsync("iron", 3);
-        Assert.Equal(3, i1.Qty);
+        i1.Qty.Should().Be(3);
         var i2 = await repo.AddAsync("iron", 2);
-        Assert.Equal(5, i2.Qty);
+        i2.Qty.Should().Be(5);
 
         var one = await repo.GetAsync("iron");
-        Assert.NotNull(one);
-        Assert.Equal(5, one!.Qty);
+        one.Should().NotBeNull();
+        one!.Qty.Should().Be(5);
 
         var all = await repo.AllAsync();
         all.Should().ContainSingle(x => x.ItemId == "iron" && x.Qty == 5);
@@ -35,6 +35,6 @@ public class InMemoryInventoryRepositoryTests
         var result = await repo.GetAsync("nonexistent");
 
         // Assert
-        Assert.Null(result);
+        result.Should().BeNull();
     }
 }

@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Game.Core.Domain;
 using Xunit;
 
@@ -6,25 +7,25 @@ namespace Game.Core.Tests.Domain;
 public class InventoryTests
 {
     [Fact]
-    public void Add_and_Remove_respect_max_stack_and_counts()
+    public void AddAndRemoveRespectMaxStackAndCounts()
     {
         var inv = new Inventory();
-        Assert.Equal(0, inv.CountItem("potion"));
+        inv.CountItem("potion").Should().Be(0);
         var added = inv.Add("potion", count: 120, maxStack: 99);
-        Assert.Equal(99, added);
-        Assert.True(inv.HasItem("potion", atLeast: 50));
+        added.Should().Be(99);
+        inv.HasItem("potion", atLeast: 50).Should().BeTrue();
 
         var removed = inv.Remove("potion", count: 60);
-        Assert.Equal(60, removed);
-        Assert.Equal(39, inv.CountItem("potion"));
+        removed.Should().Be(60);
+        inv.CountItem("potion").Should().Be(39);
 
         removed = inv.Remove("potion", count: 100);
-        Assert.Equal(39, removed);
-        Assert.Equal(0, inv.CountItem("potion"));
+        removed.Should().Be(39);
+        inv.CountItem("potion").Should().Be(0);
     }
 
     [Fact]
-    public void Add_with_zero_or_negative_count_returns_zero_and_does_not_add()
+    public void AddWithZeroOrNegativeCountReturnsZeroAndDoesNotAdd()
     {
         // Arrange
         var inv = new Inventory();
@@ -34,14 +35,14 @@ public class InventoryTests
         var added2 = inv.Add("shield", count: -5);
 
         // Assert
-        Assert.Equal(0, added1);
-        Assert.Equal(0, added2);
-        Assert.Equal(0, inv.CountItem("sword"));
-        Assert.Equal(0, inv.CountItem("shield"));
+        added1.Should().Be(0);
+        added2.Should().Be(0);
+        inv.CountItem("sword").Should().Be(0);
+        inv.CountItem("shield").Should().Be(0);
     }
 
     [Fact]
-    public void Add_when_at_max_stack_returns_zero_and_does_not_add_more()
+    public void AddWhenAtMaxStackReturnsZeroAndDoesNotAddMore()
     {
         // Arrange
         var inv = new Inventory();
@@ -51,12 +52,12 @@ public class InventoryTests
         var added = inv.Add("gold", count: 50, maxStack: 99);
 
         // Assert
-        Assert.Equal(0, added);
-        Assert.Equal(99, inv.CountItem("gold"));
+        added.Should().Be(0);
+        inv.CountItem("gold").Should().Be(99);
     }
 
     [Fact]
-    public void Remove_with_zero_or_negative_count_returns_zero_and_does_not_remove()
+    public void RemoveWithZeroOrNegativeCountReturnsZeroAndDoesNotRemove()
     {
         // Arrange
         var inv = new Inventory();
@@ -67,13 +68,13 @@ public class InventoryTests
         var removed2 = inv.Remove("arrow", count: -10);
 
         // Assert
-        Assert.Equal(0, removed1);
-        Assert.Equal(0, removed2);
-        Assert.Equal(50, inv.CountItem("arrow"));
+        removed1.Should().Be(0);
+        removed2.Should().Be(0);
+        inv.CountItem("arrow").Should().Be(50);
     }
 
     [Fact]
-    public void Remove_from_nonexistent_item_returns_zero()
+    public void RemoveFromNonexistentItemReturnsZero()
     {
         // Arrange
         var inv = new Inventory();
@@ -82,8 +83,8 @@ public class InventoryTests
         var removed = inv.Remove("nonexistent", count: 10);
 
         // Assert
-        Assert.Equal(0, removed);
-        Assert.Equal(0, inv.CountItem("nonexistent"));
+        removed.Should().Be(0);
+        inv.CountItem("nonexistent").Should().Be(0);
     }
 }
 

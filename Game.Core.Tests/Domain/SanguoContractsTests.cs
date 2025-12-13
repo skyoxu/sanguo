@@ -8,19 +8,19 @@ namespace Game.Core.Tests.Domain;
 public sealed class SanguoContractsTests
 {
     [Fact]
-    public void TokenMoved_event_has_expected_event_type()
+    public void TokenMovedEventHasExpectedEventType()
     {
         SanguoTokenMoved.EventType.Should().Be("core.sanguo.board.token.moved");
     }
 
     [Fact]
-    public void GameTurnAdvanced_event_has_expected_event_type()
+    public void GameTurnAdvancedEventHasExpectedEventType()
     {
         SanguoGameTurnAdvanced.EventType.Should().Be("core.sanguo.game.turn.advanced");
     }
 
     [Fact]
-    public void Can_create_month_settled_event_with_basic_values()
+    public void CanCreateMonthSettledEventWithBasicValues()
     {
         var evt = new SanguoMonthSettled(
             GameId: "game-1",

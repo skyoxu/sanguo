@@ -8,7 +8,7 @@ namespace Game.Core.Tests.Domain.ValueObjects;
 public class HealthTests
 {
     [Fact]
-    public void Constructor_sets_current_equals_max_and_disallows_negative()
+    public void ConstructorSetsCurrentEqualsMaxAndDisallowsNegative()
     {
         var h = new Health(100);
         h.Maximum.Should().Be(100);
@@ -17,7 +17,7 @@ public class HealthTests
     }
 
     [Fact]
-    public void TakeDamage_clamps_at_zero_and_is_immutable()
+    public void TakeDamageClampsAtZeroAndIsImmutable()
     {
         var h = new Health(10);
         var h2 = h.TakeDamage(3);
@@ -30,7 +30,7 @@ public class HealthTests
     }
 
     [Fact]
-    public void TakeDamage_negative_throws()
+    public void TakeDamageNegativeThrows()
     {
         var h = new Health(10);
         h.Invoking(x => x.TakeDamage(-1)).Should().Throw<ArgumentOutOfRangeException>();

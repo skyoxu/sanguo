@@ -9,6 +9,8 @@ using Game.Core.Engine;
 using Game.Core.Services;
 using Xunit;
 
+using static Game.Core.Contracts.CoreGameEvents;
+
 namespace Game.Core.Tests.Engine;
 
 public class GameEngineCoreEventTests
@@ -48,7 +50,7 @@ public class GameEngineCoreEventTests
     }
 
     [Fact]
-    public void Start_publishes_game_started_event()
+    public void StartPublishesGameStartedEvent()
     {
         // Arrange
         var engine = CreateEngineAndBus(out var bus);
@@ -59,13 +61,13 @@ public class GameEngineCoreEventTests
         // Assert
         bus.Published.Should().ContainSingle();
         var evt = bus.Published[0];
-        evt.Type.Should().Be("game.started");
+        evt.Type.Should().Be(GameStarted);
         evt.Source.Should().Be(nameof(GameEngineCore));
         evt.Data.Should().NotBeNull();
     }
 
     [Fact]
-    public void AddScore_publishes_score_changed_event()
+    public void AddScorePublishesScoreChangedEvent()
     {
         // Arrange
         var engine = CreateEngineAndBus(out var bus);
@@ -78,13 +80,13 @@ public class GameEngineCoreEventTests
         // Assert
         bus.Published.Should().ContainSingle();
         var evt = bus.Published[0];
-        evt.Type.Should().Be("score.changed");
+        evt.Type.Should().Be(ScoreChanged);
         evt.Source.Should().Be(nameof(GameEngineCore));
         evt.Data.Should().NotBeNull();
     }
 
     [Fact]
-    public void ApplyDamage_publishes_player_health_changed_event()
+    public void ApplyDamagePublishesPlayerHealthChangedEvent()
     {
         // Arrange
         var engine = CreateEngineAndBus(out var bus);
@@ -97,13 +99,13 @@ public class GameEngineCoreEventTests
         // Assert
         bus.Published.Should().ContainSingle();
         var evt = bus.Published[0];
-        evt.Type.Should().Be("player.health.changed");
+        evt.Type.Should().Be(PlayerHealthChanged);
         evt.Source.Should().Be(nameof(GameEngineCore));
         evt.Data.Should().NotBeNull();
     }
 
     [Fact]
-    public void Move_updates_position_and_publishes_event()
+    public void MoveUpdatesPositionAndPublishesEvent()
     {
         // Arrange
         var engine = CreateEngineAndBus(out var bus);
@@ -117,12 +119,12 @@ public class GameEngineCoreEventTests
         result.Position.X.Should().Be(10);
         bus.Published.Should().ContainSingle();
         var evt = bus.Published[0];
-        evt.Type.Should().Be("player.moved");
+        evt.Type.Should().Be(PlayerMoved);
         evt.Source.Should().Be(nameof(GameEngineCore));
     }
 
     [Fact]
-    public void End_returns_game_result_with_statistics()
+    public void EndReturnsGameResultWithStatistics()
     {
         // Arrange
         var engine = CreateEngineAndBus(out var bus);
@@ -140,11 +142,11 @@ public class GameEngineCoreEventTests
         result.PlayTimeSeconds.Should().BeGreaterThan(0);
         bus.Published.Should().ContainSingle();
         var evt = bus.Published[0];
-        evt.Type.Should().Be("game.ended");
+        evt.Type.Should().Be(GameEnded);
     }
 
     [Fact]
-    public void Engine_with_null_bus_does_not_throw()
+    public void EngineWithNullBusDoesNotThrow()
     {
         // Arrange
         var config = new GameConfig(

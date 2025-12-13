@@ -8,13 +8,13 @@ namespace Game.Core.Tests.Domain;
 public sealed class GuildContractsTests
 {
     [Fact]
-    public void GuildMemberJoined_event_has_expected_event_type()
+    public void GuildMemberJoinedEventHasExpectedEventType()
     {
         GuildMemberJoined.EventType.Should().Be("core.guild.member.joined");
     }
 
     [Fact]
-    public void Can_create_guild_member_joined_with_basic_values()
+    public void CanCreateGuildMemberJoinedWithBasicValues()
     {
         var now = DateTimeOffset.UtcNow;
 

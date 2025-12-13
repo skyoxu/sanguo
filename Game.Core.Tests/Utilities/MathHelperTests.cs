@@ -7,7 +7,7 @@ namespace Game.Core.Tests.Utilities;
 public class MathHelperTests
 {
     [Fact]
-    public void Clamp_and_Lerp_basic()
+    public void ClampAndLerpBasic()
     {
         MathHelper.Clamp(5, 0, 10).Should().Be(5);
         MathHelper.Clamp(-1, 0, 10).Should().Be(0);

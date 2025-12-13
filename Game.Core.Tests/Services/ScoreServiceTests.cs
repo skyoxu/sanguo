@@ -8,7 +8,7 @@ namespace Game.Core.Tests.Services;
 public class ScoreServiceTests
 {
     [Fact]
-    public void ComputeAddedScore_respects_multiplier_and_difficulty()
+    public void ComputeAddedScoreRespectsMultiplierAndDifficulty()
     {
         var svc = new ScoreService();
         var cfg = new GameConfig(
@@ -28,7 +28,7 @@ public class ScoreServiceTests
     }
 
     [Fact]
-    public void Add_accumulates_and_reset_clears_score()
+    public void AddAccumulatesAndResetClearsScore()
     {
         var svc = new ScoreService();
         var cfg = new GameConfig(50, 100, 1.0, false, Difficulty.Medium);
@@ -46,7 +46,7 @@ public class ScoreServiceTests
     }
 
     [Fact]
-    public void ComputeAddedScore_HandlesNegativeBasePoints()
+    public void ComputeAddedScoreHandlesNegativeBasePoints()
     {
         // Arrange
         var svc = new ScoreService();
@@ -60,7 +60,7 @@ public class ScoreServiceTests
     }
 
     [Fact]
-    public void ComputeAddedScore_AppliesEasyDifficultyMultiplier()
+    public void ComputeAddedScoreAppliesEasyDifficultyMultiplier()
     {
         // Arrange
         var svc = new ScoreService();
@@ -74,7 +74,7 @@ public class ScoreServiceTests
     }
 
     [Fact]
-    public void ComputeAddedScore_HandlesInvalidDifficulty()
+    public void ComputeAddedScoreHandlesInvalidDifficulty()
     {
         // Arrange
         var svc = new ScoreService();

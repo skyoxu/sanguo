@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Game.Core.State;
 using Xunit;
 
@@ -6,28 +7,28 @@ namespace Game.Core.Tests.State;
 public class GameStateMachineTests
 {
     [Fact]
-    public void Transitions_follow_happy_path_and_fire_events()
+    public void TransitionsFollowHappyPathAndFireEvents()
     {
         var fsm = new GameStateMachine();
         int calls = 0;
         fsm.OnTransition += (prev, next) => calls++;
 
-        Assert.True(fsm.Start());
-        Assert.True(fsm.Pause());
-        Assert.True(fsm.Resume());
-        Assert.True(fsm.End());
+        fsm.Start().Should().BeTrue();
+        fsm.Pause().Should().BeTrue();
+        fsm.Resume().Should().BeTrue();
+        fsm.End().Should().BeTrue();
 
-        Assert.Equal(GameFlowState.GameOver, fsm.State);
-        Assert.True(calls >= 3);
+        fsm.State.Should().Be(GameFlowState.GameOver);
+        (calls >= 3).Should().BeTrue();
     }
 
     [Fact]
-    public void Invalid_transitions_are_rejected()
+    public void InvalidTransitionsAreRejected()
     {
         var fsm = new GameStateMachine();
-        Assert.False(fsm.Resume());
-        Assert.True(fsm.End());
-        Assert.False(fsm.End());
-        Assert.False(fsm.Start());
+        fsm.Resume().Should().BeFalse();
+        fsm.End().Should().BeTrue();
+        fsm.End().Should().BeFalse();
+        fsm.Start().Should().BeFalse();
     }
 }

@@ -10,7 +10,7 @@ namespace Game.Core.Tests.Services;
 public class CombatServiceTests
 {
     [Fact]
-    public void CalculateDamage_applies_resistance_and_critical()
+    public void CalculateDamageAppliesResistanceAndCritical()
     {
         var cfg = new CombatConfig { CritMultiplier = 2.0 };
         cfg.Resistances[DamageType.Fire] = 0.5; // 50% resist
@@ -26,7 +26,7 @@ public class CombatServiceTests
     }
 
     [Fact]
-    public void CalculateDamage_with_armor_mitigates_linearly()
+    public void CalculateDamageWithArmorMitigatesLinearly()
     {
         var cfg = new CombatConfig();
         var svc = new CombatService();
@@ -36,7 +36,7 @@ public class CombatServiceTests
     }
 
     [Fact]
-    public void ApplyDamage_reduces_player_health()
+    public void ApplyDamageReducesPlayerHealth()
     {
         var p = new Player(maxHealth: 100);
         var svc = new CombatService();
@@ -45,7 +45,7 @@ public class CombatServiceTests
     }
 
     [Fact]
-    public void ApplyDamage_WithIntAmount_ReducesHealth()
+    public void ApplyDamageWithIntAmountReducesHealth()
     {
         // Arrange
         var player = new Player(maxHealth: 100);
@@ -59,7 +59,7 @@ public class CombatServiceTests
     }
 
     [Fact]
-    public void ApplyDamage_WithConfig_AppliesCalculatedDamage()
+    public void ApplyDamageWithConfigAppliesCalculatedDamage()
     {
         // Arrange
         var player = new Player(maxHealth: 100);
@@ -76,7 +76,7 @@ public class CombatServiceTests
     }
 
     [Fact]
-    public void ApplyDamage_WithEventBus_PublishesEvent()
+    public void ApplyDamageWithEventBusPublishesEvent()
     {
         // Arrange
         var player = new Player(maxHealth: 100);
