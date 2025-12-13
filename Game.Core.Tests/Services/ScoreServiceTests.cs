@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Game.Core.Domain;
 using Game.Core.Services;
 using Xunit;
@@ -19,11 +20,11 @@ public class ScoreServiceTests
         );
 
         var added = svc.ComputeAddedScore(100, cfg);
-        Assert.Equal(150, added); // 100 * 1.5 * 1.0
+        added.Should().Be(150); // 100 * 1.5 * 1.0
 
         cfg = cfg with { Difficulty = Difficulty.Hard };
         var hardAdded = svc.ComputeAddedScore(100, cfg);
-        Assert.Equal(180, hardAdded); // 100 * 1.5 * 1.2
+        hardAdded.Should().Be(180); // 100 * 1.5 * 1.2
     }
 
     [Fact]
@@ -35,13 +36,13 @@ public class ScoreServiceTests
         svc.Add(10, cfg);
         svc.Add(20, cfg);
 
-        Assert.True(svc.Score > 0);
+        (svc.Score > 0).Should().BeTrue();
 
         var before = svc.Score;
-        Assert.Equal(before, svc.Score);
+        svc.Score.Should().Be(before);
 
         svc.Reset();
-        Assert.Equal(0, svc.Score);
+        svc.Score.Should().Be(0);
     }
 
     [Fact]
@@ -55,7 +56,7 @@ public class ScoreServiceTests
         var result = svc.ComputeAddedScore(-50, cfg);
 
         // Assert
-        Assert.Equal(0, result); // Negative clamped to 0
+        result.Should().Be(0); // Negative clamped to 0
     }
 
     [Fact]
@@ -69,7 +70,7 @@ public class ScoreServiceTests
         var result = svc.ComputeAddedScore(100, cfg);
 
         // Assert
-        Assert.Equal(180, result); // 100 * 2.0 * 0.9 = 180
+        result.Should().Be(180); // 100 * 2.0 * 0.9 = 180
     }
 
     [Fact]
@@ -83,7 +84,7 @@ public class ScoreServiceTests
         var result = svc.ComputeAddedScore(100, cfg);
 
         // Assert
-        Assert.Equal(200, result); // 100 * 2.0 * 1.0 (default multiplier)
+        result.Should().Be(200); // 100 * 2.0 * 1.0 (default multiplier)
     }
 }
 
