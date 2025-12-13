@@ -46,7 +46,7 @@ public class GameEngineCore
     public GameState Start()
     {
         _startUtc = DateTime.UtcNow;
-        Publish("game.started", new { stateId = State.Id });
+        Publish(CoreGameEvents.GameStarted, new { stateId = State.Id });
         return State;
     }
 
@@ -57,7 +57,7 @@ public class GameEngineCore
         _distanceTraveled += Math.Sqrt(dx * dx + dy * dy);
         _moves++;
         State = State with { Position = next, Timestamp = DateTime.UtcNow };
-        Publish("player.moved", new { x = next.X, y = next.Y });
+        Publish(CoreGameEvents.PlayerMoved, new { x = next.X, y = next.Y });
         return State;
     }
 
@@ -66,7 +66,7 @@ public class GameEngineCore
         var final = _combat.CalculateDamage(dmg, rules);
         var newHp = Math.Max(0, State.Health - final);
         State = State with { Health = newHp, Timestamp = DateTime.UtcNow };
-        Publish("player.health.changed", new { health = newHp, delta = -final });
+        Publish(CoreGameEvents.PlayerHealthChanged, new { health = newHp, delta = -final });
         return State;
     }
 
@@ -74,7 +74,7 @@ public class GameEngineCore
     {
         _score.Add(basePoints, Config);
         State = State with { Score = _score.Score, Timestamp = DateTime.UtcNow };
-        Publish("score.changed", new { score = State.Score, added = basePoints });
+        Publish(CoreGameEvents.ScoreChanged, new { score = State.Score, added = basePoints });
         return State;
     }
 
@@ -89,7 +89,7 @@ public class GameEngineCore
             AverageReactionTime: 0.0
         );
         var result = new GameResult(State.Score, State.Level, playTime, Array.Empty<string>(), stats);
-        Publish("game.ended", new { score = result.FinalScore });
+        Publish(CoreGameEvents.GameEnded, new { score = result.FinalScore });
         return result;
     }
 

@@ -30,7 +30,7 @@ public class GameStateManager
             _currentConfig = config with { };
 
         Publish(new DomainEvent(
-            Type: "game.state.manager.updated",
+            Type: CoreGameEvents.GameStateManagerUpdated,
             Source: nameof(GameStateManager),
             Data: new { state, config },
             Timestamp: DateTime.UtcNow,
@@ -72,7 +72,7 @@ public class GameStateManager
         await CleanupOldSavesAsync();
 
         Publish(new DomainEvent(
-            Type: "game.save.created",
+            Type: CoreGameEvents.GameSaveCreated,
             Source: nameof(GameStateManager),
             Data: new { saveId },
             Timestamp: now,
@@ -93,7 +93,7 @@ public class GameStateManager
         _currentConfig = save.Config with { };
 
         Publish(new DomainEvent(
-            Type: "game.save.loaded",
+            Type: CoreGameEvents.GameSaveLoaded,
             Source: nameof(GameStateManager),
             Data: new { saveId },
             Timestamp: DateTime.UtcNow,
@@ -109,7 +109,7 @@ public class GameStateManager
         await UpdateIndexAsync(remove: saveId);
 
         Publish(new DomainEvent(
-            Type: "game.save.deleted",
+            Type: CoreGameEvents.GameSaveDeleted,
             Source: nameof(GameStateManager),
             Data: new { saveId },
             Timestamp: DateTime.UtcNow,
@@ -136,7 +136,7 @@ public class GameStateManager
         if (_autoSaveEnabled) return;
         _autoSaveEnabled = true;
         Publish(new DomainEvent(
-            Type: "game.autosave.enabled",
+            Type: CoreGameEvents.GameAutosaveEnabled,
             Source: nameof(GameStateManager),
             Data: new { interval = _options.AutoSaveInterval.TotalMilliseconds },
             Timestamp: DateTime.UtcNow,
@@ -149,7 +149,7 @@ public class GameStateManager
         if (!_autoSaveEnabled) return;
         _autoSaveEnabled = false;
         Publish(new DomainEvent(
-            Type: "game.autosave.disabled",
+            Type: CoreGameEvents.GameAutosaveDisabled,
             Source: nameof(GameStateManager),
             Data: new { },
             Timestamp: DateTime.UtcNow,
@@ -164,7 +164,7 @@ public class GameStateManager
         {
             await SaveGameAsync($"auto-save-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}");
             Publish(new DomainEvent(
-                Type: "game.autosave.completed",
+                Type: CoreGameEvents.GameAutosaveCompleted,
                 Source: nameof(GameStateManager),
                 Data: new { interval = _options.AutoSaveInterval.TotalMilliseconds },
                 Timestamp: DateTime.UtcNow,
