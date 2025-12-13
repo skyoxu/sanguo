@@ -34,6 +34,12 @@ public static class CoreGameEvents
     public const string PlayerHealthChanged = "player.health.changed";
 
     /// <summary>
+    /// Event type: player.damaged
+    /// Emitted when player takes damage
+    /// </summary>
+    public const string PlayerDamaged = "player.damaged";
+
+    /// <summary>
     /// Event type: player.moved
     /// Emitted when player position changes
     /// </summary>

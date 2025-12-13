@@ -45,7 +45,7 @@ public class GameStateManagerTests
         );
 
     [Fact]
-    public async Task SaveLoadDeleteAndIndex_WithCompression_WorksCorrectly()
+    public async Task SaveLoadDeleteAndIndexWithCompressionWorksCorrectly()
     {
         var store = new InMemoryDataStore();
         var opts = new GameStateManagerOptions(MaxSaves: 2, EnableCompression: true);
@@ -89,7 +89,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task AutoSave_ToggleAndTick_WorksCorrectly()
+    public async Task AutoSaveToggleAndTickWorksCorrectly()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -102,7 +102,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task Save_throws_when_state_missing_or_title_too_long()
+    public async Task SaveThrowsWhenStateMissingOrTitleTooLong()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -114,7 +114,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task Save_and_load_without_compression_works()
+    public async Task SaveAndLoadWithoutCompressionWorks()
     {
         // Arrange - use EnableCompression: false to test non-compressed path
         var store = new InMemoryDataStore();
@@ -136,7 +136,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task Load_throws_when_checksum_mismatch()
+    public async Task LoadThrowsWhenChecksumMismatch()
     {
         // Arrange - save a valid state first
         var store = new InMemoryDataStore();
