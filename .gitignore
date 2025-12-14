@@ -132,6 +132,9 @@ analysis/
 .claude/agents/
 .claude/commands/
 
+# Serena local state
+.serena/
+
 # Generic scratch patterns (root only)
 /*_ANALYSIS*.md
 /*_ANALYSIS*.txt
