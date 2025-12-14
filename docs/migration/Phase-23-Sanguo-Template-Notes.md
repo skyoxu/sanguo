@@ -47,8 +47,8 @@
 以下内容为规划向差异说明，落地时应同步新增或更新对应 ADR/Phase 文档，并在 PR 描述中引用本 Phase。
 
 - 领域模型与 Contracts：  
-  - 现状：仓库中已存在 `scripts/Core/Contracts/Guild/GuildMemberJoined.cs` 等示例契约，更多是 newguild 玩法示例遗留。  
-  - 规划：为“三国”玩法引入新的领域契约命名空间（如 `Game.Contracts.Battle`、`Game.Contracts.Officer`、`Game.Contracts.Faction` 等），并按 AGENTS.md 中的 Contracts 规范（域事件命名、XML 注释、xUnit 测试）补齐对应的测试与文档映射。  
+  - 现状：仓库中已存在 `Game.Core/Contracts/Guild/GuildMemberJoined.cs` 等示例契约，更多是 newguild 玩法示例遗留。  
+  - 规划：为“三国”玩法引入新的领域契约命名空间（如 `Game.Core.Contracts.Battle`、`Game.Core.Contracts.Officer`、`Game.Core.Contracts.Faction` 等），并按 AGENTS.md 中的 Contracts 规范（域事件命名、XML 注释、xUnit 测试）补齐对应的测试与文档映射。  
   - 要求：每次新增玩法相关 Contracts 时，应引用 ADR-0018（技术栈）、ADR-0004（事件总线与契约）以及本 ADR-0024（模板谱系），确保不会与 newguild 的公会玩法契约混淆。  
 
 - 场景结构与 GdUnit4 测试：  

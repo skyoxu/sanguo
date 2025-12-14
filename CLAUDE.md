@@ -30,6 +30,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Implementation & Quality**: Claude Code is primary; **SuperClaude** automates commits/changelogs/reviews; **Serena** handles symbol-level refactors and cross-file test-driven edits.
 - **Acceptance**: Official **Subagents** perform checklists/reviews; **Zen MCP** augments analysis with multi‑model reasoning.
 
+## 0.1 New Session Quick Reference
+
+**Starting a fresh session? Read these in order:**
+
+1. **This file** (`CLAUDE.md`) - You're already here ✓
+2. **Project indexes** - Context entry points:
+   - `architecture_base.index` - Architecture docs (CH01-CH12 + ADRs)
+   - `prd_chunks.index` - PRD fragments index
+   - `shards/flattened-adr.xml` - All ADRs in single XML
+   - `shards/flattened-prd.xml` - All PRD in single XML
+3. **Test framework** - `docs/testing-framework.md` (critical for TDD)
+
+**File locations quick reference:**
+- PRD input: `.taskmaster/docs/prd.txt` (auto-generated from prd_chunks)
+- ADRs: `docs/adr/ADR-*.md` (21 files)
+- Architecture: `docs/architecture/base/*.md` (CH01-CH12)
+- Tasks: `tasks/tasks.json` (Taskmaster output)
+- Logs: `logs/**` (Security/E2E/Unit/Perf audit trails)
+
+**Typical workflow:**
+- **Taskmaster**: `npx task-master parse-prd .taskmaster/docs/prd.txt -n 30`
+- **Validate**: `py -3 scripts/python/validate_task_links.py`
+- **SuperClaude**: `superclaude commit` (after implementation)
+
+---
+
 ## Project Background
 
 This is a **production-ready Godot 4.5.1 project template** designed for rapid game development with enterprise-grade tooling. It serves as a reusable, out-of-the-box foundation for Windows desktop games.
@@ -369,7 +395,7 @@ This template comes pre-configured with the following technology stack:
   示例（xUnit）
 
   using FluentAssertions;
-  using Game.Contracts.Guild;
+  using Game.Core.Contracts.Guild;
   using Xunit;
 
   public class GuildContractsTests

@@ -1,4 +1,5 @@
 using Godot;
+using Game.Core.Contracts;
 using Game.Godot.Adapters;
 using System.Text.Json;
 
@@ -36,12 +37,12 @@ public partial class CombatPanel : Control
         }
         // Fallback: publish a simple damage event (HUD may not react)
         var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
-        bus?.PublishSimple("player.damaged", "ui", "{\"amount\":%d}".Replace("%d", amount.ToString()));
+        bus?.PublishSimple(CoreGameEvents.PlayerDamaged, "ui", "{\"amount\":%d}".Replace("%d", amount.ToString()));
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
-        if (type == "core.health.updated" || type == "player.health.changed")
+        if (type == CoreGameEvents.HealthUpdated || type == CoreGameEvents.PlayerHealthChanged)
         {
             try
             {
@@ -55,4 +56,3 @@ public partial class CombatPanel : Control
         }
     }
 }
-

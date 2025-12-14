@@ -53,7 +53,7 @@
 - 安全基线
   - 本目录新增 `02-security-baseline-godot-v2.md` 作为运行时基线（引用 ADR-0019），替代 Electron 版本的 02 章作为执行口径。
 - 契约 SSoT
-  - 契约与事件仅落盘 `Scripts/Core/Contracts/**`（不依赖 Godot，不直接参与编译），各章节/用例引用路径，避免口径漂移。
+  - 契约与事件仅落盘 `Game.Core/Contracts/**`（不依赖 Godot，不直接参与编译），各章节/用例引用路径，避免口径漂移。
 
 ## ADR 对齐（当前口径快照，自动生成）
 
@@ -77,7 +77,8 @@
 
 - [ADR-0018: Godot Runtime and Distribution](../../adr/ADR-0018-godot-runtime-and-distribution.md)
 - [ADR-0019: Godot Security Baseline](../../adr/ADR-0019-godot-security-baseline.md)
-- [ADR-0020: Godot Test Strategy (TDD + GdUnit4)](../../adr/ADR-0020-godot-test-strategy.md)
+- [ADR-0020: Contract Location Standardization](../../adr/ADR-0020-contract-location-standardization.md)
+- [ADR-0025: Godot Test Strategy (TDD + GdUnit4)](../../adr/ADR-0025-godot-test-strategy.md)
 - [ADR-0021: C# Domain Layer Architecture](../../adr/ADR-0021-csharp-domain-layer-architecture.md)
 - [ADR-0022: Godot Signal System and Contracts](../../adr/ADR-0022-godot-signal-system-and-contracts.md)
 

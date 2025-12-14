@@ -2,6 +2,7 @@ using Godot;
 using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
 using Game.Core.Engine;
+using Game.Core.Services;
 using Game.Godot.Adapters;
 
 namespace Game.Godot.Scripts.Demo;
@@ -12,10 +13,11 @@ public partial class GameEngineDemo : Node
 
     public override void _Ready()
     {
-        var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
+        var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus")
+                  ?? throw new System.InvalidOperationException("EventBus autoload not found at /root/EventBus");
         var cfg = new GameConfig(MaxLevel: 10, InitialHealth: 100, ScoreMultiplier: 1.0, AutoSave: false, Difficulty: Difficulty.Medium);
         var inv = new Game.Core.Domain.Inventory();
-        _engine = new GameEngineCore(cfg, inv, bus);
+        _engine = new GameEngineCore(cfg, inv, bus, new ScoreService());
         // Defer start until UI emits ui.menu.start
     }
 

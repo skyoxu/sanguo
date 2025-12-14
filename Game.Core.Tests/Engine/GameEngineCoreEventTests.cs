@@ -46,7 +46,7 @@ public class GameEngineCoreEventTests
         );
         var inventory = new Inventory();
         bus = new CapturingEventBus();
-        return new GameEngineCore(config, inventory, bus);
+        return new GameEngineCore(config, inventory, bus, new ScoreService());
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class GameEngineCoreEventTests
     }
 
     [Fact]
-    public void EngineWithNullBusDoesNotThrow()
+    public void EngineWithNullEventBusDoesNotThrow()
     {
         // Arrange
         var config = new GameConfig(
@@ -157,9 +157,9 @@ public class GameEngineCoreEventTests
             Difficulty: Difficulty.Medium
         );
         var inventory = new Inventory();
-        var engine = new GameEngineCore(config, inventory, bus: null);
+        var engine = new GameEngineCore(config, inventory, NullEventBus.Instance, new ScoreService());
 
-        // Act & Assert - should not throw when bus is null
+        // Act & Assert - should not throw when bus is a null-object implementation
         engine.Start();
         engine.Move(1, 1);
         engine.AddScore(10);

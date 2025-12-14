@@ -5,7 +5,9 @@ import re
 from datetime import datetime
 
 
-MOJIBAKE_RE = re.compile(r"[闁閻鐟鍗鈧缂濞閸鎮绱锛绗閿鍊鎯缁婵]")
+MOJIBAKE_RE = re.compile(
+    r"[\u95c1\u95bb\u941f\u9357\u9227\u7f02\u6fde\u95b8\u93ae\u7ef1\u951b\u7ed7\u95bf\u934a\u93af\u7f01\u5a75]"
+)
 ALLOWED_EXTS = {'.md', '.txt', '.yml', '.yaml', '.json', '.xml', '.ini', '.cfg', '.index', '.adoc'}
 
 
@@ -83,4 +85,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

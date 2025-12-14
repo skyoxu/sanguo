@@ -5,11 +5,11 @@ namespace Game.Core.Services;
 
 public class CombatService
 {
-    private readonly IEventBus? _bus;
+    private readonly IEventBus _bus;
 
-    public CombatService(IEventBus? bus = null)
+    public CombatService(IEventBus bus)
     {
-        _bus = bus;
+        _bus = bus ?? throw new ArgumentNullException(nameof(bus));
     }
 
     public void ApplyDamage(Player player, int amount)
@@ -21,12 +21,12 @@ public class CombatService
     {
         // Placeholder for future type-based mitigation; for now apply raw amount
         player.TakeDamage(damage.EffectiveAmount);
-        _ = _bus?.PublishAsync(new Contracts.DomainEvent(
+        _ = _bus.PublishAsync(new Contracts.DomainEvent(
             Type: Contracts.CoreGameEvents.PlayerDamaged,
             Source: nameof(CombatService),
-            Data: new { amount = damage.EffectiveAmount, type = damage.Type.ToString(), critical = damage.IsCritical },
+            Data: Contracts.JsonElementEventData.FromObject(new { amount = damage.EffectiveAmount, type = damage.Type.ToString(), critical = damage.IsCritical }),
             Timestamp: DateTime.UtcNow,
-            Id: $"dmg-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+            Id: Guid.NewGuid().ToString("N")
         ));
     }
 
@@ -53,12 +53,12 @@ public class CombatService
     {
         var final = CalculateDamage(damage, config);
         player.TakeDamage(final);
-        _ = _bus?.PublishAsync(new Contracts.DomainEvent(
+        _ = _bus.PublishAsync(new Contracts.DomainEvent(
             Type: Contracts.CoreGameEvents.PlayerDamaged,
             Source: nameof(CombatService),
-            Data: new { amount = final, type = damage.Type.ToString(), critical = damage.IsCritical },
+            Data: Contracts.JsonElementEventData.FromObject(new { amount = final, type = damage.Type.ToString(), critical = damage.IsCritical }),
             Timestamp: DateTime.UtcNow,
-            Id: $"dmg-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+            Id: Guid.NewGuid().ToString("N")
         ));
     }
 }

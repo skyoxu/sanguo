@@ -1,0 +1,3148 @@
+[
+  {
+    "id": "SG-0001",
+    "story_id": "PRD-SANGUO-T2-BOOTSTRAP",
+    "title": "设置Godot项目",
+    "description": "初始化Godot项目并配置C#环境。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "infra",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0001",
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "bootstrap",
+      "godot",
+      "csharp"
+    ],
+    "owner": "architecture",
+    "test_refs": [],
+    "acceptance": [
+      "Taskmaster 配置与脚本在 Windows 环境下可运行，不破坏现有 CI 流程。",
+      "生成的任务视图与 .taskmaster/tasks/tasks.json 中的 task id 一一对应。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\casus-belli"
+    ],
+    "test_strategy": [
+      "使用 Python 单元测试或最小烟测脚本验证任务视图生成逻辑。",
+      "在本地运行 Taskmaster MCP 读取新视图，确认解析无错误。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\casus-belli"
+    ],
+    "taskmaster_id": 1,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0001",
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+  },
+  {
+    "id": "SG-0002",
+    "story_id": "PRD-SANGUO-T2-BOARD",
+    "title": "创建环形地图数据结构",
+    "description": "设计并实现游戏地图的环形数据结构。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0001"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "board",
+      "map",
+      "city"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone"
+    ],
+    "taskmaster_id": 2,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.board.token.moved"
+    ]
+  },
+  {
+    "id": "SG-0003",
+    "story_id": "PRD-SANGUO-T2-CITY",
+    "title": "实现城池类",
+    "description": "定义城池的属性和方法。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0002"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "city",
+      "economy"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone"
+    ],
+    "taskmaster_id": 3,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+  },
+  {
+    "id": "SG-0004",
+    "story_id": "PRD-SANGUO-T2-PLAYER",
+    "title": "实现玩家类",
+    "description": "定义玩家的属性和基本操作。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0003"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "player",
+      "economy"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。"
+    ],
+    "taskmaster_id": 4,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+  },
+  {
+    "id": "SG-0005",
+    "story_id": "PRD-SANGUO-T2-DICE",
+    "title": "实现骰子机制",
+    "description": "设计骰子投掷的逻辑。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0001"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "dice",
+      "random"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。"
+    ],
+    "taskmaster_id": 5,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.dice.rolled"
+    ]
+  },
+  {
+    "id": "SG-0006",
+    "story_id": "PRD-SANGUO-T2-TURN-MANAGER",
+    "title": "实现回合管理器",
+    "description": "控制游戏回合的顺序和时间推进。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0004",
+      "SG-0005"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "turn",
+      "calendar"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块二（回合 + 时间轴）的设计：回合推进与日期/月份/年度节点清晰可追踪，并与 T2 PRD 中的“日 → 月末 → 季度 → 年度”闭环描述一致。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong"
+    ],
+    "taskmaster_id": 6,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended"
+    ]
+  },
+  {
+    "id": "SG-0007",
+    "story_id": "PRD-SANGUO-T2-ECONOMY",
+    "title": "实现经济结算管理器",
+    "description": "处理月末收益结算和地价调整。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0006"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "economy",
+      "settlement"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 7,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.economy.month.settled"
+    ]
+  },
+  {
+    "id": "SG-0008",
+    "story_id": "PRD-SANGUO-T2-ENV-EVENTS",
+    "title": "实现事件管理器",
+    "description": "管理季度环境事件的生成和应用。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0007"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "events",
+      "environment"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 8,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.economy.season.event.applied"
+    ]
+  },
+  {
+    "id": "SG-0009",
+    "story_id": "PRD-SANGUO-T2-UI-SKELETON",
+    "title": "设计UI界面",
+    "description": "设计游戏的用户界面。",
+    "status": "pending",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0001"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "hud"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "taskmaster_id": 9,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+  },
+  {
+    "id": "SG-0022",
+    "story_id": "PRD-SANGUO-T2-UI-DICE",
+    "title": "实现UI骰子结果显示",
+    "description": "在UI上显示骰子投掷结果。",
+    "status": "pending",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0009",
+      "SG-0005"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "dice"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "taskmaster_id": 22,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.dice.rolled"
+    ]
+  },
+  {
+    "id": "SG-0010",
+    "story_id": "PRD-SANGUO-T2-TOKEN-MOVE",
+    "title": "实现玩家棋子移动",
+    "description": "根据骰子结果移动玩家棋子。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0005",
+      "SG-0009"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "movement",
+      "board"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone"
+    ],
+    "taskmaster_id": 10,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.board.token.moved"
+    ]
+  },
+  {
+    "id": "SG-0012",
+    "story_id": "PRD-SANGUO-T2-BUY-LAND",
+    "title": "实现土地购买逻辑",
+    "description": "处理玩家购买城池的逻辑。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0004",
+      "SG-0010"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "economy",
+      "buy"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 12,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.city.bought"
+    ]
+  },
+  {
+    "id": "SG-0023",
+    "story_id": "PRD-SANGUO-T2-UI-CITY-STATE",
+    "title": "实现UI城池状态显示",
+    "description": "在UI上显示城池的占有状态。",
+    "status": "pending",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0009",
+      "SG-0012"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "city"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
+      "符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "taskmaster_id": 23,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.city.bought",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.season.event.applied"
+    ]
+  },
+  {
+    "id": "SG-0013",
+    "story_id": "PRD-SANGUO-T2-TOLL",
+    "title": "实现过路费支付逻辑",
+    "description": "处理玩家支付过路费的逻辑。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0012"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "economy",
+      "toll"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 13,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.city.toll.paid"
+    ]
+  },
+  {
+    "id": "SG-0011",
+    "story_id": "PRD-SANGUO-T2-AI-CORE",
+    "title": "实现AI行为",
+    "description": "设计AI的基本行动逻辑。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0004",
+      "SG-0010"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ai",
+      "agent"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 11,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.ai.decision.made"
+    ]
+  },
+  {
+    "id": "SG-0014",
+    "story_id": "PRD-SANGUO-T2-MONTH-END",
+    "title": "实现月末收益结算",
+    "description": "自动结算玩家的月末收益。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0007",
+      "SG-0013"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "economy",
+      "month-end"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 14,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.economy.month.settled"
+    ]
+  },
+  {
+    "id": "SG-0020",
+    "story_id": "PRD-SANGUO-T2-UI-MONEY",
+    "title": "实现UI资金显示",
+    "description": "在UI上显示玩家的资金信息。",
+    "status": "pending",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0009",
+      "SG-0014"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "money"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "taskmaster_id": 20,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.player.state.changed"
+    ]
+  },
+  {
+    "id": "SG-0015",
+    "story_id": "PRD-SANGUO-T2-SEASON-EVENTS",
+    "title": "实现季度环境事件",
+    "description": "触发并应用季度环境事件。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0008",
+      "SG-0014"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "events",
+      "season"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 15,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.economy.season.event.applied"
+    ]
+  },
+  {
+    "id": "SG-0019",
+    "story_id": "PRD-SANGUO-T2-UI-EVENT-TIPS",
+    "title": "实现UI事件提示",
+    "description": "在UI上显示游戏事件提示。",
+    "status": "pending",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0009",
+      "SG-0015"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "notifications"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "taskmaster_id": 19,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.board.token.moved",
+      "core.sanguo.city.bought",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.month.settled",
+      "core.sanguo.economy.season.event.applied",
+      "core.sanguo.game.ended"
+    ]
+  },
+  {
+    "id": "SG-0016",
+    "story_id": "PRD-SANGUO-T2-YEAR-PRICE",
+    "title": "实现年度地价调整",
+    "description": "每年年初调整城池的地价。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0014"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "economy",
+      "price"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 16,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.economy.year.price.adjusted"
+    ]
+  },
+  {
+    "id": "SG-0017",
+    "story_id": "PRD-SANGUO-T2-GAME-LOOP",
+    "title": "实现回合循环",
+    "description": "确保游戏回合循环正常进行。",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0006",
+      "SG-0016"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "loop",
+      "calendar"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "符合学习模块二（回合 + 时间轴）的设计：回合推进与日期/月份/年度节点清晰可追踪，并与 T2 PRD 中的“日 → 月末 → 季度 → 年度”闭环描述一致。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong"
+    ],
+    "taskmaster_id": 17,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.game.turn.advanced"
+    ]
+  },
+  {
+    "id": "SG-0021",
+    "story_id": "PRD-SANGUO-T2-UI-DATE",
+    "title": "实现UI日期显示",
+    "description": "在UI上显示当前游戏日期。",
+    "status": "pending",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0009",
+      "SG-0017"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "calendar"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
+      "符合学习模块二（回合 + 时间轴）的设计：回合推进与日期/月份/年度节点清晰可追踪，并与 T2 PRD 中的“日 → 月末 → 季度 → 年度”闭环描述一致。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "taskmaster_id": 21,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.game.turn.advanced"
+    ]
+  },
+  {
+    "id": "SG-0018",
+    "story_id": "PRD-SANGUO-T2-SAVELOAD",
+    "title": "实现存档功能",
+    "description": "实现游戏进度的保存和加载。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0017"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "save",
+      "persistence"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。"
+    ],
+    "taskmaster_id": 18,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.game.saved",
+      "core.sanguo.game.loaded"
+    ]
+  },
+  {
+    "id": "SG-0024",
+    "story_id": "PRD-SANGUO-T2-UI-LOG",
+    "title": "实现UI事件日志",
+    "description": "记录并显示游戏事件日志。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0019"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "log"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
+      "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+    ],
+    "taskmaster_id": 24,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.board.token.moved",
+      "core.sanguo.city.bought",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.month.settled",
+      "core.sanguo.economy.season.event.applied",
+      "core.sanguo.economy.year.price.adjusted",
+      "core.sanguo.game.ended"
+    ]
+  },
+  {
+    "id": "SG-0025",
+    "story_id": "PRD-SANGUO-T2-AI-OPT",
+    "title": "实现AI策略优化",
+    "description": "优化AI的决策策略。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0011"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ai",
+      "tuning"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+    ],
+    "taskmaster_id": 25,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.ai.decision.made"
+    ]
+  },
+  {
+    "id": "SG-0026",
+    "story_id": "PRD-SANGUO-T2-GAME-END",
+    "title": "实现游戏结束条件",
+    "description": "定义并实现游戏的结束条件。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0017"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "loop",
+      "end"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。"
+    ],
+    "taskmaster_id": 26,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ]
+  },
+  {
+    "id": "SG-0027",
+    "story_id": "PRD-SANGUO-T2-AUDIO",
+    "title": "实现音效和音乐",
+    "description": "添加游戏音效和背景音乐。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0009"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "audio",
+      "ux"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。"
+    ],
+    "taskmaster_id": 27,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+  },
+  {
+    "id": "SG-0028",
+    "story_id": "PRD-SANGUO-T2-MENU-MAIN",
+    "title": "实现游戏主菜单",
+    "description": "设计并实现游戏的主菜单。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0009"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "menu"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。"
+    ],
+    "taskmaster_id": 28,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+  },
+  {
+    "id": "SG-0029",
+    "story_id": "PRD-SANGUO-T2-MENU-SETTINGS",
+    "title": "实现游戏设置菜单",
+    "description": "设计并实现游戏的设置菜单。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0028"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "settings"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。"
+    ],
+    "taskmaster_id": 29,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+  },
+  {
+    "id": "SG-0030",
+    "story_id": "PRD-SANGUO-T2-HELP",
+    "title": "实现游戏帮助和教程",
+    "description": "提供游戏的帮助信息和教程。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ui",
+    "depends_on": [
+      "SG-0028"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    ],
+    "labels": [
+      "ui",
+      "help"
+    ],
+    "owner": "gameplay",
+    "test_refs": [],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md"
+    ],
+    "taskmaster_id": 30,
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "contractRefs": [
+      "core.sanguo.dice.rolled",
+      "core.sanguo.board.token.moved",
+      "core.sanguo.city.bought",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.month.settled",
+      "core.sanguo.economy.season.event.applied",
+      "core.sanguo.economy.year.price.adjusted",
+      "core.sanguo.game.turn.advanced",
+      "core.sanguo.game.ended"
+    ]
+  },
+  {
+    "story_id": "PH15-BACKLOG-B1-B2",
+    "title": "在 Game.Core 落地性能追踪库并接入 CI 性能门禁",
+    "description": "根据 Phase-15-Performance-Budgets-and-Gates.md 与 ADR-0015，在 Game.Core 中实现纯 C# 性能追踪库（PerformanceTracker/PerformanceMetrics/QueryPerformanceTracker），计算 P50/P95 等指标并生成 JSON 报告；在脚本层新增性能门禁聚合脚本，将 PerfTracker 输出与预算阈值（环境变量可配置）联动，写入 logs/perf 与 logs/ci。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0015",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "performance",
+      "core",
+      "metrics",
+      "ci"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Performance/PerformanceTrackerTests.cs",
+      "logs/perf/<date>/summary.json",
+      "logs/ci/<date>/perf/performance-gates-summary.json"
+    ],
+    "acceptance": [
+      "Game.Core/Performance/** 下存在 PerformanceTracker/PerformanceMetrics/QueryPerformanceTracker 等类型，API 与 Phase-15 文档保持一致且不依赖 Godot API。",
+      "xUnit 测试覆盖性能库的关键统计逻辑（P50/P95/平均值/最大值），并生成覆盖率报告。",
+      "Godot 侧 PerfTracker 使用或适配 Game.Core 性能库的输出，将帧时间/关键路径指标写入 user://logs/perf/perf.json。",
+      "新增 scripts/python/performance_gates.py（或等价脚本），读取 PerfTracker JSON 与预算阈值（环境变量），在 logs/perf/<date>/summary.json 与 logs/ci/<date>/perf/** 中生成结果，并通过 exit code 暴露软/硬门禁。",
+      "参考文档（本仓库）: docs/migration/Phase-15-Performance-Budgets-and-Gates.md ; docs/migration/Phase-15-Performance-Budgets-Backlog.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-and-Gates.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md"
+    ],
+    "test_strategy": [
+      "单元测试：为性能库编写 xUnit 基准级测试，验证统计函数在不同样本上的正确性。",
+      "本地演练：运行 Godot 场景 + PerfTracker，生成 perf.json，再用 performance_gates.py 校验阈值与报告。",
+      "CI 集成：在 windows-quality-gate 工作流中增加可选性能门禁 step，观察超阈值时的报告与退出码。"
+    ],
+    "id": "SG-0031",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0015",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "",
+    "taskmaster_id": 31
+  },
+  {
+    "story_id": "PH16-BACKLOG-B1-B3",
+    "title": "Observability Autoload 与 Sentry Release Health Gate",
+    "description": "按照 Phase-16-Observability-Sentry-Integration.md 与 Backlog，在 Game.Godot 中引入 Observability Autoload（初始化 Sentry Godot SDK、统一日志接口），并实现 Python 版 release_health_gate 脚本：从 Sentry API 读取 Crash-Free Sessions/Users 指标，与 ADR-0003/0015 定义的阈值对齐，在 CI 中生成 release-health.json 并支持作为发布门禁。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "adapter",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH03",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "observability",
+      "sentry",
+      "release-health",
+      "godot"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Observability/ObservabilityClientTests.cs",
+      "logs/ci/<date>/release-health.json"
+    ],
+    "acceptance": [
+      "Game.Godot 中新增 Observability Autoload（例如 Observability.cs），在游戏启动早期初始化 Sentry Godot SDK，并设置 Release/Environment。",
+      "Game.Core 中存在 ObservabilityClient/StructuredLogger（或等价实现），通过接口注入到核心服务，避免直接依赖 Godot 或 Sentry。",
+      "新增 scripts/python/release_health_gate.py，支持配置 SENTRY_* 环境变量与阈值 JSON，生成 logs/ci/<date>/release-health.json 并根据阈值返回 exit code。",
+      "CI 中存在可选 release-health 步骤（例如 windows-quality-gate 或独立 workflow），在配置正确的情况下能拉取 Sentry 数据并给出清晰的通过/失败原因。",
+      "参考文档（本仓库）: docs/migration/Phase-16-Observability-Sentry-Integration.md ; docs/migration/Phase-16-Observability-Backlog.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Sentry-Integration.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Backlog.md"
+    ],
+    "test_strategy": [
+      "核心测试：为 ObservabilityClient 编写 xUnit 测试，验证日志结构化与 PII 脱敏行为。",
+      "脚本测试：使用假数据或 Mock Sentry API 响应运行 release_health_gate.py，验证阈值判定与 JSON 输出格式。"
+    ],
+    "id": "SG-0032",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH03",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "",
+    "taskmaster_id": 32
+  },
+  {
+    "story_id": "PH17-BACKLOG-B1-B2-B3",
+    "title": "Python 构建驱动脚本与 Windows Release Workflow 整合",
+    "description": "依据 Phase-17-Build-System-and-Godot-Export.md 与 Backlog，在 scripts 下实现跨平台 Python 构建驱动脚本（build_windows.py），统一调用 Godot headless 导出、生成版本元数据（build-info.json/release-profile.json）与 SHA256 校验；并将现有 Windows Release (Tag/Manual) 工作流调整为调用该脚本，简化导出与发布流程。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0008",
+      "ADR-0011",
+      "ADR-0003",
+      "ADR-0015"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH07",
+      "CH09",
+      "CH10"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "build",
+      "export",
+      "windows",
+      "ci",
+      "release"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "logs/ci/<date>/export/summary.json",
+      "build/build-info.json",
+      "build/release-profile.json"
+    ],
+    "acceptance": [
+      "存在 scripts/python/build_windows.py（或等价脚本），在本地 Windows 环境下可通过 Godot headless 导出 Release/Debug EXE，并生成 build-info.json 与 SHA256 校验文件。",
+      ".github/workflows/windows-release.yml 与 windows-release-tag.yml 中的导出步骤统一改为调用 build_windows.py，而非直接内联 Godot 导出命令。",
+      "Release Notes 或相关文档中引用 build-info.json/release-profile.json，记录版本号、渠道、构建时间与 Commit SHA。",
+      "导出的 Game.exe 能在未安装 Godot 的 Windows 环境中直接运行，并通过 smoke_exe.ps1 的冒烟验证。",
+      "参考文档（本仓库）: docs/migration/Phase-17-Build-System-and-Godot-Export.md ; docs/migration/Phase-17-Build-Backlog.md ; docs/migration/Phase-17-Export-Checklist.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-System-and-Godot-Export.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Export-Checklist.md"
+    ],
+    "test_strategy": [
+      "本地构建：在开发机运行 build_windows.py release/debug，验证输出文件与日志。",
+      "CI 集成：触发 Windows Release (Manual/Tag) 工作流，确认 Artifact 中包含 EXE、PCK、build-info.json 与 SHA256 校验文件。"
+    ],
+    "id": "SG-0033",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0008",
+      "ADR-0011",
+      "ADR-0003",
+      "ADR-0015"
+    ],
+    "archRefs": [
+      "CH03",
+      "CH07",
+      "CH09",
+      "CH10"
+    ],
+    "overlay": "",
+    "taskmaster_id": 33
+  },
+  {
+    "story_id": "PH18-19-BACKLOG-CANARY-ROLLBACK",
+    "title": "分阶段发布（Canary/Stable）与回滚脚本骨架",
+    "description": "基于 Phase-18-Staged-Release-and-Canary-Strategy.md 与 Phase-19-Emergency-Rollback-and-Monitoring.md，为 sanguo 提供最小的分阶段发布与回滚脚本骨架：引入 RELEASE_CHANNEL 概念（qa/internal/beta/stable），在构建时生成 release-profile.json，预留 Sentry Release Health 驱动的发布/回滚决策接口。",
+    "status": "deferred",
+    "priority": "P3",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0015"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "release",
+      "canary",
+      "rollback",
+      "sentry"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "build/release-profile.json",
+      "logs/ci/<date>/release-health.json"
+    ],
+    "acceptance": [
+      "构建脚本或 CI 能根据环境变量 RELEASE_CHANNEL（qa/internal/beta/stable）生成包含渠道信息与启用 FeatureFlags 列表的 release-profile.json。",
+      "Release 工作流在 Step Summary 或 Artifact 中附带 release-profile.json，便于追踪。",
+      "存在回滚脚本或工作流骨架（例如 windows-rollback.yml 或 PowerShell/Python 脚本），至少能根据指定 tag/版本重新触发构建或下载历史 Artifact。",
+      "文档中说明 Canary/Stable 渠道的基本策略与 Release Health 驱动的 go/no-go 决策接口（即使实际接入 Sentry 仍在 Backlog）。",
+      "参考文档（本仓库）: docs/migration/Phase-18-Staged-Release-and-Canary-Strategy.md ; docs/migration/Phase-18-Staged-Release-Backlog.md ; docs/migration/Phase-19-Emergency-Rollback-and-Monitoring.md ; docs/migration/Phase-19-Emergency-Rollback-Backlog.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-18-Staged-Release-and-Canary-Strategy.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-18-Staged-Release-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-19-Emergency-Rollback-and-Monitoring.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-19-Emergency-Rollback-Backlog.md"
+    ],
+    "test_strategy": [
+      "本地验证：手工设置不同 RELEASE_CHANNEL，运行构建脚本并检查 release-profile.json 差异。",
+      "CI 验证：在测试分支上运行带渠道参数的 Release 工作流，确认生成的 profile 与工件符合预期。"
+    ],
+    "id": "SG-0034",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0015"
+    ],
+    "archRefs": [
+      "CH03",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "",
+    "taskmaster_id": 34
+  },
+  {
+    "story_id": "PH20-22-BACKLOG-DOCS-ACCEPTANCE",
+    "title": "项目级功能验收与文档整合骨架",
+    "description": "参考 Phase-20-Functional-Acceptance-Testing.md、Phase-21-Performance-Optimization.md 与 Phase-22-Documentation-and-Release-Notes.md，为基于 sanguo 的具体游戏项目提供功能验收清单、性能基线与发布说明模板骨架，但不在模板仓库内虚构具体玩法。",
+    "status": "deferred",
+    "priority": "P3",
+    "layer": "docs",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0003"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "acceptance",
+      "docs",
+      "perf",
+      "release-notes"
+    ],
+    "owner": "architecture",
+    "test_refs": [],
+    "acceptance": [
+      "在 docs 下增加项目级功能验收/迁移报告/发布说明的模板文件（例如 docs/acceptance/functional_checklist.template.md、docs/release/EXECUTIVE_SUMMARY.template.md），明确字段与引用 ADR/Phase 的方式。",
+      "在 README 或 docs/PROJECT_DOCUMENTATION_INDEX.md 中增加一小节，指引项目团队如何基于模板补齐 Phase-20/21/22 所需的项目级文档。",
+      "不在模板仓库内引入具体玩法/关卡/敌人等业务细节，保持模板对多个项目的复用性。",
+      "参考文档（本仓库）: docs/migration/Phase-20-Functional-Acceptance-Testing.md ; docs/migration/Phase-20-Functional-Acceptance-Backlog.md ; docs/migration/Phase-21-Performance-Optimization.md ; docs/migration/Phase-21-Performance-Optimization-Backlog.md ; docs/migration/Phase-22-Documentation-and-Release-Notes.md ; docs/migration/Phase-22-Documentation-Backlog.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-20-Functional-Acceptance-Testing.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-20-Functional-Acceptance-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-21-Performance-Optimization.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-21-Performance-Optimization-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-22-Documentation-and-Release-Notes.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-22-Documentation-Backlog.md"
+    ],
+    "test_strategy": [
+      "文档审阅：由架构/产品共同确认模板文档结构对真实项目足够且不过度约束。",
+      "链接检查：task-links-validate 或等价脚本对新模板文档进行路径与引用校验。"
+    ],
+    "id": "SG-0035",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0003"
+    ],
+    "archRefs": [
+      "CH03",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "",
+    "taskmaster_id": 35
+  },
+  {
+    "story_id": "PH9-BACKLOG-B1",
+    "title": "事件命名统一迁移（game.* → core.*.*）",
+    "description": "根据 Phase-9-Signal-Backlog.md B1，将仍然存在于测试中的旧事件类型（如 game.started/score.changed/player.health.changed）统一迁移为 core.*.* 命名约定，并更新相关测试与文档，避免旧前缀继续被误用。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0006",
+      "ADR-0018",
+      "ADR-0023"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"
+    ],
+    "labels": [
+      "signal",
+      "events",
+      "naming",
+      "core"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Engine/GameEngineCoreEventTests.cs",
+      "Tests.Godot/tests/Scenes/test_main_scene_signals.gd"
+    ],
+    "acceptance": [
+      "Game.Core 与 Tests 中不再存在 game.started/score.changed/player.health.changed 等旧事件类型，全部迁移为 core.*.* 命名。",
+      "GameEngineCoreEventTests 覆盖新的事件类型常量，并全部通过。",
+      "Overlay 08-Contracts-Guild-Manager-Events.md 与 08-功能纵切-公会管理器.md 中的事件示例与实际事件类型保持一致。",
+      "一次 signal 自检（例如全文搜索）可以证明仓库内仅保留 core.*.* 作为事件命名前缀。",
+      "参考文档（本仓库）: docs/migration/Phase-9-Signal-Backlog.md ; docs/migration/Phase-9-Signal-System.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-9-Signal-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-9-Signal-System.md"
+    ],
+    "test_strategy": [
+      "本地：运行 GameEngineCoreEventTests，并通过全文搜索核对事件类型常量。",
+      "CI：在质量门禁中增加针对 core.*.* 事件类型前缀的简单字符串检查脚本。"
+    ],
+    "id": "SG-0036",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0004",
+      "ADR-0006",
+      "ADR-0018",
+      "ADR-0023"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "taskmaster_id": 36
+  },
+  {
+    "story_id": "PH16-BACKLOG-B2",
+    "title": "Game.Core Observability 客户端与结构化日志",
+    "description": "根据 Phase-16-Observability-Backlog.md B2，在 Game.Core 层实现可复用的 ObservabilityClient/StructuredLogger/PiiDataScrubber，使核心逻辑能够在不直接依赖 Godot 或 Sentry SDK 的前提下输出结构化日志并上报事件。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH03",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "observability",
+      "logging",
+      "core",
+      "sentry"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core/Observability/ObservabilityClient.cs",
+      "Game.Core.Tests/Observability/ObservabilityClientTests.cs"
+    ],
+    "acceptance": [
+      "Game.Core/Observability 下存在 ObservabilityClient/StructuredLogger/PiiDataScrubber 等类型，且不引用任何 Godot API。",
+      "核心服务通过依赖注入使用 ILogger/ObservabilityClient 接口，而不是直接依赖 Sentry 或具体实现。",
+      "ObservabilityClient 能够生成包含 logger、level、tags、extra、breadcrumbs 的结构化日志对象，并在单元测试中可被验证。",
+      "至少一组 xUnit 测试验证 PII 字段在过滤逻辑中被正确脱敏或丢弃。",
+      "参考文档（本仓库）: docs/migration/Phase-16-Observability-Backlog.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Backlog.md"
+    ],
+    "test_strategy": [
+      "本地：为 ObservabilityClient 编写 xUnit 测试，使用 fake/spy 对象捕获日志与事件上报行为。",
+      "CI：在 dotnet-unit 任务中确保 Observability 测试纳入覆盖率统计，并在质量门禁报告中展示相关用例。"
+    ],
+    "id": "SG-0037",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH03",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "",
+    "taskmaster_id": 37
+  },
+  {
+    "story_id": "PH13-BACKLOG-B3",
+    "title": "代码重复率与圈复杂度门禁",
+    "description": "根据 Phase-13-Quality-Gates-Backlog.md B3，为 sanguo 模板补齐代码重复率（Duplication%）与圈复杂度（Cyclomatic Complexity）质量门禁，将 jscpd、Roslyn 或 SonarQube 指标纳入 quality_gates.py 的统一判断。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0024"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "ci",
+      "quality-gates",
+      "duplication",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "logs/ci/<date>/quality-gates-duplication.json",
+      "logs/ci/<date>/quality-gates-complexity.json"
+    ],
+    "acceptance": [
+      "存在脚本或配置能够生成重复率与圈复杂度的机器可读报告，并写入logs/ci/<date>/quality-gates-duplication.json 与 quality-gates-complexity.json。",
+      "quality_gates.py 能够读取上述报告，根据 Phase-13 设定的阈值（例如 Dup% ≤ 2%，最大圈复杂度 ≤ 10，平均圈复杂度 ≤ 5）给出 PASS/FAIL。",
+      "在 CI 中至少有一条 Job 使用 quality_gates.py 作为门禁，并在失败时提供清晰的重复率与复杂度摘要。",
+      "参考文档（本仓库）: docs/migration/Phase-13-Quality-Gates-Backlog.md ; docs/migration/Phase-13-Quality-Gates-Script.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Script.md"
+    ],
+    "test_strategy": [
+      "本地：构造一个故意高重复率、高复杂度的小示例，验证 quality_gates.py 能将其标记为 failed。",
+      "CI：在 windows-quality-gate 工作流中增加对 duplication 与 complexity 报告的校验，并在 Step Summary 中展示关键指标。"
+    ],
+    "id": "SG-0038",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0024"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH06",
+      "CH07"
+    ],
+    "overlay": "",
+    "taskmaster_id": 38
+  },
+  {
+    "story_id": "PH13-BACKLOG-B4",
+    "title": "性能 P95 与审计 JSONL 校验",
+    "description": "根据 Phase-13-Quality-Gates-Backlog.md B4，将性能 P95 阈值与 security-audit.jsonl 的结构校验纳入 quality_gates.py，实现对 logs/perf/summary.json 与logs/ci/<date>/security-audit.jsonl 的自动化检查。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0015",
+      "ADR-0005",
+      "ADR-0019",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "ci",
+      "performance",
+      "audit",
+      "quality-gates"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "logs/perf/<date>/summary.json",
+      "logs/ci/<date>/security-audit.jsonl",
+      "logs/ci/<date>/quality-gates-perf.json"
+    ],
+    "acceptance": [
+      "新增 scripts/python/validate_perf.py 与 scripts/python/validate_audit_logs.py，能够检查 P95 是否在预算内，以及 security-audit.jsonl 每行为合法 JSON 且包含必需字段。",
+      "quality_gates.py 支持在 all 模式下调用上述校验脚本，并在失败时返回非零退出码。",
+      "CI 日志中可以看到 P95 与审计 JSONL 校验的摘要输出，并产生对应 JSON 摘要文件。",
+      "参考文档（本仓库）: docs/migration/Phase-13-Quality-Gates-Backlog.md ; docs/migration/Phase-15-Performance-Budgets-and-Gates.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-and-Gates.md"
+    ],
+    "test_strategy": [
+      "单元：为 validate_perf 与 validate_audit_logs 编写测试，验证边界条件与错误路径。",
+      "集成：在 CI 中对刻意构造的超阈值样例运行 quality_gates.py，验证能够正确失败并输出预期的 JSON 摘要。"
+    ],
+    "id": "SG-0039",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0015",
+      "ADR-0005",
+      "ADR-0019",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "",
+    "taskmaster_id": 39
+  },
+  {
+    "story_id": "PH14-BACKLOG-B5",
+    "title": "Signal 健康度验证与安全相关测试门禁",
+    "description": "根据 Phase-14-Godot-Security-Backlog.md B5，在安全相关 Signal 上补齐 XML 注释与规范化命名，并通过 xUnit、GdUnit4 或专用脚本，将这些检查纳入 CI 中的信号健康度门禁。",
+    "status": "deferred",
+    "priority": "P3",
+    "layer": "adapter",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0019",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH02",
+      "CH04",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "security",
+      "signal",
+      "gdunit",
+      "adapter",
+      "testing"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Tests.Godot/tests/Security/Hard/test_security_signals_health.gd",
+      "logs/ci/<date>/signal-health-summary.json"
+    ],
+    "acceptance": [
+      "与安全相关的关键 Signal（例如 SecurityHttpClient.RequestBlocked 等）具备完整的XML 注释与稳定的命名约定。",
+      "存在至少一组 GdUnit4 测试或分析脚本，对这些 Signal 的注册与触发进行验证，并在失败时产生可读的 JSON 摘要。",
+      "CI 中新增或扩展一个步骤，用于执行 Signal 健康度检查，并在日志中给出通过与失败的统计。",
+      "参考文档（本仓库）: docs/migration/Phase-14-Godot-Security-Backlog.md ; docs/migration/Phase-14-Godot-Security-Baseline.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Baseline.md"
+    ],
+    "test_strategy": [
+      "GdUnit4：为安全相关 Signal 编写 Hard 套件，用于验证触发路径与 XML 注释是否齐全。",
+      "CI：在 signal-compliance 相关工作流中集成健康度检查脚本，并观察在故意缺失注释或错误命名时是否会失败。"
+    ],
+    "id": "SG-0040",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0019",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH02",
+      "CH04",
+      "CH06",
+      "CH07"
+    ],
+    "overlay": "",
+    "taskmaster_id": 40
+  },
+  {
+    "story_id": "PH15-BACKLOG-B3",
+    "title": "性能报告与历史追踪（reports/performance/**）",
+    "description": "根据 Phase-15-Performance-Budgets-Backlog.md B3，为性能测试结果生成 HTML 或 JSON 报告与历史记录（如 performance-history.csv），支持人工分析与长期趋势跟踪。",
+    "status": "deferred",
+    "priority": "P3",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0015",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "performance",
+      "reports",
+      "ci",
+      "observability"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "logs/perf/<date>/summary.json",
+      "reports/performance/current-run-report.json",
+      "reports/performance/performance-history.csv"
+    ],
+    "acceptance": [
+      "存在脚本可以从 logs/perf/<date>/summary.json 等原始数据生成当前运行报告与历史记录文件，写入 reports/performance 目录。",
+      "CI 将 reports/performance 目录中的文件作为 artifact 上传，便于离线分析。",
+      "至少有一个简单的趋势图或统计汇总（可以是 JSON 或 CSV），帮助判断性能回归。",
+      "参考文档（本仓库）: docs/migration/Phase-15-Performance-Budgets-Backlog.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md"
+    ],
+    "test_strategy": [
+      "本地：构造多次性能采样结果，运行报告生成脚本，检查历史文件是否按预期累积数据。",
+      "CI：在性能相关 Job 中执行报告生成步骤，并检查 artifact 中是否包含预期文件。"
+    ],
+    "id": "SG-0041",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0015",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "",
+    "taskmaster_id": 41
+  },
+  {
+    "story_id": "PH15-BACKLOG-B5",
+    "title": "独立性能门禁 CI 工作流（performance-gates.yml）",
+    "description": "根据 Phase-15-Performance-Budgets-Backlog.md B5，新增专门的性能门禁 CI 工作流（例如 .github/workflows/performance-gates.yml），仅运行性能相关脚本与阈值校验，与常规 build/test 工作流解耦。",
+    "status": "deferred",
+    "priority": "P3",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0015",
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0008",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH09",
+      "CH10"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "ci",
+      "performance",
+      "workflow",
+      "quality-gates"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      ".github/workflows/performance-gates.yml",
+      "logs/ci/<date>/performance-gates-summary.json"
+    ],
+    "acceptance": [
+      "仓库中存在独立的性能门禁工作流文件 performance-gates.yml，并在文档中说明触发条件与使用场景。",
+      "性能工作流只运行性能采集与阈值校验相关脚本，不重复常规 build/test 步骤。",
+      "performance-gates 工作流在阈值未通过时能明确标记失败原因，并输出 JSON 摘要到 logs/ci/<date>/performance-gates-summary.json。",
+      "参考文档（本仓库）: docs/migration/Phase-15-Performance-Budgets-Backlog.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md"
+    ],
+    "test_strategy": [
+      "CI：针对测试分支手动触发 performance-gates 工作流，观察在性能超阈值和正常情况下的行为差异。",
+      "文档：在 Phase-15 或 README 中记录如何启用或关闭性能门禁工作流。"
+    ],
+    "id": "SG-0042",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0015",
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0008",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH09",
+      "CH10"
+    ],
+    "overlay": "",
+    "taskmaster_id": 42
+  },
+  {
+    "story_id": "PH17-BACKLOG-B4",
+    "title": "代码签名与安全分发",
+    "description": "根据 Phase-17-Build-Backlog.md B4，在构建链路中引入可配置的代码签名步骤，使用 Windows SignTool 对 Game.exe（及安装包如存在）进行签名，并在构建与发布日志中记录签名状态。",
+    "status": "deferred",
+    "priority": "P3",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0008",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "build",
+      "signing",
+      "security",
+      "release",
+      "windows"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "scripts/python/build_windows.py",
+      "logs/ci/<date>/signing-summary.json",
+      "build/Game.exe"
+    ],
+    "acceptance": [
+      "build_windows.py 或等价构建脚本支持可选的代码签名步骤，通过环境变量配置证书路径和密码。",
+      "当签名启用且证书有效时，生成的 Game.exe 已被 SignTool 签名，且 signing-summary.json 中记录成功状态；在未配置证书时构建仍可完成但不会尝试签名。",
+      "README 或 Phase-17 文档中说明如何在本地与 CI 环境中开启代码签名以及注意事项。",
+      "参考文档（本仓库）: docs/migration/Phase-17-Build-Backlog.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md"
+    ],
+    "test_strategy": [
+      "本地：在具备测试证书的环境下执行构建，验证 EXE 已被签名且系统属性中可见。",
+      "CI：在 Windows 构建 Job 中对 signing-summary.json 做基础格式检查，确保脚本在有与无证书两种场景下都能稳定运行。"
+    ],
+    "id": "SG-0043",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0008",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "",
+    "taskmaster_id": 43
+  },
+  {
+    "story_id": "PH17-BACKLOG-B5",
+    "title": "导出预设与多配置支持",
+    "description": "根据 Phase-17-Build-Backlog.md B5，在 Godot export_presets.cfg 中配置多个导出预设（Debug、Release、Demo 等），并在构建脚本中增加相应的导出参数支持。",
+    "status": "deferred",
+    "priority": "P3",
+    "layer": "adapter",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0011",
+      "ADR-0018",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "godot",
+      "export",
+      "presets",
+      "windows",
+      "release"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "export_presets.cfg",
+      "logs/ci/<date>/export/summary.json"
+    ],
+    "acceptance": [
+      "export_presets.cfg 中至少定义 Debug 与 Release 两类 Windows Desktop 导出预设，并按需扩展 Demo 等配置。",
+      "构建脚本可以根据参数选择不同的导出预设，生成对应的 EXE 与 PCK。",
+      "CI 中至少有一条导出 Job 使用 Release 预设，并在导出 summary 中注明所用配置。",
+      "参考文档（本仓库）: docs/migration/Phase-17-Build-Backlog.md ; docs/migration/Phase-17-Export-Checklist.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Export-Checklist.md"
+    ],
+    "test_strategy": [
+      "本地：在 Godot 编辑器与 headless 模式下分别验证各导出预设可以成功生成可运行的 EXE。",
+      "CI：在 export 相关工作流中记录所用预设名称，并检查导出 summary 中的配置字段。"
+    ],
+    "id": "SG-0044",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0011",
+      "ADR-0018",
+      "ADR-0005"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "",
+    "taskmaster_id": 44
+  },
+  {
+    "story_id": "PH07-BACKLOG-ARCH-DEPENDENCY-GUARD",
+    "title": "架构依赖护栏与依赖图校验骨架",
+    "description": "根据 Base 07 章 7.y “架构依赖护栏（Godot + C# 模板）” 与 ADR-0007（端口与适配器），为 sanguo 提供一套最小可执行的依赖矩阵与校验骨架：在 C# 工程层面约束 Game.Core/Game.Godot/Tests.* 之间的引用方向，在 Godot Scripts 目录层面约束 Scripts/Core/Adapters/Scenes 的依赖关系，并通过 CI 中的依赖护栏脚本生成 logs/ci/<date>/dependency-guard.json 与摘要，逐步收紧 Core 禁 Godot/测试、Adapters 不反向依赖 UI 的架构约束。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0007",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "ci",
+      "architecture",
+      "dependency-guard",
+      "godot",
+      "csharp"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "logs/ci/<date>/dependency-guard.json",
+      "logs/ci/<date>/dependency-guard-summary.txt"
+    ],
+    "acceptance": [
+      "docs/architecture/base/07-dev-build-and-gates-v2.md 中 7.y 小节明确给出项目级与目录级依赖矩阵（Game.Core/Game.Godot/Tests.* 与 Scripts/Core/Adapters/Scenes 的允许/禁止依赖关系），AGENTS.md 中引用该小节作为架构依赖 SSoT。",
+      "存在 scripts/python/dependency_guard.py 或等价脚本，能够扫描 C# 工程（csproj 与 using 语句）和 Godot Scripts 目录结构，检测是否存在违反依赖矩阵的引用（例如 Game.Core 中出现 Godot 命名空间、Game.Godot 引用 Tests.*、Scripts/Core 引用 Godot API 等），并将结果写入 logs/ci/<date>/dependency-guard.json 与文本摘要。",
+      "在 windows-quality-gate 或等价 CI 工作流中增加依赖护栏脚本的调用步骤（初期可为软门禁），当检测到违规依赖时在 Step Summary 中给出清晰的违规列表，后续可按需要将部分规则提升为硬门禁。",
+      "参考文档（本仓库）: docs/migration/Phase-7-UI-Migration.md ; docs/migration/Phase-5-Adapter-Layer.md ; docs/migration/Phase-4-Domain-Layer.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-7-UI-Migration.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-5-Adapter-Layer.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-4-Domain-Layer.md"
+    ],
+    "test_strategy": [
+      "本地：构造刻意违反依赖矩阵的示例（例如在 Game.Core 中添加 using Godot; 或在 Scripts/Core 中直接引用 Godot API），运行 dependency_guard 脚本验证其能正确发现并在 JSON/文本摘要中报告。",
+      "CI：在测试分支上启用依赖护栏步骤，故意保留一处违规依赖，确认 windows-quality-gate（或等价工作流）中的 Step Summary 能显示违规详情，并在规则配置为硬门禁时正确使 Job 失败。"
+    ],
+    "id": "SG-0045",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0007",
+      "ADR-0005",
+      "ADR-0018"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay": "",
+    "taskmaster_id": 45
+  },
+  {
+    "story_id": "PH12-BACKLOG-B1-B2",
+    "title": "Python 版 headless smoke 封装与 strict 模式开关",
+    "description": "根据 Phase-12-Headless-Smoke-Backlog.md B1/B2，在当前 Godot + C# 模板中实现 Python 版 headless smoke 封装脚本（替代/补充 PowerShell 版本），并增加 strict 模式：严格依赖 [TEMPLATE_SMOKE_READY]/[DB] opened marker 决定通过与否。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0018",
+      "ADR-0024"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "ci",
+      "smoke",
+      "godot",
+      "python",
+      "headless"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "logs/ci/<date>/smoke/headless.log",
+      "logs/ci/<date>/smoke/selfcheck-summary.json"
+    ],
+    "acceptance": [
+      "新增 scripts/python/smoke_headless.py（或等价脚本），支持 --godot-bin/--scene/--timeout-sec/--project-path 参数，并在 Windows 上可直接运行。",
+      "非 strict 模式下，脚本行为与现有 PowerShell 版本等价，输出写入 logs/ci/<date>/smoke/**，并保留宽松判定。",
+      "strict 模式下，仅当日志包含 [TEMPLATE_SMOKE_READY] 或 [DB] opened 时返回 0，否则返回非零并在日志中标记为 strict-failed。",
+      "ci-windows.yml 或 windows-quality-gate.yml 至少提供一条注释示例，展示如何在受保护分支启用 strict 模式。",
+      "参考文档（本仓库）: docs/migration/Phase-12-Headless-Smoke-Backlog.md ; docs/migration/Phase-12-Headless-Smoke-Tests.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-12-Headless-Smoke-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-12-Headless-Smoke-Tests.md"
+    ],
+    "test_strategy": [
+      "本地运行：在 Windows 环境下通过 dev_cli.py 调用 Python 版 smoke，验证日志与退出码。",
+      "CI 演练：在非受保护分支上打开 strict 模式，观察 smoke 失败时的门禁行为与日志输出。"
+    ],
+    "id": "SG-0046",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0018",
+      "ADR-0024"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "",
+    "taskmaster_id": 46
+  },
+  {
+    "story_id": "PH13-BACKLOG-B1-B2-B5",
+    "title": "扩展 quality_gates.py 覆盖率阈值与 GdUnit4 集成",
+    "description": "承接 Phase-13-Quality-Gates-Script.md 与 Backlog：将 xUnit 覆盖率门禁提升到蓝图标准（行≥90%、分支≥85%，可由环境变量覆盖），并把关键 GdUnit4 集合（Adapters+Security 小集）通过 quality_gates.py 聚合输出到统一 summary，以便在 CI 中统一判定。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0024"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "ci",
+      "quality-gates",
+      "coverage",
+      "gdunit"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "logs/ci/<date>/unit/coverage.json",
+      "logs/e2e/<date>/gdunit-hard/run-summary.json",
+      "logs/ci/<date>/quality-gates-summary.json"
+    ],
+    "acceptance": [
+      "scripts/python/run_dotnet.py 读取覆盖率结果并在 summary.json 中写入 lines/branches 与阈值配置（默认 90/85，可由环境变量覆盖）。",
+      "当覆盖率低于阈值时，quality_gates.py 在 summary 中标记为 failed，并可配置为软/硬门禁（至少支持硬门禁）。",
+      "quality_gates.py 能调用 run_gdunit.py 或等价封装，执行 Adapters+Security 硬门禁集合，并在 quality-gates-summary.json 中汇总结果。",
+      "Windows Quality Gate 工作流调用 quality_gates.py all 时，能在 Step Summary 中清晰展示 dotnet 覆盖率与 GdUnit4 集合结果。",
+      "参考文档（本仓库）: docs/migration/Phase-13-Quality-Gates-Backlog.md ; docs/migration/Phase-13-Quality-Gates-Script.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Script.md"
+    ],
+    "test_strategy": [
+      "本地模拟：手工降低测试覆盖率，验证 quality_gates.py 将其标记为 failed，并按配置返回非零 exit code。",
+      "CI 验证：在 PR 上运行 windows-quality-gate 工作流，观察 coverage 与 GdUnit4 结果是否在 Step Summary 与 artifacts 中正确展示。"
+    ],
+    "id": "SG-0047",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0024"
+    ],
+    "archRefs": [
+      "CH01",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay": "",
+    "taskmaster_id": 47
+  },
+  {
+    "story_id": "PH14-BACKLOG-B1-B2-B3-B4",
+    "title": "Godot 安全适配层增强：外链白名单、文件访问与 OS.execute 守卫",
+    "description": "按照 Phase-14-Godot-Security-Baseline.md 与 Backlog，对当前 Godot+C# 模板补齐安全适配层：统一外链白名单配置（ALLOWED_EXTERNAL_HOSTS）、文件访问适配（仅 res:// 与 user://，拒绝 .. 和绝对路径）、显式封装 OS.execute，并为安全审计 JSONL 增加格式校验与最小测试集。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0019",
+      "ADR-0006",
+      "ADR-0005",
+      "ADR-0011"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH05",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [],
+    "labels": [
+      "security",
+      "godot",
+      "adapter",
+      "filesystem",
+      "process"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Tests.Godot/tests/Security/Hard/test_db_path_rejection.gd",
+      "Tests.Godot/tests/Security/Hard/test_settings_config_security.gd",
+      "logs/ci/<date>/security-audit.jsonl"
+    ],
+    "acceptance": [
+      "外链访问统一通过 SecurityUrlAdapter（或等价组件）完成，强制 https scheme + ALLOWED_EXTERNAL_HOSTS 白名单，禁止 file://、javascript: 等高危 scheme。",
+      "SecurityUrlAdapter 在引入 ALLOWED_EXTERNAL_HOSTS 白名单（可通过环境变量或配置）时，默认开启安全收敛：当 allowedDomains == null 时不会在生产环境下“全部放行”，而是保持本地/测试环境明确配置或显式 opt-in，符合 ADR-0019 对外链白名单的防御性要求。",
+      "文件访问统一通过 SecurityFileAdapter（或等价组件）封装 FileAccess/DirAccess：仅允许 res:// 读取与 user:// 读写，拒绝绝对路径与 .. 越权访问，并将拒绝写入 security-audit.jsonl。",
+      "OS.execute 默认在运行时禁用，或仅在开发/CI 模式通过 SecurityProcessAdapter 白名单执行，并记录审计日志。",
+      "安全审计 JSONL（logs/ci/<date>/security-audit.jsonl 与 user://logs/security/**）均通过验证脚本检查：每行合法 JSON，至少包含 {ts, action, reason, target, caller} 字段。",
+      "相关 GdUnit4 Hard 测试覆盖允许/拒绝/非法三态场景，并在 CI 中作为硬门禁的一部分。",
+      "参考文档（本仓库）: docs/migration/Phase-14-Godot-Security-Backlog.md ; docs/migration/Phase-14-Godot-Security-Baseline.md",
+      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Baseline.md"
+    ],
+    "test_strategy": [
+      "GdUnit4 安全用例：编写/扩展 Hard 集测试外链、文件、进程三类接口的 allow/deny/invalid 行为。",
+      "脚本校验：新增或扩展 scripts/python/validate_audit_logs.py，针对 security-audit.jsonl 做格式与字段校验，在 CI 中运行。"
+    ],
+    "id": "SG-0048",
+    "taskmaster_exported": true,
+    "adrRefs": [
+      "ADR-0019",
+      "ADR-0006",
+      "ADR-0005",
+      "ADR-0011"
+    ],
+    "archRefs": [
+      "CH02",
+      "CH05",
+      "CH07",
+      "CH10"
+    ],
+    "overlay": "",
+    "taskmaster_id": 48
+  }
+]

@@ -140,7 +140,7 @@ def main():
                 write_text(os.path.join(out_dir, 'prewarm-dotnet.txt'), '\n'.join(agg) if agg else 'NO_DOTNET_BUILD_TARGETS')
                 prewarm_note = 'fallback-dotnet'
 
-    # Run tests（带 Debugger Break fail-fast）
+    # Run tests (Debugger break, fail-fast).
     # Build command with optional -a filters
     cmd = [args.godot_bin, '--headless', '--path', proj, '-s', '-d', 'res://addons/gdUnit4/bin/GdUnitCmdTool.gd', '--ignoreHeadlessMode']
     for a in args.add:

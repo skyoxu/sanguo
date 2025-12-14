@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
 """Headless smoke test runner for Godot (Windows, Godot+C# template).
 
-This is a Python equivalent of scripts/ci/smoke_headless.ps1 with two
-behaviours:
+This is a Python equivalent of `scripts/ci/smoke_headless.ps1` with two behaviors:
 
-- mode="loose" (default): never fails the build, only prints PASS hints;
-- mode="strict": returns non-zero if we没有看到核心标记输出。
+- mode="loose" (default): never fails the build; prints PASS hints only.
+- mode="strict": returns non-zero unless core markers are detected.
 
-Heuristics与 PowerShell 版本保持一致：
-- 优先匹配 "[TEMPLATE_SMOKE_READY]"；
-- 其次匹配 "[DB] opened"；
-- 最后只要有任何输出也视为 smoke 通过（loose 模式）。
+Heuristics (kept aligned with the PowerShell version):
+- Prefer "[TEMPLATE_SMOKE_READY]".
+- Fallback to "[DB] opened".
+- In loose mode, any output counts as PASS.
 
-用法示例（Windows）：
-
-  py -3 scripts/python/smoke_headless.py \
-    --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" \
-    --project "." --scene "res://Game.Godot/Scenes/Main.tscn" \
+Example (PowerShell):
+  py -3 scripts/python/smoke_headless.py `
+    --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" `
+    --project "." --scene "res://Game.Godot/Scenes/Main.tscn" `
     --timeout-sec 5 --mode loose
-
-在 CI 中可以选择 --mode strict，并根据返回码决定是否作为门禁。
 """
 
 from __future__ import annotations
@@ -52,7 +48,7 @@ def _run_smoke(godot_bin: str, project: str, scene: str, timeout_sec: int, mode:
             err_path.open("w", encoding="utf-8", errors="ignore") as f_err:
         try:
             proc = subprocess.Popen(cmd, stdout=f_out, stderr=f_err, text=True)
-        except Exception as exc:  # pragma: no cover - 环境问题
+        except Exception as exc:  # pragma: no cover - environment-specific failure
             print(f"[smoke_headless] failed to start Godot: {exc}", file=sys.stderr)
             return 1
 
@@ -90,10 +86,10 @@ def _run_smoke(godot_bin: str, project: str, scene: str, timeout_sec: int, mode:
         print("SMOKE INCONCLUSIVE (no output). Check logs.")
 
     if mode == "strict":
-        # 严格模式：至少需要 marker 或 DB opened
+        # Strict mode: require at least the marker or a DB opened line.
         return 0 if (has_marker or has_db_open) else 1
 
-    # loose 模式永不作为硬门禁，只提供日志与提示
+    # Loose mode never gates; logs are the artifact.
     return 0
 
 
@@ -111,4 +107,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

@@ -7,8 +7,15 @@ namespace Game.Core.State;
 
 public class GameStateManager
 {
+    private static readonly JsonSerializerOptions JsonDeserializeOptions = new()
+    {
+        MaxDepth = 32,
+    };
+
     private readonly GameStateManagerOptions _options;
     private readonly IDataStore _store;
+    private readonly ILogger? _logger;
+    private readonly IErrorReporter? _reporter;
     private readonly List<Action<DomainEvent>> _callbacks = new();
 
     private GameState? _currentState;
@@ -17,10 +24,16 @@ public class GameStateManager
 
     private const string IndexSuffix = ":index";
 
-    public GameStateManager(IDataStore store, GameStateManagerOptions? options = null)
+    public GameStateManager(
+        IDataStore store,
+        GameStateManagerOptions? options = null,
+        ILogger? logger = null,
+        IErrorReporter? reporter = null)
     {
         _store = store;
         _options = options ?? GameStateManagerOptions.Default;
+        _logger = logger;
+        _reporter = reporter;
     }
 
     public void SetState(GameState state, GameConfig? config = null)
@@ -32,9 +45,9 @@ public class GameStateManager
         Publish(new DomainEvent(
             Type: CoreGameEvents.GameStateManagerUpdated,
             Source: nameof(GameStateManager),
-            Data: new { state, config },
+            Data: JsonElementEventData.FromObject(new { state, config }),
             Timestamp: DateTime.UtcNow,
-            Id: $"state-update-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+            Id: Guid.NewGuid().ToString("N")
         ));
     }
 
@@ -54,7 +67,7 @@ public class GameStateManager
         if (!string.IsNullOrEmpty(screenshot) && screenshot!.Length > MaxScreenshotChars)
             throw new ArgumentOutOfRangeException(nameof(screenshot), $"Screenshot too large (>{MaxScreenshotChars} chars).");
 
-        var saveId = $"{_options.StorageKey}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        var saveId = $"{_options.StorageKey}-{Guid.NewGuid().ToString("N")}";
         var checksum = CalculateChecksum(_currentState);
         var now = DateTime.UtcNow;
 
@@ -74,9 +87,9 @@ public class GameStateManager
         Publish(new DomainEvent(
             Type: CoreGameEvents.GameSaveCreated,
             Source: nameof(GameStateManager),
-            Data: new { saveId },
+            Data: JsonElementEventData.FromObject(new { saveId }),
             Timestamp: now,
-            Id: $"save-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+            Id: Guid.NewGuid().ToString("N")
         ));
 
         return saveId;
@@ -95,9 +108,9 @@ public class GameStateManager
         Publish(new DomainEvent(
             Type: CoreGameEvents.GameSaveLoaded,
             Source: nameof(GameStateManager),
-            Data: new { saveId },
+            Data: JsonElementEventData.FromObject(new { saveId }),
             Timestamp: DateTime.UtcNow,
-            Id: $"load-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+            Id: Guid.NewGuid().ToString("N")
         ));
 
         return (_currentState, _currentConfig);
@@ -111,9 +124,9 @@ public class GameStateManager
         Publish(new DomainEvent(
             Type: CoreGameEvents.GameSaveDeleted,
             Source: nameof(GameStateManager),
-            Data: new { saveId },
+            Data: JsonElementEventData.FromObject(new { saveId }),
             Timestamp: DateTime.UtcNow,
-            Id: $"delete-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+            Id: Guid.NewGuid().ToString("N")
         ));
     }
 
@@ -138,9 +151,9 @@ public class GameStateManager
         Publish(new DomainEvent(
             Type: CoreGameEvents.GameAutosaveEnabled,
             Source: nameof(GameStateManager),
-            Data: new { interval = _options.AutoSaveInterval.TotalMilliseconds },
+            Data: JsonElementEventData.FromObject(new { interval = _options.AutoSaveInterval.TotalMilliseconds }),
             Timestamp: DateTime.UtcNow,
-            Id: $"autosave-enable-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+            Id: Guid.NewGuid().ToString("N")
         ));
     }
 
@@ -151,9 +164,9 @@ public class GameStateManager
         Publish(new DomainEvent(
             Type: CoreGameEvents.GameAutosaveDisabled,
             Source: nameof(GameStateManager),
-            Data: new { },
+            Data: null,
             Timestamp: DateTime.UtcNow,
-            Id: $"autosave-disable-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+            Id: Guid.NewGuid().ToString("N")
         ));
     }
 
@@ -162,13 +175,13 @@ public class GameStateManager
     {
         if (_autoSaveEnabled && _currentState is not null && _currentConfig is not null)
         {
-            await SaveGameAsync($"auto-save-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}");
+            await SaveGameAsync($"auto-save-{Guid.NewGuid().ToString("N")}");
             Publish(new DomainEvent(
                 Type: CoreGameEvents.GameAutosaveCompleted,
                 Source: nameof(GameStateManager),
-                Data: new { interval = _options.AutoSaveInterval.TotalMilliseconds },
+                Data: JsonElementEventData.FromObject(new { interval = _options.AutoSaveInterval.TotalMilliseconds }),
                 Timestamp: DateTime.UtcNow,
-                Id: $"autosave-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"
+                Id: Guid.NewGuid().ToString("N")
             ));
         }
     }
@@ -210,14 +223,17 @@ public class GameStateManager
         {
             json = raw;
         }
-        return JsonSerializer.Deserialize<SaveData>(json)!;
+        return JsonSerializer.Deserialize<SaveData>(json, JsonDeserializeOptions)
+            ?? throw new InvalidOperationException("Save data is invalid.");
     }
 
     private async Task UpdateIndexAsync(string? add = null, string? remove = null)
     {
         var key = _options.StorageKey + IndexSuffix;
         var json = await _store.LoadAsync(key);
-        var ids = json is null ? new List<string>() : (JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>());
+        var ids = json is null
+            ? new List<string>()
+            : (JsonSerializer.Deserialize<List<string>>(json, JsonDeserializeOptions) ?? new List<string>());
         if (add is not null) ids.Insert(0, add);
         if (remove is not null) ids.Remove(remove);
         var outJson = JsonSerializer.Serialize(ids.Distinct().ToList());
@@ -229,7 +245,7 @@ public class GameStateManager
         var key = _options.StorageKey + IndexSuffix;
         var json = await _store.LoadAsync(key);
         if (json is null) return;
-        var ids = JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+        var ids = JsonSerializer.Deserialize<List<string>>(json, JsonDeserializeOptions) ?? new List<string>();
         if (ids.Count <= _options.MaxSaves) return;
         var toDelete = ids.Skip(_options.MaxSaves).ToList();
         foreach (var id in toDelete)
@@ -244,7 +260,9 @@ public class GameStateManager
     {
         var key = _options.StorageKey + IndexSuffix;
         var json = await _store.LoadAsync(key);
-        return json is null ? new List<string>() : (JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>());
+        return json is null
+            ? new List<string>()
+            : (JsonSerializer.Deserialize<List<string>>(json, JsonDeserializeOptions) ?? new List<string>());
     }
 
     private static string CalculateChecksum(GameState state)
@@ -263,7 +281,32 @@ public class GameStateManager
     {
         foreach (var cb in _callbacks.ToArray())
         {
-            try { cb(evt); } catch { /* ignore */ }
+            try
+            {
+                cb(evt);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    _logger?.Error($"GameStateManager callback failed (type={evt.Type} source={evt.Source} id={evt.Id})", ex);
+                }
+                catch { }
+
+                try
+                {
+                    var ctx = new Dictionary<string, string>
+                    {
+                        ["event_type"] = evt.Type,
+                        ["event_source"] = evt.Source,
+                        ["event_id"] = evt.Id,
+                        ["callback"] = cb.Method.Name,
+                        ["callback_type"] = cb.Method.DeclaringType?.FullName ?? "unknown",
+                    };
+                    _reporter?.CaptureException("gamestatemanager.callback.exception", ex, ctx);
+                }
+                catch { }
+            }
         }
     }
 

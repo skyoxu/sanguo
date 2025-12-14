@@ -28,10 +28,22 @@ public static class CoreGameEvents
     public const string ScoreChanged = "score.changed";
 
     /// <summary>
+    /// Event type: core.score.updated
+    /// Emitted when player score updates (preferred)
+    /// </summary>
+    public const string ScoreUpdated = "core.score.updated";
+
+    /// <summary>
     /// Event type: player.health.changed
     /// Emitted when player health changes
     /// </summary>
     public const string PlayerHealthChanged = "player.health.changed";
+
+    /// <summary>
+    /// Event type: core.health.updated
+    /// Emitted when player health updates (preferred)
+    /// </summary>
+    public const string HealthUpdated = "core.health.updated";
 
     /// <summary>
     /// Event type: player.damaged

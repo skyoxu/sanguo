@@ -1,0 +1,9 @@
+<type>(<scope>): <description>
+
+<body>
+
+Task: {{task_id}}
+ADRs: {{adr_refs}}
+Overlay: {{overlay_file}}
+
+Co-Authored-By: Claude <noreply@anthropic.com>

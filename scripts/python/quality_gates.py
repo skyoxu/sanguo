@@ -9,9 +9,9 @@ Current minimal implementation:
   * encoding scan (soft gate)
 
 Usage (Windows):
-  py -3 scripts/python/quality_gates.py all \
-    --solution Game.sln --configuration Debug \
-    --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" \
+  py -3 scripts/python/quality_gates.py all `
+    --solution Game.sln --configuration Debug `
+    --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" `
     --build-solutions
 
 Exit codes:
@@ -48,11 +48,11 @@ def run_ci_pipeline(solution: str, configuration: str, godot_bin: str, build_sol
 
 
 def run_gdunit_hard(godot_bin: str) -> int:
-    """Run 硬门禁 GdUnit4 小集（Adapters/Config + Security）。
+    """Run the hard-gate GdUnit4 subset (Adapters/Config + Security).
 
-    设计目标：
-    - 与 ci-windows.yml 中的硬门禁集合保持一致；
-    - 报告输出到 logs/e2e/quality-gates/gdunit-hard。
+    Design goals:
+    - Keep aligned with the hard-gate set in ci-windows.yml.
+    - Write reports to logs/e2e/quality-gates/gdunit-hard.
     """
 
     args = [
@@ -78,10 +78,10 @@ def run_gdunit_hard(godot_bin: str) -> int:
 
 
 def run_smoke_headless(godot_bin: str) -> int:
-    """调用 Python 版 headless smoke，严格模式判定。
+    """Run the Python headless smoke in strict mode.
 
-    - 使用 Main 场景作为入口；
-    - mode=strict：至少需要 marker 或 [DB] opened 才视为通过。
+    - Uses the Main scene as entry.
+    - mode=strict requires either marker or [DB] opened.
     """
 
     args = [
@@ -118,17 +118,17 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.cmd == "all":
-        # 1) 基础门禁：dotnet + self-check + 编码扫描
+        # 1) Base gates: dotnet + self-check + encoding scan.
         rc = run_ci_pipeline(args.solution, args.configuration, args.godot_bin, args.build_solutions)
         hard_failed = rc != 0
 
-        # 2) 可选硬门禁：GdUnit4 小集
+        # 2) Optional hard gate: GdUnit subset.
         if args.gdunit_hard:
             gd_rc = run_gdunit_hard(args.godot_bin)
             if gd_rc != 0:
                 hard_failed = True
 
-        # 3) 可选硬门禁：headless smoke（严格模式）
+        # 3) Optional hard gate: headless smoke (strict).
         if args.smoke:
             sm_rc = run_smoke_headless(args.godot_bin)
             if sm_rc != 0:

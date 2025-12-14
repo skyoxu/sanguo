@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using FluentAssertions;
 using Game.Core.Contracts;
+using Game.Core.Ports;
 using Game.Core.Services;
 using Xunit;
 using System.Threading.Tasks;
@@ -8,6 +11,18 @@ namespace Game.Core.Tests.Services;
 
 public class EventBusTests
 {
+    private sealed class CapturingErrorReporter : IErrorReporter
+    {
+        public List<(string Message, Exception Ex, IReadOnlyDictionary<string, string>? Context)> Exceptions { get; } = new();
+        public List<(string Level, string Message, IReadOnlyDictionary<string, string>? Context)> Messages { get; } = new();
+
+        public void CaptureMessage(string level, string message, IReadOnlyDictionary<string, string>? context = null)
+            => Messages.Add((level, message, context));
+
+        public void CaptureException(string message, Exception ex, IReadOnlyDictionary<string, string>? context = null)
+            => Exceptions.Add((message, ex, context));
+    }
+
     [Fact]
     public async Task PublishInvokesSubscribersAndUnsubscribeWorks()
     {
@@ -18,12 +33,12 @@ public class EventBusTests
         await bus.PublishAsync(new DomainEvent(
             Type: "test.evt",
             Source: nameof(EventBusTests),
-            Data: new { ok = true },
+            Data: JsonElementEventData.FromObject(new { ok = true }),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString()
         ));
 
-        Assert.Equal(1, called);
+        called.Should().Be(1);
         sub.Dispose();
 
         await bus.PublishAsync(new DomainEvent(
@@ -33,13 +48,14 @@ public class EventBusTests
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString()
         ));
-        Assert.Equal(1, called);
+        called.Should().Be(1);
     }
 
     [Fact]
     public async Task SubscriberExceptionIsSwallowedAndOthersStillCalled()
     {
-        var bus = new InMemoryEventBus();
+        var reporter = new CapturingErrorReporter();
+        var bus = new InMemoryEventBus(reporter: reporter);
         int ok = 0;
         bus.Subscribe(_ => throw new InvalidOperationException("boom"));
         bus.Subscribe(_ => { ok++; return Task.CompletedTask; });
@@ -51,6 +67,9 @@ public class EventBusTests
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString()
         ));
-        Assert.Equal(1, ok);
+        ok.Should().Be(1);
+        reporter.Exceptions.Should().ContainSingle();
+        reporter.Exceptions[0].Message.Should().Be("eventbus.handler.exception");
+        reporter.Exceptions[0].Context.Should().NotBeNull();
     }
 }

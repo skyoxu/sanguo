@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAssertions;
+using Game.Core.Contracts;
 using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
 using Game.Core.Services;
@@ -9,13 +12,35 @@ namespace Game.Core.Tests.Services;
 
 public class CombatServiceTests
 {
+    private sealed class CapturingEventBus : IEventBus
+    {
+        public List<DomainEvent> Published { get; } = new();
+
+        public Task PublishAsync(DomainEvent evt)
+        {
+            Published.Add(evt);
+            return Task.CompletedTask;
+        }
+
+        public IDisposable Subscribe(Func<DomainEvent, Task> handler) => NoopDisposable.Instance;
+
+        private sealed class NoopDisposable : IDisposable
+        {
+            public static NoopDisposable Instance { get; } = new();
+
+            public void Dispose()
+            {
+            }
+        }
+    }
+
     [Fact]
     public void CalculateDamageAppliesResistanceAndCritical()
     {
         var cfg = new CombatConfig { CritMultiplier = 2.0 };
         cfg.Resistances[DamageType.Fire] = 0.5; // 50% resist
 
-        var svc = new CombatService();
+        var svc = new CombatService(NullEventBus.Instance);
         var baseFire = new Damage(100, DamageType.Fire);
         var reduced = svc.CalculateDamage(baseFire, cfg);
         reduced.Should().Be(50);
@@ -29,7 +54,7 @@ public class CombatServiceTests
     public void CalculateDamageWithArmorMitigatesLinearly()
     {
         var cfg = new CombatConfig();
-        var svc = new CombatService();
+        var svc = new CombatService(NullEventBus.Instance);
         var dmg = new Damage(40, DamageType.Physical);
         var res = svc.CalculateDamage(dmg, cfg, armor: 10);
         res.Should().Be(30);
@@ -39,7 +64,7 @@ public class CombatServiceTests
     public void ApplyDamageReducesPlayerHealth()
     {
         var p = new Player(maxHealth: 100);
-        var svc = new CombatService();
+        var svc = new CombatService(NullEventBus.Instance);
         svc.ApplyDamage(p, new Damage(25, DamageType.Physical));
         p.Health.Current.Should().Be(75);
     }
@@ -49,7 +74,7 @@ public class CombatServiceTests
     {
         // Arrange
         var player = new Player(maxHealth: 100);
-        var svc = new CombatService();
+        var svc = new CombatService(NullEventBus.Instance);
 
         // Act
         svc.ApplyDamage(player, 30);
@@ -65,7 +90,7 @@ public class CombatServiceTests
         var player = new Player(maxHealth: 100);
         var cfg = new CombatConfig { CritMultiplier = 2.0 };
         cfg.Resistances[DamageType.Fire] = 0.5;
-        var svc = new CombatService();
+        var svc = new CombatService(NullEventBus.Instance);
         var damage = new Damage(40, DamageType.Fire);
 
         // Act
@@ -80,7 +105,7 @@ public class CombatServiceTests
     {
         // Arrange
         var player = new Player(maxHealth: 100);
-        var eventBus = new InMemoryEventBus();
+        var eventBus = new CapturingEventBus();
         var svc = new CombatService(eventBus);
         var damage = new Damage(25, DamageType.Physical);
 
@@ -89,6 +114,16 @@ public class CombatServiceTests
 
         // Assert
         player.Health.Current.Should().Be(75);
-        // Event should be published (covering the _bus?.PublishAsync branch with non-null _bus)
+        eventBus.Published.Should().ContainSingle();
+        var evt = eventBus.Published[0];
+        evt.Type.Should().Be(CoreGameEvents.PlayerDamaged);
+        evt.Source.Should().Be(nameof(CombatService));
+        Guid.TryParseExact(evt.Id, "N", out _).Should().BeTrue();
+        evt.DataContentType.Should().Be("application/json");
+
+        var data = evt.Data.Should().BeOfType<JsonElementEventData>().Which.Value;
+        data.GetProperty("amount").GetInt32().Should().Be(25);
+        data.GetProperty("type").GetString().Should().Be("Physical");
+        data.GetProperty("critical").GetBoolean().Should().BeFalse();
     }
 }

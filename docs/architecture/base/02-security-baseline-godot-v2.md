@@ -29,5 +29,5 @@
 
 落地与验证
 - 质量门禁脚本：`py -3 scripts/python/godot_tests.py --headless --suite security`（输出见 6.3）。
-- Overlay 的 08 章仅“引用”本页与 ADR-0019，不复制阈值；契约与事件统一落盘 `Scripts/Core/Contracts/**`。
+- Overlay 的 08 章仅“引用”本页与 ADR-0019，不复制阈值；契约与事件统一落盘 `Game.Core/Contracts/**`。
 

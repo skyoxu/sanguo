@@ -35,7 +35,7 @@ UTF8_FILES = [
     "adr/ADR-0017-quality-intelligence-dashboard-and-governance.md",
     "adr/ADR-0018-godot-runtime-and-distribution.md",
     "adr/ADR-0019-godot-security-baseline.md",
-    "adr/ADR-0020-godot-test-strategy.md",
+    "adr/ADR-0025-godot-test-strategy.md",
     "adr/ADR-0021-csharp-domain-layer-architecture.md",
     "adr/ADR-0022-godot-signal-system-and-contracts.md",
     "adr/guide.md",

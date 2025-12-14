@@ -2,6 +2,36 @@
 
 本文档定义了 Godot 项目模板的测试策略、工具选型和最佳实践。
 
+## Windows 快速开始（本仓库可执行）
+
+> 目标：在 Windows 本机/CI 跑通单元测试、Godot 自检、GdUnit4，并把产物统一归档到仓库 `logs/`（便于取证与排障）。
+
+### 前置条件
+
+- .NET 8 SDK
+- Python 3（通过 Windows `py -3` 启动）
+- Godot 4.5.1 .NET（建议使用 console 版本，便于收集输出）
+
+### 环境变量（一次性）
+
+PowerShell 示例：
+
+```powershell
+setx GODOT_BIN "C:\Godot\Godot_v4.5.1-stable_mono_win64_console.exe"
+```
+
+### 一键门禁（推荐）
+
+```powershell
+py -3 scripts/python/quality_gates.py all --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --smoke --validate-audit
+```
+
+### 产物目录（SSoT）
+
+- `logs/unit/<YYYY-MM-DD>/`：dotnet 单测、覆盖率与摘要
+- `logs/e2e/<YYYY-MM-DD>/`：Godot self-check 与 e2e 相关产物
+- `logs/ci/<YYYY-MM-DD>/`：CI/门禁摘要与诊断日志
+
 ## 测试策略
 
 ### 三层测试金字塔
@@ -187,31 +217,40 @@ func test_main_menu_emits_settings() -> void:
 > - 直接对 `BtnSettings` 发射 `pressed` 信号，而非依赖 InputEvents；
 > - 使用少量 `process_frame` 帧轮询等待信号到达，适配 headless CI 环境。
 
-### 运行测试
+### 运行测试（Windows）
 
-```bash
-# 运行所有单元测试
-dotnet test
+> 本仓库优先使用 Python 脚本封装运行与归档（统一写入 `logs/`）。直接调用 `dotnet`/`godot` 只建议用于临时调试。
 
-# 带覆盖率收集
-dotnet test --collect:"XPlat Code Coverage"
+```powershell
+# 单元测试 + 覆盖率（归档到 logs/unit/<YYYY-MM-DD>/）
+py -3 scripts/python/run_dotnet.py --solution Game.sln --configuration Debug
 
-# 运行特定测试类
-dotnet test --filter "FullyQualifiedName~PlayerTests"
+# Godot 组合根自检（归档到 logs/e2e/<YYYY-MM-DD>/ 与 logs/ci/<YYYY-MM-DD>/）
+py -3 scripts/python/godot_selfcheck.py run --godot-bin "$env:GODOT_BIN" --project project.godot --build-solutions
 
-# 详细输出
-dotnet test --logger "console;verbosity=detailed"
+# GdUnit4（归档到 logs/e2e/<YYYY-MM-DD>/；CI 常用 --rd 指定到 logs/e2e/<run_id>/...）
+py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --project Tests.Godot --add tests/Security/Hard --timeout-sec 480
+
+# Headless smoke（严格模式；归档到 logs/ci/<run_id>/smoke/）
+py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project . --scene "res://Game.Godot/Scenes/Main.tscn" --timeout-sec 5 --mode strict
+
+# 直接 dotnet（不推荐作为 CI/取证入口）
+dotnet test Game.sln -c Debug
+dotnet test Game.sln -c Debug --collect:"XPlat Code Coverage"
+dotnet test Game.sln -c Debug --filter "FullyQualifiedName~PlayerTests"
+dotnet test Game.sln -c Debug --logger "console;verbosity=detailed"
 ```
 
 ### 覆盖率目标
 
-- **行覆盖率**: ≥90%
-- **分支覆盖率**: ≥85%
-- **方法覆盖率**: ≥95%
+- 默认阈值口径见 `ADR-0005-quality-gates` 与 `ADR-0015-performance-budgets-and-gates`。
+- 在本仓库的 `scripts/python/run_dotnet.py` 中，默认使用 **行 ≥90% / 分支 ≥85%**（可通过环境变量覆盖）：
+  - `COVERAGE_LINES_MIN=90`
+  - `COVERAGE_BRANCHES_MIN=85`
 
 **门禁规则：**
-- 覆盖率低于目标值时 CI 失败
-- 新增代码必须带测试，否则 PR 不通过
+- `scripts/python/ci_pipeline.py` 当前将“覆盖率不足”视为**软门禁**（不会阻断，但会落盘摘要，便于 review）。
+- 若你的项目需要将覆盖率升级为**硬门禁**，建议在 CI 中显式将 `run_dotnet.py` 的 `coverage_failed` 视为失败（或调整 `ci_pipeline.py` 的 hard gate 判定）。
 
 ## 场景测试：GdUnit4
 
@@ -258,7 +297,7 @@ tests/                          # GdUnit4 测试目录
 
 ```gdscript
 # tests/Scenes/PlayerNodeTests.gd
-extends GdUnitTestSuite
+extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 func test_player_emits_death_signal_when_health_zero():
     # Arrange
@@ -291,7 +330,7 @@ func test_player_does_not_die_with_remaining_health():
 
 ```gdscript
 # tests/Integration/ResourceLoadingTests.gd
-extends GdUnitTestSuite
+extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 func test_all_scene_paths_valid():
     # Arrange
@@ -312,7 +351,7 @@ func test_all_scene_paths_valid():
 
 ```gdscript
 # tests/Integration/SceneTransitionTests.gd
-extends GdUnitTestSuite
+extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 func test_main_menu_to_game_transition():
     # Arrange
@@ -327,21 +366,23 @@ func test_main_menu_to_game_transition():
     assert_str(current_scene.name).is_equal("Game")
 ```
 
-### 运行测试
+### 运行测试（Windows）
 
-```bash
-# 在 Godot 编辑器中运行（开发时）
-# 使用 GdUnit4 插件面板
+开发时：
+- 打开 `Tests.Godot` 工程，在 Godot Editor 里通过 GdUnit4 插件面板运行。
 
-# CI/CD headless 模式
-godot --headless --path . --gdunit-run
+CI/headless（本仓库推荐 Python 驱动）：
 
-# 输出到指定目录
-godot --headless --path . --gdunit-run --gdunit-report-path=logs/ci/
+```powershell
+# 运行一组目录/套件（可重复 --add）
+py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --project Tests.Godot --add tests/Adapters --add tests/Security/Hard --timeout-sec 480
 
-# 仅运行特定测试套件
-godot --headless --path . --gdunit-run --gdunit-test-suite="res://tests/Scenes/PlayerNodeTests.gd"
+# 指定报告输出目录（CI 常用 run_id；报告会落在 logs/ 下便于归档）
+py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --project Tests.Godot --add tests/Security/Hard --timeout-sec 480 --rd "logs/e2e/<run_id>/gdunit-reports/quality"
 ```
+
+> 提醒：启用 GdUnit4 文件日志时，Godot 会在 `%APPDATA%\\Godot\\app_userdata\\<ProjectName>\\logs\\` 产生 `godot*.log`；请确保这类日志会被归档/轮转，避免无限增长。
+> - 本仓库可用 `py -3 scripts/python/godot_userlog_manager.py --project Tests.Godot` 执行“归档到仓库 logs/ + 保留策略”。
 
 ## 端到端测试
 
@@ -357,7 +398,7 @@ E2E 测试**仅保留关键路径冒烟**，避免过度投入维护成本：
 
 ```gdscript
 # tests/E2E/GameFlowSmokeTests.gd
-extends GdUnitTestSuite
+extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 func test_game_startup_to_main_menu():
     # Arrange
@@ -390,46 +431,48 @@ func test_start_game_loads_first_level():
 
 ## CI/CD 质量门禁
 
-### 推荐管道
+### 推荐做法（与仓库现有工作流一致）
 
-```yaml
-# .github/workflows/ci.yml 或 .gitlab-ci.yml
-test:
-  steps:
-    # 1. 类型检查
-    - dotnet build /warnaserror
+本仓库的 GitHub Actions 参考实现：
+- `.github/workflows/windows-quality-gate.yml`
+- `.github/workflows/ci-windows.yml`
 
-    # 2. 单元测试 + 覆盖率
-    - dotnet test --collect:"XPlat Code Coverage"
-    - coverlet Game.Core.Tests/bin/Debug/net8.0/Game.Core.Tests.dll --target "dotnet" --targetargs "test --no-build"
+**最小硬门禁（本地等价命令）**
 
-    # 3. 场景集成测试
-    - godot --headless --path . --gdunit-run --gdunit-report-path=logs/ci/
+```powershell
+py -3 scripts/python/ci_pipeline.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions
+```
 
-    # 4. 代码重复检测
-    - jscpd --threshold 2 Game.Core/ Adapters/
+该命令会：
+- 调用 `scripts/python/run_dotnet.py`（单测 + 覆盖率 + `logs/unit/<YYYY-MM-DD>/summary.json`）
+- 调用 `scripts/python/godot_selfcheck.py`（自检 + `logs/e2e/<YYYY-MM-DD>/selfcheck-summary.json`）
+- 调用 `scripts/python/check_encoding.py`（编码扫描 + `logs/ci/<YYYY-MM-DD>/encoding/**`）
 
-    # 5. 发布健康度检查
-    - curl "https://sentry.io/api/0/organizations/{org}/releases/{version}/health/" | jq '.crashFreePercentage >= 99.5'
+**可选软门禁（CI 里通常 `continue-on-error: true`）**
 
-quality_gates:
-  rules:
-    - coverage >= 90% (line)
-    - coverage >= 85% (branch)
-    - duplication <= 2%
-    - sentry_crash_free >= 99.5%
+```powershell
+# GdUnit4（按套件分组运行，报告归档到 logs/e2e/<run_id>/gdunit-reports/**）
+py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --project Tests.Godot --add tests/Security/Hard --timeout-sec 480 --rd "logs/e2e/<run_id>/gdunit-reports/quality"
+
+# Contracts 校验（模板中为软门禁，用于发现“契约 vs 文档/覆盖层”漂移）
+py -3 scripts/python/validate_contracts.py
+
+# 安全审计 JSONL 格式校验（模板中为可选门禁）
+py -3 scripts/python/validate_audit_logs.py
 ```
 
 ### 覆盖率报告
 
-```bash
-# 生成 HTML 覆盖率报告
-dotnet test --collect:"XPlat Code Coverage"
-reportgenerator -reports:TestResults/**/coverage.cobertura.xml -targetdir:logs/coverage -reporttypes:Html
+覆盖率产物由 `scripts/python/run_dotnet.py` 统一归档到 `logs/unit/<YYYY-MM-DD>/`：
+- `logs/unit/<YYYY-MM-DD>/coverage.cobertura.xml`
+- `logs/unit/<YYYY-MM-DD>/summary.json`
 
-# 上传到 Codecov/Coveralls（可选）
-bash <(curl -s https://codecov.io/bash)
-```
+如需 HTML 报告，建议在允许安装工具的环境中使用 `reportgenerator` 生成到 `logs/unit/<YYYY-MM-DD>/coverage-html/`，并确保产物仍留在仓库 `logs/` 下。
+
+### 发布健康（Release Health）
+
+本模板当前尚未集成 Sentry SDK，也未落地 release-health gate（状态见 `docs/PROJECT_CAPABILITIES_STATUS.md`，口径见 `ADR-0003-observability-release-health`）。
+因此不要在本模板的 CI 示例中用 `curl/jq` 临时拼一个门禁，以免口径漂移与跨平台不可复现。
 
 ## 最佳实践
 
@@ -447,7 +490,7 @@ public interface ITime
     float TotalTime { get; }
 }
 
-// Adapters/TimeAdapter.cs
+// Game.Godot/Adapters/TimeAdapter.cs
 public class TimeAdapter : ITime
 {
     public float DeltaTime => (float)Engine.GetProcessTime();
@@ -739,4 +782,3 @@ func test_settings_saved_uses_configfile() -> void:
     var err := cfg.load("user://settings.cfg")
     assert_int(err).is_equal(Error.OK)
 ```
-

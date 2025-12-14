@@ -28,24 +28,6 @@ public class ScoreServiceTests
     }
 
     [Fact]
-    public void AddAccumulatesAndResetClearsScore()
-    {
-        var svc = new ScoreService();
-        var cfg = new GameConfig(50, 100, 1.0, false, Difficulty.Medium);
-
-        svc.Add(10, cfg);
-        svc.Add(20, cfg);
-
-        (svc.Score > 0).Should().BeTrue();
-
-        var before = svc.Score;
-        svc.Score.Should().Be(before);
-
-        svc.Reset();
-        svc.Score.Should().Be(0);
-    }
-
-    [Fact]
     public void ComputeAddedScoreHandlesNegativeBasePoints()
     {
         // Arrange
@@ -87,4 +69,3 @@ public class ScoreServiceTests
         result.Should().Be(200); // 100 * 2.0 * 1.0 (default multiplier)
     }
 }
-

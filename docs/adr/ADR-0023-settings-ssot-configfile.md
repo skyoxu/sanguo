@@ -10,7 +10,7 @@
   - 安全与路径口径保持与 ADR-0002、ADR-0006 Godot 附录一致：所有 Settings 持久化仅写入 user://，路径需规范化，不允许绝对路径与目录穿越。
   - 迁移策略：在 SettingsPanel 实现中，如果检测到 ConfigFile 不存在但 DB 中存在该用户的 settings 记录，则一次性读取 DB 值写入 ConfigFile；迁移完成后仍保留 DB 表结构（便于历史数据排查），但新代码不得再以其为权威来源。
 - Supersedes: 本 ADR 不整体 Supersede ADR-0006，而是对其中“Settings 使用 DB 持久化”的早期口径做精细化收束——在 Settings 场景上，以本 ADR 与《ADR-0006 Godot Data Storage Addendum》中“Preferences: use ConfigFile for player settings”为准；如存在冲突，以本 ADR 为最终口径。
-- References: ADR-0002（安全基线）、ADR-0005（质量门禁）、ADR-0006（数据存储）及其 Godot 附录、ADR-0010（国际化）、ADR-0020（测试策略）、Base CH05/CH06（数据模型与运行时视图）。
+- References: ADR-0002（安全基线）、ADR-0005（质量门禁）、ADR-0006（数据存储）及其 Godot 附录、ADR-0010（国际化）、ADR-0025（测试策略）、Base CH05/CH06（数据模型与运行时视图）。
 
 ## Test-Refs
 

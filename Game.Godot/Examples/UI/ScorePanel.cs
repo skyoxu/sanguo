@@ -1,4 +1,5 @@
 using Godot;
+using Game.Core.Contracts;
 using Game.Godot.Adapters;
 using System.Text.Json;
 
@@ -36,12 +37,12 @@ public partial class ScorePanel : Control
         }
         // Fallback: publish UI event
         var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
-        bus?.PublishSimple("core.score.updated", "ui", "{\"value\":%d}".Replace("%d", amount.ToString()));
+        bus?.PublishSimple(CoreGameEvents.ScoreUpdated, "ui", "{\"value\":%d}".Replace("%d", amount.ToString()));
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
-        if (type == "core.score.updated" || type == "score.changed")
+        if (type == CoreGameEvents.ScoreUpdated || type == CoreGameEvents.ScoreChanged)
         {
             try
             {
@@ -55,4 +56,3 @@ public partial class ScorePanel : Control
         }
     }
 }
-

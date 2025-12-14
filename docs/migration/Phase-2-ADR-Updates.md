@@ -17,7 +17,7 @@
 
 ### ADR-0018: Godot Runtime and Distribution
 ### ADR-0019: Godot Security Baseline
-### ADR-0020: Godot Test Strategy (TDD + GdUnit4)
+### ADR-0025: Godot Test Strategy (TDD + GdUnit4)
 ### ADR-0021: C# Domain Layer Architecture
 ### ADR-0022: Godot Signal System and Contracts
 
@@ -199,9 +199,9 @@ public void OpenUrlSafe_ShouldAllowWhitelistedHttps()
 
 ---
 
-## ADR-0020: Godot Test Strategy (TDD + GdUnit4)
+## ADR-0025: Godot Test Strategy (TDD + GdUnit4)
 
-**文件路径**: `docs/adr/ADR-0020-godot-test-strategy.md`
+**文件路径**: `docs/adr/ADR-0025-godot-test-strategy.md`
 
 **状态**: Proposed → Accepted
 

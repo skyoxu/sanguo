@@ -16,6 +16,11 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      - name: Setup Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
       - name: Cache Godot zip
         uses: actions/cache@v4
         with:
@@ -128,6 +133,16 @@ jobs:
           path: |
             build/Game.exe
             logs/ci/**
+
+      - name: Sentry sourcemap env check (soft gate)
+        if: always()
+        shell: pwsh
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          py -3 scripts/python/check_sentry_secrets.py
 
 
 

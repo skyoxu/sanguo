@@ -72,3 +72,33 @@ Godot_*.zip
 
 # Local: ignore cifix artifacts
 cifix*.*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+.env
+# Editor directories and files
+.idea
+.vscode
+*.ntvs*
+*.njsproj
+*.sw?
+# OS specific
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Local editor/tooling
+.cursor/
+
+# Task files
+# tasks.json
+# tasks/ 

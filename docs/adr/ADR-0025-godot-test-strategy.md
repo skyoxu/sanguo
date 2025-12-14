@@ -1,4 +1,4 @@
-# ADR-0020: Godot Test Strategy (xUnit + GdUnit4)
+# ADR-0025: Godot Test Strategy (xUnit + GdUnit4)
 
 - Status: Proposed
 - Context: Migration Phase-2; CH06 runtime view and CH07 quality gates; TDD-first architecture

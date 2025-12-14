@@ -6,10 +6,18 @@ name: Windows Smoke (Dry Run)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   smoke:
     runs-on: windows-latest
+    env:
+      GODOT_VERSION: '4.5.1'
+      PYTHONIOENCODING: 'utf-8'
+      PYTHONUTF8: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,13 +27,19 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Setup Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Download Godot .NET (Windows)
         shell: pwsh
         run: |
-          $Version = '4.5.1'
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
           New-Item -ItemType Directory -Force -Path godot | Out-Null
           $zip = "godot/godot.zip"
-          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/godotengine/godot/releases/download/${Version}-stable/Godot_v${Version}-stable_mono_win64.zip" -OutFile $zip
+          $u = "https://github.com/godotengine/godot/releases/download/${env:GODOT_VERSION}-stable/Godot_v${env:GODOT_VERSION}-stable_mono_win64.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $zip
           Expand-Archive $zip -DestinationPath godot -Force
           $exe = Get-ChildItem godot -Recurse -Filter *win64*.exe | Select-Object -First 1
           if (-not $exe) { throw 'Godot exe not found after download.' }
@@ -49,9 +63,21 @@ jobs:
         shell: pwsh
         run: |
           $env:Path = "$HOME\.dotnet;" + $env:Path
-          ./scripts/ci/run_gdunit_tests.ps1 -GodotBin "$env:GODOT_BIN" -ProjectPath 'Tests.Godot'
+          py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --project Tests.Godot `
+            --add tests/Scenes/Smoke `
+            --timeout-sec 300 --rd "logs/e2e/${{ github.run_id }}/gdunit-reports/smoke-scenes"
 
       - name: Headless smoke (no export)
         shell: pwsh
         run: |
           ./scripts/ci/smoke_headless.ps1 -GodotBin "$env:GODOT_BIN" -TimeoutSec 5 -ProjectPath '.'
+
+      - name: Upload smoke logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-logs
+          path: |
+            logs/ci/**
+            logs/e2e/**
+          if-no-files-found: ignore

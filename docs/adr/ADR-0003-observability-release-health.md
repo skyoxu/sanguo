@@ -23,6 +23,7 @@ executable-deliverables:
   - .release-health.json
   - src/shared/observability/sentry-config.ts
   - scripts/release-health-gate.mjs
+  - scripts/python/check_sentry_secrets.py
 supersedes: []
 ---
 

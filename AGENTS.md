@@ -28,6 +28,31 @@ This file provides guidance to Codex Cli when working with code in this reposito
 - **Upstream**: BMAD v6 produces PRD + Architecture (arc42 overlays; CH01/CH03 at minimum; ADR-0001…0005 adopted, more as needed).
 - **Planning**: Taskmaster converts **PRD → Tasks** with back-links to ADR/CH/Overlay.
 
+## 0.1 New Session Quick Reference
+
+**Starting a fresh session? Read these in order:**
+
+1. **This file** (`AGENTS.md`) - You're already here ✓
+2. **Project indexes** - Context entry points:
+   - `architecture_base.index` - Architecture docs (CH01-CH12 + ADRs)
+   - `prd_chunks.index` - PRD fragments index
+   - `shards/flattened-adr.xml` - All ADRs in single XML
+   - `shards/flattened-prd.xml` - All PRD in single XML
+3. **Test framework** - `docs/testing-framework.md` (critical for TDD)
+
+**File locations quick reference:**
+- PRD input: `.taskmaster/docs/prd.txt` (auto-generated from prd_chunks)
+- ADRs: `docs/adr/ADR-*.md` (21 files)
+- Architecture: `docs/architecture/base/*.md` (CH01-CH12)
+- Tasks: `tasks/tasks.json` (Taskmaster output)
+- Logs: `logs/**` (Security/E2E/Unit/Perf audit trails)
+
+**Typical workflow:**
+- **Taskmaster**: `npx task-master parse-prd .taskmaster/docs/prd.txt -n 30`
+- **Validate**: `py -3 scripts/python/validate_task_links.py`
+
+---
+
 ## Project Background
 
 This is a **production-ready Godot 4.5.1 project template** designed for rapid game development with enterprise-grade tooling. It serves as a reusable, out-of-the-box foundation for Windows desktop games.
@@ -267,29 +292,29 @@ This template comes pre-configured with the following technology stack:
 ## 6 输出格式与附带物（让规范可执行）
 - 任何“可执行规范”（章节/Story/task）必须附带以下产物（Godot 4.5 + C# 口径）：
   1. 接口/类型/事件的 C# 片段（Contracts）
-     - 放置：Scripts/Core/Contracts/**（仅此处为 SSoT，其他文档/代码引用不复制）
+     - 放置：Game.Core/Contracts/**（仅此处为 SSoT，其他文档/代码引用不复制）
      - 要求：强类型、XML 注释（summary/param/returns），公共事件命名遵循 ${DOMAIN_PREFIX}.<entity>.<action>
   2. 就地验收测试
      - 领域层（不依赖引擎）：xUnit 单测（覆盖核心算法/状态机/DTO 映射）
      - 场景/节点（依赖引擎）：GdUnit4 或自建 TestRunner（headless），覆盖 Signals 连通、关键节点可见性与资源路径
      - 如涉及外链/网络/文件/权限，必须包含安全烟测（allow/deny/invalid+审计校验）
 - 08 章文档产出必须同步/创建 Test-Refs（指向新增/更新的 xUnit/GdUnit4 测试文件；初期可放占位并标注 TODO）
-- 契约统一：事件/端口/DTO 仅落盘 Scripts/Core/Contracts/**，各章节/用例引用路径，不得复制粘贴以免口径漂移
+- 契约统一：事件/端口/DTO 仅落盘 Game.Core/Contracts/**，各章节/用例引用路径，不得复制粘贴以免口径漂移
 - 技术债占位规范：如必须引入动态执行/非白名单 DllImport/临时放宽安全策略，需同步添加 TODO（owner | due | Issue 链接 | 回迁计划），并在 PR 中说明
 
 ### 6.0 目录与命名（SSoT）
-- Contracts：Scripts/Core/Contracts/**（领域 SSoT，不依赖 Godot）
+- Contracts：Game.Core/Contracts/**（领域 SSoT，不依赖 Godot）
 - 领域实现：Scripts/Core/**（仅 .NET 标准库依赖）
 - 适配层：Scripts/Adapters/**（封装 Godot API，通过接口注入至 Core）
 - 场景与资源：Scenes/**、Assets/**
 - 审计与日志：见 6.3 日志与工件（SSoT）
 
 ### 6.1 契约模板（Contracts Template，C#）
-- 放置：Scripts/Core/Contracts/<Module>/
+- 放置：Game.Core/Contracts/<Module>/
 - 要求：不可引用 Godot API（保持可单测）、命名清晰、不可暴露实现细节
   示例（C#）
 
-  namespace Game.Contracts.Guild;
+  namespace Game.Core.Contracts.Guild;
 
   /// <summary>
   /// Domain event: ${DOMAIN_PREFIX}.guild.member.joined
@@ -320,7 +345,7 @@ This template comes pre-configured with the following technology stack:
   示例（xUnit）
 
   using FluentAssertions;
-  using Game.Contracts.Guild;
+  using Game.Core.Contracts.Guild;
   using Xunit;
 
   public class GuildContractsTests

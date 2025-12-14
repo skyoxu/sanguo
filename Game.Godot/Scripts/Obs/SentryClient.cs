@@ -18,7 +18,7 @@ public partial class SentryClient : Node
             if (!string.IsNullOrWhiteSpace(env))
             {
                 Dsn = env;
-                // 注意：模板默认不进行网络发送，仅作为启用占位标记
+                // Note: the template writes locally by default and does not send network requests.
                 if (!Enabled) Enabled = false;
             }
         }

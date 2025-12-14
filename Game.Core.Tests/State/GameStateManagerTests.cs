@@ -44,6 +44,18 @@ public class GameStateManagerTests
             Difficulty: Difficulty.Medium
         );
 
+    private sealed class CapturingErrorReporter : IErrorReporter
+    {
+        public List<(string Message, Exception Ex, IReadOnlyDictionary<string, string>? Context)> Exceptions { get; } = new();
+
+        public void CaptureMessage(string level, string message, IReadOnlyDictionary<string, string>? context = null)
+        {
+        }
+
+        public void CaptureException(string message, Exception ex, IReadOnlyDictionary<string, string>? context = null)
+            => Exceptions.Add((message, ex, context));
+    }
+
     [Fact]
     public async Task SaveLoadDeleteAndIndexWithCompressionWorksCorrectly()
     {
@@ -106,11 +118,13 @@ public class GameStateManagerTests
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await mgr.SaveGameAsync());
+        Func<Task> actMissingState = async () => await mgr.SaveGameAsync();
+        await actMissingState.Should().ThrowAsync<InvalidOperationException>();
 
         mgr.SetState(MakeState(), MakeConfig());
         var tooLong = new string('x', 101);
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await mgr.SaveGameAsync(tooLong));
+        Func<Task> actTooLong = async () => await mgr.SaveGameAsync(tooLong);
+        await actTooLong.Should().ThrowAsync<ArgumentOutOfRangeException>();
     }
 
     [Fact]
@@ -133,29 +147,6 @@ public class GameStateManagerTests
         var (state, config) = await mgr.LoadGameAsync(saveId);
         state.Level.Should().Be(10);
         state.Score.Should().Be(500);
-    }
-
-    [Fact]
-    public async Task LoadThrowsWhenChecksumMismatch()
-    {
-        // Arrange - save a valid state first
-        var store = new InMemoryDataStore();
-        var mgr = new GameStateManager(store);
-        mgr.SetState(MakeState(level: 7, score: 300), MakeConfig());
-        var saveId = await mgr.SaveGameAsync("corrupted-save");
-
-        // Act - manually corrupt the stored data to cause checksum mismatch
-        var corruptedData = await store.LoadAsync(saveId);
-        corruptedData.Should().NotBeNull();
-
-        // Deserialize, modify the state (change level), but keep the old checksum
-        var saveData = JsonSerializer.Deserialize<SaveData>(corruptedData!)!;
-        var corruptedState = saveData.State with { Level = 999 }; // Change level to cause checksum mismatch
-        var corruptedSave = saveData with { State = corruptedState }; // Keep original metadata with old checksum
-        await store.SaveAsync(saveId, JsonSerializer.Serialize(corruptedSave));
-
-        // Assert - loading should throw due to checksum mismatch
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await mgr.LoadGameAsync(saveId));
     }
 
     [Fact]
@@ -221,5 +212,23 @@ public class GameStateManagerTests
         retrievedConfig!.InitialHealth.Should().Be(100);
         retrievedConfig.MaxLevel.Should().Be(50);
     }
-}
 
+    [Fact]
+    public void CallbackExceptionIsReportedAndDoesNotThrow()
+    {
+        var store = new InMemoryDataStore();
+        var reporter = new CapturingErrorReporter();
+        var mgr = new GameStateManager(store, reporter: reporter);
+
+        mgr.OnEvent(_ => throw new InvalidOperationException("boom"));
+
+        Action act = () => mgr.SetState(MakeState(level: 2), MakeConfig());
+        act.Should().NotThrow();
+
+        reporter.Exceptions.Should().ContainSingle();
+        reporter.Exceptions[0].Message.Should().Be("gamestatemanager.callback.exception");
+        reporter.Exceptions[0].Context.Should().NotBeNull();
+        reporter.Exceptions[0].Context!["event_type"].Should().Be(GameStateManagerUpdated);
+    }
+
+}

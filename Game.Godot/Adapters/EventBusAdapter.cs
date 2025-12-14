@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
 using Game.Core.Contracts;
+using Game.Core.Ports;
 using Game.Core.Services;
 
 namespace Game.Godot.Adapters;
@@ -15,12 +17,24 @@ public partial class EventBusAdapter : Node, IEventBus
 
     private readonly List<Func<DomainEvent, Task>> _handlers = new();
     private readonly object _gate = new();
+    private static readonly JsonSerializerOptions JsonSerializeOptions = new()
+    {
+        MaxDepth = 32,
+    };
+
+    public ILogger? Logger { get; set; }
+    public IErrorReporter? ErrorReporter { get; set; }
 
     public Task PublishAsync(DomainEvent evt)
     {
         // Emit Godot signal for scene-level listeners
-        var dataJson = evt.Data is string s ? (string.IsNullOrWhiteSpace(s) ? "{}" : s)
-                                            : System.Text.Json.JsonSerializer.Serialize(evt.Data);
+        var dataJson = evt.Data switch
+        {
+            null => "{}",
+            RawJsonEventData raw => string.IsNullOrWhiteSpace(raw.Json) ? "{}" : raw.Json,
+            JsonElementEventData element => element.Value.ValueKind == JsonValueKind.Undefined ? "{}" : element.Value.GetRawText(),
+            _ => JsonSerializer.Serialize(evt.Data, JsonSerializeOptions),
+        };
         EmitSignal(SignalName.DomainEventEmitted, evt.Type, evt.Source, dataJson, evt.Id, evt.SpecVersion, evt.DataContentType, evt.Timestamp.ToString("o"));
 
         // Notify in-process subscribers
@@ -29,10 +43,34 @@ public partial class EventBusAdapter : Node, IEventBus
         return Task.WhenAll(snapshot.Select(h => SafeInvoke(h, evt)));
     }
 
-    private static async Task SafeInvoke(Func<DomainEvent, Task> h, DomainEvent evt)
+    private async Task SafeInvoke(Func<DomainEvent, Task> h, DomainEvent evt)
     {
-        try { await h(evt); }
-        catch { /* ignore to keep bus stable */ }
+        try
+        {
+            await h(evt);
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                Logger?.Error($"EventBusAdapter handler failed (type={evt.Type} source={evt.Source} id={evt.Id})", ex);
+            }
+            catch { }
+
+            try
+            {
+                var ctx = new Dictionary<string, string>
+                {
+                    ["event_type"] = evt.Type,
+                    ["event_source"] = evt.Source,
+                    ["event_id"] = evt.Id,
+                    ["handler"] = h.Method.Name,
+                    ["handler_type"] = h.Method.DeclaringType?.FullName ?? "unknown",
+                };
+                ErrorReporter?.CaptureException("eventbus.adapter.handler.exception", ex, ctx);
+            }
+            catch { }
+        }
     }
 
     public IDisposable Subscribe(Func<DomainEvent, Task> handler)
@@ -44,7 +82,7 @@ public partial class EventBusAdapter : Node, IEventBus
     // Simple publish for GDScript tests without needing DomainEvent construction
     public void PublishSimple(string type, string source, string data_json)
     {
-        var evt = new DomainEvent(type, source, data_json, DateTime.UtcNow, Guid.NewGuid().ToString("N"));
+        var evt = new DomainEvent(type, source, new RawJsonEventData(data_json), DateTime.UtcNow, Guid.NewGuid().ToString("N"));
         _ = PublishAsync(evt);
     }
 

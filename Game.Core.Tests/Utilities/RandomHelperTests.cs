@@ -68,7 +68,7 @@ public class RandomHelperTests
     }
 
     [Fact]
-    public void RandomHelperShouldBeThreadSafe()
+    public async Task RandomHelperShouldBeThreadSafe()
     {
         // Arrange
         var tasks = Enumerable.Range(0, 10)
@@ -84,13 +84,13 @@ public class RandomHelperTests
             .ToArray();
 
         // Act
-        Task.WaitAll(tasks);
+        var results = await Task.WhenAll(tasks);
 
         // Assert - Should not throw and produce valid results
-        tasks.Should().AllSatisfy(t =>
+        results.Should().AllSatisfy(list =>
         {
-            t.Result.Should().HaveCount(100);
-            t.Result.Should().AllSatisfy(r => r.Should().BeInRange(0, 99));
+            list.Should().HaveCount(100);
+            list.Should().AllSatisfy(r => r.Should().BeInRange(0, 99));
         });
     }
 }

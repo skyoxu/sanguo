@@ -12,7 +12,7 @@
   - 安全烟测（CI 最小集）：外链 allow/deny/invalid 三态 + 审计文件存在；网络白名单验证；user:// 写入成功、绝对/越权写入拒绝；权限在 headless 下默认拒绝。
 - Consequences:
   - 安全相关改动必须附带就地验收（xUnit/GdUnit4）与审计产物（logs/ 路径见 6.3）。
-  - Overlay 的 08 章仅引用本基线，不复制阈值；契约与事件统一落盘 Scripts/Core/Contracts/**
+  - Overlay 的 08 章仅引用本基线，不复制阈值；契约与事件统一落盘 Game.Core/Contracts/**
   - CI 中新增/保留安全作业 `godot-e2e --suite security`；release‑health 门禁保持不变（ADR‑0003）。
 - Supersedes: ADR-0002-electron-security
 - References: ADR-0011-windows-only-platform-and-ci, ADR-0003-observability-release-health, docs/architecture/base/02-security-baseline-electron-v2.md（后续将以 Godot 版本替换）
