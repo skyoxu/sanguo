@@ -102,3 +102,43 @@ __pycache__/
 # Task files
 # tasks.json
 # tasks/ 
+
+# AI / analysis artifacts (local only)
+# Prefer storing ad-hoc analysis outputs under `analysis/` (ignored).
+analysis/
+
+# Root-level temporary files
+/prd.txt
+/temp_path.txt
+/tmp_path.txt
+/temp_*.txt
+/temp_*.md
+/tmp_*.txt
+/tmp_*.md
+
+# Root-level generated analysis reports (keep docs/ versions tracked if any)
+/ANALYSIS_COMPLETE.txt
+/DOCUMENTATION_INDEX.md
+/EXECUTIVE_SUMMARY.md
+/COVERAGE_FIX_AND_IMPROVEMENTS.md
+/TEST_ANALYSIS_MANIFEST.txt
+/TEST_PYRAMID_QUALITY_ANALYSIS.md
+/TEST_QUALITY_QUICK_REFERENCE.md
+/PERFORMANCE_SLO_SUMMARY.txt
+/PERFORMANCE_VALIDATION_NOTES.md
+/PERFORMANCE_VALIDATION_REPORT_INDEX.txt
+
+# Local tool prompt libraries (ignore unless intentionally curated for repo-wide use)
+.claude/agents/
+.claude/commands/
+
+# Generic scratch patterns (root only)
+/*_ANALYSIS*.md
+/*_ANALYSIS*.txt
+/*_SUMMARY*.md
+/*_SUMMARY*.txt
+/*_REPORT*.md
+/*_REPORT*.txt
+/*.tmp
+/*.bak
+/*.old
