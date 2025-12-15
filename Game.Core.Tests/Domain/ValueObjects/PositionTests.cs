@@ -7,10 +7,15 @@ namespace Game.Core.Tests.Domain.ValueObjects;
 public class PositionTests
 {
     [Fact]
-    public void AddReturnsNewPositionAndKeepsImmutable()
+    public void Add_WithValidDeltas_ReturnsNewPositionAndPreservesOriginal()
     {
+        // Arrange
         var p = new Position(1, 2);
+
+        // Act
         var p2 = p.Add(3, 4);
+
+        // Assert
         p.X.Should().Be(1);
         p.Y.Should().Be(2);
         p2.X.Should().Be(4);
