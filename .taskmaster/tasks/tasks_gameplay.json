@@ -170,7 +170,9 @@
       "t2-gameplay"
     ],
     "owner": "gameplay",
-    "test_refs": [],
+    "test_refs": [
+      "Game.Core.Tests/Domain/CityTests.cs"
+    ],
     "acceptance": [
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",

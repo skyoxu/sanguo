@@ -69,7 +69,7 @@
         "title": "实现城池类",
         "description": "定义城池的属性和方法。",
         "details": "创建City类，包含名称、所属州郡、基础价格、基础过路费等属性。实现计算当前价格和过路费的方法。",
-        "testStrategy": "通过单元测试验证城池属性的正确性和方法的输出。\nLocal demo paths: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
+        "testStrategy": "通过单元测试验证城池属性的正确性和方法的输出。\nTest-Refs: Game.Core.Tests/Domain/CityTests.cs\nLocal demo paths: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
         "priority": "high",
         "dependencies": [
           "2"
