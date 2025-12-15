@@ -95,15 +95,16 @@
     "owner": "gameplay",
     "test_refs": [],
     "acceptance": [
+      "Task 2 仅落地环形索引/路径计算，不引入 `City`；`City` 在 Task 3 落地并通过映射接入。",
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
-      "符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。",
+      "符合学习模块一（棋盘 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。",
       "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
-      "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
+      "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线的索引跳转与多步路径序列（不依赖 `City`）。",
       "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone"
     ],
     "taskmaster_id": 2,

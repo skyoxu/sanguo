@@ -18,6 +18,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from _taskmaster import resolve_triplet
 from _util import ci_dir, iter_files, repo_root, run_cmd, write_json, write_text
 
 
@@ -84,32 +85,95 @@ def scan_patterns(target: Path, patterns: dict[str, str], max_hits: int) -> dict
 def run_checks(out_dir: Path, focus: str) -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
 
-    def run_check(name: str, cmd: list[str], timeout_sec: int = 900) -> None:
-        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=timeout_sec)
+    def run_check(
+        name: str,
+        cmd: list[str],
+        *,
+        requires_relpaths: list[str] | None = None,
+        timeout_sec: int = 900,
+    ) -> None:
         log_path = out_dir / f"{name}.log"
+        if requires_relpaths:
+            missing = [p for p in requires_relpaths if not (repo_root() / p).exists()]
+            if missing:
+                joined = ", ".join(missing)
+                write_text(log_path, f"SKIP missing: {joined}\n")
+                checks.append(
+                    {
+                        "name": name,
+                        "cmd": cmd,
+                        "rc": 0,
+                        "log": str(log_path),
+                        "status": "skipped",
+                        "reason": "missing:" + joined,
+                    }
+                )
+                return
+        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=timeout_sec)
         write_text(log_path, out)
-        checks.append({"name": name, "cmd": cmd, "rc": rc, "log": str(log_path)})
+        checks.append({"name": name, "cmd": cmd, "rc": rc, "log": str(log_path), "status": "ok" if rc == 0 else "fail"})
 
     # Architecture/traceability checks.
     if focus in ("all", "architecture", "quality"):
-        run_check("check_tasks_all_refs", ["py", "-3", "scripts/python/check_tasks_all_refs.py"])
-        run_check("check_tasks_back_references", ["py", "-3", "scripts/python/check_tasks_back_references.py"])
-        run_check("validate_task_master_triplet", ["py", "-3", "scripts/python/validate_task_master_triplet.py"])
-        run_check("validate_task_overlays", ["py", "-3", "scripts/python/validate_task_overlays.py"])
+        run_check(
+            "check_tasks_all_refs",
+            ["py", "-3", "scripts/python/check_tasks_all_refs.py"],
+            requires_relpaths=["scripts/python/check_tasks_all_refs.py", ".taskmaster/tasks/tasks.json"],
+        )
+        run_check(
+            "check_tasks_back_references",
+            ["py", "-3", "scripts/python/check_tasks_back_references.py"],
+            requires_relpaths=["scripts/python/check_tasks_back_references.py", ".taskmaster/tasks/tasks_back.json"],
+        )
+        run_check(
+            "validate_task_master_triplet",
+            ["py", "-3", "scripts/python/validate_task_master_triplet.py"],
+            requires_relpaths=[
+                "scripts/python/validate_task_master_triplet.py",
+                ".taskmaster/tasks/tasks.json",
+                ".taskmaster/tasks/tasks_back.json",
+                ".taskmaster/tasks/tasks_gameplay.json",
+            ],
+        )
+        run_check(
+            "validate_task_overlays",
+            ["py", "-3", "scripts/python/validate_task_overlays.py"],
+            requires_relpaths=["scripts/python/validate_task_overlays.py", ".taskmaster/tasks/tasks.json"],
+        )
 
     # Contracts consistency (Overlay <-> Contracts).
     if focus in ("all", "architecture", "quality"):
-        run_check("validate_contracts", ["py", "-3", "scripts/python/validate_contracts.py"])
-        run_check("check_sanguo_gameloop_contracts", ["py", "-3", "scripts/python/check_sanguo_gameloop_contracts.py"])
+        run_check(
+            "validate_contracts",
+            ["py", "-3", "scripts/python/validate_contracts.py"],
+            requires_relpaths=["scripts/python/validate_contracts.py"],
+        )
+        run_check(
+            "check_sanguo_gameloop_contracts",
+            ["py", "-3", "scripts/python/check_sanguo_gameloop_contracts.py"],
+            requires_relpaths=["scripts/python/check_sanguo_gameloop_contracts.py"],
+        )
 
     # Quality checks.
     if focus in ("all", "quality"):
-        run_check("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py"])
-        run_check("check_encoding_since_today", ["py", "-3", "scripts/python/check_encoding.py", "--since-today"])
+        run_check(
+            "check_test_naming",
+            ["py", "-3", "scripts/python/check_test_naming.py"],
+            requires_relpaths=["scripts/python/check_test_naming.py"],
+        )
+        run_check(
+            "check_encoding_since_today",
+            ["py", "-3", "scripts/python/check_encoding.py", "--since-today"],
+            requires_relpaths=["scripts/python/check_encoding.py"],
+        )
 
     # Security checks.
     if focus in ("all", "security"):
-        run_check("check_sentry_secrets", ["py", "-3", "scripts/python/check_sentry_secrets.py"])
+        run_check(
+            "check_sentry_secrets",
+            ["py", "-3", "scripts/python/check_sentry_secrets.py"],
+            requires_relpaths=["scripts/python/check_sentry_secrets.py"],
+        )
 
     return checks
 
@@ -117,6 +181,11 @@ def run_checks(out_dir: Path, focus: str) -> list[dict[str, Any]]:
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="sc-analyze (static analysis shim)")
     ap.add_argument("target", nargs="?", default=".", help="analysis target directory (default: repo root)")
+    ap.add_argument("--task-id", default=None, help="task id; defaults to first status=in-progress in tasks.json")
+    ap.add_argument("--tasks-json-path", default=None, help="override .taskmaster/tasks/tasks.json path")
+    ap.add_argument("--tasks-back-path", default=None, help="override .taskmaster/tasks/tasks_back.json path")
+    ap.add_argument("--tasks-gameplay-path", default=None, help="override .taskmaster/tasks/tasks_gameplay.json path")
+    ap.add_argument("--taskdoc-dir", default="taskdoc", help="directory containing Serena task docs (default: taskdoc)")
     ap.add_argument("--focus", choices=["all", "quality", "security", "performance", "architecture"], default="all")
     ap.add_argument("--depth", choices=["quick", "deep"], default="quick")
     ap.add_argument("--format", choices=["text", "json", "report"], default="text")
@@ -130,6 +199,42 @@ def main() -> int:
 
     out_dir = ci_dir("sc-analyze")
     target = (repo_root() / args.target).resolve()
+
+    # Resolve current Taskmaster triplet (tasks.json + tasks_back + tasks_gameplay).
+    try:
+        triplet = resolve_triplet(
+            task_id=args.task_id,
+            tasks_json_path=args.tasks_json_path,
+            tasks_back_path=args.tasks_back_path,
+            tasks_gameplay_path=args.tasks_gameplay_path,
+            taskdoc_dir=args.taskdoc_dir,
+        )
+        write_json(out_dir / "task_context.json", triplet.__dict__)
+        task_md_lines = [
+            "# sc-analyze task context",
+            "",
+            f"- task_id: {triplet.task_id}",
+            f"- title: {triplet.master.get('title')}",
+            f"- status: {triplet.master.get('status')}",
+            f"- priority: {triplet.master.get('priority')}",
+            f"- adrRefs: {', '.join(triplet.adr_refs()) if triplet.adr_refs() else '(missing)'}",
+            f"- archRefs: {', '.join(triplet.arch_refs()) if triplet.arch_refs() else '(missing)'}",
+            f"- overlay: {triplet.overlay() or '(none)'}",
+            f"- taskdoc: {triplet.taskdoc_path or '(missing)'}",
+            f"- tasks_back mapped: {'yes' if triplet.back else 'no'}",
+            f"- tasks_gameplay mapped: {'yes' if triplet.gameplay else 'no'}",
+            "",
+        ]
+        if triplet.taskdoc_path:
+            try:
+                taskdoc_text = Path(triplet.taskdoc_path).read_text(encoding="utf-8")
+                task_md_lines += ["## taskdoc", "", taskdoc_text.rstrip(), ""]
+            except Exception:
+                pass
+        write_text(out_dir / "task_context.md", "\n".join(task_md_lines))
+    except Exception as e:
+        # Keep analyze usable for general audits even when task mapping is broken.
+        write_text(out_dir / "task_context.error.txt", f"{type(e).__name__}: {e}\n")
 
     report: dict[str, Any] = {
         "cmd": "sc-analyze",
@@ -201,4 +306,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

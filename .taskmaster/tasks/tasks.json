@@ -33,8 +33,8 @@
         "id": "2",
         "title": "创建环形地图数据结构",
         "description": "设计并实现游戏地图的环形数据结构。",
-        "details": "使用 C# 中的 List<City> 来存储城池信息，实现根据当前位置和骰子点数计算新位置的环形地图逻辑。在地图与关卡设计上，可参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers 等示例的场景组织方式，只借鉴数据与场景结构，不直接复制代码。",
-        "testStrategy": "编写单元测试，验证环形地图在正常与边界位置上的跳转是否正确，并通过构造多步移动用例对照预期路径，确保与设计文档中的环形路线行为一致。\nLocal demo paths: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
+        "details": "使用纯 C# 的环形索引抽象（例如 `CircularMapPosition(current, totalPositions)`），或以 `List<int>` 表示环形路线上的格子索引/城池占位符；先实现根据当前位置和骰子点数计算新位置、以及多步移动的索引序列（不引入 `City` 领域对象）。`City` 的定义与计价/过路费逻辑在 Task 3 落地，并在后续通过 index→City 映射接入本结构。在地图与关卡设计上，可参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers 等示例的场景组织方式，只借鉴数据与场景结构，不直接复制代码。",
+        "testStrategy": "编写单元测试，验证环形索引在正常与边界位置上的跳转是否正确；并通过构造多步移动用例对照预期“索引序列/路径”，确保与设计文档中的环形路线行为一致（不依赖 `City`）。\nLocal demo paths: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
         "priority": "high",
         "dependencies": [
           "1"

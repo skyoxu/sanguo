@@ -42,11 +42,11 @@ public readonly record struct CircularMapPosition
     /// <returns>New position.</returns>
     public CircularMapPosition Advance(int steps)
     {
-        var next = (Current + steps) % TotalPositions;
+        var next = ((long)Current + steps) % TotalPositions;
         if (next < 0)
             next += TotalPositions;
 
-        return new CircularMapPosition(next, TotalPositions);
+        return new CircularMapPosition((int)next, TotalPositions);
     }
 }
 

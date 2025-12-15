@@ -18,13 +18,29 @@ def load_json(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
+def ascii_safe(value: str) -> str:
+    """
+    Return an ASCII-only representation of a string.
+    Non-ASCII characters are escaped as \\uXXXX sequences to keep output stable
+    across Windows console code pages.
+    """
+    try:
+        value.encode("ascii")
+        return value
+    except UnicodeEncodeError:
+        return value.encode("unicode_escape").decode("ascii")
+
 
 def build_view_index(tasks: List[Dict[str, Any]], view_name: str) -> Dict[int, Dict[str, Any]]:
     """Index tasks by taskmaster_id for a given view (back/gameplay)."""
     index: Dict[int, Dict[str, Any]] = {}
     for task in tasks:
-        tm_id = task.get("taskmaster_id")
-        if tm_id is None:
+        raw_tm_id = task.get("taskmaster_id")
+        if raw_tm_id is None:
+            continue
+        try:
+            tm_id = int(str(raw_tm_id))
+        except Exception:
             continue
         entry = index.setdefault(tm_id, {})
         entry[view_name] = {
@@ -76,14 +92,21 @@ def main() -> None:
     missing = 0
 
     for task in master_tasks:
-        tm_id = task.get("id")
+        raw_tm_id = task.get("id")
+        try:
+            tm_id = int(str(raw_tm_id))
+        except Exception:
+            tm_id = raw_tm_id
         title = task.get("title", "")
+        if not isinstance(title, str):
+            title = str(title)
+        title = ascii_safe(title)
         if isinstance(title, str) and len(title) > 40:
             title_display = title[:40] + "..."
         else:
             title_display = title
 
-        print(f"Task #{tm_id}: {title_display}")
+        print(f"Task #{raw_tm_id}: {title_display}")
 
         mapping: Optional[Dict[str, Any]] = combined_index.get(tm_id)
         if mapping is None:
