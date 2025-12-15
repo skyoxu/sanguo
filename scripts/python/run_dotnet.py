@@ -15,6 +15,7 @@ import datetime as dt
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -60,6 +61,28 @@ def parse_cobertura(path):
         return {'error': str(e)}
 
 
+def parse_paths_from_test_output(output: str):
+    """
+    Extract artifact paths from `dotnet test` output.
+
+    This avoids accidentally copying stale artifacts from logs/ or previous TestResults runs.
+    """
+    # Note: output contains Windows paths with single backslashes.
+    trx_paths = re.findall(r'([A-Za-z]:\\[^\r\n]*?\.trx)', output)
+    cov_paths = re.findall(r'([A-Za-z]:\\[^\r\n]*?coverage\.cobertura\.xml)', output)
+    return {
+        'trx_paths': list(dict.fromkeys(trx_paths)),
+        'coverage_paths': list(dict.fromkeys(cov_paths)),
+    }
+
+
+def pick_latest_existing(paths):
+    existing = [p for p in paths if p and os.path.exists(p)]
+    if not existing:
+        return None
+    return max(existing, key=lambda p: os.path.getmtime(p))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--solution', default='Game.sln')
@@ -99,29 +122,47 @@ def main():
         f.write(out)
     summary['test_rc'] = rc
 
-    # Copy artifacts (.trx and coverage.cobertura.xml)
-    trx_files = []
-    cov_files = []
-    for cur_root, dirs, files in os.walk(root):
-        for name in files:
-            if name.lower().endswith('.trx'):
-                src = os.path.join(cur_root, name)
-                dst = os.path.join(out_dir, 'tests.trx')
-                if os.path.abspath(src) != os.path.abspath(dst):
-                    try:
-                        shutil.copyfile(src, dst)
-                        trx_files.append(dst)
-                    except Exception:
-                        pass
-            elif name == 'coverage.cobertura.xml':
-                src = os.path.join(cur_root, name)
-                dst = os.path.join(out_dir, 'coverage.cobertura.xml')
-                if os.path.abspath(src) != os.path.abspath(dst):
-                    try:
-                        shutil.copyfile(src, dst)
-                        cov_files.append(dst)
-                    except Exception:
-                        pass
+    # Copy artifacts using paths emitted by dotnet test output (preferred).
+    artifacts = parse_paths_from_test_output(out)
+    summary['artifacts_detected'] = artifacts
+
+    trx_src = pick_latest_existing(artifacts.get('trx_paths') or [])
+    cov_src = pick_latest_existing(artifacts.get('coverage_paths') or [])
+
+    # Fallback: search inside Game.Core.Tests/TestResults only (avoid logs/**).
+    if not trx_src:
+        fallback_trx_root = os.path.join(root, 'Game.Core.Tests', 'TestResults')
+        if os.path.isdir(fallback_trx_root):
+            candidates = []
+            for cur_root, _, files in os.walk(fallback_trx_root):
+                for name in files:
+                    if name.lower().endswith('.trx'):
+                        candidates.append(os.path.join(cur_root, name))
+            trx_src = pick_latest_existing(candidates)
+
+    if not cov_src:
+        fallback_cov_root = os.path.join(root, 'Game.Core.Tests', 'TestResults')
+        if os.path.isdir(fallback_cov_root):
+            candidates = []
+            for cur_root, _, files in os.walk(fallback_cov_root):
+                for name in files:
+                    if name == 'coverage.cobertura.xml':
+                        candidates.append(os.path.join(cur_root, name))
+            cov_src = pick_latest_existing(candidates)
+
+    summary['artifacts_selected'] = {'trx': trx_src, 'coverage': cov_src}
+
+    if trx_src:
+        try:
+            shutil.copyfile(trx_src, os.path.join(out_dir, 'tests.trx'))
+        except Exception:
+            pass
+
+    if cov_src:
+        try:
+            shutil.copyfile(cov_src, os.path.join(out_dir, 'coverage.cobertura.xml'))
+        except Exception:
+            pass
 
     coverage = None
     cov_path = os.path.join(out_dir, 'coverage.cobertura.xml')
@@ -155,4 +196,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
-

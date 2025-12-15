@@ -5,11 +5,15 @@ sc-build: Repo-specific build shim (Godot+C# template).
 Usage (Windows):
   py -3 scripts/sc/build.py
   py -3 scripts/sc/build.py GodotGame.sln --type prod --clean --verbose
+
+TDD helper (gated, non-generative):
+  py -3 scripts/sc/build.py tdd --stage green
 """
 
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 from _util import ci_dir, repo_root, run_cmd, write_json, write_text
@@ -26,6 +30,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    # Lightweight subcommand routing (keeps backward compatibility):
+    #   py -3 scripts/sc/build.py tdd ...
+    if len(sys.argv) > 1 and sys.argv[1] == "tdd":
+        cmd = ["py", "-3", "scripts/sc/build/tdd.py"] + sys.argv[2:]
+        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=3_600)
+        out_dir = ci_dir("sc-build")
+        write_text(out_dir / "tdd.log", out)
+        print(f"SC_BUILD_TDD rc={rc} out={out_dir}")
+        return 0 if rc == 0 else rc
+
     args = build_parser().parse_args()
     out_dir = ci_dir("sc-build")
 
@@ -79,4 +93,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

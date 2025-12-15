@@ -1,15 +1,15 @@
 """
 Test Naming Convention Validator for Game.Core.Tests
 
-This script validates that all test methods in Game.Core.Tests follow PascalCase naming convention
-and prevents regression to snake_case naming.
+This script validates that all test methods in Game.Core.Tests follow the repository-approved
+test naming conventions and prevents regression to snake_case naming.
 
 Usage:
     py -3 scripts/python/check_test_naming.py
 
 Exit codes:
-    0 - All test methods follow PascalCase convention
-    1 - Violations found (snake_case or other non-PascalCase patterns)
+    0 - All test methods follow approved conventions
+    1 - Violations found (snake_case or other non-approved patterns)
 
 Requirements:
     - Scans all *Tests.cs files in Game.Core.Tests/
@@ -41,6 +41,32 @@ def is_pascal_case(name: str) -> bool:
     # PascalCase pattern: starts with uppercase, no underscores
     pattern = r'^[A-Z][a-zA-Z0-9]*$'
     return bool(re.match(pattern, name))
+
+
+def is_pascal_case_with_underscores(name: str) -> bool:
+    """
+    Check if a method name follows the PascalCase_With_Underscores convention.
+
+    Examples:
+      - Save_load_delete_and_index_flow_works_with_compression  (NOT allowed: starts with lowercase)
+      - Save_Load_Delete_And_Index_Flow_WorksWithCompression    (allowed)
+      - Advance_WithinBounds_ReturnsCorrectPosition             (allowed)
+
+    Rules:
+      - Each segment is PascalCase (no underscores within segments)
+      - Segments are separated by a single underscore
+    """
+    pattern = r'^[A-Z][a-zA-Z0-9]*(?:_[A-Z][a-zA-Z0-9]*)+$'
+    return bool(re.match(pattern, name))
+
+
+def is_allowed_test_method_name(name: str) -> bool:
+    """
+    Approved patterns:
+      A) PascalCase (covers GivenWhenThen style)
+      B) PascalCase_With_Underscores (Method_Scenario_ExpectedResult)
+    """
+    return is_pascal_case(name) or is_pascal_case_with_underscores(name)
 
 
 def extract_test_methods(file_path: Path) -> List[Tuple[int, str]]:
@@ -105,7 +131,7 @@ def scan_test_files(test_dir: Path) -> dict:
         file_violations = []
 
         for line_num, method_name in test_methods:
-            if not is_pascal_case(method_name):
+            if not is_allowed_test_method_name(method_name):
                 file_violations.append((line_num, method_name))
 
         if file_violations:
@@ -132,7 +158,7 @@ def main():
     violations = scan_test_files(test_dir)
 
     if not violations:
-        print("[OK] All test methods follow PascalCase naming convention")
+        print("[OK] All test methods follow approved naming conventions")
         print("[OK] No violations found")
         return 0
 
@@ -145,14 +171,15 @@ def main():
         rel_path = file_path.relative_to(project_root)
         print(f"{rel_path}:")
         for line_num, method_name in file_violations:
-            print(f"  Line {line_num}: {method_name} (should be PascalCase, found snake_case or other pattern)")
+            print(f"  Line {line_num}: {method_name} (not approved; avoid snake_case)")
             total_violations += 1
         print()
 
     print(f"Total violations: {total_violations}")
     print()
-    print("Fix these violations by renaming methods to PascalCase:")
-    print("  Example: my_test_method() → MyTestMethod()")
+    print("Fix these violations by renaming methods to an approved pattern:")
+    print("  - PascalCase: GivenNoState_WhenSaveGame_ThenThrowsInvalidOperationException")
+    print("  - PascalCase_With_Underscores: SaveGame_WhenStateMissing_ShouldThrowInvalidOperationException")
 
     return 1
 
