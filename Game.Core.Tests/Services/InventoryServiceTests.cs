@@ -46,5 +46,56 @@ public class InventoryServiceTests
         svc.Remove("potion", count: 10).Should().Be(3);
         svc.HasItem("potion").Should().BeFalse();
     }
-}
 
+    [Fact]
+    public void CountDistinct_WhenInventoryIsEmpty_ReturnsZero()
+    {
+        var inventory = new Inventory();
+        var svc = new InventoryService(inventory);
+
+        svc.CountDistinct().Should().Be(0);
+    }
+
+    [Fact]
+    public void CountItem_WhenItemDoesNotExist_ReturnsZero()
+    {
+        var inventory = new Inventory();
+        var svc = new InventoryService(inventory);
+
+        svc.CountItem("missing").Should().Be(0);
+    }
+
+    [Fact]
+    public void HasItem_WhenCountIsLessThanAtLeast_ReturnsFalse()
+    {
+        var inventory = new Inventory();
+        var svc = new InventoryService(inventory);
+
+        svc.Add("potion", count: 2).Should().Be(2);
+
+        svc.HasItem("potion", atLeast: 3).Should().BeFalse();
+        svc.HasItem("potion", atLeast: 2).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Add_WhenAddingBeyondMaxStack_CapsAtMaxStack()
+    {
+        var inventory = new Inventory();
+        var svc = new InventoryService(inventory);
+
+        svc.Add("potion", count: 2, maxStack: 3).Should().Be(2);
+        svc.Add("potion", count: 10, maxStack: 3).Should().Be(1);
+
+        svc.CountItem("potion").Should().Be(3);
+    }
+
+    [Fact]
+    public void Remove_WhenItemDoesNotExist_ReturnsZero()
+    {
+        var inventory = new Inventory();
+        var svc = new InventoryService(inventory);
+
+        svc.Remove("missing", count: 1).Should().Be(0);
+        svc.CountDistinct().Should().Be(0);
+    }
+}
