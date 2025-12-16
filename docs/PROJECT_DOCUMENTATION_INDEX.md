@@ -60,7 +60,7 @@
 ### 平台与质量约束（ADR-0011 ~ 0017）
 - [ADR-0011-windows-only-platform-and-ci.md](adr/ADR-0011-windows-only-platform-and-ci.md) — Windows 平台策略
 - [ADR-0012-pr-template-conditional-rendering.md](adr/ADR-0012-pr-template-conditional-rendering.md) — PR 模板动态渲染
-- [ADR-0015-performance-budgets-and-gates.md](adr/ADR-0015-performance-budgets-and-gates.md) — 性能预算与门禁（P95 阈值、Bundle 限制、首屏优化）
+- [ADR-0015-performance-budgets-and-gates.md](adr/ADR-0015-performance-budgets-and-gates.md) — 性能预算与门禁（帧时间 P95、场景切换、内存预算）
 - [ADR-0016-api-contracts-openapi.md](adr/ADR-0016-api-contracts-openapi.md) — API 契约（OpenAPI）
 - [ADR-0017-quality-intelligence-dashboard-and-governance.md](adr/ADR-0017-quality-intelligence-dashboard-and-governance.md) — 质量智能看板
 
@@ -99,8 +99,8 @@
 
 - 任务清单（Taskmaster）: `.taskmaster/tasks/tasks.json`
 - Overlays 功能纵切索引: `docs/architecture/overlays/PRD-*/08/_index.md`
-- 约束: 08 章只写功能纵切；跨切面规则仍在 Base/ADR；公共类型统一放在 `src/shared/contracts/**`。
-- 命名规范: Overlay 目录使用英文/ASCII 路径（示例: `PRD-Guild-Manager/08/`），文件名与链接保持一致，避免 `-enhanced`、`-claude` 这类后缀导致 404；推荐统一使用 `-v2.md` 版本后缀。
+- 约束: 08 章只写功能纵切；跨切面规则仍在 Base/ADR；公共类型统一放在 `Game.Core/Contracts/**`。
+- 命名规范: Overlay 目录使用英文/ASCII 路径（示例: `PRD-SANGUO-T2/08/`），文件名与链接保持一致，避免 `-enhanced`、`-claude` 这类后缀导致 404；推荐统一使用 `-v2.md` 版本后缀。
 
 本地校验（Windows，使用 Node/Python）:
 - 列出 overlays: `node scripts/build-overlay-map.mjs`

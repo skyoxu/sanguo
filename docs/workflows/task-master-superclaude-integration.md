@@ -867,7 +867,7 @@ public class GuildContractsTests
   - `scripts/python/validate_contracts.py` 检查 Overlay 08 中的契约路径是否指向存在的 C# 契约，并已在 `windows-quality-gate.yml` 中以软门禁方式运行。
   - `scripts/python/check_guild_contracts.py` 检查 Guild 契约文件是否存在、命名空间是否为 `Game.Core.Contracts.Guild`，以及 `EventType` 是否为预期的 `core.guild.*` 值。
 - 同步更新约定：
-  - `08-Contracts-Guild-Manager-Events.md` 中记录了 Guild 主要事件契约，并明确要求：新增或调整 `Game.Core/Contracts/Guild/**` 下的 C# 契约时，必须同步更新 `GuildContractsTests.cs` 与 `check_guild_contracts.py`，并通过 `validate_contracts.py` 重新校验 Overlay ↔ Contracts 回链。
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md` 中记录了 T2 闭环主要事件契约，并明确要求：新增或调整 `Game.Core/Contracts/Sanguo/**` 下的 C# 契约时，必须同步更新 `SanguoContractsTests.cs` / `SanguoContractInstantiationTests.cs` 与 `check_sanguo_gameloop_contracts.py`，并通过 `validate_contracts.py` 重新校验 Overlay ↔ Contracts 回链。
 
 ---
 

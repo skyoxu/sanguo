@@ -6,7 +6,6 @@ namespace Game.Core.Contracts.Guild;
 /// </summary>
 /// <remarks>
 /// ADR references: ADR-0004 (event bus and contracts), ADR-0018 (Godot C# tech stack), ADR-0005 (quality gates).
-/// Overlay reference: docs/architecture/overlays/PRD-Guild-Manager/08/_index.md.
 /// </remarks>
 public sealed record GuildMemberJoined(
     string UserId,
