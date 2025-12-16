@@ -148,6 +148,11 @@ def load_tasks_from_file(task_file: Path) -> list[dict[str, Any]]:
     data = json.loads(task_file.read_text(encoding="utf-8"))
     if isinstance(data, list):
         return data
+    # Taskmaster main format: { "master": { "tasks": [...], "metadata": {...} } }
+    if isinstance(data, dict) and isinstance(data.get("master"), dict):
+        master = data["master"]
+        if isinstance(master.get("tasks"), list):
+            return master["tasks"]
     if isinstance(data, dict) and isinstance(data.get("tasks"), list):
         return data["tasks"]
     return []
@@ -269,4 +274,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
