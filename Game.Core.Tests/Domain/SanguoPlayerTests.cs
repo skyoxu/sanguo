@@ -15,6 +15,8 @@ public class SanguoPlayerTests
     private const decimal DefaultCityBaseToll = 10m;
     private const decimal UnitMultiplier = 1m;
 
+    private static readonly SanguoEconomyRules Rules = SanguoEconomyRules.Default;
+
     private static City MakeCity(string id = "c1", decimal? basePrice = null, decimal? baseToll = null, string? name = null)
         => new(
             id: id,
@@ -26,7 +28,7 @@ public class SanguoPlayerTests
     [Fact]
     public void SanguoPlayer_Construct_InitializesMoneyPositionAndOwnedCities()
     {
-        var player = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0);
+        var player = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: Rules);
 
         player.PlayerId.Should().Be("p1");
         player.Money.Should().Be(MoneyValue.FromDecimal(200m));
@@ -37,9 +39,9 @@ public class SanguoPlayerTests
     [Fact]
     public void SanguoPlayer_Construct_WithInvalidInputs_ShouldThrow()
     {
-        var emptyId = () => new SanguoPlayer(playerId: " ", money: 0m, positionIndex: 0);
-        var negativeMoney = () => new SanguoPlayer(playerId: "p1", money: -1m, positionIndex: 0);
-        var negativePosition = () => new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: -1);
+        var emptyId = () => new SanguoPlayer(playerId: " ", money: 0m, positionIndex: 0, economyRules: Rules);
+        var negativeMoney = () => new SanguoPlayer(playerId: "p1", money: -1m, positionIndex: 0, economyRules: Rules);
+        var negativePosition = () => new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: -1, economyRules: Rules);
 
         emptyId.Should().Throw<ArgumentException>();
         negativeMoney.Should().Throw<ArgumentOutOfRangeException>();
@@ -50,7 +52,7 @@ public class SanguoPlayerTests
     public void SanguoPlayer_Construct_WithMoneyAboveMax_ShouldThrowArgumentOutOfRangeException()
     {
         var aboveMax = (decimal)MoneyValue.MaxMajorUnits + 1m;
-        var act = () => new SanguoPlayer(playerId: "p1", money: aboveMax, positionIndex: 0);
+        var act = () => new SanguoPlayer(playerId: "p1", money: aboveMax, positionIndex: 0, economyRules: Rules);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
@@ -60,7 +62,7 @@ public class SanguoPlayerTests
     {
         var city = MakeCity(id: "c1");
         var initialMoney = DefaultCityBasePrice + 50m;
-        var player = new SanguoPlayer(playerId: "p1", money: initialMoney, positionIndex: 0);
+        var player = new SanguoPlayer(playerId: "p1", money: initialMoney, positionIndex: 0, economyRules: Rules);
 
         var bought = player.TryBuyCity(city, priceMultiplier: UnitMultiplier);
 
@@ -73,7 +75,7 @@ public class SanguoPlayerTests
     public void SanguoPlayer_TryBuyCity_WhenNotEnoughMoney_ShouldReturnFalseAndNotChangeState()
     {
         var city = MakeCity(id: "c1");
-        var player = new SanguoPlayer(playerId: "p1", money: 50m, positionIndex: 0);
+        var player = new SanguoPlayer(playerId: "p1", money: 50m, positionIndex: 0, economyRules: Rules);
 
         var bought = player.TryBuyCity(city, priceMultiplier: UnitMultiplier);
 
@@ -86,7 +88,7 @@ public class SanguoPlayerTests
     public void SanguoPlayer_TryBuyCity_WhenCityAlreadyOwned_ShouldReturnFalse()
     {
         var city = MakeCity(id: "c1");
-        var player = new SanguoPlayer(playerId: "p1", money: 300m, positionIndex: 0);
+        var player = new SanguoPlayer(playerId: "p1", money: 300m, positionIndex: 0, economyRules: Rules);
 
         player.TryBuyCity(city, priceMultiplier: UnitMultiplier).Should().BeTrue();
         var moneyAfterFirstBuy = player.Money;
@@ -99,7 +101,7 @@ public class SanguoPlayerTests
     public void SanguoPlayer_TryBuyCity_WithNegativeMultiplier_ShouldThrowArgumentOutOfRangeException()
     {
         var city = MakeCity(id: "c1");
-        var player = new SanguoPlayer(playerId: "p1", money: 150m, positionIndex: 0);
+        var player = new SanguoPlayer(playerId: "p1", money: 150m, positionIndex: 0, economyRules: Rules);
 
         var act = () => player.TryBuyCity(city, priceMultiplier: -1m);
 
@@ -111,8 +113,8 @@ public class SanguoPlayerTests
     {
         var city = MakeCity(id: "c1");
         var initialMoney = 100m;
-        var payer = new SanguoPlayer(playerId: "payer", money: initialMoney, positionIndex: 0);
-        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0);
+        var payer = new SanguoPlayer(playerId: "payer", money: initialMoney, positionIndex: 0, economyRules: Rules);
+        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0, economyRules: Rules);
 
         payer.TryPayTollTo(owner, city, tollMultiplier: UnitMultiplier, out var overflow).Should().BeTrue();
 
@@ -125,7 +127,7 @@ public class SanguoPlayerTests
     public void SanguoPlayer_TryPayTollTo_WhenOwnerIsSelf_ReturnsFalseAndDoesNotChangeMoney()
     {
         var city = MakeCity(id: "c1");
-        var player = new SanguoPlayer(playerId: "p1", money: 100m, positionIndex: 0);
+        var player = new SanguoPlayer(playerId: "p1", money: 100m, positionIndex: 0, economyRules: Rules);
 
         player.TryPayTollTo(player, city, tollMultiplier: UnitMultiplier, out _).Should().BeFalse();
 
@@ -140,8 +142,8 @@ public class SanguoPlayerTests
         var tollCity = MakeCity(id: "toll", name: "TollCity", baseToll: DefaultCityBaseToll);
         var remaining = 5m;
         var payerInitialMoney = (DefaultCityBasePrice * 2) + remaining;
-        var payer = new SanguoPlayer(playerId: "payer", money: payerInitialMoney, positionIndex: 0);
-        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0);
+        var payer = new SanguoPlayer(playerId: "payer", money: payerInitialMoney, positionIndex: 0, economyRules: Rules);
+        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0, economyRules: Rules);
 
         payer.TryBuyCity(owned1, priceMultiplier: UnitMultiplier).Should().BeTrue();
         payer.TryBuyCity(owned2, priceMultiplier: UnitMultiplier).Should().BeTrue();
@@ -159,12 +161,54 @@ public class SanguoPlayerTests
         payer.TryBuyCity(owned1, priceMultiplier: UnitMultiplier).Should().BeFalse();
     }
 
+
+    [Fact]
+    public void SanguoPlayer_TryPayTollTo_WhenPayerEliminated_ReturnsFalse()
+    {
+        var tollCity = MakeCity(id: "toll", name: "TollCity", baseToll: DefaultCityBaseToll);
+        var payer = new SanguoPlayer(playerId: "payer", money: 0m, positionIndex: 0, economyRules: Rules);
+        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0, economyRules: Rules);
+
+        payer.TryPayTollTo(owner, tollCity, tollMultiplier: UnitMultiplier, out _).Should().BeTrue();
+        payer.IsEliminated.Should().BeTrue();
+
+        var ownerMoneyBefore = owner.Money;
+
+        payer.TryPayTollTo(owner, tollCity, tollMultiplier: UnitMultiplier, out var overflow).Should().BeFalse();
+
+        overflow.Should().Be(MoneyValue.Zero);
+        payer.Money.Should().Be(MoneyValue.Zero);
+        payer.OwnedCityIds.Should().BeEmpty();
+        owner.Money.Should().Be(ownerMoneyBefore);
+    }
+
+    [Fact]
+    public void SanguoPlayer_TryPayTollTo_WhenOwnerEliminated_ReturnsFalse()
+    {
+        var tollCity = MakeCity(id: "toll", name: "TollCity", baseToll: DefaultCityBaseToll);
+        var creditor = new SanguoPlayer(playerId: "creditor", money: 0m, positionIndex: 0, economyRules: Rules);
+        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0, economyRules: Rules);
+
+        owner.TryPayTollTo(creditor, tollCity, tollMultiplier: UnitMultiplier, out _).Should().BeTrue();
+        owner.IsEliminated.Should().BeTrue();
+
+        var payer = new SanguoPlayer(playerId: "payer", money: 100m, positionIndex: 0, economyRules: Rules);
+        var payerMoneyBefore = payer.Money;
+        var ownerMoneyBefore = owner.Money;
+
+        payer.TryPayTollTo(owner, tollCity, tollMultiplier: UnitMultiplier, out var overflow).Should().BeFalse();
+
+        overflow.Should().Be(MoneyValue.Zero);
+        payer.Money.Should().Be(payerMoneyBefore);
+        owner.Money.Should().Be(ownerMoneyBefore);
+    }
+
     [Fact]
     public void SanguoPlayer_TryPayTollTo_WhenCreditorWouldExceedMax_ShouldCapCreditorAndReturnOverflowToTreasury()
     {
         var city = MakeCity(id: "c1", baseToll: 10m);
-        var payer = new SanguoPlayer(playerId: "payer", money: 100m, positionIndex: 0);
-        var owner = new SanguoPlayer(playerId: "owner", money: (decimal)MoneyValue.MaxMajorUnits - 5m, positionIndex: 0);
+        var payer = new SanguoPlayer(playerId: "payer", money: 100m, positionIndex: 0, economyRules: Rules);
+        var owner = new SanguoPlayer(playerId: "owner", money: (decimal)MoneyValue.MaxMajorUnits - 5m, positionIndex: 0, economyRules: Rules);
 
         payer.TryPayTollTo(owner, city, tollMultiplier: UnitMultiplier, out var overflowToTreasury).Should().BeTrue();
 
@@ -177,7 +221,7 @@ public class SanguoPlayerTests
     public async Task SanguoPlayer_CalledFromDifferentThread_ShouldThrowInvalidOperationException()
     {
         var city = MakeCity(id: "c1");
-        var player = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0);
+        var player = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: Rules);
 
         Func<Task> act = async () => await Task.Run(() => player.TryBuyCity(city, priceMultiplier: UnitMultiplier));
 
@@ -185,11 +229,33 @@ public class SanguoPlayerTests
     }
 
     [Fact]
+    public void SanguoPlayer_TryPayTollTo_WithNullOwner_ShouldThrowArgumentNullException()
+    {
+        var city = MakeCity(id: "c1");
+        var payer = new SanguoPlayer(playerId: "payer", money: 100m, positionIndex: 0, economyRules: Rules);
+
+        var act = () => payer.TryPayTollTo(owner: null!, city: city, tollMultiplier: UnitMultiplier, out _);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void SanguoPlayer_TryPayTollTo_WithNullCity_ShouldThrowArgumentNullException()
+    {
+        var payer = new SanguoPlayer(playerId: "payer", money: 100m, positionIndex: 0, economyRules: Rules);
+        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0, economyRules: Rules);
+
+        var act = () => payer.TryPayTollTo(owner: owner, city: null!, tollMultiplier: UnitMultiplier, out _);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
     public void SanguoPlayer_TryPayTollTo_WithNegativeMultiplier_ShouldThrowArgumentOutOfRangeException()
     {
         var city = MakeCity(id: "c1");
-        var payer = new SanguoPlayer(playerId: "payer", money: 100m, positionIndex: 0);
-        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0);
+        var payer = new SanguoPlayer(playerId: "payer", money: 100m, positionIndex: 0, economyRules: Rules);
+        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0, economyRules: Rules);
 
         var act = () => payer.TryPayTollTo(owner, city, tollMultiplier: -1m, out _);
 

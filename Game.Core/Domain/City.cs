@@ -38,18 +38,18 @@ public sealed record City
 
     public MoneyValue BaseToll { get; }
 
-    public MoneyValue GetPrice(decimal multiplier)
+    public MoneyValue GetPrice(decimal multiplier, SanguoEconomyRules rules)
     {
-        if (multiplier < 0)
-            throw new ArgumentOutOfRangeException(nameof(multiplier), "Multiplier must be non-negative.");
+        if (multiplier < 0 || multiplier > rules.MaxPriceMultiplier)
+            throw new ArgumentOutOfRangeException(nameof(multiplier), $"Multiplier must be between 0 and {rules.MaxPriceMultiplier}.");
 
         return MoneyValue.FromDecimal(BasePrice.ToDecimal() * multiplier);
     }
 
-    public MoneyValue GetToll(decimal multiplier)
+    public MoneyValue GetToll(decimal multiplier, SanguoEconomyRules rules)
     {
-        if (multiplier < 0)
-            throw new ArgumentOutOfRangeException(nameof(multiplier), "Multiplier must be non-negative.");
+        if (multiplier < 0 || multiplier > rules.MaxTollMultiplier)
+            throw new ArgumentOutOfRangeException(nameof(multiplier), $"Multiplier must be between 0 and {rules.MaxTollMultiplier}.");
 
         return MoneyValue.FromDecimal(BaseToll.ToDecimal() * multiplier);
     }

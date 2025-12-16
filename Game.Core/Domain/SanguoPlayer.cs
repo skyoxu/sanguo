@@ -14,6 +14,7 @@ public sealed class SanguoPlayer : IPlayer
 {
     private readonly ThreadAccessGuard _threadGuard;
     private readonly HashSet<string> _ownedCityIds = new();
+    private readonly SanguoEconomyRules _economyRules;
     private MoneyValue _money;
     private int _positionIndex;
     private bool _isEliminated;
@@ -24,9 +25,10 @@ public sealed class SanguoPlayer : IPlayer
     /// <param name="playerId">Unique player id.</param>
     /// <param name="money">Initial money. Must be non-negative.</param>
     /// <param name="positionIndex">Initial position index. Must be non-negative.</param>
+    /// <param name="economyRules">Economy rule limits for price/toll multipliers.</param>
     /// <exception cref="ArgumentException">Thrown when <paramref name="playerId"/> is empty.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="money"/> or <paramref name="positionIndex"/> is negative.</exception>
-    public SanguoPlayer(string playerId, decimal money, int positionIndex)
+    public SanguoPlayer(string playerId, decimal money, int positionIndex, SanguoEconomyRules economyRules)
     {
         _threadGuard = ThreadAccessGuard.CaptureCurrentThread();
 
@@ -37,6 +39,7 @@ public sealed class SanguoPlayer : IPlayer
             throw new ArgumentOutOfRangeException(nameof(positionIndex), "PositionIndex must be non-negative.");
 
         PlayerId = playerId;
+        _economyRules = economyRules;
         _money = MoneyValue.FromDecimal(money);
         _positionIndex = positionIndex;
     }
@@ -136,7 +139,7 @@ public sealed class SanguoPlayer : IPlayer
         if (_ownedCityIds.Contains(city.Id))
             return false;
 
-        var price = city.GetPrice(priceMultiplier);
+        var price = city.GetPrice(priceMultiplier, _economyRules);
         if (Money < price)
             return false;
 
@@ -163,7 +166,6 @@ public sealed class SanguoPlayer : IPlayer
     public bool TryPayTollTo(SanguoPlayer owner, City city, decimal tollMultiplier, out MoneyValue overflowToTreasury)
     {
         AssertThread();
-        owner.AssertThread();
 
         overflowToTreasury = MoneyValue.Zero;
 
@@ -172,6 +174,8 @@ public sealed class SanguoPlayer : IPlayer
 
         ArgumentNullException.ThrowIfNull(owner, nameof(owner));
         ArgumentNullException.ThrowIfNull(city, nameof(city));
+
+        owner.AssertThread();
 
         if (tollMultiplier < 0)
             throw new ArgumentOutOfRangeException(nameof(tollMultiplier), "Toll multiplier must be non-negative.");
@@ -182,7 +186,7 @@ public sealed class SanguoPlayer : IPlayer
         if (owner.PlayerId == PlayerId)
             return false;
 
-        var toll = city.GetToll(tollMultiplier);
+        var toll = city.GetToll(tollMultiplier, _economyRules);
         if (Money >= toll)
         {
             var newPayerMoney = Money - toll;
