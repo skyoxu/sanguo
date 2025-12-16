@@ -229,27 +229,15 @@ export async function launchAppForPerformance(
 - [ ] `tests/e2e/utils/electron-launcher.ts` 提供跨平台启动器
 - [ ] Windows环境下 `ELECTRON_DISABLE_SANDBOX=true` 生效
 
-## 7.x 性能门禁（Electron 环境）
+## 7.x 性能门禁（Godot Headless）
 
-为 Electron 渲染路径的 FCP P95 测试提供“软/硬门禁 + 环境阈值 + 稳定采样”。策略在 ADR‑0015 附注中定义，这里给出可执行脚本与环境变量。
+为 Godot 运行时提供最小可执行的帧时间 P95 门禁：通过 Autoload `PerformanceTracker` 输出 `[PERF] ... p95_ms=...`，CI 侧解析 `headless.log` 并对比预算阈值。
 
-- 运行脚本（Windows 兼容，使用 cross-env）
-  - `npm run perf:fcp:dev:soft`：开发环境软门禁（默认 5 次采样）
-  - `npm run perf:fcp:dev:hard`：开发环境硬门禁
-  - `npm run perf:fcp:staging:soft`：预发软门禁
-  - `npm run perf:fcp:staging:hard`：预发硬门禁
-  - `npm run perf:fcp:prod:soft`：生产软门禁（仅告警）
-  - `npm run perf:fcp:prod:hard`：生产硬门禁（阈值不达直接失败）
-  - `npm run perf:fcp:ci`：CI 默认（软门禁，单 worker，稳定配置）
-
-- 环境变量（可覆盖默认）
-  - `FP_P95_THRESHOLD_MS`：覆盖阈值（默认按环境：dev≤400 / staging≤300 / prod≤200）
-  - `FP_RUNS`：采样次数（默认 5）
-  - `FP_SOFT_GATE` 或 `PERF_GATE_MODE`：`soft|hard`（CI 推荐 soft；预发/生产使用 hard）
-
-- 采样稳定化（测试侧）
-  - 复用单个 Electron 实例，多轮 `page.reload()`
-  - 业务就绪信号（`data-app-ready=true`）后，执行两帧 `requestAnimationFrame` 预热
-  - 报告输出：`logs/e2e/<YYYY-MM-DD>/performance-first-paint/fcp-performance.json`
-
-详见：`docs/adr/ADR-0015-performance-budgets-and-gates.md` 的“Electron 环境附注”与“门禁策略”。
+- 前置：`Game.Godot/Scripts/Perf/PerformanceTracker.cs` 已启用（Autoload，默认按窗口采样并周期性输出 `[PERF]` 标记）。
+- 运行与产物（Windows）：
+  - 生成 headless 日志：`pwsh -File scripts/ci/smoke_headless.ps1 -GodotBin "$env:GODOT_BIN" -Scene "res://Game.Godot/Scenes/Main.tscn" -TimeoutSec 5`
+  - 门禁判定（直接脚本）：`pwsh -File scripts/ci/check_perf_budget.ps1 -MaxP95Ms <ms>`
+  - 门禁判定（质量门禁入口）：`pwsh -File scripts/ci/quality_gate.ps1 -GodotBin "$env:GODOT_BIN" -PerfP95Ms <ms>`
+- 说明：
+  - `check_perf_budget.ps1` 自动寻找 `logs/ci/**/smoke/headless.log` 的最新一份，并使用最后一次 `[PERF]` 刷新的 `p95_ms` 做比较。
+  - 阈值口径与环境策略以 `docs/adr/ADR-0015-performance-budgets-and-gates.md` 为准（本节不重复阈值表）。

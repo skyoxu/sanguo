@@ -85,4 +85,3 @@
 Addenda
 - [ADR-0005 Addendum — Quality Gates for Godot+C#](../../adr/addenda/ADR-0005-godot-quality-gates-addendum.md)
 - [ADR-0006 Addendum — Data Storage for Godot](../../adr/addenda/ADR-0006-godot-data-storage-addendum.md)
-- [ADR-0015 Addendum — Performance Budgets for Godot](../../adr/addenda/ADR-0015-godot-performance-budgets-addendum.md)

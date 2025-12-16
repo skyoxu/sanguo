@@ -475,9 +475,9 @@ class ReleaseNotesGenerator:
 
 - [OK] **功能完整性**: {acceptance_data['passed']}/{acceptance_data['total_tests']} 功能测试通过({acceptance_data['passed']/max(acceptance_data['total_tests'],1)*100:.1f}%)
 - ⚡ **性能提升**: 启动时间↓{performance_data['startup_improvement']:.1f}%,帧时间↓{performance_data['frame_time_improvement']:.1f}%,内存↓{performance_data['memory_improvement']:.1f}%
-- 🏗️ **架构现代化**: 基于 Godot Scene Tree 与端口适配器模式
-- 🔒 **安全基线**: Godot 安全白名单 + Sentry 集成 + Release Health 门禁
-- 📊 **可观测性**: 结构化日志 + Crash-Free Sessions 监控 + 性能追踪
+-  **架构现代化**: 基于 Godot Scene Tree 与端口适配器模式
+-  **安全基线**: Godot 安全白名单 + Sentry 集成 + Release Health 门禁
+-  **可观测性**: 结构化日志 + Crash-Free Sessions 监控 + 性能追踪
 
 ---
 
@@ -1197,7 +1197,7 @@ class DocumentationValidator:
         print("文档完整性验证结果")
         print("="*60)
 
-        print(f"\n📊 文档覆盖率: {results['coverage_percent']:.1f}%")
+        print(f"\n 文档覆盖率: {results['coverage_percent']:.1f}%")
 
         if results["missing_docs"]:
             print(f"\nFAIL 缺失文档 ({len(results['missing_docs'])}个):")
@@ -1275,9 +1275,9 @@ if __name__ == "__main__":
 
 - [OK] **功能完整性**: ${FEATURE_COMPLETENESS}
 - ⚡ **性能提升**: ${PERFORMANCE_IMPROVEMENTS}
-- 🏗️ **架构现代化**: ${ARCHITECTURE_UPDATES}
-- 🔒 **安全基线**: ${SECURITY_UPDATES}
-- 📊 **可观测性**: ${OBSERVABILITY_UPDATES}
+-  **架构现代化**: ${ARCHITECTURE_UPDATES}
+-  **安全基线**: ${SECURITY_UPDATES}
+-  **可观测性**: ${OBSERVABILITY_UPDATES}
 
 ---
 

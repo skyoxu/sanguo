@@ -399,7 +399,7 @@ namespace Game.Core.Release
         private string _CalculateRiskLevel(double improvement)
         {
             if (improvement < -5) return "Very High";
-            if (improvement < 0) return "🟠 High";
+            if (improvement < 0) return " High";
             if (improvement < 2) return "Medium";
             return "Low";
         }
@@ -515,7 +515,7 @@ jobs:
       - name: Trigger Emergency Rollback (if needed)
         if: steps.decision.outputs.rollback_triggered == 'true'
         run: |
-          echo "🚨 Triggering emergency rollback workflow..."
+          echo " Triggering emergency rollback workflow..."
           gh workflow run release-emergency-rollback.yml \
             --ref main \
             -f release_version="${{ github.event.inputs.release_version }}" \
@@ -539,7 +539,7 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
-              "text": "🚨 Release Health Alert",
+              "text": " Release Health Alert",
               "blocks": [
                 {
                   "type": "header",
@@ -734,7 +734,7 @@ jobs:
           # 标记当前版本为草稿（表示已回滚）
           gh release edit "${{ inputs.release_version }}" \
             --draft \
-            --notes "🚨 REVOKED - Rolled back due to: ${{ inputs.reason }}"
+            --notes " REVOKED - Rolled back due to: ${{ inputs.reason }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -767,7 +767,7 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
-              "text": "🚨 Emergency Rollback Executed",
+              "text": " Emergency Rollback Executed",
               "blocks": [
                 {
                   "type": "header",
@@ -880,7 +880,7 @@ python scripts/monitor_release_health.py \
 # 2. 输出示例
 # Crash-Free Sessions: 98.5% WARNING
 # Error Rate: 0.6%  CRITICAL
-# Affected Users: 3.2% 📊
+# Affected Users: 3.2% 
 # Recommendation: ROLLBACK
 
 # 3. 检查回滚安全性

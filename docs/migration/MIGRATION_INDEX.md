@@ -168,7 +168,7 @@
 
 - [VERIFICATION_REPORT_Phase13-14.md](VERIFICATION_REPORT_Phase13-14.md) — [OK] Phase 13-14 综合验证报告（整体架构评估，综合评分 94/100，质量门禁验证）
 
-- [MIGRATION_FEASIBILITY_SUMMARY.md](MIGRATION_FEASIBILITY_SUMMARY.md) — **💯 整体迁移可行性综合汇总**（完整项目评分 92/100、综合验证、实施路线图）
+- [MIGRATION_FEASIBILITY_SUMMARY.md](MIGRATION_FEASIBILITY_SUMMARY.md) — ** 整体迁移可行性综合汇总**（完整项目评分 92/100、综合验证、实施路线图）
 
 - [Phase-15-Performance-Budgets-and-Gates.md](Phase-15-Performance-Budgets-and-Gates.md) — [OK] Phase 15 详细规划（性能预算与门禁体系，10项KPI，基准建立指南）
 

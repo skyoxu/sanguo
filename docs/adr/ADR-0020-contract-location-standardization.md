@@ -1,6 +1,6 @@
 # ADR-0020: Contract Location Standardization
 
-- **Status**: Accepted
+- Status: Accepted
 - **Date**: 2025-12-02
 - **Supersedes**: None (first formal documentation of contract location)
 - **Related**: ADR-0004 (Event Bus and Contracts), ADR-0018 (Ports and Adapters)
