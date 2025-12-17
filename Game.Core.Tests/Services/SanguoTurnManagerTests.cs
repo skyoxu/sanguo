@@ -8,56 +8,27 @@ using Game.Core.Contracts.Sanguo;
 using Game.Core.Services;
 using Xunit;
 
-namespace Game.Core.Tests.Tasks;
+namespace Game.Core.Tests.Services;
 
-public class Task6RedTests
+public class SanguoTurnManagerTests
 {
     [Fact]
     public void StartNewGame_ThenAdvanceTurn_PublishesTurnEventsAndRotatesActivePlayer()
     {
-        var turnManagerType = Type.GetType("Game.Core.Services.SanguoTurnManager, Game.Core");
-        turnManagerType.Should().NotBeNull(
-            "Task 6 requires a turn manager; implement Game.Core.Services.SanguoTurnManager to manage turn rotation and publish turn events");
-
         var bus = new CapturingEventBus();
-
-        var ctor = turnManagerType!.GetConstructor(new[] { typeof(IEventBus) });
-        ctor.Should().NotBeNull("SanguoTurnManager should take IEventBus as a required dependency");
-
-        var mgr = ctor!.Invoke(new object[] { bus });
-
-        var startMethod = turnManagerType.GetMethod(
-            "StartNewGame",
-            new[]
-            {
-                typeof(string),          // gameId
-                typeof(string[]),        // playerOrder
-                typeof(int),             // year
-                typeof(int),             // month
-                typeof(int),             // day
-                typeof(string),          // correlationId
-                typeof(string),          // causationId (nullable by convention; reflection uses string)
-            });
-        startMethod.Should().NotBeNull(
-            "SanguoTurnManager.StartNewGame should exist with signature (string gameId, string[] playerOrder, int year, int month, int day, string correlationId, string? causationId)");
-
-        var advanceMethod = turnManagerType.GetMethod(
-            "AdvanceTurn",
-            new[] { typeof(string), typeof(string) });
-        advanceMethod.Should().NotBeNull(
-            "SanguoTurnManager.AdvanceTurn should exist with signature (string correlationId, string? causationId)");
+        var mgr = new SanguoTurnManager(bus);
 
         var gameId = "game-1";
         var playerOrder = new[] { "p1", "p2" };
         var correlationId = "corr-1";
-        string? causationId = null;
+        string? startCausationId = null;
 
-        startMethod!.Invoke(mgr, new object?[] { gameId, playerOrder, 1, 1, 1, correlationId, causationId });
+        mgr.StartNewGame(gameId, playerOrder, 1, 1, 1, correlationId, startCausationId);
 
         bus.Published.Should().ContainSingle("starting a game should publish a turn.started event");
         var started = bus.Published[0];
         started.Type.Should().Be(SanguoGameTurnStarted.EventType);
-        started.Source.Should().Be("SanguoTurnManager");
+        started.Source.Should().Be(nameof(SanguoTurnManager));
         started.Data.Should().BeOfType<JsonElementEventData>();
 
         var startedPayload = ((JsonElementEventData)started.Data!).Value;
@@ -68,18 +39,16 @@ public class Task6RedTests
         startedPayload.GetProperty("Month").GetInt32().Should().Be(1);
         startedPayload.GetProperty("Day").GetInt32().Should().Be(1);
         startedPayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
-
-        var causationJson = startedPayload.GetProperty("CausationId");
-        causationJson.ValueKind.Should().Be(JsonValueKind.Null);
+        startedPayload.GetProperty("CausationId").ValueKind.Should().Be(JsonValueKind.Null);
 
         var advanceCommandId = Guid.NewGuid().ToString("N");
-        advanceMethod!.Invoke(mgr, new object?[] { correlationId, advanceCommandId });
+        mgr.AdvanceTurn(correlationId, advanceCommandId);
 
         bus.Published.Should().HaveCount(4, "advance should publish turn.ended, turn.advanced, and next turn.started");
 
         var ended = bus.Published[1];
         ended.Type.Should().Be(SanguoGameTurnEnded.EventType);
-        ended.Source.Should().Be("SanguoTurnManager");
+        ended.Source.Should().Be(nameof(SanguoTurnManager));
         ended.Data.Should().BeOfType<JsonElementEventData>();
 
         var endedPayload = ((JsonElementEventData)ended.Data!).Value;
@@ -91,36 +60,45 @@ public class Task6RedTests
 
         var advanced = bus.Published[2];
         advanced.Type.Should().Be(SanguoGameTurnAdvanced.EventType);
-        advanced.Source.Should().Be("SanguoTurnManager");
+        advanced.Source.Should().Be(nameof(SanguoTurnManager));
         advanced.Data.Should().BeOfType<JsonElementEventData>();
 
         var advancedPayload = ((JsonElementEventData)advanced.Data!).Value;
         advancedPayload.GetProperty("GameId").GetString().Should().Be(gameId);
         advancedPayload.GetProperty("TurnNumber").GetInt32().Should().Be(2);
         advancedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("p2");
+        advancedPayload.GetProperty("Year").GetInt32().Should().Be(1);
+        advancedPayload.GetProperty("Month").GetInt32().Should().Be(1);
+        advancedPayload.GetProperty("Day").GetInt32().Should().Be(2);
         advancedPayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         advancedPayload.GetProperty("CausationId").GetString().Should().Be(advanceCommandId);
 
         var nextStarted = bus.Published[3];
         nextStarted.Type.Should().Be(SanguoGameTurnStarted.EventType);
-        nextStarted.Source.Should().Be("SanguoTurnManager");
+        nextStarted.Source.Should().Be(nameof(SanguoTurnManager));
         nextStarted.Data.Should().BeOfType<JsonElementEventData>();
 
         var nextStartedPayload = ((JsonElementEventData)nextStarted.Data!).Value;
         nextStartedPayload.GetProperty("GameId").GetString().Should().Be(gameId);
         nextStartedPayload.GetProperty("TurnNumber").GetInt32().Should().Be(2);
         nextStartedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("p2");
+        nextStartedPayload.GetProperty("Year").GetInt32().Should().Be(1);
+        nextStartedPayload.GetProperty("Month").GetInt32().Should().Be(1);
+        nextStartedPayload.GetProperty("Day").GetInt32().Should().Be(2);
         nextStartedPayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         nextStartedPayload.GetProperty("CausationId").GetString().Should().Be(advanceCommandId);
     }
 
-    [Fact]
-    public void StartNewGame_WithEmptyGameId_ShouldThrowArgumentException()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void StartNewGame_WhenGameIdIsNullOrWhitespace_ThrowsArgumentException(string? gameId)
     {
         var mgr = new SanguoTurnManager(NullEventBus.Instance);
 
         Action act = () => mgr.StartNewGame(
-            gameId: " ",
+            gameId: gameId!,
             playerOrder: new[] { "p1" },
             year: 1,
             month: 1,
@@ -128,11 +106,12 @@ public class Task6RedTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("gameId");
     }
 
     [Fact]
-    public void StartNewGame_WithNullPlayerOrder_ShouldThrowArgumentNullException()
+    public void StartNewGame_WhenPlayerOrderIsNull_ThrowsArgumentNullException()
     {
         var mgr = new SanguoTurnManager(NullEventBus.Instance);
 
@@ -145,11 +124,12 @@ public class Task6RedTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentNullException>();
+        act.Should().Throw<ArgumentNullException>()
+            .WithParameterName("playerOrder");
     }
 
     [Fact]
-    public void StartNewGame_WithEmptyPlayerOrder_ShouldThrowArgumentException()
+    public void StartNewGame_WhenPlayerOrderIsEmpty_ThrowsArgumentException()
     {
         var mgr = new SanguoTurnManager(NullEventBus.Instance);
 
@@ -162,11 +142,12 @@ public class Task6RedTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("playerOrder");
     }
 
     [Fact]
-    public void StartNewGame_WithEmptyPlayerId_ShouldThrowArgumentException()
+    public void StartNewGame_WhenPlayerOrderContainsEmptyPlayerId_ThrowsArgumentException()
     {
         var mgr = new SanguoTurnManager(NullEventBus.Instance);
 
@@ -179,11 +160,12 @@ public class Task6RedTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("playerOrder");
     }
 
     [Fact]
-    public void StartNewGame_WithDuplicatePlayerIds_ShouldThrowArgumentException()
+    public void StartNewGame_WhenPlayerOrderContainsDuplicatePlayerIds_ThrowsArgumentException()
     {
         var mgr = new SanguoTurnManager(NullEventBus.Instance);
 
@@ -196,11 +178,15 @@ public class Task6RedTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("playerOrder");
     }
 
-    [Fact]
-    public void StartNewGame_WithEmptyCorrelationId_ShouldThrowArgumentException()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void StartNewGame_WhenCorrelationIdIsNullOrWhitespace_ThrowsArgumentException(string? correlationId)
     {
         var mgr = new SanguoTurnManager(NullEventBus.Instance);
 
@@ -210,14 +196,15 @@ public class Task6RedTests
             year: 1,
             month: 1,
             day: 1,
-            correlationId: " ",
+            correlationId: correlationId!,
             causationId: null);
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("correlationId");
     }
 
     [Fact]
-    public void AdvanceTurn_BeforeStart_ShouldThrowInvalidOperationException()
+    public void AdvanceTurn_BeforeStart_ThrowsInvalidOperationException()
     {
         var mgr = new SanguoTurnManager(NullEventBus.Instance);
 
@@ -246,3 +233,4 @@ public class Task6RedTests
         }
     }
 }
+
