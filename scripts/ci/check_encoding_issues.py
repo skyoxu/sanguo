@@ -40,7 +40,6 @@ UTF8_FILES = [
     "adr/ADR-0022-godot-signal-system-and-contracts.md",
     "adr/guide.md",
     "adr/addenda/ADR-0005-godot-quality-gates-addendum.md",
-    "adr/addenda/ADR-0015-godot-performance-budgets-addendum.md",
     "architecture/ADR_INDEX_GODOT.md",
     "architecture/base/00-README.md",
     "architecture/base/01-introduction-and-goals-v2.md",
@@ -52,14 +51,16 @@ UTF8_FILES = [
     "architecture/base/architecture-completeness-checklist.md",
     "architecture/base/ZZZ-encoding-fixture-bad.md",
     "architecture/base/ZZZ-encoding-fixture-clean.md",
-    "architecture/overlays/PRD-Guild-Manager/08/08-Contracts-CloudEvent.md",
-    "architecture/overlays/PRD-Guild-Manager/08/08-Contracts-CloudEvents-Core.md",
-    "architecture/overlays/PRD-Guild-Manager/08/08-Contracts-Guild-Manager-Events.md",
-    "architecture/overlays/PRD-Guild-Manager/08/08-Contracts-Preload-Whitelist.md",
-    "architecture/overlays/PRD-Guild-Manager/08/08-Contracts-Quality-Metrics.md",
-    "architecture/overlays/PRD-Guild-Manager/08/08-Contracts-Security.md",
-    "architecture/overlays/PRD-Guild-Manager/08/08-功能纵切-公会管理器.md",
-    "architecture/overlays/PRD-Guild-Manager/08/_index.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Preload-Whitelist.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/08-t2-city-ownership-model.md",
+    "architecture/overlays/PRD-SANGUO-T2/08/_index.md",
     "contracts/signals/README.md",
     "migration/CODE_EXAMPLES_VERIFICATION_Phase1-12.md",
     "migration/gdunit4-csharp-runner-integration.md",
@@ -100,6 +101,11 @@ UTF8_FILES = [
     "migration/VERIFICATION_SUMMARY.txt",
 ]
 
+# Known fixtures intentionally containing encoding issues (do not report as CI issues).
+IGNORED_RELATIVE_PATHS = {
+    "architecture/base/ZZZ-encoding-fixture-bad.md",
+}
+
 def check_file_for_issues(file_path, patterns):
     """Check a single file for encoding issues."""
     issues = []
@@ -138,7 +144,7 @@ def main():
     docs_path = project_root / 'docs'
 
     print("=" * 80)
-    print("Checking 80 UTF-8 files for encoding issues")
+    print(f"Checking {len(UTF8_FILES)} UTF-8 files for encoding issues")
     print("=" * 80)
     print(f"Docs path: {docs_path}")
     print()
@@ -151,6 +157,9 @@ def main():
 
         if not file_path.exists():
             print(f"[SKIP] {rel_path} - File not found")
+            continue
+        if rel_path in IGNORED_RELATIVE_PATHS:
+            print(f"[SKIP] {rel_path} - Known fixture")
             continue
 
         total_files += 1

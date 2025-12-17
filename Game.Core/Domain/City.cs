@@ -1,8 +1,9 @@
+using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 namespace Game.Core.Domain;
 
 public sealed record City
 {
-    public City(string id, string name, string regionId, decimal basePrice, decimal baseToll)
+    public City(string id, string name, string regionId, MoneyValue basePrice, MoneyValue baseToll)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Id must be non-empty.", nameof(id));
@@ -13,10 +14,10 @@ public sealed record City
         if (string.IsNullOrWhiteSpace(regionId))
             throw new ArgumentException("RegionId must be non-empty.", nameof(regionId));
 
-        if (basePrice < 0)
+        if (basePrice < MoneyValue.Zero)
             throw new ArgumentOutOfRangeException(nameof(basePrice), "BasePrice must be non-negative.");
 
-        if (baseToll < 0)
+        if (baseToll < MoneyValue.Zero)
             throw new ArgumentOutOfRangeException(nameof(baseToll), "BaseToll must be non-negative.");
 
         Id = id;
@@ -32,23 +33,23 @@ public sealed record City
 
     public string RegionId { get; }
 
-    public decimal BasePrice { get; }
+    public MoneyValue BasePrice { get; }
 
-    public decimal BaseToll { get; }
+    public MoneyValue BaseToll { get; }
 
-    public decimal GetPrice(decimal multiplier)
+    public MoneyValue GetPrice(decimal multiplier, SanguoEconomyRules rules)
     {
-        if (multiplier < 0)
-            throw new ArgumentOutOfRangeException(nameof(multiplier), "Multiplier must be non-negative.");
+        if (multiplier < 0 || multiplier > rules.MaxPriceMultiplier)
+            throw new ArgumentOutOfRangeException(nameof(multiplier), $"Multiplier must be between 0 and {rules.MaxPriceMultiplier}.");
 
-        return BasePrice * multiplier;
+        return MoneyValue.FromDecimal(BasePrice.ToDecimal() * multiplier);
     }
 
-    public decimal GetToll(decimal multiplier)
+    public MoneyValue GetToll(decimal multiplier, SanguoEconomyRules rules)
     {
-        if (multiplier < 0)
-            throw new ArgumentOutOfRangeException(nameof(multiplier), "Multiplier must be non-negative.");
+        if (multiplier < 0 || multiplier > rules.MaxTollMultiplier)
+            throw new ArgumentOutOfRangeException(nameof(multiplier), $"Multiplier must be between 0 and {rules.MaxTollMultiplier}.");
 
-        return BaseToll * multiplier;
+        return MoneyValue.FromDecimal(BaseToll.ToDecimal() * multiplier);
     }
 }

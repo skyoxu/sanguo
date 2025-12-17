@@ -1,7 +1,7 @@
 # Phase 20 Backlog — 功能验收与对标增强
 
 > 状态：Backlog（非当前模板 DoD，按需在真实游戏项目中启用）
-> 目的：承接 Phase-20-Functional-Acceptance-Testing.md 中与具体游戏（如 vitegame）功能对标相关的蓝图工作，避免在模板阶段虚构功能或测试，同时为后续基于本模板的实际项目提供验收清单骨架。
+> 目的：承接 Phase-20-Functional-Acceptance-Testing.md 中与具体游戏（如 LegacyProject）功能对标相关的蓝图工作，避免在模板阶段虚构功能或测试，同时为后续基于本模板的实际项目提供验收清单骨架。
 > 相关 Phase：Phase 8–11（Scenes/UI/Integration）、Phase 12（Smoke）、Phase 15（Perf）、Phase 16–19（Observability/Release/Canary/Rollback）
 
 ---
@@ -10,7 +10,7 @@
 
 - 现状：
   - 模板仅提供 MainMenu/HUD/SettingsPanel/ScreenNavigator 等基础 UI/Glue 与简单演示逻辑，并没有具体游戏的完整关卡/敌人/物理/成就设计；
-  - Phase‑20 文档中的“vitegame 功能表”是蓝图示例，不对应当前仓库中的真实游戏功能。
+  - Phase‑20 文档中的“LegacyProject 功能表”是蓝图示例，不对应当前仓库中的真实游戏功能。
 - 蓝图目标：
   - 在基于本模板创建的具体游戏项目中：
     - 列出真实功能模块（主菜单、关卡、角色控制、敌人 AI、物理系统、胜利/失败条件、成就等）；
@@ -45,7 +45,7 @@
 ## B3：兼容性报告与迁移完整性确认
 
 - 现状：
-  - 模板没有针对“从 vitegame 或其他引擎迁移”的具体兼容性报告；
+  - 模板没有针对“从 LegacyProject 或其他引擎迁移”的具体兼容性报告；
   - Phase‑20 文档中提到的“兼容性报告”和“迁移完整性确认”属于迁移项目级工作。
 - 蓝图目标：
   - 在实际迁移项目中，提供一份简单的兼容性与完整性报告：

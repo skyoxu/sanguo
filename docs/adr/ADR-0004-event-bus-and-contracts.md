@@ -1,76 +1,62 @@
 ---
 ADR-ID: ADR-0004
-title: 事件总线与契约 - CloudEvents 1.0 + IPC通信
+title: 事件总线与契约（CloudEvents 风格）- Godot + C# 变体
 status: Accepted
-decision-time: '2025-08-17'
+decision-time: '2025-12-16'
 deciders: [架构团队, 开发团队]
-archRefs: [CH03, CH04, CH05, CH06]
+archRefs: [CH04, CH05, CH06]
 verification:
-  - path: src/shared/contracts/events/builder.ts
-    assert: CloudEvent includes specversion, id, source, type, time
-  - path: tests/unit/contracts/events.spec.ts
-    assert: Reject events missing required CloudEvents attributes
-  - path: tests/unit/contracts/naming.spec.ts
-    assert: Event type naming follows project convention
-impact-scope: [src/shared/contracts/events.ts, src/core/events/, electron/ipc/]
-tech-tags: [cloudevents, ipc, eventbus, contracts, communication]
-depends-on: [ADR-0002]
-depended-by: [ADR-0005, ADR-0007]
-test-coverage: tests/unit/contracts/events.spec.ts
-monitoring-metrics: [event_throughput, ipc_latency, contract_violations]
-executable-deliverables:
-  - src/shared/contracts/events.ts
-  - src/core/events/bus.ts
-  - tests/unit/contracts/events.spec.ts
+  - path: Game.Core/Contracts/DomainEvent.cs
+    assert: DomainEvent contains minimal CloudEvents-like attributes (type/source/id/time/specversion)
+  - path: Game.Core/Services/EventBus.cs
+    assert: IEventBus + in-memory implementation exist and are unit-testable
+  - path: Game.Godot/Adapters/EventBusAdapter.cs
+    assert: Adapter emits Godot signal and forwards in-process subscribers
+  - path: Game.Core.Tests/Services/EventBusTests.cs
+    assert: Publish/subscribe behavior is covered by xUnit
+tech-tags: [cloudevents, contracts, eventbus, godot, csharp]
+depends-on: [ADR-0020, ADR-0018]
+depended-by: [ADR-0005]
 supersedes: []
 ---
 
-# ADR-0004: 事件总线与契约（CloudEvents 1.0 + IPC）
+# ADR-0004: 事件总线与契约（CloudEvents 风格）
 
 ## Context
 
-主进程、渲染进程、Worker 与 Phaser 场景之间需要稳定、类型安全的事件通信契约；需支持请求/响应与发布/订阅，同时保证可追踪、版本兼容与安全（IPC 白名单）。采用 CloudEvents 1.0 作为统一事件格式。
+在 Godot+C# 模板中，场景装配层（Scenes）与领域层（Game.Core）需要一种稳定、可测试、可演化的事件通信方式，同时避免将 Godot API 渗透到 Core。需要统一事件结构与命名规则，并明确契约的 SSoT 存放位置。
 
 ## Decision
 
-- 使用 CloudEvents 1.0 作为事件规范；必填字段涵盖 `id/source/type/specversion`。
-- 事件命名遵循 `<boundedContext>.<entity>.<action>`，并提供类型化 DTO。
-- 在 `src/shared/contracts/**` 统一管理事件类型；IPC 白名单与参数校验在 preload 层执行。
+### 1) 契约结构（Contracts）
 
-## Base 示例占位规范（Windows-only 仓库同样适用）
+- SSoT：`Game.Core/Contracts/**`（见 ADR-0020）
+- 事件结构：采用 CloudEvents 1.0 的最小字段集思想（不强依赖具体传输协议），用 `DomainEvent` 表达：
+  - `Type`（事件类型）
+  - `Source`（来源）
+  - `Id`（唯一标识）
+  - `Timestamp`（时间）
+  - `SpecVersion`（默认 `"1.0"`）
+  - `Data`（事件载荷，保持可序列化）
 
-- Base 文档/契约示例一律使用占位符 `${DOMAIN_PREFIX}`，避免在 Base 中硬编码域前缀：
-  - `${DOMAIN_PREFIX}.game.scene_loaded`
-  - `${DOMAIN_PREFIX}.system.error_occurred`
-- 校验：`validateEventNaming` 先将 `${DOMAIN_PREFIX}` 归一化为占位值后再执行命名正则校验。
-- Overlay/实现层绑定具体域前缀，避免口径漂移。
+### 2) 命名规则（Event Type）
 
-## Godot 变体（Game.Godot + EventBusAdapter）
+- 事件类型命名遵循：`${DOMAIN_PREFIX}.<entity>.<action>`
+- 推荐前缀（模板口径）：
+  - `core.<entity>.<action>`：领域事件
+  - `screen.<name>.<action>`：Screen 生命周期
+  - `ui.menu.<action>`：UI 命令/交互
 
-- 本仓库在 Godot+C# 模板中采用本 ADR 作为事件命名与契约的上位规范，结合以下规则在运行时落地：
-  - 事件命名前缀：
-    - `ui.menu.<action>`：UI 菜单与按钮命令（如 `ui.menu.start`、`ui.menu.settings`、`ui.menu.quit`）。
-    - `screen.<name>.<action>`：Screen 生命周期与关键操作（如 `screen.settings.opened`、`screen.settings.saved`）。
-    - `core.<entity>.<action>`：领域事件推荐口径（如 `core.game.started`、`core.score.updated`、`core.player.health.changed`）。
-    - `demo.<name>`：仅用于模板示例，实际业务不应新增 `demo.*` 事件。
-  - 历史事件名：
-    - 旧的 `game.started`、`score.changed` 等事件视为示例/兼容路径，仅在少量演示场景中保留；
-    - 新增或重构代码一律使用 `core.*.*` / `ui.menu.*` / `screen.*.*` 三类前缀之一。
+### 3) 总线接口与实现
 
-- Godot 侧实现：
-  - `Game.Core/Contracts/DomainEvent.cs` 定义 CloudEvents 风格的领域事件结构；
-  - `Game.Core/Services/EventBus.cs` 提供内存事件总线接口 `IEventBus`；
-  - `Game.Godot/Adapters/EventBusAdapter.cs` 作为 Autoload 适配层，将 `DomainEvent` 序列化并通过 `DomainEventEmitted` Signal 暴露给 GDScript。
-- 文档与测试对齐：
-  - 事件命名与桥接细节的迁移方案见 `docs/migration/Phase-9-Signal-System.md`；
-  - 代表性用例通过 xUnit（GameEngineCoreEventTests）与 GdUnit4（Adapters/Integration 小集）验证。
-
-## Verification
-
-- 单元测试：事件必填字段校验、命名规则校验。
-- 构建门禁：事件类型必须从 `src/shared/contracts/**` 导入。
+- Core 定义接口：`Game.Core/Services/IEventBus`（文件：`Game.Core/Services/EventBus.cs`）
+- 默认实现：`InMemoryEventBus`（用于单测与轻量运行时）
+- Godot 适配：`Game.Godot/Adapters/EventBusAdapter.cs`
+  - 实现 `IEventBus`
+  - 同时通过 Godot Signal（`DomainEventEmitted`）向场景层暴露事件
 
 ## Consequences
 
-- 优点：强类型/可追踪/可演化；契约集中管理。
-- 代价：前期定义与迁移成本较高；需严格文档纪律。
+- 正向：Core 保持纯净可单测；事件结构统一；Scenes 可通过 Signal 订阅而不引入 Core 细节。
+- 代价：需要保持契约纪律（禁止在非 SSoT 目录新增事件结构），并为关键事件补齐最小测试。
+

@@ -12,7 +12,7 @@
 
 ### 整体评估
 
-【通过】vitegame → godotgame 技术栈迁移在架构、代码、工具、测试等全维度通过可行性验证
+【通过】LegacyProject → godotgame 技术栈迁移在架构、代码、工具、测试等全维度通过可行性验证
 
 **关键指标**:
 
@@ -30,7 +30,7 @@
 
 五大关键优势:
 1. Phase 13 (质量门禁) 架构清晰，10 项门禁完整可实施
-2. Phase 14 (安全基线) 等价于 Electron ADR-0002，防御深度完善
+2. Phase 14 (安全基线) 等价于 LegacyDesktopShell ADR-0002，防御深度完善
 3. Phase 1-12 代码示例 91% 完整，可作为实施参考
 4. 三层脚本协调（Python 主控）架构合理，可维护性强
 5. 所有依赖明确，无技术黑盒，向前兼容 Phase 15-22
@@ -140,7 +140,7 @@
 - [OK] ADR-0018 架构一致性 (92%)
 
 **关键优势**:
-- 等价于 Electron ADR-0002 的安全模型
+- 等价于 LegacyDesktopShell ADR-0002 的安全模型
 - 防御深度: URL → 请求 → 文件 → 审计 → 合约
 - 审计日志可溯源，便于合规与事后分析
 - 0ms 开销的白名单检查 (正则预编译)
@@ -239,19 +239,19 @@ Week 12:   完整功能迁移 + 性能达标
 
 ---
 
-## 六、与原项目 vitegame 的功能对标
+## 六、与原项目 LegacyProject 的功能对标
 
 ### 完整性验证
 
-| 功能模块 | vitegame (原) | godotgame (新) | 迁移状态 | 验证 |
+| 功能模块 | LegacyProject (原) | godotgame (新) | 迁移状态 | 验证 |
 |---------|-------------|------------|--------|------|
-| 菜单 UI | React + Tailwind | Godot Control | 迁移中 | 等功能 |
-| 游戏场景 | Phaser 3 | Godot Scene Tree | 等待中 | 等功能 |
-| 场景测试 | Playwright E2E | GdUnit4 场景测试 | 实现完 | 更轻更快 |
+| 菜单 UI | LegacyUIFramework + Tailwind | Godot Control | 迁移中 | 等功能 |
+| 游戏场景 | Legacy2DEngine 3 | Godot Scene Tree | 等待中 | 等功能 |
+| 场景测试 | LegacyE2ERunner E2E | GdUnit4 场景测试 | 实现完 | 更轻更快 |
 | 事件通信 | CloudEvents | Godot Signals | 实现完 | 原生支持 |
 | 数据持久化 | SQLite (better-sqlite3) | godot-sqlite | 实现完 | 迁移就绪 |
 | 配置存储 | Local JSON | ConfigFile (user://) | 实现完 | 等功能 |
-| 错误追踪 | Sentry (Electron) | Sentry (Godot SDK) | 计划中 | API 一致 |
+| 错误追踪 | Sentry (LegacyDesktopShell) | Sentry (Godot SDK) | 计划中 | API 一致 |
 | 可观测性 | 结构化日志 + Sentry | JSONL 审计 + Sentry | 实现完 | 覆盖超越 |
 | 安全基线 | CSP + preload | Security.cs + 白名单 | 实现完 | 功能等价 |
 | 性能基准 | FPS 采集 | P50/P95/P99 | 计划中 | 更科学 |
@@ -266,18 +266,18 @@ Week 12:   完整功能迁移 + 性能达标
 
 **CI/CD 流程变更**:
 ```
-原工作流 (Vite + Electron):
-  npm install → npm run build → npm test → Electron 打包 → Sentry Release
+原工作流 (LegacyBuildTool + LegacyDesktopShell):
+  NodePkg install → NodePkg run build → NodePkg test → LegacyDesktopShell 打包 → Sentry Release
 
 新工作流 (Godot + .NET):
-  dotnet restore → npm install (工具) → guard.ps1 (质量检查) → godot --export → Sentry Release
+  dotnet restore → NodePkg install (工具) → guard.ps1 (质量检查) → godot --export → Sentry Release
 ```
 
 **关键变化**:
 - 质量门禁从 7+ 个脚本统一为 guard 入口
-- CI/CD 时间 <2min (较 vitegame 无显著增加)
+- CI/CD 时间 <2min (较 LegacyProject 无显著增加)
 - 工具链从 Node 为主转向 .NET + Node 混合
-- 依赖管理: NuGet + npm + git (addons)
+- 依赖管理: NuGet + NodePkg + git (addons)
 
 **风险**: 低 (工具链成熟，迁移路径清晰)
 
@@ -287,7 +287,7 @@ Week 12:   完整功能迁移 + 性能达标
 
 **开发循环变更**:
 ```
-原: npm start → 浏览器 HMR → 修改代码 → 自动刷新 (秒级)
+原: NodePkg start → 浏览器 HMR → 修改代码 → 自动刷新 (秒级)
 新: godot --editor → Scene 编辑 → C# 代码修改 → 重新加载场景 (秒级)
 
 预期影响: 开发体验相近，学习曲线 1-2 周
@@ -351,8 +351,8 @@ Week 12:   完整功能迁移 + 性能达标
 Start → Phase 1-3 (环境) 
      → Phase 4-6 (核心层, 并行 P13 准备)
      → Phase 10-12 (测试框架)
-     ⤴️ [并行] Phase 13 (CI 绿灯)
-     ⤴️ [并行] Phase 14 (安全基线)
+     ⤴ [并行] Phase 13 (CI 绿灯)
+     ⤴ [并行] Phase 14 (安全基线)
      → Phase 7-9 (UI, 在 CI+安全 gate 保护下)
      → Phase 15-22 (优化与发布)
      
@@ -381,7 +381,7 @@ Start → Phase 1-3 (环境)
 
 ## 十一、最终建议
 
-### 🎯 核心建议
+### [GOAL] 核心建议
 
 **立即启动迁移，优先级如下**:
 
@@ -420,7 +420,7 @@ Start → Phase 1-3 (环境)
 
 ---
 
-### 📊 预期成果
+### [REPORT] 预期成果
 
 **完成 Phase 13-14 后**:
 - CI 绿灯，10 项质量门禁自动化
@@ -473,7 +473,7 @@ Start → Phase 1-3 (环境)
 ---
 
 > **最终结论**  
-> vitegame → godotgame 技术栈迁移已在架构、代码、工具、测试等全维度通过可行性验证。  
+> LegacyProject → godotgame 技术栈迁移已在架构、代码、工具、测试等全维度通过可行性验证。  
 > Phase 1-12 文档与代码示例可作为实施参考；Phase 13-14 已生产就绪。  
 > **推荐立即启动迁移，预期 70-90 天完成全部工作。**
 

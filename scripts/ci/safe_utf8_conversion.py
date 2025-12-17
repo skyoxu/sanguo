@@ -25,7 +25,7 @@ FILES_TO_CONVERT = [
     'architecture/base/11-risks-and-technical-debt-v2.md',
     'architecture/base/csp-policy-analysis.md',
     'architecture/base/front-matter-standardization-example.md',
-    'architecture/overlays/PRD-Guild-Manager/08/ACCEPTANCE_CHECKLIST.md',
+    'architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md',
 ]
 
 def calculate_md5(content: bytes) -> str:

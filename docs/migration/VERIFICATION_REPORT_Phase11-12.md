@@ -64,7 +64,7 @@ GdUnit4（Game.Godot）：
 
 **进度对标**
 
-vs Electron/Playwright 方案：
+vs LegacyDesktopShell/LegacyE2ERunner 方案：
 - 运行时：30-60s → 2-5s（快 10-20 倍）
 - CI 友好度：需 X11 → 完全 Headless
 - 信号测试：间接 → 直接（Signal.connect）
@@ -109,9 +109,9 @@ vs Electron/Playwright 方案：
 
 | 功能 | 原技术 | 新技术 | 对标 |
 |------|--------|--------|------|
-| 菜单 UI | React | Godot UI | 无差异 |
-| 游戏场景 | Phaser 3 | Godot Scene | 功能等价 |
-| 场景测试 | Playwright | GdUnit4 | 更轻更快 |
+| 菜单 UI | LegacyUIFramework | Godot UI | 无差异 |
+| 游戏场景 | Legacy2DEngine 3 | Godot Scene | 功能等价 |
+| 场景测试 | LegacyE2ERunner | GdUnit4 | 更轻更快 |
 | 信号 | CloudEvents | Godot Signals | 原生 |
 | 可观测 | Sentry.io | Sentry Godot SDK | API 一致 |
 | 安全 | CSP | Security.cs | 覆盖等价 |
@@ -127,19 +127,19 @@ vs Electron/Playwright 方案：
 
 | 项目 | 现状 | 行动 |
 |------|------|------|
-| Godot 4.5 .NET | ❓ 需确认 | 下载安装 .NET 版（非标准版） |
-| 项目初始化 | ❓ 需确认 | godot --headless --editor |
-| addons 目录 | ❓ 需确认 | mkdir -p Game.Godot/addons |
-| Tests 目录 | ❓ 需确认 | 创建 Game.Godot/Tests/Scenes |
-| MainScene.tscn | ❓ Phase 8 | 菜单场景 |
-| GameScene.tscn | ❓ Phase 8 | 游戏场景 |
+| Godot 4.5 .NET | [?] 需确认 | 下载安装 .NET 版（非标准版） |
+| 项目初始化 | [?] 需确认 | godot --headless --editor |
+| addons 目录 | [?] 需确认 | mkdir -p Game.Godot/addons |
+| Tests 目录 | [?] 需确认 | 创建 Game.Godot/Tests/Scenes |
+| MainScene.tscn | [?] Phase 8 | 菜单场景 |
+| GameScene.tscn | [?] Phase 8 | 游戏场景 |
 
 ### SHOULD（建议）
 
 | 项目 | 现状 | 依赖 |
 |------|------|------|
-| xUnit 项目 | ❓ 需创建 | dotnet new xunit |
-| C# 适配器 | ❓ Phase 5 | GodotTimeAdapter 等 |
+| xUnit 项目 | [?] 需创建 | dotnet new xunit |
+| C# 适配器 | [?] Phase 5 | GodotTimeAdapter 等 |
 | GitHub Actions | 已有 | .github/workflows/ |
 
 ---
@@ -153,13 +153,13 @@ godot --version    # 4.5+ .NET
 dotnet --version   # 8.x+
 
 # 创建项目
-mkdir C:\buildgame\sanguo
-godot --path C:\buildgame\sanguo --headless --editor
+mkdir C:\buildgame\godotgame
+godot --path C:\buildgame\godotgame --headless --editor
 ```
 
 ### 第 3 天：GdUnit4 安装
 ```powershell
-.\scripts\install-gut.ps1 -ProjectRoot "C:\buildgame\sanguo"
+.\scripts\install-gut.ps1 -ProjectRoot "C:\buildgame\godotgame"
 # 验证：ls addons\gut\plugin.cfg
 ```
 
@@ -185,7 +185,7 @@ public partial class ExampleTest
 
 ### 第 6 天：首次冒烟测试
 ```bash
-godot --path "C:\buildgame\sanguo" --headless --scene "res://Tests/SmokeTestRunner.tscn"
+godot --path "C:\buildgame\godotgame" --headless --scene "res://Tests/SmokeTestRunner.tscn"
 # 预期：7/7 PASS，<2min
 ```
 

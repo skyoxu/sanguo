@@ -4,15 +4,15 @@
 > **工作量**：4-5 人天  
 > **依赖**：Phase 10（xUnit 框架）、Phase 11（GdUnit4 框架）、Phase 12（烟测 & 性能采集）  
 > **交付物**：5 个脚本 + 1 个 GitHub Actions 工作流 + 日志规范  
-> **验收标准**：本地 `npm run guard:ci` 通过 + CI 自动执行通过
+> **验收标准**：本地 `NodePkg run guard:ci` 通过 + CI 自动执行通过
 
 ---
 
 ## 1. 背景与动机
 
-### 原版（vitegame）质量控制
-- Electron + JavaScript/TypeScript
-- Playwright E2E + Vitest 单元测试
+### 原版（LegacyProject）质量控制
+- LegacyDesktopShell + JavaScript/TypeScript
+- LegacyE2ERunner E2E + LegacyUnitTestRunner 单元测试
 - ESLint + Prettier 自动化
 - GitHub Actions 单一工作流
 
@@ -1078,7 +1078,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          npm install
+          NodePkg install
           dotnet restore Game.Core.sln
       
       - name: Run Quality Gates Script
@@ -1113,7 +1113,7 @@ jobs:
 
 ```bash
 # 开发者提交前运行本地 guard:ci
-npm run guard:ci
+NodePkg run guard:ci
 
 # 输出示例
 # [Step 1/4] Running xUnit tests with coverage...
@@ -1143,7 +1143,7 @@ PR 创建 / push to develop
 guard-ci.yml workflow triggered
     │
     ├─► setup (.NET, Node, Python)
-    ├─► npm install / dotnet restore
+    ├─► NodePkg install / dotnet restore
     ├─► pwsh scripts/guard.ps1
     │   ├─► run_xunit_tests.ps1
     │   ├─► run_gut_tests.ps1
@@ -1178,7 +1178,7 @@ Branch protection rule checks:
 - [ ] 在 `package.json` 中配置 `guard:ci` 脚本
 - [ ] 建立 `logs/ci/` 目录结构与日志规范
 - [ ] 编写 Phase 13 完整文档（本文档）
-- [ ] 本地测试 `npm run guard:ci` 成功通过
+- [ ] 本地测试 `NodePkg run guard:ci` 成功通过
 
 ### 6.2 验收标准
 
@@ -1187,7 +1187,7 @@ Branch protection rule checks:
 | 脚本完整性 | 5 个脚本 + 1 个工作流完整可运行 | □ |
 | 门禁全覆盖 | 10 项门禁全部检查且有理由说明 | □ |
 | 报告生成 | HTML + JSON 报告自动生成 | □ |
-| 本地执行 | `npm run guard:ci` <2min 完成 | □ |
+| 本地执行 | `NodePkg run guard:ci` <2min 完成 | □ |
 | CI 集成 | GitHub Actions 自动触发，结果评论 PR | □ |
 | 文档完整 | Phase 13 文档 ≥800 行，含代码示例 | □ |
 | 日志规范 | `logs/ci/YYYY-MM-DD/` 目录自动创建 | □ |

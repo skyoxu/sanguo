@@ -10,7 +10,7 @@
 
 ## 1. 背景与动机
 
-### 原版(vitegame)文档管理
+### 原版(LegacyProject)文档管理
 
 **文档现状**:
 - 分散的 README 与 ADR 文档
@@ -181,42 +181,42 @@ godotgame/
 │   │   ├── Phase-01-Prerequisites.md          # Phase 1-21 文档
 │   │   └── Phase-22-Documentation-and-Release-Notes.md  # 本文档
 │   │
-│   ├── release/                                ★ 发布文档
-│   │   ├── RELEASE_NOTES.md                   ★ 最终发布说明
-│   │   ├── CHANGELOG.md                       ★ 变更日志(自动生成)
-│   │   ├── MIGRATION_SUMMARY.md               ★ 迁移摘要
-│   │   └── KNOWN_ISSUES.md                    ★ 已知问题清单
+│   ├── release/                                * 发布文档
+│   │   ├── RELEASE_NOTES.md                   * 最终发布说明
+│   │   ├── CHANGELOG.md                       * 变更日志(自动生成)
+│   │   ├── MIGRATION_SUMMARY.md               * 迁移摘要
+│   │   └── KNOWN_ISSUES.md                    * 已知问题清单
 │   │
-│   ├── user/                                   ★ 用户文档
-│   │   ├── USER_MANUAL.md                     ★ 用户手册
-│   │   ├── QUICK_START.md                     ★ 快速入门
-│   │   ├── FAQ.md                             ★ 常见问题
-│   │   └── TROUBLESHOOTING.md                 ★ 故障排除
+│   ├── user/                                   * 用户文档
+│   │   ├── USER_MANUAL.md                     * 用户手册
+│   │   ├── QUICK_START.md                     * 快速入门
+│   │   ├── FAQ.md                             * 常见问题
+│   │   └── TROUBLESHOOTING.md                 * 故障排除
 │   │
-│   ├── technical/                              ★ 技术文档
-│   │   ├── ARCHITECTURE.md                    ★ 架构文档(整合)
-│   │   ├── API_REFERENCE.md                   ★ API 参考(自动生成)
-│   │   ├── OPERATIONS_MANUAL.md               ★ 运维手册
-│   │   └── DEVELOPMENT_GUIDE.md               ★ 开发指南
+│   ├── technical/                              * 技术文档
+│   │   ├── ARCHITECTURE.md                    * 架构文档(整合)
+│   │   ├── API_REFERENCE.md                   * API 参考(自动生成)
+│   │   ├── OPERATIONS_MANUAL.md               * 运维手册
+│   │   └── DEVELOPMENT_GUIDE.md               * 开发指南
 │   │
-│   ├── executive/                              ★ 高管文档
-│   │   ├── EXECUTIVE_SUMMARY.md               ★ 高管摘要
-│   │   ├── MIGRATION_REPORT.md                ★ 迁移完成报告
-│   │   └── ROI_ANALYSIS.md                    ★ ROI 分析
+│   ├── executive/                              * 高管文档
+│   │   ├── EXECUTIVE_SUMMARY.md               * 高管摘要
+│   │   ├── MIGRATION_REPORT.md                * 迁移完成报告
+│   │   └── ROI_ANALYSIS.md                    * ROI 分析
 │   │
-│   └── templates/                              ★ 文档模板
-│       ├── release-notes-template.md          ★ 发布说明模板
-│       └── changelog-template.md              ★ 变更日志模板
+│   └── templates/                              * 文档模板
+│       ├── release-notes-template.md          * 发布说明模板
+│       └── changelog-template.md              * 变更日志模板
 │
 ├── scripts/
-│   ├── generate_release_notes.py              ★ 发布说明生成器
-│   ├── generate_changelog.py                  ★ 变更日志生成器
-│   ├── generate_api_docs.py                   ★ API 文档生成器
-│   └── validate_documentation.py              ★ 文档完整性验证
+│   ├── generate_release_notes.py              * 发布说明生成器
+│   ├── generate_changelog.py                  * 变更日志生成器
+│   ├── generate_api_docs.py                   * API 文档生成器
+│   └── validate_documentation.py              * 文档完整性验证
 │
 └── .taskmaster/
     └── tasks/
-        └── task-22.md                          ★ Phase 22 任务跟踪
+        └── task-22.md                          * Phase 22 任务跟踪
 ```
 
 ---
@@ -462,22 +462,22 @@ class ReleaseNotesGenerator:
         release_notes = f"""# Release Notes: godotgame v{version}
 
 > 发布日期: {now}
-> 项目: vitegame → godotgame 迁移
-> 类型: 完整技术栈替换(Electron + Phaser → Godot 4.5 + C#)
+> 项目: LegacyProject → godotgame 迁移
+> 类型: 完整技术栈替换(LegacyDesktopShell + Legacy2DEngine → Godot 4.5 + C#)
 
 ---
 
 ## 版本摘要
 
-**godotgame v{version}** 是 vitegame 项目的完整重写版本,采用 Godot 4.5 游戏引擎 + C# (.NET 8) 技术栈替代原有的 Electron + Phaser 3 + React 19 架构。本次迁移历经 22 个阶段,累计 52-80 人天开发工作量,完成了功能对标、性能优化与质量保障。
+**godotgame v{version}** 是 LegacyProject 项目的完整重写版本,采用 Godot 4.5 游戏引擎 + C# (.NET 8) 技术栈替代原有的 LegacyDesktopShell + Legacy2DEngine 3 + LegacyUIFramework 19 架构。本次迁移历经 22 个阶段,累计 52-80 人天开发工作量,完成了功能对标、性能优化与质量保障。
 
 ### 核心成果
 
 - [OK] **功能完整性**: {acceptance_data['passed']}/{acceptance_data['total_tests']} 功能测试通过({acceptance_data['passed']/max(acceptance_data['total_tests'],1)*100:.1f}%)
-- ⚡ **性能提升**: 启动时间↓{performance_data['startup_improvement']:.1f}%,帧时间↓{performance_data['frame_time_improvement']:.1f}%,内存↓{performance_data['memory_improvement']:.1f}%
-- 🏗️ **架构现代化**: 基于 Godot Scene Tree 与端口适配器模式
-- 🔒 **安全基线**: Godot 安全白名单 + Sentry 集成 + Release Health 门禁
-- 📊 **可观测性**: 结构化日志 + Crash-Free Sessions 监控 + 性能追踪
+- [FAST] **性能提升**: 启动时间↓{performance_data['startup_improvement']:.1f}%,帧时间↓{performance_data['frame_time_improvement']:.1f}%,内存↓{performance_data['memory_improvement']:.1f}%
+- [ARCH] **架构现代化**: 基于 Godot Scene Tree 与端口适配器模式
+- [LOCK] **安全基线**: Godot 安全白名单 + Sentry 集成 + Release Health 门禁
+- [REPORT] **可观测性**: 结构化日志 + Crash-Free Sessions 监控 + 性能追踪
 
 ---
 
@@ -485,10 +485,10 @@ class ReleaseNotesGenerator:
 
 ### 游戏引擎升级
 
-- **Godot 4.5 Scene Tree**: 原生场景管理替代 Phaser Scene 系统
+- **Godot 4.5 Scene Tree**: 原生场景管理替代 Legacy2DEngine Scene 系统
 - **C# .NET 8**: 强类型开发体验,替代 TypeScript
-- **Godot Control 节点**: 原生 UI 系统替代 React 组件
-- **Godot Physics2D**: 原生物理引擎替代 Phaser Physics
+- **Godot Control 节点**: 原生 UI 系统替代 LegacyUIFramework 组件
+- **Godot Physics2D**: 原生物理引擎替代 Legacy2DEngine Physics
 
 ### 质量体系
 
@@ -509,26 +509,26 @@ class ReleaseNotesGenerator:
 
 ### 核心游戏流程
 
-| 功能模块 | vitegame | godotgame | 状态 |
+| 功能模块 | LegacyProject | godotgame | 状态 |
 |---------|---------|-----------|------|
-| 主菜单与设置 | React 组件 | Godot Control | [OK] 对标完成 |
-| 游戏场景初始化 | Phaser Scene | Godot Scene Tree | [OK] 对标完成 |
-| 角色控制 | Phaser 精灵 | Godot CharacterBody2D | [OK] 对标完成 |
-| 敌人 AI | Phaser AI | Godot State Machine | [OK] 对标完成 |
-| 物理系统 | Phaser Physics | Godot Physics2D | [OK] 对标完成 |
+| 主菜单与设置 | LegacyUIFramework 组件 | Godot Control | [OK] 对标完成 |
+| 游戏场景初始化 | Legacy2DEngine Scene | Godot Scene Tree | [OK] 对标完成 |
+| 角色控制 | Legacy2DEngine 精灵 | Godot CharacterBody2D | [OK] 对标完成 |
+| 敌人 AI | Legacy2DEngine AI | Godot State Machine | [OK] 对标完成 |
+| 物理系统 | Legacy2DEngine Physics | Godot Physics2D | [OK] 对标完成 |
 | 胜利/失败判定 | 条件逻辑 | C# 逻辑层 | [OK] 对标完成 |
 | 数据持久化 | SQLite + JSON | godot-sqlite + ConfigFile | [OK] 对标完成 |
 | 音效系统 | HTML5 Audio | Godot AudioStreamPlayer | [OK] 对标完成 |
-| 本地化 | React i18n | Godot Translation | [OK] 对标完成 |
+| 本地化 | LegacyUIFramework i18n | Godot Translation | [OK] 对标完成 |
 
 ### UI/UX 一致性
 
-| UI 组件 | vitegame | godotgame | 状态 |
+| UI 组件 | LegacyProject | godotgame | 状态 |
 |--------|---------|-----------|------|
-| 主菜单 | React 组件 | Godot Control 场景 | [OK] 对标完成 |
+| 主菜单 | LegacyUIFramework 组件 | Godot Control 场景 | [OK] 对标完成 |
 | 设置面板 | 标签页面板 | Godot 面板 UI | [OK] 对标完成 |
 | 游戏 HUD | Overlay UI | Godot CanvasLayer | [OK] 对标完成 |
-| 暂停菜单 | React Overlay | Godot Pause Menu | [OK] 对标完成 |
+| 暂停菜单 | LegacyUIFramework Overlay | Godot Pause Menu | [OK] 对标完成 |
 | 结算屏幕 | 结束界面 | Godot 结算场景 | [OK] 对标完成 |
 
 ---
@@ -537,7 +537,7 @@ class ReleaseNotesGenerator:
 
 ### 性能指标对比
 
-| 指标 | vitegame 基线 | godotgame v{version} | 改进幅度 |
+| 指标 | LegacyProject 基线 | godotgame v{version} | 改进幅度 |
 |-----|--------------|---------------------|---------|
 | **启动时间 P95** | 2.5s | <2.0s | ↓{performance_data['startup_improvement']:.1f}% |
 | **游戏帧时间 P95** | 16.67ms | <14ms | ↓{performance_data['frame_time_improvement']:.1f}% |
@@ -608,7 +608,7 @@ class ReleaseNotesGenerator:
 - Phase 6: SQLite 数据层迁移
 
 ### 第三阶段:UI 与场景迁移(Phase 7-9)
-- Phase 7: React → Godot Control 迁移
+- Phase 7: LegacyUIFramework → Godot Control 迁移
 - Phase 8: 场景树与节点设计
 - Phase 9: CloudEvents → Signals 迁移
 
@@ -663,20 +663,20 @@ class ReleaseNotesGenerator:
 3. 运行 `godotgame-{version}.exe`
 4. 首次启动会自动创建配置文件与数据库
 
-### 从 vitegame 升级
+### 从 LegacyProject 升级
 
-1. **数据导出**(可选):在 vitegame 中导出游戏进度与设置
+1. **数据导出**(可选):在 LegacyProject 中导出游戏进度与设置
    ```bash
-   # 在 vitegame 目录执行
-   npm run export-data
+   # 在 LegacyProject 目录执行
+   NodePkg run export-data
    ```
 
 2. **安装 godotgame**:按照上述"全新安装"步骤
 
-3. **数据导入**(可选):导入 vitegame 的游戏进度
+3. **数据导入**(可选):导入 LegacyProject 的游戏进度
    - 启动 godotgame
    - 进入"设置" → "数据迁移"
-   - 选择 vitegame 导出的数据文件
+   - 选择 LegacyProject 导出的数据文件
    - 点击"导入"
 
 ---
@@ -1197,7 +1197,7 @@ class DocumentationValidator:
         print("文档完整性验证结果")
         print("="*60)
 
-        print(f"\n📊 文档覆盖率: {results['coverage_percent']:.1f}%")
+        print(f"\n[REPORT] 文档覆盖率: {results['coverage_percent']:.1f}%")
 
         if results["missing_docs"]:
             print(f"\nFAIL 缺失文档 ({len(results['missing_docs'])}个):")
@@ -1262,22 +1262,22 @@ if __name__ == "__main__":
 # Release Notes: godotgame v${VERSION}
 
 > 发布日期: ${DATE}
-> 项目: vitegame → godotgame 迁移
+> 项目: LegacyProject → godotgame 迁移
 > 类型: ${RELEASE_TYPE}
 
 ---
 
 ## 版本摘要
 
-**godotgame v${VERSION}** 是 vitegame 项目的${SUMMARY_DESCRIPTION}。
+**godotgame v${VERSION}** 是 LegacyProject 项目的${SUMMARY_DESCRIPTION}。
 
 ### 核心成果
 
 - [OK] **功能完整性**: ${FEATURE_COMPLETENESS}
-- ⚡ **性能提升**: ${PERFORMANCE_IMPROVEMENTS}
-- 🏗️ **架构现代化**: ${ARCHITECTURE_UPDATES}
-- 🔒 **安全基线**: ${SECURITY_UPDATES}
-- 📊 **可观测性**: ${OBSERVABILITY_UPDATES}
+- [FAST] **性能提升**: ${PERFORMANCE_IMPROVEMENTS}
+- [ARCH] **架构现代化**: ${ARCHITECTURE_UPDATES}
+- [LOCK] **安全基线**: ${SECURITY_UPDATES}
+- [REPORT] **可观测性**: ${OBSERVABILITY_UPDATES}
 
 ---
 
@@ -1295,7 +1295,7 @@ ${FEATURE_DESCRIPTION_2}
 
 ## 功能对标
 
-| 功能模块 | vitegame | godotgame | 状态 |
+| 功能模块 | LegacyProject | godotgame | 状态 |
 |---------|---------|-----------|------|
 | ${MODULE_1} | ${OLD_IMPL_1} | ${NEW_IMPL_1} | ${STATUS_1} |
 | ${MODULE_2} | ${OLD_IMPL_2} | ${NEW_IMPL_2} | ${STATUS_2} |
@@ -1304,7 +1304,7 @@ ${FEATURE_DESCRIPTION_2}
 
 ## 性能改进
 
-| 指标 | vitegame 基线 | godotgame v${VERSION} | 改进幅度 |
+| 指标 | LegacyProject 基线 | godotgame v${VERSION} | 改进幅度 |
 |-----|--------------|---------------------|---------|
 | **${METRIC_1}** | ${OLD_VALUE_1} | ${NEW_VALUE_1} | ${IMPROVEMENT_1} |
 | **${METRIC_2}** | ${OLD_VALUE_2} | ${NEW_VALUE_2} | ${IMPROVEMENT_2} |
@@ -1353,7 +1353,7 @@ ${RECOMMENDED_REQUIREMENTS}
 
 ${INSTALL_STEPS}
 
-### 从 vitegame 升级
+### 从 LegacyProject 升级
 
 ${UPGRADE_STEPS}
 

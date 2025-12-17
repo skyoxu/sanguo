@@ -29,17 +29,17 @@ def collect_adr_ids(root: Path) -> set[str]:
 def collect_overlay_paths(root: Path) -> set[str]:
     overlay_paths: set[str] = set()
 
-    # Guild manager overlays (template lineage)
-    guild_root = root / "docs" / "architecture" / "overlays" / "PRD-Guild-Manager" / "08"
-    if guild_root.exists():
-        for p in guild_root.glob("*"):
-            rel = p.relative_to(root)
-            overlay_paths.add(str(rel).replace("\\", "/"))
+    overlays_root = root / "docs" / "architecture" / "overlays"
+    if not overlays_root.exists():
+        return overlay_paths
 
-    # Sanguo T2 overlays
-    sanguo_root = root / "docs" / "architecture" / "overlays" / "PRD-SANGUO-T2" / "08"
-    if sanguo_root.exists():
-        for p in sanguo_root.glob("*"):
+    for prd_dir in overlays_root.iterdir():
+        if not prd_dir.is_dir():
+            continue
+        chapter_dir = prd_dir / "08"
+        if not chapter_dir.exists():
+            continue
+        for p in chapter_dir.glob("*"):
             rel = p.relative_to(root)
             overlay_paths.add(str(rel).replace("\\", "/"))
 

@@ -9,13 +9,13 @@
 
 ## 目标
 
-将 vitegame 的 Jest + TypeScript 单元测试迁移到 godotgame 的 xUnit + C# 单元测试，建立类型安全的测试套件与 AI-first 覆盖率门禁。
+将 LegacyProject 的 Jest + TypeScript 单元测试迁移到 godotgame 的 xUnit + C# 单元测试，建立类型安全的测试套件与 AI-first 覆盖率门禁。
 
 ---
 
 ## 技术栈对比
 
-| 功能 | vitegame (Node.js) | godotgame (.NET 8) |
+| 功能 | LegacyProject (Node.js) | godotgame (.NET 8) |
 |-----|-------------------|-------------------|
 | 测试框架 | Jest 29 | xUnit 2.x |
 | 断言库 | Jest expect() | FluentAssertions |
@@ -25,7 +25,7 @@
 | 生命周期 | beforeEach/afterEach | Constructor/IDisposable |
 | 覆盖率 | c8 / istanbul | coverlet |
 | 运行器 | jest CLI | dotnet test |
-| CI 集成 | npm test | dotnet test --logger trx |
+| CI 集成 | NodePkg test | dotnet test --logger trx |
 
 ### Godot+C# 变体（Game.Core + xUnit）
 
@@ -50,7 +50,7 @@
 
 ## Jest 测试结构回顾
 
-### 典型 Jest 测试 (vitegame)
+### 典型 Jest 测试 (LegacyProject)
 
 ```typescript
 // src/domain/entities/Player.test.ts

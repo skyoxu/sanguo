@@ -231,4 +231,71 @@ public class GameStateManagerTests
         reporter.Exceptions[0].Context!["event_type"].Should().Be(GameStateManagerUpdated);
     }
 
+    [Fact]
+    public void OffEvent_WhenCallbackRemoved_DoesNotReceiveEvents()
+    {
+        var store = new InMemoryDataStore();
+        var mgr = new GameStateManager(store);
+
+        var called1 = 0;
+        var called2 = 0;
+
+        Action<DomainEvent> cb1 = _ => called1++;
+        Action<DomainEvent> cb2 = _ => called2++;
+
+        mgr.OnEvent(cb1);
+        mgr.OnEvent(cb2);
+        mgr.OffEvent(cb1);
+
+        mgr.SetState(MakeState(level: 2), MakeConfig());
+
+        called1.Should().Be(0);
+        called2.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Destroy_WhenCalled_ClearsCallbacksResetsStateAndDisablesAutoSave()
+    {
+        var store = new InMemoryDataStore();
+        var mgr = new GameStateManager(store);
+
+        var events = new List<string>();
+        mgr.OnEvent(e => events.Add(e.Type));
+
+        mgr.SetState(MakeState(level: 1), MakeConfig());
+        mgr.EnableAutoSave();
+        var beforeDestroy = events.Count;
+
+        mgr.Destroy();
+
+        mgr.GetState().Should().BeNull();
+        mgr.GetConfig().Should().BeNull();
+
+        mgr.SetState(MakeState(level: 2), MakeConfig());
+        events.Count.Should().Be(beforeDestroy);
+
+        await mgr.AutoSaveTickAsync();
+        store.Snapshot.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SaveGameAsync_WhenCallbackThrows_ReportsAndStillSaves()
+    {
+        var store = new InMemoryDataStore();
+        var reporter = new CapturingErrorReporter();
+        var mgr = new GameStateManager(store, reporter: reporter);
+
+        mgr.SetState(MakeState(level: 7, score: 300), MakeConfig());
+        mgr.OnEvent(_ => throw new InvalidOperationException("boom"));
+
+        var saveId = await mgr.SaveGameAsync("slot");
+
+        store.Snapshot.ContainsKey(saveId).Should().BeTrue();
+        reporter.Exceptions.Should().NotBeEmpty();
+        reporter.Exceptions.Should().Contain(e =>
+            e.Message == "gamestatemanager.callback.exception" &&
+            e.Context != null &&
+            e.Context["event_type"] == GameSaveCreated);
+    }
+
 }

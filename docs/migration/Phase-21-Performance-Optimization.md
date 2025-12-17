@@ -10,25 +10,25 @@
 
 ## 1. 背景与动机
 
-### 原版（vitegame）性能特征
+### 原版（LegacyProject）性能特征
 
-**Electron + Phaser 3 性能基线**：
-- 启动时间：冷启动 <2.0s（包含 Electron 初始化 + Node.js runtime）
-- 帧时间：60 FPS @ 1080p（Phaser WebGL 渲染，Chrome 引擎优化）
+**LegacyDesktopShell + Legacy2DEngine 3 性能基线**：
+- 启动时间：冷启动 <2.0s（包含 LegacyDesktopShell 初始化 + Node.js runtime）
+- 帧时间：60 FPS @ 1080p（Legacy2DEngine WebGL 渲染，Chrome 引擎优化）
 - 内存占用：峰值 ~200MB（包含 V8 堆 + Chromium 渲染进程）
 - CPU 占用：空闲 <25%（主线程 + 渲染线程 + Web Worker）
 - 资源加载：首屏资源 <500KB，懒加载策略
 
 **已知性能瓶颈**：
-- Electron 容器开销：~50-80MB 基础内存（Chromium + Node.js）
-- React 虚拟 DOM：复杂 UI 重绘可能触发卡顿（>16.67ms）
-- Phaser 场景切换：首次场景加载 ~800ms（纹理解压 + WebGL 初始化）
+- LegacyDesktopShell 容器开销：~50-80MB 基础内存（Chromium + Node.js）
+- LegacyUIFramework 虚拟 DOM：复杂 UI 重绘可能触发卡顿（>16.67ms）
+- Legacy2DEngine 场景切换：首次场景加载 ~800ms（纹理解压 + WebGL 初始化）
 - SQLite 查询：复杂查询（JOIN）可能超过 50ms 阈值
 
 ### 新版（godotgame）性能机遇与挑战
 
 **机遇**：
-- Godot 4.5 原生性能：无 Electron 容器开销，轻量级运行时（.NET 8）
+- Godot 4.5 原生性能：无 LegacyDesktopShell 容器开销，轻量级运行时（.NET 8）
 - Scene Tree 高效渲染：原生 Vulkan/OpenGL 渲染，无虚拟 DOM 开销
 - C# 性能优势：JIT 编译，强类型优化，GC 可调优
 - 内置性能工具：Godot Profiler、VisualProfiler、Performance Monitor
@@ -49,7 +49,7 @@
 2. **资源效率**：内存占用 <250MB，降低设备要求，延长电池续航
 3. **可扩展性**：为未来功能留出性能余量（复杂场景、粒子效果、AI 计算）
 4. **质量保障**：通过 Phase 15 门禁验证，确保性能不回退
-5. **竞争力**：达到或超越 vitegame 性能基线（±25% tolerance）
+5. **竞争力**：达到或超越 LegacyProject 性能基线（±25% tolerance）
 
 ---
 
@@ -166,33 +166,33 @@ godotgame/
 ├── src/
 │   ├── Game.Core/
 │   │   └── Performance/
-│   │       ├── PerformanceOptimizer.cs           ★ 优化工作流编排
-│   │       ├── OptimizationValidator.cs          ★ 优化效果验证
-│   │       └── ProfilerDataCollector.cs          ★ Profiler 数据采集
+│   │       ├── PerformanceOptimizer.cs           * 优化工作流编排
+│   │       ├── OptimizationValidator.cs          * 优化效果验证
+│   │       └── ProfilerDataCollector.cs          * Profiler 数据采集
 │   │
 │   └── Godot/
-│       ├── ProfilerIntegration.cs                ★ Godot Profiler 集成
-│       ├── PerformanceDebugOverlay.cs            ★ 性能调试 UI
-│       └── ObjectPool.cs                         ★ 对象池实现
+│       ├── ProfilerIntegration.cs                * Godot Profiler 集成
+│       ├── PerformanceDebugOverlay.cs            * 性能调试 UI
+│       └── ObjectPool.cs                         * 对象池实现
 │
 ├── scripts/
-│   ├── performance_analysis.py                   ★ 性能数据分析脚本
-│   ├── optimization_report_generator.py          ★ 优化报告生成
-│   └── regression_checker.py                     ★ 性能回归检测
+│   ├── performance_analysis.py                   * 性能数据分析脚本
+│   ├── optimization_report_generator.py          * 优化报告生成
+│   └── regression_checker.py                     * 性能回归检测
 │
 ├── tests/
 │   └── performance/
-│       ├── benchmark_startup.test.cs             ★ 启动时间基准测试
-│       ├── benchmark_framerate.test.cs           ★ 帧率基准测试
-│       └── benchmark_memory.test.cs              ★ 内存基准测试
+│       ├── benchmark_startup.test.cs             * 启动时间基准测试
+│       ├── benchmark_framerate.test.cs           * 帧率基准测试
+│       └── benchmark_memory.test.cs              * 内存基准测试
 │
 ├── docs/
-│   ├── performance-analysis-report.md            ★ 性能分析报告
-│   └── optimization-changelog.md                 ★ 优化变更日志
+│   ├── performance-analysis-report.md            * 性能分析报告
+│   └── optimization-changelog.md                 * 优化变更日志
 │
 └── .taskmaster/
     └── tasks/
-        └── task-21.md                            ★ Phase 21 任务跟踪
+        └── task-21.md                            * Phase 21 任务跟踪
 ```
 
 ---

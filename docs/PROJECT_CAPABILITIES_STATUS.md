@@ -2,13 +2,13 @@
 
 > 目的：基于 `PROJECT_DOCUMENTATION_INDEX.md` 与 `docs/migration/Phase-*.md`，梳理当前 **Godot 4.5 + C# 游戏模板** 已具备的能力、已进入 Backlog 的能力，以及仍未实现/未迁移的能力。
 
-本文件只关注 **与 Godot+C# 模板直接相关** 的能力；Electron/React 专用能力会统一归入“未实现/未迁移（vitegame 专用）”。
+本文件只关注 **与 Godot+C# 模板直接相关** 的能力；LegacyDesktopShell/LegacyUIFramework 专用能力会统一归入“未实现/未迁移（LegacyProject 专用）”。
 
 ## 0. 状态标记约定
 
 - **Implemented**：模板中已经有对应 **代码/脚本/工作流**，并在 Phase 文档或 ADR 中有 Godot 变体说明。
 - **Backlog**：能力已经在某个 Phase Backlog 文档中明确描述，但当前模板未实现（供后续项目按需落地）。
-- **NotImplemented / NotMigrated**：只在旧的 vitegame/Electron 文档中出现，当前 Godot 模板既未实现，也未被纳入 Backlog（通常是 Electron/React 专用能力）。
+- **NotImplemented / NotMigrated**：只在旧的 LegacyProject/LegacyDesktopShell 文档中出现，当前 Godot 模板既未实现，也未被纳入 Backlog（通常是 LegacyDesktopShell/LegacyUIFramework 专用能力）。
 
 下面按大主题（基本对应 `PROJECT_DOCUMENTATION_INDEX.md` 的章节）进行归类。
 
@@ -20,7 +20,7 @@
 
 - 能力：技术栈与平台策略（ADR-0001/0011）  
   状态：**Implemented**  
-  说明：已在 ADR 中明确 Windows-only + Godot+C# 技术栈；`ADR-0001-tech-stack.md` 仍保留部分 Electron/React 描述，但在 `ADR-0011-windows-only-platform-and-ci.md` 与 Phase-17 文档中已经收敛为 Windows + Godot 架构。
+  说明：已在 ADR 中明确 Windows-only + Godot+C# 技术栈；`ADR-0001-tech-stack.md` 仍保留部分 LegacyDesktopShell/LegacyUIFramework 描述，但在 `ADR-0011-windows-only-platform-and-ci.md` 与 Phase-17 文档中已经收敛为 Windows + Godot 架构。
 
 - 能力：数据存储口径（ADR-0006 + ADR-0023 + CH05/CH06 + Phase-6）  
   状态：**Implemented**  
@@ -49,11 +49,11 @@
   - 已实现：dotnet test + 覆盖率汇总、Godot 自检（CompositionRoot self-check）、编码扫描、GdUnit4 分集/全集运行，以及统一入口脚本 `quality_gates.py`；
   - Backlog：重复率/复杂度扫描、循环依赖检查、Sentry/Release Health 门禁、Perf P95 硬门等，详见 `Phase-13-Quality-Gates-Backlog.md` 与 Phase-15/16 Backlog 文档。
 
-- 能力：Electron 安全基线（ADR-0002 + CH02 原版口径）  
-  状态：**NotImplemented / NotMigrated（vitegame 专用）**  
+- 能力：LegacyDesktopShell 安全基线（ADR-0002 + CH02 原版口径）  
+  状态：**NotImplemented / NotMigrated（LegacyProject 专用）**  
   说明：
-  - 原文针对 Electron（CSP、contextIsolation 等），当前 Godot 模板安全基线已重写为 Godot 文件系统/网络/插件安全（见 Phase-14 文档与 Backlog）；
-  - Electron 相关条目保留为历史参考，但不适用于本模板。
+  - 原文针对 LegacyDesktopShell（CSP、contextIsolation 等），当前 Godot 模板安全基线已重写为 Godot 文件系统/网络/插件安全（见 Phase-14 文档与 Backlog）；
+  - LegacyDesktopShell 相关条目保留为历史参考，但不适用于本模板。
 
 ---
 
@@ -149,8 +149,8 @@
   - 已覆盖：HTTP 安全、DB 安全、Config 安全等核心用例；
   - `Phase-14-Godot-Security-Backlog.md` 中记录了 URL 白名单单元测试、文件系统保护测试、信号契约测试等扩展目标。
 
-- 能力：Electron 安全（CSP 等）  
-  状态：**NotImplemented / NotMigrated（vitegame 专用）**  
+- 能力：LegacyDesktopShell 安全（CSP 等）  
+  状态：**NotImplemented / NotMigrated（LegacyProject 专用）**  
   说明：仅保留在 ADR/旧 Phase 文档中作为历史资料，对当前 Godot 模板不适用。
 
 ---
@@ -256,14 +256,14 @@
   - 高阶 Perf 预算管理（基线、对比、多场景预算）；
   - 文档与 Release Notes 与 JSON 质量结果的全自动对接。
 
-- 未实现/未迁移（NotImplemented / NotMigrated，主要为 vitegame/Electron 专用能力）：
-  - Electron 主进程/渲染进程安全策略与前端打包流程；
-  - React/Phaser 前端组件与相关测试/构建工作流；
+- 未实现/未迁移（NotImplemented / NotMigrated，主要为 LegacyProject/LegacyDesktopShell 专用能力）：
+  - LegacyDesktopShell 主进程/渲染进程安全策略与前端打包流程；
+  - LegacyUIFramework/Legacy2DEngine 前端组件与相关测试/构建工作流；
   - 仅在旧文档中出现、与 Godot 模板无直接映射的工具或脚本。
 
 后续若继续演进本模板，建议：
 
 1. 优先从各 Phase 的 Backlog 文档中选择与“游戏模板可复制性”强相关的项（如 Sentry / Release Health、Perf 基线、更多 GdUnit 场景用例）逐步落地。
-2. 对 Electron/vitegame 专用能力，若未来不计划迁移到 Godot，可在相应 Phase 文档中显式标注为“历史参考，不适用于 Godot 模板”，进一步减少歧义。
+2. 对 LegacyDesktopShell/LegacyProject 专用能力，若未来不计划迁移到 Godot，可在相应 Phase 文档中显式标注为“历史参考，不适用于 Godot 模板”，进一步减少歧义。
 
 

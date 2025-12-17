@@ -1,6 +1,6 @@
 # 从 GM/NG 任务驱动首个 T2 场景实现
 
-> 本文档总结当前对话中关于“如何从 GM/NG 任务驱动首个 T2 场景实现”的建议，作为 sanguo 项目的工作流参考。
+> 本文档总结当前对话中关于“如何从 GM/NG 任务驱动首个 T2 场景实现”的建议，作为 newguild 项目的工作流参考。
 
 ## 1. 先用 PRD + Overlay 锁定 T2 场景流
 
@@ -17,7 +17,7 @@
 
 根据 `.taskmaster/tasks/tasks_back.json` 与 `tasks_gameplay.json` 中的 `depends_on`，首个 T2 Playable 场景在 Taskmaster 语义下的最小依赖闭包为 6 个任务：
 
-1. **NG-0001** —— sanguo 首个纵切 PRD ↔ Overlay 映射
+1. **NG-0001** —— newguild 首个纵切 PRD ↔ Overlay 映射
    - 为 Guild Manager 核心循环建立一份“可落地”的 PRD 片段与 overlays/08 映射。
 2. **NG-0020** —— Guild Manager 首个三层垂直切片骨架
    - 在 Game.Core / Game.Godot / Tests.Godot 三层搭好与公会管理器相关的基础骨架与命名归属。
@@ -47,7 +47,7 @@
   - GM-0101/0103：`"core"`。
 - `adr_refs`：至少包含：
   - `ADR-0018`（Godot+C# 技术栈）、`ADR-0019`（安全基线）、`ADR-0003`（可观测性）、
-    `ADR-0004`（事件总线）、`ADR-0005`（质量门禁）、`ADR-0020`（测试策略）等。
+    `ADR-0004`（事件总线）、`ADR-0005`（质量门禁）、`ADR-0025`（测试策略）等。
 - `chapter_refs`：
   - 例如 `CH01`（目标）、`CH04`（系统上下文）、`CH06`（运行时视图）、`CH07`（开发与门禁）。
 - `overlay_refs`：
@@ -159,17 +159,3 @@ py -3 scripts/python/task_links_validate.py
 - Godot 场景：是玩家实际看见和操作的 UI/交互入口。
 
 按照本文档的顺序推进，你可以在不一次性铺开所有 GM/NG 任务的情况下，先落地一条“首个 T2 Playable 场景流”，并让后续的 Taskmaster + SuperClaude 流程围绕这条流逐步扩展游戏玩法。
-
-## 8. Release / Sentry 软门禁脚本（sanguo 模板）
-
-- 脚本位置：`scripts/python/check_sentry_secrets.py`
-  - 检查 `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` 是否全部存在；
-  - 读取可选环境变量 `SENTRY_UPLOAD_PERFORMED`（由未来真正的 sourcemap 上传步骤设置）；
-  - 输出一行：`Sentry: secrets_detected=<true|false> upload_executed=<true|false>`，有 `GITHUB_STEP_SUMMARY` 时以 UTF-8 追加写入。
-- 工作流接入（Windows-only / Godot + C# 模板口径）：
-  - `.github/workflows/windows-release.yml`
-  - `.github/workflows/windows-release-tag.yml`
-  - 两个工作流的 Release Job 末尾均包含前述软门禁步骤。
-- 设计说明：
-  - 该脚本是 ADR-0003 中 Release Health 体系在 **sanguo 模板** 下的最小落地，不阻断构建（软门禁），只负责在 Step Summary 中提供“是否配置了 Sentry 环境、是否执行了上传步骤”的可见证据；
-  - 后续真正的 sourcemap 上传脚本只需在成功上传时设置 `SENTRY_UPLOAD_PERFORMED=1`，即可在同一 Summary 行中反映执行状态。

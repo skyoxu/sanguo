@@ -33,9 +33,9 @@ supersedes: []
 
 ## Context
 
-本模板的运行时代码最初从 vitegame（Electron + React + SQLite + Node 脚本）迁移到通用模板仓库 godotgame（Godot 4.5 + C#），当前仓库 sanguo 则是在 godotgame 模板基础上派生的“三国”主题 Windows-only Godot + C# 变体。本 ADR 中提到的“本模板”均指 sanguo 仓库。原有 ADR‑0006 主要描述了 Node 侧 SQLite+WAL 策略，与当前 Godot 变体的实现存在以下差异：
+本模板的运行时代码从 LegacyProject（LegacyDesktopShell + LegacyUIFramework + SQLite + Node 脚本）迁移到 godotgame（Godot 4.5 + C#）。原有 ADR‑0006 主要描述了 Node 侧 SQLite+WAL 策略，与当前 Godot 变体的实现存在以下差异：
 
-- **平台差异**：现为 Windows-only，运行在 Godot 4.5 .NET runtime 上，不再依赖 Node/Electron 环境。
+- **平台差异**：现为 Windows-only，运行在 Godot 4.5 .NET runtime 上，不再依赖 Node/LegacyDesktopShell 环境。
 - **后端差异**：DB 访问通过 C# 适配器（`SqliteDataStore` + 具体仓储），测试中统一使用 `Microsoft.Data.Sqlite` 作为 managed provider；godot-sqlite 作为可选 GDExtension，而不是唯一实现。
 - **路径与安全**：Godot 的安全基线（见 ADR‑0002、Godot 安全章节）要求：
   - 仅允许对 `user://` 写入；

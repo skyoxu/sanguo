@@ -21,7 +21,8 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "bootstrap",
@@ -86,7 +87,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "board",
@@ -162,7 +164,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "city",
@@ -235,7 +238,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "player",
@@ -243,14 +247,18 @@
       "t2-gameplay"
     ],
     "owner": "gameplay",
-    "test_refs": [],
+    "test_refs": [
+      "Game.Core.Tests/Domain/SanguoPlayerTests.cs"
+    ],
     "acceptance": [
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
-      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。"
+      "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
+      "过路费破产规则：资金不足支付时，将剩余资金一次性转给债权人，支付方资金归零并判定出局；出局者释放全部已占领城池为无人占领（不允许出现 Money < 0）。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
-      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。"
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "加入资金不足支付过路费的测试：验证剩余资金转移给债权人、支付方资金归零并出局、城池释放为无人占领，并确保不会出现负资金。"
     ],
     "taskmaster_id": 4,
     "taskmaster_exported": true,
@@ -302,7 +310,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "dice",
@@ -316,8 +325,11 @@
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。"
     ],
     "test_strategy": [
-      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
-      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。"
+      "xUnit + FluentAssertions：掷骰结果始终在 1..6（含边界）。",
+      "随机性可测试：优先复用 `Game.Core/Utilities/RandomHelper.cs`；必要时允许注入随机源以便确定性测试。",
+      "事件对齐（ADR-0004）：掷骰后发布 `SanguoDiceRolled`（`Game.Core/Contracts/Sanguo/BoardEvents.cs`）；用可捕获的 `IEventBus` 断言 `DomainEvent.Type == SanguoDiceRolled.EventType` 且 Value 与点数一致。",
+      "覆盖率门禁：运行 `dotnet test --collect:\"XPlat Code Coverage\"` 并通过 `py -3 scripts/python/run_dotnet.py` 校验（lines>=90%、branches>=85%）；产物归档到 `logs/unit/<YYYY-MM-DD>/`。",
+      "可选统计（软门）：投掷 10_000 次输出频次分布到 `logs/perf/<YYYY-MM-DD>/summary.json`，仅用于回归观察。"
     ],
     "taskmaster_id": 5,
     "taskmaster_exported": true,
@@ -373,7 +385,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "turn",
@@ -386,13 +399,21 @@
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
       "符合学习模块二（回合 + 时间轴）的设计：回合推进与日期/月份/年度节点清晰可追踪，并与 T2 PRD 中的“日 → 月末 → 季度 → 年度”闭环描述一致。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong"
+      "回合/循环需正确处理出局：真人玩家出局立即 GameOver；NPC 出局退出本局并从后续轮转中移除（状态锁定），其已占领城池变为无人占领。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
+      "可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。",
+      "可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。",
+      "可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong"
+      "加入出局相关的轮转/结束用例：验证玩家出局触发 GameOver，NPC 出局后轮转跳过且不会再获得回合，并校验其城池已释放为无人占领。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
+      "加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。",
+      "加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。"
     ],
     "taskmaster_id": 6,
     "taskmaster_exported": true,
@@ -448,7 +469,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -522,7 +544,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "events",
@@ -535,13 +558,19 @@
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
       "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。",
+      "可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。",
+      "可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。",
+      "加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。"
     ],
     "taskmaster_id": 8,
     "taskmaster_exported": true,
@@ -591,7 +620,8 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -603,12 +633,14 @@
     "acceptance": [
       "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
       "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "UI 展示层读取玩家状态必须通过 `ISanguoPlayerView`（推荐使用 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView` 快照），禁止 UI 直接持有 `SanguoPlayer` 实体作为状态源；跨层传递仅接收快照，防止未来并发/后台计算引入的调用线程违例。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "编写/更新 UI 用例：UI 数据绑定仅使用 `SanguoPlayerView`（或 `ISanguoPlayerView`）快照输入，不得直接引用 `SanguoPlayer`；若需要背景线程更新 UI，必须先生成快照再发送到主线程渲染。"
     ],
     "taskmaster_id": 9,
     "taskmaster_exported": true,
@@ -651,7 +683,8 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -719,7 +752,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "movement",
@@ -794,7 +828,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -807,13 +842,21 @@
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
       "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。",
+      "可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。",
+      "可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。",
+      "后续演进（所有权 SSoT）：当 UI/存档/回放需要全局城池所有权状态时，统一引入 CityOwnershipRegistry（CityId -> OwnerId?）作为唯一事实来源；玩家侧 OwnedCityIds 仅为派生快照/缓存；出局释放必须清理 registry，禁止双写不同步。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。",
+      "加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。",
+      "加入 xUnit 用例：验证 CityOwnershipRegistry 的单一事实来源不变式（同一 CityId 不能同时属于多个玩家；出局释放后 owner 必为 null）。"
     ],
     "taskmaster_id": 12,
     "taskmaster_exported": true,
@@ -864,7 +907,8 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -877,7 +921,8 @@
       "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。",
       "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。",
       "符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility"
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "城池 UI 状态必须基于单一所有权来源：Phase 1 从玩家 OwnedCityIds 派生；Phase 2 引入 CityOwnershipRegistry 后仅从 registry 读取。"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
@@ -935,7 +980,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -948,13 +994,24 @@
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
       "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "过路费破产规则：资金不足支付时，将剩余资金一次性转给债权人，支付方资金归零并判定出局；出局者释放全部已占领城池为无人占领（不允许出现 Money < 0）。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。",
+      "可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。",
+      "可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。",
+      "后续演进（所有权 SSoT）：当 UI/存档/回放需要全局城池所有权状态时，统一引入 CityOwnershipRegistry（CityId -> OwnerId?）作为唯一事实来源；玩家侧 OwnedCityIds 仅为派生快照/缓存；出局释放必须清理 registry，禁止双写不同步。",
+      "后续演进（结算结果对象）：将过路费/破产结算从 bool 演进为 TollPaymentOutcome，至少包含 PaidToOwner/OverflowToTreasury/PayerEliminated/ReleasedCityIds，由 TurnManager/EconomyService/UI 统一消费，避免调用方漏处理溢出或漏清理城池。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "加入资金不足支付过路费的测试：验证剩余资金转移给债权人、支付方资金归零并出局、城池释放为无人占领，并确保不会出现负资金。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。",
+      "加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。",
+      "加入 xUnit 用例：覆盖足额/不足额/收款方封顶溢出三路径，并断言 TollPaymentOutcome 字段与实际状态一致。"
     ],
     "taskmaster_id": 13,
     "taskmaster_exported": true,
@@ -1010,7 +1067,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ai",
@@ -1022,12 +1080,14 @@
     "acceptance": [
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "AI 决策读取玩家状态必须通过 `ISanguoPlayerView`（推荐使用 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView` 快照），禁止直接持有/跨线程访问 `SanguoPlayer` 实体；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "新增单测：AI 行为仅依赖 `ISanguoPlayerView`/`SanguoPlayerView` 输入；模拟后台线程调用时不得触发 `ThreadAccessGuard`（即不直接调用 `SanguoPlayer` 上的方法）。"
     ],
     "taskmaster_id": 11,
     "taskmaster_exported": true,
@@ -1083,7 +1143,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -1153,7 +1214,8 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1221,7 +1283,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "events",
@@ -1291,7 +1354,8 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1365,7 +1429,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -1440,7 +1505,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "loop",
@@ -1453,13 +1519,25 @@
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
       "符合学习模块二（回合 + 时间轴）的设计：回合推进与日期/月份/年度节点清晰可追踪，并与 T2 PRD 中的“日 → 月末 → 季度 → 年度”闭环描述一致。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong"
+      "回合/循环需正确处理出局：真人玩家出局立即 GameOver；NPC 出局退出本局并从后续轮转中移除（状态锁定），其已占领城池变为无人占领。",
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
+      "Money overflow handling (Task 17): when a credit operation would exceed Money max limit, the game loop writes an audit entry (logs/** per AGENTS 6.3) and reports via IErrorReporter; UI shows a non-blocking toast for 3 seconds; apply cap rule: payer still pays full amount, creditor is capped at max, overflow goes to treasury (or discarded by design) and state updates must be atomic.",
+      "MED-001（未来修订）：破产/出局路径需要‘事务语义’：将债权人入账、付款方出局标记、城池释放视为一次性提交，避免在未来引入事件发布/持久化/回调时出现可观察的中间态；当前 ThreadAccessGuard 单线程仅作为缓解，不作为最终保证。",
+      "可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。",
+      "可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。",
+      "可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。",
+      "后续演进（Task 13/17）：GameLoop 不通过推断判断溢出/出局，而是消费 TollPaymentOutcome 驱动 toast/audit/treasury 归集，保证状态更新原子。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong"
+      "加入出局相关的轮转/结束用例：验证玩家出局触发 GameOver，NPC 出局后轮转跳过且不会再获得回合，并校验其城池已释放为无人占领。",
+      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
+      "Add a test scenario to force Money overflow during turn processing and assert: (1) payer deducted full amount, (2) creditor capped at max, (3) overflow accounted to treasury (or discarded), (4) audit/error reporter invoked, (5) toast shown and auto-dismissed.",
+      "加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。",
+      "加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。"
     ],
     "taskmaster_id": 17,
     "taskmaster_exported": true,
@@ -1510,7 +1588,8 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1579,7 +1658,8 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "save",
@@ -1645,7 +1725,8 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",

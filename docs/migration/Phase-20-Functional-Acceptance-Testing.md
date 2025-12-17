@@ -1,6 +1,6 @@
 # Phase 20: 功能验收测试
 
-> **核心目标**：逐功能对标验证 vitegame 与 godotgame 的特性一致性，建立功能完整性与兼容性验收基线。
+> **核心目标**：逐功能对标验证 LegacyProject 与 godotgame 的特性一致性，建立功能完整性与兼容性验收基线。
 > **工作量**：5-7 人天
 > **依赖**：Phase 1-19（完整实现基座）、Phase 21 前提条件
 > **交付物**：功能验收清单 + 对标测试脚本 + 兼容性报告 + 用户体验评估 + 迁移完整性确认
@@ -10,7 +10,7 @@
 
 ## 1. 背景与动机
 
-### 原版（vitegame）功能特性
+### 原版（LegacyProject）功能特性
 
 **游戏核心流程**：
 - 主菜单与设置界面
@@ -33,7 +33,7 @@
 - 自动保存与手动保存机制
 
 **通信与事件**：
-- EventBus（Phaser ↔ React 通信）
+- EventBus（Legacy2DEngine ↔ LegacyUIFramework 通信）
 - CloudEvents 标准契约
 - 信号系统（菜单点击、游戏事件）
 
@@ -49,8 +49,8 @@
 
 | 挑战 | 原因 | Godot 解决方案 |
 |-----|-----|-----------:|
-| 功能对标验证 | Phaser/React 迁移到 Godot 可能遗漏功能 | 逐功能对标清单 + 自动化测试用例 |
-| UI 行为差异 | React 与 Godot Control 交互模式不同 | Godot Control 节点层级测试 + 信号验证 |
+| 功能对标验证 | Legacy2DEngine/LegacyUIFramework 迁移到 Godot 可能遗漏功能 | 逐功能对标清单 + 自动化测试用例 |
+| UI 行为差异 | LegacyUIFramework 与 Godot Control 交互模式不同 | Godot Control 节点层级测试 + 信号验证 |
 | 性能基线对标 | 新引擎性能特性不同 | Phase 15 性能预算 + 阈值对标 |
 | 数据兼容性 | SQLite Schema 迁移与数据格式转换 | 数据导入脚本 + 完整性校验 |
 | 用户体验连贯性 | 游戏机制与手感差异 | 玩家测试反馈 + 平衡性调整 |
@@ -70,7 +70,7 @@
 
 ### 2.0 Godot 模板变体（当前状态）
 
-> 本节说明：当前仓库是一个可复制的 Godot+C# 模板，并不存在一个一一对应的 vitegame 原始游戏版本。以下功能验收蓝图更多用于“未来实际游戏项目”作为检查清单，本模板阶段只要求核心骨干（Core + Scenes + Tests + Smoke/Perf）完整且可复用。
+> 本节说明：当前仓库是一个可复制的 Godot+C# 模板，并不存在一个一一对应的 LegacyProject 原始游戏版本。以下功能验收蓝图更多用于“未来实际游戏项目”作为检查清单，本模板阶段只要求核心骨干（Core + Scenes + Tests + Smoke/Perf）完整且可复用。
 
 - 模板级功能与测试基线（已落地）：
   - 核心逻辑：`Game.Core` 中的值对象、服务、事件总线等已通过 xUnit 测试覆盖（见 Phase 10）；
@@ -79,7 +79,7 @@
   - 冒烟与性能：Headless Smoke（`[TEMPLATE_SMOKE_READY]`）与帧时间 P95 门禁（`[PERF] ... p95_ms=...` + `check_perf_budget.ps1`）提供最小可玩性与性能基线（见 Phase 12、15）。
 
 - 未在模板阶段实现的部分：
-  - 与 vitegame 的逐功能对标（具体游戏关卡、角色/敌人行为、成就系统等）需要在实际项目中基于本模板扩展；
+  - 与 LegacyProject 的逐功能对标（具体游戏关卡、角色/敌人行为、成就系统等）需要在实际项目中基于本模板扩展；
   - 兼容性报告、用户体验评估与完整数据迁移脚本属于项目级工作，不计入模板 DoD；
   - 相应工作项统一收敛到 Phase-20 Backlog，并由后续真实项目根据自身 PRD 逐条落地。
 
@@ -87,40 +87,40 @@
 
 #### 维度 A: 游戏功能完整性（Game Mechanics）
 
-| 功能模块 | vitegame 实现 | godotgame 对标 | 验收标准 |
+| 功能模块 | LegacyProject 实现 | godotgame 对标 | 验收标准 |
 |---------|-------------|---------------|---------|
-| **主菜单** | React 菜单组件 + EventBus | Godot Control 场景 | 菜单导航功能一致 |
-| **游戏场景** | Phaser Scene Tree | Godot Scene Tree | 场景初始化、对象生成、销毁一致 |
-| **角色控制** | Phaser 精灵 + 输入系统 | Godot CharacterBody2D | 移动、跳跃、攻击行为一致 |
-| **敌人 AI** | Phaser AI 逻辑 | Godot State Machine + FSM | 敌人行为逻辑一致 |
-| **物理系统** | Phaser Physics | Godot Physics2D | 碰撞、重力、速度计算一致 |
+| **主菜单** | LegacyUIFramework 菜单组件 + EventBus | Godot Control 场景 | 菜单导航功能一致 |
+| **游戏场景** | Legacy2DEngine Scene Tree | Godot Scene Tree | 场景初始化、对象生成、销毁一致 |
+| **角色控制** | Legacy2DEngine 精灵 + 输入系统 | Godot CharacterBody2D | 移动、跳跃、攻击行为一致 |
+| **敌人 AI** | Legacy2DEngine AI 逻辑 | Godot State Machine + FSM | 敌人行为逻辑一致 |
+| **物理系统** | Legacy2DEngine Physics | Godot Physics2D | 碰撞、重力、速度计算一致 |
 | **胜利/失败** | 条件判定逻辑 | C# 逻辑层 | 胜利/失败条件触发一致 |
 | **数据保存** | 本地 JSON + SQLite | SQLite + ConfigFile | 游戏进度保存/加载一致 |
 | **音效系统** | HTML5 Audio API | Godot AudioStreamPlayer | 音效播放、音量控制一致 |
-| **本地化** | React i18n | Godot Translation | UI 文本语言切换一致 |
+| **本地化** | LegacyUIFramework i18n | Godot Translation | UI 文本语言切换一致 |
 
 #### 维度 B: UI/UX 一致性（User Experience）
 
-| UI 组件 | vitegame | godotgame | 验收标准 |
+| UI 组件 | LegacyProject | godotgame | 验收标准 |
 |--------|---------|----------|---------|
-| **主菜单** | React 组件 | Godot Control | 菜单项、交互流程一致 |
+| **主菜单** | LegacyUIFramework 组件 | Godot Control | 菜单项、交互流程一致 |
 | **设置面板** | 标签页式面板 | Godot 面板 UI | 设置项、默认值、保存逻辑一致 |
 | **游戏 HUD** | Overlay UI | Godot CanvasLayer | 生命值、分数、计时器显示一致 |
-| **暂停菜单** | React Overlay | Godot Pause Menu | 暂停后菜单功能一致 |
+| **暂停菜单** | LegacyUIFramework Overlay | Godot Pause Menu | 暂停后菜单功能一致 |
 | **结算屏幕** | 游戏结束界面 | Godot 结算场景 | 显示信息、继续按钮功能一致 |
 
 #### 维度 C: 数据系统一致性（Data Integrity）
 
-| 数据类型 | vitegame | godotgame | 验收标准 |
+| 数据类型 | LegacyProject | godotgame | 验收标准 |
 |--------|---------|----------|---------|
 | **游戏进度** | 本地 JSON | SQLite users 表 | 存档完整性、加载正确性 |
 | **用户设置** | JSON 配置 | ConfigFile (user://) | 音量、图形、语言设置持久化 |
 | **成就系统** | 数据库记录 | SQLite achievements 表 | 成就解锁、统计一致 |
-| **数据导入** | - | 迁移脚本 | vitegame 数据可导入 godotgame |
+| **数据导入** | - | 迁移脚本 | LegacyProject 数据可导入 godotgame |
 
 #### 维度 D: 性能基线对标（Performance Baseline）
 
-| 性能指标 | vitegame 基线 | godotgame 目标 | 验收标准 |
+| 性能指标 | LegacyProject 基线 | godotgame 目标 | 验收标准 |
 |--------|-------------|--------------|---------|
 | **启动时间** | <2.0s | <2.5s (±25% tolerance) | 冷启动时间 |
 | **场景加载** | <1.0s | <1.2s | 关卡初始化时间 |
@@ -189,31 +189,31 @@
 ```
 godotgame/
 ├── tests/
-│   ├── acceptance/                           ★ 功能验收测试
-│   │   ├── feature-mapping-tests.cs          ★ 功能对标测试 (xUnit)
-│   │   ├── game-mechanics.test.cs            ★ 游戏机制测试 (GdUnit4)
-│   │   ├── ui-behavior.test.cs               ★ UI 行为测试
-│   │   ├── data-integrity.test.cs            ★ 数据完整性测试
-│   │   └── performance-baseline.test.cs      ★ 性能基线对标
+│   ├── acceptance/                           * 功能验收测试
+│   │   ├── feature-mapping-tests.cs          * 功能对标测试 (xUnit)
+│   │   ├── game-mechanics.test.cs            * 游戏机制测试 (GdUnit4)
+│   │   ├── ui-behavior.test.cs               * UI 行为测试
+│   │   ├── data-integrity.test.cs            * 数据完整性测试
+│   │   └── performance-baseline.test.cs      * 性能基线对标
 │   │
 │   └── e2e/
-│       ├── smoke-tests.playwright.ts         ★ 冒烟测试脚本
-│       └── user-flow-tests.playwright.ts     ★ 用户流程测试
+│       ├── smoke-tests.LegacyE2ERunner.ts         * 冒烟测试脚本
+│       └── user-flow-tests.LegacyE2ERunner.ts     * 用户流程测试
 │
 ├── docs/
-│   ├── feature-parity-checklist.md           ★ 功能对标清单
-│   ├── test-plan.md                          ★ 测试计划书
-│   ├── acceptance-report.md                  ★ 验收报告
-│   └── known-issues.md                       ★ 已知问题与优先级
+│   ├── feature-parity-checklist.md           * 功能对标清单
+│   ├── test-plan.md                          * 测试计划书
+│   ├── acceptance-report.md                  * 验收报告
+│   └── known-issues.md                       * 已知问题与优先级
 │
 ├── scripts/
-│   ├── run-acceptance-tests.py               ★ 验收测试驱动脚本
-│   ├── generate-acceptance-report.py         ★ 报告生成脚本
-│   └── data-migration-validate.py            ★ 数据迁移验证脚本
+│   ├── run-acceptance-tests.py               * 验收测试驱动脚本
+│   ├── generate-acceptance-report.py         * 报告生成脚本
+│   └── data-migration-validate.py            * 数据迁移验证脚本
 │
 └── .taskmaster/
     └── tasks/
-        └── task-20.md                        ★ Phase 20 任务跟踪
+        └── task-20.md                        * Phase 20 任务跟踪
 ```
 
 ---
@@ -240,7 +240,7 @@ namespace Game.Tests.Acceptance
 {
     /// <summary>
     /// Phase 20 功能对标测试
-    /// 验证 godotgame 核心功能与 vitegame 的完整性与行为一致性
+    /// 验证 godotgame 核心功能与 LegacyProject 的完整性与行为一致性
     /// </summary>
     public class FeatureMappingTests
     {
@@ -573,14 +573,14 @@ namespace Game.Tests.Acceptance
         }
 
         [Fact]
-        public void DataMigration_ShouldImportVitegameProgress()
+        public void DataMigration_ShouldImportLegacyProjectProgress()
         {
             // Arrange
-            var vitegameExportFile = "/path/to/vitegame-export.json";
+            var LegacyProjectExportFile = "/path/to/LegacyProject-export.json";
             var migrator = new DataMigrator();
 
             // Act
-            var result = migrator.ImportFromVitegame(vitegameExportFile);
+            var result = migrator.ImportFromLegacyProject(LegacyProjectExportFile);
             var importedData = _dataService.GetMigratedData();
 
             // Assert
@@ -655,14 +655,14 @@ namespace Game.Tests.Acceptance
 **职责**：
 - 快速验证游戏基本可玩性
 - 检查菜单导航、场景加载、基本交互
-- 使用 Playwright Godot 支持的 E2E 测试
+- 使用 LegacyE2ERunner Godot 支持的 E2E 测试
 
 **代码示例**：
 
 ```typescript
-// tests/e2e/smoke-tests.playwright.ts
+// tests/e2e/smoke-tests.LegacyE2ERunner.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@LegacyE2ERunner/test';
 
 test.describe('Smoke Tests - Game Playability', () => {
 
@@ -827,7 +827,7 @@ test.describe('Smoke Tests - Game Playability', () => {
 ### 3.3 feature-parity-checklist.md（功能对标清单）
 
 **职责**：
-- 逐功能列出 vitegame vs godotgame 的对标要点
+- 逐功能列出 LegacyProject vs godotgame 的对标要点
 - 记录每个功能的验收状态
 - 作为发版前的最终检查清单
 
@@ -849,7 +849,7 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 显示"设置"按钮
   - [ ] 显示"退出"按钮
   - [ ] 按钮点击可正常响应
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **设置菜单**
@@ -857,7 +857,7 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 语言选择正常切换
   - [ ] 显卡质量选择可用
   - [ ] 设置更改可保存
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ### 游戏场景
@@ -867,7 +867,7 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 关卡环境完整呈现
   - [ ] 初始 NPC/敌人正确生成
   - [ ] 玩家角色正确位置生成
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 加载时间: ____ ms
   - 备注: _____________
 
@@ -878,16 +878,16 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 向右移动（→ / D 键）
   - [ ] 向上移动（↑ / W 键，如适用）
   - [ ] 向下移动（↓ / S 键，如适用）
-  - [ ] 移动速度与 vitegame 一致
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - [ ] 移动速度与 LegacyProject 一致
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **跳跃系统**
   - [ ] 跳跃（Space 键）可用
   - [ ] 只能在地面跳跃
-  - [ ] 跳跃高度与 vitegame 一致
+  - [ ] 跳跃高度与 LegacyProject 一致
   - [ ] 重力加速度正确
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **攻击系统**
@@ -895,7 +895,7 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 攻击有冷却时间
   - [ ] 攻击判定范围正确
   - [ ] 敌人可被击伤
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ### 敌人系统
@@ -904,15 +904,15 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] Level 1 生成正确数量敌人
   - [ ] 敌人位置与关卡设计一致
   - [ ] 敌人类型多样化
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **敌人 AI**
   - [ ] 敌人会巡逻
   - [ ] 敌人检测到玩家后会追击
   - [ ] 敌人会攻击玩家
-  - [ ] AI 行为与 vitegame 一致
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - [ ] AI 行为与 LegacyProject 一致
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ### 物理系统
@@ -922,14 +922,14 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 玩家与墙壁碰撞
   - [ ] 玩家与敌人碰撞
   - [ ] 攻击与敌人碰撞检测
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **重力系统**
   - [ ] 重力加速度正确
   - [ ] 玩家掉落行为正确
   - [ ] 坠落伤害逻辑正确
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ### 胜利/失败
@@ -939,7 +939,7 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 显示胜利画面
   - [ ] 显示完成时间与分数
   - [ ] 显示"继续"按钮
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **失败条件**
@@ -947,7 +947,7 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 显示失败画面
   - [ ] 显示"重新开始"按钮
   - [ ] 显示"返回菜单"按钮
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ### 音效系统
@@ -956,7 +956,7 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 主菜单有背景音乐
   - [ ] 游戏场景有背景音乐
   - [ ] 音乐循环播放
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **音效效果**
@@ -965,13 +965,13 @@ test.describe('Smoke Tests - Game Playability', () => {
   - [ ] 攻击声效
   - [ ] 敌人死亡声效
   - [ ] 胜利/失败音效
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **音量控制**
   - [ ] 设置中可调整主音量
   - [ ] 可单独调整 BGM 和 SFX 音量
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ### 本地化
@@ -979,14 +979,14 @@ test.describe('Smoke Tests - Game Playability', () => {
 - [ ] **英文支持**
   - [ ] 所有菜单文本为英文
   - [ ] 所有 UI 提示为英文
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **中文支持**
   - [ ] 所有菜单文本为中文
   - [ ] 所有 UI 提示为中文
   - [ ] 中文字体正确显示
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ## 数据系统
@@ -996,51 +996,51 @@ test.describe('Smoke Tests - Game Playability', () => {
 - [ ] **自动保存**
   - [ ] 关卡完成后自动保存
   - [ ] 定时自动保存（每 5 分钟）
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **手动保存**
   - [ ] 可在暂停菜单保存
   - [ ] 保存成功提示
   - [ ] 保存文件完整有效
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **读档功能**
   - [ ] 可加载已保存的进度
   - [ ] 进度数据完整性
   - [ ] 加载后游戏状态正确
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ### 用户设置持久化
 
 - [ ] **音量设置**
   - [ ] 设置后下次启动保持
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **语言设置**
   - [ ] 设置后下次启动保持
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 - [ ] **图形质量设置**
   - [ ] 设置后下次启动保持
-  - 状态: ⚫ Pending |  In Progress |  Completed
+  - 状态: - Pending |  In Progress |  Completed
   - 备注: _____________
 
 ## 性能指标
 
-| 指标 | vitegame 基线 | godotgame 目标 | 实际值 | 状态 |
+| 指标 | LegacyProject 基线 | godotgame 目标 | 实际值 | 状态 |
 |------|-------------|--------------|-------|------|
-| 启动时间 | <2.0s | <2.5s | ____ | ⚪ |
-| 场景加载 | <1.0s | <1.2s | ____ | ⚪ |
-| FPS | 60 | 60 | ____ | ⚪ |
-| 峰值内存 | ~200MB | <250MB | ____ | ⚪ |
-| 空闲 CPU | <25% | <30% | ____ | ⚪ |
+| 启动时间 | <2.0s | <2.5s | ____ | - |
+| 场景加载 | <1.0s | <1.2s | ____ | - |
+| FPS | 60 | 60 | ____ | - |
+| 峰值内存 | ~200MB | <250MB | ____ | - |
+| 空闲 CPU | <25% | <30% | ____ | - |
 
-**图例**: ⚪ 待测 |  进行中 |  通过 |  失败
+**图例**: - 待测 |  进行中 |  通过 |  失败
 
 ---
 
@@ -1078,7 +1078,7 @@ P2 缺陷可在 Phase 21 中作为优化任务处理
 
 ---
 
-> **最终状态**: ⚫ Pending |  In Progress |  Completed
+> **最终状态**: - Pending |  In Progress |  Completed
 ```
 
 ### 3.4 run-acceptance-tests.py（验收测试驱动脚本）
@@ -1169,8 +1169,8 @@ class AcceptanceTestRunner:
     def _run_smoke_tests(self):
         """运行冒烟测试"""
         cmd = [
-            "npx", "playwright", "test",
-            str(self.project_root / "tests/e2e/smoke-tests.playwright.ts"),
+            "npx", "LegacyE2ERunner", "test",
+            str(self.project_root / "tests/e2e/smoke-tests.LegacyE2ERunner.ts"),
             "--reporter=json",
             f"--output-file={self.project_root / '.test-results/smoke-tests.json'}"
         ]
@@ -1381,7 +1381,7 @@ if __name__ == "__main__":
 | 功能遗漏 | 高 | 逐功能对标清单 + 自动化测试覆盖 |
 | UI 行为差异 | 中 | Godot Control 层级测试 + 玩家反馈 |
 | 性能回归 | 中 | Phase 15 性能预算 + 基线对标测试 |
-| 数据迁移问题 | 中 | vitegame 数据导入脚本 + 完整性校验 |
+| 数据迁移问题 | 中 | LegacyProject 数据导入脚本 + 完整性校验 |
 | 用户体验不满意 | 中 | Beta 小范围测试 + 迭代调整 |
 | 缺陷分类不当 | 低 | P0/P1/P2 标准化定义 + 技术评审 |
 
@@ -1392,7 +1392,7 @@ if __name__ == "__main__":
 ### 6.1 代码完整性
 
 - [ ] feature-mapping-tests.cs（250+ 行）：[OK] 功能对标测试用例
-- [ ] smoke-tests.playwright.ts（300+ 行）：[OK] 冒烟测试脚本
+- [ ] smoke-tests.LegacyE2ERunner.ts（300+ 行）：[OK] 冒烟测试脚本
 - [ ] feature-parity-checklist.md（500+ 行）：[OK] 功能对标清单
 - [ ] run-acceptance-tests.py（250+ 行）：[OK] 验收测试驱动脚本
 
@@ -1439,7 +1439,7 @@ if __name__ == "__main__":
 
 ### 代码文件
 - [OK] `tests/acceptance/feature-mapping-tests.cs`（250+ 行）
-- [OK] `tests/e2e/smoke-tests.playwright.ts`（300+ 行）
+- [OK] `tests/e2e/smoke-tests.LegacyE2ERunner.ts`（300+ 行）
 - [OK] `tests/acceptance/data-integrity.test.cs`（150+ 行）
 - [OK] `tests/acceptance/performance-baseline.test.cs`（150+ 行）
 

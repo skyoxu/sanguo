@@ -1,32 +1,35 @@
 ---
 ADR-ID: ADR-0001
 title: 技术栈与版本策略 - Modern Stack选型
-status: Accepted
+status: Superseded
 decision-time: '2025-08-17'
 deciders: [架构团队, 开发团队]
 archRefs: [CH01, CH07, CH09, CH11]
 verification:
   - path: scripts/stack/validate-versions.mjs
-    assert: Node/Electron/Chromium versions match policy window
-  - path: tests/e2e/smoke.electron.spec.ts
-    assert: Electron app launches via _electron.launch and first window is visible
+    assert: Node/LegacyDesktopShell/Chromium versions match policy window
+  - path: tests/e2e/smoke.LegacyDesktopShell.spec.ts
+    assert: LegacyDesktopShell app launches via _LegacyDesktopShell.launch and first window is visible
   - path: scripts/perf/assert-drift.mjs
     assert: Interaction P95 ≤ 100ms and Event P95 ≤ 50ms with ≤10% drift vs baseline
-impact-scope: [package.json, vite.config.ts, tsconfig.json, electron/, src/]
-tech-tags: [electron, react, vite, typescript, tailwind, phaser]
+impact-scope: [package.json, LegacyBuildTool.config.ts, tsconfig.json, LegacyDesktopShell/, src/]
+tech-tags: [LegacyDesktopShell, LegacyUIFramework, LegacyBuildTool, typescript, tailwind, Legacy2DEngine]
 depends-on: []
 depended-by: [ADR-0002, ADR-0005, ADR-0007]
 test-coverage: tests/unit/tech-stack.spec.ts
 monitoring-metrics: [build_time, bundle_size, dependency_vulnerabilities]
 executable-deliverables:
   - package.json
-  - vite.config.ts
+  - LegacyBuildTool.config.ts
   - tsconfig.json
   - scripts/tech-stack-validator.mjs
 supersedes: []
+superseded-by: [ADR-0018]
 ---
 
 # ADR-0001: 技术栈与版本策略
+
+> 本 ADR 为历史记录：已被 `docs/adr/ADR-0018-godot-runtime-and-distribution.md` 替代；当前模板运行时为 Godot 4.5 + C#/.NET 8（Windows-only）。
 
 ## Context and Problem Statement
 
@@ -43,35 +46,35 @@ supersedes: []
 
 ## Considered Options
 
-- **方案A**: Electron + React + Vite + Phaser + TypeScript + Tailwind
+- **方案A**: LegacyDesktopShell + LegacyUIFramework + LegacyBuildTool + Legacy2DEngine + TypeScript + Tailwind
 - **方案B**: 纯Web应用 + PWA (放弃桌面原生能力)
 - **方案C**: Unity + C# (游戏引擎优先，UI开发成本高)
 - **方案D**: C++/Rust原生 + WebView嵌入 (开发成本极高)
 
 ## Decision Outcome
 
-选择的方案：**方案A - Electron全栈统一技术栈**
+选择的方案：**方案A - LegacyDesktopShell全栈统一技术栈**
 
 ### 核心技术栈与版本策略
 
 | 层次       | 技术选型         | 固定版本策略                    | 升级窗口   |
 | ---------- | ---------------- | ------------------------------- | ---------- |
-| 桌面容器   | **Electron**     | 当前：37.x，支持窗口：36.x-39.x | 每季度评估 |
-| 渲染引擎   | **Chromium**     | 跟随Electron自动更新            | 被动跟随   |
-| Node运行时 | **Node.js**      | 跟随Electron绑定版本            | 被动跟随   |
-| 前端框架   | **React**        | 强制v19，禁止v18及以下          | 年度大版本 |
-| 构建工具   | **Vite**         | 当前：7.x，支持窗口：6.x-7.x    | 半年度评估 |
-| 游戏引擎   | **Phaser**       | 当前：3.90+，支持窗口：3.80+    | 季度评估   |
+| 桌面容器   | **LegacyDesktopShell**     | 当前：37.x，支持窗口：36.x-39.x | 每季度评估 |
+| 渲染引擎   | **Chromium**     | 跟随LegacyDesktopShell自动更新            | 被动跟随   |
+| Node运行时 | **Node.js**      | 跟随LegacyDesktopShell绑定版本            | 被动跟随   |
+| 前端框架   | **LegacyUIFramework**        | 强制v19，禁止v18及以下          | 年度大版本 |
+| 构建工具   | **LegacyBuildTool**         | 当前：7.x，支持窗口：6.x-7.x    | 半年度评估 |
+| 游戏引擎   | **Legacy2DEngine**       | 当前：3.90+，支持窗口：3.80+    | 季度评估   |
 | 样式框架   | **Tailwind CSS** | 强制v4，禁止v3及以下            | 年度大版本 |
 | 开发语言   | **TypeScript**   | 当前：5.8+，支持窗口：5.6+      | 半年度评估 |
 
 ### 版本联动与兼容性矩阵
 
-**Electron → Chromium → Node.js 联动关系**：
+**LegacyDesktopShell → Chromium → Node.js 联动关系**：
 
-- Electron 37.x → Chromium 130.x → Node.js 22.x
-- 每个Electron版本绑定特定的Chromium和Node版本
-- 升级Electron时必须验证Chromium API兼容性和Node.js模块兼容性
+- LegacyDesktopShell 37.x → Chromium 130.x → Node.js 22.x
+- 每个LegacyDesktopShell版本绑定特定的Chromium和Node版本
+- 升级LegacyDesktopShell时必须验证Chromium API兼容性和Node.js模块兼容性
 
 ### Positive Consequences
 
@@ -83,7 +86,7 @@ supersedes: []
 
 ### Negative Consequences
 
-- Electron包体积较大（~100MB+）
+- LegacyDesktopShell包体积较大（~100MB+）
 - 安全攻击面扩大，需要严格的安全治理
 - 版本升级联动复杂，需要充分测试验证
 - 内存占用相对原生应用较高
@@ -91,9 +94,9 @@ supersedes: []
 
 ## Verification
 
-- **测试验证**: tests/unit/tech-stack.spec.ts, tests/e2e/electron-integration.spec.ts
+- **测试验证**: tests/unit/tech-stack.spec.ts, tests/e2e/LegacyDesktopShell-integration.spec.ts
 - **门禁脚本**: scripts/verify_tech_stack.mjs
-- **监控指标**: build.bundle_size, runtime.memory_usage, security.electron_version
+- **监控指标**: build.bundle_size, runtime.memory_usage, security.LegacyDesktopShell_version
 - **升级验证矩阵**: 见下表
 
 ### 升级验证矩阵
@@ -101,10 +104,10 @@ supersedes: []
 | 验证类型       | 验证范围                 | 通过标准                      | 责任方    |
 | -------------- | ------------------------ | ----------------------------- | --------- |
 | **Smoke测试**  | 应用启动、基础功能       | 100%核心路径通过              | 自动化    |
-| **Playwright** | E2E用户流程、IPC通信     | 95%用例通过，无阻断问题       | QA + Dev  |
+| **LegacyE2ERunner** | E2E用户流程、IPC通信     | 95%用例通过，无阻断问题       | QA + Dev  |
 | **性能P95**    | 启动时间、渲染帧率、内存 | P95 < 3s/60fps/512MB          | 性能团队  |
 | **Crash-Free** | 崩溃率、会话质量         | ≥99.5% Users, ≥99.8% Sessions | SRE + Dev |
-| **安全扫描**   | 依赖漏洞、Electron配置   | 0 High/Critical漏洞           | 安全团队  |
+| **安全扫描**   | 依赖漏洞、LegacyDesktopShell配置   | 0 High/Critical漏洞           | 安全团队  |
 
 ## Operational Playbook
 
@@ -134,9 +137,9 @@ supersedes: []
 ## References
 
 - **CH章节关联**: CH01, CH07
-- **相关ADR**: ADR-0002-electron-security, ADR-0005-quality-gates
+- **相关ADR**: ADR-0002-LegacyDesktopShell-security, ADR-0005-quality-gates
 - **外部文档**:
-  - [Electron Release Timeline](https://www.electronjs.org/docs/tutorial/releases)
-  - [React 19 Migration Guide](https://react.dev/blog/2024/04/25/react-19)
-  - [Vite Migration Guide](https://vite.dev/guide/migration.html)
-- **版本兼容性**: [Electron to Chromium Versions](https://atom.io/download/electron/index.json)
+  - [LegacyDesktopShell Release Timeline](https://www.LegacyDesktopShelljs.org/docs/tutorial/releases)
+  - [LegacyUIFramework 19 Migration Guide](https://LegacyUIFramework.dev/blog/2024/04/25/LegacyUIFramework-19)
+  - [LegacyBuildTool Migration Guide](https://LegacyBuildTool.dev/guide/migration.html)
+- **版本兼容性**: [LegacyDesktopShell to Chromium Versions](https://atom.io/download/LegacyDesktopShell/index.json)

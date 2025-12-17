@@ -55,10 +55,10 @@
 
 **后果**:
 
-- Electron/React/Phaser 完全弃用
-- UI 从 React 组件迁移到 Godot Control 节点
+- LegacyDesktopShell/LegacyUIFramework/Legacy2DEngine 完全弃用
+- UI 从 LegacyUIFramework 组件迁移到 Godot Control 节点
 - 事件系统从 CloudEvents 迁移到 Godot Signals
-- 测试栈从 Vitest/Playwright 迁移到 xUnit/GdUnit4
+- 测试栈从 LegacyUnitTestRunner/LegacyE2ERunner 迁移到 xUnit/GdUnit4
 
 **实施约束**:
 
@@ -80,7 +80,7 @@
 
 **核心决策**:
 
-取代 ADR-0002（Electron 安全基线），建立 Godot 特定的安全口径：
+取代 ADR-0002（LegacyDesktopShell 安全基线），建立 Godot 特定的安全口径：
 
 1. **外链打开**: 仅允许 `https://` + 域白名单 + 审计日志
 2. **HTTP 请求**: 统一 HTTPRequest 封装 + 域白名单 + 审计
@@ -190,7 +190,7 @@ public void OpenUrlSafe_ShouldAllowWhitelistedHttps()
 
 **迁移对照**:
 
-| Electron 概念 | Godot 对应 | 实施方式 |
+| LegacyDesktopShell 概念 | Godot 对应 | 实施方式 |
 |-------------|-----------|---------|
 | webContents.setWindowOpenHandler | OS.shell_open() 封装 | Security.open_url_safe() |
 | CSP (Content-Security-Policy) | HTTPRequest 白名单 | Security.http_request_safe() |
@@ -800,14 +800,14 @@ public void LogGameEvent(string eventType, object data)
 **变更点**:
 
 ```diff
-- 初始化位置: Electron Main Process
+- 初始化位置: LegacyDesktopShell Main Process
 + 初始化位置: Godot Autoload (Observability.cs 或 .cs)
 
-- SDK: @sentry/electron
+- SDK: @sentry/LegacyDesktopShell
 + SDK: sentry-godot (GDNative 插件)
 
 - 示例代码:
--   import * as Sentry from '@sentry/electron';
+-   import * as Sentry from '@sentry/LegacyDesktopShell';
 -   Sentry.init({ dsn: '...' });
 +   # Autoload: Observability.cs
 +   var sentry = preload("res://addons/sentry-godot/sentry.cs").new()
@@ -825,10 +825,10 @@ public void LogGameEvent(string eventType, object data)
 - Lint: eslint
 + Lint: dotnet format analyzers (StyleCop + Roslyn)
 
-- 单元测试: vitest
+- 单元测试: LegacyUnitTestRunner
 + 单元测试: dotnet test (xUnit + coverlet)
 
-- E2E: playwright
+- E2E: LegacyE2ERunner
 + E2E: godot --headless + GdUnit4
 
 - 重复检测: jscpd (支持 .ts/.tsx)
@@ -866,7 +866,7 @@ public void LogGameEvent(string eventType, object data)
 - 指标: 场景切换时间 (Performance API)
 + 指标: SceneTree.change_scene_to_file() 耗时
 
-- 采集方式: Playwright tracing
+- 采集方式: LegacyE2ERunner tracing
 + 采集方式: Godot Performance.get_monitor() + 自定义计时
 
 - 预算: FCP ≤ 800ms (P95)
@@ -890,4 +890,4 @@ public void LogGameEvent(string eventType, object data)
 
 完成本阶段后，继续：
 
-➡️ [Phase-3-Project-Structure.md](Phase-3-Project-Structure.md) — Godot 项目结构设计
+-> [Phase-3-Project-Structure.md](Phase-3-Project-Structure.md) — Godot 项目结构设计

@@ -74,7 +74,7 @@
         "dependencies": [
           "2"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -102,13 +102,13 @@
         "id": "4",
         "title": "实现玩家类",
         "description": "定义玩家的属性和基本操作。",
-        "details": "扩展 Player 类，增加资金、当前位置和已拥有城池列表等属性，实现购买城池和支付过路费的方法，所有结算逻辑都在 Game.Core 层完成。在职责划分与输入处理上，可参考 Godot 官方演示项目 2d/kinematic_character、2d/platformer 中的角色控制器结构，采用类似的“数据在 Core、表现留在 Godot 场景”的分层思路。",
-        "testStrategy": "编写 xUnit 单元测试，验证玩家属性初始化、购买城池、支付过路费等方法在不同边界条件下的行为；通过构造多轮交易场景，确保资金与城池所有权变更符合 T2 PRD 中的经济规则。",
+        "details": "新增 SanguoPlayer（避免复用现有战斗语义 Player），增加资金、当前位置索引、已拥有城池列表等属性，实现购买城池与支付过路费的方法；所有经济结算保持在 Game.Core 层，不依赖 Godot。过路费破产规则（与 Task 13 对齐）：当资金不足以支付过路费时，将剩余资金一次性转给债权人，支付方资金归零并判定出局，同时释放其全部已占领城池为无人占领；真人玩家出局触发 GameOver，NPC 出局退出本局由 TurnManager 处理。在职责划分与输入处理上，可参考 Godot 官方演示项目 2d/kinematic_character、2d/platformer 中的角色控制器结构，采用类似的“数据在 Core、表现留在 Godot 场景”的分层思路。",
+        "testStrategy": "编写 xUnit 单元测试，验证玩家属性初始化、购买城池、支付过路费等方法在不同边界条件下的行为；覆盖资金不足支付过路费的破产/出局分支：剩余资金转移给债权人、资金不允许为负、出局后释放城池为无人占领；通过构造多轮交易场景，确保资金与城池所有权变更符合 T2 PRD 中的经济规则。",
         "priority": "high",
         "dependencies": [
           "3"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -137,12 +137,12 @@
         "title": "实现骰子机制",
         "description": "设计骰子投掷的逻辑。",
         "details": "使用随机数生成器实现骰子投掷，返回1到6的随机数。",
-        "testStrategy": "通过多次投掷测试，验证随机数生成的均匀性和范围。",
+        "testStrategy": "单元测试（xUnit + FluentAssertions）：\n- 掷骰结果始终在 1..6（含边界）。\n- 随机源可控（优先复用 `Game.Core/Utilities/RandomHelper.cs`；必要时允许注入随机源以便确定性测试）。\n- 事件对齐（ADR-0004）：掷骰后发布 `SanguoDiceRolled`（`Game.Core/Contracts/Sanguo/BoardEvents.cs`），并验证 `DomainEvent.Type == SanguoDiceRolled.EventType` 且 Value 与点数一致。\n覆盖率门禁：lines>=90%、branches>=85%（ADR-0005）；产物归档到 `logs/unit/<YYYY-MM-DD>/`。\n",
         "priority": "medium",
         "dependencies": [
           "1"
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -170,8 +170,8 @@
         "id": "6",
         "title": "实现回合管理器",
         "description": "控制游戏回合的顺序和时间推进。",
-        "details": "创建 TurnManager 类，管理当前日期（年/月/日）和当前行动玩家，实现 NextTurn() 方法，按 T2 PRD 规定的顺序推进“玩家行动 → 日推进 → 月末结算 → 季度事件 → 年度地价调整”等阶段。时间轴与回合驱动逻辑保持在 Game.Core 中，Godot 层只负责展示当前轮次与日期。",
-        "testStrategy": "通过 xUnit 模拟多回合游戏流程，验证在不同起始日期下推进若干回合后，玩家轮换顺序、日期、月份、季度与年度节点都与 T2 PRD 中的时间轴设计一致。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
+        "details": "创建 TurnManager 类，管理当前日期（年/月/日）和当前行动玩家，实现 NextTurn() 方法，按 T2 PRD 规定的顺序推进“玩家行动 → 日推进 → 月末结算 → 季度事件 → 年度地价调整”等阶段。时间轴与回合驱动逻辑保持在 Game.Core 中，Godot 层只负责展示当前轮次与日期。\n\n破产/出局规则（与 Task 13 对齐）：当行动者在本回合内发生资金不足支付（例如过路费）时，将其剩余资金一次性转给债权人，行动者资金归零并判定出局；出局者释放全部已占领城池为无人占领。真人玩家出局立即触发 GameOver；NPC 出局从后续回合轮转中移除并锁定状态（不再行动/不再参与结算）。\n可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。\n",
+        "testStrategy": "通过 xUnit 模拟多回合游戏流程，验证在不同起始日期下推进若干回合后，玩家轮换顺序、日期、月份、季度与年度节点都与 T2 PRD 中的时间轴设计一致。\n\n补充：加入“资金不足支付→出局”场景，验证剩余资金转移给债权人、出局者资金归零且释放城池；真人玩家触发 GameOver，NPC 被从轮转列表剔除且不会再获得回合。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong\n加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。\n加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。\n",
         "priority": "high",
         "dependencies": [
           "4",
@@ -239,8 +239,8 @@
         "id": "8",
         "title": "实现事件管理器",
         "description": "管理季度环境事件的生成和应用。",
-        "details": "创建EventManager类，定义事件类型和逻辑，管理事件的触发和效果应用。",
-        "testStrategy": "通过模拟季度变化，验证事件的触发和效果的正确应用。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+        "details": "创建EventManager类，定义事件类型和逻辑，管理事件的触发和效果应用。\n可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。\n",
+        "testStrategy": "通过模拟季度变化，验证事件的触发和效果的正确应用。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype\n加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。\n加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。\n",
         "priority": "medium",
         "dependencies": [
           "7"
@@ -367,8 +367,8 @@
         "id": "12",
         "title": "实现土地购买逻辑",
         "description": "处理玩家购买城池的逻辑。",
-        "details": "在玩家停留在无人城池时，提供购买选项，扣除资金并更新城池所有权。",
-        "testStrategy": "通过多次购买测试，验证购买逻辑的正确性和资金更新。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+        "details": "在玩家停留在无人城池时，提供购买选项，扣除资金并更新城池所有权。\n可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。\n",
+        "testStrategy": "通过多次购买测试，验证购买逻辑的正确性和资金更新。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype\n加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。\n加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。\n",
         "priority": "high",
         "dependencies": [
           "4",
@@ -432,8 +432,8 @@
         "id": "13",
         "title": "实现过路费支付逻辑",
         "description": "处理玩家支付过路费的逻辑。",
-        "details": "在玩家停留在他人城池时，计算并扣除过路费，更新资金。",
-        "testStrategy": "通过多次支付测试，验证过路费计算和资金更新的正确性。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+        "details": "在玩家停留在他人城池时，计算应支付过路费并更新资金；若资金不足，则将剩余资金转给债权人，支付方资金归零并判定出局，同时释放其全部已占领城池为无人占领（回合轮转/游戏结束由 TurnManager 处理：玩家出局→GameOver；NPC 出局→退出本局）。\n可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。\n",
+        "testStrategy": "通过多次支付测试，验证过路费计算和资金更新的正确性，并覆盖资金不足的破产/出局分支：剩余资金正确转移、资金不允许为负、城池释放为无人占领。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype\n加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。\n加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。\n",
         "priority": "high",
         "dependencies": [
           "12"
@@ -701,8 +701,8 @@
         "id": "17",
         "title": "实现回合循环",
         "description": "确保游戏回合循环正常进行。",
-        "details": "实现回合循环逻辑，确保玩家和AI轮流行动，时间正常推进。",
-        "testStrategy": "通过长时间运行游戏，验证回合循环的稳定性和正确性。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
+        "details": "实现回合循环逻辑，确保玩家和AI轮流行动，时间正常推进，并正确处理出局者：跳过已出局 NPC；真人玩家出局时立即结束回合循环并触发游戏结束。\n新增异常边界：当金额入账触发 Money 上限时（例如过路费/结算导致收款方超上限），回合循环应记录审计日志并上报错误；前台用 3 秒自动消失的浮窗提示替代 GameOver/错误界面；并采用封顶规则：付款方仍扣全额，收款方资金封顶，溢出金额进入国库（或按设计丢弃），不得产生半更新状态。\n\nMED-001（未来修订）：破产/出局路径需要‘事务语义’：将债权人入账、付款方出局标记、城池释放视为一次性提交，避免在未来引入事件发布/持久化/回调时出现可观察的中间态；当前 ThreadAccessGuard 单线程仅作为缓解，不作为最终保证。\n可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。\n",
+        "testStrategy": "通过长时间运行游戏，验证回合循环的稳定性和正确性，并包含 NPC 出局后轮转跳过、玩家出局触发 GameOver 的用例。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong\n新增用例：构造会触发 Money 上限的转账路径，验证回合循环不中断推进；同时校验审计日志/错误上报被调用，浮窗提示 3 秒后自动消失；并断言封顶规则（付款方扣全额、收款方封顶、溢出进入国库/丢弃）。\n加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。\n加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。\n",
         "priority": "high",
         "dependencies": [
           "6",
@@ -936,8 +936,8 @@
         "id": "26",
         "title": "实现游戏结束条件",
         "description": "定义并实现游戏的结束条件。",
-        "details": "在游戏达到特定条件时，触发游戏结束。",
-        "testStrategy": "通过模拟多种结束条件，验证游戏结束的正确性。",
+        "details": "在游戏达到特定条件时，触发游戏结束。至少覆盖：真人玩家因资金不足支付过路费而出局→GameOver；NPC 资金不足则出局退出本局，其城池状态改为无人占领。",
+        "testStrategy": "通过模拟多种结束条件，验证游戏结束的正确性；至少包含真人玩家资金不足支付触发 GameOver、NPC 资金不足退出且其城池释放为无人占领的用例。",
         "priority": "low",
         "dependencies": [
           "17"

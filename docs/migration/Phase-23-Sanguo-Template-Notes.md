@@ -6,10 +6,10 @@
 
 ## 1. 背景与定位
 
-- 上游通用模板：`godotgame` —— 从 vitegame 迁移而来的 Windows-only Godot 4.5 + C# 模板，沉淀了完整的 ADR 体系、迁移 Phase 文档、CI/质量门禁与脚本工具链。  
+- 上游通用模板：`godotgame` —— 从 LegacyProject 迁移而来的 Windows-only Godot 4.5 + C# 模板，沉淀了完整的 ADR 体系、迁移 Phase 文档、CI/质量门禁与脚本工具链。  
 - 兄弟模板：`skyoxu/newguild` —— 在 godotgame 基础上增加“公会管理”玩法的示例与文档，对 CI/workflows 进行了首次完整跑通与验证。  
 - 本仓库：`skyoxu/sanguo` —— 在 `C:\buildgame\godotgame` 基础上复制并派生，用于承载“三国”题材的策略/经营类玩法；技术栈、质量门禁与迁移 Phase 结构保持与 godotgame/newguild 一致，只在领域模型、场景结构与测试用例上逐步三国化。  
-- 谱系口径：vitegame → godotgame（通用 Godot 模板）→ newguild / sanguo（兄弟模板），具体命名与职责界定见 `docs/adr/ADR-0024-sanguo-template-lineage.md`。
+- 谱系口径：LegacyProject → godotgame（通用 Godot 模板）→ newguild / sanguo（兄弟模板），具体命名与职责界定见 `docs/adr/ADR-0024-sanguo-template-lineage.md`。
 
 ---
 
@@ -62,7 +62,7 @@
   - 规划：在确认具体玩法与目标设备后，为 sanguo 增补性能预算与日志字段约定（例如兵力规模、回合耗时等），并在 `logs/perf/**` 与 `logs/ci/**` 中增加相应字段；这些改动需要新增或补充相关 ADR，而非在脚本中写死魔法常量。  
 
 - 文档与 Release Notes：  
-  - 现状：Phase-22 文档仍以 vitegame → newguild 迁移为主线。  
+  - 现状：Phase-22 文档仍以 LegacyProject → newguild 迁移为主线。  
   - 规划：当 sanguo 达到首个可玩的“三国”垂直切片时，应新增一份专门的 Release Notes 模板（可复制 newguild 的结构），在其中明确 “godotgame → sanguo（三国玩法模板）” 的差异点，并引用本 Phase 与 ADR-0024。  
 
 ---

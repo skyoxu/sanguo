@@ -1,4 +1,4 @@
-# Phase 7: React → Godot Control UI 迁移
+# Phase 7: LegacyUIFramework → Godot Control UI 迁移
 
 > 状态: 设计阶段
 > 预估工时: 15-20 天
@@ -9,29 +9,29 @@
 
 ## 目标
 
-将 vitegame 的 React 19 + Tailwind CSS UI 迁移到 godotgame 的 Godot Control 节点系统，保持功能等价性与可测试性。
+将 LegacyProject 的 LegacyUIFramework 19 + Tailwind CSS UI 迁移到 godotgame 的 Godot Control 节点系统，保持功能等价性与可测试性。
 
 ---
 
 ## 技术栈对比
 
-| 层次 | vitegame (Web) | godotgame (Godot) |
+| 层次 | LegacyProject (Web) | godotgame (Godot) |
 |-----|---------------|------------------|
-| UI框架 | React 19 (JSX) | Godot Control 节点 (.tscn) |
+| UI框架 | LegacyUIFramework 19 (JSX) | Godot Control 节点 (.tscn) |
 | 布局系统 | Flexbox / CSS Grid | Container 节点 (VBoxContainer, HBoxContainer, GridContainer) |
 | 样式 | Tailwind CSS v4 | Godot Theme (.tres) + StyleBox |
-| 事件 | React onClick / onChange | Godot Signals (pressed, text_changed) |
+| 事件 | LegacyUIFramework onClick / onChange | Godot Signals (pressed, text_changed) |
 | 状态管理 | useState / useReducer | C# Properties + Signals |
-| 组件复用 | React Components | 场景继承 + Composition |
+| 组件复用 | LegacyUIFramework Components | 场景继承 + Composition |
 | 响应式 | CSS媒体查询 | Anchor/Margin + viewport信号 |
 
 ---
 
-## React 组件 → Godot Control 映射
+## LegacyUIFramework 组件 → Godot Control 映射
 
 ### 基础组件映射表
 
-| React 组件 | Godot Control | 说明 |
+| LegacyUIFramework 组件 | Godot Control | 说明 |
 |-----------|--------------|------|
 | `<div>` | `Control` / `Panel` | 通用容器 |
 | `<button>` | `Button` | 按钮 |
@@ -47,7 +47,7 @@
 
 ### 布局容器映射
 
-| React 布局 | Godot Container | 说明 |
+| LegacyUIFramework 布局 | Godot Container | 说明 |
 |-----------|----------------|------|
 | `display: flex; flex-direction: column` | `VBoxContainer` | 垂直布局 |
 | `display: flex; flex-direction: row` | `HBoxContainer` | 水平布局 |
@@ -59,14 +59,14 @@
 
 ## 1. 基础组件迁移示例
 
-### React Button → Godot Button
+### LegacyUIFramework Button → Godot Button
 
-**React (vitegame)**:
+**LegacyUIFramework (LegacyProject)**:
 
 ```tsx
 // src/components/ui/PrimaryButton.tsx
 
-import { ButtonHTMLAttributes } from 'react';
+import { ButtonHTMLAttributes } from 'LegacyUIFramework';
 
 interface PrimaryButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
@@ -211,14 +211,14 @@ public partial class PrimaryButton : Button
 }
 ```
 
-### React Form Input → Godot LineEdit
+### LegacyUIFramework Form Input → Godot LineEdit
 
-**React (vitegame)**:
+**LegacyUIFramework (LegacyProject)**:
 
 ```tsx
 // src/components/ui/TextInput.tsx
 
-import { InputHTMLAttributes, useState } from 'react';
+import { InputHTMLAttributes, useState } from 'LegacyUIFramework';
 
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -448,7 +448,7 @@ public partial class TextInput : VBoxContainer
 
 ### Flexbox → VBoxContainer/HBoxContainer
 
-**React Flexbox (vitegame)**:
+**LegacyUIFramework Flexbox (LegacyProject)**:
 
 ```tsx
 // src/components/ui/UserCard.tsx
@@ -603,14 +603,14 @@ public partial class UserCard : PanelContainer
 
 ## 3. 状态管理迁移
 
-### React useState 鈫?Godot Properties + Signals
+### LegacyUIFramework useState 鈫?Godot Properties + Signals
 
-**React State (vitegame)**:
+**LegacyUIFramework State (LegacyProject)**:
 
 ```tsx
 // src/components/game/HealthBar.tsx
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'LegacyUIFramework';
 
 export function HealthBar({ maxHealth = 100 }: { maxHealth?: number }) {
   const [currentHealth, setCurrentHealth] = useState(maxHealth);
@@ -950,14 +950,14 @@ public partial class ResponsivePanel : Panel
 
 ## 6. 表单处理与验证
 
-### React Form → Godot Form Container
+### LegacyUIFramework Form → Godot Form Container
 
-**React Form (vitegame)**:
+**LegacyUIFramework Form (LegacyProject)**:
 
 ```tsx
 // src/components/forms/LoginForm.tsx
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'LegacyUIFramework';
 import { TextInput } from '../ui/TextInput';
 import { PrimaryButton } from '../ui/PrimaryButton';
 
@@ -1132,9 +1132,9 @@ public partial class LoginForm : VBoxContainer
 
 ## 7. 列表与可滚动内容
 
-### React List → Godot ScrollContainer + VBoxContainer
+### LegacyUIFramework List → Godot ScrollContainer + VBoxContainer
 
-**React List (vitegame)**:
+**LegacyUIFramework List (LegacyProject)**:
 
 ```tsx
 // src/components/ui/UserList.tsx
@@ -1509,7 +1509,7 @@ jobs:
 
 完成本阶段后，继续：
 
-➡️ [Phase-8-Scene-Design.md](Phase-8-Scene-Design.md) — Scene Tree 与 Node 设计
+-> [Phase-8-Scene-Design.md](Phase-8-Scene-Design.md) — Scene Tree 与 Node 设计
 
 ## 最小迁移清单 / Minimal UI Checklist
 
