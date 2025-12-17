@@ -1,5 +1,4 @@
 using MoneyValue = Game.Core.Domain.ValueObjects.Money;
-
 namespace Game.Core.Domain;
 
 public sealed record City
