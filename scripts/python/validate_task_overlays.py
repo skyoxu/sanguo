@@ -63,6 +63,11 @@ def extract_front_matter(content: str) -> Optional[dict[str, Any]]:
                         result[key] = value
                 else:
                     result[key] = []
+            else:
+                # Unknown front-matter keys are ignored. Reset the list context so
+                # list items under unknown keys (e.g. Arch-Refs) do not get
+                # mistakenly appended to the previous recognized key.
+                current_key = None
             continue
 
         if line.startswith("-") and current_key:

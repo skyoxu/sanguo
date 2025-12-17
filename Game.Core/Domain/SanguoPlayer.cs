@@ -10,7 +10,7 @@ namespace Game.Core.Domain;
 /// <remarks>
 /// Thread-safety: enforced single-threaded access; cross-thread calls throw <see cref="InvalidOperationException"/>.
 /// </remarks>
-public sealed class SanguoPlayer : IPlayer
+public sealed class SanguoPlayer : ISanguoPlayerView
 {
     private readonly ThreadAccessGuard _threadGuard;
     private readonly HashSet<string> _ownedCityIds = new();
@@ -91,7 +91,7 @@ public sealed class SanguoPlayer : IPlayer
         get
         {
             AssertThread();
-            return _ownedCityIds;
+            return _ownedCityIds.ToArray();
         }
     }
 
@@ -113,6 +113,15 @@ public sealed class SanguoPlayer : IPlayer
     }
 
     private void AssertThread() => _threadGuard.AssertCurrentThread();
+
+    /// <summary>
+    /// Creates an immutable snapshot view of the player for UI/AI reads.
+    /// </summary>
+    public ISanguoPlayerView ToView()
+    {
+        AssertThread();
+        return new SanguoPlayerView(PlayerId, Money, PositionIndex, _ownedCityIds, IsEliminated);
+    }
 
     /// <summary>
     /// Attempts to buy a city at the given price multiplier.
@@ -160,20 +169,20 @@ public sealed class SanguoPlayer : IPlayer
     /// <param name="owner">City owner receiving the payment.</param>
     /// <param name="city">City to calculate toll from.</param>
     /// <param name="tollMultiplier">Toll multiplier (1.0 = base toll).</param>
+    /// <param name="treasury">Treasury accumulator for overflow amounts when the owner is capped at max money.</param>
     /// <returns>True if a payment/elimination action was performed; otherwise false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="owner"/> or <paramref name="city"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tollMultiplier"/> is negative.</exception>
-    public bool TryPayTollTo(SanguoPlayer owner, City city, decimal tollMultiplier, out MoneyValue overflowToTreasury)
+    public bool TryPayTollTo(SanguoPlayer owner, City city, decimal tollMultiplier, SanguoTreasury treasury)
     {
         AssertThread();
-
-        overflowToTreasury = MoneyValue.Zero;
 
         if (IsEliminated)
             return false;
 
         ArgumentNullException.ThrowIfNull(owner, nameof(owner));
         ArgumentNullException.ThrowIfNull(city, nameof(city));
+        ArgumentNullException.ThrowIfNull(treasury, nameof(treasury));
 
         owner.AssertThread();
 
@@ -192,15 +201,19 @@ public sealed class SanguoPlayer : IPlayer
             var newPayerMoney = Money - toll;
             Money = newPayerMoney;
 
-            var newOwnerMoney = owner.Money.AddCapped(toll, out overflowToTreasury);
+            var newOwnerMoney = owner.Money.AddCapped(toll, out var overflow);
             owner.Money = newOwnerMoney;
+            if (overflow > MoneyValue.Zero)
+                treasury.Deposit(overflow);
             return true;
         }
 
         var remaining = Money;
         Money = MoneyValue.Zero;
-        var newOwnerMoneyAfterBankruptcy = owner.Money.AddCapped(remaining, out overflowToTreasury);
+        var newOwnerMoneyAfterBankruptcy = owner.Money.AddCapped(remaining, out var overflowAfterBankruptcy);
         owner.Money = newOwnerMoneyAfterBankruptcy;
+        if (overflowAfterBankruptcy > MoneyValue.Zero)
+            treasury.Deposit(overflowAfterBankruptcy);
 
         _ownedCityIds.Clear();
         IsEliminated = true;

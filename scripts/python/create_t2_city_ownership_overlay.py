@@ -23,8 +23,13 @@ DOC_PATH = OVERLAY_DIR / "08-t2-city-ownership-model.md"
 INDEX_PATH = OVERLAY_DIR / "_index.md"
 
 
-def _crlf(text: str) -> str:
-    return text.replace("\r\n", "\n").replace("\n", "\r\n")
+LINK_LINE = "- [08-功能纵切-T2-城池所有权模型](08-t2-city-ownership-model.md)"
+
+
+def _write_utf8(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="\n") as f:
+        f.write(content)
 
 
 def build_doc() -> str:
@@ -64,19 +69,19 @@ def build_doc() -> str:
 - 领域调用：`SanguoPlayer.TryBuyCity(city, priceMultiplier)`。
 - 状态变化：
   - 资金减少：`city.GetPrice(priceMultiplier, rules)`。
-  - `OwnedCityIds` 增加 `CityId`。
+- `OwnedCityIds` 增加 `CityId`。
 
 ### B. 支付过路费（Task 13）
 
 - 触发：玩家停留在他人拥有城池。
-- 领域调用：`SanguoPlayer.TryPayTollTo(owner, city, tollMultiplier, out overflowToTreasury)`。
+- 领域调用：`SanguoPlayer.TryPayTollTo(owner, city, tollMultiplier, treasury)`。
 
 **正常支付（资金足够）**
 
 - 支付方资金减少 `toll`。
 - 收款方资金增加 `toll`；若超过资金上限，则：
   - 收款方资金封顶；
-  - 溢出金额通过 `overflowToTreasury` 返回（默认视作进入“国库/丢弃”，具体落地在回合/事件系统任务中实现）。
+  - 溢出金额归集到 `SanguoTreasury`（默认视作进入“国库/丢弃”，具体落地在回合/事件系统任务中实现）。
 
 **资金不足（破产/出局分支）**
 
@@ -95,7 +100,7 @@ def build_doc() -> str:
 - `SanguoPlayer.OwnedCityIds`：去重集合；出局时必须清空。
 - `SanguoPlayer.IsEliminated`：出局锁定开关。
 - `SanguoEconomyRules.MaxPriceMultiplier/MaxTollMultiplier`：价格/过路费倍数上限（可配置）。
-- `overflowToTreasury`：资金上限导致的溢出金额（后续由回合系统决定如何落盘与展示）。
+- `SanguoTreasury`：资金上限导致的溢出金额归集点（后续由回合系统决定如何落盘与展示）。
 
 ## 8.x.4 验收标准（就地验收）
 
@@ -103,7 +108,7 @@ def build_doc() -> str:
 - 已出局玩家：购买/付费均不得改变任何状态（返回 `false`）。
 - 过路费（资金足够）：支付方资金不为负，收款方增加正确。
 - 过路费（资金不足）：剩余资金全额转给债权人；支付方资金归零、出局、释放全部城池；之后不得再交易。
-- 收款方达到资金上限：收款方封顶，溢出金额正确返回。
+- 收款方达到资金上限：收款方封顶，溢出金额正确归集到 treasury。
 
 > 可选加固（不属于本节验收的硬门禁）：审计追踪/事件溯源/最大拥有城池数上限等，见 Task 13 的 details/testStrategy 描述。
 
@@ -114,7 +119,7 @@ def build_doc() -> str:
   - `SanguoPlayer_TryPayTollTo_WhenInsufficientFunds_TransfersRemainingMoney_EliminatesAndReleasesCities`
   - `SanguoPlayer_TryPayTollTo_WhenPayerEliminated_ReturnsFalse`
   - `SanguoPlayer_TryPayTollTo_WhenOwnerEliminated_ReturnsFalse`
-  - `SanguoPlayer_TryPayTollTo_WhenCreditorWouldExceedMax_ShouldCapCreditorAndReturnOverflowToTreasury`
+  - `SanguoPlayer_TryPayTollTo_WhenCreditorWouldExceedMax_ShouldCapCreditorAndDepositOverflowToTreasury`
 """
 
 
@@ -126,15 +131,15 @@ def update_index(existing: str) -> str:
     inserted = False
     for i, line in enumerate(lines):
         if "08-功能纵切-T2-三国大富翁闭环" in line:
-            lines.insert(i + 1, link_line)
+            lines.insert(i + 1, LINK_LINE)
             inserted = True
             break
     if not inserted:
         if lines and lines[0].startswith("#"):
             lines.insert(1, "")
-            lines.insert(2, link_line)
+            lines.insert(2, LINK_LINE)
         else:
-            lines.append(link_line)
+            lines.append(LINK_LINE)
     return "\n".join(lines).rstrip("\n") + "\n"
 
 
@@ -152,10 +157,7 @@ def write_logs(root: Path, doc_path: Path, index_path: Path) -> None:
             "index": str(index_path.as_posix()),
         },
     }
-    (out_dir / "summary.json").write_text(
-        _crlf(json.dumps(summary, ensure_ascii=False, indent=2) + "\n"),
-        encoding="utf-8",
-    )
+    _write_utf8(out_dir / "summary.json", json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
 
 
 def main() -> int:
@@ -163,13 +165,13 @@ def main() -> int:
 
     OVERLAY_DIR.mkdir(parents=True, exist_ok=True)
 
-    DOC_PATH.write_text(_crlf(build_doc()), encoding="utf-8")
+    _write_utf8(DOC_PATH, build_doc())
 
     if INDEX_PATH.exists():
         existing = INDEX_PATH.read_text(encoding="utf-8")
     else:
         existing = "# PRD-SANGUO-T2 功能纵切索引\n\n"
-    INDEX_PATH.write_text(_crlf(update_index(existing)), encoding="utf-8")
+    _write_utf8(INDEX_PATH, update_index(existing))
 
     write_logs(root, DOC_PATH, INDEX_PATH)
     print(f"Wrote: {DOC_PATH}")
