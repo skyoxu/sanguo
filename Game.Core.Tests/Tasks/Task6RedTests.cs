@@ -114,6 +114,118 @@ public class Task6RedTests
         nextStartedPayload.GetProperty("CausationId").GetString().Should().Be(advanceCommandId);
     }
 
+    [Fact]
+    public void StartNewGame_WithEmptyGameId_ShouldThrowArgumentException()
+    {
+        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+
+        Action act = () => mgr.StartNewGame(
+            gameId: " ",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr",
+            causationId: null);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void StartNewGame_WithNullPlayerOrder_ShouldThrowArgumentNullException()
+    {
+        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+
+        Action act = () => mgr.StartNewGame(
+            gameId: "g1",
+            playerOrder: null!,
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr",
+            causationId: null);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void StartNewGame_WithEmptyPlayerOrder_ShouldThrowArgumentException()
+    {
+        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+
+        Action act = () => mgr.StartNewGame(
+            gameId: "g1",
+            playerOrder: Array.Empty<string>(),
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr",
+            causationId: null);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void StartNewGame_WithEmptyPlayerId_ShouldThrowArgumentException()
+    {
+        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+
+        Action act = () => mgr.StartNewGame(
+            gameId: "g1",
+            playerOrder: new[] { "p1", " " },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr",
+            causationId: null);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void StartNewGame_WithDuplicatePlayerIds_ShouldThrowArgumentException()
+    {
+        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+
+        Action act = () => mgr.StartNewGame(
+            gameId: "g1",
+            playerOrder: new[] { "p1", "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr",
+            causationId: null);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void StartNewGame_WithEmptyCorrelationId_ShouldThrowArgumentException()
+    {
+        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+
+        Action act = () => mgr.StartNewGame(
+            gameId: "g1",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: " ",
+            causationId: null);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void AdvanceTurn_BeforeStart_ShouldThrowInvalidOperationException()
+    {
+        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+
+        Action act = () => mgr.AdvanceTurn("corr", causationId: null);
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
     private sealed class CapturingEventBus : IEventBus
     {
         public List<DomainEvent> Published { get; } = new();
