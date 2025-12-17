@@ -1,3 +1,11 @@
+---
+PRD-ID: PRD-SANGUO-T2
+Title: 08-功能纵切-T2-城池所有权模型
+Arch-Refs:
+  - CH01
+  - CH03
+---
+
 # 08-功能纵切-T2-城池所有权模型
 
 ## 8.x 范围与目标
@@ -39,14 +47,14 @@
 ### B. 支付过路费（Task 13）
 
 - 触发：玩家停留在他人拥有城池。
-- 领域调用：`SanguoPlayer.TryPayTollTo(owner, city, tollMultiplier, out overflowToTreasury)`。
+- 领域调用：`SanguoPlayer.TryPayTollTo(owner, city, tollMultiplier, treasury)`。
 
 **正常支付（资金足够）**
 
 - 支付方资金减少 `toll`。
 - 收款方资金增加 `toll`；若超过资金上限，则：
   - 收款方资金封顶；
-  - 溢出金额通过 `overflowToTreasury` 返回（默认视作进入“国库/丢弃”，具体落地在回合/事件系统任务中实现）。
+  - 溢出金额归集到 `SanguoTreasury`（视作进入“国库/丢弃”，具体落地在回合/事件系统任务中实现）。
 
 **资金不足（破产/出局分支）**
 
@@ -65,7 +73,7 @@
 - `SanguoPlayer.OwnedCityIds`：去重集合；出局时必须清空。
 - `SanguoPlayer.IsEliminated`：出局锁定开关。
 - `SanguoEconomyRules.MaxPriceMultiplier/MaxTollMultiplier`：价格/过路费倍数上限（可配置）。
-- `overflowToTreasury`：资金上限导致的溢出金额（后续由回合系统决定如何落盘与展示）。
+- `SanguoTreasury`：资金上限导致的溢出金额归集点（后续由回合系统决定如何落盘与展示）。
 
 ## 8.x.4 验收标准（就地验收）
 
@@ -73,7 +81,7 @@
 - 已出局玩家：购买/付费均不得改变任何状态（返回 `false`）。
 - 过路费（资金足够）：支付方资金不为负，收款方增加正确。
 - 过路费（资金不足）：剩余资金全额转给债权人；支付方资金归零、出局、释放全部城池；之后不得再交易。
-- 收款方达到资金上限：收款方封顶，溢出金额正确返回。
+- 收款方达到资金上限：收款方封顶，溢出金额正确归集到 treasury。
 
 > 可选加固（不属于本节验收的硬门禁）：审计追踪/事件溯源/最大拥有城池数上限等，见 Task 13 的 details/testStrategy 描述。
 
@@ -84,4 +92,4 @@
   - `SanguoPlayer_TryPayTollTo_WhenInsufficientFunds_TransfersRemainingMoney_EliminatesAndReleasesCities`
   - `SanguoPlayer_TryPayTollTo_WhenPayerEliminated_ReturnsFalse`
   - `SanguoPlayer_TryPayTollTo_WhenOwnerEliminated_ReturnsFalse`
-  - `SanguoPlayer_TryPayTollTo_WhenCreditorWouldExceedMax_ShouldCapCreditorAndReturnOverflowToTreasury`
+  - `SanguoPlayer_TryPayTollTo_WhenCreditorWouldExceedMax_ShouldCapCreditorAndDepositOverflowToTreasury`

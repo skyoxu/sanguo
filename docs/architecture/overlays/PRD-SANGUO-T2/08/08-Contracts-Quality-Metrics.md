@@ -6,6 +6,9 @@ ADR-Refs:
   - ADR-0015
   - ADR-0020
   - ADR-0025
+Arch-Refs:
+  - CH01
+  - CH03
 Test-Refs:
   - scripts/python/run_dotnet.py
   - scripts/python/task_links_validate.py

@@ -10,7 +10,7 @@
 
 > **交付物**：export_presets.cfg + Python 构建驱动脚本 + GitHub Actions 工作流 + 版本管理规范
 
-> **验收标准**：本地 `npm run build:exe` 通过 + CI 自动化打包通过 + Windows .exe 独立可运行
+> **验收标准**：本地 `NodePkg run build:exe` 通过 + CI 自动化打包通过 + Windows .exe 独立可运行
 
 
 
@@ -22,19 +22,19 @@
 
 
 
-### 原版（vitegame）构建流程
+### 原版（LegacyProject）构建流程
 
 
 
-**Electron + Vite 工具链**：
+**LegacyDesktopShell + LegacyBuildTool 工具链**：
 
-- Vite 开发服务器（HMR、快速刷新）
+- LegacyBuildTool 开发服务器（HMR、快速刷新）
 
-- `npm run build` → 预构建 React/Tailwind/Phaser（~2.5s）
+- `NodePkg run build` → 预构建 LegacyUIFramework/Tailwind/Legacy2DEngine（~2.5s）
 
-- `electron-builder` 自动化打包（签名、代码注入、资源优化）
+- `LegacyDesktopShell-builder` 自动化打包（签名、代码注入、资源优化）
 
-- 产出：vitegame-1.0.0.exe（~150MB，包含 Node.js runtime）
+- 产出：LegacyProject-1.0.0.exe（~150MB，包含 Node.js runtime）
 
 - CI：GitHub Actions 自动构建与发布 (.exe 上传到 Release）
 
@@ -78,7 +78,7 @@
 
 
 
-1. **一键发布**：`npm run build:exe` 产出可分发 .exe
+1. **一键发布**：`NodePkg run build:exe` 产出可分发 .exe
 
 2. **CI 自动化**：每个 tag 自动构建、签名、上传 GitHub Release
 
@@ -210,7 +210,7 @@ godotgame/
 
 │   │   ├── project.godot                     # Godot 项目配置
 
-│   │   └── export_presets.cfg                ★ Export 配置（Windows）
+│   │   └── export_presets.cfg                * Export 配置（Windows）
 
 │   │
 
@@ -218,17 +218,17 @@ godotgame/
 
 │       └── Version/
 
-│           └── VersionInfo.cs                ★ 版本信息 (git hash, build time)
+│           └── VersionInfo.cs                * 版本信息 (git hash, build time)
 
 │
 
 ├── scripts/
 
-│   ├── build_windows.py                      ★ Python 构建驱动脚本
+│   ├── build_windows.py                      * Python 构建驱动脚本
 
-│   ├── generate_build_metadata.py            ★ 版本元数据生成
+│   ├── generate_build_metadata.py            * 版本元数据生成
 
-│   └── sign_executable.ps1                   ★ PowerShell 代码签名脚本
+│   └── sign_executable.ps1                   * PowerShell 代码签名脚本
 
 │
 
@@ -236,11 +236,11 @@ godotgame/
 
 │   └── workflows/
 
-│       └── build-windows.yml                 ★ GitHub Actions 构建工作流
+│       └── build-windows.yml                 * GitHub Actions 构建工作流
 
 │
 
-├── dist/                                     ★ 本地构建输出目录
+├── dist/                                     * 本地构建输出目录
 
 │   ├── godotgame-1.0.0.exe
 
@@ -254,11 +254,11 @@ godotgame/
 
 └── package.json
 
-    ├── "build:exe"                           ★ 本地构建命令
+    ├── "build:exe"                           * 本地构建命令
 
-    ├── "build:exe:debug"                     ★ 调试构建
+    ├── "build:exe:debug"                     * 调试构建
 
-    └── "release:create"                      ★ 版本发布流程
+    └── "release:create"                      * 版本发布流程
 
 ```
 
@@ -338,7 +338,7 @@ encrypt_directory=false
 
 windows/subsystem=2
 
-application/file_description="Godot Game - Vite Migration"
+application/file_description="Godot Game - LegacyBuildTool Migration"
 
 application/copyright="2025"
 
@@ -1672,7 +1672,7 @@ def inject_version_info(project_root: Path, commit_sha: str, git_tag: str, build
 
   "scripts": {
 
-    "build": "npm run build:exe",
+    "build": "NodePkg run build:exe",
 
     "build:exe": "python scripts/build_windows.py release",
 
@@ -1700,7 +1700,7 @@ def inject_version_info(project_root: Path, commit_sha: str, git_tag: str, build
 
 # 开发构建（调试符号）
 
-npm run build:exe:debug
+NodePkg run build:exe:debug
 
 # 输出：dist/godotgame-1.0.0-debug.exe
 
@@ -1708,7 +1708,7 @@ npm run build:exe:debug
 
 # 发布构建（优化）
 
-npm run build:exe
+NodePkg run build:exe
 
 # 输出：dist/godotgame-1.0.0.exe, dist/build-metadata.json, dist/godotgame-*-SHA256.txt
 
@@ -1716,7 +1716,7 @@ npm run build:exe
 
 # 带代码签名的构建
 
-npm run build:sign
+NodePkg run build:sign
 
 # 需要设置 CODE_SIGN_CERT 环境变量
 
@@ -1836,7 +1836,7 @@ npm run build:sign
 
 
 
-- [ ] 本地 `npm run build:exe` 成功产出 .exe 文件
+- [ ] 本地 `NodePkg run build:exe` 成功产出 .exe 文件
 
 - [ ] 自动生成 build-metadata.json（含 git commit、build time）
 
@@ -1960,7 +1960,7 @@ rm -r ~/AppData/Roaming/Godot/export_templates
 
 # 重新运行构建
 
-npm run build:exe
+NodePkg run build:exe
 
 ```
 
@@ -2012,7 +2012,7 @@ dotnet build src/Game.Core.csproj
 
 # 重新构建
 
-npm run build:exe
+NodePkg run build:exe
 
 ```
 

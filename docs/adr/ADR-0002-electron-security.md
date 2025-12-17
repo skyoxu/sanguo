@@ -1,24 +1,24 @@
 ---
 ADR-ID: ADR-0002
-title: Electron安全基线 - 三层拦截与沙箱策略
-status: Accepted
+title: LegacyDesktopShell安全基线 - 三层拦截与沙箱策略
+status: Superseded
 decision-time: '2025-08-17'
 deciders: [架构团队, 安全团队]
 archRefs: [CH01, CH02, CH03, CH04]
 verification:
-  - path: electron/security/handlers.ts
+  - path: LegacyDesktopShell/security/handlers.ts
     assert: nodeIntegration=false, contextIsolation=true, sandbox=true are enforced
   - path: tests/e2e/security.spec.ts
     assert: External windows denied by default and non-whitelisted navigations blocked
   - path: scripts/security/scan-csp.mjs
     assert: Production CSP contains no 'unsafe-inline' and connect-src is whitelisted only
-  - path: electron/security/permissions.ts
+  - path: LegacyDesktopShell/security/permissions.ts
     assert: PermissionRequest/PermissionCheck handlers default-deny
-impact-scope: [electron/, preload/, security/, tests/e2e/security/]
-tech-tags: [electron, security, sandbox, CSP, contextIsolation, nodeIntegration]
+impact-scope: [LegacyDesktopShell/, preload/, security/, tests/e2e/security/]
+tech-tags: [LegacyDesktopShell, security, sandbox, CSP, contextIsolation, nodeIntegration]
 depends-on: []
 depended-by: [ADR-0005, ADR-0008]
-test-coverage: tests/e2e/security/electron-security.spec.ts
+test-coverage: tests/e2e/security/LegacyDesktopShell-security.spec.ts
 monitoring-metrics:
   [
     security_config_compliance,
@@ -26,24 +26,27 @@ monitoring-metrics:
     security_csp_violations,
   ]
 executable-deliverables:
-  - electron/security.ts
-  - tests/e2e/security/electron-security.spec.ts
-  - scripts/scan_electron_safety.mjs
+  - LegacyDesktopShell/security.ts
+  - tests/e2e/security/LegacyDesktopShell-security.spec.ts
+  - scripts/scan_LegacyDesktopShell_safety.mjs
 supersedes: []
+superseded-by: [ADR-0019]
 ---
 
-# ADR-0002: Electron安全基线
+# ADR-0002: LegacyDesktopShell安全基线
+
+> 本 ADR 为历史记录：已被 `docs/adr/ADR-0019-godot-security-baseline.md` 替代；当前模板运行时为 Godot（非 LegacyDesktopShell）。
 
 ## Context and Problem Statement
 
-Electron框架默认提供强大的系统能力，但同时带来了较大的安全攻击面。需要建立严格的安全基线，最小化潜在的XSS、RCE和其他安全风险，确保桌面应用的安全性符合企业级要求。
+LegacyDesktopShell框架默认提供强大的系统能力，但同时带来了较大的安全攻击面。需要建立严格的安全基线，最小化潜在的XSS、RCE和其他安全风险，确保桌面应用的安全性符合企业级要求。
 
 ## Decision Drivers
 
 - 减少XSS攻击导致的系统权限提升风险
 - 防止恶意脚本通过Node.js API执行任意代码
 - 满足企业安全合规要求（SOC2、ISO27001）
-- 遵循Electron官方安全最佳实践
+- 遵循LegacyDesktopShell官方安全最佳实践
 - 支持安全审计和渗透测试
 - 建立可量化的安全门禁机制
 
@@ -51,7 +54,7 @@ Electron框架默认提供强大的系统能力，但同时带来了较大的安
 
 - **严格沙箱模式**: nodeIntegration=false + contextIsolation=true + sandbox=true
 - **部分隔离模式**: 仅启用contextIsolation，保留部分Node集成
-- **宽松模式**: 保持Electron默认设置（已拒绝）
+- **宽松模式**: 保持LegacyDesktopShell默认设置（已拒绝）
 - **零信任模式**: 完全禁用所有系统API（开发成本过高）
 
 ## Decision Outcome
@@ -134,9 +137,9 @@ class CSPManager {
 **Preload脚本API白名单**：
 
 ```javascript
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require('LegacyDesktopShell');
 
-contextBridge.exposeInMainWorld('electronAPI', {
+contextBridge.exposeInMainWorld('LegacyDesktopShellAPI', {
   // 文件操作白名单
   readFile: path => ipcRenderer.invoke('file:read', path),
   writeFile: (path, data) => ipcRenderer.invoke('file:write', path, data),
@@ -173,8 +176,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 #### 1. 配置安全验证
 
-- **测试验证**: tests/e2e/security/electron-config.spec.ts
-- **门禁脚本**: scripts/scan_electron_safety.mjs
+- **测试验证**: tests/e2e/security/LegacyDesktopShell-config.spec.ts
+- **门禁脚本**: scripts/scan_LegacyDesktopShell_safety.mjs
 - **监控指标**: security.config_compliance, security.sandbox_enabled
 - **验证频率**: 每次构建 + 每日定时扫描
 
@@ -297,7 +300,7 @@ Phase 9 通过自动化工具实现本ADR的依赖安全合规要求，集成npm
 
 ### 自动化工具
 
-#### 1. npm audit集成 (scripts/ci/parse-npm-audit.mjs)
+#### 1. NodePkg audit集成 (scripts/ci/parse-NodePkg-audit.mjs)
 
 **功能**：
 
@@ -336,14 +339,14 @@ const PROHIBITED_LICENSES = [
   'GPL-2.0-or-later', // 为一致性也禁止 GPL-2.0
   'LGPL-3.0',
   'LGPL-3.0-only',
-  'LGPL-3.0-or-later', // Lesser GPL 对 Electron 同样有问题
+  'LGPL-3.0-or-later', // Lesser GPL 对 LegacyDesktopShell 同样有问题
 ];
 ```
 
 **理由**：
 
-- **GPL/AGPL**: 强 Copyleft 许可证，要求整个项目开源，与商业闭源 Electron 应用不兼容
-- **LGPL**: 虽然比 GPL 宽松，但在 Electron 动态链接场景下仍存在合规风险，禁止使用以避免法律纠纷
+- **GPL/AGPL**: 强 Copyleft 许可证，要求整个项目开源，与商业闭源 LegacyDesktopShell 应用不兼容
+- **LGPL**: 虽然比 GPL 宽松，但在 LegacyDesktopShell 动态链接场景下仍存在合规风险，禁止使用以避免法律纠纷
 
 **允许的许可证（Permissive）**：
 
@@ -407,7 +410,7 @@ const blocksMerge =
 **执行步骤**：
 
 1. 运行npm audit (moderate+严重级别)
-2. 解析npm audit结果 (parse-npm-audit.mjs)
+2. 解析npm audit结果 (parse-NodePkg-audit.mjs)
 3. 生成许可证清单 (license-checker)
 4. 验证许可证合规性 (validate-licenses.mjs)
 5. 生成统一安全报告 (generate-security-report.mjs)
@@ -416,7 +419,7 @@ const blocksMerge =
 
 **输出文件**：
 
-- `audit-result.json`: npm audit原始输出
+- `audit-result.json`: NodePkg audit原始输出
 - `audit-parsed.json`: 解析后的漏洞数据
 - `licenses.json`: 完整许可证清单
 - `licenses-validation.json`: 许可证合规验证结果
@@ -435,7 +438,7 @@ const blocksMerge =
 **评论内容**：
 
 - 整体安全状态 (PASSED/WARNING/BLOCKED)
-- npm audit漏洞按严重级别分类
+- NodePkg audit漏洞按严重级别分类
 - Critical/High漏洞详细信息 (CVE, 建议修复)
 - 许可证违规详情
 - 未知许可证清单
@@ -463,7 +466,7 @@ const blocksMerge =
 
 - 实现计划: `docs/implementation-plans/Phase-9-Dependency-Security-Implementation-Plan.md`
 - GitHub工作流: `.github/workflows/pr-security-audit.yml`
-- 解析脚本: `scripts/ci/parse-npm-audit.mjs`
+- 解析脚本: `scripts/ci/parse-NodePkg-audit.mjs`
 - 验证脚本: `scripts/ci/validate-licenses.mjs`
 - 报告生成: `scripts/ci/generate-security-report.mjs`
 - PR集成: `scripts/pr-integration.mjs`
@@ -473,11 +476,11 @@ const blocksMerge =
 - **CH章节关联**: CH01, CH02
 - **相关ADR**: ADR-0004-event-bus-and-contracts, ADR-0005-quality-gates
 - **外部文档**:
-  - [Electron Security Guide](https://www.electronjs.org/docs/tutorial/security)
-  - [Electronegativity Scanner](https://github.com/doyensec/electronegativity)
-  - [OWASP Electron Security](https://owasp.org/www-project-electron-security/)
+  - [LegacyDesktopShell Security Guide](https://www.LegacyDesktopShelljs.org/docs/tutorial/security)
+  - [LegacyDesktopShellegativity Scanner](https://github.com/doyensec/LegacyDesktopShellegativity)
+  - [OWASP LegacyDesktopShell Security](https://owasp.org/www-project-LegacyDesktopShell-security/)
   - [CSP Level 3 Specification](https://www.w3.org/TR/CSP3/)
-- **安全工具**: Electronegativity, ESLint security rules, Snyk vulnerability scanner, npm audit, license-checker
+- **安全工具**: LegacyDesktopShellegativity, ESLint security rules, Snyk vulnerability scanner, NodePkg audit, license-checker
 - **合规框架**: SOC2 CC6.1, ISO27001 A.12.6.1
 - **Phase 9实现**: `docs/implementation-plans/Phase-9-Dependency-Security-Implementation-Plan.md`
 - **Godot+C# 变体**:

@@ -1,13 +1,13 @@
 # ADR-0018: Godot Runtime and Distribution
 
 - Status: Accepted
-- Context: Migration Phase-2（docs/migration/Phase-2-ADR-Updates.md），对齐 CH01/CH03 基线；Windows-only 交付。原项目使用 Electron + React + Phaser + TypeScript 技术栈，本仓库迁移为 Godot 4.5 + C#/.NET 8 模板，需要统一运行时、发布与测试/门禁口径，避免契约与流程分叉。
+- Context: Migration Phase-2（docs/migration/Phase-2-ADR-Updates.md），对齐 CH01/CH03 基线；Windows-only 交付。原项目使用 LegacyDesktopShell + LegacyUIFramework + Legacy2DEngine + TypeScript 技术栈，本仓库迁移为 Godot 4.5 + C#/.NET 8 模板，需要统一运行时、发布与测试/门禁口径，避免契约与流程分叉。
 - Decision:
   - 运行时：采用 Godot 4.5.1（.NET/mono）作为 UI/渲染/物理运行时；主语言为 C#（.NET 8 LTS）。
   - 架构与测试：领域层保持纯 C#（Game.Core，不依赖 Godot），适配层封装 Godot API 通过接口注入；单元测试使用 xUnit，场景/集成测试使用 GdUnit4；覆盖率使用 coverlet；质量门禁与可观测性沿用 ADR-0005/ADR-0003 统一口径。
   - 发布：Windows Desktop 导出为独立 `.exe`（嵌入或旁挂 `.pck`）；导出/发布流水线由 Godot Export Templates 驱动；CI 以 headless 模式运行冒烟/门禁，导出产物门禁作用于 `.exe/.pck`。
 - Consequences:
-  - Electron/Chromium 运行时退役；安全基线从“Electron 安全”切换为“Godot 安全”（见 ADR-0019）。
+  - LegacyDesktopShell/Chromium 运行时退役；安全基线从“LegacyDesktopShell 安全”切换为“Godot 安全”（见 ADR-0019）。
   - 契约/DTO/事件统一落盘到 `Game.Core/Contracts/**`（见 ADR-0020/ADR-0004），Overlay 08 章仅引用 CH01/02/03 口径，不复制阈值与策略。
   - CI/CD 转为 Windows 优先（见 ADR-0011），E2E/冒烟转为 Godot Headless 方案，相关日志与工件统一落 `logs/**`。
 - Supersedes: ADR-0001-tech-stack

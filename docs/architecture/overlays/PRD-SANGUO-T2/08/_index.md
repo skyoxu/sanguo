@@ -2,6 +2,9 @@
 PRD-ID: PRD-SANGUO-T2
 Title: 08 章功能纵切索引（契约与测试对齐）
 Updated: true
+Arch-Refs:
+  - CH01
+  - CH03
 ---
 
 # PRD-SANGUO-T2 功能纵切索引

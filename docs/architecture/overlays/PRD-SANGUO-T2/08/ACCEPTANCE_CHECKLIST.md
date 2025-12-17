@@ -12,6 +12,9 @@ ADR-Refs:
   - ADR-0021
   - ADR-0024
   - ADR-0025
+Arch-Refs:
+  - CH01
+  - CH03
 Test-Refs:
   - Game.Core.Tests/Domain/CityTests.cs
   - Game.Core.Tests/Domain/SanguoPlayerTests.cs

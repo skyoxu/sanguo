@@ -9,7 +9,7 @@
 
 ## 目标
 
-将 vitegame 的 CloudEvents 事件系统迁移到 godotgame 的 Godot Signals，建立类型安全的信号架构与跨场景通信模式。
+将 LegacyProject 的 CloudEvents 事件系统迁移到 godotgame 的 Godot Signals，建立类型安全的信号架构与跨场景通信模式。
 
 ---
 
@@ -96,7 +96,7 @@
 
 
 
-| 功能 | vitegame (CloudEvents) | godotgame (Godot Signals) |
+| 功能 | LegacyProject (CloudEvents) | godotgame (Godot Signals) |
 |-----|----------------------|--------------------------|
 | 事件定义 | TypeScript 接口 + CloudEvent<T> | C# [Signal] delegate |
 | 事件发射 | eventBus.publish() | EmitSignal() |
@@ -108,7 +108,7 @@
 
 ---
 
-## CloudEvents 规范回顾 (vitegame)
+## CloudEvents 规范回顾 (LegacyProject)
 
 ### CloudEvents 结构
 
@@ -155,7 +155,7 @@ export function createPlayerDamagedEvent(
 }
 ```
 
-### EventBus 使用 (vitegame)
+### EventBus 使用 (LegacyProject)
 
 ```typescript
 // src/services/EventBus.ts
@@ -188,7 +188,7 @@ class EventBus {
 export const eventBus = new EventBus();
 ```
 
-### 使用示例 (vitegame)
+### 使用示例 (LegacyProject)
 
 ```typescript
 // src/entities/Player.ts
@@ -394,7 +394,7 @@ public partial class HealthBarUI : Control
 
 ### 模式 1: 简单事件迁移
 
-**CloudEvents (vitegame)**:
+**CloudEvents (LegacyProject)**:
 
 ```typescript
 // 事件定义
@@ -475,7 +475,7 @@ public partial class ScoreManager : Node
 
 ### 模式 2: 复杂事件数据迁移
 
-**CloudEvents (vitegame)**:
+**CloudEvents (LegacyProject)**:
 
 ```typescript
 // 复杂事件数据
@@ -603,7 +603,7 @@ public partial class RewardManager : Node
 
 ### 模式 3: EventBus 跨场景通信
 
-**CloudEvents EventBus (vitegame)**:
+**CloudEvents EventBus (LegacyProject)**:
 
 ```typescript
 // 全局事件总线
@@ -1469,4 +1469,4 @@ jobs:
 
 完成本阶段后,继续:
 
-➡️ [Phase-10-Unit-Tests.md](Phase-10-Unit-Tests.md) — xUnit 单元测试迁移
+-> [Phase-10-Unit-Tests.md](Phase-10-Unit-Tests.md) — xUnit 单元测试迁移

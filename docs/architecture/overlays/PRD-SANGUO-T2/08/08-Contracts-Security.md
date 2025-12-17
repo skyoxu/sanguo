@@ -6,6 +6,9 @@ ADR-Refs:
   - ADR-0004
   - ADR-0005
   - ADR-0020
+Arch-Refs:
+  - CH01
+  - CH03
 Test-Refs:
   - Game.Core.Tests/State/GameStateManagerSecurityTests.cs
   - scripts/ci/check_encoding_issues.py

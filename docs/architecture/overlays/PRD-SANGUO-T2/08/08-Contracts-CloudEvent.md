@@ -7,6 +7,9 @@ ADR-Refs:
   - ADR-0019
   - ADR-0020
   - ADR-0021
+Arch-Refs:
+  - CH01
+  - CH03
 Test-Refs:
   - Game.Core.Tests/Services/EventBusTests.cs
 Contracts-Refs:

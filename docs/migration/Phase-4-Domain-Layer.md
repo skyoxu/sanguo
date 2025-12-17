@@ -9,7 +9,7 @@
 
 ## 目标
 
-将 vitegame 的 TypeScript 业务逻辑迁移到 Game.Core 纯 C# 领域层，实现与 Godot 完全解耦，支持 TDD 红绿灯循环。
+将 LegacyProject 的 TypeScript 业务逻辑迁移到 Game.Core 纯 C# 领域层，实现与 Godot 完全解耦，支持 TDD 红绿灯循环。
 
 ---
 
@@ -61,7 +61,7 @@ Priority 3 (复杂状态机)
 
 ### 类与接口映射
 
-**TypeScript (vitegame)**:
+**TypeScript (LegacyProject)**:
 
 ```typescript
 // src/domain/entities/Player.ts
@@ -719,4 +719,4 @@ if __name__ == '__main__':
 
 完成本阶段后，继续：
 
-➡️ [Phase-5-Adapter-Layer.md](Phase-5-Adapter-Layer.md) — Godot 适配层设计
+-> [Phase-5-Adapter-Layer.md](Phase-5-Adapter-Layer.md) — Godot 适配层设计

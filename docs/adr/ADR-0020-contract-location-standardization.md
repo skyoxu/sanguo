@@ -1,184 +1,67 @@
-# ADR-0020: Contract Location Standardization
+# ADR-0020: Contracts 存放位置标准化（SSoT = `Game.Core/Contracts/**`）
 
 - Status: Accepted
-- **Date**: 2025-12-02
-- **Supersedes**: None (first formal documentation of contract location)
-- **Related**: ADR-0004 (Event Bus and Contracts), ADR-0018 (Ports and Adapters)
+- Date: 2025-12-02
+- Related: ADR-0004（事件与命名）、ADR-0018（分层与发布）、ADR-0019（安全基线）
 
 ## Context
 
-### Problem
+在模板演进过程中，契约（Domain Events / DTOs / Ports 类型等）容易被分散到不同目录，导致：
 
-Contract files (domain events, DTOs, value objects) were scattered across multiple locations with inconsistent namespaces:
-
-1. **Legacy location**: `scripts/Core/Contracts/` (Godot script directory)
-   - Namespace: `Game.Contracts.*`
-   - Mixed with GDScript-era files
-   - Not part of standalone .NET project
-
-2. **Modern location**: `Game.Core/Contracts/` (Pure .NET project)
-   - Namespace: `Game.Core.Contracts.*`
-   - Part of testable Core layer
-   - Zero Godot dependencies
-
-This **violated SSoT (Single Source of Truth)** and caused:
-- Namespace conflicts during compilation
-- Confusion about canonical contract location
-- Architecture compliance issues (Core layer referencing wrong paths)
-
-### Architecture Evolution
-
-**Phase 1 (Early)**: Godot + GDScript monolith
-- Contracts in `Scripts/` directory
-- Tightly coupled to Godot engine
-
-**Phase 2 (Migration)**: Godot + C# hybrid
-- Introduced `Game.Core/` for domain logic
-- Some contracts moved, some remained (duplication)
-
-**Phase 3 (Current)**: Three-layer architecture (ADR-0018)
-- **Game.Core/** - Pure C# domain logic (zero Godot dependencies)
-- **Game.Godot/Adapters/** - Godot API wrappers (implements Ports/)
-- **Scenes/** - UI assembly and signal routing
-
-Contracts must reside in **Game.Core/** to support:
-- Fast TDD cycles (no Godot engine startup required)
-- Pure unit testing with xUnit
-- Interface-based dependency injection
-- Reusable domain logic across platforms
+- “哪一份才是权威口径”不清晰（SSoT 漂移）
+- 命名空间与引用混乱，增加编译/重构成本
+- 文档/Overlay 08 与代码无法稳定对齐
 
 ## Decision
 
-### Canonical Contract Location (SSoT)
+### 1) 单一事实来源（SSoT）
 
-**ALL contracts MUST reside in**:
-```
-Game.Core/Contracts/<Module>/
-  ├── Guild/
-  │   ├── GuildCreated.cs
-  │   ├── GuildMemberJoined.cs
-  │   ├── GuildMemberLeft.cs
-  │   ├── GuildDisbanded.cs
-  │   └── GuildMemberRoleChanged.cs
-  ├── GameLoop/
-  │   ├── GameTurnStarted.cs
-  │   ├── GameTurnPhaseChanged.cs
-  │   └── GameWeekAdvanced.cs
-  └── Combat/
-      └── ...
-```
+所有契约文件必须存放在：
 
-**Namespace convention**:
+- `Game.Core/Contracts/**`
+
+并保持：
+
+- 不依赖 Godot API（Core 可毫秒级单测）
+- 命名空间以 `Game.Core.Contracts.<Module>` 为前缀
+
+示例（C#）：
+
 ```csharp
-namespace Game.Core.Contracts.<Module>;
+namespace Game.Core.Contracts.Guild;
 
 /// <summary>
-/// Domain event: core.<entity>.<action>
-/// Per ADR-0004 CloudEvents naming convention.
+/// Domain event: core.guild.member.joined
 /// </summary>
-public sealed record EventName(...)
+public sealed record GuildMemberJoined(
+    string UserId,
+    string GuildId,
+    DateTimeOffset JoinedAt,
+    string Role
+)
 {
-    public const string EventType = "core.<entity>.<action>";
+    public const string EventType = "core.guild.member.joined";
 }
 ```
 
-### Forbidden Locations
+### 2) 禁止位置（Forbidden）
 
-**MUST NOT** place contracts in:
-- ❌ `Scripts/Core/Contracts/` (legacy Godot script directory)
-- ❌ `scripts/Core/Contracts/` (lowercase variant)
-- ❌ `Game.Godot/` (adapter layer must not define contracts)
-- ❌ `Scenes/` (UI layer must not define contracts)
+以下目录禁止新增/存放 Contracts：
 
-### Migration Checklist (Completed 2025-12-02)
+- `Game.Godot/**`（适配层不得定义契约）
+- `Tests.Godot/**`（测试不得成为口径来源）
+- `Scenes/**` 或 `.tscn` 资源目录（UI/装配层不得定义契约）
+- `scripts/**`（脚本工具目录不得承载 Contracts SSoT）
 
-- [x] Move 8 contract files from `scripts/Core/Contracts/` → `Game.Core/Contracts/`
-- [x] Update namespaces: `Game.Contracts.*` → `Game.Core.Contracts.*`
-- [x] Fix imports in 4 referencing files:
-  - EventEngine.cs
-  - GuildContractsTests.cs
-  - GameLoopContractsTests.cs
-  - GuildManager.cs
-- [x] Delete legacy `scripts/Core/Contracts/` directory
-- [x] Verify compilation (0 errors, 200 tests passing)
-- [x] Update CLAUDE.md documentation (Section 6.0, 6.1)
+## Verification（可执行校验）
+
+- Overlay 文档引用校验（CI/本地均可）：
+  - `py -3 scripts/python/validate_contracts.py`
+  - 规则：Overlay 08 文档中用反引号引用 `Game.Core/Contracts/...cs` 时，文件必须真实存在。
+- 单元测试（领域层）：对关键契约常量/默认值做最小断言（见 `docs/testing-framework.md`）。
 
 ## Consequences
 
-### Positive
+- 正向：Contracts SSoT 清晰；Core 层保持纯净；文档与代码可稳定对齐；迁移/重构成本下降。
+- 代价：需要持续纪律（PR 检查/脚本校验）避免回流到非 SSoT 目录。
 
-1. **SSoT Restored**: Single canonical location for all contracts
-2. **Architecture Compliance**: Contracts in pure .NET layer (no Godot coupling)
-3. **TDD Efficiency**: Unit tests run in milliseconds without engine overhead
-4. **Namespace Clarity**: `Game.Core.Contracts.*` clearly signals Core layer ownership
-5. **CI Automation**: Architecture compliance script (`check_architecture.py`) prevents future violations
-
-### Negative
-
-1. **Migration Effort**: Required one-time file moves and namespace updates
-2. **Breaking Changes**: External tools referencing old paths need updates
-3. **Documentation Lag**: Old documentation may still reference legacy paths (mitigated by CLAUDE.md update)
-
-### Mitigation Strategies
-
-1. **Architecture CI Check**: `scripts/python/check_architecture.py` validates:
-   - Core layer has no Godot dependencies
-   - Interfaces reside in `Game.Core/Ports/`
-   - All ports have adapter implementations
-
-2. **Pre-commit Hook** (optional future enhancement):
-   ```bash
-   # Reject commits adding files to legacy paths
-   if git diff --cached --name-only | grep -q "scripts/Core/Contracts/"; then
-     echo "ERROR: Contracts must be in Game.Core/Contracts/, not scripts/"
-     exit 1
-   fi
-   ```
-
-3. **Documentation Alignment**:
-   - CLAUDE.md Section 6.0, 6.1 updated to reflect new paths
-   - ADR-0004 references remain valid (namespace updated, location clarified)
-
-### Technical Debt Identified (Non-blocking)
-
-Architecture CI check detected existing violations (not introduced by this ADR):
-- 9 interfaces outside `Game.Core/Ports/` (should be moved)
-- 1 missing adapter implementation for `IEventCatalog`
-
-These are tracked separately and do not block this ADR.
-
-## References
-
-- **ADR-0004**: Event Bus and Contracts (CloudEvents naming)
-- **ADR-0018**: Ports and Adapters Pattern (three-layer architecture)
-- **CLAUDE.md Section 6**: Contract templates and directory structure
-- **Implementation PR**: [Link to PR with contract migration]
-
-## Compliance Validation
-
-To verify compliance with this ADR:
-
-```bash
-# Run architecture compliance check
-py -3 scripts/python/check_architecture.py
-
-# Expected output:
-# [1/3] Checking Core layer for Godot references... [OK]
-# [2/3] Checking interface locations... [FAIL] (existing tech debt)
-# [3/3] Checking Adapters layer completeness... [FAIL] (existing tech debt)
-
-# Verify contract files exist in canonical location
-ls Game.Core/Contracts/Guild/*.cs
-ls Game.Core/Contracts/GameLoop/*.cs
-
-# Verify legacy location is empty
-ls scripts/Core/Contracts/ 2>/dev/null || echo "Legacy directory removed (correct)"
-```
-
-## Future Considerations
-
-1. **Value Objects**: Follow same pattern as events (e.g., `Game.Core/Contracts/ValueObjects/SafeResourcePath.cs`)
-2. **DTOs**: Cross-boundary data structures in `Game.Core/Contracts/Dtos/`
-3. **Shared Types**: Enums and constants in `Game.Core/Contracts/Shared/`
-
-All future contract-like structures MUST follow this ADR's location and namespace conventions.

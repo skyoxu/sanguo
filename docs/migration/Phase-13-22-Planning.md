@@ -35,7 +35,7 @@
 
 ## Phase 14: Godot 安全基线与审计
 
-**目标**: 实现 Electron ADR-0002 等价的 Godot 安全基线  
+**目标**: 实现 LegacyDesktopShell ADR-0002 等价的 Godot 安全基线  
 **工作量**: 5-7 人天  
 **依赖**: Phase 8（场景设计）、Phase 12（Headless 测试）
 **详细规划**: [Phase-14-Godot-Security-Baseline.md](Phase-14-Godot-Security-Baseline.md) （1000+ 行，含完整 Security.cs 实现、20+ GdUnit4 测试套件、审计日志规范）
@@ -219,7 +219,7 @@
 
 ### 关键交付物
 - 功能验收矩阵 (acceptance_matrix.md)
-  - 原 vitegame 功能清单
+  - 原 LegacyProject 功能清单
   - Godot 版本实现状态
   - 测试覆盖标记
 - 竖切玩法测试脚本
@@ -229,7 +229,7 @@
 - 用户验收测试 (UAT) 指南
 
 ### 完成清单
-- [ ] 列出 vitegame 核心功能清单（≥30 项）
+- [ ] 列出 LegacyProject 核心功能清单（≥30 项）
 - [ ] 逐项对应 Godot 实现状态
 - [ ] 执行功能验收测试
 - [ ] 修复缺失或错误的功能

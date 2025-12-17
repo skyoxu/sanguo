@@ -5,6 +5,9 @@ ADR-Refs:
   - ADR-0019
   - ADR-0005
   - ADR-0020
+Arch-Refs:
+  - CH01
+  - CH03
 Test-Refs:
   - scripts/python/godot_selfcheck.py
 Contracts-Refs: []

@@ -4,16 +4,16 @@
 > **工作量**：5-6 人天
 > **依赖**：Phase 12（Headless 烟测 & 性能采集）、Phase 13（质量门禁脚本）
 > **交付物**：PerformanceTracker.cs + PerformanceGates.cs + 3 个工具脚本 + CI 集成 + 基准建立指南
-> **验收标准**：本地 `npm run test:performance` 通过 + 性能报告生成 + CI 门禁生效
+> **验收标准**：本地 `NodePkg run test:performance` 通过 + 性能报告生成 + CI 门禁生效
 
 ---
 
 ## 1. 背景与动机
 
-### 原版（vitegame）性能管理
-- **Electron 工具链**：DevTools Timeline + 自定义计时
-- **Vite HMR**：热更新导致性能指标波动大
-- **Playwright E2E**：性能数据基于浏览器事件，准确性有限
+### 原版（LegacyProject）性能管理
+- **LegacyDesktopShell 工具链**：DevTools Timeline + 自定义计时
+- **LegacyBuildTool HMR**：热更新导致性能指标波动大
+- **LegacyE2ERunner E2E**：性能数据基于浏览器事件，准确性有限
 - **缺乏基准**：无历史对标，难以判断性能劣化
 
 ### 新版（godotgame）性能机遇与挑战
@@ -139,34 +139,34 @@ godotgame/
 ├── src/
 │   ├── Game.Core/
 │   │   └── Performance/
-│   │       ├── PerformanceTracker.cs         ★ 核心计时库
-│   │       ├── PerformanceMetrics.cs         ★ 指标定义
-│   │       └── QueryPerformanceTracker.cs    ★ 数据库计时
+│   │       ├── PerformanceTracker.cs         * 核心计时库
+│   │       ├── PerformanceMetrics.cs         * 指标定义
+│   │       └── QueryPerformanceTracker.cs    * 数据库计时
 │   │
 │   └── Godot/
-│       ├── TestRunner.cs                     ★ 冒烟测试运行器（含性能采集）
-│       └── PerformanceGates.cs               ★ 性能门禁检查
+│       ├── TestRunner.cs                     * 冒烟测试运行器（含性能采集）
+│       └── PerformanceGates.cs               * 性能门禁检查
 │
 ├── benchmarks/
-│   ├── baseline-startup.json                 ★ 首屏基准（初始化）
-│   ├── baseline-menu.json                    ★ 菜单帧时间基准
-│   ├── baseline-game.json                    ★ 游戏场景基准
-│   ├── baseline-db.json                      ★ 数据库查询基准
-│   └── current-run/                          ★ 当前构建的采集结果
+│   ├── baseline-startup.json                 * 首屏基准（初始化）
+│   ├── baseline-menu.json                    * 菜单帧时间基准
+│   ├── baseline-game.json                    * 游戏场景基准
+│   ├── baseline-db.json                      * 数据库查询基准
+│   └── current-run/                          * 当前构建的采集结果
 │       ├── startup-results.json
 │       ├── menu-frame-times.json
 │       ├── game-frame-times.json
 │       └── db-query-results.json
 │
 ├── scripts/
-│   ├── performance_gates.py                  ★ Python 聚合脚本
-│   └── establish_baseline.sh                 ★ 基准建立脚本
+│   ├── performance_gates.py                  * Python 聚合脚本
+│   └── establish_baseline.sh                 * 基准建立脚本
 │
 └── reports/
     └── performance/
-        ├── current-run-report.html           ★ 网页报告
-        ├── current-run-report.json           ★ 结构化报告
-        └── performance-history.csv           ★ 历史数据
+        ├── current-run-report.html           * 网页报告
+        ├── current-run-report.json           * 结构化报告
+        └── performance-history.csv           * 历史数据
 ```
 
 ---
@@ -693,7 +693,7 @@ jobs:
     "test:performance": "python scripts/performance_gates.py benchmarks/baseline.json reports/current.json",
     "establish:baseline": "bash scripts/establish_baseline.sh",
     "perf:report": "python scripts/generate_perf_report.py reports/current.json reports/perf-report.html",
-    "guard:ci": "npm run typecheck && npm run lint && npm run test:unit && npm run test:performance"
+    "guard:ci": "NodePkg run typecheck && NodePkg run lint && NodePkg run test:unit && NodePkg run test:performance"
   }
 }
 ```
@@ -734,7 +734,7 @@ jobs:
 - [ ] 10 个性能指标定义完整
 - [ ] 基准建立流程文档化
 - [ ] GitHub Actions 工作流配置（performance-gates.yml）
-- [ ] 本地验证命令（npm run test:performance）
+- [ ] 本地验证命令（NodePkg run test:performance）
 - [ ] CI 门禁与 Phase 13（质量门禁）集成
 
 ### 8.3 文档完成度
@@ -840,7 +840,7 @@ jobs:
 
 ## 附录 A：性能指标对标表
 
-| 指标 | vitegame（Electron） | godotgame（Godot） | 对标情况 |
+| 指标 | LegacyProject（LegacyDesktopShell） | godotgame（Godot） | 对标情况 |
 |-----|-------------------|------------------|---------|
 | 启动时间 | ~2.5-3.0s | ≤3.0s | [OK] 持平 |
 | 菜单 FPS | 60fps (16.67ms) | ≤14ms P95 | [OK] 改进 |

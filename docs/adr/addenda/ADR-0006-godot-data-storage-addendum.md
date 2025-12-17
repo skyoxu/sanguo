@@ -6,18 +6,24 @@ status: Active
 scope: Windows-only runtime, Godot 4.5 (.NET)
 ---
 
-# Addendum to ADR-0006: Data Storage (Godot Alignment)
+# ADR-0006 补充：Godot 数据存储对齐（SQLite + ConfigFile）
 
 ## Context
-Adopt `godot-sqlite` for structured data and `ConfigFile` for lightweight settings; enforce `user://` writes and resource `res://` reads.
+
+Godot+C# 变体需要同时满足：
+
+- 复杂结构化数据（存档/进度/状态）可用 SQLite 持久化；
+- 轻量设置（Settings）使用 `ConfigFile` 持久化；
+- 所有写入必须落在 `user://`，符合安全基线（见 ADR-0019）。
 
 ## Decisions
-- Database: `godot-sqlite` (GDExtension); WAL mode where applicable; run migrations from a dedicated bootstrap.
-- Paths: allow writes only to `user://`; forbid absolute paths in gameplay.
-- Preferences: use `ConfigFile` for player settings; keep schema/version in a small section.
-- Threading: DB access off main thread for heavy operations; use worker threads with proper synchronization.
+
+- 数据库：优先使用 `godot-sqlite`（GDExtension）承载结构化数据；重操作应避免阻塞主线程。
+- 路径：仅允许写入 `user://`；禁止绝对路径与目录穿越。
+- Settings：Settings 的 SSoT 为 `ConfigFile`（见 ADR-0023）。
 
 ## Verification
-- GdUnit4 scene tests create a temporary user:// DB; unit tests validate migration/versioning logic.
-- CI exports minimal DB integrity logs into `logs/YYYYMMDD/db/`.
+
+- 场景测试（GdUnit4）：在 `user://` 下创建临时 DB/配置文件并做读写断言；产出日志/摘要到 `logs/e2e/**`。
+- CI 工件：最小 DB/设置一致性日志写入 `logs/ci/**` 便于排障。
 

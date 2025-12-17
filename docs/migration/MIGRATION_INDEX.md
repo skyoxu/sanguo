@@ -2,7 +2,7 @@
 
 
 
-> 项目: vitegame → godotgame
+> 项目: LegacyProject → godotgame
 
 > 迁移类型: 完整技术栈替换（运行时 + UI + 渲染 + 测试）
 
@@ -24,41 +24,41 @@
 
 
 
-| 层次 | 原技术栈 (vitegame) | 新技术栈 (godotgame) | 迁移复杂度 |
+| 层次 | 原技术栈 (LegacyProject) | 新技术栈 (godotgame) | 迁移复杂度 |
 
 |------|-------------------|-------------------|----------|
 
-| 桌面容器 | Electron | Godot 4.5 | ★★★★★ |
+| 桌面容器 | LegacyDesktopShell | Godot 4.5 | ***** |
 
-| 游戏引擎 | Phaser 3 | Godot 4.5 (Scene Tree) | ★★★★☆ |
+| 游戏引擎 | Legacy2DEngine 3 | Godot 4.5 (Scene Tree) | ***** |
 
-| UI框架 | React 19 | Godot Control | ★★★★★ |
+| UI框架 | LegacyUIFramework 19 | Godot Control | ***** |
 
-| 样式 | Tailwind CSS v4 | Godot Theme/Skin | ★★★☆☆ |
+| 样式 | Tailwind CSS v4 | Godot Theme/Skin | ***** |
 
-| 开发语言 | TypeScript | C# (.NET 8) | ★★★★☆ |
+| 开发语言 | TypeScript | C# (.NET 8) | ***** |
 
-| 构建工具 | Vite | Godot Export Templates | ★★★☆☆ |
+| 构建工具 | LegacyBuildTool | Godot Export Templates | ***** |
 
-| 单元测试 | Vitest | xUnit + FluentAssertions | ★★★☆☆ |
+| 单元测试 | LegacyUnitTestRunner | xUnit + FluentAssertions | ***** |
 
-| 场景测试 | - | GdUnit4 (Godot Unit Test) | ★★☆☆☆ |
+| 场景测试 | - | GdUnit4 (Godot Unit Test) | ***** |
 
-| E2E测试 | Playwright (Electron) | Godot Headless + 自建Runner | ★★★★☆ |
+| E2E测试 | LegacyE2ERunner (LegacyDesktopShell) | Godot Headless + 自建Runner | ***** |
 
-| 覆盖率 | Vitest Coverage | coverlet | ★★☆☆☆ |
+| 覆盖率 | LegacyUnitTestRunner Coverage | coverlet | ***** |
 
-| 数据库 | SQLite (better-sqlite3) | godot-sqlite | ★★☆☆☆ |
+| 数据库 | SQLite (better-sqlite3) | godot-sqlite | ***** |
 
-| 配置存储 | Local JSON | ConfigFile (user://) | ★★☆☆☆ |
+| 配置存储 | Local JSON | ConfigFile (user://) | ***** |
 
-| 事件通信 | EventBus (CloudEvents) | Signals + Autoload | ★★★★☆ |
+| 事件通信 | EventBus (CloudEvents) | Signals + Autoload | ***** |
 
-| 多线程 | Web Worker | WorkerThreadPool / Thread | ★★★☆☆ |
+| 多线程 | Web Worker | WorkerThreadPool / Thread | ***** |
 
-| 静态分析 | ESLint + TypeScript | Roslyn + StyleCop + SonarQube | ★★★☆☆ |
+| 静态分析 | ESLint + TypeScript | Roslyn + StyleCop + SonarQube | ***** |
 
-| 错误追踪 | Sentry (Electron SDK) | Sentry (Godot SDK) | ★★☆☆☆ |
+| 错误追踪 | Sentry (LegacyDesktopShell SDK) | Sentry (Godot SDK) | ***** |
 
 
 
@@ -68,11 +68,11 @@
 
 **[高风险] 需要完全重写**
 
-- Electron 安全基线 → Godot 安全基线（外链/网络/文件系统白名单）
+- LegacyDesktopShell 安全基线 → Godot 安全基线（外链/网络/文件系统白名单）
 
-- React 组件 → Godot Control 节点（UI 架构完全不同）
+- LegacyUIFramework 组件 → Godot Control 节点（UI 架构完全不同）
 
-- Playwright E2E → Godot Headless 测试（测试框架完全替换）
+- LegacyE2ERunner E2E → Godot Headless 测试（测试框架完全替换）
 
 - CloudEvents 契约 → Godot Signals 契约（事件系统重设计）
 
@@ -82,9 +82,9 @@
 
 - TypeScript 业务逻辑 → C# 领域层（可部分机翻 + 人工校验）
 
-- Vitest 单元测试 → xUnit 单元测试（测试框架迁移）
+- LegacyUnitTestRunner 单元测试 → xUnit 单元测试（测试框架迁移）
 
-- Vite 构建流程 → Godot Export 流程（构建工具替换）
+- LegacyBuildTool 构建流程 → Godot Export 流程（构建工具替换）
 
 - Sentry 集成 → Sentry Godot SDK（观测性迁移）
 
@@ -132,7 +132,7 @@
 
 ### 第三阶段：UI 与场景迁移
 
-- [Phase-7-UI-Migration.md](Phase-7-UI-Migration.md) — React → Godot Control 迁移
+- [Phase-7-UI-Migration.md](Phase-7-UI-Migration.md) — LegacyUIFramework → Godot Control 迁移
 
 - [Phase-8-Scene-Design.md](Phase-8-Scene-Design.md) — 场景树与节点设计
 
@@ -168,7 +168,7 @@
 
 - [VERIFICATION_REPORT_Phase13-14.md](VERIFICATION_REPORT_Phase13-14.md) — [OK] Phase 13-14 综合验证报告（整体架构评估，综合评分 94/100，质量门禁验证）
 
-- [MIGRATION_FEASIBILITY_SUMMARY.md](MIGRATION_FEASIBILITY_SUMMARY.md) — ** 整体迁移可行性综合汇总**（完整项目评分 92/100、综合验证、实施路线图）
+- [MIGRATION_FEASIBILITY_SUMMARY.md](MIGRATION_FEASIBILITY_SUMMARY.md) — **[100] 整体迁移可行性综合汇总**（完整项目评分 92/100、综合验证、实施路线图）
 
 - [Phase-15-Performance-Budgets-and-Gates.md](Phase-15-Performance-Budgets-and-Gates.md) — [OK] Phase 15 详细规划（性能预算与门禁体系，10项KPI，基准建立指南）
 
@@ -246,7 +246,7 @@
 
 3. **先冒烟后全量**：E2E 只先做启动/退出/关键信号冒烟测试
 
-4. **分支并行**：保留 vitegame 主分支，godotgame 在独立分支开发
+4. **分支并行**：保留 LegacyProject 主分支，godotgame 在独立分支开发
 
 
 
@@ -380,7 +380,7 @@
 
 ### 原项目文档
 
-- [PROJECT_DOCUMENTATION_INDEX.md](../PROJECT_DOCUMENTATION_INDEX.md) — vitegame 完整文档索引
+- [PROJECT_DOCUMENTATION_INDEX.md](../PROJECT_DOCUMENTATION_INDEX.md) — LegacyProject 完整文档索引
 
 - [CLAUDE.md](../../CLAUDE.md) — AI 优先开发规范
 

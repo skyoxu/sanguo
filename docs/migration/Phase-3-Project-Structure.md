@@ -537,7 +537,7 @@ dist/
 # 项目初始化脚本
 
 param(
-    [string]$ProjectRoot = "C:\buildgame\sanguo"
+    [string]$ProjectRoot = "C:\buildgame\godotgame"
 )
 
 Write-Host "开始初始化 Godot 项目..." -ForegroundColor Green
@@ -628,7 +628,7 @@ Write-Host "3. 将 Game.Godot.csproj 添加到 Game.sln" -ForegroundColor White
 **执行初始化**:
 
 ```powershell
-pwsh scripts/init-godot-project.ps1 -ProjectRoot "C:\buildgame\sanguo"
+pwsh scripts/init-godot-project.ps1 -ProjectRoot "C:\buildgame\godotgame"
 ```
 
 ---
@@ -651,4 +651,4 @@ pwsh scripts/init-godot-project.ps1 -ProjectRoot "C:\buildgame\sanguo"
 
 完成本阶段后，继续：
 
-➡️ [Phase-4-Domain-Layer.md](Phase-4-Domain-Layer.md) — 纯 C# 领域层迁移
+-> [Phase-4-Domain-Layer.md](Phase-4-Domain-Layer.md) — 纯 C# 领域层迁移

@@ -10,9 +10,9 @@
 
 ## 1. 背景与动机
 
-### 原版（vitegame）应急回滚
+### 原版（LegacyProject）应急回滚
 
-**Electron + Sentry 版本回滚**：
+**LegacyDesktopShell + Sentry 版本回滚**：
 - 手动标记版本为不可用（Sentry API 调用）
 - GitHub Release 标记为 draft/deprecated
 - 用户通过自动更新检查获得前一版本
@@ -189,30 +189,30 @@ godotgame/
 ├── src/
 │   ├── Game.Core/
 │   │   └── Release/
-│   │       ├── ReleaseManager.cs              ★ 版本管理与状态检查
-│   │       └── RollbackTrigger.cs             ★ 回滚触发条件评估
+│   │       ├── ReleaseManager.cs              * 版本管理与状态检查
+│   │       └── RollbackTrigger.cs             * 回滚触发条件评估
 │   │
 │   └── Godot/
-│       ├── ReleaseManager.cs                  ★ Autoload 版本检查
-│       └── RollbackNotifier.cs                ★ 用户通知 UI
+│       ├── ReleaseManager.cs                  * Autoload 版本检查
+│       └── RollbackNotifier.cs                * 用户通知 UI
 │
 ├── scripts/
-│   ├── monitor_release_health.py              ★ 发布健康监控脚本
-│   ├── trigger_rollback.py                    ★ 回滚触发脚本
-│   └── sentry_queries.json                    ★ Sentry 自定义查询配置
+│   ├── monitor_release_health.py              * 发布健康监控脚本
+│   ├── trigger_rollback.py                    * 回滚触发脚本
+│   └── sentry_queries.json                    * Sentry 自定义查询配置
 │
 ├── .github/
 │   └── workflows/
-│       ├── monitor-health.yml                 ★ 持续监控工作流
-│       └── release-emergency-rollback.yml     ★ 紧急回滚工作流
+│       ├── monitor-health.yml                 * 持续监控工作流
+│       └── release-emergency-rollback.yml     * 紧急回滚工作流
 │
 ├── docs/
-│   ├── rollback-runbook.md                    ★ 应急预案（步骤清单）
-│   └── monitoring-dashboard-guide.md          ★ 监控 Dashboard 使用指南
+│   ├── rollback-runbook.md                    * 应急预案（步骤清单）
+│   └── monitoring-dashboard-guide.md          * 监控 Dashboard 使用指南
 │
 └── .taskmaster/
     └── tasks/
-        └── task-19.md                         ★ Phase 19 任务跟踪
+        └── task-19.md                         * Phase 19 任务跟踪
 ```
 
 ---
@@ -399,7 +399,7 @@ namespace Game.Core.Release
         private string _CalculateRiskLevel(double improvement)
         {
             if (improvement < -5) return "Very High";
-            if (improvement < 0) return " High";
+            if (improvement < 0) return "O High";
             if (improvement < 2) return "Medium";
             return "Low";
         }
@@ -515,7 +515,7 @@ jobs:
       - name: Trigger Emergency Rollback (if needed)
         if: steps.decision.outputs.rollback_triggered == 'true'
         run: |
-          echo " Triggering emergency rollback workflow..."
+          echo "[ALERT] Triggering emergency rollback workflow..."
           gh workflow run release-emergency-rollback.yml \
             --ref main \
             -f release_version="${{ github.event.inputs.release_version }}" \
@@ -539,7 +539,7 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
-              "text": " Release Health Alert",
+              "text": "[ALERT] Release Health Alert",
               "blocks": [
                 {
                   "type": "header",
@@ -734,7 +734,7 @@ jobs:
           # 标记当前版本为草稿（表示已回滚）
           gh release edit "${{ inputs.release_version }}" \
             --draft \
-            --notes " REVOKED - Rolled back due to: ${{ inputs.reason }}"
+            --notes "[ALERT] REVOKED - Rolled back due to: ${{ inputs.reason }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -767,7 +767,7 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
-              "text": " Emergency Rollback Executed",
+              "text": "[ALERT] Emergency Rollback Executed",
               "blocks": [
                 {
                   "type": "header",
@@ -880,7 +880,7 @@ python scripts/monitor_release_health.py \
 # 2. 输出示例
 # Crash-Free Sessions: 98.5% WARNING
 # Error Rate: 0.6%  CRITICAL
-# Affected Users: 3.2% 
+# Affected Users: 3.2% [REPORT]
 # Recommendation: ROLLBACK
 
 # 3. 检查回滚安全性

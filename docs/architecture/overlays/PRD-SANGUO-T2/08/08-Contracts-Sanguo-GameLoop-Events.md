@@ -6,6 +6,9 @@ ADR-Refs:
   - ADR-0005
   - ADR-0020
   - ADR-0021
+Arch-Refs:
+  - CH01
+  - CH03
 Test-Refs:
   - Game.Core.Tests/Domain/SanguoContractsTests.cs
   - Game.Core.Tests/Domain/SanguoContractInstantiationTests.cs

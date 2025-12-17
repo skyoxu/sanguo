@@ -1,10 +1,10 @@
 • 直言不讳（先止损）
 
-  - 你这是“更换运行时与UI体系”的迁移，不是“换个打包器”：Electron/React/Phaser/Vite 的测试与门禁大多不可复用，若期待“小改脚本”会高风险、低可控。
-  - 现有 E2E（Playwright×Electron）的治理点（preload 白名单、CSP、openExternal 审计）在 Godot 没有一一对应，需要“重设基线”，而不是强行平移概念。
+  - 你这是“更换运行时与UI体系”的迁移，不是“换个打包器”：LegacyDesktopShell/LegacyUIFramework/Legacy2DEngine/LegacyBuildTool 的测试与门禁大多不可复用，若期待“小改脚本”会高风险、低可控。
+  - 现有 E2E（LegacyE2ERunner×LegacyDesktopShell）的治理点（preload 白名单、CSP、openExternal 审计）在 Godot 没有一一对应，需要“重设基线”，而不是强行平移概念。
   - 工程落地的最大不确定性在“测试栈与质量门禁”替代选择，请尽早拍板语言（GDScript vs C#）与测试框架（GUT/WAT vs NUnit/xUnit）再定 CI 方案。
 
-  我已阅读 cifix1.txt（编码有点乱码，但要点清晰）：你计划将桌面运行时+UI+渲染统一切换到 Godot 4.5（Windows），抛弃 Electron/React/Phaser；UI 用
+  我已阅读 cifix1.txt（编码有点乱码，但要点清晰）：你计划将桌面运行时+UI+渲染统一切换到 Godot 4.5（Windows），抛弃 LegacyDesktopShell/LegacyUIFramework/Legacy2DEngine；UI 用
   Godot Control/Theme；分发用 Windows Desktop export（.exe+.pck）；观测侧换 Godot SDK 的 Sentry；CI 用 godot --headless 出包与跑测；事件通信用 Godot
   signals+Autoload。以下按你的三个问题答复。
 
@@ -41,7 +41,7 @@
   - 全量 E2E 视功能成熟度分阶段推进：
       - 阶段1（立即）：仅冒烟（≤5条），跑时 < 2 分钟，作为必过门禁。
       - 阶段2（玩法成形）：增加“竖切场景”用例（相当于你当前 ENABLE_PLAYABLE），默认 skip，通过 GD_ENABLE_PLAYABLE=1 启用并在合适分支跑。
-      - 框架建议：优先 GUT（可跑 headless 场景测试），用 Autoload TestRunner 汇总到 logs/e2e/YYYY-MM-DD/summary.json。不再使用 Playwright（除非你仍有 Web
+      - 框架建议：优先 GUT（可跑 headless 场景测试），用 Autoload TestRunner 汇总到 logs/e2e/YYYY-MM-DD/summary.json。不再使用 LegacyE2ERunner（除非你仍有 Web
         UI）。
   - Windows 命令（建议由 Python 包装）
       - godot.exe --headless --run-tests（或加载 TestRunner.tscn，测试完 get_tree().quit(code)）
@@ -49,7 +49,7 @@
 
   三、安全与性能两大基座需改多大
 
-  - 安全（重设基线，等价于 Electron 的 ADR‑0002，在 Godot 侧重“外链/IO/网络/自启动”）
+  - 安全（重设基线，等价于 LegacyDesktopShell 的 ADR‑0002，在 Godot 侧重“外链/IO/网络/自启动”）
       - 外链/URL 打开：集中封装 OS.shell_open()（或同类 API），只允许 https + 域白名单；写入 logs/ci/<date>/security-audit.jsonl；提供 SECURITY_TEST_MODE 以
         测试态触发更详细日志。
       - HTTP 请求：统一 HTTPRequest 出网白名单（域/协议/路径前缀）；默认 deny 非 https；可注入环境变量临时放行；审计同上。
@@ -77,7 +77,7 @@
   - 先定语言后定工具：如果选 C#，CI 与门禁会更成熟（Roslyn/Sonar/.NET 生态全）；若坚定 GDScript，尽量把“复杂度/重复/安全”转由 SonarQube 统一承接，避免自己拼
     装一堆脚本。
   - 保留“开关指纹”：把 GD_ENABLE_PLAYABLE、GD_SECURE_MODE、GD_SCENE_SAMPLES 等写入指纹 JSON，沿用你现在的 E2E 指纹体系，排障非常省心。
-  - 安全一致性验证：把 Electron 阶段“域白名单+审计”经验直接迁移成 Godot 的 Security.gd 测试用 IPC 等价物（即测试直接调 Autoload 方法返回 allow/deny），减少
+  - 安全一致性验证：把 LegacyDesktopShell 阶段“域白名单+审计”经验直接迁移成 Godot 的 Security.gd 测试用 IPC 等价物（即测试直接调 Autoload 方法返回 allow/deny），减少
     UI 依赖。
 
   落地 TODO（按优先级，小步快跑）
@@ -100,7 +100,7 @@
 
   你的三个问题的简答结论
 
-  - CI 门禁变动量：中到大（工具替换为主、门禁目标不变）。先用 Python 壳保留 guard:ci 结构，把 tsc/eslint/playwright/electronegativity 等替换为 gdlint/gut/
+  - CI 门禁变动量：中到大（工具替换为主、门禁目标不变）。先用 Python 壳保留 guard:ci 结构，把 tsc/eslint/LegacyE2ERunner/LegacyDesktopShellSecurityScanner 等替换为 gdlint/gut/
     sonar/dotnet 工具。
   - E2E 测试：保留且必须。短期只冒烟（启动/外链/信号/退出）、全量等玩法成熟后再启；竖切用 GD_ENABLE_PLAYABLE=1 开关控制。
   - 安全&性能基座：需要“重设基线”（Godot 版 ADR‑0002 & 0015）。外链/网络/IO 审计+白名单、Sentry 最早初始化、性能预算与统计采集方式改为 Godot 指标。
@@ -169,7 +169,7 @@
 
   - 筑“可测试架构”：先抽 Game.Core，把 Godot 依赖彻底压到 Adapters；无此步，TDD 的速度与稳定性会显著降低。
   - 先搭“最小可运行”CI：只跑 xUnit + 场景冒烟；等 Core 覆盖到 70% 后，再补充竖切；避免一开始全铺开导致门禁不稳。
-  - 安全/性能基线要迁 Godot 口径（不是照搬 Electron）
+  - 安全/性能基线要迁 Godot 口径（不是照搬 LegacyDesktopShell）
       - 安全：统一封装 OS.ShellOpen/HTTPRequest 白名单+审计 JSONL；user:// 写入约束；隐私脱敏；Sentry Autoload 初始化
       - 性能：P95 帧时/启动时长软门→硬门演进；headless 下用“逻辑耗时指标”，本地 Runner 机测真实 FPS
 

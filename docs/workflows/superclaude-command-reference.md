@@ -31,7 +31,7 @@
 | 模式 | 适用场景 | 主要优势 | 典型任务 |
 |------|---------|---------|---------|
 | **token-efficiency** | 大型 PRD/长代码文件 | 降低上下文占用 30-50% | PRD 30+ 页,单文件 >500 行 |
-| **orchestration** | 需要串联多个 MCP 工具 | 优化工具调度效率 | Context7 → Serena → Playwright 流水线 |
+| **orchestration** | 需要串联多个 MCP 工具 | 优化工具调度效率 | Context7 → Serena → LegacyE2ERunner 流水线 |
 | **business-panel** | 里程碑决策/ADR 权衡 | 多专家会诊口径 | ADR 批准,架构方案选型 |
 
 **Focus 焦点领域详解**:
@@ -51,7 +51,7 @@
 |---------|------|---------|---------|
 | **serena** | 符号级检索与安全编辑 | 现有功能扩展、重构任务、契约对齐 | `--mcp serena` (默认启用) |
 | **context7** | 获取最新官方文档与 API 示例 | Godot/第三方库 API 查询 | `--mcp context7` |
-| **playwright** | E2E 回归测试自动化 | Web UI 测试 (仅适用于 HTML5/Web 版本) | `--mcp playwright` |
+| **LegacyE2ERunner** | E2E 回归测试自动化 | Web UI 测试 (仅适用于 HTML5/Web 版本) | `--mcp LegacyE2ERunner` |
 
 **使用场景**:
 
@@ -111,13 +111,13 @@
 ##### 场景 3: Orchestration 模式 (多工具串联)
 
 ```bash
-/sc:analyze --mode orchestration --task 1.1 --mcp context7,serena,playwright
+/sc:analyze --mode orchestration --task 1.1 --mcp context7,serena,LegacyE2ERunner
 
 # 自动执行工具链:
 # 1. Context7: 查询 Godot 4.5 Signal API 最新文档
 # 2. Serena: 查找现有 Signal 使用模式
 # 3. 生成计划: 结合官方文档 + 项目实践
-# (Playwright 仅在 HTML5/Web 版本时启用)
+# (LegacyE2ERunner 仅在 HTML5/Web 版本时启用)
 ```
 
 ##### 场景 4: Business Panel 模式 (架构决策)
@@ -311,9 +311,9 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 # 4. 输出报告
 
 # 输出示例:
-# ✅ 单元测试: 15/15 通过
-# ✅ 覆盖率: 95% (gate: 90%)
-# ✅ 无安全告警 (ADR-0002 路径校验通过)
+# [OK] 单元测试: 15/15 通过
+# [OK] 覆盖率: 95% (gate: 90%)
+# [OK] 无安全告警 (ADR-0002 路径校验通过)
 ```
 
 ##### 场景 2: 场景测试验证 (可选)
@@ -328,9 +328,9 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 # 4. 输出 JUnit/XML 报告
 
 # 输出示例:
-# ✅ 场景测试: 3/3 通过
-# ✅ Signal 连通性验证通过
-# ✅ 资源路径规范 (res:// 和 user://)
+# [OK] 场景测试: 3/3 通过
+# [OK] Signal 连通性验证通过
+# [OK] 资源路径规范 (res:// 和 user://)
 ```
 
 ##### 场景 3: 完整验证
@@ -346,11 +346,11 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 # 5. 综合质量报告
 
 # 输出示例:
-# ✅ 单元测试: 15/15 通过
-# ✅ 覆盖率: 95% (gate: 90%)
-# ✅ 场景测试: 3/3 通过
-# ✅ 安全烟测: allow/deny/invalid 验证通过
-# ⚠️  性能烟测: P95 = 18.2ms (软门 ≤16.6ms, 仅警告)
+# [OK] 单元测试: 15/15 通过
+# [OK] 覆盖率: 95% (gate: 90%)
+# [OK] 场景测试: 3/3 通过
+# [OK] 安全烟测: allow/deny/invalid 验证通过
+# [WARN]  性能烟测: P95 = 18.2ms (软门 ≤16.6ms, 仅警告)
 #
 # 下一步建议:
 # - 补充边界用例测试 (空输入、最大值、异常场景)
@@ -398,11 +398,11 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## 代码审查摘要
 
 ### 质量门禁
-- ✅ TDD 模式检查 (Skills)
-- ✅ 命名规范检查 (Skills)
-- ✅ ADR 合规审查 (Subagent)
-- ✅ 安全审查 (Subagent)
-- ⚠️  架构审查 (Subagent): 1 条优化建议
+- [OK] TDD 模式检查 (Skills)
+- [OK] 命名规范检查 (Skills)
+- [OK] ADR 合规审查 (Subagent)
+- [OK] 安全审查 (Subagent)
+- [WARN]  架构审查 (Subagent): 1 条优化建议
 
 ### 风险评估
 - 安全风险: 低 (已遵循 ADR-0002 路径校验规范)
@@ -829,7 +829,7 @@ claude mcp add context7
 |---------|------|---------|
 | serena | 符号级检索与安全编辑 | `--mcp serena` (默认) |
 | context7 | 获取最新官方文档 | `--mcp context7` |
-| playwright | E2E 回归测试 | `--mcp playwright` (仅 Web 版) |
+| LegacyE2ERunner | E2E 回归测试 | `--mcp LegacyE2ERunner` (仅 Web 版) |
 
 ---
 
@@ -849,9 +849,9 @@ claude mcp add context7
 /sc:analyze --task 1.1 --focus architecture,security
 
 # SuperClaude 分析时已知:
-# - ✅ 已存在 GuildService, 需扩展方法而非新建类
-# - ✅ 事件命名遵循 core.guild.* 规范
-# - ✅ 依赖注入模式已在 GuildRepository 中使用
+# - [OK] 已存在 GuildService, 需扩展方法而非新建类
+# - [OK] 事件命名遵循 core.guild.* 规范
+# - [OK] 依赖注入模式已在 GuildRepository 中使用
 
 # 步骤 3: SuperClaude 实现
 /sc:build --task 1.1 --tdd --coverage-gate 90
@@ -900,7 +900,7 @@ npx task-master set-status 1.1 done
 2. **大文档场景启用 token-efficiency**: PRD 30+ 页或单文件 >500 行时启用
 3. **合理选择 focus 焦点**: 标准任务使用 architecture,security, 避免不必要的焦点
 4. **专长旗标按需启用**: 仅在相关任务时启用 --security/--frontend/--performance
-5. **MCP 工具最小化**: 默认仅启用 serena, 按需添加 context7/playwright
+5. **MCP 工具最小化**: 默认仅启用 serena, 按需添加 context7/LegacyE2ERunner
 
 ---
 

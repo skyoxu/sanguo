@@ -2,7 +2,7 @@
 
 > 状态：Backlog（非当前模板 DoD，按需渐进启用）
 > 目的：承接 Phase-14-Godot-Security-Baseline.md 中尚未在当前 Godot+C# 模板完全落地的安全规则，避免“蓝图要求”与“实际实现”脱节，同时为后续项目提供可选安全增强清单。
-> 相关 ADR：ADR-0002（Electron 安全基线）、ADR-0003（审计与发布健康）、ADR-0006（数据存储）、ADR-0005（质量门禁）
+> 相关 ADR：ADR-0002（LegacyDesktopShell 安全基线）、ADR-0003（审计与发布健康）、ADR-0006（数据存储）、ADR-0005（质量门禁）
 
 ---
 

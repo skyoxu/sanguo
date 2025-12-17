@@ -40,7 +40,7 @@ CI/CD 集成
   状态: 完善覆盖
   - Security.gd Autoload（URL 白名单、HTTPRequest 约束、文件系统保护）
   - JSONL 审计日志（结构化记录）
-  - 与 Electron CSP 基线功能等价
+  - 与 LegacyDesktopShell CSP 基线功能等价
 
 文档质量
   状态: 优秀
@@ -52,16 +52,16 @@ CI/CD 集成
 功能对照验证
 ================================================================================
 
-原项目功能（vitegame）→ 迁移后功能（godotgame）对标：
+原项目功能（LegacyProject）→ 迁移后功能（godotgame）对标：
 
-菜单 UI:          React + Tailwind → Godot Control    无差异
-游戏场景:        Phaser 3 → Godot Scene Tree          等功能
-场景测试:        Playwright E2E → GUT scenes          更轻更快
+菜单 UI:          LegacyUIFramework + Tailwind → Godot Control    无差异
+游戏场景:        Legacy2DEngine 3 → Godot Scene Tree          等功能
+场景测试:        LegacyE2ERunner E2E → GUT scenes          更轻更快
 信号系统:        CloudEvents → Godot Signals          原生支持
 可观测性:        Sentry.io → Sentry Godot SDK        API 一致
 安全审计:        CSP → Security.gd + JSONL           覆盖等价
 性能基准:        FPS → P50/P95/P99                   更科学
-打包交付:        Electron .exe → Godot Export .exe   同形式
+打包交付:        LegacyDesktopShell .exe → Godot Export .exe   同形式
 
 结论: 功能完全对应，无遗漏，可行性评估通过
 
@@ -157,7 +157,7 @@ SHOULD（建议）:
   3. 创建临时项目做 PoC
 
 本周末:
-  4. 初始化目标 Godot 项目（C:\buildgame\sanguo）
+  4. 初始化目标 Godot 项目（C:\buildgame\godotgame）
   5. 运行 GUT 安装脚本
   6. 创建最小化 MainScene / GameScene
   7. 运行第一个冒烟测试

@@ -4,15 +4,15 @@
 > **工作量**：4-5 人天
 > **依赖**：Phase 8（场景设计）、Phase 12（Headless 烟测）、Phase 13（质量门禁）、Phase 15（性能基准）
 > **交付物**：Observability.cs Autoload + 3 个门禁脚本 + 结构化日志规范 + CI 集成 + 隐私合规文档
-> **验收标准**：本地 `npm run test:observability` 通过 + Release 创建与上报成功 + 发布健康门禁生效
+> **验收标准**：本地 `NodePkg run test:observability` 通过 + Release 创建与上报成功 + 发布健康门禁生效
 
 ---
 
 ## 1. 背景与动机
 
-### 原版（vitegame）可观测性
+### 原版（LegacyProject）可观测性
 
-**Electron + Sentry**：
+**LegacyDesktopShell + Sentry**：
 - Sentry 初始化在主进程与渲染进程
 - Release 标签化（git commit sha）
 - 自动捕获未处理异常与 Promise rejection
@@ -194,30 +194,30 @@ godotgame/
 ├── src/
 │   ├── Game.Core/
 │   │   ├── Observability/
-│   │   │   ├── ObservabilityClient.cs           ★ Sentry SDK 包装
-│   │   │   ├── StructuredLogger.cs              ★ 结构化日志接口
-│   │   │   ├── ReleaseHealthGate.cs             ★ 发布健康检查
-│   │   │   └── PiiDataScrubber.cs               ★ PII 脱敏
+│   │   │   ├── ObservabilityClient.cs           * Sentry SDK 包装
+│   │   │   ├── StructuredLogger.cs              * 结构化日志接口
+│   │   │   ├── ReleaseHealthGate.cs             * 发布健康检查
+│   │   │   └── PiiDataScrubber.cs               * PII 脱敏
 │   │   │
 │   │   └── Offline/
-│   │       └── OfflineEventQueue.cs             ★ 离线队列（SQLite）
+│   │       └── OfflineEventQueue.cs             * 离线队列（SQLite）
 │   │
 │   └── Godot/
-│       ├── Observability.cs                     ★ Autoload 入口
-│       ├── BreadcrumbRecorder.cs                ★ 操作记录
-│       └── SessionManager.cs                    ★ 会话管理
+│       ├── Observability.cs                     * Autoload 入口
+│       ├── BreadcrumbRecorder.cs                * 操作记录
+│       └── SessionManager.cs                    * 会话管理
 │
 ├── scripts/
-│   ├── release_health_gate.py                   ★ 发布健康门禁脚本
-│   ├── generate_release_metadata.py             ★ Release 元数据生成
-│   └── upload_sourcemaps.py                     ★ 源码映射上传
+│   ├── release_health_gate.py                   * 发布健康门禁脚本
+│   ├── generate_release_metadata.py             * Release 元数据生成
+│   └── upload_sourcemaps.py                     * 源码映射上传
 │
 ├── config/
-│   └── sentry_config.json                       ★ Sentry 配置文件
+│   └── sentry_config.json                       * Sentry 配置文件
 │
 └── docs/
-    ├── logging-guidelines.md                    ★ 日志使用规范
-    └── privacy-compliance.md                    ★ 隐私与合规文档
+    ├── logging-guidelines.md                    * 日志使用规范
+    └── privacy-compliance.md                    * 隐私与合规文档
 ```
 
 ---
@@ -1136,7 +1136,7 @@ options.BeforeSend = (sentryEvent, hint) =>
 
 - [ ] GitHub Actions 工作流配置（release-health-gate.yml）
 - [ ] Sentry 项目创建（组织、DSN、API Token）
-- [ ] 本地验证命令（npm run test:observability）
+- [ ] 本地验证命令（NodePkg run test:observability）
 - [ ] 发布门禁与 CI 集成（≥99.5% Crash-Free）
 - [ ] 离线队列与恢复机制
 

@@ -203,7 +203,7 @@ dotnet tool install --global dotnet-reportgenerator-globaltool
 winget install OpenJS.NodeJS.LTS
 
 # 安装 jscpd
-npm install -g jscpd
+NodePkg install -g jscpd
 
 # 验证
 jscpd --version
@@ -220,7 +220,7 @@ jscpd --version
 **安装步骤**:
 ```powershell
 # 安装 Sentry CLI
-npm install -g @sentry/cli
+NodePkg install -g @sentry/cli
 
 # 配置（需要 Sentry 账号和 Auth Token）
 sentry-cli --version
@@ -266,8 +266,8 @@ dir $env:APPDATA\Godot\export_templates\4.5.x.stable.mono\
 ### 创建新分支
 
 ```powershell
-# 切换到 vitegame 仓库
-cd C:\buildgame\vitegame
+# 切换到 LegacyProject 仓库
+cd C:\buildgame\LegacyProject
 
 # 创建迁移分支（基于当前 main）
 git checkout -b migration/godot-csharp
@@ -283,7 +283,7 @@ mkdir -p docs/migration
 ### 目录结构规划
 
 ```
-vitegame/                      # 保持现有结构不变
+LegacyProject/                      # 保持现有结构不变
 ├── docs/
 │   ├── migration/             # 新增：迁移文档
 │   │   ├── MIGRATION_INDEX.md
@@ -311,7 +311,7 @@ godotgame/                     # 新建：Godot 项目根目录
 
 **执行步骤**:
 ```powershell
-# 在 vitegame 同级创建 godotgame
+# 在 LegacyProject 同级创建 godotgame
 cd C:\buildgame
 mkdir godotgame
 cd godotgame
@@ -486,4 +486,4 @@ git config --global i18n.logoutputencoding utf-8
 
 完成本阶段后，继续：
 
-➡️ [Phase-2-ADR-Updates.md](Phase-2-ADR-Updates.md) — ADR 更新与新增
+-> [Phase-2-ADR-Updates.md](Phase-2-ADR-Updates.md) — ADR 更新与新增

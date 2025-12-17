@@ -84,7 +84,7 @@ graph TD
 
 ```bash
 # 1. 开发者完成功能并自检通过
-dotnet run  # ✅ 窗口正常显示，关键功能可操作
+dotnet run  # [OK] 窗口正常显示，关键功能可操作
 
 # 2. 执行架构验收
 /acceptance-check 1.1
@@ -92,13 +92,13 @@ dotnet run  # ✅ 窗口正常显示，关键功能可操作
 # 3. Subagents 返回报告
 ## 架构验收报告
 
-### CloudEvents 合规性 ❌
+### CloudEvents 合规性 [X]
 - 文件：Game.Core/Contracts/Guild/GuildCreated.cs:15
 - 问题：事件类型命名不符合 ADR-0004
 - 期望：core.guild.created
 - 实际：guild.created（缺少 domain prefix）
 
-### 性能 SLO ✅
+### 性能 SLO [OK]
 - 帧耗时 P95：14.2ms（门禁 ≤ 16.6ms）
 
 # 4. 标记 blocked 并记录问题
@@ -112,9 +112,9 @@ public const string EventType = "core.guild.created";  // 修正 domain prefix
 # 6. 重新架构验收
 /acceptance-check 1.1
 ## 架构验收报告
-### CloudEvents 合规性 ✅
-### 性能 SLO ✅
-### 全部通过 ✅
+### CloudEvents 合规性 [OK]
+### 性能 SLO [OK]
+### 全部通过 [OK]
 
 # 7. 标记完成
 npx task-master set-status 1.1 done
@@ -143,7 +143,7 @@ py -3 -m pip install jsonschema
 
 ### 2.2 Taskmaster 任务 Schema 扩展
 
-> 说明：在 sanguo 中，Taskmaster 任务存放于 `.taskmaster/tasks/*.json`（如 tasks_back.json、tasks_gameplay.json、tasks_longterm.json）；下文以 tasks.json 字段示例表示单条任务记录的典型结构，具体字段命名以 `.taskmaster/tasks/*.json` 为准。
+> 说明：在 newguild 中，Taskmaster 任务存放于 `.taskmaster/tasks/*.json`（如 tasks_back.json、tasks_gameplay.json、tasks_longterm.json）；下文以 tasks.json 字段示例表示单条任务记录的典型结构，具体字段命名以 `.taskmaster/tasks/*.json` 为准。
 
 Task Master 默认字段（概念示例）：
 ```json
@@ -187,7 +187,7 @@ SuperClaude v4 提供三种运行模式,根据任务特征选择合适的模式�
 | 模式 | 适用场景 | 主要优势 | 典型任务 |
 |------|---------|---------|---------|
 | **Token-Efficiency** | 大型 PRD/长代码文件 | 降低上下文占用 30-50% | PRD 30+ 页,单文件 >500 行 |
-| **Orchestration** | 需要串联多个 MCP 工具 | 优化工具调度效率 | Context7 → Serena → Playwright 流水线 |
+| **Orchestration** | 需要串联多个 MCP 工具 | 优化工具调度效率 | Context7 → Serena → LegacyE2ERunner 流水线 |
 | **Business Panel** | 里程碑决策/ADR 权衡 | 多专家会诊口径 | ADR 批准,架构方案选型 |
 
 #### 专长旗标说明
@@ -213,10 +213,10 @@ SuperClaude v4 推荐的"黄金三角" MCP 工具组合:
    - 场景: Godot/Cocos API 查询,库用法学习
    - 配置: 详见 Phase 3.15
 
-3. **Playwright MCP** (可选，主要面向 Web/Electron 子项目)
-   - 用途: E2E 回归测试自动化（仅当项目存在 HTML5/Web/Electron 前端时适用），默认 Godot+C# 模板的 E2E 由 GdUnit4/headless Godot 承担。
-   - 场景: Web UI 测试、Electron 包装应用的回归验证（sanguo 默认不开启）。
-   - 配置: 如需启用，需在项目层单独配置 Playwright 与 MCP 集成，不属于模板必备能力。
+3. **LegacyE2ERunner MCP** (可选，主要面向 Web/LegacyDesktopShell 子项目)
+   - 用途: E2E 回归测试自动化（仅当项目存在 HTML5/Web/LegacyDesktopShell 前端时适用），默认 Godot+C# 模板的 E2E 由 GdUnit4/headless Godot 承担。
+   - 场景: Web UI 测试、LegacyDesktopShell 包装应用的回归验证（newguild 默认不开启）。
+   - 配置: 如需启用，需在项目层单独配置 LegacyE2ERunner 与 MCP 集成，不属于模板必备能力。
 
 ---
 
@@ -224,9 +224,9 @@ SuperClaude v4 推荐的"黄金三角" MCP 工具组合:
 
 在开始日常开发循环前，需要完成以下一次性配置任务，确保工作流基础设施就绪。
 
-#### 🔴 高优先级（本周完成）
+#### O 高优先级（本周完成）
 
-##### ✅ 1. 批量更新 overlay 字段
+##### [OK] 1. 批量更新 overlay 字段
 
 创建自动化脚本将任务与架构验收清单关联：
 
@@ -250,7 +250,7 @@ py -3 scripts/python/task_links_validate.py
 }
 ```
 
-##### ✅ 2. 创建 Subagents 提示模板
+##### [OK] 2. 创建 Subagents 提示模板
 
 定义架构验收执行逻辑：
 
@@ -282,7 +282,7 @@ description: 执行架构级验收检查（Subagents）
 # 应返回架构验收报告
 ```
 
-##### ✅ 3. 确立 SuperClaude 提交规范
+##### [OK] 3. 确立 SuperClaude 提交规范
 
 定义 Git commit 消息格式，确保 Task ID、ADR、Overlay 引用统一：
 
@@ -313,9 +313,9 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 **注意**：当前 SuperClaude 需要手动添加 Task ID 引用（未来版本可能支持自动提取）。
 
-#### 🟡 中优先级（本月完成）
+#### O 中优先级（本月完成）
 
-##### 🔄 4. 试运行第一个任务（完整演示）
+##### [SYNC] 4. 试运行第一个任务（完整演示）
 
 选择简单任务（如实现 Godot 窗口初始化或基础场景加载）完整走一遍三阶段流程，验证工作流可用性。
 
@@ -565,7 +565,7 @@ npx task-master set-status 1.1 done
 4. **补充验收检查项**：如发现 ACCEPTANCE_CHECKLIST.md 遗漏检查项，补充
 5. **团队培训**：分享试运行经验，培训团队成员使用新工作流
 
-##### 🔄 5. 优化工作流
+##### [SYNC] 5. 优化工作流
 
 根据试运行结果调整流程：
 - 更新文档中的步骤说明
@@ -573,9 +573,9 @@ npx task-master set-status 1.1 done
 - 补充缺失的验收检查项
 - 培训团队成员使用新工作流
 
-#### 🟢 低优先级（按需执行）
+#### O 低优先级（按需执行）
 
-##### ⏸️ 6. 自动化增强（需要开发插件）
+##### ⏸ 6. 自动化增强（需要开发插件）
 
 以下功能暂不优先实现，可在工作流成熟后按需添加：
 
@@ -583,7 +583,7 @@ npx task-master set-status 1.1 done
 - Subagents 结果自动写入任务（需要 API 集成）
 - CI 集成架构验收（需要配置 GitHub Actions）
 
-📈 预期收益
+[TREND] 预期收益
 
 开发效率：减少返工，一次做对，架构问题在开发阶段就被发现
 
@@ -591,7 +591,7 @@ npx task-master set-status 1.1 done
 
 团队协作：统一流程，标准化产出，降低沟通成本
 
-🔑 核心洞察
+[KEY] 核心洞察
 
 Task Master 和 BMAD 不是竞争关系而是互补关系：
 
@@ -721,7 +721,7 @@ graph LR
 使用统一契约模板创建 C# 文件，放置于 `Game.Core/Contracts/<Module>/`：
 
 ```csharp
-namespace Game.Core.Contracts.<Module>;
+namespace Game.Contracts.<Module>;
 
 /// <summary>
 /// Domain event: ${DOMAIN_PREFIX}.<entity>.<action>
@@ -825,7 +825,7 @@ public class GuildContractsTests
 
 **外圈质量门禁（结构层校验 vs 行为层 TDD）**
 
-在 sanguo 中，契约与事件的质量保障分为两圈：
+在 newguild 中，契约与事件的质量保障分为两圈：
 
 - **内圈（行为层 TDD）**：
   - 使用 xUnit/GdUnit4 直接针对业务行为与状态机编写测试（例如 `GameTurnSystemTests`, `EventEngineTests`, `GameLoopContractsTests`）。
@@ -834,7 +834,7 @@ public class GuildContractsTests
   - 使用专用 Python 脚本检查契约与文档的一致性和命名规范，例如：
     - `scripts/python/validate_contracts.py`：验证 Overlay 08 中声明的契约路径是否存在并指向正确的 C# 文件。
     - `scripts/python/check_guild_contracts.py`：检查 Guild 契约命名空间是否为 `Game.Core.Contracts.Guild`，`EventType` 是否为 `core.guild.*` 前缀。
-    - （规划中）`check_gameloop_contracts.py`：检查 GameLoop 契约命名空间是否为 `Game.Core.Contracts.GameLoop`，`EventType` 是否为 `core.game_turn.*` 前缀，并与 ADR/Overlay 约定一致。
+    - （规划中）`check_gameloop_contracts.py`：检查 GameLoop 契约命名空间是否为 `Game.Contracts.GameLoop`，`EventType` 是否为 `core.game_turn.*` 前缀，并与 ADR/Overlay 约定一致。
   - 这些脚本不直接验证“逻辑是否正确”，而是保证：命名、位置、EventType 前缀和文档回链不漂移。
 
 **建议的落地时机与门禁级别：**
@@ -853,7 +853,7 @@ public class GuildContractsTests
 - 在实现阶段聚焦业务行为与可玩性（由单元/场景测试驱动）。
 - 在架构与长期维护阶段，靠结构校验脚本防止契约和文档慢慢偏离 ADR/Overlay 约定。
 
-#### 当前 sanguo 实现状态（Guild 示例）
+#### 当前 newguild 实现状态（Guild 示例）
 
 - Guild 领域事件套装已落地，并符合 ADR-0004 的 `core.<entity>.<action>` 约定：
   - `core.guild.created` → `Game.Core/Contracts/Guild/GuildCreated.cs`
@@ -867,7 +867,7 @@ public class GuildContractsTests
   - `scripts/python/validate_contracts.py` 检查 Overlay 08 中的契约路径是否指向存在的 C# 契约，并已在 `windows-quality-gate.yml` 中以软门禁方式运行。
   - `scripts/python/check_guild_contracts.py` 检查 Guild 契约文件是否存在、命名空间是否为 `Game.Core.Contracts.Guild`，以及 `EventType` 是否为预期的 `core.guild.*` 值。
 - 同步更新约定：
-  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md` 中记录了 T2 闭环主要事件契约，并明确要求：新增或调整 `Game.Core/Contracts/Sanguo/**` 下的 C# 契约时，必须同步更新 `SanguoContractsTests.cs` / `SanguoContractInstantiationTests.cs` 与 `check_sanguo_gameloop_contracts.py`，并通过 `validate_contracts.py` 重新校验 Overlay ↔ Contracts 回链。
+  - `08-Contracts-Guild-Manager-Events.md` 中记录了 Guild 主要事件契约，并明确要求：新增或调整 `Game.Core/Contracts/Guild/**` 下的 C# 契约时，必须同步更新 `GuildContractsTests.cs` 与 `check_guild_contracts.py`，并通过 `validate_contracts.py` 重新校验 Overlay ↔ Contracts 回链。
 
 ---
 
@@ -989,9 +989,9 @@ find_symbol "GuildCreated" --relative_path "Game.Core/Contracts/Guild/"
 /sc:analyze --task 1.1 --focus architecture,security
 
 # SuperClaude 分析时已知：
-# - ✅ 已存在 GuildService，需扩展方法而非新建类
-# - ✅ 事件命名遵循 core.guild.* 规范
-# - ✅ 依赖注入模式已在 GuildRepository 中使用
+# - [OK] 已存在 GuildService，需扩展方法而非新建类
+# - [OK] 事件命名遵循 core.guild.* 规范
+# - [OK] 依赖注入模式已在 GuildRepository 中使用
 ```
 
 **注意事项**：
@@ -1006,7 +1006,7 @@ find_symbol "GuildCreated" --relative_path "Game.Core/Contracts/Guild/"
 | 任务特征 | 推荐模式 | 命令示例 |
 |---------|---------|---------|
 | PRD 30+ 页,长代码文件 | Token-Efficiency | `/sc:analyze --mode token-efficiency --task 1.1` |
-| 需要串联 Context7/Serena/Playwright | Orchestration | `/sc:analyze --mode orchestration --task 1.1 --mcp context7,serena` |
+| 需要串联 Context7/Serena/LegacyE2ERunner | Orchestration | `/sc:analyze --mode orchestration --task 1.1 --mcp context7,serena` |
 | 标准任务(默认) | 标准模式 | `/sc:analyze --task 1.1 --focus architecture,security` |
 
 **示例**:
@@ -1016,7 +1016,7 @@ find_symbol "GuildCreated" --relative_path "Game.Core/Contracts/Guild/"
 /sc:analyze --mode token-efficiency --task 1.1 --focus architecture,security
 
 # Orchestration 模式(多工具串联)
-/sc:analyze --mode orchestration --task 1.1 --mcp context7,serena,playwright
+/sc:analyze --mode orchestration --task 1.1 --mcp context7,serena,LegacyE2ERunner
 ```
 
 SuperClaude 分析内容:
@@ -1241,10 +1241,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 输出示例：
 ```
-✅ 单元测试: 15/15 通过
-✅ 覆盖率: 95% (gate: 90%)
-✅ 无安全告警（ADR-0002 路径校验通过）
-✅ 已自动 commit: abc123f
+[OK] 单元测试: 15/15 通过
+[OK] 覆盖率: 95% (gate: 90%)
+[OK] 无安全告警（ADR-0002 路径校验通过）
+[OK] 已自动 commit: abc123f
 
 下一步建议：
 - 补充 GdUnit4 场景测试（可选）
@@ -1321,9 +1321,9 @@ py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "%GODOT_BIN%" --project
 
 输出示例：
 ```
-✅ TDD 模式: 3 个 red→green→refactor 周期
-✅ 命名规范: 100% 符合 PascalCase/camelCase 约定
-⚠️  建议: GuildCreationTests.cs:45 测试名可更明确
+[OK] TDD 模式: 3 个 red→green→refactor 周期
+[OK] 命名规范: 100% 符合 PascalCase/camelCase 约定
+[WARN]  建议: GuildCreationTests.cs:45 测试名可更明确
 ```
 
 **3.14 深度审查（Subagents）**
@@ -1353,16 +1353,16 @@ py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "%GODOT_BIN%" --project
 ```markdown
 ## Subagent 审查报告
 
-### ADR 合规性 ✅
+### ADR 合规性 [OK]
 - ADR-0002 路径校验: 100% 实现
 - ADR-0006 SQLite 使用: 符合规范
 
-### 安全评估 ✅
+### 安全评估 [OK]
 - 无未验证路径操作
 - 无 SQL 注入风险
 - 审计日志完整
 
-### 架构评估 ⚠️
+### 架构评估 [WARN]
 - 三层架构: 符合规范
 - Godot API 隔离: 符合规范
 - 建议: GuildCreationService.cs:67 可提取接口
@@ -1428,7 +1428,7 @@ graph TD
 
 ```bash
 # 1. 开发者完成功能并自检通过
-dotnet run  # ✅ 窗口正常显示，关键功能可操作
+dotnet run  # [OK] 窗口正常显示，关键功能可操作
 
 # 2. 执行架构验收
 /acceptance-check 1.1
@@ -1436,13 +1436,13 @@ dotnet run  # ✅ 窗口正常显示，关键功能可操作
 # 3. Subagents 返回报告
 ## 架构验收报告
 
-### CloudEvents 合规性 ❌
+### CloudEvents 合规性 [X]
 - 文件：Game.Core/Contracts/Guild/GuildCreated.cs:15
 - 问题：事件类型命名不符合 ADR-0004
 - 期望：core.guild.created
 - 实际：guild.created（缺少 domain prefix）
 
-### 性能 SLO ✅
+### 性能 SLO [OK]
 - 帧耗时 P95：14.2ms（门禁 ≤ 16.6ms）
 
 # 4. 标记 blocked 并记录问题
@@ -1456,9 +1456,9 @@ public const string EventType = "core.guild.created";  // 修正 domain prefix
 # 6. 重新架构验收
 /acceptance-check 1.1
 ## 架构验收报告
-### CloudEvents 合规性 ✅
-### 性能 SLO ✅
-### 全部通过 ✅
+### CloudEvents 合规性 [OK]
+### 性能 SLO [OK]
+### 全部通过 [OK]
 
 # 7. 标记完成
 npx task-master set-status 1.1 done
@@ -1475,11 +1475,11 @@ superclaude review --staged
 ## 代码审查摘要
 
 ### 质量门禁
-- ✅ TDD 模式检查（Skills）
-- ✅ 命名规范检查（Skills）
-- ✅ ADR 合规审查（Subagent）
-- ✅ 安全审查（Subagent）
-- ⚠️  架构审查（Subagent）：1 条优化建议
+- [OK] TDD 模式检查（Skills）
+- [OK] 命名规范检查（Skills）
+- [OK] ADR 合规审查（Subagent）
+- [OK] 安全审查（Subagent）
+- [WARN]  架构审查（Subagent）：1 条优化建议
 
 ### 风险评估
 - 安全风险：低（已遵循 ADR-0002 路径校验规范）
@@ -1536,19 +1536,19 @@ description: 执行架构级验收检查（Subagents）
 ## 架构验收报告
 
 ### ADR-0004 事件契约合规性
-- ✅ 事件命名：core.guild.created (符合 ${DOMAIN_PREFIX}.<entity>.<action>)
-- ✅ 契约位置：Game.Core/Contracts/Guild/GuildCreated.cs
-- ❌ CloudEvents 字段缺失：Type 字段未定义
+- [OK] 事件命名：core.guild.created (符合 ${DOMAIN_PREFIX}.<entity>.<action>)
+- [OK] 契约位置：Game.Core/Contracts/Guild/GuildCreated.cs
+- [X] CloudEvents 字段缺失：Type 字段未定义
 
 ### Godot 安全基线（ADR-0002）
-- ✅ 仅使用 res:// 和 user:// 路径
-- ✅ 无绝对路径引用
+- [OK] 仅使用 res:// 和 user:// 路径
+- [OK] 无绝对路径引用
 
 ### 性能 SLO
-- ✅ 帧耗时 P95：14.2ms（门禁 ≤ 16.6ms）
+- [OK] 帧耗时 P95：14.2ms（门禁 ≤ 16.6ms）
 
 ### ADR 关联验证
-- ✅ 任务引用的 ADR-0002, ADR-0004 均为 Accepted 状态
+- [OK] 任务引用的 ADR-0002, ADR-0004 均为 Accepted 状态
 
 ### 总结
 - 通过：4 项
@@ -1641,28 +1641,28 @@ description: 执行架构级验收检查（Subagents）
 claude mcp add context7
 ```
 
-**3.17 Playwright MCP 集成(可选)**
+**3.17 LegacyE2ERunner MCP 集成(可选)**
 
-**⚠️ 重要提示**：本项目为 **Windows Desktop 游戏**（ADR-0011），默认导出为原生 `.exe`。
-Playwright 仅在以下情况有用：
+**[WARN] 重要提示**：本项目为 **Windows Desktop 游戏**（ADR-0011），默认导出为原生 `.exe`。
+LegacyE2ERunner 仅在以下情况有用：
 - 项目有 **HTML5 Web 版本**计划
-- 需要测试 **Electron 包装**的桌面版
+- 需要测试 **LegacyDesktopShell 包装**的桌面版
 
 如果项目只做原生 Windows 游戏，**可跳过此 MCP 配置**。
 
 ---
 
-使用 Playwright MCP 进行 E2E 回归测试(适用于 Godot 导出的 HTML5 版本或 Electron 包装):
+使用 LegacyE2ERunner MCP 进行 E2E 回归测试(适用于 Godot 导出的 HTML5 版本或 LegacyDesktopShell 包装):
 
 ```bash
-# 在 Claude Code 对话中使用 Playwright
-@playwright test
+# 在 Claude Code 对话中使用 LegacyE2ERunner
+@LegacyE2ERunner test
 # 运行所有 E2E 测试
 
-@playwright test tests/e2e/guild-creation.spec.ts
+@LegacyE2ERunner test tests/e2e/guild-creation.spec.ts
 # 运行特定测试文件
 
-@playwright codegen
+@LegacyE2ERunner codegen
 # 录制新的 E2E 测试用例
 ```
 
@@ -1671,11 +1671,11 @@ Playwright 仅在以下情况有用：
 - 关键用户流程的回归测试
 - UI 交互逻辑验证
 
-**配置 Playwright MCP**:
+**配置 LegacyE2ERunner MCP**:
 ```bash
-# 在 Claude Code 中启用 Playwright MCP
+# 在 Claude Code 中启用 LegacyE2ERunner MCP
 # 详见 SuperClaude v4 安装清单(Phase 6)
-claude mcp add playwright
+claude mcp add LegacyE2ERunner
 ```
 
 **3.18 推送分支并创建 PR**
@@ -1707,7 +1707,7 @@ gh pr create \
 
 Refs: #1.1
 
-🤖 Generated with SuperClaude
+[AI] Generated with SuperClaude
 EOF
 )"
 ```
@@ -1760,10 +1760,10 @@ npx task-master set-status 1.1 completed
 - **ROI 计算**：$9/月 成本 vs. 节省 10% 任务的 67% 时间 = **负收益 -$59/月**
 
 **何时考虑 claude-context**：
-- ✅ 遗留代码重构项目（需要大量"找相似实现"）
-- ✅ 代码考古（理解陌生代码库）
-- ✅ 跨仓库模式分析（如"整个组织如何处理认证"）
-- ❌ 当前项目（需求明确、结构清晰、已有 ADR/CH 文档）
+- [OK] 遗留代码重构项目（需要大量"找相似实现"）
+- [OK] 代码考古（理解陌生代码库）
+- [OK] 跨仓库模式分析（如"整个组织如何处理认证"）
+- [X] 当前项目（需求明确、结构清晰、已有 ADR/CH 文档）
 
 **推荐工作流（仅 Serena）**：
 1. **明确任务**（80%）：`find_symbol` → `find_referencing_symbols` → 精准上下文
@@ -1974,12 +1974,12 @@ def fill_pr_template(task_id: str) -> str:
 
 ```bash
 # 主分支保持在 main
-git worktree add ../sanguo-task-1.1 -b feature/task-1.1
-git worktree add ../sanguo-task-1.2 -b feature/task-1.2
+git worktree add ../newguild-task-1.1 -b feature/task-1.1
+git worktree add ../newguild-task-1.2 -b feature/task-1.2
 
 # 在不同终端/IDE 实例中分别处理
-# Terminal 1: cd ../sanguo-task-1.1 && code .
-# Terminal 2: cd ../sanguo-task-1.2 && code .
+# Terminal 1: cd ../newguild-task-1.1 && code .
+# Terminal 2: cd ../newguild-task-1.2 && code .
 ```
 
 **注意**：SQLite 数据库文件冲突，建议测试时使用内存数据库。
@@ -2002,7 +2002,7 @@ def run_tests():
     # 运行单元测试
     result = subprocess.run(["dotnet", "test"], capture_output=True)
     if result.returncode != 0:
-        print("❌ 单元测试失败，拒绝提交")
+        print("[X] 单元测试失败，拒绝提交")
         print(result.stderr.decode())
         return False
 
@@ -2269,7 +2269,7 @@ npx task-master set-status 1.1 completed
    # 重新添加 MCP 服务器
    claude mcp add serena
    claude mcp add context7
-   claude mcp add playwright
+   claude mcp add LegacyE2ERunner
    ```
 
 3. **验证 MCP 连接**：
@@ -2346,12 +2346,12 @@ npx task-master set-status 1.1 completed
    @context7 godot node
    ```
 
-3. **Playwright MCP** (可选，E2E 测试)：
+3. **LegacyE2ERunner MCP** (可选，E2E 测试)：
    ```bash
-   claude mcp add playwright
+   claude mcp add LegacyE2ERunner
 
    # 验证安装
-   @playwright test --help
+   @LegacyE2ERunner test --help
    ```
 
 **其他 MCP 工具**（按需添加）：
@@ -2372,7 +2372,7 @@ npx task-master set-status 1.1 completed
       "threshold": 0.75
     },
     "mcp": {
-      "enabled": ["serena", "context7", "playwright"],
+      "enabled": ["serena", "context7", "LegacyE2ERunner"],
       "default": ["serena"]
     }
   }
@@ -2403,7 +2403,7 @@ npx task-master next
 @security-auditor subagent --baseline ADR-0002
 
 # 5. E2E 回归测试
-@playwright test tests/e2e/smoke.spec.ts
+@LegacyE2ERunner test tests/e2e/smoke.spec.ts
 
 # 6. 生成 commit 和 PR
 superclaude commit
@@ -2418,7 +2418,7 @@ superclaude review --staged
 - [ ] Claude Code 可识别 `/sc:*` 命令
 - [ ] Serena MCP 连接正常：`@serena list_memories`
 - [ ] Context7 MCP 连接正常：`@context7 godot` 返回结果
-- [ ] Playwright MCP 连接正常（如已安装）：`@playwright test --help`
+- [ ] LegacyE2ERunner MCP 连接正常（如已安装）：`@LegacyE2ERunner test --help`
 - [ ] 默认模式配置正确：检查 `.claude/settings.json`
 - [ ] 可以正常运行完整工作流（分析 → 实现 → 测试 → 审查）
 
@@ -2501,7 +2501,7 @@ superclaude review --staged
 
 ## 10. Node / Web 生态说明（可选附加）
 
-- 在 sanguo 模板中，**主线工具链** 是：`.taskmaster/tasks/*.json` + Python 脚本 + dotnet/xUnit + GdUnit4，用于驱动 PRD/Base/ADR 约束下的 Godot+C# 游戏开发。
-- 文档中出现的 Node / npm / Playwright MCP 等内容，默认视为 **仅在存在 Web/HTML5/Electron 子项目时启用的可选能力**，不是本仓库的硬依赖。
-- 如果当前项目只构建原生 Windows Godot 游戏，可以暂时忽略所有 Node/Vitest/Playwright 相关命令与脚本，不影响 T2 场景和核心回合循环的实现与验证。
-- 当你未来引入 Web/Electron 前端、需要前端专用 E2E/可用性测试时，可以参考文档中的 Node/Vitest/Playwright 段落，将其视为在 sanguo 之上的“额外层”，并保持 ADR/任务回链与现有 Godot+C# 工具链一致。
+- 在 newguild 模板中，**主线工具链** 是：`.taskmaster/tasks/*.json` + Python 脚本 + dotnet/xUnit + GdUnit4，用于驱动 PRD/Base/ADR 约束下的 Godot+C# 游戏开发。
+- 文档中出现的 Node / NodePkg / LegacyE2ERunner MCP 等内容，默认视为 **仅在存在 Web/HTML5/LegacyDesktopShell 子项目时启用的可选能力**，不是本仓库的硬依赖。
+- 如果当前项目只构建原生 Windows Godot 游戏，可以暂时忽略所有 Node/LegacyUnitTestRunner/LegacyE2ERunner 相关命令与脚本，不影响 T2 场景和核心回合循环的实现与验证。
+- 当你未来引入 Web/LegacyDesktopShell 前端、需要前端专用 E2E/可用性测试时，可以参考文档中的 Node/LegacyUnitTestRunner/LegacyE2ERunner 段落，将其视为在 newguild 之上的“额外层”，并保持 ADR/任务回链与现有 Godot+C# 工具链一致。

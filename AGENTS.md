@@ -96,7 +96,7 @@ docs/
   architecture/
     base/                 # SSoT：跨切面与系统骨干（01–07、09、10）
       01-introduction-and-goals-v2.md
-      02-security-baseline-electron-v2.md
+      02-security-baseline-godot-v2.md
       03-observability-sentry-logging-v2.md
       04-system-context-c4-event-flows-v2.md
       05-data-models-and-storage-ports-v2.md
@@ -118,7 +118,7 @@ docs/
 ### 默认 ADR 映射（可扩展）
 
 - **ADR-0001-tech-stack**：技术栈选型
-- **ADR-0002-electron-security**：安全基线
+- **ADR-0019-godot-security-baseline**：安全基线（Godot）
 - **ADR-0003-observability-release-health**：可观测性和发布健康 (Sentry, 崩溃率阈值, 结构化日志)
 - **ADR-0004-event-bus-and-contracts**：事件总线和契约 (CloudEvents, 类型定义, 端口适配)
 - **ADR-0005-quality-gates**：质量门禁 (覆盖率, ESLint, 性能阈值, Bundle大小)
@@ -137,7 +137,7 @@ docs/
 ### Codex Cli 写作前自检（内置检查清单）
 
 - 目标文件属于 **base** 还是 **overlay**？（base 禁 PRD-ID，overlay 必带 PRD-ID 与 ADRs）
-- 是否涉及 **安全、事件契约、质量门禁、Release Health**？若是，请**引用** ADR‑0002/0004/0005/0003。
+- 是否涉及 **安全、事件契约、质量门禁、Release Health**？若是，请**引用** ADR‑0019/0004/0005/0003。
 - 08 章是否只**引用** 01/02/03 的口径（不复制阈值）？
 - 是否附带 **契约片段** 与 **就地验收**？
 - PRD Front‑Matter 的 `Test-Refs` 是否已更新到新用例或占位用例？
