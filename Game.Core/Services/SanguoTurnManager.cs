@@ -121,6 +121,18 @@ public sealed class SanguoTurnManager
             causationId: causationId,
             occurredAt: occurredAt);
 
+        var season = GetSeasonFromMonth(_currentDate.Month);
+        _economy.PublishSeasonEventIfBoundary(
+            gameId: _gameId,
+            previousDate: previousDate,
+            currentDate: _currentDate,
+            season: season,
+            affectedRegionIds: Array.Empty<string>(),
+            yieldMultiplier: 1.0m,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+
         var advanced = new DomainEvent(
             Type: SanguoGameTurnAdvanced.EventType,
             Source: nameof(SanguoTurnManager),
@@ -158,5 +170,13 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N")
         );
         _bus.PublishAsync(started).GetAwaiter().GetResult();
+    }
+
+    private static int GetSeasonFromMonth(int month)
+    {
+        if (month is < 1 or > 12)
+            throw new ArgumentOutOfRangeException(nameof(month), "Month must be between 1 and 12.");
+
+        return ((month - 1) / 3) + 1;
     }
 }

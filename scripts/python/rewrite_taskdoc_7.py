@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""
+Rewrite taskdoc/7.md with UTF-8 content.
+
+Why this exists:
+- PowerShell piping to `py -3 -` can corrupt non-ASCII source text depending on console encoding.
+- We want deterministic UTF-8 output for Chinese task docs.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+
+def main() -> int:
+    content = """# Task 7 上下文（Serena MCP 预检）
+
+- 目的：为 Task 7（经济结算管理器）实现准备可复用的既有符号/接口/契约/引用链上下文，避免重复造轮子与破坏既有契约。
+- 约束：事件命名与契约遵循 ADR-0004；Core 纯 C#（无 Godot 依赖）；事件发布走 IEventBus。
+
+## 1) 相关符号（find_symbol）
+
+### 回合节拍（经济结算触发点）
+- `Game.Core/Services/SanguoTurnManager.cs`
+  - `SanguoTurnManager.StartNewGame(...)`
+  - `SanguoTurnManager.AdvanceTurn(...)`
+
+### 经济规则与边界（倍率上限等）
+- `Game.Core/Domain/SanguoEconomyRules.cs`
+  - `SanguoEconomyRules`（MaxPriceMultiplier/MaxTollMultiplier/Default）
+
+### 城池价格/过路费计算入口
+- `Game.Core/Domain/City.cs`
+  - `City.GetPrice(multiplier, rules)`
+  - `City.GetToll(multiplier, rules)`
+
+### 玩家资金/城池所有权入口（结算应复用）
+- `Game.Core/Domain/SanguoPlayer.cs`
+  - `SanguoPlayer.TryBuyCity(...)`
+  - `SanguoPlayer.TryPayTollTo(...)`
+  - 关键状态：`Money`、`OwnedCityIds`、`IsEliminated`
+
+## 2) 接口定义（search_for_pattern）
+
+### 事件总线
+- `Game.Core/Services/EventBus.cs`
+  - `public interface IEventBus { Task PublishAsync(DomainEvent evt); }`
+
+### 时间端口
+- `Game.Core/Ports/ITime.cs`
+
+### Player 只读投影（给 UI/AI 读）
+- `Game.Core/Domain/ISanguoPlayerView.cs`
+
+## 3) 事件契约（find_symbol + core.sanguo.* 扫描）
+
+### 经济结算相关（Task 7）
+- `Game.Core/Contracts/Sanguo/EconomyEvents.cs`
+  - `SanguoMonthSettled`（`core.sanguo.economy.month.settled`）
+  - `SanguoSeasonEventApplied`（`core.sanguo.economy.season.event.applied`）
+  - `SanguoYearPriceAdjusted`（`core.sanguo.economy.year.price.adjusted`）
+  - `SanguoCityBought`（`core.sanguo.city.bought`）
+  - `SanguoCityTollPaid`（`core.sanguo.city.toll.paid`）
+
+### 回合相关（常作为结算触发条件）
+- `Game.Core/Contracts/Sanguo/GameEvents.cs`
+  - `SanguoGameTurnStarted` / `SanguoGameTurnEnded` / `SanguoGameTurnAdvanced`
+
+### 事件数据载体（发布约定）
+- `Game.Core/Contracts/DomainEvent.cs`
+- `Game.Core/Contracts/JsonEventData.cs`（`JsonElementEventData.FromObject(...)`）
+
+## 4) 依赖引用（find_referencing_symbols）
+
+### TurnManager 当前如何被调用
+- `Game.Core.Tests/Services/SanguoTurnManagerTests.cs`
+
+### IEventBus 的实现与消费侧
+- `Game.Core/Services/NullEventBus.cs`
+- `Game.Godot/Adapters/EventBusAdapter.cs`
+- `Game.Godot/Autoloads/CompositionRoot.cs`
+
+### 经济事件当前使用情况（现状）
+- `Game.Core.Tests/Domain/SanguoContractsTests.cs`
+- `Game.Core.Tests/Domain/SanguoContractInstantiationTests.cs`
+"""
+
+    Path("taskdoc").mkdir(parents=True, exist_ok=True)
+    Path("taskdoc/7.md").write_text(content, encoding="utf-8", newline="\n")
+    print("WROTE taskdoc/7.md")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+

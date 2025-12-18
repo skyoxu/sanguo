@@ -5,15 +5,45 @@ using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 
 namespace Game.Core.Services;
 
+/// <summary>
+/// Sanguo economy settlement manager.
+/// Responsibilities: month-end settlement, yearly land price adjustments, and quarterly environment event emission.
+/// Economy rules follow ADR-0021; event publishing follows ADR-0004 (CloudEvents-like contracts).
+/// </summary>
+/// <remarks>
+/// Related ADRs:
+/// - ADR-0005: Quality gates (coverage, docs)
+/// - ADR-0015: Performance budgets (complexity O(players * cities))
+/// - ADR-0018: Testing strategy (unit tests, boundary tests)
+/// - ADR-0021: Economy rules (monthly settlement, yearly adjustment, quarterly events)
+/// - ADR-0024: Event tracing (CorrelationId/CausationId)
+/// </remarks>
 public sealed class SanguoEconomyManager
 {
     private readonly IEventBus _bus;
 
+    /// <summary>
+    /// Creates a new <see cref="SanguoEconomyManager"/>.
+    /// </summary>
+    /// <param name="bus">Event bus used to publish domain events (must not be null).</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="bus"/> is null.</exception>
     public SanguoEconomyManager(IEventBus bus)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
     }
 
+    /// <summary>
+    /// Calculates month-end settlement amounts for all non-eliminated players.
+    /// Sums each owned city's <c>BaseToll</c> as monthly income.
+    /// </summary>
+    /// <param name="players">Player list (must not be null; eliminated players are skipped).</param>
+    /// <param name="citiesById">City dictionary keyed by city id (must not be null; must contain all owned city ids).</param>
+    /// <returns>A list of settlements (eliminated players are not included).</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="players"/> or <paramref name="citiesById"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when an owned city id is missing from <paramref name="citiesById"/>.</exception>
+    /// <remarks>
+    /// Complexity: O(players * cities), aligned with ADR-0015 performance budget.
+    /// </remarks>
     public IReadOnlyList<PlayerSettlement> CalculateMonthSettlements(
         IReadOnlyList<ISanguoPlayerView> players,
         IReadOnlyDictionary<string, City> citiesById
@@ -35,6 +65,23 @@ public sealed class SanguoEconomyManager
         return settlements;
     }
 
+    /// <summary>
+    /// Publishes a month-end settlement event when crossing a month boundary.
+    /// Emits <see cref="SanguoMonthSettled"/> only when year or month differs between <paramref name="previousDate"/> and <paramref name="currentDate"/>.
+    /// </summary>
+    /// <param name="gameId">Game id (must be non-empty).</param>
+    /// <param name="previousDate">Previous date (used for month boundary detection).</param>
+    /// <param name="currentDate">Current date (used for month boundary detection).</param>
+    /// <param name="settlements">Player settlements (must not be null).</param>
+    /// <param name="correlationId">Correlation id (must be non-empty).</param>
+    /// <param name="causationId">Causation id (optional).</param>
+    /// <param name="occurredAt">Occurrence timestamp.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="gameId"/> or <paramref name="correlationId"/> is empty/whitespace.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="settlements"/> is null.</exception>
+    /// <remarks>
+    /// Aligned with ADR-0004 (CloudEvents-like contract) and ADR-0024 (event tracing).
+    /// Boundary check: do not publish when <c>previousDate.Year == currentDate.Year</c> and <c>previousDate.Month == currentDate.Month</c>.
+    /// </remarks>
     public void PublishMonthSettlementIfBoundary(
         string gameId,
         DateTime previousDate,
@@ -75,6 +122,18 @@ public sealed class SanguoEconomyManager
         _bus.PublishAsync(evt).GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// Calculates yearly land price adjustments per city.
+    /// New price is computed by multiplying the base price by <paramref name="yearlyMultiplier"/>.
+    /// </summary>
+    /// <param name="cities">Cities (must not be null).</param>
+    /// <param name="yearlyMultiplier">Yearly price multiplier (must be non-negative).</param>
+    /// <returns>A list of adjustments: city id, old price, and new price.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="cities"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="yearlyMultiplier"/> is negative.</exception>
+    /// <remarks>
+    /// Aligned with ADR-0021 (economy rules: yearly land price adjustment). Complexity: O(cities).
+    /// </remarks>
     public IReadOnlyList<(string CityId, MoneyValue OldPrice, MoneyValue NewPrice)> CalculateYearlyPriceAdjustments(
         IReadOnlyList<City> cities,
         decimal yearlyMultiplier
@@ -96,6 +155,25 @@ public sealed class SanguoEconomyManager
         return results;
     }
 
+    /// <summary>
+    /// Publishes yearly land price adjustment events when crossing a year boundary.
+    /// Emits one <see cref="SanguoYearPriceAdjusted"/> per city only when <paramref name="previousDate"/> and <paramref name="currentDate"/> have different years.
+    /// </summary>
+    /// <param name="gameId">Game id (must be non-empty).</param>
+    /// <param name="previousDate">Previous date (used for year boundary detection).</param>
+    /// <param name="currentDate">Current date (used for year boundary detection).</param>
+    /// <param name="cities">Cities (must not be null; emits one event per city).</param>
+    /// <param name="yearlyMultiplier">Yearly price multiplier (must be non-negative; applied to all cities).</param>
+    /// <param name="correlationId">Correlation id (must be non-empty).</param>
+    /// <param name="causationId">Causation id (optional).</param>
+    /// <param name="occurredAt">Occurrence timestamp.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="gameId"/> or <paramref name="correlationId"/> is empty/whitespace.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="cities"/> is null.</exception>
+    /// <remarks>
+    /// Aligned with ADR-0004 (CloudEvents-like contract), ADR-0021 (economy rules: yearly land price adjustment) and ADR-0024 (event tracing).
+    /// Boundary check: do not publish when <c>previousDate.Year == currentDate.Year</c>.
+    /// Calls <see cref="CalculateYearlyPriceAdjustments"/> and emits one <see cref="SanguoYearPriceAdjusted"/> per city.
+    /// </remarks>
     public void PublishYearlyPriceAdjustmentIfBoundary(
         string gameId,
         DateTime previousDate,
@@ -142,6 +220,27 @@ public sealed class SanguoEconomyManager
         }
     }
 
+    /// <summary>
+    /// Publishes a quarterly environment event when crossing a quarter boundary.
+    /// Emits <see cref="SanguoSeasonEventApplied"/> only when the quarter of <paramref name="previousDate"/> differs from the quarter of <paramref name="currentDate"/>.
+    /// </summary>
+    /// <param name="gameId">Game id (must be non-empty).</param>
+    /// <param name="previousDate">Previous date (used for quarter boundary detection).</param>
+    /// <param name="currentDate">Current date (used for quarter boundary detection).</param>
+    /// <param name="season">Quarter/season number (1-4) and must match <paramref name="currentDate"/>.</param>
+    /// <param name="affectedRegionIds">Affected region ids (must not be null).</param>
+    /// <param name="yieldMultiplier">Yield multiplier (must be non-negative).</param>
+    /// <param name="correlationId">Correlation id (must be non-empty).</param>
+    /// <param name="causationId">Causation id (optional).</param>
+    /// <param name="occurredAt">Occurrence timestamp.</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="gameId"/> or <paramref name="correlationId"/> is empty/whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="season"/> is out of range or <paramref name="yieldMultiplier"/> is negative.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="affectedRegionIds"/> is null.</exception>
+    /// <remarks>
+    /// Aligned with ADR-0004 (CloudEvents-like contract), ADR-0021 (economy rules: quarterly environment events) and ADR-0024 (event tracing).
+    /// Boundary check: no emission when <paramref name="previousDate"/> and <paramref name="currentDate"/> are in the same quarter.
+    /// The event uses <paramref name="currentDate"/> year.
+    /// </remarks>
     public void PublishSeasonEventIfBoundary(
         string gameId,
         DateTime previousDate,
@@ -168,8 +267,13 @@ public sealed class SanguoEconomyManager
         if (yieldMultiplier < 0)
             throw new ArgumentOutOfRangeException(nameof(yieldMultiplier), "Yield multiplier must be non-negative.");
 
-        if (previousDate.Year == currentDate.Year && previousDate.Month == currentDate.Month)
+        var previousSeason = GetSeasonFromMonth(previousDate.Month);
+        var currentSeason = GetSeasonFromMonth(currentDate.Month);
+        if (previousSeason == currentSeason)
             return;
+
+        if (season != currentSeason)
+            throw new ArgumentOutOfRangeException(nameof(season), $"Season must match currentDate quarter: expected {currentSeason}.");
 
         var evt = new DomainEvent(
             Type: SanguoSeasonEventApplied.EventType,
@@ -191,6 +295,14 @@ public sealed class SanguoEconomyManager
         _bus.PublishAsync(evt).GetAwaiter().GetResult();
     }
 
+    private static int GetSeasonFromMonth(int month)
+    {
+        if (month is < 1 or > 12)
+            throw new ArgumentOutOfRangeException(nameof(month), "Month must be between 1 and 12.");
+
+        return ((month - 1) / 3) + 1;
+    }
+
     private static MoneyValue CalculateMonthlyIncome(ISanguoPlayerView player, IReadOnlyDictionary<string, City> citiesById)
     {
         ArgumentNullException.ThrowIfNull(player, nameof(player));
@@ -207,4 +319,3 @@ public sealed class SanguoEconomyManager
         return new MoneyValue(totalMinorUnits);
     }
 }
-
