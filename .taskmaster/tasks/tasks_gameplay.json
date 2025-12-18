@@ -846,7 +846,9 @@
       "可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。",
       "可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。",
       "可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。",
-      "后续演进（所有权 SSoT）：当 UI/存档/回放需要全局城池所有权状态时，统一引入 CityOwnershipRegistry（CityId -> OwnerId?）作为唯一事实来源；玩家侧 OwnedCityIds 仅为派生快照/缓存；出局释放必须清理 registry，禁止双写不同步。"
+      "后续演进（所有权 SSoT）：当 UI/存档/回放需要全局城池所有权状态时，统一引入 CityOwnershipRegistry（CityId -> OwnerId?）作为唯一事实来源；玩家侧 OwnedCityIds 仅为派生快照/缓存；出局释放必须清理 registry，禁止双写不同步。",
+      "在本任务落地一个纯 C# 的状态容器（建议命名 `SanguoBoardState` 或 `SanguoGameState`），作为 players/citiesById 的单一装配点：提供 `Players`（含出局标志/位置/OwnedCityIds）与 `CitiesById`（CityId -> City），供后续结算与回合循环直接消费。",
+      "该状态容器必须位于 Game.Core（不依赖 Godot），并有 xUnit 覆盖：唯一性（CityId/PlayerId 不重复）、引用完整性（OwnedCityIds 必须存在于 CitiesById）、与环形地图索引范围一致。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1157,7 +1159,8 @@
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。",
       "对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。",
       "符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype"
+      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "本任务不得自行临时拼装 players/citiesById；必须消费 Task 12 引入的 `SanguoBoardState/SanguoGameState`，并用其提供的数据驱动月末收益计算与事件发布。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1526,7 +1529,8 @@
       "可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。",
       "可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。",
       "可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。",
-      "后续演进（Task 13/17）：GameLoop 不通过推断判断溢出/出局，而是消费 TollPaymentOutcome 驱动 toast/audit/treasury 归集，保证状态更新原子。"
+      "后续演进（Task 13/17）：GameLoop 不通过推断判断溢出/出局，而是消费 TollPaymentOutcome 驱动 toast/audit/treasury 归集，保证状态更新原子。",
+      "本任务的回合循环必须消费 Task 12 的 `SanguoBoardState/SanguoGameState`（而不是散落在多个服务中各自维护玩家/城池集合），以保证出局/城池释放/资金转移等规则可在单测中钉死且状态一致。"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",

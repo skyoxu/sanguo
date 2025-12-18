@@ -41,12 +41,8 @@ public sealed class SanguoTreasury
     {
         AssertThread();
 
-        if (amount < MoneyValue.Zero)
-            throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be non-negative.");
-
         _minorUnits = checked(_minorUnits + amount.MinorUnits);
     }
 
     private void AssertThread() => _threadGuard.AssertCurrentThread();
 }
-

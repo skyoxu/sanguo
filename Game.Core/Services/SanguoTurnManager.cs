@@ -6,6 +6,7 @@ namespace Game.Core.Services;
 public sealed class SanguoTurnManager
 {
     private readonly IEventBus _bus;
+    private readonly SanguoEconomyManager _economy;
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -14,9 +15,10 @@ public sealed class SanguoTurnManager
     private DateTime _currentDate;
     private bool _started;
 
-    public SanguoTurnManager(IEventBus bus)
+    public SanguoTurnManager(IEventBus bus, SanguoEconomyManager economy)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        _economy = economy ?? throw new ArgumentNullException(nameof(economy));
     }
 
     public void StartNewGame(
@@ -61,18 +63,17 @@ public sealed class SanguoTurnManager
         var evt = new DomainEvent(
             Type: SanguoGameTurnStarted.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new
-            {
-                GameId = _gameId,
-                TurnNumber = _turnNumber,
-                ActivePlayerId = _playerOrder[_activePlayerIndex],
-                Year = _currentDate.Year,
-                Month = _currentDate.Month,
-                Day = _currentDate.Day,
-                OccurredAt = occurredAt,
-                CorrelationId = correlationId,
-                CausationId = causationId,
-            }),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnStarted(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                Year: _currentDate.Year,
+                Month: _currentDate.Month,
+                Day: _currentDate.Day,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
@@ -89,19 +90,19 @@ public sealed class SanguoTurnManager
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
 
         var occurredAt = DateTimeOffset.UtcNow;
+        var previousDate = _currentDate;
 
         var ended = new DomainEvent(
             Type: SanguoGameTurnEnded.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new
-            {
-                GameId = _gameId,
-                TurnNumber = _turnNumber,
-                ActivePlayerId = _playerOrder[_activePlayerIndex],
-                OccurredAt = occurredAt,
-                CorrelationId = correlationId,
-                CausationId = causationId,
-            }),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnEnded(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
@@ -111,21 +112,29 @@ public sealed class SanguoTurnManager
         _activePlayerIndex = (_activePlayerIndex + 1) % _playerOrder.Length;
         _currentDate = _currentDate.AddDays(1);
 
+        _economy.PublishMonthSettlementIfBoundary(
+            gameId: _gameId,
+            previousDate: previousDate,
+            currentDate: _currentDate,
+            settlements: Array.Empty<PlayerSettlement>(),
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+
         var advanced = new DomainEvent(
             Type: SanguoGameTurnAdvanced.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new
-            {
-                GameId = _gameId,
-                TurnNumber = _turnNumber,
-                ActivePlayerId = _playerOrder[_activePlayerIndex],
-                Year = _currentDate.Year,
-                Month = _currentDate.Month,
-                Day = _currentDate.Day,
-                OccurredAt = occurredAt,
-                CorrelationId = correlationId,
-                CausationId = causationId,
-            }),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnAdvanced(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                Year: _currentDate.Year,
+                Month: _currentDate.Month,
+                Day: _currentDate.Day,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
@@ -134,22 +143,20 @@ public sealed class SanguoTurnManager
         var started = new DomainEvent(
             Type: SanguoGameTurnStarted.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new
-            {
-                GameId = _gameId,
-                TurnNumber = _turnNumber,
-                ActivePlayerId = _playerOrder[_activePlayerIndex],
-                Year = _currentDate.Year,
-                Month = _currentDate.Month,
-                Day = _currentDate.Day,
-                OccurredAt = occurredAt,
-                CorrelationId = correlationId,
-                CausationId = causationId,
-            }),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnStarted(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                Year: _currentDate.Year,
+                Month: _currentDate.Month,
+                Day: _currentDate.Day,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
         _bus.PublishAsync(started).GetAwaiter().GetResult();
     }
 }
-
