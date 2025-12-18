@@ -22,14 +22,16 @@ func _today_dir() -> String:
 
 
 func _audit_path() -> String:
-    return "res://logs/ci/%s/security-audit.jsonl" % _today_dir()
+    var root: String = str(OS.get_environment("AUDIT_LOG_ROOT"))
+    if root == "":
+        root = ProjectSettings.globalize_path("res://logs/ci/%s" % _today_dir())
+    return root.path_join("security-audit.jsonl")
 
 
 func _remove_audit_file() -> void:
     var p: String = _audit_path()
     if FileAccess.file_exists(p):
-        var abs: String = ProjectSettings.globalize_path(p)
-        DirAccess.remove_absolute(abs)
+        DirAccess.remove_absolute(p)
 
 
 func test_open_denied_writes_audit_log() -> void:
