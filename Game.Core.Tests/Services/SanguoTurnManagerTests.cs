@@ -16,7 +16,8 @@ public class SanguoTurnManagerTests
     public void StartNewGame_ThenAdvanceTurn_PublishesTurnEventsAndRotatesActivePlayer()
     {
         var bus = new CapturingEventBus();
-        var mgr = new SanguoTurnManager(bus);
+        var economy = new SanguoEconomyManager(bus);
+        var mgr = new SanguoTurnManager(bus, economy);
 
         var gameId = "game-1";
         var playerOrder = new[] { "p1", "p2" };
@@ -89,13 +90,51 @@ public class SanguoTurnManagerTests
         nextStartedPayload.GetProperty("CausationId").GetString().Should().Be(advanceCommandId);
     }
 
+    [Fact]
+    public void AdvanceTurn_WhenMonthBoundaryReached_PublishesMonthSettledEvent()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var mgr = new SanguoTurnManager(bus, economy);
+
+        var gameId = "game-1";
+        var playerOrder = new[] { "p1", "p2" };
+        var correlationId = "corr-1";
+
+        mgr.StartNewGame(
+            gameId: gameId,
+            playerOrder: playerOrder,
+            year: 1,
+            month: 1,
+            day: 31,
+            correlationId: correlationId,
+            causationId: null);
+
+        mgr.AdvanceTurn(correlationId, causationId: "cmd-advance");
+
+        bus.Published.Should().Contain(
+            e => e.Type == SanguoMonthSettled.EventType,
+            "crossing a month boundary should trigger month settlement");
+
+        var settled = bus.Published.Find(e => e.Type == SanguoMonthSettled.EventType)!;
+        settled.Data.Should().BeOfType<JsonElementEventData>();
+
+        var payload = ((JsonElementEventData)settled.Data!).Value;
+        payload.GetProperty("GameId").GetString().Should().Be(gameId);
+        payload.GetProperty("Year").GetInt32().Should().Be(1);
+        payload.GetProperty("Month").GetInt32().Should().Be(1);
+        payload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
+        payload.GetProperty("CausationId").GetString().Should().Be("cmd-advance");
+        payload.GetProperty("PlayerSettlements").GetArrayLength().Should().Be(0);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
     public void StartNewGame_WhenGameIdIsNullOrWhitespace_ThrowsArgumentException(string? gameId)
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
 
         Action act = () => mgr.StartNewGame(
             gameId: gameId!,
@@ -113,7 +152,7 @@ public class SanguoTurnManagerTests
     [Fact]
     public void StartNewGame_WhenPlayerOrderIsNull_ThrowsArgumentNullException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
 
         Action act = () => mgr.StartNewGame(
             gameId: "g1",
@@ -131,7 +170,7 @@ public class SanguoTurnManagerTests
     [Fact]
     public void StartNewGame_WhenPlayerOrderIsEmpty_ThrowsArgumentException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
 
         Action act = () => mgr.StartNewGame(
             gameId: "g1",
@@ -149,7 +188,7 @@ public class SanguoTurnManagerTests
     [Fact]
     public void StartNewGame_WhenPlayerOrderContainsEmptyPlayerId_ThrowsArgumentException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
 
         Action act = () => mgr.StartNewGame(
             gameId: "g1",
@@ -167,7 +206,7 @@ public class SanguoTurnManagerTests
     [Fact]
     public void StartNewGame_WhenPlayerOrderContainsDuplicatePlayerIds_ThrowsArgumentException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
 
         Action act = () => mgr.StartNewGame(
             gameId: "g1",
@@ -188,7 +227,7 @@ public class SanguoTurnManagerTests
     [InlineData("   ")]
     public void StartNewGame_WhenCorrelationIdIsNullOrWhitespace_ThrowsArgumentException(string? correlationId)
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
 
         Action act = () => mgr.StartNewGame(
             gameId: "g1",
@@ -206,7 +245,7 @@ public class SanguoTurnManagerTests
     [Fact]
     public void AdvanceTurn_BeforeStart_ThrowsInvalidOperationException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance);
+        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
 
         Action act = () => mgr.AdvanceTurn("corr", causationId: null);
 
@@ -233,4 +272,3 @@ public class SanguoTurnManagerTests
         }
     }
 }
-
