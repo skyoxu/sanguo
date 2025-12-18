@@ -63,18 +63,17 @@ public sealed class SanguoTurnManager
         var evt = new DomainEvent(
             Type: SanguoGameTurnStarted.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new
-            {
-                GameId = _gameId,
-                TurnNumber = _turnNumber,
-                ActivePlayerId = _playerOrder[_activePlayerIndex],
-                Year = _currentDate.Year,
-                Month = _currentDate.Month,
-                Day = _currentDate.Day,
-                OccurredAt = occurredAt,
-                CorrelationId = correlationId,
-                CausationId = causationId,
-            }),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnStarted(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                Year: _currentDate.Year,
+                Month: _currentDate.Month,
+                Day: _currentDate.Day,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
@@ -96,15 +95,14 @@ public sealed class SanguoTurnManager
         var ended = new DomainEvent(
             Type: SanguoGameTurnEnded.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new
-            {
-                GameId = _gameId,
-                TurnNumber = _turnNumber,
-                ActivePlayerId = _playerOrder[_activePlayerIndex],
-                OccurredAt = occurredAt,
-                CorrelationId = correlationId,
-                CausationId = causationId,
-            }),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnEnded(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
@@ -126,18 +124,17 @@ public sealed class SanguoTurnManager
         var advanced = new DomainEvent(
             Type: SanguoGameTurnAdvanced.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new
-            {
-                GameId = _gameId,
-                TurnNumber = _turnNumber,
-                ActivePlayerId = _playerOrder[_activePlayerIndex],
-                Year = _currentDate.Year,
-                Month = _currentDate.Month,
-                Day = _currentDate.Day,
-                OccurredAt = occurredAt,
-                CorrelationId = correlationId,
-                CausationId = causationId,
-            }),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnAdvanced(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                Year: _currentDate.Year,
+                Month: _currentDate.Month,
+                Day: _currentDate.Day,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
@@ -146,18 +143,17 @@ public sealed class SanguoTurnManager
         var started = new DomainEvent(
             Type: SanguoGameTurnStarted.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new
-            {
-                GameId = _gameId,
-                TurnNumber = _turnNumber,
-                ActivePlayerId = _playerOrder[_activePlayerIndex],
-                Year = _currentDate.Year,
-                Month = _currentDate.Month,
-                Day = _currentDate.Day,
-                OccurredAt = occurredAt,
-                CorrelationId = correlationId,
-                CausationId = causationId,
-            }),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnStarted(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                Year: _currentDate.Year,
+                Month: _currentDate.Month,
+                Day: _currentDate.Day,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
