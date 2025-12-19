@@ -32,6 +32,20 @@ public sealed class HudSceneTests
         code.Should().MatchRegex(new Regex("\\bSanguoGameTurnStarted\\b", RegexOptions.CultureInvariant));
     }
 
+    [Fact]
+    public void HudScript_ShouldHandleSanguoDiceRolledDomainEvent()
+    {
+        var code = ReadText("Game.Godot/Scripts/UI/HUD.cs");
+        code.Should().Contain("SanguoDiceRolled.EventType");
+    }
+
+    [Fact]
+    public void HudScriptMirror_ShouldHandleSanguoDiceRolledDomainEvent()
+    {
+        var code = ReadText("Tests.Godot/Game.Godot/Scripts/UI/HUD.cs");
+        code.Should().Contain("SanguoDiceRolled.EventType");
+    }
+
     private static string ReadText(string relativePath)
     {
         var full = Path.Combine(
@@ -45,4 +59,3 @@ public sealed class HudSceneTests
         return File.ReadAllText(full);
     }
 }
-
