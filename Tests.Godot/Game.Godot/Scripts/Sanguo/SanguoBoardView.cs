@@ -8,10 +8,22 @@ namespace Game.Godot.Scripts.Sanguo;
 public partial class SanguoBoardView : Node2D
 {
     [Export]
-    public NodePath? TokenPath { get; set; }
+    public NodePath TokenPath { get; set; } = new NodePath("Token");
+
+    [Export]
+    public Vector2 Origin { get; set; } = Vector2.Zero;
+
+    [Export(PropertyHint.Range, "0,512,1,or_greater")]
+    public float StepPixels { get; set; } = 64f;
+
+    [Export(PropertyHint.Range, "0,10,0.01,or_greater")]
+    public double MoveDurationSeconds { get; set; } = 0.25;
 
     public int LastToIndex { get; private set; }
     public string? LastPlayerId { get; private set; }
+    public bool LastMoveAnimated { get; private set; }
+
+    private Tween? _moveTween;
 
     public override void _Ready()
     {
@@ -31,6 +43,12 @@ public partial class SanguoBoardView : Node2D
             return;
         }
 
+        var token = ResolveToken();
+        if (token == null)
+        {
+            return;
+        }
+
         try
         {
             using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson);
@@ -43,11 +61,40 @@ public partial class SanguoBoardView : Node2D
             {
                 LastPlayerId = playerId.GetString();
             }
+
+            var target = Origin + new Vector2(LastToIndex * StepPixels, 0f);
+            MoveTokenTo(token, target);
         }
         catch
         {
             // View-only: ignore parse failures (core validation happens in Game.Core).
         }
     }
-}
 
+    private Node2D? ResolveToken()
+    {
+        if (!TokenPath.IsEmpty)
+        {
+            return GetNodeOrNull<Node2D>(TokenPath);
+        }
+
+        return null;
+    }
+
+    private void MoveTokenTo(Node2D token, Vector2 targetLocalPosition)
+    {
+        _moveTween?.Kill();
+        _moveTween = null;
+
+        if (MoveDurationSeconds <= 0)
+        {
+            token.Position = targetLocalPosition;
+            LastMoveAnimated = false;
+            return;
+        }
+
+        LastMoveAnimated = true;
+        _moveTween = CreateTween();
+        _moveTween.TweenProperty(token, "position", targetLocalPosition, MoveDurationSeconds);
+    }
+}
