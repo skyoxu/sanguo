@@ -128,6 +128,48 @@ public class SanguoTurnManagerTests
         payload.GetProperty("PlayerSettlements").GetArrayLength().Should().Be(0);
     }
 
+    [Fact]
+    public void AdvanceTurn_WhenQuarterBoundaryReached_PublishesSeasonEventAppliedAfterMonthSettlement()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var mgr = new SanguoTurnManager(bus, economy);
+
+        var gameId = "game-1";
+        var correlationId = "corr-1";
+
+        mgr.StartNewGame(
+            gameId: gameId,
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 3,
+            day: 31,
+            correlationId: correlationId,
+            causationId: null);
+
+        mgr.AdvanceTurn(correlationId: correlationId, causationId: "cmd-advance");
+
+        var monthIndex = bus.Published.FindIndex(e => e.Type == SanguoMonthSettled.EventType);
+        var seasonIndex = bus.Published.FindIndex(e => e.Type == SanguoSeasonEventApplied.EventType);
+
+        monthIndex.Should().BeGreaterThanOrEqualTo(0, "crossing a month boundary should publish a month settlement event");
+        seasonIndex.Should().BeGreaterThanOrEqualTo(0, "crossing a quarter boundary should publish a season event");
+        monthIndex.Should().BeLessThan(seasonIndex, "month settlement should be published before season event in the same turn advance");
+
+        var seasonEvt = bus.Published[seasonIndex];
+        seasonEvt.Source.Should().Be(nameof(SanguoEconomyManager));
+        seasonEvt.Data.Should().BeOfType<JsonElementEventData>();
+
+        var payload = ((JsonElementEventData)seasonEvt.Data!).Value;
+        payload.GetProperty("GameId").GetString().Should().Be(gameId);
+        payload.GetProperty("Year").GetInt32().Should().Be(1);
+        payload.GetProperty("Season").GetInt32().Should().Be(2);
+        payload.GetProperty("AffectedRegionIds").ValueKind.Should().Be(JsonValueKind.Array);
+        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(1.0m);
+        payload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
+        payload.GetProperty("CausationId").GetString().Should().Be("cmd-advance");
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

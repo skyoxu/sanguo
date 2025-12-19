@@ -27,6 +27,18 @@ offset_top = 0.0
 offset_right = 400.0
 offset_bottom = 32.0
 
+[node name="ActivePlayerLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Player: -"
+
+[node name="DateLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Date: -"
+
+[node name="MoneyLabel" type="Label" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Money: -"
+
 [node name="ScoreLabel" type="Label" parent="TopBar/HBox"]
 layout_mode = 2
 text = "Score: 0"
@@ -35,3 +47,6 @@ text = "Score: 0"
 layout_mode = 2
 text = "HP: 100"
 
+[node name="DiceButton" type="Button" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Roll Dice"

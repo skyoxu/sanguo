@@ -129,7 +129,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void PublishSeasonEventIfBoundary_WhenMonthChanged_PublishesSeasonEventApplied()
+    public void PublishSeasonEventIfBoundary_WhenMonthChangedButSeasonUnchanged_DoesNotPublish()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -138,6 +138,26 @@ public class SanguoEconomyManagerTests
             gameId: "game-1",
             previousDate: new DateTime(1, 1, 31),
             currentDate: new DateTime(1, 2, 1),
+            season: 1,
+            affectedRegionIds: Array.Empty<string>(),
+            yieldMultiplier: 1.0m,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: DateTimeOffset.UtcNow);
+
+        bus.Published.Should().BeEmpty("season event should only be emitted on quarter boundary, not every month change");
+    }
+
+    [Fact]
+    public void PublishSeasonEventIfBoundary_WhenQuarterBoundaryReached_PublishesSeasonEventApplied()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        economy.PublishSeasonEventIfBoundary(
+            gameId: "game-1",
+            previousDate: new DateTime(1, 3, 31),
+            currentDate: new DateTime(1, 4, 1),
             season: 2,
             affectedRegionIds: new[] { "r1", "r2" },
             yieldMultiplier: 0.8m,
