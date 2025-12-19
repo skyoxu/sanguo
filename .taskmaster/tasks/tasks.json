@@ -279,7 +279,7 @@
         "dependencies": [
           "1"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -309,7 +309,7 @@
           "9",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -339,7 +339,7 @@
           "5",
           "9"
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
