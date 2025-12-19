@@ -1,5 +1,6 @@
 using Godot;
 using Game.Core.Contracts;
+using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
 using System.Text.Json;
 
@@ -135,6 +136,40 @@ public partial class HUD : Control
             catch (System.Exception ex)
             {
                 GD.PushWarning($"HUD failed to parse player event '{type}': {ex.Message}");
+            }
+        }
+        else if (type == SanguoDiceRolled.EventType)
+        {
+            try
+            {
+                var doc = JsonDocument.Parse(dataJson);
+
+                string pid = "";
+                if (doc.RootElement.TryGetProperty("PlayerId", out var pidEl))
+                {
+                    pid = pidEl.GetString() ?? "";
+                }
+
+                if (!string.IsNullOrWhiteSpace(pid) && _activePlayerId != null && pid != _activePlayerId)
+                {
+                    return;
+                }
+
+                int value = 0;
+                if (doc.RootElement.TryGetProperty("Value", out var v))
+                {
+                    value = v.GetInt32();
+                }
+                else if (doc.RootElement.TryGetProperty("value", out var vv))
+                {
+                    value = vv.GetInt32();
+                }
+
+                _diceButton.Text = $"Dice: {value}";
+            }
+            catch (System.Exception ex)
+            {
+                GD.PushWarning($"HUD failed to parse dice event '{type}': {ex.Message}");
             }
         }
     }
