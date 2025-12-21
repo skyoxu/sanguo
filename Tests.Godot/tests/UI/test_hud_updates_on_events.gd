@@ -61,3 +61,18 @@ func test_dice_button_emits_ui_roll_event() -> void:
     dice.emit_signal("pressed")
     await get_tree().process_frame
     assert_str(_last_emitted_type).is_equal("ui.hud.dice.roll")
+
+func test_hud_updates_on_sanguo_dice_rolled_event() -> void:
+    var hud = await _hud()
+    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+
+    _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
+    await get_tree().process_frame
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
+    await get_tree().process_frame
+    assert_str(dice.text).is_equal("Dice: 6")
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p2\",\"Value\":1}")
+    await get_tree().process_frame
+    assert_str(dice.text).is_equal("Dice: 6")
