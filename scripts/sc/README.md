@@ -22,6 +22,7 @@
 - `sc-test`：`logs/ci/<YYYY-MM-DD>/sc-test/`
 - `sc-git`：`logs/ci/<YYYY-MM-DD>/sc-git/`
 - `sc-acceptance-check`：`logs/ci/<YYYY-MM-DD>/sc-acceptance-check/`
+- `sc-llm-review`：`logs/ci/<YYYY-MM-DD>/sc-llm-review/`（可选，本地 LLM 口头审查）
 
 单元测试与覆盖率固定落盘到：`logs/unit/<YYYY-MM-DD>/`（由 `scripts/python/run_dotnet.py` 生成）。
 
@@ -50,7 +51,15 @@
 - 构建门禁（硬）：`dotnet build -warnaserror`（通过 `scripts/sc/build.py`）
 - 安全软检查（软）：Sentry secrets / 核心契约检查 / 编码扫描
 - 测试门禁（硬）：`scripts/sc/test.py --type all`（含 GdUnit4 + smoke）
-- 性能证据（软）：默认仅检查 `logs/perf/**/summary.*` 是否存在（可用 `--require-perf` 强制为硬门禁）
+- 性能门禁（可选硬门）：解析最新 `logs/ci/**/headless.log` 的 `[PERF] ... p95_ms=...` 并与阈值比较
+  - 启用方式：`--perf-p95-ms <ms>` 或设置环境变量 `PERF_P95_THRESHOLD_MS=<ms>`
+  - 快捷方式：`--require-perf`（legacy）：等价于启用性能硬门禁，阈值取 `PERF_P95_THRESHOLD_MS`，否则默认 20ms（口径见 ADR-0015）
+
+可选：如果你仍希望保留“LLM 口头审查”的等价体验（但不建议作为硬门禁），使用：
+`py -3 scripts/sc/llm_review.py --task-id <id> --base main`（输出落盘到 `logs/ci/<YYYY-MM-DD>/sc-llm-review/`）。
+- 默认会尝试加载：
+  - 仓库内：`.claude/agents/*.md`
+  - 用户目录：`%USERPROFILE%\\.claude\\agents\\lst97\\*.md`（可用 `--claude-agents-root` 或 `CLAUDE_AGENTS_ROOT` 覆盖）
 
 ## Windows 用法示例
 
@@ -73,7 +82,9 @@ py -3 scripts/sc/test.py --type all --godot-bin "$env:GODOT_BIN"
 # 验收门禁（等价 /acceptance-check）
 py -3 scripts/sc/acceptance_check.py --task-id 10 --godot-bin "$env:GODOT_BIN"
 
+# 可选：LLM 口头审查（本地，软门禁；不建议作为 CI 硬门）
+py -3 scripts/sc/llm_review.py --task-id 10 --base main
+
 # Git（智能提交，脚本会读取 .superclaude/commit-template.txt）
 py -3 scripts/sc/git.py commit --smart-commit --task-ref "#10.1"
 ```
-
