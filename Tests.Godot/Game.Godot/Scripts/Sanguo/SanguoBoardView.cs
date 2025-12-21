@@ -7,6 +7,8 @@ namespace Game.Godot.Scripts.Sanguo;
 
 public partial class SanguoBoardView : Node2D
 {
+    private const string TokenVisualNodeName = "__TokenVisual__";
+
     [Export]
     public NodePath TokenPath { get; set; } = new NodePath("Token");
 
@@ -27,6 +29,12 @@ public partial class SanguoBoardView : Node2D
 
     public override void _Ready()
     {
+        var token = ResolveToken();
+        if (token != null)
+        {
+            EnsureTokenHasVisual(token);
+        }
+
         var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
         if (bus == null)
         {
@@ -96,5 +104,37 @@ public partial class SanguoBoardView : Node2D
         LastMoveAnimated = true;
         _moveTween = CreateTween();
         _moveTween.TweenProperty(token, "position", targetLocalPosition, MoveDurationSeconds);
+    }
+
+    private static void EnsureTokenHasVisual(Node2D token)
+    {
+        if (token.GetNodeOrNull<Node2D>(TokenVisualNodeName) != null)
+        {
+            return;
+        }
+
+        foreach (var child in token.GetChildren())
+        {
+            if (child is CanvasItem)
+            {
+                return;
+            }
+        }
+
+        var visual = new Polygon2D
+        {
+            Name = TokenVisualNodeName,
+            Color = new Color(0.9f, 0.2f, 0.2f, 1f),
+            Polygon =
+                new[]
+                {
+                    new Vector2(-8, -8),
+                    new Vector2(8, -8),
+                    new Vector2(8, 8),
+                    new Vector2(-8, 8),
+                },
+        };
+
+        token.AddChild(visual);
     }
 }
