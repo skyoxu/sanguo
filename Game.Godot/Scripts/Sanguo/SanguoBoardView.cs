@@ -23,6 +23,9 @@ public partial class SanguoBoardView : Node2D
     [Export(PropertyHint.Range, "0,10,0.01,or_greater")]
     public double MoveDurationSeconds { get; set; } = 0.25;
 
+    [Export(PropertyHint.Range, "0,512,1,or_greater")]
+    public int TotalPositions { get; set; } = 0;
+
     public int LastToIndex { get; private set; }
     public string? LastPlayerId { get; private set; }
     public bool LastMoveAnimated { get; private set; }
@@ -94,9 +97,16 @@ public partial class SanguoBoardView : Node2D
         try
         {
             using var doc = JsonDocument.Parse(json, JsonOptions);
-            if (doc.RootElement.TryGetProperty("ToIndex", out var toIndex))
+            if (!doc.RootElement.TryGetProperty("ToIndex", out var toIndex) || !toIndex.TryGetInt32(out var parsedToIndex))
             {
-                LastToIndex = toIndex.GetInt32();
+                GD.PushWarning($"SanguoBoardView ignored event without valid ToIndex (type='{type}').");
+                return;
+            }
+
+            if (parsedToIndex < 0 || (TotalPositions > 0 && parsedToIndex >= TotalPositions))
+            {
+                GD.PushWarning($"SanguoBoardView ignored event with out-of-range ToIndex={parsedToIndex} (TotalPositions={TotalPositions}).");
+                return;
             }
 
             if (doc.RootElement.TryGetProperty("PlayerId", out var playerId))
@@ -104,6 +114,7 @@ public partial class SanguoBoardView : Node2D
                 LastPlayerId = playerId.GetString();
             }
 
+            LastToIndex = parsedToIndex;
             var target = Origin + new Vector2(LastToIndex * StepPixels, 0f);
             MoveTokenTo(token, target);
         }

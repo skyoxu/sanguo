@@ -171,3 +171,42 @@ func test_invalid_json_does_not_crash_and_does_not_move_token() -> void:
     assert_int(view.LastToIndex).is_equal(0)
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
+
+func test_negative_to_index_is_ignored_and_does_not_move_token() -> void:
+    var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
+    var token = view.get_node("Token")
+    var start_pos: Vector2 = token.position
+
+    view.Origin = Vector2.ZERO
+    view.StepPixels = 10.0
+    view.MoveDurationSeconds = 0.0
+
+    add_child(auto_free(view))
+    await get_tree().process_frame
+
+    _publish_move("p1", -1)
+    await get_tree().process_frame
+
+    assert_int(view.LastToIndex).is_equal(0)
+    assert_bool(view.LastMoveAnimated).is_false()
+    assert_vector(token.position).is_equal(start_pos)
+
+func test_out_of_range_to_index_is_ignored_when_total_positions_set() -> void:
+    var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
+    var token = view.get_node("Token")
+    var start_pos: Vector2 = token.position
+
+    view.Origin = Vector2.ZERO
+    view.StepPixels = 10.0
+    view.MoveDurationSeconds = 0.0
+    view.TotalPositions = 3
+
+    add_child(auto_free(view))
+    await get_tree().process_frame
+
+    _publish_move("p1", 3)
+    await get_tree().process_frame
+
+    assert_int(view.LastToIndex).is_equal(0)
+    assert_bool(view.LastMoveAnimated).is_false()
+    assert_vector(token.position).is_equal(start_pos)
