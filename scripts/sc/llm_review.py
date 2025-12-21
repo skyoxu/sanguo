@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from _acceptance_artifacts import build_acceptance_evidence
 from _deterministic_review import DETERMINISTIC_AGENTS, build_deterministic_review
 from _taskmaster import TaskmasterTriplet, resolve_triplet
 from _util import ci_dir, repo_root, run_cmd, split_csv, today_str, write_json, write_text
@@ -76,6 +77,28 @@ def _build_task_context(triplet: TaskmasterTriplet | None) -> str:
             f"- master.details: {master_details or '(empty)'}",
             f"- tasks_back.details: {back_details or '(empty)'}",
             f"- tasks_gameplay.details: {gameplay_details or '(empty)'}",
+        ]
+    )
+
+def _resolve_threat_model(value: str | None) -> str:
+    s = str(value or "").strip().lower()
+    if not s:
+        s = str(os.environ.get("SC_THREAT_MODEL") or "").strip().lower()
+    return s if s in {"singleplayer", "modded", "networked"} else "singleplayer"
+
+
+def _build_threat_model_context(threat_model: str) -> str:
+    if threat_model == "networked":
+        note = "Assume network features may exist or be added soon; prioritize boundary checks, rate limits, and allowlists."
+    elif threat_model == "modded":
+        note = "Assume mods/plugins may exist; prioritize trust boundaries, input validation, and stop-loss logging."
+    else:
+        note = "Single-player/offline default; prioritize deterministic correctness, resource limits, and avoid over-hardening."
+    return "\n".join(
+        [
+            "Threat Model:",
+            f"- mode: {threat_model}",
+            f"- guidance: {note}",
         ]
     )
 
@@ -163,6 +186,26 @@ def _agent_prompt(agent: str, *, claude_agents_root: Path) -> tuple[str, dict[st
 def _git_capture(args: list[str], *, timeout_sec: int) -> tuple[int, str]:
     return run_cmd(args, cwd=repo_root(), timeout_sec=timeout_sec)
 
+def _auto_resolve_commit_for_task(task_id: str) -> str | None:
+    task_id = str(task_id).strip()
+    if not task_id:
+        return None
+    candidates = [
+        f"Task [{task_id}]",
+        f"Task [{task_id}]:",
+        f"Task {task_id}:",
+        f"Task {task_id} ",
+        f"#{task_id}",
+    ]
+    for needle in candidates:
+        rc, out = _git_capture(["git", "log", "--format=%H", "-n", "1", "--fixed-strings", "--grep", needle], timeout_sec=30)
+        if rc != 0:
+            continue
+        sha = (out.strip().splitlines() or [""])[0].strip()
+        if sha:
+            return sha
+    return None
+
 
 def _build_diff_context(args: argparse.Namespace) -> str:
     if args.uncommitted:
@@ -231,8 +274,18 @@ def main() -> int:
     ap.add_argument("--base", default="main", help="Base branch for diff review (default: main)")
     ap.add_argument("--uncommitted", action="store_true", help="Review staged/unstaged/untracked changes")
     ap.add_argument("--commit", default=None, help="Review a single commit SHA")
+    ap.add_argument(
+        "--auto-commit",
+        action="store_true",
+        help="Auto-select the latest commit referencing the task id (looks for 'Task [<id>]' in commit messages). Requires --task-id.",
+    )
     ap.add_argument("--timeout-sec", type=int, default=900, help="Timeout per agent (seconds)")
     ap.add_argument("--strict", action="store_true", help="Fail if any agent cannot produce output (default: soft)")
+    ap.add_argument(
+        "--threat-model",
+        default=None,
+        help="Threat model hint for review prompts: singleplayer|modded|networked (default: env SC_THREAT_MODEL or singleplayer).",
+    )
     ap.add_argument(
         "--claude-agents-root",
         default=None,
@@ -243,6 +296,9 @@ def main() -> int:
     if args.uncommitted and args.commit:
         print("[sc-llm-review] ERROR: --uncommitted and --commit are mutually exclusive.")
         return 2
+    if args.auto_commit and (args.uncommitted or args.commit):
+        print("[sc-llm-review] ERROR: --auto-commit is mutually exclusive with --uncommitted/--commit.")
+        return 2
 
     triplet = None
     if args.task_id:
@@ -251,6 +307,16 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001
             print(f"[sc-llm-review] ERROR: failed to resolve task: {exc}")
             return 2
+
+    if args.auto_commit:
+        if not triplet:
+            print("[sc-llm-review] ERROR: --auto-commit requires --task-id.")
+            return 2
+        sha = _auto_resolve_commit_for_task(triplet.task_id)
+        if not sha:
+            print(f"[sc-llm-review] ERROR: failed to auto-resolve commit for Task {triplet.task_id}. Use --commit <sha>.")
+            return 2
+        args.commit = sha
 
     out_dir = ci_dir("sc-llm-review")
     claude_agents_root = _resolve_claude_agents_root(args.claude_agents_root)
@@ -264,6 +330,12 @@ def main() -> int:
     ]
 
     ctx = _build_task_context(triplet)
+    threat_model = _resolve_threat_model(args.threat_model)
+    threat_ctx = _build_threat_model_context(threat_model)
+    acceptance_ctx = ""
+    acceptance_meta: dict[str, Any] | None = None
+    if triplet:
+        acceptance_ctx, acceptance_meta = build_acceptance_evidence(task_id=triplet.task_id)
     diff_ctx = _build_diff_context(args)
 
     results: list[ReviewResult] = []
@@ -297,7 +369,15 @@ def main() -> int:
             continue
 
         agent_prompt, prompt_meta = _agent_prompt(agent, claude_agents_root=claude_agents_root)
-        prompt = "\n\n".join([agent_prompt, ctx, diff_ctx]).strip() + "\n"
+        blocks = [agent_prompt]
+        if ctx:
+            blocks.append(ctx)
+        if threat_ctx:
+            blocks.append(threat_ctx)
+        if acceptance_ctx:
+            blocks.append(acceptance_ctx)
+        blocks.append(diff_ctx)
+        prompt = "\n\n".join(blocks).strip() + "\n"
         prompt_path = out_dir / f"prompt-{agent}.md"
         output_path = out_dir / f"review-{agent}.md"
         trace_path = out_dir / f"trace-{agent}.log"
@@ -340,6 +420,8 @@ def main() -> int:
         "commit": args.commit,
         "task_id": triplet.task_id if triplet else None,
         "strict": bool(args.strict),
+        "threat_model": threat_model,
+        "acceptance_meta": acceptance_meta,
         "status": "fail" if hard_fail else ("warn" if had_warnings else "ok"),
         "results": [r.__dict__ for r in results],
         "out_dir": str(out_dir),
@@ -352,4 +434,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

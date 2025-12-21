@@ -149,6 +149,9 @@ def _render_perf_report(*, task_id: str | None, acceptance_dir: Path) -> tuple[s
     ok = (budget_status == "pass") or disabled
     verdict = "OK" if ok else "Needs Fix"
 
+    p95_ms = data.get("p95_ms")
+    frames = data.get("frames")
+
     lines: list[str] = []
     lines.append("# Performance SLO (deterministic)")
     lines.append("")
@@ -158,7 +161,10 @@ def _render_perf_report(*, task_id: str | None, acceptance_dir: Path) -> tuple[s
 
     if disabled:
         lines.append("## P2")
-        lines.append("- perf budget is disabled (max_p95_ms=0); enable via --perf-p95-ms or env PERF_P95_THRESHOLD_MS")
+        if p95_ms is not None and frames is not None:
+            lines.append(f"- perf budget gate is disabled (max_p95_ms=0); latest headless [PERF] observed: p95_ms={p95_ms} frames={frames}")
+        else:
+            lines.append("- perf budget gate is disabled (max_p95_ms=0); no headless [PERF] evidence found in the artifact (run smoke to collect)")
         lines.append("")
     elif verdict != "OK":
         lines.append("## P0")
@@ -230,4 +236,3 @@ def build_deterministic_review(*, agent: str, out_dir: Path, task_id: str | None
             **meta,
         },
     }
-
