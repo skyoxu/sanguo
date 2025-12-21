@@ -78,7 +78,7 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _bus.PublishAsync(evt).GetAwaiter().GetResult();
+        _ = _bus.PublishAsync(evt);
     }
 
     public void AdvanceTurn(string correlationId, string? causationId)
@@ -106,7 +106,7 @@ public sealed class SanguoTurnManager
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
-        _bus.PublishAsync(ended).GetAwaiter().GetResult();
+        _ = _bus.PublishAsync(ended);
 
         _turnNumber += 1;
         _activePlayerIndex = (_activePlayerIndex + 1) % _playerOrder.Length;
@@ -150,7 +150,7 @@ public sealed class SanguoTurnManager
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
-        _bus.PublishAsync(advanced).GetAwaiter().GetResult();
+        _ = _bus.PublishAsync(advanced);
 
         var started = new DomainEvent(
             Type: SanguoGameTurnStarted.EventType,
@@ -169,7 +169,7 @@ public sealed class SanguoTurnManager
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
-        _bus.PublishAsync(started).GetAwaiter().GetResult();
+        _ = _bus.PublishAsync(started);
     }
 
     private static int GetSeasonFromMonth(int month)

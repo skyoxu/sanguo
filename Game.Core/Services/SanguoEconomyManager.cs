@@ -119,7 +119,7 @@ public sealed class SanguoEconomyManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _bus.PublishAsync(evt).GetAwaiter().GetResult();
+        _ = _bus.PublishAsync(evt);
     }
 
     /// <summary>
@@ -216,7 +216,7 @@ public sealed class SanguoEconomyManager
                 Id: Guid.NewGuid().ToString("N")
             );
 
-            _bus.PublishAsync(evt).GetAwaiter().GetResult();
+            _ = _bus.PublishAsync(evt);
         }
     }
 
@@ -292,7 +292,7 @@ public sealed class SanguoEconomyManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _bus.PublishAsync(evt).GetAwaiter().GetResult();
+        _ = _bus.PublishAsync(evt);
     }
 
     private static int GetSeasonFromMonth(int month)

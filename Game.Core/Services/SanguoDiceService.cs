@@ -43,7 +43,7 @@ public sealed class SanguoDiceService
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _bus.PublishAsync(evt).GetAwaiter().GetResult();
+        _ = _bus.PublishAsync(evt);
         return value;
     }
 }
