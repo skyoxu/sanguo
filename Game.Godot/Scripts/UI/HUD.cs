@@ -2,12 +2,17 @@ using Godot;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
+using System;
+using System.Collections.Generic;
 using System.Text.Json;
 
 namespace Game.Godot.Scripts.UI;
 
 public partial class HUD : Control
 {
+    private const int MaxEventJsonChars = 64 * 1024;
+    private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
+
     private Label _score = default!;
     private Label _health = default!;
 
@@ -17,6 +22,8 @@ public partial class HUD : Control
     private Button _diceButton = default!;
 
     private string? _activePlayerId;
+    private EventBusAdapter? _bus;
+    private readonly Dictionary<string, Action<JsonElement>> _handlers = new(StringComparer.Ordinal);
 
     public override void _Ready()
     {
@@ -29,149 +36,181 @@ public partial class HUD : Control
         _diceButton = GetNode<Button>("TopBar/HBox/DiceButton");
         _diceButton.Pressed += OnDicePressed;
 
-        var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
-        if (bus != null)
+        RegisterHandlers();
+
+        _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
+        if (_bus == null)
         {
-            bus.Connect(EventBusAdapter.SignalName.DomainEventEmitted, new Callable(this, nameof(OnDomainEventEmitted)));
+            GD.PushWarning("HUD: EventBus not found at /root/EventBus");
+            return;
+        }
+
+        var callable = new Callable(this, nameof(OnDomainEventEmitted));
+        if (!_bus.IsConnected(EventBusAdapter.SignalName.DomainEventEmitted, callable))
+        {
+            _bus.Connect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
         }
     }
 
-    private void OnDicePressed()
+    public override void _ExitTree()
     {
-        var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
-        if (bus == null)
+        _diceButton.Pressed -= OnDicePressed;
+
+        if (_bus == null)
         {
             return;
         }
 
-        bus.PublishSimple("ui.hud.dice.roll", nameof(HUD), "{}");
+        var callable = new Callable(this, nameof(OnDomainEventEmitted));
+        if (_bus.IsConnected(EventBusAdapter.SignalName.DomainEventEmitted, callable))
+        {
+            _bus.Disconnect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
+        }
+
+        _bus = null;
+    }
+
+    private void OnDicePressed()
+    {
+        if (_bus == null)
+        {
+            GD.PushWarning("HUD: EventBus not found; cannot publish ui.hud.dice.roll");
+            return;
+        }
+
+        _bus.PublishSimple("ui.hud.dice.roll", nameof(HUD), "{}");
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
-        if (type == CoreGameEvents.ScoreUpdated || type == CoreGameEvents.ScoreChanged)
+        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
+        if (json.Length > MaxEventJsonChars)
         {
-            try
-            {
-                var doc = JsonDocument.Parse(dataJson);
-                int v = 0;
-                if (doc.RootElement.TryGetProperty("value", out var val)) v = val.GetInt32();
-                else if (doc.RootElement.TryGetProperty("score", out var sc)) v = sc.GetInt32();
-                _score.Text = $"Score: {v}";
-            }
-            catch (System.Exception ex)
-            {
-                GD.PushWarning($"HUD failed to parse score event '{type}': {ex.Message}");
-            }
+            GD.PushWarning($"HUD ignored over-sized event payload (type='{type}', length={json.Length}).");
+            return;
         }
-        else if (type == CoreGameEvents.HealthUpdated || type == CoreGameEvents.PlayerHealthChanged)
+
+        if (!_handlers.TryGetValue(type, out var handler))
         {
-            try
-            {
-                var doc = JsonDocument.Parse(dataJson);
-                int v = 0;
-                if (doc.RootElement.TryGetProperty("value", out var val)) v = val.GetInt32();
-                else if (doc.RootElement.TryGetProperty("health", out var hp)) v = hp.GetInt32();
-                _health.Text = $"HP: {v}";
-            }
-            catch (System.Exception ex)
-            {
-                GD.PushWarning($"HUD failed to parse health event '{type}': {ex.Message}");
-            }
+            return;
         }
-        else if (type == Game.Core.Contracts.Sanguo.SanguoGameTurnStarted.EventType || type == Game.Core.Contracts.Sanguo.SanguoGameTurnAdvanced.EventType)
+
+        try
         {
-            try
-            {
-                var doc = JsonDocument.Parse(dataJson);
-                string active = "";
-                int year = 0;
-                int month = 0;
-                int day = 0;
-
-                if (doc.RootElement.TryGetProperty("ActivePlayerId", out var ap)) active = ap.GetString() ?? "";
-                if (doc.RootElement.TryGetProperty("Year", out var y)) year = y.GetInt32();
-                if (doc.RootElement.TryGetProperty("Month", out var m)) month = m.GetInt32();
-                if (doc.RootElement.TryGetProperty("Day", out var d)) day = d.GetInt32();
-
-                _activePlayerId = string.IsNullOrWhiteSpace(active) ? null : active;
-                _activePlayer.Text = $"Player: {active}";
-                _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
-            }
-            catch (System.Exception ex)
-            {
-                GD.PushWarning($"HUD failed to parse turn event '{type}': {ex.Message}");
-            }
+            using var doc = JsonDocument.Parse(json, JsonOptions);
+            handler(doc.RootElement);
         }
-        else if (type == Game.Core.Contracts.Sanguo.SanguoPlayerStateChanged.EventType)
+        catch (System.Exception ex)
         {
-            try
-            {
-                var doc = JsonDocument.Parse(dataJson);
-                if (!doc.RootElement.TryGetProperty("PlayerId", out var pidEl))
-                {
-                    return;
-                }
-
-                var pid = pidEl.GetString() ?? "";
-                if (string.IsNullOrWhiteSpace(pid) || _activePlayerId == null || pid != _activePlayerId)
-                {
-                    return;
-                }
-
-                if (!doc.RootElement.TryGetProperty("Money", out var moneyEl))
-                {
-                    return;
-                }
-
-                decimal money = moneyEl.ValueKind switch
-                {
-                    JsonValueKind.Number when moneyEl.TryGetDecimal(out var dec) => dec,
-                    JsonValueKind.Number => moneyEl.GetInt64(),
-                    _ => 0m,
-                };
-
-                _money.Text = $"Money: {money}";
-            }
-            catch (System.Exception ex)
-            {
-                GD.PushWarning($"HUD failed to parse player event '{type}': {ex.Message}");
-            }
+            GD.PushWarning($"HUD failed to handle event '{type}': {ex.Message}");
         }
-        else if (type == SanguoDiceRolled.EventType)
+    }
+
+    private void RegisterHandlers()
+    {
+        if (_handlers.Count != 0)
         {
-            try
-            {
-                var doc = JsonDocument.Parse(dataJson);
-
-                string pid = "";
-                if (doc.RootElement.TryGetProperty("PlayerId", out var pidEl))
-                {
-                    pid = pidEl.GetString() ?? "";
-                }
-
-                if (!string.IsNullOrWhiteSpace(pid) && _activePlayerId != null && pid != _activePlayerId)
-                {
-                    return;
-                }
-
-                int value = 0;
-                if (doc.RootElement.TryGetProperty("Value", out var v))
-                {
-                    value = v.GetInt32();
-                }
-                else if (doc.RootElement.TryGetProperty("value", out var vv))
-                {
-                    value = vv.GetInt32();
-                }
-
-                _diceButton.Text = $"Dice: {value}";
-            }
-            catch (System.Exception ex)
-            {
-                GD.PushWarning($"HUD failed to parse dice event '{type}': {ex.Message}");
-            }
+            return;
         }
+
+        _handlers[CoreGameEvents.ScoreUpdated] = HandleScoreEvent;
+        _handlers[CoreGameEvents.ScoreChanged] = HandleScoreEvent;
+
+        _handlers[CoreGameEvents.HealthUpdated] = HandleHealthEvent;
+        _handlers[CoreGameEvents.PlayerHealthChanged] = HandleHealthEvent;
+
+        _handlers[SanguoGameTurnStarted.EventType] = HandleTurnEvent;
+        _handlers[SanguoGameTurnAdvanced.EventType] = HandleTurnEvent;
+
+        _handlers[SanguoPlayerStateChanged.EventType] = HandlePlayerStateChangedEvent;
+        _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
+    }
+
+    private void HandleScoreEvent(JsonElement root)
+    {
+        int v = 0;
+        if (root.TryGetProperty("value", out var val)) v = val.GetInt32();
+        else if (root.TryGetProperty("score", out var sc)) v = sc.GetInt32();
+        _score.Text = $"Score: {v}";
+    }
+
+    private void HandleHealthEvent(JsonElement root)
+    {
+        int v = 0;
+        if (root.TryGetProperty("value", out var val)) v = val.GetInt32();
+        else if (root.TryGetProperty("health", out var hp)) v = hp.GetInt32();
+        _health.Text = $"HP: {v}";
+    }
+
+    private void HandleTurnEvent(JsonElement root)
+    {
+        string active = "";
+        int year = 0;
+        int month = 0;
+        int day = 0;
+
+        if (root.TryGetProperty("ActivePlayerId", out var ap)) active = ap.GetString() ?? "";
+        if (root.TryGetProperty("Year", out var y)) year = y.GetInt32();
+        if (root.TryGetProperty("Month", out var m)) month = m.GetInt32();
+        if (root.TryGetProperty("Day", out var d)) day = d.GetInt32();
+
+        _activePlayerId = string.IsNullOrWhiteSpace(active) ? null : active;
+        _activePlayer.Text = $"Player: {active}";
+        _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
+    }
+
+    private void HandlePlayerStateChangedEvent(JsonElement root)
+    {
+        if (!root.TryGetProperty("PlayerId", out var pidEl))
+        {
+            return;
+        }
+
+        var pid = pidEl.GetString() ?? "";
+        if (string.IsNullOrWhiteSpace(pid) || _activePlayerId == null || pid != _activePlayerId)
+        {
+            return;
+        }
+
+        if (!root.TryGetProperty("Money", out var moneyEl))
+        {
+            return;
+        }
+
+        decimal money = moneyEl.ValueKind switch
+        {
+            JsonValueKind.Number when moneyEl.TryGetDecimal(out var dec) => dec,
+            JsonValueKind.Number => moneyEl.GetInt64(),
+            _ => 0m,
+        };
+
+        _money.Text = $"Money: {money}";
+    }
+
+    private void HandleDiceRolledEvent(JsonElement root)
+    {
+        string pid = "";
+        if (root.TryGetProperty("PlayerId", out var pidEl))
+        {
+            pid = pidEl.GetString() ?? "";
+        }
+
+        if (!string.IsNullOrWhiteSpace(pid) && _activePlayerId != null && pid != _activePlayerId)
+        {
+            return;
+        }
+
+        int value = 0;
+        if (root.TryGetProperty("Value", out var v))
+        {
+            value = v.GetInt32();
+        }
+        else if (root.TryGetProperty("value", out var vv))
+        {
+            value = vv.GetInt32();
+        }
+
+        _diceButton.Text = $"Dice: {value}";
     }
 
     public void SetScore(int v) => _score.Text = $"Score: {v}";
