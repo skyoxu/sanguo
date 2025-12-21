@@ -7,6 +7,8 @@ namespace Game.Godot.Scripts.Sanguo;
 
 public partial class SanguoBoardView : Node2D
 {
+    private const int MaxEventJsonChars = 64 * 1024;
+    private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
     private const string TokenVisualNodeName = "__TokenVisual__";
 
     [Export]
@@ -25,6 +27,7 @@ public partial class SanguoBoardView : Node2D
     public string? LastPlayerId { get; private set; }
     public bool LastMoveAnimated { get; private set; }
 
+    private EventBusAdapter? _bus;
     private Tween? _moveTween;
 
     public override void _Ready()
@@ -35,13 +38,37 @@ public partial class SanguoBoardView : Node2D
             EnsureTokenHasVisual(token);
         }
 
-        var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
-        if (bus == null)
+        _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
+        if (_bus == null)
+        {
+            GD.PushWarning("SanguoBoardView: EventBus not found at /root/EventBus");
+            return;
+        }
+
+        var callable = new Callable(this, nameof(OnDomainEventEmitted));
+        if (!_bus.IsConnected(EventBusAdapter.SignalName.DomainEventEmitted, callable))
+        {
+            _bus.Connect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        _moveTween?.Kill();
+        _moveTween = null;
+
+        if (_bus == null)
         {
             return;
         }
 
-        bus.Connect(EventBusAdapter.SignalName.DomainEventEmitted, new Callable(this, nameof(OnDomainEventEmitted)));
+        var callable = new Callable(this, nameof(OnDomainEventEmitted));
+        if (_bus.IsConnected(EventBusAdapter.SignalName.DomainEventEmitted, callable))
+        {
+            _bus.Disconnect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
+        }
+
+        _bus = null;
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
@@ -57,9 +84,16 @@ public partial class SanguoBoardView : Node2D
             return;
         }
 
+        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
+        if (json.Length > MaxEventJsonChars)
+        {
+            GD.PushWarning($"SanguoBoardView ignored over-sized event payload (type='{type}', length={json.Length}).");
+            return;
+        }
+
         try
         {
-            using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson);
+            using var doc = JsonDocument.Parse(json, JsonOptions);
             if (doc.RootElement.TryGetProperty("ToIndex", out var toIndex))
             {
                 LastToIndex = toIndex.GetInt32();
