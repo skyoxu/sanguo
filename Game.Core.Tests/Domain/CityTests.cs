@@ -11,7 +11,7 @@ public class CityTests
     private static readonly SanguoEconomyRules Rules = SanguoEconomyRules.Default;
 
     [Fact]
-    public void City_Construct_SetsProperties()
+    public void ShouldSetProperties_WhenConstructed()
     {
         var city = new City(
             id: "c1",
@@ -28,7 +28,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetPrice_WithZeroMultiplier_ReturnsZero()
+    public void ShouldReturnZero_WhenPriceMultiplierIsZero()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -36,7 +36,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetPrice_WithMultiplier_ReturnsScaledPrice()
+    public void ShouldReturnScaledPrice_WhenPriceMultiplierIsProvided()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -44,7 +44,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetPrice_WithNegativeMultiplier_ShouldThrowArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenPriceMultiplierIsNegative()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -54,7 +54,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetPrice_WithDecimalPrecisionMultiplier_ShouldReturnExpectedValue()
+    public void ShouldReturnExpectedValue_WhenPriceMultiplierHasDecimalPrecision()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -62,7 +62,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetPrice_WithMultiplierAboveMax_ShouldThrowArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenPriceMultiplierExceedsMax()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -72,7 +72,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetPrice_CalledMultipleTimes_ShouldReturnConsistentResult()
+    public void ShouldReturnConsistentResult_WhenGettingPriceMultipleTimes()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -85,7 +85,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetToll_WithZeroMultiplier_ReturnsZero()
+    public void ShouldReturnZero_WhenTollMultiplierIsZero()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -93,7 +93,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetToll_WithMultiplier_ReturnsScaledToll()
+    public void ShouldReturnScaledToll_WhenTollMultiplierIsProvided()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -101,7 +101,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetToll_WithNegativeMultiplier_ShouldThrowArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenTollMultiplierIsNegative()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
@@ -111,7 +111,7 @@ public class CityTests
     }
 
     [Fact]
-    public void City_GetToll_WithMultiplierAboveMax_ShouldThrowArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenTollMultiplierExceedsMax()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
 
