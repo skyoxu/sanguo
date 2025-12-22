@@ -72,6 +72,18 @@
 - 构建门禁：`dotnet build -warnaserror`（通过 sc build 入口）
 - 测试门禁：`py -3 scripts/sc/test.py --type all`（含 xUnit + GdUnit4 + smoke）
 
+#### 2.4.1 系统级口径：必须有 ADR + 硬门禁
+
+对于 1/3/4/6/9 这类“会反复影响所有任务”的口径（跨切面规则/约束/门禁/安全/契约），要求：
+
+- 必须落 ADR（并在任务的 `adrRefs` 中引用，且状态为 `Accepted`）
+- 必须能被 `acceptance_check.py` 的 ADR 步骤以确定性规则检查并硬失败（拒绝仅靠口头约定/记忆）
+
+建议把“系统级口径”的 SSoT 放在：
+
+- 详细规则：`docs/workflows/acceptance-check-and-llm-review.md`
+- AI 总能看到的最小提示（可选）：`AGENTS.md`（只放一句话 + 链接，避免重复口径）
+
 软门禁（不阻断，只记录证据）：
 
 - Sentry secrets/编码扫描/核心契约检查（输出写入 `security-soft.json`）
