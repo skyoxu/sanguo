@@ -66,6 +66,82 @@ public sealed class SanguoEconomyManager
     }
 
     /// <summary>
+    /// Attempts to buy a city for the given buyer, using global board state rules (unique ownership),
+    /// and publishes <see cref="SanguoCityBought"/> on success.
+    /// </summary>
+    /// <param name="gameId">Game id (must be non-empty).</param>
+    /// <param name="players">Mutable player list (must not be null).</param>
+    /// <param name="citiesById">City dictionary keyed by city id (must not be null).</param>
+    /// <param name="buyerId">Buyer player id (must be non-empty).</param>
+    /// <param name="cityId">City id to buy (must be non-empty).</param>
+    /// <param name="priceMultiplier">Price multiplier (1.0 = base price).</param>
+    /// <param name="correlationId">Correlation id (must be non-empty).</param>
+    /// <param name="causationId">Causation id (optional).</param>
+    /// <param name="occurredAt">Occurrence timestamp.</param>
+    /// <returns>True if the purchase succeeds; otherwise false.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="gameId"/>, <paramref name="buyerId"/>, <paramref name="cityId"/> or <paramref name="correlationId"/> is empty/whitespace.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="players"/> or <paramref name="citiesById"/> is null.</exception>
+    public bool TryBuyCityAndPublishEvent(
+        string gameId,
+        IReadOnlyList<SanguoPlayer> players,
+        IReadOnlyDictionary<string, City> citiesById,
+        string buyerId,
+        string cityId,
+        decimal priceMultiplier,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt
+    )
+    {
+        if (string.IsNullOrWhiteSpace(gameId))
+            throw new ArgumentException("GameId must be non-empty.", nameof(gameId));
+
+        if (string.IsNullOrWhiteSpace(buyerId))
+            throw new ArgumentException("BuyerId must be non-empty.", nameof(buyerId));
+
+        if (string.IsNullOrWhiteSpace(cityId))
+            throw new ArgumentException("CityId must be non-empty.", nameof(cityId));
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+            throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
+
+        ArgumentNullException.ThrowIfNull(players, nameof(players));
+        ArgumentNullException.ThrowIfNull(citiesById, nameof(citiesById));
+
+        var buyer = players.FirstOrDefault(p => p.PlayerId == buyerId);
+        if (buyer is null)
+            return false;
+
+        var moneyBefore = buyer.Money;
+
+        var boardState = new SanguoBoardState(players, citiesById);
+        var bought = boardState.TryBuyCity(buyerId, cityId, priceMultiplier);
+        if (!bought)
+            return false;
+
+        var price = (moneyBefore - buyer.Money).ToDecimal();
+
+        var evt = new DomainEvent(
+            Type: SanguoCityBought.EventType,
+            Source: nameof(SanguoEconomyManager),
+            Data: JsonElementEventData.FromObject(new SanguoCityBought(
+                GameId: gameId,
+                BuyerId: buyerId,
+                CityId: cityId,
+                Price: price,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
+            Timestamp: DateTime.UtcNow,
+            Id: Guid.NewGuid().ToString("N")
+        );
+
+        _ = _bus.PublishAsync(evt);
+        return true;
+    }
+
+    /// <summary>
     /// Publishes a month-end settlement event when crossing a month boundary.
     /// Emits <see cref="SanguoMonthSettled"/> only when year or month differs between <paramref name="previousDate"/> and <paramref name="currentDate"/>.
     /// </summary>

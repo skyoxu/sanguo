@@ -22,6 +22,124 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
+    public void ShouldPublishCityBoughtAndUpdateBuyer_WhenCityPurchaseSucceeds()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var city = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+
+        var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { buyer };
+
+        var occurredAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        var bought = economy.TryBuyCityAndPublishEvent(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            buyerId: buyer.PlayerId,
+            cityId: city.Id,
+            priceMultiplier: 1m,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: occurredAt);
+
+        bought.Should().BeTrue();
+        buyer.OwnedCityIds.Should().Contain(city.Id);
+        buyer.Money.Should().Be(Money.FromDecimal(100m));
+
+        bus.Published.Should().ContainSingle(e => e.Type == SanguoCityBought.EventType);
+        var evt = bus.Published[0];
+        evt.Source.Should().Be(nameof(SanguoEconomyManager));
+        evt.Data.Should().BeOfType<JsonElementEventData>();
+
+        var payload = ((JsonElementEventData)evt.Data!).Value;
+        payload.GetProperty("GameId").GetString().Should().Be("game-1");
+        payload.GetProperty("BuyerId").GetString().Should().Be("buyer");
+        payload.GetProperty("CityId").GetString().Should().Be("c1");
+        payload.GetProperty("Price").GetDecimal().Should().Be(100m);
+        payload.GetProperty("OccurredAt").GetDateTimeOffset().Should().Be(occurredAt);
+        payload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
+        payload.GetProperty("CausationId").GetString().Should().Be("cmd-1");
+    }
+
+    [Fact]
+    public void ShouldNotPublishAndNotChangeBuyer_WhenCityOwnedByAnotherPlayer()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var city = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+
+        var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { owner, buyer };
+
+        owner.TryBuyCity(city, priceMultiplier: 1m).Should().BeTrue();
+
+        var buyerMoneyBefore = buyer.Money;
+        var bought = economy.TryBuyCityAndPublishEvent(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            buyerId: buyer.PlayerId,
+            cityId: city.Id,
+            priceMultiplier: 1m,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: DateTimeOffset.UtcNow);
+
+        bought.Should().BeFalse();
+        buyer.Money.Should().Be(buyerMoneyBefore);
+        buyer.OwnedCityIds.Should().NotContain(city.Id);
+        bus.Published.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ShouldReturnFalseAndNotPublish_WhenBuyerNotFound()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var city = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+
+        var players = new[] { new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default) };
+
+        var bought = economy.TryBuyCityAndPublishEvent(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            buyerId: "missing",
+            cityId: city.Id,
+            priceMultiplier: 1m,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: DateTimeOffset.UtcNow);
+
+        bought.Should().BeFalse();
+        bus.Published.Should().BeEmpty();
+    }
+
+    [Fact]
     public void PublishMonthSettlementIfBoundary_WhenMonthUnchanged_DoesNotPublish()
     {
         var bus = new CapturingEventBus();

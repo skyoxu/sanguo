@@ -158,6 +158,19 @@ public sealed class SanguoPlayer : ISanguoPlayerView
     }
 
     /// <summary>
+    /// Checks whether this player currently owns the specified city id.
+    /// </summary>
+    /// <param name="cityId">City id to check.</param>
+    public bool OwnsCityId(string cityId)
+    {
+        AssertThread();
+        if (string.IsNullOrWhiteSpace(cityId))
+            return false;
+
+        return _ownedCityIds.Contains(cityId);
+    }
+
+    /// <summary>
     /// Attempts to pay toll to the owner of a city.
     /// </summary>
     /// <remarks>
