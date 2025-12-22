@@ -30,24 +30,48 @@ public sealed class SanguoBoardState
         var playersById = new Dictionary<string, SanguoPlayer>(StringComparer.Ordinal);
         foreach (var player in players)
         {
-            ArgumentNullException.ThrowIfNull(player, nameof(players));
+            ArgumentNullException.ThrowIfNull(player, nameof(player));
+            try
+            {
+                _ = player.Money;
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new InvalidOperationException(
+                    $"Player thread guard mismatch for playerId={player.PlayerId}. Ensure players and SanguoBoardState are created and used on the same thread.",
+                    ex);
+            }
+
             if (playersById.ContainsKey(player.PlayerId))
                 throw new ArgumentException($"Duplicate player id: {player.PlayerId}", nameof(players));
             playersById.Add(player.PlayerId, player);
         }
 
         _playersById = playersById;
-        _citiesById = citiesById;
+
+        var citiesSnapshot = new Dictionary<string, City>(StringComparer.Ordinal);
+        foreach (var (cityId, city) in citiesById)
+        {
+            ArgumentNullException.ThrowIfNull(city, nameof(city));
+            if (citiesSnapshot.ContainsKey(cityId))
+                throw new ArgumentException($"Duplicate city id: {cityId}", nameof(citiesById));
+            citiesSnapshot.Add(cityId, city);
+        }
+
+        _citiesById = citiesSnapshot;
     }
 
     /// <summary>
     /// Attempts to buy a city for the given buyer.
-    /// Returns false when the city is already owned by another player, when the buyer is eliminated,
-    /// or when the buyer has insufficient funds.
+    /// Returns false when the buyer or city is not found, when the city is already owned by another player,
+    /// when the buyer is eliminated, or when the buyer has insufficient funds.
     /// </summary>
     /// <param name="buyerId">Buyer player id.</param>
     /// <param name="cityId">City id to buy.</param>
     /// <param name="priceMultiplier">Price multiplier (1.0 = base price).</param>
+    /// <returns>True if the purchase succeeds; otherwise false.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="buyerId"/> or <paramref name="cityId"/> is empty/whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="priceMultiplier"/> is out of allowed range.</exception>
     public bool TryBuyCity(string buyerId, string cityId, decimal priceMultiplier)
     {
         AssertThread();
@@ -59,10 +83,10 @@ public sealed class SanguoBoardState
             throw new ArgumentException("CityId must be non-empty.", nameof(cityId));
 
         if (!_playersById.TryGetValue(buyerId, out var buyer))
-            throw new InvalidOperationException($"Buyer not found: {buyerId}");
+            return false;
 
         if (!_citiesById.TryGetValue(cityId, out var city))
-            throw new InvalidOperationException($"City not found: {cityId}");
+            return false;
 
         foreach (var player in _playersById.Values)
         {
@@ -78,4 +102,3 @@ public sealed class SanguoBoardState
 
     private void AssertThread() => _threadGuard.AssertCurrentThread();
 }
-

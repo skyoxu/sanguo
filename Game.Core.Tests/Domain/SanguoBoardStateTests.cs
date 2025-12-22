@@ -40,5 +40,29 @@ public sealed class SanguoBoardStateTests
         buyer.Money.Should().Be(buyerMoneyBefore);
         buyer.OwnedCityIds.Should().NotContain(city.Id);
     }
-}
 
+    [Fact]
+    public void ShouldReturnFalse_WhenBuyerNotFound()
+    {
+        var city = MakeCity(id: "c1");
+        var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: Rules);
+
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+        var state = new SanguoBoardState(players: new[] { owner }, citiesById: citiesById);
+
+        state.TryBuyCity(buyerId: "missing", cityId: city.Id, priceMultiplier: UnitMultiplier).Should().BeFalse();
+        owner.OwnedCityIds.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ShouldReturnFalse_WhenCityNotFound()
+    {
+        var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: Rules);
+        var state = new SanguoBoardState(
+            players: new[] { owner },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        state.TryBuyCity(buyerId: owner.PlayerId, cityId: "missing", priceMultiplier: UnitMultiplier).Should().BeFalse();
+        owner.OwnedCityIds.Should().BeEmpty();
+    }
+}
