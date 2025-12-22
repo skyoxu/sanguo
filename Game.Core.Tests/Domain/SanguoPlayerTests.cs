@@ -109,6 +109,21 @@ public class SanguoPlayerTests
     }
 
     [Fact]
+    public void ShouldThrowArgumentOutOfRangeException_WhenBuyingCityWithTooLargePriceMultiplier()
+    {
+        var rules = new SanguoEconomyRules(
+            maxPriceMultiplier: 2m,
+            maxTollMultiplier: SanguoEconomyRules.DefaultMaxTollMultiplier);
+
+        var city = MakeCity(id: "c1", basePrice: 10m);
+        var player = new SanguoPlayer(playerId: "p1", money: 100m, positionIndex: 0, economyRules: rules);
+
+        var act = () => player.TryBuyCity(city, priceMultiplier: 3m);
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("priceMultiplier");
+    }
+
+    [Fact]
     public void ShouldTransferMoney_WhenPayingTollToDifferentOwner()
     {
         var city = MakeCity(id: "c1");
@@ -270,6 +285,23 @@ public class SanguoPlayerTests
         var act = () => payer.TryPayTollTo(owner, city, tollMultiplier: -1m, treasury: treasury);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void ShouldThrowArgumentOutOfRangeException_WhenPayingTollWithTooLargeMultiplier()
+    {
+        var rules = new SanguoEconomyRules(
+            maxPriceMultiplier: SanguoEconomyRules.DefaultMaxPriceMultiplier,
+            maxTollMultiplier: 2m);
+
+        var city = MakeCity(id: "c1", baseToll: 10m);
+        var payer = new SanguoPlayer(playerId: "payer", money: 100m, positionIndex: 0, economyRules: rules);
+        var owner = new SanguoPlayer(playerId: "owner", money: 0m, positionIndex: 0, economyRules: rules);
+        var treasury = new SanguoTreasury();
+
+        var act = () => payer.TryPayTollTo(owner, city, tollMultiplier: 3m, treasury: treasury);
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("tollMultiplier");
     }
 
     [Fact]

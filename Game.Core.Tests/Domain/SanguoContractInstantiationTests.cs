@@ -287,6 +287,8 @@ public sealed class SanguoContractInstantiationTests
             OwnerId: "p1",
             CityId: "c1",
             Amount: 50m,
+            OwnerAmount: 50m,
+            TreasuryOverflow: 0m,
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null
@@ -296,6 +298,8 @@ public sealed class SanguoContractInstantiationTests
         tollPaid.OwnerId.Should().Be("p1");
         tollPaid.CityId.Should().Be("c1");
         tollPaid.Amount.Should().Be(50m);
+        tollPaid.OwnerAmount.Should().Be(50m);
+        tollPaid.TreasuryOverflow.Should().Be(0m);
         tollPaid.OccurredAt.Should().Be(now);
         tollPaid.CorrelationId.Should().Be("corr-1");
         tollPaid.CausationId.Should().BeNull();

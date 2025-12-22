@@ -129,10 +129,10 @@ public sealed class SanguoPlayer : ISanguoPlayerView
     /// or when the player has been eliminated.
     /// </summary>
     /// <param name="city">City to buy.</param>
-    /// <param name="priceMultiplier">Price multiplier (1.0 = base price).</param>
+    /// <param name="priceMultiplier">Price multiplier (0..Max; 1.0 = base price).</param>
     /// <returns>True if the purchase succeeds; otherwise false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="city"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="priceMultiplier"/> is negative.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="priceMultiplier"/> is out of allowed range.</exception>
     public bool TryBuyCity(City city, decimal priceMultiplier)
     {
         AssertThread();
@@ -142,8 +142,10 @@ public sealed class SanguoPlayer : ISanguoPlayerView
 
         ArgumentNullException.ThrowIfNull(city, nameof(city));
 
-        if (priceMultiplier < 0)
-            throw new ArgumentOutOfRangeException(nameof(priceMultiplier), "Price multiplier must be non-negative.");
+        if (priceMultiplier < 0 || priceMultiplier > _economyRules.MaxPriceMultiplier)
+            throw new ArgumentOutOfRangeException(
+                nameof(priceMultiplier),
+                $"Price multiplier must be between 0 and {_economyRules.MaxPriceMultiplier}.");
 
         if (_ownedCityIds.Contains(city.Id))
             return false;
@@ -181,11 +183,11 @@ public sealed class SanguoPlayer : ISanguoPlayerView
     /// </remarks>
     /// <param name="owner">City owner receiving the payment.</param>
     /// <param name="city">City to calculate toll from.</param>
-    /// <param name="tollMultiplier">Toll multiplier (1.0 = base toll).</param>
+    /// <param name="tollMultiplier">Toll multiplier (0..Max; 1.0 = base toll).</param>
     /// <param name="treasury">Treasury accumulator for overflow amounts when the owner is capped at max money.</param>
     /// <returns>True if a payment/elimination action was performed; otherwise false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="owner"/> or <paramref name="city"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tollMultiplier"/> is negative.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tollMultiplier"/> is out of allowed range.</exception>
     public bool TryPayTollTo(SanguoPlayer owner, City city, decimal tollMultiplier, SanguoTreasury treasury)
     {
         AssertThread();
@@ -199,8 +201,10 @@ public sealed class SanguoPlayer : ISanguoPlayerView
 
         owner.AssertThread();
 
-        if (tollMultiplier < 0)
-            throw new ArgumentOutOfRangeException(nameof(tollMultiplier), "Toll multiplier must be non-negative.");
+        if (tollMultiplier < 0 || tollMultiplier > _economyRules.MaxTollMultiplier)
+            throw new ArgumentOutOfRangeException(
+                nameof(tollMultiplier),
+                $"Toll multiplier must be between 0 and {_economyRules.MaxTollMultiplier}.");
 
         if (owner.IsEliminated)
             return false;

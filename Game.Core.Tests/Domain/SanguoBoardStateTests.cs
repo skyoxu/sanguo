@@ -65,4 +65,49 @@ public sealed class SanguoBoardStateTests
         state.TryBuyCity(buyerId: owner.PlayerId, cityId: "missing", priceMultiplier: UnitMultiplier).Should().BeFalse();
         owner.OwnedCityIds.Should().BeEmpty();
     }
+
+    [Fact]
+    public void TryGetOwnerOfCity_WhenCityUnowned_ReturnsFalseAndOutputsNull()
+    {
+        var city = MakeCity(id: "c1");
+        var player = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: Rules);
+
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+        var state = new SanguoBoardState(players: new[] { player }, citiesById: citiesById);
+
+        state.TryGetOwnerOfCity(city.Id, out var owner).Should().BeFalse();
+        owner.Should().BeNull();
+    }
+
+    [Fact]
+    public void TryGetOwnerOfCity_WhenCityOwnedByPlayer_ReturnsTrueAndOutputsOwner()
+    {
+        var city = MakeCity(id: "c1");
+        var ownerPlayer = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: Rules);
+
+        ownerPlayer.TryBuyCity(city, priceMultiplier: UnitMultiplier).Should().BeTrue();
+
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+        var state = new SanguoBoardState(players: new[] { ownerPlayer }, citiesById: citiesById);
+
+        state.TryGetOwnerOfCity(city.Id, out var resolved).Should().BeTrue();
+        resolved.Should().BeSameAs(ownerPlayer);
+    }
+
+    [Fact]
+    public void TryGetOwnerOfCity_WhenMultipleOwnersDetected_ThrowsInvalidOperationException()
+    {
+        var city = MakeCity(id: "c1");
+        var owner1 = new SanguoPlayer(playerId: "o1", money: 200m, positionIndex: 0, economyRules: Rules);
+        var owner2 = new SanguoPlayer(playerId: "o2", money: 200m, positionIndex: 0, economyRules: Rules);
+
+        owner1.TryBuyCity(city, priceMultiplier: UnitMultiplier).Should().BeTrue();
+        owner2.TryBuyCity(city, priceMultiplier: UnitMultiplier).Should().BeTrue();
+
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+        var state = new SanguoBoardState(players: new[] { owner1, owner2 }, citiesById: citiesById);
+
+        Action act = () => state.TryGetOwnerOfCity(city.Id, out _);
+        act.Should().Throw<InvalidOperationException>();
+    }
 }

@@ -22,7 +22,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void ShouldPublishCityBoughtAndUpdateBuyer_WhenCityPurchaseSucceeds()
+    public async Task ShouldPublishCityBoughtAndUpdateBuyer_WhenCityPurchaseSucceeds()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -40,7 +40,7 @@ public class SanguoEconomyManagerTests
 
         var occurredAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-        var bought = economy.TryBuyCityAndPublishEvent(
+        var bought = await economy.TryBuyCityAndPublishEventAsync(
             gameId: "game-1",
             players: players,
             citiesById: citiesById,
@@ -71,7 +71,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void ShouldNotPublishAndNotChangeBuyer_WhenCityOwnedByAnotherPlayer()
+    public async Task ShouldNotPublishAndNotChangeBuyer_WhenCityOwnedByAnotherPlayer()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -91,7 +91,7 @@ public class SanguoEconomyManagerTests
         owner.TryBuyCity(city, priceMultiplier: 1m).Should().BeTrue();
 
         var buyerMoneyBefore = buyer.Money;
-        var bought = economy.TryBuyCityAndPublishEvent(
+        var bought = await economy.TryBuyCityAndPublishEventAsync(
             gameId: "game-1",
             players: players,
             citiesById: citiesById,
@@ -109,7 +109,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void ShouldReturnFalseAndNotPublish_WhenBuyerNotFound()
+    public async Task ShouldReturnFalseAndNotPublish_WhenBuyerNotFound()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -124,7 +124,7 @@ public class SanguoEconomyManagerTests
 
         var players = new[] { new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default) };
 
-        var bought = economy.TryBuyCityAndPublishEvent(
+        var bought = await economy.TryBuyCityAndPublishEventAsync(
             gameId: "game-1",
             players: players,
             citiesById: citiesById,
@@ -137,6 +137,172 @@ public class SanguoEconomyManagerTests
 
         bought.Should().BeFalse();
         bus.Published.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ShouldPublishCityTollPaidAndUpdateBalances_WhenTollPaymentSucceeds()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var city = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+
+        var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var payer = new SanguoPlayer(playerId: "payer", money: 50m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { owner, payer };
+
+        owner.TryBuyCity(city, priceMultiplier: 1m).Should().BeTrue();
+
+        var treasury = new SanguoTreasury();
+        var occurredAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        var paid = await economy.TryPayTollAndPublishEventAsync(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            payerId: payer.PlayerId,
+            cityId: city.Id,
+            tollMultiplier: 1m,
+            treasury: treasury,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: occurredAt);
+
+        paid.Should().BeTrue();
+        payer.Money.Should().Be(Money.FromDecimal(40m));
+        owner.Money.Should().Be(Money.FromDecimal(110m));
+
+        bus.Published.Should().ContainSingle(e => e.Type == SanguoCityTollPaid.EventType);
+        var evt = bus.Published[0];
+        evt.Source.Should().Be(nameof(SanguoEconomyManager));
+        evt.Data.Should().BeOfType<JsonElementEventData>();
+
+        var payload = ((JsonElementEventData)evt.Data!).Value;
+        payload.GetProperty("GameId").GetString().Should().Be("game-1");
+        payload.GetProperty("PayerId").GetString().Should().Be("payer");
+        payload.GetProperty("OwnerId").GetString().Should().Be("owner");
+        payload.GetProperty("CityId").GetString().Should().Be("c1");
+        var amount = payload.GetProperty("Amount").GetDecimal();
+        var ownerAmount = payload.GetProperty("OwnerAmount").GetDecimal();
+        var overflow = payload.GetProperty("TreasuryOverflow").GetDecimal();
+        amount.Should().Be(10m);
+        ownerAmount.Should().Be(10m);
+        overflow.Should().Be(0m);
+        amount.Should().Be(ownerAmount + overflow);
+        payload.GetProperty("OccurredAt").GetDateTimeOffset().Should().Be(occurredAt);
+        payload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
+        payload.GetProperty("CausationId").GetString().Should().Be("cmd-1");
+    }
+
+    [Fact]
+    public async Task ShouldReturnFalseAndNotPublish_WhenCityIsUnowned()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var city = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+
+        var payer = new SanguoPlayer(playerId: "payer", money: 50m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { payer };
+
+        var payerMoneyBefore = payer.Money;
+        var treasury = new SanguoTreasury();
+
+        var paid = await economy.TryPayTollAndPublishEventAsync(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            payerId: payer.PlayerId,
+            cityId: city.Id,
+            tollMultiplier: 1m,
+            treasury: treasury,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: DateTimeOffset.UtcNow);
+
+        paid.Should().BeFalse();
+        payer.Money.Should().Be(payerMoneyBefore);
+        bus.Published.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ShouldEliminatePayerAndPublish_WhenPayerCannotCoverFullToll()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var tollCity = new City(
+            id: "toll",
+            name: "TollCity",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+
+        var ownedCity = new City(
+            id: "owned1",
+            name: "OwnedCity",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(10m),
+            baseToll: Money.FromDecimal(1m));
+
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal)
+        {
+            { tollCity.Id, tollCity },
+            { ownedCity.Id, ownedCity },
+        };
+
+        var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var payer = new SanguoPlayer(playerId: "payer", money: 60m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { owner, payer };
+
+        owner.TryBuyCity(tollCity, priceMultiplier: 1m).Should().BeTrue();
+        payer.TryBuyCity(ownedCity, priceMultiplier: 1m).Should().BeTrue();
+        payer.OwnedCityIds.Should().Contain(ownedCity.Id);
+
+        var treasury = new SanguoTreasury();
+        var occurredAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero);
+
+        var paid = await economy.TryPayTollAndPublishEventAsync(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            payerId: payer.PlayerId,
+            cityId: tollCity.Id,
+            tollMultiplier: 10m,
+            treasury: treasury,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: occurredAt);
+
+        paid.Should().BeTrue();
+        payer.IsEliminated.Should().BeTrue();
+        payer.Money.Should().Be(Money.Zero);
+        payer.OwnedCityIds.Should().BeEmpty();
+        owner.Money.Should().Be(Money.FromDecimal(150m));
+        treasury.MinorUnits.Should().Be(0);
+
+        bus.Published.Should().ContainSingle(e => e.Type == SanguoCityTollPaid.EventType);
+        var payload = ((JsonElementEventData)bus.Published[0].Data!).Value;
+        var amount = payload.GetProperty("Amount").GetDecimal();
+        var ownerAmount = payload.GetProperty("OwnerAmount").GetDecimal();
+        var overflow = payload.GetProperty("TreasuryOverflow").GetDecimal();
+        amount.Should().Be(50m);
+        ownerAmount.Should().Be(50m);
+        overflow.Should().Be(0m);
+        amount.Should().Be(ownerAmount + overflow);
+        payload.GetProperty("OccurredAt").GetDateTimeOffset().Should().Be(occurredAt);
     }
 
     [Fact]
