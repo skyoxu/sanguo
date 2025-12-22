@@ -109,6 +109,44 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
+    public async Task ShouldRollbackBuyerAndThrow_WhenPublishCityBoughtFails()
+    {
+        var bus = new ThrowingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var city = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+
+        var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { buyer };
+
+        var moneyBefore = buyer.Money;
+        var ownedBefore = buyer.OwnedCityIds;
+
+        Func<Task> act = async () => await economy.TryBuyCityAndPublishEventAsync(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            buyerId: buyer.PlayerId,
+            cityId: city.Id,
+            priceMultiplier: 1m,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: DateTimeOffset.UtcNow);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Event publish failed after city purchase*");
+
+        buyer.Money.Should().Be(moneyBefore);
+        buyer.OwnedCityIds.Should().BeEquivalentTo(ownedBefore);
+    }
+
+    [Fact]
     public async Task ShouldReturnFalseAndNotPublish_WhenBuyerNotFound()
     {
         var bus = new CapturingEventBus();
@@ -198,6 +236,57 @@ public class SanguoEconomyManagerTests
         payload.GetProperty("OccurredAt").GetDateTimeOffset().Should().Be(occurredAt);
         payload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-1");
+    }
+
+    [Fact]
+    public async Task ShouldRollbackMoneyAndTreasuryAndThrow_WhenPublishTollPaidFails()
+    {
+        var bus = new ThrowingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var tollCity = new City(
+            id: "toll",
+            name: "TollCity",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { tollCity.Id, tollCity } };
+
+        var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var payer = new SanguoPlayer(playerId: "payer", money: 50m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { owner, payer };
+
+        owner.TryBuyCity(tollCity, priceMultiplier: 1m).Should().BeTrue();
+
+        var treasury = new SanguoTreasury();
+        var payerMoneyBefore = payer.Money;
+        var ownerMoneyBefore = owner.Money;
+        var payerOwnedBefore = payer.OwnedCityIds;
+        var ownerOwnedBefore = owner.OwnedCityIds;
+        var payerEliminatedBefore = payer.IsEliminated;
+        var treasuryBefore = treasury.MinorUnits;
+
+        Func<Task> act = async () => await economy.TryPayTollAndPublishEventAsync(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            payerId: payer.PlayerId,
+            cityId: tollCity.Id,
+            tollMultiplier: 1m,
+            treasury: treasury,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: DateTimeOffset.UtcNow);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Event publish failed after toll payment*");
+
+        payer.Money.Should().Be(payerMoneyBefore);
+        owner.Money.Should().Be(ownerMoneyBefore);
+        payer.OwnedCityIds.Should().BeEquivalentTo(payerOwnedBefore);
+        owner.OwnedCityIds.Should().BeEquivalentTo(ownerOwnedBefore);
+        payer.IsEliminated.Should().Be(payerEliminatedBefore);
+        treasury.MinorUnits.Should().Be(treasuryBefore);
     }
 
     [Fact]
@@ -739,6 +828,20 @@ public class SanguoEconomyManagerTests
             Published.Add(evt);
             return Task.CompletedTask;
         }
+
+        public IDisposable Subscribe(Func<DomainEvent, Task> handler) => new DummySubscription();
+
+        private sealed class DummySubscription : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
+    }
+
+    private sealed class ThrowingEventBus : IEventBus
+    {
+        public Task PublishAsync(DomainEvent evt) => throw new InvalidOperationException("publish failed");
 
         public IDisposable Subscribe(Func<DomainEvent, Task> handler) => new DummySubscription();
 

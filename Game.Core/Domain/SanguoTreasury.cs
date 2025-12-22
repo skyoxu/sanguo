@@ -44,5 +44,17 @@ public sealed class SanguoTreasury
         _minorUnits = checked(_minorUnits + amount.MinorUnits);
     }
 
+    internal long CaptureRollbackSnapshot()
+    {
+        AssertThread();
+        return _minorUnits;
+    }
+
+    internal void RestoreRollbackSnapshot(long minorUnits)
+    {
+        AssertThread();
+        _minorUnits = minorUnits;
+    }
+
     private void AssertThread() => _threadGuard.AssertCurrentThread();
 }

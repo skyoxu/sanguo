@@ -113,6 +113,7 @@ public sealed class SanguoEconomyManager
         if (buyer is null)
             return false;
 
+        var buyerSnapshot = buyer.CaptureRollbackSnapshot();
         var moneyBefore = buyer.Money;
 
         var boardState = new SanguoBoardState(players, citiesById);
@@ -138,8 +139,18 @@ public sealed class SanguoEconomyManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        await _bus.PublishAsync(evt);
-        return true;
+        try
+        {
+            await _bus.PublishAsync(evt);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            buyer.RestoreRollbackSnapshot(buyerSnapshot);
+            throw new InvalidOperationException(
+                $"Event publish failed after city purchase. State has been rolled back (gameId={gameId}, buyerId={buyerId}, cityId={cityId}).",
+                ex);
+        }
     }
 
     /// <summary>
@@ -212,6 +223,10 @@ public sealed class SanguoEconomyManager
         if (owner.PlayerId == payerId)
             return false;
 
+        var payerSnapshot = payer.CaptureRollbackSnapshot();
+        var ownerSnapshot = owner.CaptureRollbackSnapshot();
+        var treasurySnapshot = treasury.CaptureRollbackSnapshot();
+
         var payerMoneyBefore = payer.Money;
         var ownerMoneyBefore = owner.Money;
         var treasuryMinorUnitsBefore = treasury.MinorUnits;
@@ -249,8 +264,21 @@ public sealed class SanguoEconomyManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        await _bus.PublishAsync(evt);
-        return true;
+        try
+        {
+            await _bus.PublishAsync(evt);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            payer.RestoreRollbackSnapshot(payerSnapshot);
+            owner.RestoreRollbackSnapshot(ownerSnapshot);
+            treasury.RestoreRollbackSnapshot(treasurySnapshot);
+
+            throw new InvalidOperationException(
+                $"Event publish failed after toll payment. State has been rolled back (gameId={gameId}, payerId={payerId}, cityId={cityId}).",
+                ex);
+        }
     }
 
     /// <summary>

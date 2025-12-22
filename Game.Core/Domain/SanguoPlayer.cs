@@ -114,6 +114,30 @@ public sealed class SanguoPlayer : ISanguoPlayerView
 
     private void AssertThread() => _threadGuard.AssertCurrentThread();
 
+    internal readonly record struct RollbackSnapshot(
+        MoneyValue Money,
+        int PositionIndex,
+        bool IsEliminated,
+        IReadOnlyCollection<string> OwnedCityIds
+    );
+
+    internal RollbackSnapshot CaptureRollbackSnapshot()
+    {
+        AssertThread();
+        return new RollbackSnapshot(Money, PositionIndex, IsEliminated, _ownedCityIds.ToArray());
+    }
+
+    internal void RestoreRollbackSnapshot(RollbackSnapshot snapshot)
+    {
+        AssertThread();
+        _money = snapshot.Money;
+        _positionIndex = snapshot.PositionIndex;
+        _isEliminated = snapshot.IsEliminated;
+        _ownedCityIds.Clear();
+        foreach (var cityId in snapshot.OwnedCityIds)
+            _ownedCityIds.Add(cityId);
+    }
+
     /// <summary>
     /// Creates an immutable snapshot view of the player for UI/AI reads.
     /// </summary>
@@ -133,7 +157,7 @@ public sealed class SanguoPlayer : ISanguoPlayerView
     /// <returns>True if the purchase succeeds; otherwise false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="city"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="priceMultiplier"/> is out of allowed range.</exception>
-    public bool TryBuyCity(City city, decimal priceMultiplier)
+    internal bool TryBuyCity(City city, decimal priceMultiplier)
     {
         AssertThread();
 
@@ -188,7 +212,7 @@ public sealed class SanguoPlayer : ISanguoPlayerView
     /// <returns>True if a payment/elimination action was performed; otherwise false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="owner"/> or <paramref name="city"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tollMultiplier"/> is out of allowed range.</exception>
-    public bool TryPayTollTo(SanguoPlayer owner, City city, decimal tollMultiplier, SanguoTreasury treasury)
+    internal bool TryPayTollTo(SanguoPlayer owner, City city, decimal tollMultiplier, SanguoTreasury treasury)
     {
         AssertThread();
 

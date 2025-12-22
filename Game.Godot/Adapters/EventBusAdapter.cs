@@ -27,15 +27,65 @@ public partial class EventBusAdapter : Node, IEventBus
 
     public Task PublishAsync(DomainEvent evt)
     {
-        // Emit Godot signal for scene-level listeners
-        var dataJson = evt.Data switch
+        // Emit Godot signal for scene-level listeners (defensive: do not let serialization/signal failures crash callers)
+        var dataJson = "{}";
+        try
         {
-            null => "{}",
-            RawJsonEventData raw => string.IsNullOrWhiteSpace(raw.Json) ? "{}" : raw.Json,
-            JsonElementEventData element => element.Value.ValueKind == JsonValueKind.Undefined ? "{}" : element.Value.GetRawText(),
-            _ => JsonSerializer.Serialize(evt.Data, JsonSerializeOptions),
-        };
-        EmitSignal(SignalName.DomainEventEmitted, evt.Type, evt.Source, dataJson, evt.Id, evt.SpecVersion, evt.DataContentType, evt.Timestamp.ToString("o"));
+            dataJson = evt.Data switch
+            {
+                null => "{}",
+                RawJsonEventData raw => string.IsNullOrWhiteSpace(raw.Json) ? "{}" : raw.Json,
+                JsonElementEventData element => element.Value.ValueKind == JsonValueKind.Undefined ? "{}" : element.Value.GetRawText(),
+                _ => JsonSerializer.Serialize(evt.Data, JsonSerializeOptions),
+            };
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                Logger?.Error($"EventBusAdapter serialization failed (type={evt.Type} source={evt.Source} id={evt.Id})", ex);
+            }
+            catch { }
+
+            try
+            {
+                var ctx = new Dictionary<string, string>
+                {
+                    ["event_type"] = evt.Type,
+                    ["event_source"] = evt.Source,
+                    ["event_id"] = evt.Id,
+                    ["phase"] = "serialize",
+                };
+                ErrorReporter?.CaptureException("eventbus.adapter.serialize.exception", ex, ctx);
+            }
+            catch { }
+        }
+
+        try
+        {
+            EmitSignal(SignalName.DomainEventEmitted, evt.Type, evt.Source, dataJson, evt.Id, evt.SpecVersion, evt.DataContentType, evt.Timestamp.ToString("o"));
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                Logger?.Error($"EventBusAdapter signal emit failed (type={evt.Type} source={evt.Source} id={evt.Id})", ex);
+            }
+            catch { }
+
+            try
+            {
+                var ctx = new Dictionary<string, string>
+                {
+                    ["event_type"] = evt.Type,
+                    ["event_source"] = evt.Source,
+                    ["event_id"] = evt.Id,
+                    ["phase"] = "emit_signal",
+                };
+                ErrorReporter?.CaptureException("eventbus.adapter.emit_signal.exception", ex, ctx);
+            }
+            catch { }
+        }
 
         // Notify in-process subscribers
         List<Func<DomainEvent, Task>> snapshot;
