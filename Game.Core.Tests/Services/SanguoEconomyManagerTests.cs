@@ -239,6 +239,58 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
+    public async Task ShouldOverflowToTreasury_WhenOwnerHitsMoneyCap()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var tollCity = new City(
+            id: "toll",
+            name: "TollCity",
+            regionId: "r1",
+            basePrice: Money.Zero,
+            baseToll: Money.FromDecimal(10m));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { tollCity.Id, tollCity } };
+
+        var ownerStartMajor = Money.MaxMajorUnits - 5;
+        var owner = new SanguoPlayer(playerId: "owner", money: ownerStartMajor, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var payer = new SanguoPlayer(playerId: "payer", money: 50m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { owner, payer };
+
+        owner.TryBuyCity(tollCity, priceMultiplier: 1m).Should().BeTrue();
+
+        var treasury = new SanguoTreasury();
+        var occurredAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        var paid = await economy.TryPayTollAndPublishEventAsync(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            payerId: payer.PlayerId,
+            cityId: tollCity.Id,
+            tollMultiplier: 1m,
+            treasury: treasury,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: occurredAt);
+
+        paid.Should().BeTrue();
+        payer.Money.Should().Be(Money.FromDecimal(40m));
+        owner.Money.Should().Be(Money.FromMajorUnits(Money.MaxMajorUnits));
+        treasury.MinorUnits.Should().BeGreaterThan(0);
+
+        bus.Published.Should().ContainSingle(e => e.Type == SanguoCityTollPaid.EventType);
+        var payload = ((JsonElementEventData)bus.Published[0].Data!).Value;
+        var amount = payload.GetProperty("Amount").GetDecimal();
+        var ownerAmount = payload.GetProperty("OwnerAmount").GetDecimal();
+        var overflow = payload.GetProperty("TreasuryOverflow").GetDecimal();
+        amount.Should().Be(10m);
+        overflow.Should().BeGreaterThan(0m);
+        ownerAmount.Should().Be(amount - overflow);
+        amount.Should().Be(ownerAmount + overflow);
+    }
+
+    [Fact]
     public async Task ShouldRollbackMoneyAndTreasuryAndThrow_WhenPublishTollPaidFails()
     {
         var bus = new ThrowingEventBus();

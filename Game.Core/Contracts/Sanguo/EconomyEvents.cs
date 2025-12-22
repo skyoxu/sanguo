@@ -94,7 +94,7 @@ public sealed record SanguoYearPriceAdjusted(
 /// </summary>
 /// <remarks>
 /// Related ADRs: ADR-0004, ADR-0005, ADR-0024.
-/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
 /// </remarks>
 public sealed record SanguoCityBought(
     string GameId,
@@ -124,7 +124,7 @@ public sealed record SanguoCityBought(
 /// All amounts are expressed in major units.
 /// 
 /// Related ADRs: ADR-0004, ADR-0005, ADR-0024.
-/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
 /// </remarks>
 public sealed record SanguoCityTollPaid(
     string GameId,
