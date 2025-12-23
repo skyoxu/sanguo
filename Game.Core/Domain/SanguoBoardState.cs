@@ -135,5 +135,21 @@ public sealed class SanguoBoardState
         return owner is not null;
     }
 
+    public bool TryGetPlayer(string playerId, out SanguoPlayer? player)
+    {
+        AssertThread();
+
+        if (string.IsNullOrWhiteSpace(playerId))
+            throw new ArgumentException("PlayerId must be non-empty.", nameof(playerId));
+
+        return _playersById.TryGetValue(playerId, out player);
+    }
+
+    public IReadOnlyDictionary<string, City> GetCitiesSnapshot()
+    {
+        AssertThread();
+        return new Dictionary<string, City>(_citiesById, StringComparer.Ordinal);
+    }
+
     private void AssertThread() => _threadGuard.AssertCurrentThread();
 }

@@ -110,4 +110,57 @@ public sealed class SanguoBoardStateTests
         Action act = () => state.TryGetOwnerOfCity(city.Id, out _);
         act.Should().Throw<InvalidOperationException>();
     }
+
+    [Fact]
+    public void TryGetOwnerOfCity_WhenCityIdIsEmpty_ThrowsArgumentException()
+    {
+        var player = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules);
+        var state = new SanguoBoardState(
+            players: new[] { player },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        Action act = () => state.TryGetOwnerOfCity(" ", out _);
+        act.Should().Throw<ArgumentException>().WithParameterName("cityId");
+    }
+
+    [Fact]
+    public void TryGetPlayer_WhenPlayerNotFound_ReturnsFalseAndOutputsNull()
+    {
+        var player = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules);
+        var state = new SanguoBoardState(
+            players: new[] { player },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        state.TryGetPlayer("missing", out var resolved).Should().BeFalse();
+        resolved.Should().BeNull();
+    }
+
+    [Fact]
+    public void TryGetPlayer_WhenPlayerIdIsEmpty_ThrowsArgumentException()
+    {
+        var player = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules);
+        var state = new SanguoBoardState(
+            players: new[] { player },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        Action act = () => state.TryGetPlayer(" ", out _);
+        act.Should().Throw<ArgumentException>().WithParameterName("playerId");
+    }
+
+    [Fact]
+    public void GetCitiesSnapshot_ShouldNotAffectInternalCities()
+    {
+        var city = MakeCity(id: "c1");
+        var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: Rules);
+
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+        var state = new SanguoBoardState(players: new[] { buyer }, citiesById: citiesById);
+
+        var snapshot = state.GetCitiesSnapshot();
+        snapshot.Should().ContainKey(city.Id);
+
+        ((Dictionary<string, City>)snapshot).Remove(city.Id);
+
+        state.TryBuyCity(buyerId: buyer.PlayerId, cityId: city.Id, priceMultiplier: UnitMultiplier).Should().BeTrue();
+    }
 }

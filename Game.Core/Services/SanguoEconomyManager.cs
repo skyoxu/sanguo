@@ -65,6 +65,51 @@ public sealed class SanguoEconomyManager
         return settlements;
     }
 
+    public IReadOnlyList<PlayerSettlement> SettleMonth(
+        SanguoBoardState boardState,
+        IReadOnlyList<string> playerOrder,
+        SanguoTreasury treasury
+    )
+    {
+        ArgumentNullException.ThrowIfNull(boardState, nameof(boardState));
+        ArgumentNullException.ThrowIfNull(playerOrder, nameof(playerOrder));
+        ArgumentNullException.ThrowIfNull(treasury, nameof(treasury));
+
+        var citiesById = boardState.GetCitiesSnapshot();
+
+        var orderedPlayers = new List<SanguoPlayer>(playerOrder.Count);
+        var orderedPlayerViews = new List<ISanguoPlayerView>(playerOrder.Count);
+
+        foreach (var playerId in playerOrder)
+        {
+            if (!boardState.TryGetPlayer(playerId, out var player))
+                throw new InvalidOperationException($"Player not found in board state: {playerId}");
+
+            orderedPlayers.Add(player!);
+            orderedPlayerViews.Add(player!);
+        }
+
+        var computed = CalculateMonthSettlements(orderedPlayerViews, citiesById);
+        var computedById = new Dictionary<string, decimal>(StringComparer.Ordinal);
+        foreach (var settlement in computed)
+            computedById[settlement.PlayerId] = settlement.AmountDelta;
+
+        var results = new List<PlayerSettlement>(playerOrder.Count);
+        for (var index = 0; index < playerOrder.Count; index++)
+        {
+            var playerId = playerOrder[index];
+            var delta = computedById.TryGetValue(playerId, out var v) ? v : 0m;
+            results.Add(new PlayerSettlement(playerId, delta));
+
+            if (delta <= 0m)
+                continue;
+
+            orderedPlayers[index].CreditIncome(MoneyValue.FromDecimal(delta), treasury);
+        }
+
+        return results;
+    }
+
     /// <summary>
     /// Attempts to buy a city for the given buyer, using global board state rules (unique ownership),
     /// and publishes <see cref="SanguoCityBought"/> on success.

@@ -1,5 +1,6 @@
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
+using Game.Core.Domain;
 
 namespace Game.Core.Services;
 
@@ -7,6 +8,8 @@ public sealed class SanguoTurnManager
 {
     private readonly IEventBus _bus;
     private readonly SanguoEconomyManager _economy;
+    private readonly SanguoBoardState _boardState;
+    private readonly SanguoTreasury _treasury;
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -15,10 +18,16 @@ public sealed class SanguoTurnManager
     private DateTime _currentDate;
     private bool _started;
 
-    public SanguoTurnManager(IEventBus bus, SanguoEconomyManager economy)
+    public SanguoTurnManager(
+        IEventBus bus,
+        SanguoEconomyManager economy,
+        SanguoBoardState boardState,
+        SanguoTreasury treasury)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
+        _boardState = boardState ?? throw new ArgumentNullException(nameof(boardState));
+        _treasury = treasury ?? throw new ArgumentNullException(nameof(treasury));
     }
 
     public void StartNewGame(
@@ -45,6 +54,12 @@ public sealed class SanguoTurnManager
 
         if (playerOrder.Distinct(StringComparer.Ordinal).Count() != playerOrder.Length)
             throw new ArgumentException("Player order must not contain duplicate player ids.", nameof(playerOrder));
+
+        foreach (var playerId in playerOrder)
+        {
+            if (!_boardState.TryGetPlayer(playerId, out _))
+                throw new ArgumentException($"PlayerId not found in board state: {playerId}", nameof(playerOrder));
+        }
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
@@ -112,11 +127,15 @@ public sealed class SanguoTurnManager
         _activePlayerIndex = (_activePlayerIndex + 1) % _playerOrder.Length;
         _currentDate = _currentDate.AddDays(1);
 
+        IReadOnlyList<PlayerSettlement> settlements = Array.Empty<PlayerSettlement>();
+        if (previousDate.Year != _currentDate.Year || previousDate.Month != _currentDate.Month)
+            settlements = _economy.SettleMonth(_boardState, _playerOrder, _treasury);
+
         _economy.PublishMonthSettlementIfBoundary(
             gameId: _gameId,
             previousDate: previousDate,
             currentDate: _currentDate,
-            settlements: Array.Empty<PlayerSettlement>(),
+            settlements: settlements,
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
