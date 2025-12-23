@@ -1,5 +1,6 @@
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
+using Game.Core.Domain;
 
 namespace Game.Core.Services;
 
@@ -7,6 +8,8 @@ public sealed class SanguoTurnManager
 {
     private readonly IEventBus _bus;
     private readonly SanguoEconomyManager _economy;
+    private readonly SanguoBoardState _boardState;
+    private readonly SanguoTreasury _treasury;
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -15,13 +18,19 @@ public sealed class SanguoTurnManager
     private DateTime _currentDate;
     private bool _started;
 
-    public SanguoTurnManager(IEventBus bus, SanguoEconomyManager economy)
+    public SanguoTurnManager(
+        IEventBus bus,
+        SanguoEconomyManager economy,
+        SanguoBoardState boardState,
+        SanguoTreasury treasury)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
+        _boardState = boardState ?? throw new ArgumentNullException(nameof(boardState));
+        _treasury = treasury ?? throw new ArgumentNullException(nameof(treasury));
     }
 
-    public void StartNewGame(
+    public async Task StartNewGameAsync(
         string gameId,
         string[] playerOrder,
         int year,
@@ -45,6 +54,12 @@ public sealed class SanguoTurnManager
 
         if (playerOrder.Distinct(StringComparer.Ordinal).Count() != playerOrder.Length)
             throw new ArgumentException("Player order must not contain duplicate player ids.", nameof(playerOrder));
+
+        foreach (var playerId in playerOrder)
+        {
+            if (!_boardState.TryGetPlayer(playerId, out _))
+                throw new ArgumentException($"PlayerId not found in board state: {playerId}", nameof(playerOrder));
+        }
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
@@ -78,10 +93,10 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _ = _bus.PublishAsync(evt);
+        await _bus.PublishAsync(evt);
     }
 
-    public void AdvanceTurn(string correlationId, string? causationId)
+    public async Task AdvanceTurnAsync(string correlationId, string? causationId)
     {
         if (!_started || _gameId is null || _playerOrder is null)
             throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
@@ -106,23 +121,65 @@ public sealed class SanguoTurnManager
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
-        _ = _bus.PublishAsync(ended);
+        await _bus.PublishAsync(ended);
 
         _turnNumber += 1;
         _activePlayerIndex = (_activePlayerIndex + 1) % _playerOrder.Length;
         _currentDate = _currentDate.AddDays(1);
 
-        _economy.PublishMonthSettlementIfBoundary(
-            gameId: _gameId,
-            previousDate: previousDate,
-            currentDate: _currentDate,
-            settlements: Array.Empty<PlayerSettlement>(),
-            correlationId: correlationId,
-            causationId: causationId,
-            occurredAt: occurredAt);
+        IReadOnlyList<PlayerSettlement> settlements = Array.Empty<PlayerSettlement>();
+        if (previousDate.Year != _currentDate.Year || previousDate.Month != _currentDate.Month)
+        {
+            var snapshots = new List<SanguoPlayer.RollbackSnapshot>(_playerOrder.Length);
+            foreach (var playerId in _playerOrder)
+            {
+                if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+                    throw new InvalidOperationException($"Player not found in board state: {playerId}");
+
+                snapshots.Add(player.CaptureRollbackSnapshot());
+            }
+
+            var treasurySnapshot = _treasury.CaptureRollbackSnapshot();
+
+            try
+            {
+                settlements = _economy.SettleMonth(_boardState, _playerOrder, _treasury);
+                await _economy.PublishMonthSettlementIfBoundaryAsync(
+                    gameId: _gameId,
+                    previousDate: previousDate,
+                    currentDate: _currentDate,
+                    settlements: settlements,
+                    correlationId: correlationId,
+                    causationId: causationId,
+                    occurredAt: occurredAt);
+            }
+            catch
+            {
+                for (var i = 0; i < _playerOrder.Length; i++)
+                {
+                    var playerId = _playerOrder[i];
+                    _ = _boardState.TryGetPlayer(playerId, out var player);
+                    player!.RestoreRollbackSnapshot(snapshots[i]);
+                }
+
+                _treasury.RestoreRollbackSnapshot(treasurySnapshot);
+                throw;
+            }
+        }
+        else
+        {
+            await _economy.PublishMonthSettlementIfBoundaryAsync(
+                gameId: _gameId,
+                previousDate: previousDate,
+                currentDate: _currentDate,
+                settlements: settlements,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+        }
 
         var season = GetSeasonFromMonth(_currentDate.Month);
-        _economy.PublishSeasonEventIfBoundary(
+        await _economy.PublishSeasonEventIfBoundaryAsync(
             gameId: _gameId,
             previousDate: previousDate,
             currentDate: _currentDate,
@@ -150,7 +207,7 @@ public sealed class SanguoTurnManager
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
-        _ = _bus.PublishAsync(advanced);
+        await _bus.PublishAsync(advanced);
 
         var started = new DomainEvent(
             Type: SanguoGameTurnStarted.EventType,
@@ -169,7 +226,7 @@ public sealed class SanguoTurnManager
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
         );
-        _ = _bus.PublishAsync(started);
+        await _bus.PublishAsync(started);
     }
 
     private static int GetSeasonFromMonth(int month)

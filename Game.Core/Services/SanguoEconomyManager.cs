@@ -65,6 +65,51 @@ public sealed class SanguoEconomyManager
         return settlements;
     }
 
+    public IReadOnlyList<PlayerSettlement> SettleMonth(
+        SanguoBoardState boardState,
+        IReadOnlyList<string> playerOrder,
+        SanguoTreasury treasury
+    )
+    {
+        ArgumentNullException.ThrowIfNull(boardState, nameof(boardState));
+        ArgumentNullException.ThrowIfNull(playerOrder, nameof(playerOrder));
+        ArgumentNullException.ThrowIfNull(treasury, nameof(treasury));
+
+        var citiesById = boardState.GetCitiesSnapshot();
+
+        var orderedPlayers = new List<SanguoPlayer>(playerOrder.Count);
+        var orderedPlayerViews = new List<ISanguoPlayerView>(playerOrder.Count);
+
+        foreach (var playerId in playerOrder)
+        {
+            if (!boardState.TryGetPlayer(playerId, out var player))
+                throw new InvalidOperationException($"Player not found in board state: {playerId}");
+
+            orderedPlayers.Add(player!);
+            orderedPlayerViews.Add(player!);
+        }
+
+        var computed = CalculateMonthSettlements(orderedPlayerViews, citiesById);
+        var computedById = new Dictionary<string, decimal>(StringComparer.Ordinal);
+        foreach (var settlement in computed)
+            computedById[settlement.PlayerId] = settlement.AmountDelta;
+
+        var results = new List<PlayerSettlement>(playerOrder.Count);
+        for (var index = 0; index < playerOrder.Count; index++)
+        {
+            var playerId = playerOrder[index];
+            var delta = computedById.TryGetValue(playerId, out var v) ? v : 0m;
+            results.Add(new PlayerSettlement(playerId, delta));
+
+            if (delta <= 0m)
+                continue;
+
+            orderedPlayers[index].CreditIncome(MoneyValue.FromDecimal(delta), treasury);
+        }
+
+        return results;
+    }
+
     /// <summary>
     /// Attempts to buy a city for the given buyer, using global board state rules (unique ownership),
     /// and publishes <see cref="SanguoCityBought"/> on success.
@@ -298,7 +343,7 @@ public sealed class SanguoEconomyManager
     /// Aligned with ADR-0004 (CloudEvents-like contract) and ADR-0024 (event tracing).
     /// Boundary check: do not publish when <c>previousDate.Year == currentDate.Year</c> and <c>previousDate.Month == currentDate.Month</c>.
     /// </remarks>
-    public void PublishMonthSettlementIfBoundary(
+    public async Task PublishMonthSettlementIfBoundaryAsync(
         string gameId,
         DateTime previousDate,
         DateTime currentDate,
@@ -335,7 +380,7 @@ public sealed class SanguoEconomyManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _ = _bus.PublishAsync(evt);
+        await _bus.PublishAsync(evt);
     }
 
     /// <summary>
@@ -390,7 +435,7 @@ public sealed class SanguoEconomyManager
     /// Boundary check: do not publish when <c>previousDate.Year == currentDate.Year</c>.
     /// Calls <see cref="CalculateYearlyPriceAdjustments"/> and emits one <see cref="SanguoYearPriceAdjusted"/> per city.
     /// </remarks>
-    public void PublishYearlyPriceAdjustmentIfBoundary(
+    public async Task PublishYearlyPriceAdjustmentIfBoundaryAsync(
         string gameId,
         DateTime previousDate,
         DateTime currentDate,
@@ -432,7 +477,7 @@ public sealed class SanguoEconomyManager
                 Id: Guid.NewGuid().ToString("N")
             );
 
-            _ = _bus.PublishAsync(evt);
+            await _bus.PublishAsync(evt);
         }
     }
 
@@ -457,7 +502,7 @@ public sealed class SanguoEconomyManager
     /// Boundary check: no emission when <paramref name="previousDate"/> and <paramref name="currentDate"/> are in the same quarter.
     /// The event uses <paramref name="currentDate"/> year.
     /// </remarks>
-    public void PublishSeasonEventIfBoundary(
+    public async Task PublishSeasonEventIfBoundaryAsync(
         string gameId,
         DateTime previousDate,
         DateTime currentDate,
@@ -508,7 +553,7 @@ public sealed class SanguoEconomyManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _ = _bus.PublishAsync(evt);
+        await _bus.PublishAsync(evt);
     }
 
     private static int GetSeasonFromMonth(int month)

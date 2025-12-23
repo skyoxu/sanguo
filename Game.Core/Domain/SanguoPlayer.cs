@@ -260,4 +260,23 @@ public sealed class SanguoPlayer : ISanguoPlayerView
         IsEliminated = true;
         return true;
     }
+
+    internal void CreditIncome(MoneyValue amount, SanguoTreasury treasury)
+    {
+        AssertThread();
+
+        ArgumentNullException.ThrowIfNull(treasury, nameof(treasury));
+
+        if (amount == MoneyValue.Zero)
+            return;
+
+        if (IsEliminated)
+            return;
+
+        var newMoney = Money.AddCapped(amount, out var overflow);
+        Money = newMoney;
+
+        if (overflow > MoneyValue.Zero)
+            treasury.Deposit(overflow);
+    }
 }
