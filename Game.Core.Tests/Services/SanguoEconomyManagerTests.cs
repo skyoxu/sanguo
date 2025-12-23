@@ -447,12 +447,12 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void PublishMonthSettlementIfBoundary_WhenMonthUnchanged_DoesNotPublish()
+    public async Task PublishMonthSettlementIfBoundary_WhenMonthUnchanged_DoesNotPublish()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
 
-        economy.PublishMonthSettlementIfBoundary(
+        await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 1, 1),
             currentDate: new DateTime(1, 1, 2),
@@ -468,11 +468,11 @@ public class SanguoEconomyManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void PublishMonthSettlementIfBoundary_WhenGameIdIsEmpty_ThrowsArgumentException(string? gameId)
+    public async Task PublishMonthSettlementIfBoundary_WhenGameIdIsEmpty_ThrowsArgumentException(string? gameId)
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
-        Action act = () => economy.PublishMonthSettlementIfBoundary(
+        Func<Task> act = async () => await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: gameId!,
             previousDate: new DateTime(1, 1, 31),
             currentDate: new DateTime(1, 2, 1),
@@ -481,18 +481,18 @@ public class SanguoEconomyManagerTests
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
 
-        act.Should().Throw<ArgumentException>().WithParameterName("gameId");
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("gameId");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void PublishMonthSettlementIfBoundary_WhenCorrelationIdIsEmpty_ThrowsArgumentException(string? correlationId)
+    public async Task PublishMonthSettlementIfBoundary_WhenCorrelationIdIsEmpty_ThrowsArgumentException(string? correlationId)
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
-        Action act = () => economy.PublishMonthSettlementIfBoundary(
+        Func<Task> act = async () => await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 1, 31),
             currentDate: new DateTime(1, 2, 1),
@@ -501,16 +501,16 @@ public class SanguoEconomyManagerTests
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
 
-        act.Should().Throw<ArgumentException>().WithParameterName("correlationId");
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("correlationId");
     }
 
     [Fact]
-    public void PublishMonthSettlementIfBoundary_WhenMonthChanged_PublishesMonthSettled()
+    public async Task PublishMonthSettlementIfBoundary_WhenMonthChanged_PublishesMonthSettled()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
 
-        economy.PublishMonthSettlementIfBoundary(
+        await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 1, 31),
             currentDate: new DateTime(1, 2, 1),
@@ -534,12 +534,12 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void PublishSeasonEventIfBoundary_WhenMonthUnchanged_DoesNotPublish()
+    public async Task PublishSeasonEventIfBoundary_WhenMonthUnchanged_DoesNotPublish()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
 
-        economy.PublishSeasonEventIfBoundary(
+        await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 1, 1),
             currentDate: new DateTime(1, 1, 2),
@@ -554,12 +554,12 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void PublishSeasonEventIfBoundary_WhenMonthChangedButSeasonUnchanged_DoesNotPublish()
+    public async Task PublishSeasonEventIfBoundary_WhenMonthChangedButSeasonUnchanged_DoesNotPublish()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
 
-        economy.PublishSeasonEventIfBoundary(
+        await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 1, 31),
             currentDate: new DateTime(1, 2, 1),
@@ -574,12 +574,12 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void PublishSeasonEventIfBoundary_WhenQuarterBoundaryReached_PublishesSeasonEventApplied()
+    public async Task PublishSeasonEventIfBoundary_WhenQuarterBoundaryReached_PublishesSeasonEventApplied()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
 
-        economy.PublishSeasonEventIfBoundary(
+        await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 3, 31),
             currentDate: new DateTime(1, 4, 1),
@@ -604,11 +604,11 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void PublishSeasonEventIfBoundary_WhenSeasonOutOfRange_ThrowsArgumentOutOfRangeException()
+    public async Task PublishSeasonEventIfBoundary_WhenSeasonOutOfRange_ThrowsArgumentOutOfRangeException()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
-        Action act = () => economy.PublishSeasonEventIfBoundary(
+        Func<Task> act = async () => await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 1, 31),
             currentDate: new DateTime(1, 2, 1),
@@ -619,15 +619,15 @@ public class SanguoEconomyManagerTests
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
 
-        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("season");
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>().WithParameterName("season");
     }
 
     [Fact]
-    public void PublishSeasonEventIfBoundary_WhenYieldMultiplierNegative_ThrowsArgumentOutOfRangeException()
+    public async Task PublishSeasonEventIfBoundary_WhenYieldMultiplierNegative_ThrowsArgumentOutOfRangeException()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
-        Action act = () => economy.PublishSeasonEventIfBoundary(
+        Func<Task> act = async () => await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 1, 31),
             currentDate: new DateTime(1, 2, 1),
@@ -638,11 +638,11 @@ public class SanguoEconomyManagerTests
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
 
-        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("yieldMultiplier");
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>().WithParameterName("yieldMultiplier");
     }
 
     [Fact]
-    public void PublishYearlyPriceAdjustmentIfBoundary_WhenYearUnchanged_DoesNotPublish()
+    public async Task PublishYearlyPriceAdjustmentIfBoundary_WhenYearUnchanged_DoesNotPublish()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -652,7 +652,7 @@ public class SanguoEconomyManagerTests
             new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10)),
         };
 
-        economy.PublishYearlyPriceAdjustmentIfBoundary(
+        await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 12, 31),
             currentDate: new DateTime(1, 1, 1),
@@ -669,11 +669,11 @@ public class SanguoEconomyManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void PublishYearlyPriceAdjustmentIfBoundary_WhenGameIdIsEmpty_ThrowsArgumentException(string? gameId)
+    public async Task PublishYearlyPriceAdjustmentIfBoundary_WhenGameIdIsEmpty_ThrowsArgumentException(string? gameId)
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
-        Action act = () => economy.PublishYearlyPriceAdjustmentIfBoundary(
+        Func<Task> act = async () => await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: gameId!,
             previousDate: new DateTime(1, 12, 31),
             currentDate: new DateTime(2, 1, 1),
@@ -683,18 +683,18 @@ public class SanguoEconomyManagerTests
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
 
-        act.Should().Throw<ArgumentException>().WithParameterName("gameId");
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("gameId");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void PublishYearlyPriceAdjustmentIfBoundary_WhenCorrelationIdIsEmpty_ThrowsArgumentException(string? correlationId)
+    public async Task PublishYearlyPriceAdjustmentIfBoundary_WhenCorrelationIdIsEmpty_ThrowsArgumentException(string? correlationId)
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
-        Action act = () => economy.PublishYearlyPriceAdjustmentIfBoundary(
+        Func<Task> act = async () => await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 12, 31),
             currentDate: new DateTime(2, 1, 1),
@@ -704,11 +704,11 @@ public class SanguoEconomyManagerTests
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
 
-        act.Should().Throw<ArgumentException>().WithParameterName("correlationId");
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("correlationId");
     }
 
     [Fact]
-    public void PublishYearlyPriceAdjustmentIfBoundary_WhenYearChanged_PublishesPriceAdjustedPerCity()
+    public async Task PublishYearlyPriceAdjustmentIfBoundary_WhenYearChanged_PublishesPriceAdjustedPerCity()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -719,7 +719,7 @@ public class SanguoEconomyManagerTests
             new City("c2", "City2", "r2", Money.FromMajorUnits(200), Money.FromMajorUnits(20)),
         };
 
-        economy.PublishYearlyPriceAdjustmentIfBoundary(
+        await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new DateTime(1, 12, 31),
             currentDate: new DateTime(2, 1, 1),

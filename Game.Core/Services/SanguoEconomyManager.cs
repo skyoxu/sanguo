@@ -343,7 +343,7 @@ public sealed class SanguoEconomyManager
     /// Aligned with ADR-0004 (CloudEvents-like contract) and ADR-0024 (event tracing).
     /// Boundary check: do not publish when <c>previousDate.Year == currentDate.Year</c> and <c>previousDate.Month == currentDate.Month</c>.
     /// </remarks>
-    public void PublishMonthSettlementIfBoundary(
+    public async Task PublishMonthSettlementIfBoundaryAsync(
         string gameId,
         DateTime previousDate,
         DateTime currentDate,
@@ -380,7 +380,7 @@ public sealed class SanguoEconomyManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _ = _bus.PublishAsync(evt);
+        await _bus.PublishAsync(evt);
     }
 
     /// <summary>
@@ -435,7 +435,7 @@ public sealed class SanguoEconomyManager
     /// Boundary check: do not publish when <c>previousDate.Year == currentDate.Year</c>.
     /// Calls <see cref="CalculateYearlyPriceAdjustments"/> and emits one <see cref="SanguoYearPriceAdjusted"/> per city.
     /// </remarks>
-    public void PublishYearlyPriceAdjustmentIfBoundary(
+    public async Task PublishYearlyPriceAdjustmentIfBoundaryAsync(
         string gameId,
         DateTime previousDate,
         DateTime currentDate,
@@ -477,7 +477,7 @@ public sealed class SanguoEconomyManager
                 Id: Guid.NewGuid().ToString("N")
             );
 
-            _ = _bus.PublishAsync(evt);
+            await _bus.PublishAsync(evt);
         }
     }
 
@@ -502,7 +502,7 @@ public sealed class SanguoEconomyManager
     /// Boundary check: no emission when <paramref name="previousDate"/> and <paramref name="currentDate"/> are in the same quarter.
     /// The event uses <paramref name="currentDate"/> year.
     /// </remarks>
-    public void PublishSeasonEventIfBoundary(
+    public async Task PublishSeasonEventIfBoundaryAsync(
         string gameId,
         DateTime previousDate,
         DateTime currentDate,
@@ -553,7 +553,7 @@ public sealed class SanguoEconomyManager
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _ = _bus.PublishAsync(evt);
+        await _bus.PublishAsync(evt);
     }
 
     private static int GetSeasonFromMonth(int month)

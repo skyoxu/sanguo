@@ -15,7 +15,7 @@ namespace Game.Core.Tests.Tasks;
 public sealed class Task14MonthEndSettlementTests
 {
     [Fact]
-    public void AdvanceTurn_WhenMonthBoundaryReached_ShouldUpdateMoneyAndPublishMonthSettled()
+    public async Task AdvanceTurn_WhenMonthBoundaryReached_ShouldUpdateMoneyAndPublishMonthSettled()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -42,7 +42,7 @@ public sealed class Task14MonthEndSettlementTests
         var p1MoneyBefore = p1.Money;
 
         var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
-        mgr.StartNewGame(
+        await mgr.StartNewGameAsync(
             gameId: gameId,
             playerOrder: playerOrder,
             year: 1,
@@ -51,7 +51,7 @@ public sealed class Task14MonthEndSettlementTests
             correlationId: correlationId,
             causationId: null);
 
-        mgr.AdvanceTurn(correlationId, causationId: "cmd-advance");
+        await mgr.AdvanceTurnAsync(correlationId, causationId: "cmd-advance");
 
         p1.Money.Should().BeGreaterThan(p1MoneyBefore, "month settlement should increase money by monthly income");
 

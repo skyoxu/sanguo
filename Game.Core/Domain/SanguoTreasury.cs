@@ -41,6 +41,8 @@ public sealed class SanguoTreasury
     {
         AssertThread();
 
+        ArgumentOutOfRangeException.ThrowIfNegative(amount.MinorUnits, nameof(amount));
+
         _minorUnits = checked(_minorUnits + amount.MinorUnits);
     }
 
