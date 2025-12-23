@@ -42,13 +42,16 @@
         "status": "done",
         "subtasks": [],
         "adrRefs": [
+          "ADR-0004",
           "ADR-0005",
           "ADR-0015",
           "ADR-0018",
           "ADR-0020",
           "ADR-0021",
           "ADR-0024",
-          "ADR-0025"
+          "ADR-0025",
+          "ADR-0026",
+          "ADR-0027"
         ],
         "archRefs": [
           "CH01",
@@ -254,7 +257,8 @@
           "ADR-0020",
           "ADR-0021",
           "ADR-0024",
-          "ADR-0025"
+          "ADR-0025",
+          "ADR-0026"
         ],
         "archRefs": [
           "CH01",
@@ -374,7 +378,7 @@
           "4",
           "10"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -383,7 +387,8 @@
           "ADR-0020",
           "ADR-0021",
           "ADR-0024",
-          "ADR-0025"
+          "ADR-0025",
+          "ADR-0027"
         ],
         "archRefs": [
           "CH01",
@@ -438,7 +443,7 @@
         "dependencies": [
           "12"
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",

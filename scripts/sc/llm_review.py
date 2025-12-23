@@ -22,6 +22,7 @@ import argparse
 import os
 import shutil
 import subprocess
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -270,7 +271,12 @@ def _run_codex_exec(*, prompt: str, output_last_message: Path, timeout_sec: int)
 def main() -> int:
     ap = argparse.ArgumentParser(description="sc-llm-review (optional local LLM review)")
     ap.add_argument("--task-id", default=None, help="Taskmaster id to include as review context (optional)")
-    ap.add_argument("--agents", default="", help="Comma-separated agent list. Empty = default 6 agents.")
+    ap.add_argument(
+        "--agents",
+        default="",
+        help="Comma-separated agent list. Empty = default 3 agents (architect-reviewer,code-reviewer,security-auditor). "
+        "Special values: all|full to run the full suite.",
+    )
     ap.add_argument("--base", default="main", help="Base branch for diff review (default: main)")
     ap.add_argument("--uncommitted", action="store_true", help="Review staged/unstaged/untracked changes")
     ap.add_argument("--commit", default=None, help="Review a single commit SHA")
@@ -279,7 +285,18 @@ def main() -> int:
         action="store_true",
         help="Auto-select the latest commit referencing the task id (looks for 'Task [<id>]' in commit messages). Requires --task-id.",
     )
-    ap.add_argument("--timeout-sec", type=int, default=900, help="Timeout per agent (seconds)")
+    ap.add_argument(
+        "--timeout-sec",
+        type=int,
+        default=900,
+        help="Total timeout budget for the whole run (seconds). Use --agent-timeout-sec for per-agent cap.",
+    )
+    ap.add_argument("--agent-timeout-sec", type=int, default=300, help="Per-agent timeout cap (seconds).")
+    ap.add_argument(
+        "--agent-timeouts",
+        default="",
+        help="Optional per-agent override map: agent=seconds,agent=seconds (e.g. code-reviewer=600,security-auditor=450).",
+    )
     ap.add_argument("--strict", action="store_true", help="Fail if any agent cannot produce output (default: soft)")
     ap.add_argument(
         "--threat-model",
@@ -320,7 +337,12 @@ def main() -> int:
 
     out_dir = ci_dir("sc-llm-review")
     claude_agents_root = _resolve_claude_agents_root(args.claude_agents_root)
-    agents = split_csv(args.agents) or [
+    default_agents = [
+        "architect-reviewer",
+        "code-reviewer",
+        "security-auditor",
+    ]
+    all_agents = [
         "adr-compliance-checker",
         "performance-slo-validator",
         "architect-reviewer",
@@ -328,6 +350,36 @@ def main() -> int:
         "security-auditor",
         "test-automator",
     ]
+    agents_raw = str(args.agents or "").strip()
+    if agents_raw.lower() in {"all", "full", "6"}:
+        agents = all_agents
+    else:
+        agents = split_csv(args.agents) or default_agents
+
+    total_timeout_sec = int(args.timeout_sec)
+    if total_timeout_sec <= 0:
+        print("[sc-llm-review] ERROR: --timeout-sec must be > 0.")
+        return 2
+    per_agent_timeout_sec = int(args.agent_timeout_sec)
+    if per_agent_timeout_sec <= 0:
+        print("[sc-llm-review] ERROR: --agent-timeout-sec must be > 0.")
+        return 2
+
+    per_agent_overrides: dict[str, int] = {}
+    for item in split_csv(args.agent_timeouts):
+        if "=" not in item:
+            continue
+        k, v = item.split("=", 1)
+        k = k.strip()
+        v = v.strip()
+        if not k or not v:
+            continue
+        try:
+            sec = int(v)
+        except ValueError:
+            continue
+        if sec > 0:
+            per_agent_overrides[k] = sec
 
     ctx = _build_task_context(triplet)
     threat_model = _resolve_threat_model(args.threat_model)
@@ -341,8 +393,34 @@ def main() -> int:
     results: list[ReviewResult] = []
     hard_fail = False
     had_warnings = False
+    start_ts = time.monotonic()
+    deadline_ts = start_ts + total_timeout_sec
 
     for agent in agents:
+        remaining = int(deadline_ts - time.monotonic())
+        if remaining <= 0:
+            status = "fail" if args.strict else "skipped"
+            if status != "ok":
+                had_warnings = True
+            if status == "fail":
+                hard_fail = True
+            results.append(
+                ReviewResult(
+                    agent=agent,
+                    status=status,
+                    rc=124,
+                    cmd=None,
+                    prompt_path=None,
+                    output_path=None,
+                    details={
+                        "note": "Skipped due to total timeout budget exhausted.",
+                        "total_timeout_sec": total_timeout_sec,
+                        "agent_timeout_sec": per_agent_overrides.get(agent, per_agent_timeout_sec),
+                    },
+                )
+            )
+            continue
+
         if agent in DETERMINISTIC_AGENTS:
             det = build_deterministic_review(agent=agent, out_dir=out_dir, task_id=triplet.task_id if triplet else None)
             verdict = (det.get("details") or {}).get("verdict")
@@ -383,7 +461,9 @@ def main() -> int:
         trace_path = out_dir / f"trace-{agent}.log"
         write_text(prompt_path, prompt)
 
-        rc, trace_out, cmd = _run_codex_exec(prompt=prompt, output_last_message=output_path, timeout_sec=int(args.timeout_sec))
+        agent_cap = per_agent_overrides.get(agent, per_agent_timeout_sec)
+        effective_timeout = max(1, min(int(agent_cap), int(remaining)))
+        rc, trace_out, cmd = _run_codex_exec(prompt=prompt, output_last_message=output_path, timeout_sec=effective_timeout)
         write_text(trace_path, trace_out)
 
         last_msg = ""
@@ -407,6 +487,8 @@ def main() -> int:
                     "trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"),
                     "claude_agents_root": str(claude_agents_root),
                     "agent_prompt_source": prompt_meta.get("agent_prompt_source"),
+                    "total_timeout_sec": total_timeout_sec,
+                    "agent_timeout_sec": effective_timeout,
                     "note": "This step is best-effort. Use --strict to make it a hard gate.",
                 },
             )

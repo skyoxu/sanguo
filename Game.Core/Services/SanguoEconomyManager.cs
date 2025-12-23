@@ -70,18 +70,19 @@ public sealed class SanguoEconomyManager
     /// and publishes <see cref="SanguoCityBought"/> on success.
     /// </summary>
     /// <param name="gameId">Game id (must be non-empty).</param>
-    /// <param name="players">Mutable player list (must not be null).</param>
+    /// <param name="players">Player list (must not be null; player objects may be mutated).</param>
     /// <param name="citiesById">City dictionary keyed by city id (must not be null).</param>
     /// <param name="buyerId">Buyer player id (must be non-empty).</param>
     /// <param name="cityId">City id to buy (must be non-empty).</param>
-    /// <param name="priceMultiplier">Price multiplier (1.0 = base price).</param>
+    /// <param name="priceMultiplier">Price multiplier (0..Max; 1.0 = base price).</param>
     /// <param name="correlationId">Correlation id (must be non-empty).</param>
     /// <param name="causationId">Causation id (optional).</param>
     /// <param name="occurredAt">Occurrence timestamp.</param>
     /// <returns>True if the purchase succeeds; otherwise false.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="gameId"/>, <paramref name="buyerId"/>, <paramref name="cityId"/> or <paramref name="correlationId"/> is empty/whitespace.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="players"/> or <paramref name="citiesById"/> is null.</exception>
-    public bool TryBuyCityAndPublishEvent(
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="priceMultiplier"/> is out of allowed range (enforced by buyer economy rules).</exception>
+    public async Task<bool> TryBuyCityAndPublishEventAsync(
         string gameId,
         IReadOnlyList<SanguoPlayer> players,
         IReadOnlyDictionary<string, City> citiesById,
@@ -112,6 +113,7 @@ public sealed class SanguoEconomyManager
         if (buyer is null)
             return false;
 
+        var buyerSnapshot = buyer.CaptureRollbackSnapshot();
         var moneyBefore = buyer.Money;
 
         var boardState = new SanguoBoardState(players, citiesById);
@@ -133,12 +135,150 @@ public sealed class SanguoEconomyManager
                 CorrelationId: correlationId,
                 CausationId: causationId
             )),
-            Timestamp: DateTime.UtcNow,
+            Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _ = _bus.PublishAsync(evt);
-        return true;
+        try
+        {
+            await _bus.PublishAsync(evt);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            buyer.RestoreRollbackSnapshot(buyerSnapshot);
+            throw new InvalidOperationException(
+                $"Event publish failed after city purchase. State has been rolled back (gameId={gameId}, buyerId={buyerId}, cityId={cityId}).",
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Attempts to pay toll for the given payer when landing on a city owned by another player,
+    /// and publishes <see cref="SanguoCityTollPaid"/> on success.
+    /// </summary>
+    /// <param name="gameId">Game id (must be non-empty).</param>
+    /// <param name="players">Player list (must not be null; player objects may be mutated).</param>
+    /// <param name="citiesById">City dictionary keyed by city id (must not be null).</param>
+    /// <param name="payerId">Paying player id (must be non-empty).</param>
+    /// <param name="cityId">City id that the payer is on (must be non-empty).</param>
+    /// <param name="tollMultiplier">Toll multiplier (0..Max; 1.0 = base toll).</param>
+    /// <param name="treasury">Treasury used to collect overflow (must not be null).</param>
+    /// <param name="correlationId">Correlation id (must be non-empty).</param>
+    /// <param name="causationId">Causation id (optional).</param>
+    /// <param name="occurredAt">Occurrence timestamp.</param>
+    /// <returns>True if toll was paid; otherwise false.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tollMultiplier"/> is out of allowed range (enforced by payer economy rules).</exception>
+    /// <exception cref="InvalidOperationException">Thrown when resolving city ownership detects corrupted board state.</exception>
+    public async Task<bool> TryPayTollAndPublishEventAsync(
+        string gameId,
+        IReadOnlyList<SanguoPlayer> players,
+        IReadOnlyDictionary<string, City> citiesById,
+        string payerId,
+        string cityId,
+        decimal tollMultiplier,
+        SanguoTreasury treasury,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt
+    )
+    {
+        if (string.IsNullOrWhiteSpace(gameId))
+            throw new ArgumentException("GameId must be non-empty.", nameof(gameId));
+
+        if (string.IsNullOrWhiteSpace(payerId))
+            throw new ArgumentException("PayerId must be non-empty.", nameof(payerId));
+
+        if (string.IsNullOrWhiteSpace(cityId))
+            throw new ArgumentException("CityId must be non-empty.", nameof(cityId));
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+            throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
+
+        ArgumentNullException.ThrowIfNull(players, nameof(players));
+        ArgumentNullException.ThrowIfNull(citiesById, nameof(citiesById));
+        ArgumentNullException.ThrowIfNull(treasury, nameof(treasury));
+
+        var payer = players.FirstOrDefault(p => p.PlayerId == payerId);
+        if (payer is null)
+            return false;
+
+        if (!citiesById.TryGetValue(cityId, out var city))
+            return false;
+
+        SanguoPlayer? owner;
+        try
+        {
+            var boardState = new SanguoBoardState(players, citiesById);
+            if (!boardState.TryGetOwnerOfCity(cityId, out owner) || owner is null)
+                return false;
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new InvalidOperationException(
+                $"Invalid board state while resolving city owner (gameId={gameId}, cityId={cityId}).",
+                ex);
+        }
+
+        if (owner.PlayerId == payerId)
+            return false;
+
+        var payerSnapshot = payer.CaptureRollbackSnapshot();
+        var ownerSnapshot = owner.CaptureRollbackSnapshot();
+        var treasurySnapshot = treasury.CaptureRollbackSnapshot();
+
+        var payerMoneyBefore = payer.Money;
+        var ownerMoneyBefore = owner.Money;
+        var treasuryMinorUnitsBefore = treasury.MinorUnits;
+        var paid = payer.TryPayTollTo(owner, city, tollMultiplier, treasury);
+        if (!paid)
+            return false;
+
+        var amountPaidMinorUnits = payerMoneyBefore.MinorUnits - payer.Money.MinorUnits;
+        var ownerAmountMinorUnits = owner.Money.MinorUnits - ownerMoneyBefore.MinorUnits;
+        var overflowMinorUnits = treasury.MinorUnits - treasuryMinorUnitsBefore;
+
+        if (amountPaidMinorUnits != checked(ownerAmountMinorUnits + overflowMinorUnits))
+            throw new InvalidOperationException($"Invariant violation for toll payment amounts (gameId={gameId}, cityId={cityId}).");
+
+        var amountPaid = new MoneyValue(amountPaidMinorUnits).ToDecimal();
+        var ownerAmount = new MoneyValue(ownerAmountMinorUnits).ToDecimal();
+        var treasuryOverflow = new MoneyValue(overflowMinorUnits).ToDecimal();
+
+        var evt = new DomainEvent(
+            Type: SanguoCityTollPaid.EventType,
+            Source: nameof(SanguoEconomyManager),
+            Data: JsonElementEventData.FromObject(new SanguoCityTollPaid(
+                GameId: gameId,
+                PayerId: payerId,
+                OwnerId: owner.PlayerId,
+                CityId: cityId,
+                Amount: amountPaid,
+                OwnerAmount: ownerAmount,
+                TreasuryOverflow: treasuryOverflow,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N")
+        );
+
+        try
+        {
+            await _bus.PublishAsync(evt);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            payer.RestoreRollbackSnapshot(payerSnapshot);
+            owner.RestoreRollbackSnapshot(ownerSnapshot);
+            treasury.RestoreRollbackSnapshot(treasurySnapshot);
+
+            throw new InvalidOperationException(
+                $"Event publish failed after toll payment. State has been rolled back (gameId={gameId}, payerId={payerId}, cityId={cityId}).",
+                ex);
+        }
     }
 
     /// <summary>

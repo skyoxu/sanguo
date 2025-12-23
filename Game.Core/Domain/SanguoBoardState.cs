@@ -68,7 +68,7 @@ public sealed class SanguoBoardState
     /// </summary>
     /// <param name="buyerId">Buyer player id.</param>
     /// <param name="cityId">City id to buy.</param>
-    /// <param name="priceMultiplier">Price multiplier (1.0 = base price).</param>
+    /// <param name="priceMultiplier">Price multiplier (0..Max; 1.0 = base price).</param>
     /// <returns>True if the purchase succeeds; otherwise false.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="buyerId"/> or <paramref name="cityId"/> is empty/whitespace.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="priceMultiplier"/> is out of allowed range.</exception>
@@ -98,6 +98,41 @@ public sealed class SanguoBoardState
         }
 
         return buyer.TryBuyCity(city, priceMultiplier);
+    }
+
+    /// <summary>
+    /// Attempts to resolve the unique owner of the specified city.
+    /// Returns false when the city does not exist or is currently unowned.
+    /// </summary>
+    /// <param name="cityId">City id to resolve.</param>
+    /// <param name="owner">Resolved owner when found; otherwise null.</param>
+    /// <returns>True when a unique owner exists; otherwise false.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="cityId"/> is empty/whitespace.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when multiple players claim ownership of the same city.</exception>
+    public bool TryGetOwnerOfCity(string cityId, out SanguoPlayer? owner)
+    {
+        AssertThread();
+
+        if (string.IsNullOrWhiteSpace(cityId))
+            throw new ArgumentException("CityId must be non-empty.", nameof(cityId));
+
+        owner = null;
+
+        if (!_citiesById.ContainsKey(cityId))
+            return false;
+
+        foreach (var player in _playersById.Values)
+        {
+            if (!player.OwnsCityId(cityId))
+                continue;
+
+            if (owner is not null)
+                throw new InvalidOperationException($"Multiple owners detected for cityId={cityId}.");
+
+            owner = player;
+        }
+
+        return owner is not null;
     }
 
     private void AssertThread() => _threadGuard.AssertCurrentThread();
