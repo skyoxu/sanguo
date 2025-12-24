@@ -86,10 +86,15 @@ def run_coverage_report(out_dir: Path, unit_artifacts_dir: Path) -> dict[str, An
 def run_gdunit_hard(out_dir: Path, godot_bin: str, timeout_sec: int) -> dict[str, Any]:
     date = today_str()
     report_dir = Path("logs") / "e2e" / date / "sc-test" / "gdunit-hard"
+    os.environ["AUDIT_LOG_ROOT"] = str(repo_root() / "logs" / "ci" / date)
 
     add_dirs: list[str] = []
-    for rel in ["tests/Scenes", "tests/Adapters/Config", "tests/Security/Hard"]:
-        if (repo_root() / rel).exists():
+    tests_project = repo_root() / "Tests.Godot"
+    for rel in ["tests/Scenes", "tests/UI", "tests/Adapters/Config", "tests/Security/Hard"]:
+        if (tests_project / rel).exists():
+            add_dirs.append(rel)
+        elif (repo_root() / rel).exists():
+            # Backward-compatible fallback for repos that keep GdUnit suites at repo root.
             add_dirs.append(rel)
 
     cmd = [

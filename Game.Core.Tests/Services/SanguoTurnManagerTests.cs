@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
+using Game.Core.Domain;
+using Game.Core.Domain.ValueObjects;
 using Game.Core.Services;
 using Xunit;
 
@@ -12,19 +15,30 @@ namespace Game.Core.Tests.Services;
 
 public class SanguoTurnManagerTests
 {
+    private static readonly SanguoEconomyRules Rules = new(
+        maxPriceMultiplier: SanguoEconomyRules.DefaultMaxPriceMultiplier,
+        maxTollMultiplier: SanguoEconomyRules.DefaultMaxTollMultiplier);
+
     [Fact]
-    public void StartNewGame_ThenAdvanceTurn_PublishesTurnEventsAndRotatesActivePlayer()
+    public async Task StartNewGame_ThenAdvanceTurn_PublishesTurnEventsAndRotatesActivePlayer()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
-        var mgr = new SanguoTurnManager(bus, economy);
+        var (boardState, treasury) = CreateBoardState(
+            players: new[]
+            {
+                new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules),
+                new SanguoPlayer(playerId: "p2", money: 0m, positionIndex: 0, economyRules: Rules),
+            },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
 
         var gameId = "game-1";
         var playerOrder = new[] { "p1", "p2" };
         var correlationId = "corr-1";
         string? startCausationId = null;
 
-        mgr.StartNewGame(gameId, playerOrder, 1, 1, 1, correlationId, startCausationId);
+        await mgr.StartNewGameAsync(gameId, playerOrder, 1, 1, 1, correlationId, startCausationId);
 
         bus.Published.Should().ContainSingle("starting a game should publish a turn.started event");
         var started = bus.Published[0];
@@ -43,7 +57,7 @@ public class SanguoTurnManagerTests
         startedPayload.GetProperty("CausationId").ValueKind.Should().Be(JsonValueKind.Null);
 
         var advanceCommandId = Guid.NewGuid().ToString("N");
-        mgr.AdvanceTurn(correlationId, advanceCommandId);
+        await mgr.AdvanceTurnAsync(correlationId, advanceCommandId);
 
         bus.Published.Should().HaveCount(4, "advance should publish turn.ended, turn.advanced, and next turn.started");
 
@@ -91,17 +105,24 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public void AdvanceTurn_WhenMonthBoundaryReached_PublishesMonthSettledEvent()
+    public async Task AdvanceTurn_WhenMonthBoundaryReached_PublishesMonthSettledEvent()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
-        var mgr = new SanguoTurnManager(bus, economy);
+        var cities = new Dictionary<string, City>(StringComparer.Ordinal)
+        {
+            ["c1"] = new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10)),
+        };
+        var p1 = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: Rules);
+        var p2 = new SanguoPlayer(playerId: "p2", money: 0m, positionIndex: 0, economyRules: Rules);
+        var (boardState, treasury) = CreateBoardState(players: new[] { p1, p2 }, citiesById: cities);
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
 
         var gameId = "game-1";
         var playerOrder = new[] { "p1", "p2" };
         var correlationId = "corr-1";
 
-        mgr.StartNewGame(
+        await mgr.StartNewGameAsync(
             gameId: gameId,
             playerOrder: playerOrder,
             year: 1,
@@ -110,11 +131,16 @@ public class SanguoTurnManagerTests
             correlationId: correlationId,
             causationId: null);
 
-        mgr.AdvanceTurn(correlationId, causationId: "cmd-advance");
+        boardState.TryBuyCity(buyerId: "p1", cityId: "c1", priceMultiplier: 1.0m).Should().BeTrue();
+        var moneyBefore = p1.Money;
+
+        await mgr.AdvanceTurnAsync(correlationId, causationId: "cmd-advance");
 
         bus.Published.Should().Contain(
             e => e.Type == SanguoMonthSettled.EventType,
             "crossing a month boundary should trigger month settlement");
+
+        p1.Money.Should().BeGreaterThan(moneyBefore);
 
         var settled = bus.Published.Find(e => e.Type == SanguoMonthSettled.EventType)!;
         settled.Data.Should().BeOfType<JsonElementEventData>();
@@ -125,20 +151,23 @@ public class SanguoTurnManagerTests
         payload.GetProperty("Month").GetInt32().Should().Be(1);
         payload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-advance");
-        payload.GetProperty("PlayerSettlements").GetArrayLength().Should().Be(0);
+        payload.GetProperty("PlayerSettlements").GetArrayLength().Should().Be(2);
     }
 
     [Fact]
-    public void AdvanceTurn_WhenQuarterBoundaryReached_PublishesSeasonEventAppliedAfterMonthSettlement()
+    public async Task AdvanceTurn_WhenQuarterBoundaryReached_PublishesSeasonEventAppliedAfterMonthSettlement()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
-        var mgr = new SanguoTurnManager(bus, economy);
+        var (boardState, treasury) = CreateBoardState(
+            players: new[] { new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules) },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
 
         var gameId = "game-1";
         var correlationId = "corr-1";
 
-        mgr.StartNewGame(
+        await mgr.StartNewGameAsync(
             gameId: gameId,
             playerOrder: new[] { "p1" },
             year: 1,
@@ -147,7 +176,7 @@ public class SanguoTurnManagerTests
             correlationId: correlationId,
             causationId: null);
 
-        mgr.AdvanceTurn(correlationId: correlationId, causationId: "cmd-advance");
+        await mgr.AdvanceTurnAsync(correlationId: correlationId, causationId: "cmd-advance");
 
         var monthIndex = bus.Published.FindIndex(e => e.Type == SanguoMonthSettled.EventType);
         var seasonIndex = bus.Published.FindIndex(e => e.Type == SanguoSeasonEventApplied.EventType);
@@ -174,11 +203,11 @@ public class SanguoTurnManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void StartNewGame_WhenGameIdIsNullOrWhitespace_ThrowsArgumentException(string? gameId)
+    public async Task StartNewGame_WhenGameIdIsNullOrWhitespace_ThrowsArgumentException(string? gameId)
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
+        var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
-        Action act = () => mgr.StartNewGame(
+        Func<Task> act = async () => await mgr.StartNewGameAsync(
             gameId: gameId!,
             playerOrder: new[] { "p1" },
             year: 1,
@@ -187,16 +216,16 @@ public class SanguoTurnManagerTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentException>()
+        await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("gameId");
     }
 
     [Fact]
-    public void StartNewGame_WhenPlayerOrderIsNull_ThrowsArgumentNullException()
+    public async Task StartNewGame_WhenPlayerOrderIsNull_ThrowsArgumentNullException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
+        var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
-        Action act = () => mgr.StartNewGame(
+        Func<Task> act = async () => await mgr.StartNewGameAsync(
             gameId: "g1",
             playerOrder: null!,
             year: 1,
@@ -205,16 +234,16 @@ public class SanguoTurnManagerTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentNullException>()
+        await act.Should().ThrowAsync<ArgumentNullException>()
             .WithParameterName("playerOrder");
     }
 
     [Fact]
-    public void StartNewGame_WhenPlayerOrderIsEmpty_ThrowsArgumentException()
+    public async Task StartNewGame_WhenPlayerOrderIsEmpty_ThrowsArgumentException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
+        var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
-        Action act = () => mgr.StartNewGame(
+        Func<Task> act = async () => await mgr.StartNewGameAsync(
             gameId: "g1",
             playerOrder: Array.Empty<string>(),
             year: 1,
@@ -223,16 +252,16 @@ public class SanguoTurnManagerTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentException>()
+        await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("playerOrder");
     }
 
     [Fact]
-    public void StartNewGame_WhenPlayerOrderContainsEmptyPlayerId_ThrowsArgumentException()
+    public async Task StartNewGame_WhenPlayerOrderContainsEmptyPlayerId_ThrowsArgumentException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
+        var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
-        Action act = () => mgr.StartNewGame(
+        Func<Task> act = async () => await mgr.StartNewGameAsync(
             gameId: "g1",
             playerOrder: new[] { "p1", " " },
             year: 1,
@@ -241,16 +270,16 @@ public class SanguoTurnManagerTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentException>()
+        await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("playerOrder");
     }
 
     [Fact]
-    public void StartNewGame_WhenPlayerOrderContainsDuplicatePlayerIds_ThrowsArgumentException()
+    public async Task StartNewGame_WhenPlayerOrderContainsDuplicatePlayerIds_ThrowsArgumentException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
+        var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
-        Action act = () => mgr.StartNewGame(
+        Func<Task> act = async () => await mgr.StartNewGameAsync(
             gameId: "g1",
             playerOrder: new[] { "p1", "p1" },
             year: 1,
@@ -259,7 +288,7 @@ public class SanguoTurnManagerTests
             correlationId: "corr",
             causationId: null);
 
-        act.Should().Throw<ArgumentException>()
+        await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("playerOrder");
     }
 
@@ -267,11 +296,11 @@ public class SanguoTurnManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void StartNewGame_WhenCorrelationIdIsNullOrWhitespace_ThrowsArgumentException(string? correlationId)
+    public async Task StartNewGame_WhenCorrelationIdIsNullOrWhitespace_ThrowsArgumentException(string? correlationId)
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
+        var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
-        Action act = () => mgr.StartNewGame(
+        Func<Task> act = async () => await mgr.StartNewGameAsync(
             gameId: "g1",
             playerOrder: new[] { "p1" },
             year: 1,
@@ -280,18 +309,64 @@ public class SanguoTurnManagerTests
             correlationId: correlationId!,
             causationId: null);
 
-        act.Should().Throw<ArgumentException>()
+        await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("correlationId");
     }
 
     [Fact]
-    public void AdvanceTurn_BeforeStart_ThrowsInvalidOperationException()
+    public async Task AdvanceTurn_BeforeStart_ThrowsInvalidOperationException()
     {
-        var mgr = new SanguoTurnManager(NullEventBus.Instance, new SanguoEconomyManager(NullEventBus.Instance));
+        var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
-        Action act = () => mgr.AdvanceTurn("corr", causationId: null);
+        Func<Task> act = async () => await mgr.AdvanceTurnAsync("corr", causationId: null);
 
-        act.Should().Throw<InvalidOperationException>();
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task StartNewGame_WhenPlayerOrderContainsUnknownPlayerId_ThrowsArgumentException()
+    {
+        var bus = NullEventBus.Instance;
+        var economy = new SanguoEconomyManager(bus);
+        var (boardState, treasury) = CreateBoardState(
+            players: new[] { new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules) },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+
+        Func<Task> act = async () => await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p2" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr",
+            causationId: null);
+
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithParameterName("playerOrder");
+    }
+
+    [Fact]
+    public async Task AdvanceTurn_WhenCorrelationIdIsEmpty_ThrowsArgumentException()
+    {
+        var bus = NullEventBus.Instance;
+        var economy = new SanguoEconomyManager(bus);
+        var (boardState, treasury) = CreateBoardState(
+            players: new[] { new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules) },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr",
+            causationId: null);
+
+        Func<Task> act = async () => await mgr.AdvanceTurnAsync("", causationId: null);
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("correlationId");
     }
 
     private sealed class CapturingEventBus : IEventBus
@@ -301,6 +376,85 @@ public class SanguoTurnManagerTests
         public Task PublishAsync(DomainEvent evt)
         {
             Published.Add(evt);
+            return Task.CompletedTask;
+        }
+
+        public IDisposable Subscribe(Func<DomainEvent, Task> handler) => new DummySubscription();
+
+        private sealed class DummySubscription : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AdvanceTurn_WhenMonthSettlementPublishFails_RollsBackMoneyAndTreasuryAndThrows()
+    {
+        var bus = new ThrowingOnEventTypeBus(SanguoMonthSettled.EventType);
+        var economy = new SanguoEconomyManager(bus);
+
+        var cities = new Dictionary<string, City>(StringComparer.Ordinal)
+        {
+            ["c1"] = new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10)),
+        };
+        var p1 = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: Rules);
+        var p2 = new SanguoPlayer(playerId: "p2", money: 0m, positionIndex: 0, economyRules: Rules);
+        var (boardState, treasury) = CreateBoardState(players: new[] { p1, p2 }, citiesById: cities);
+
+        boardState.TryBuyCity(buyerId: "p1", cityId: "c1", priceMultiplier: 1.0m).Should().BeTrue();
+        var moneyBeforeAdvance = p1.Money;
+        var treasuryBeforeAdvance = treasury.MinorUnits;
+
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p1", "p2" },
+            year: 1,
+            month: 1,
+            day: 31,
+            correlationId: "corr",
+            causationId: null);
+
+        Func<Task> act = async () => await mgr.AdvanceTurnAsync("corr", causationId: "cmd-advance");
+        await act.Should().ThrowAsync<InvalidOperationException>();
+
+        p1.Money.Should().Be(moneyBeforeAdvance, "money changes must be rolled back when month settlement publish fails");
+        treasury.MinorUnits.Should().Be(treasuryBeforeAdvance, "treasury changes must be rolled back when publish fails");
+    }
+
+    private static (SanguoBoardState boardState, SanguoTreasury treasury) CreateBoardState(
+        IReadOnlyList<SanguoPlayer> players,
+        IReadOnlyDictionary<string, City> citiesById)
+    {
+        return (new SanguoBoardState(players: players, citiesById: citiesById), new SanguoTreasury());
+    }
+
+    private static SanguoTurnManager CreateNullManager(IReadOnlyList<string> playerIds)
+    {
+        var players = playerIds
+            .Select(id => new SanguoPlayer(playerId: id, money: 0m, positionIndex: 0, economyRules: Rules))
+            .ToArray();
+        var (boardState, treasury) = CreateBoardState(players, new Dictionary<string, City>(StringComparer.Ordinal));
+        var bus = NullEventBus.Instance;
+        return new SanguoTurnManager(bus, new SanguoEconomyManager(bus), boardState, treasury);
+    }
+
+    private sealed class ThrowingOnEventTypeBus : IEventBus
+    {
+        private readonly string _throwEventType;
+
+        public ThrowingOnEventTypeBus(string throwEventType)
+        {
+            _throwEventType = throwEventType;
+        }
+
+        public Task PublishAsync(DomainEvent evt)
+        {
+            if (evt.Type == _throwEventType)
+                throw new InvalidOperationException("Simulated publish failure.");
+
             return Task.CompletedTask;
         }
 

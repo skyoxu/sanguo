@@ -42,13 +42,16 @@
         "status": "done",
         "subtasks": [],
         "adrRefs": [
+          "ADR-0004",
           "ADR-0005",
           "ADR-0015",
           "ADR-0018",
           "ADR-0020",
           "ADR-0021",
           "ADR-0024",
-          "ADR-0025"
+          "ADR-0025",
+          "ADR-0026",
+          "ADR-0027"
         ],
         "archRefs": [
           "CH01",
@@ -254,7 +257,8 @@
           "ADR-0020",
           "ADR-0021",
           "ADR-0024",
-          "ADR-0025"
+          "ADR-0025",
+          "ADR-0026"
         ],
         "archRefs": [
           "CH01",
@@ -279,7 +283,7 @@
         "dependencies": [
           "1"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -302,14 +306,14 @@
         "id": "22",
         "title": "实现UI骰子结果显示",
         "description": "在UI上显示骰子投掷结果。",
-        "details": "在玩家掷骰后，显示骰子结果。",
+        "details": "在玩家掷骰后，显示骰子结果。\n补充：HUD 的掷骰按钮发布 `ui.hud.dice.roll`；将其转为调用 `SanguoDiceService.RollD6` 并发布 `core.sanguo.dice.rolled` 的胶水链路归属 Task 17。本任务只消费 `core.sanguo.dice.rolled` 并更新 UI。\n",
         "testStrategy": "通过多次掷骰测试，验证结果显示的正确性。\nLocal demo paths: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
         "priority": "low",
         "dependencies": [
           "9",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -332,14 +336,14 @@
         "id": "10",
         "title": "实现玩家棋子移动",
         "description": "根据骰子结果移动玩家棋子。",
-        "details": "在Godot中实现棋子的移动动画，使用Tween或插值方法。",
+        "details": "在Godot中实现棋子的移动动画，使用Tween或插值方法。\n补充（范围归属）：`core.sanguo.board.token.moved` 的 `ToIndex` 合法范围校验属于 Task 10（移动），不属于 Task 12（经济/买地）。范围来源由地图/棋盘数据组件提供（Task 2：总格子数/环形索引）；发布事件前必须保证 `ToIndex >= 0 && ToIndex < TotalPositions`，UI 仅做防御性校验与审计。\n",
         "testStrategy": "通过多次移动测试，验证棋子移动的正确性和动画效果。\nLocal demo paths: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
         "priority": "high",
         "dependencies": [
           "5",
           "9"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -374,7 +378,7 @@
           "4",
           "10"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -383,7 +387,8 @@
           "ADR-0020",
           "ADR-0021",
           "ADR-0024",
-          "ADR-0025"
+          "ADR-0025",
+          "ADR-0027"
         ],
         "archRefs": [
           "CH01",
@@ -438,7 +443,7 @@
         "dependencies": [
           "12"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -544,7 +549,7 @@
           "7",
           "13"
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -701,7 +706,7 @@
         "id": "17",
         "title": "实现回合循环",
         "description": "确保游戏回合循环正常进行。",
-        "details": "实现回合循环逻辑，确保玩家和AI轮流行动，时间正常推进，并正确处理出局者：跳过已出局 NPC；真人玩家出局时立即结束回合循环并触发游戏结束。\n新增异常边界：当金额入账触发 Money 上限时（例如过路费/结算导致收款方超上限），回合循环应记录审计日志并上报错误；前台用 3 秒自动消失的浮窗提示替代 GameOver/错误界面；并采用封顶规则：付款方仍扣全额，收款方资金封顶，溢出金额进入国库（或按设计丢弃），不得产生半更新状态。\n\nMED-001（未来修订）：破产/出局路径需要‘事务语义’：将债权人入账、付款方出局标记、城池释放视为一次性提交，避免在未来引入事件发布/持久化/回调时出现可观察的中间态；当前 ThreadAccessGuard 单线程仅作为缓解，不作为最终保证。\n可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。\n",
+        "details": "实现回合循环逻辑，确保玩家和AI轮流行动，时间正常推进，并正确处理出局者：跳过已出局 NPC；真人玩家出局时立即结束回合循环并触发游戏结束。\n新增异常边界：当金额入账触发 Money 上限时（例如过路费/结算导致收款方超上限），回合循环应记录审计日志并上报错误；前台用 3 秒自动消失的浮窗提示替代 GameOver/错误界面；并采用封顶规则：付款方仍扣全额，收款方资金封顶，溢出金额进入国库（或按设计丢弃），不得产生半更新状态。\n\nMED-001（未来修订）：破产/出局路径需要‘事务语义’：将债权人入账、付款方出局标记、城池释放视为一次性提交，避免在未来引入事件发布/持久化/回调时出现可观察的中间态；当前 ThreadAccessGuard 单线程仅作为缓解，不作为最终保证。\n可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。\n补充（胶水链路归属）：HUD 的 `ui.hud.dice.roll` -> `SanguoDiceService.RollD6` -> `core.sanguo.dice.rolled` 归属 Task 17；实现时需保证 CorrelationId/CausationId 贯穿并可在日志中追踪。\n完成条件（强制）：必须在场景/代码里将棋盘总格数（Task 2 的 TotalPositions）设置到 `SanguoBoardView.TotalPositions`；且移动事件的 `ToIndex` 必须通过范围校验（0 <= ToIndex < TotalPositions）。未设置 TotalPositions 或校验未被测试覆盖，视为 Task 17 未完成。\n",
         "testStrategy": "通过长时间运行游戏，验证回合循环的稳定性和正确性，并包含 NPC 出局后轮转跳过、玩家出局触发 GameOver 的用例。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong\n新增用例：构造会触发 Money 上限的转账路径，验证回合循环不中断推进；同时校验审计日志/错误上报被调用，浮窗提示 3 秒后自动消失；并断言封顶规则（付款方扣全额、收款方封顶、溢出进入国库/丢弃）。\n加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。\n加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。\n",
         "priority": "high",
         "dependencies": [

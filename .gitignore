@@ -80,6 +80,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 dev-debug.log
+claudedocs/
 
 # Keep repo scripts under scripts/sc/build tracked (avoid matching the generic build/ ignore above)
 !scripts/sc/build/

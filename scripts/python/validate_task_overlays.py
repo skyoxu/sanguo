@@ -25,6 +25,7 @@ from typing import Any, Optional
 
 
 FRONT_MATTER_RE = re.compile(r"^---\s*\n(.*?)\n---", re.DOTALL)
+OVERLAY_DIR_RE = re.compile(r"^(docs/architecture/overlays/[^/]+/08)/", re.IGNORECASE)
 
 
 def extract_front_matter(content: str) -> Optional[dict[str, Any]]:
@@ -180,6 +181,7 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
 
     tasks_with_overlays = 0
     passed = 0
+    forced_errors: list[str] = []
 
     for task in sorted(tasks, key=lambda x: str(x.get("id", ""))):
         tid = task.get("id")
@@ -190,6 +192,50 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
         else:
             overlay = task.get("overlay")
             overlays = [overlay] if overlay else []
+
+        # Backlog view policy (tasks_back.json):
+        # tasks_back is the "governance/acceptance/contracts" view. Every task must be anchored to
+        # overlay docs to avoid drift between "task view" and "acceptance/contract" SSoT.
+        #
+        # Rule (hard):
+        # - overlay_refs MUST be a non-empty list of docs/architecture/overlays/<PRD-ID>/08/... files.
+        # - overlay_refs must include BOTH:
+        #     - <overlay_dir>/_index.md
+        #     - <overlay_dir>/ACCEPTANCE_CHECKLIST.md
+        #
+        # overlay_dir is inferred from overlay_refs/overlay using docs/architecture/overlays/<PRD-ID>/08/... patterns.
+        if task_file.name == "tasks_back.json":
+            overlay_refs_list: list[str] = []
+            if isinstance(overlay_refs, list):
+                overlay_refs_list = [str(x) for x in overlay_refs if str(x).strip()]
+            elif isinstance(overlay_refs, str) and overlay_refs.strip():
+                overlay_refs_list = [overlay_refs.strip()]
+
+            if not overlay_refs_list:
+                forced_errors.append(
+                    f"{label} task {tid}: overlay_refs must not be empty; set overlay_refs to include docs/architecture/overlays/<PRD-ID>/08/_index.md and ACCEPTANCE_CHECKLIST.md"
+                )
+            else:
+                overlay_candidate = str(task.get("overlay") or "").strip()
+                overlay_dir = None
+                for cand in overlay_refs_list + ([overlay_candidate] if overlay_candidate else []):
+                    m = OVERLAY_DIR_RE.match(str(cand))
+                    if m:
+                        overlay_dir = m.group(1)
+                        break
+
+                if not overlay_dir:
+                    forced_errors.append(
+                        f"{label} task {tid}: cannot infer overlay_dir from overlay/overlay_refs; set overlay_refs to include docs/architecture/overlays/<PRD-ID>/08/_index.md and ACCEPTANCE_CHECKLIST.md"
+                    )
+                else:
+                    required = [
+                        f"{overlay_dir}/_index.md",
+                        f"{overlay_dir}/ACCEPTANCE_CHECKLIST.md",
+                    ]
+                    missing = [x for x in required if x not in overlay_refs_list]
+                    if missing:
+                        forced_errors.append(f"{label} task {tid}: overlay_refs missing required anchors: {missing}")
 
         if not overlays:
             continue
@@ -222,6 +268,21 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
 
     if tasks_with_overlays == 0:
         print("\n(no tasks contain overlay fields)")
+
+    if forced_errors:
+        print("\n" + "-" * 60)
+        print("ERROR: tasks_back overlay_refs policy violations")
+        print("-" * 60)
+        for err in forced_errors[:200]:
+            print(f"- {err}")
+        if len(forced_errors) > 200:
+            print(f"- (+{len(forced_errors) - 200} more)")
+
+        # Count these as hard failures of the overlay validation step.
+        # We keep the (tasks_with_overlays, passed) counters for compatibility with callers,
+        # but still force a non-zero exit code via total_passed < total_checked at the end.
+        # Add them to totals by treating each violation as an extra checked task.
+        tasks_with_overlays += len(forced_errors)
 
     return tasks_with_overlays, passed
 
