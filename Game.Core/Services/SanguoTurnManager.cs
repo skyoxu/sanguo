@@ -94,6 +94,11 @@ public sealed class SanguoTurnManager
         );
 
         await _bus.PublishAsync(evt);
+        await PublishAiDecisionIfNeededAsync(
+            activePlayerId: _playerOrder[_activePlayerIndex],
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
     }
 
     public async Task AdvanceTurnAsync(string correlationId, string? causationId)
@@ -227,6 +232,11 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N")
         );
         await _bus.PublishAsync(started);
+        await PublishAiDecisionIfNeededAsync(
+            activePlayerId: _playerOrder[_activePlayerIndex],
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
     }
 
     private static int GetSeasonFromMonth(int month)
@@ -235,5 +245,42 @@ public sealed class SanguoTurnManager
             throw new ArgumentOutOfRangeException(nameof(month), "Month must be between 1 and 12.");
 
         return ((month - 1) / 3) + 1;
+    }
+
+
+    private static bool IsAiPlayerId(string playerId)
+    {
+        return playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task PublishAiDecisionIfNeededAsync(
+        string activePlayerId,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (_gameId is null)
+            throw new InvalidOperationException("GameId is not set.");
+
+        if (!IsAiPlayerId(activePlayerId))
+            return;
+
+        var decision = new SanguoAiDecisionMade(
+            GameId: _gameId,
+            AiPlayerId: activePlayerId,
+            DecisionType: "skip",
+            TargetCityId: null,
+            OccurredAt: occurredAt,
+            CorrelationId: correlationId,
+            CausationId: causationId);
+
+        var evt = new DomainEvent(
+            Type: SanguoAiDecisionMade.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(decision),
+            Timestamp: DateTime.UtcNow,
+            Id: Guid.NewGuid().ToString("N"));
+
+        await _bus.PublishAsync(evt);
     }
 }
