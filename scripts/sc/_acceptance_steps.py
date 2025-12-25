@@ -153,7 +153,6 @@ def step_task_test_refs_validate(out_dir: Path, triplet: TaskmasterTriplet, *, r
 
 def step_acceptance_refs_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResult:
     # Hard gate (deterministic): acceptance items must declare "Refs:" and be consistent with test_refs at refactor stage.
-    # This makes acceptance_check stricter than "test_refs exists", preventing logs/docs from being used as fake evidence.
     cmd = [
         "py",
         "-3",

@@ -101,10 +101,10 @@ def validate_test_refs(
         return errors, warnings
 
     for r in refs:
-        if is_abs_path(r):
-            errors.append(f"{label}: absolute path is not allowed in test_refs: {r}")
-            continue
         rr = r.replace("\\", "/")
+        if is_abs_path(rr):
+            errors.append(f"{label}: absolute path is not allowed in test_refs: {rr}")
+            continue
         # Hard rule: test_refs must point to real test files, not logs/docs.
         if not (rr.endswith(".cs") or rr.endswith(".gd")):
             errors.append(f"{label}: test_refs entry must be a test file (.cs/.gd): {rr}")
