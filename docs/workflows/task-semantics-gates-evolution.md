@@ -70,6 +70,11 @@
    - 引用文件存在；
    - 引用文件被纳入该任务的 `test_refs`（任务级证据清单）。
 
+补充口径（triplet 视图缺省）：
+
+- 允许任务只存在于 `tasks_back.json` 或只存在于 `tasks_gameplay.json`（另一侧视图 warning/skip），但至少必须存在一侧视图。
+- 对“存在该任务条目”的那一侧视图，继续严格要求 `overlay_refs/test_strategy/acceptance/test_refs` 按阶段满足门禁。
+
 ## 关键改动与原因（按执行链路）
 
 ### 1) 生成“任务上下文”并强制必填字段（fail-fast）

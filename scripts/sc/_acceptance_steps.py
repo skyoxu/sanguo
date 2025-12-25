@@ -151,6 +151,22 @@ def step_task_test_refs_validate(out_dir: Path, triplet: TaskmasterTriplet, *, r
     return run_and_capture(out_dir, name="task-test-refs", cmd=cmd, timeout_sec=60)
 
 
+def step_acceptance_refs_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResult:
+    # Hard gate (deterministic): acceptance items must declare "Refs:" and be consistent with test_refs at refactor stage.
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_acceptance_refs.py",
+        "--task-id",
+        str(triplet.task_id),
+        "--stage",
+        "refactor",
+        "--out",
+        str(out_dir / "acceptance-refs.json"),
+    ]
+    return run_and_capture(out_dir, name="acceptance-refs", cmd=cmd, timeout_sec=60)
+
+
 def step_overlay_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResult:
     primary = run_and_capture(
         out_dir,

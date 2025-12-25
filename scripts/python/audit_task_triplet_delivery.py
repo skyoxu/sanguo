@@ -94,7 +94,7 @@ def validate_test_refs(
     normalized: list[str] = []
 
     if entry is None:
-        errors.append(f"{label}: mapped task not found by taskmaster_id")
+        warnings.append(f"{label}: mapped task not found by taskmaster_id (skip)")
         return errors, warnings, normalized
 
     raw = entry.get("test_refs")
@@ -112,11 +112,19 @@ def validate_test_refs(
         return errors, warnings, normalized
 
     for r in normalized:
-        if is_abs_path(r):
-            errors.append(f"{label}: absolute path is not allowed in test_refs: {r}")
+        rr = str(r).strip().replace("\\", "/")
+        if is_abs_path(rr):
+            errors.append(f"{label}: absolute path is not allowed in test_refs: {rr}")
             continue
-        if not (root / r).exists():
-            errors.append(f"{label}: referenced file not found: {r}")
+        if not (rr.endswith(".cs") or rr.endswith(".gd")):
+            errors.append(f"{label}: test_refs entry must be a test file (.cs/.gd): {rr}")
+            continue
+        allowed_prefixes = ("Game.Core.Tests/", "Tests.Godot/tests/", "Tests/")
+        if not rr.startswith(allowed_prefixes):
+            errors.append(f"{label}: test_refs entry must be under test roots: {rr}")
+            continue
+        if not (root / rr).exists():
+            errors.append(f"{label}: referenced file not found: {rr}")
 
     return errors, warnings, normalized
 
@@ -210,6 +218,9 @@ def main() -> int:
         errors.extend(e2)
         warnings.extend(w1)
         warnings.extend(w2)
+
+        if back_task is None and gameplay_task is None:
+            errors.append("both tasks_back.json and tasks_gameplay.json mapped tasks are missing; at least one view must exist")
 
         discovered = auto_discover_task_tests(root, tid)
         if not discovered:
