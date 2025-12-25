@@ -30,7 +30,7 @@ def _bootstrap_imports() -> None:
 _bootstrap_imports()
 
 from _taskmaster import resolve_triplet  # noqa: E402
-from _util import ci_dir, repo_root, run_cmd, write_json, write_text  # noqa: E402
+from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -190,6 +190,51 @@ def run_dotnet_test_filtered(task_id: str, *, solution: str, configuration: str,
     return {"name": "dotnet-test-filtered", "cmd": cmd, "rc": rc, "log": str(log_path), "filter": filter_expr}
 
 
+def run_sc_analyze_task_context(*, task_id: str, out_dir: Path) -> dict[str, Any]:
+    # Ensure logs/ci/<date>/sc-analyze/task_context.json exists and is fresh enough for this TDD stage.
+    # We intentionally use the repo's deterministic analyzer (no LLM).
+    cmd = [
+        "py",
+        "-3",
+        "scripts/sc/analyze.py",
+        "--task-id",
+        str(task_id),
+        "--focus",
+        "all",
+        "--depth",
+        "quick",
+        "--format",
+        "json",
+    ]
+    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=900)
+    log_path = out_dir / "sc-analyze.log"
+    write_text(log_path, out)
+    return {"name": "sc-analyze", "cmd": cmd, "rc": rc, "log": str(log_path), "status": "ok" if rc == 0 else "fail"}
+
+
+def validate_task_context_required_fields(*, task_id: str, stage: str, out_dir: Path) -> dict[str, Any]:
+    # Hard gate: TDD stages MUST use the full triplet semantics (master/back/gameplay) captured by sc-analyze.
+    ctx_path = repo_root() / "logs" / "ci" / today_str() / "sc-analyze" / f"task_context.{task_id}.json"
+
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_task_context_required_fields.py",
+        "--task-id",
+        str(task_id),
+        "--stage",
+        str(stage),
+        "--context",
+        str(ctx_path),
+        "--out",
+        str(out_dir / "task-context-required.json"),
+    ]
+    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=60)
+    log_path = out_dir / "validate-task-context-required.log"
+    write_text(log_path, out)
+    return {"name": "validate_task_context_required_fields", "cmd": cmd, "rc": rc, "log": str(log_path), "status": "ok" if rc == 0 else "fail"}
+
+
 def run_green_gate(*, solution: str, configuration: str, out_dir: Path, no_coverage_gate: bool) -> dict[str, Any]:
     if not no_coverage_gate:
         os.environ.setdefault("COVERAGE_LINES_MIN", "90")
@@ -202,11 +247,79 @@ def run_green_gate(*, solution: str, configuration: str, out_dir: Path, no_cover
     return {"name": "run_dotnet", "cmd": cmd, "rc": rc, "log": str(log_path), "stdout": out}
 
 
-def run_refactor_checks(out_dir: Path) -> list[dict[str, Any]]:
+def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
     steps: list[dict[str, Any]] = []
     steps.append(check_no_task_red_test_skeletons(out_dir))
+    # Hard gate: every task must have non-empty test_refs evidence in both task views.
+    # This is enforced at refactor stage, when test files are expected to be stable.
+    test_refs_script = repo_root() / "scripts" / "python" / "validate_task_test_refs.py"
+    test_refs_log = out_dir / "validate_task_test_refs.log"
+    if not test_refs_script.exists():
+        write_text(
+            test_refs_log,
+            "FAIL: missing scripts/python/validate_task_test_refs.py\n"
+            "Fix:\n"
+            "  - git pull (or restore the file)\n",
+        )
+        steps.append(
+            {
+                "name": "validate_task_test_refs",
+                "cmd": ["py", "-3", "scripts/python/validate_task_test_refs.py"],
+                "rc": 1,
+                "log": str(test_refs_log),
+                "status": "fail",
+                "reason": "missing:validate_task_test_refs.py",
+            }
+        )
+    else:
+        cmd = [
+            "py",
+            "-3",
+            "scripts/python/validate_task_test_refs.py",
+            "--task-id",
+            str(task_id),
+            "--out",
+            str(out_dir / "task-test-refs.json"),
+            "--require-non-empty",
+        ]
+        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=60)
+        write_text(test_refs_log, out)
+        steps.append(
+            {
+                "name": "validate_task_test_refs",
+                "cmd": cmd,
+                "rc": rc,
+                "log": str(test_refs_log),
+                "status": "ok" if rc == 0 else "fail",
+            }
+        )
+
+    # Hard gate: acceptance items must map to deterministic evidence via "Refs:" and be included in test_refs.
+    acceptance_cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_acceptance_refs.py",
+        "--task-id",
+        str(task_id),
+        "--stage",
+        "refactor",
+        "--out",
+        str(out_dir / "acceptance-refs.json"),
+    ]
+    acceptance_rc, acceptance_out = run_cmd(acceptance_cmd, cwd=repo_root(), timeout_sec=60)
+    acceptance_log = out_dir / "validate_acceptance_refs.log"
+    write_text(acceptance_log, acceptance_out)
+    steps.append(
+        {
+            "name": "validate_acceptance_refs",
+            "cmd": acceptance_cmd,
+            "rc": acceptance_rc,
+            "log": str(acceptance_log),
+            "status": "ok" if acceptance_rc == 0 else "fail",
+        }
+    )
     candidates = [
-        ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py"], "scripts/python/check_test_naming.py"),
+        ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py", "--task-id", str(task_id), "--style", "strict"], "scripts/python/check_test_naming.py"),
         ("check_tasks_all_refs", ["py", "-3", "scripts/python/check_tasks_all_refs.py"], "scripts/python/check_tasks_all_refs.py"),
         ("validate_contracts", ["py", "-3", "scripts/python/validate_contracts.py"], "scripts/python/validate_contracts.py"),
     ]
@@ -278,6 +391,15 @@ def main() -> int:
     }
 
     if args.stage == "red":
+        summary["steps"].append(run_sc_analyze_task_context(task_id=triplet.task_id, out_dir=out_dir))
+        ctx_step = validate_task_context_required_fields(task_id=triplet.task_id, stage="red", out_dir=out_dir)
+        summary["steps"].append(ctx_step)
+        if ctx_step["rc"] != 0:
+            write_json(out_dir / "summary.json", summary)
+            print(f"SC_BUILD_TDD status=fail out={out_dir}")
+            assert_no_new_contract_files(before_contracts)
+            return 1
+
         test_path = ensure_red_test_exists(
             triplet.task_id,
             str(triplet.master.get("title") or ""),
@@ -305,6 +427,15 @@ def main() -> int:
         return 0 if summary["status"] == "ok" else 1
 
     if args.stage == "green":
+        summary["steps"].append(run_sc_analyze_task_context(task_id=triplet.task_id, out_dir=out_dir))
+        ctx_step = validate_task_context_required_fields(task_id=triplet.task_id, stage="green", out_dir=out_dir)
+        summary["steps"].append(ctx_step)
+        if ctx_step["rc"] != 0:
+            write_json(out_dir / "summary.json", summary)
+            print(f"SC_BUILD_TDD status=fail out={out_dir}")
+            assert_no_new_contract_files(before_contracts)
+            return 1
+
         step = run_green_gate(
             solution=args.solution,
             configuration=args.configuration,
@@ -321,7 +452,16 @@ def main() -> int:
         return 0 if step["rc"] == 0 else 1
 
     if args.stage == "refactor":
-        steps = run_refactor_checks(out_dir)
+        summary["steps"].append(run_sc_analyze_task_context(task_id=triplet.task_id, out_dir=out_dir))
+        ctx_step = validate_task_context_required_fields(task_id=triplet.task_id, stage="refactor", out_dir=out_dir)
+        summary["steps"].append(ctx_step)
+        if ctx_step["rc"] != 0:
+            write_json(out_dir / "summary.json", summary)
+            print(f"SC_BUILD_TDD status=fail out={out_dir}")
+            assert_no_new_contract_files(before_contracts)
+            return 1
+
+        steps = run_refactor_checks(out_dir, task_id=triplet.task_id)
         summary["steps"].extend(steps)
         summary["status"] = "ok" if all(s["rc"] == 0 for s in steps) else "fail"
         write_json(out_dir / "summary.json", summary)

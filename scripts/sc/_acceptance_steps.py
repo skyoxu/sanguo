@@ -136,6 +136,21 @@ def step_task_links_validate(out_dir: Path) -> StepResult:
     )
 
 
+def step_task_test_refs_validate(out_dir: Path, triplet: TaskmasterTriplet, *, require_non_empty: bool) -> StepResult:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_task_test_refs.py",
+        "--task-id",
+        str(triplet.task_id),
+        "--out",
+        str(out_dir / "task-test-refs.json"),
+    ]
+    if require_non_empty:
+        cmd.append("--require-non-empty")
+    return run_and_capture(out_dir, name="task-test-refs", cmd=cmd, timeout_sec=60)
+
+
 def step_overlay_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResult:
     primary = run_and_capture(
         out_dir,

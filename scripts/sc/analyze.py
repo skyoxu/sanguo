@@ -209,7 +209,19 @@ def main() -> int:
             tasks_gameplay_path=args.tasks_gameplay_path,
             taskdoc_dir=args.taskdoc_dir,
         )
-        write_json(out_dir / "task_context.json", triplet.__dict__)
+        # Always write a task-scoped context file to avoid cross-task overwrites when
+        # multiple tasks are analyzed on the same day.
+        task_context = dict(triplet.__dict__)
+        if triplet.taskdoc_path:
+            try:
+                task_context["taskdoc_markdown"] = Path(triplet.taskdoc_path).read_text(encoding="utf-8")
+            except Exception:
+                task_context["taskdoc_markdown"] = None
+
+        task_json = out_dir / f"task_context.{triplet.task_id}.json"
+        write_json(task_json, task_context)
+        # Backward-compatible alias (latest analyzed task wins).
+        write_json(out_dir / "task_context.json", task_context)
         task_md_lines = [
             "# sc-analyze task context",
             "",
@@ -231,6 +243,9 @@ def main() -> int:
                 task_md_lines += ["## taskdoc", "", taskdoc_text.rstrip(), ""]
             except Exception:
                 pass
+        task_md = out_dir / f"task_context.{triplet.task_id}.md"
+        write_text(task_md, "\n".join(task_md_lines))
+        # Backward-compatible alias (latest analyzed task wins).
         write_text(out_dir / "task_context.md", "\n".join(task_md_lines))
     except Exception as e:
         # Keep analyze usable for general audits even when task mapping is broken.

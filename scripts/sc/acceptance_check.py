@@ -35,6 +35,7 @@ from _acceptance_steps import (
     step_quality_rules,
     step_security_soft,
     step_task_links_validate,
+    step_task_test_refs_validate,
     step_test_quality_soft,
     step_tests_all,
 )
@@ -62,6 +63,7 @@ def main() -> int:
     ap.add_argument("--strict-adr-status", action="store_true", help="fail if any referenced ADR is not Accepted")
     ap.add_argument("--strict-test-quality", action="store_true", help="fail if deterministic test-quality heuristics report verdict=Needs Fix")
     ap.add_argument("--strict-quality-rules", action="store_true", help="fail if deterministic quality rules report verdict=Needs Fix")
+    ap.add_argument("--require-task-test-refs", action="store_true", help="fail if tasks_back/tasks_gameplay test_refs is empty for the resolved task id")
     ap.add_argument(
         "--only",
         default=None,
@@ -90,6 +92,7 @@ def main() -> int:
         steps.append(step_adr_compliance(out_dir, triplet, strict_status=bool(args.strict_adr_status)))
     if enabled("links"):
         steps.append(step_task_links_validate(out_dir))
+        steps.append(step_task_test_refs_validate(out_dir, triplet, require_non_empty=bool(args.require_task_test_refs)))
     if enabled("overlay"):
         steps.append(step_overlay_validate(out_dir, triplet))
     if enabled("contracts"):
