@@ -26,6 +26,7 @@ from typing import Any
 from _acceptance_report import write_markdown_report
 from _acceptance_steps import (
     StepResult,
+    step_acceptance_refs_validate,
     step_adr_compliance,
     step_architecture_boundary,
     step_build_warnaserror,
@@ -93,6 +94,7 @@ def main() -> int:
     if enabled("links"):
         steps.append(step_task_links_validate(out_dir))
         steps.append(step_task_test_refs_validate(out_dir, triplet, require_non_empty=bool(args.require_task_test_refs)))
+        steps.append(step_acceptance_refs_validate(out_dir, triplet))
     if enabled("overlay"):
         steps.append(step_overlay_validate(out_dir, triplet))
     if enabled("contracts"):

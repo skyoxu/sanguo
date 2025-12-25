@@ -72,9 +72,7 @@ def validate_overlay_refs(root: Path, label: str, overlay_refs: Any) -> list[str
 
 def validate_view_block(root: Path, label: str, view: Any, *, stage: str) -> list[str]:
     errors: list[str] = []
-    if view is None:
-        errors.append(f"{label}: mapped task missing in this view (taskmaster_id not found)")
-        return errors
+    # Note: mapping absence is handled by the caller (may be warning/skip as long as the other view exists).
     if not isinstance(view, dict):
         errors.append(f"{label}: view entry must be an object")
         return errors
@@ -187,8 +185,20 @@ def main() -> int:
     if test_strategy is None or not is_non_empty_str(test_strategy):
         warnings.append("master.testStrategy missing/empty")
 
-    errors.extend(validate_view_block(root, "tasks_back.json", back, stage=args.stage))
-    errors.extend(validate_view_block(root, "tasks_gameplay.json", gameplay, stage=args.stage))
+    back_missing = back is None
+    gameplay_missing = gameplay is None
+    if back_missing and gameplay_missing:
+        errors.append("both tasks_back.json and tasks_gameplay.json mapped tasks are missing; at least one view must exist")
+    else:
+        if back_missing:
+            warnings.append("tasks_back.json: mapped task missing (taskmaster_id not found); skipping view validation")
+        else:
+            errors.extend(validate_view_block(root, "tasks_back.json", back, stage=args.stage))
+
+        if gameplay_missing:
+            warnings.append("tasks_gameplay.json: mapped task missing (taskmaster_id not found); skipping view validation")
+        else:
+            errors.extend(validate_view_block(root, "tasks_gameplay.json", gameplay, stage=args.stage))
 
     report = {
         "task_id": str(args.task_id),

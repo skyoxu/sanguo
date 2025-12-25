@@ -539,7 +539,8 @@ Tests.Godot/tests/                    # GdUnit4: Godot headless（依赖场景�
 
 目的：把“任务语义”变成可确定性验证的证据链，避免“done 不真实”。
 
-- `tasks_back.json[].acceptance[]` 与 `tasks_gameplay.json[].acceptance[]` 的**每一条**都必须以 `Refs:` 结尾（大小写不敏感）。
+- 对于“存在该任务条目”的视图（`tasks_back.json` 或 `tasks_gameplay.json`），其 `acceptance[]` 的**每一条**都必须以 `Refs:` 结尾（大小写不敏感）。  
+  若某任务只存在于其中一侧视图，另一侧视图允许缺失（warning/skip），但至少必须存在一侧视图。
 - `Refs:` 后仅允许写**仓库相对路径**，并且必须指向测试文件：
   - xUnit：`Game.Core.Tests/**/*.cs`
   - GdUnit4：`Tests.Godot/tests/**/*.gd`
@@ -573,7 +574,8 @@ Tests.Godot/tests/                    # GdUnit4: Godot headless（依赖场景�
 
 规则：
 
-- `tasks_back.json[].test_refs` 与 `tasks_gameplay.json[].test_refs` 必须是非空列表（refactor 硬门禁）。
+- 对于“存在该任务条目”的视图，其 `test_refs` 必须是非空列表（refactor 硬门禁）。  
+  若某任务只存在于其中一侧视图，另一侧视图允许缺失（warning/skip），但至少必须存在一侧视图。
 - `test_refs` 至少包含本任务所有 acceptance `Refs:` 的并集（refactor 硬门禁）。
 
 推荐的更新方式（确定性脚本）：

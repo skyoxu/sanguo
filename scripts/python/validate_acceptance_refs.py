@@ -120,8 +120,8 @@ def validate_view(
     all_refs: list[str] = []
 
     if entry is None:
-        errors.append(f"{label}: mapped task not found by taskmaster_id")
-        return {"label": label, "status": "fail", "errors": errors, "warnings": warnings, "items": items, "refs": all_refs}
+        warnings.append(f"{label}: mapped task not found by taskmaster_id (skip)")
+        return {"label": label, "status": "skipped", "errors": errors, "warnings": warnings, "items": items, "refs": all_refs}
 
     acceptance = entry.get("acceptance")
     if not isinstance(acceptance, list) or not [str(x).strip() for x in acceptance if str(x).strip()]:
@@ -221,6 +221,9 @@ def main() -> int:
     errors = []
     errors.extend(back_report.get("errors") or [])
     errors.extend(game_report.get("errors") or [])
+
+    if back_task is None and gameplay_task is None:
+        errors.append("both tasks_back.json and tasks_gameplay.json mapped tasks are missing; at least one view must exist")
 
     report = {
         "task_id": task_id,
