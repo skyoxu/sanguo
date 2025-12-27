@@ -15,7 +15,7 @@ namespace Game.Core.Tests.Services;
 public class SanguoEconomyManagerTests
 {
     [Fact]
-    public void Constructor_WhenBusIsNull_ThrowsArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenBusIsNull()
     {
         Action act = () => _ = new SanguoEconomyManager(null!);
         act.Should().Throw<ArgumentNullException>().WithParameterName("bus");
@@ -447,7 +447,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishMonthSettlementIfBoundary_WhenMonthUnchanged_DoesNotPublish()
+    public async Task ShouldNotPublishMonthSettled_WhenMonthUnchanged()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -468,7 +468,7 @@ public class SanguoEconomyManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task PublishMonthSettlementIfBoundary_WhenGameIdIsEmpty_ThrowsArgumentException(string? gameId)
+    public async Task ShouldThrowArgumentException_WhenGameIdIsEmptyInMonthSettlementBoundary(string? gameId)
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -488,7 +488,7 @@ public class SanguoEconomyManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task PublishMonthSettlementIfBoundary_WhenCorrelationIdIsEmpty_ThrowsArgumentException(string? correlationId)
+    public async Task ShouldThrowArgumentException_WhenCorrelationIdIsEmptyInMonthSettlementBoundary(string? correlationId)
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -505,7 +505,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishMonthSettlementIfBoundary_WhenMonthChanged_PublishesMonthSettled()
+    public async Task ShouldPublishMonthSettled_WhenMonthChanges()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -534,7 +534,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishSeasonEventIfBoundary_WhenMonthUnchanged_DoesNotPublish()
+    public async Task ShouldNotPublishSeasonEventApplied_WhenMonthUnchanged()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -554,7 +554,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishSeasonEventIfBoundary_WhenMonthChangedButSeasonUnchanged_DoesNotPublish()
+    public async Task ShouldNotPublishSeasonEventApplied_WhenSeasonUnchanged()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -574,7 +574,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishSeasonEventIfBoundary_WhenQuarterBoundaryReached_PublishesSeasonEventApplied()
+    public async Task ShouldPublishSeasonEventApplied_WhenQuarterBoundaryReached()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -604,7 +604,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishSeasonEventIfBoundary_WhenSeasonOutOfRange_ThrowsArgumentOutOfRangeException()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenSeasonOutOfRangeInSeasonBoundary()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -623,7 +623,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishSeasonEventIfBoundary_WhenYieldMultiplierNegative_ThrowsArgumentOutOfRangeException()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenYieldMultiplierIsNegativeInSeasonBoundary()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -642,7 +642,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishYearlyPriceAdjustmentIfBoundary_WhenYearUnchanged_DoesNotPublish()
+    public async Task ShouldNotPublishYearlyPriceAdjusted_WhenYearUnchanged()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -669,7 +669,7 @@ public class SanguoEconomyManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task PublishYearlyPriceAdjustmentIfBoundary_WhenGameIdIsEmpty_ThrowsArgumentException(string? gameId)
+    public async Task ShouldThrowArgumentException_WhenGameIdIsEmptyInYearlyPriceBoundary(string? gameId)
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -690,7 +690,7 @@ public class SanguoEconomyManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task PublishYearlyPriceAdjustmentIfBoundary_WhenCorrelationIdIsEmpty_ThrowsArgumentException(string? correlationId)
+    public async Task ShouldThrowArgumentException_WhenCorrelationIdIsEmptyInYearlyPriceBoundary(string? correlationId)
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -708,7 +708,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public async Task PublishYearlyPriceAdjustmentIfBoundary_WhenYearChanged_PublishesPriceAdjustedPerCity()
+    public async Task ShouldPublishYearlyPriceAdjustedPerCity_WhenYearChanges()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -745,7 +745,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void CalculateMonthSettlements_SumsBaseTollOfOwnedCities()
+    public void ShouldSumBaseTollOfOwnedCities_WhenCalculatingMonthSettlements()
     {
         var bus = NullEventBus.Instance;
         var economy = new SanguoEconomyManager(bus);
@@ -767,7 +767,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void CalculateMonthSettlements_WhenPlayersIsNull_ThrowsArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenPlayersIsNullInMonthSettlementCalculation()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -779,7 +779,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void CalculateMonthSettlements_WhenCitiesByIdIsNull_ThrowsArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenCitiesByIdIsNullInMonthSettlementCalculation()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         var player = new PlayerView(playerId: "p1", ownedCityIds: Array.Empty<string>());
@@ -792,7 +792,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void CalculateMonthSettlements_WhenPlayerEliminated_IsSkipped()
+    public void ShouldSkipEliminatedPlayers_WhenCalculatingMonthSettlements()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -811,7 +811,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void CalculateMonthSettlements_WhenOwnedCityMissing_ThrowsInvalidOperationException()
+    public void ShouldThrowInvalidOperationException_WhenOwnedCityMissingInMonthSettlementCalculation()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -826,7 +826,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void CalculateYearlyPriceAdjustments_ComputesNewPriceUsingMultiplier()
+    public void ShouldComputeNewPriceUsingMultiplier_WhenCalculatingYearlyPriceAdjustments()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 
@@ -843,7 +843,7 @@ public class SanguoEconomyManagerTests
     }
 
     [Fact]
-    public void CalculateYearlyPriceAdjustments_WhenMultiplierIsNegative_ThrowsArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenMultiplierIsNegativeInYearlyPriceAdjustmentCalculation()
     {
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
 

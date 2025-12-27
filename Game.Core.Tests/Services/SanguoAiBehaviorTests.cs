@@ -10,9 +10,9 @@ using Game.Core.Domain.ValueObjects;
 using Game.Core.Services;
 using Xunit;
 
-namespace Game.Core.Tests.Tasks;
+namespace Game.Core.Tests.Services;
 
-public sealed class Task11AiBehaviorTests
+public sealed class SanguoAiBehaviorTests
 {
     [Fact]
     public async Task ShouldPublishAiDecisionMade_WhenTurnStartsForAi()
@@ -50,7 +50,7 @@ public sealed class Task11AiBehaviorTests
         await mgr.AdvanceTurnAsync(correlationId, causationId: "cmd-advance");
 
         var decision = bus.Published.Find(e => e.Type == SanguoAiDecisionMade.EventType);
-        decision.Should().NotBeNull("Task 11 should publish an AI decision event when it becomes the AI player's turn");
+        decision.Should().NotBeNull("AI decision event should be published when it becomes the AI player's turn");
 
         decision!.Data.Should().BeOfType<JsonElementEventData>();
         var payload = ((JsonElementEventData)decision.Data!).Value;

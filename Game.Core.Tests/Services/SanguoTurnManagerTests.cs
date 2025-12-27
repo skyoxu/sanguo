@@ -20,7 +20,7 @@ public class SanguoTurnManagerTests
         maxTollMultiplier: SanguoEconomyRules.DefaultMaxTollMultiplier);
 
     [Fact]
-    public async Task StartNewGame_ThenAdvanceTurn_PublishesTurnEventsAndRotatesActivePlayer()
+    public async Task ShouldPublishTurnEventsAndRotateActivePlayer_WhenStartingNewGameThenAdvancingTurn()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -105,7 +105,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task AdvanceTurn_WhenMonthBoundaryReached_PublishesMonthSettledEvent()
+    public async Task ShouldPublishMonthSettled_WhenMonthBoundaryReached()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -155,7 +155,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task AdvanceTurn_WhenQuarterBoundaryReached_PublishesSeasonEventAppliedAfterMonthSettlement()
+    public async Task ShouldPublishSeasonEventAppliedAfterMonthSettlement_WhenQuarterBoundaryReached()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -203,7 +203,7 @@ public class SanguoTurnManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task StartNewGame_WhenGameIdIsNullOrWhitespace_ThrowsArgumentException(string? gameId)
+    public async Task ShouldThrowArgumentException_WhenGameIdIsNullOrWhitespace(string? gameId)
     {
         var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
@@ -221,7 +221,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task StartNewGame_WhenPlayerOrderIsNull_ThrowsArgumentNullException()
+    public async Task ShouldThrowArgumentNullException_WhenPlayerOrderIsNull()
     {
         var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
@@ -239,7 +239,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task StartNewGame_WhenPlayerOrderIsEmpty_ThrowsArgumentException()
+    public async Task ShouldThrowArgumentException_WhenPlayerOrderIsEmpty()
     {
         var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
@@ -257,7 +257,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task StartNewGame_WhenPlayerOrderContainsEmptyPlayerId_ThrowsArgumentException()
+    public async Task ShouldThrowArgumentException_WhenPlayerOrderContainsEmptyPlayerId()
     {
         var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
@@ -275,7 +275,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task StartNewGame_WhenPlayerOrderContainsDuplicatePlayerIds_ThrowsArgumentException()
+    public async Task ShouldThrowArgumentException_WhenPlayerOrderContainsDuplicatePlayerIds()
     {
         var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
@@ -296,7 +296,7 @@ public class SanguoTurnManagerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task StartNewGame_WhenCorrelationIdIsNullOrWhitespace_ThrowsArgumentException(string? correlationId)
+    public async Task ShouldThrowArgumentException_WhenCorrelationIdIsNullOrWhitespace(string? correlationId)
     {
         var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
@@ -314,7 +314,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task AdvanceTurn_BeforeStart_ThrowsInvalidOperationException()
+    public async Task ShouldThrowInvalidOperationException_WhenAdvancingTurnBeforeStart()
     {
         var mgr = CreateNullManager(playerIds: new[] { "p1" });
 
@@ -324,7 +324,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task StartNewGame_WhenPlayerOrderContainsUnknownPlayerId_ThrowsArgumentException()
+    public async Task ShouldThrowArgumentException_WhenPlayerOrderContainsUnknownPlayerId()
     {
         var bus = NullEventBus.Instance;
         var economy = new SanguoEconomyManager(bus);
@@ -347,7 +347,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task AdvanceTurn_WhenCorrelationIdIsEmpty_ThrowsArgumentException()
+    public async Task ShouldThrowArgumentException_WhenCorrelationIdIsEmpty()
     {
         var bus = NullEventBus.Instance;
         var economy = new SanguoEconomyManager(bus);
@@ -390,7 +390,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task AdvanceTurn_WhenMonthSettlementPublishFails_RollsBackMoneyAndTreasuryAndThrows()
+    public async Task ShouldRollBackMoneyAndTreasuryAndThrow_WhenMonthSettlementPublishFails()
     {
         var bus = new ThrowingOnEventTypeBus(SanguoMonthSettled.EventType);
         var economy = new SanguoEconomyManager(bus);

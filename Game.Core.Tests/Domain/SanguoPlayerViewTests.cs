@@ -12,7 +12,7 @@ public class SanguoPlayerViewTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_WhenPlayerIdIsEmpty_ThrowsArgumentException(string? playerId)
+    public void ShouldThrowArgumentException_WhenPlayerIdIsEmpty(string? playerId)
     {
         Action act = () => _ = new SanguoPlayerView(
             playerId: playerId!,
@@ -25,7 +25,7 @@ public class SanguoPlayerViewTests
     }
 
     [Fact]
-    public void Constructor_WhenPositionIndexNegative_ThrowsArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenPositionIndexIsNegative()
     {
         Action act = () => _ = new SanguoPlayerView(
             playerId: "p1",
@@ -38,7 +38,7 @@ public class SanguoPlayerViewTests
     }
 
     [Fact]
-    public void Constructor_WhenOwnedCityIdsNull_ThrowsArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenOwnedCityIdsIsNull()
     {
         Action act = () => _ = new SanguoPlayerView(
             playerId: "p1",

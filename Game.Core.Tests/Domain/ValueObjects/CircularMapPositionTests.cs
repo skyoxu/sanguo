@@ -8,7 +8,7 @@ namespace Game.Core.Tests.Domain.ValueObjects;
 public class CircularMapPositionTests
 {
     [Fact]
-    public void Advance_WithinBounds_ReturnsCorrectPosition()
+    public void ShouldReturnCorrectPosition_WhenAdvancingWithinBounds()
     {
         // Arrange
         var position = new CircularMapPosition(5, totalPositions: 15);
@@ -21,7 +21,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_BeyondBounds_WrapsAroundCorrectly()
+    public void ShouldWrapAround_WhenAdvancingBeyondBounds()
     {
         // Arrange
         var position = new CircularMapPosition(12, totalPositions: 15);
@@ -34,7 +34,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_NegativeSteps_WrapsAroundCorrectly()
+    public void ShouldWrapAround_WhenAdvancingWithNegativeSteps()
     {
         // Arrange
         var position = new CircularMapPosition(2, totalPositions: 15);
@@ -47,7 +47,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_FromZero_ReturnsCorrectPosition()
+    public void ShouldReturnCorrectPosition_WhenAdvancingFromZero()
     {
         // Arrange
         var position = new CircularMapPosition(0, totalPositions: 15);
@@ -60,7 +60,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_FullCircle_ReturnsStartPosition()
+    public void ShouldReturnStartPosition_WhenAdvancingFullCircle()
     {
         // Arrange
         var position = new CircularMapPosition(5, totalPositions: 15);
@@ -73,7 +73,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_MultipleSteps_CalculatesCorrectPath()
+    public void ShouldCalculateCorrectPath_WhenAdvancingMultipleSteps()
     {
         // Arrange
         var position = new CircularMapPosition(10, totalPositions: 15);
@@ -88,7 +88,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_WithZeroSteps_ReturnsSamePosition()
+    public void ShouldReturnSamePosition_WhenStepsIsZero()
     {
         // Arrange
         var position = new CircularMapPosition(5, totalPositions: 15);
@@ -101,7 +101,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Constructor_WithValidInputs_CreatesPosition()
+    public void ShouldCreatePosition_WhenInputsAreValid()
     {
         // Arrange & Act
         var position = new CircularMapPosition(8, totalPositions: 15);
@@ -112,7 +112,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Constructor_WithNegativePosition_ThrowsArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenPositionIsNegative()
     {
         // Arrange & Act
         var act = () => new CircularMapPosition(-1, totalPositions: 15);
@@ -123,7 +123,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Constructor_WithPositionEqualToTotal_ThrowsArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenPositionEqualsTotalPositions()
     {
         // Arrange & Act
         var act = () => new CircularMapPosition(15, totalPositions: 15);
@@ -134,7 +134,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Constructor_WithInvalidTotalPositions_ThrowsArgumentOutOfRangeException()
+    public void ShouldThrowArgumentOutOfRangeException_WhenTotalPositionsIsInvalid()
     {
         // Arrange & Act
         var act = () => new CircularMapPosition(5, totalPositions: 0);
@@ -145,7 +145,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_WithNearMaxValueAndLargeSteps_HandlesOverflowCorrectly()
+    public void ShouldHandleOverflow_WhenStepsNearIntMax()
     {
         // Arrange: Position that when combined with large steps would overflow int
         var position = new CircularMapPosition(10, totalPositions: 15);
@@ -159,7 +159,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_WithIntMinValueSteps_HandlesUnderflowCorrectly()
+    public void ShouldHandleUnderflow_WhenStepsIsIntMinValue()
     {
         // Arrange
         var position = new CircularMapPosition(5, totalPositions: 15);
@@ -175,7 +175,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_WithVeryLargePositiveSteps_WrapsMultipleTimes()
+    public void ShouldWrapMultipleTimes_WhenStepsIsVeryLargePositive()
     {
         // Arrange
         var position = new CircularMapPosition(5, totalPositions: 15);
@@ -188,7 +188,7 @@ public class CircularMapPositionTests
     }
 
     [Fact]
-    public void Advance_WithVeryLargeNegativeSteps_WrapsMultipleTimes()
+    public void ShouldWrapMultipleTimes_WhenStepsIsVeryLargeNegative()
     {
         // Arrange
         var position = new CircularMapPosition(5, totalPositions: 15);

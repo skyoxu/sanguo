@@ -12,7 +12,7 @@ namespace Game.Core.Tests.Services;
 public class SanguoDiceServiceTests
 {
     [Fact]
-    public void Constructor_WhenBusIsNull_ThrowsArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenBusIsNull()
     {
         Action act = () => new SanguoDiceService(null!);
 
@@ -24,7 +24,7 @@ public class SanguoDiceServiceTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void RollD6_WhenGameIdIsNullOrWhitespace_ThrowsArgumentException(string? gameId)
+    public void ShouldThrowArgumentException_WhenGameIdIsNullOrWhitespace(string? gameId)
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus);
@@ -40,7 +40,7 @@ public class SanguoDiceServiceTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void RollD6_WhenPlayerIdIsNullOrWhitespace_ThrowsArgumentException(string? playerId)
+    public void ShouldThrowArgumentException_WhenPlayerIdIsNullOrWhitespace(string? playerId)
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus);
@@ -56,7 +56,7 @@ public class SanguoDiceServiceTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void RollD6_WhenCorrelationIdIsNullOrWhitespace_ThrowsArgumentException(string? correlationId)
+    public void ShouldThrowArgumentException_WhenCorrelationIdIsNullOrWhitespace(string? correlationId)
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus);
@@ -69,7 +69,7 @@ public class SanguoDiceServiceTests
     }
 
     [Fact]
-    public void RollD6_PublishesSanguoDiceRolledDomainEvent()
+    public void ShouldPublishSanguoDiceRolledDomainEvent_WhenRollingD6()
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus);

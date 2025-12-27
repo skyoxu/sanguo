@@ -19,7 +19,7 @@ public class GameEngineCoreConstructorTests
         );
 
     [Fact]
-    public void Constructor_WhenEventBusIsNull_ShouldThrowArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenEventBusIsNull()
     {
         var config = DefaultConfig();
         var inventory = new Inventory();
@@ -31,7 +31,7 @@ public class GameEngineCoreConstructorTests
     }
 
     [Fact]
-    public void Constructor_WhenScoreServiceIsNull_ShouldThrowArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenScoreServiceIsNull()
     {
         var config = DefaultConfig();
         var inventory = new Inventory();

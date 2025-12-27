@@ -8,14 +8,14 @@ namespace Game.Core.Tests.Tasks;
 public sealed class Task10BoardViewScriptsTests
 {
     [Fact]
-    public void SanguoBoardView_ShouldConsumeTokenMovedEvent()
+    public void ShouldContainTokenMovedEventType_WhenReadingSanguoBoardViewScript()
     {
         var code = ReadText("Game.Godot/Scripts/Sanguo/SanguoBoardView.cs");
         code.Should().Contain("SanguoTokenMoved.EventType");
     }
 
     [Fact]
-    public void SanguoBoardViewMirror_ShouldConsumeTokenMovedEvent()
+    public void ShouldContainTokenMovedEventType_WhenReadingSanguoBoardViewMirrorScript()
     {
         var code = ReadText("Tests.Godot/Game.Godot/Scripts/Sanguo/SanguoBoardView.cs");
         code.Should().Contain("SanguoTokenMoved.EventType");

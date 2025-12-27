@@ -15,7 +15,7 @@ namespace Game.Core.Tests.Tasks;
 public sealed class Task14MonthEndSettlementTests
 {
     [Fact]
-    public async Task AdvanceTurn_WhenMonthBoundaryReached_ShouldUpdateMoneyAndPublishMonthSettled()
+    public async Task ShouldUpdateMoneyAndPublishMonthSettled_WhenMonthBoundaryReached()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);

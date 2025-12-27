@@ -51,7 +51,7 @@ public class EventBusTests
     }
 
     [Fact]
-    public async Task PublishInvokesSubscribersAndUnsubscribeWorks()
+    public async Task ShouldInvokeSubscribersAndUnsubscribe_WhenPublishing()
     {
         var bus = new InMemoryEventBus();
         int called = 0;
@@ -79,7 +79,7 @@ public class EventBusTests
     }
 
     [Fact]
-    public async Task SubscriberExceptionIsSwallowedAndOthersStillCalled()
+    public async Task ShouldSwallowSubscriberExceptionAndContinue_WhenSubscriberThrows()
     {
         var reporter = new CapturingErrorReporter();
         var bus = new InMemoryEventBus(reporter: reporter);
@@ -101,7 +101,7 @@ public class EventBusTests
     }
 
     [Fact]
-    public async Task SubscriberException_LogsAndReports_WhenLoggerAndReporterProvided()
+    public async Task ShouldLogAndReport_WhenSubscriberThrowsAndLoggerAndReporterProvided()
     {
         var logger = new CapturingLogger();
         var reporter = new CapturingErrorReporter();
@@ -125,7 +125,7 @@ public class EventBusTests
     }
 
     [Fact]
-    public async Task SubscriberException_IsSwallowed_WhenLoggerAndReporterThrow()
+    public async Task ShouldSwallowSubscriberException_WhenLoggerAndReporterThrow()
     {
         var bus = new InMemoryEventBus(logger: new ThrowingLogger(), reporter: new ThrowingErrorReporter());
         bus.Subscribe(_ => throw new InvalidOperationException("boom"));
@@ -142,7 +142,7 @@ public class EventBusTests
     }
 
     [Fact]
-    public async Task SubscriberException_Logs_WhenOnlyLoggerProvided()
+    public async Task ShouldLog_WhenOnlyLoggerProvided()
     {
         var logger = new CapturingLogger();
         var bus = new InMemoryEventBus(logger: logger, reporter: null);
