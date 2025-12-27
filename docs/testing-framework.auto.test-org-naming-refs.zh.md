@@ -68,7 +68,7 @@ Tests.Godot/tests/                    # GdUnit4: Godot headless（依赖场景�
 推荐的更新方式（确定性脚本）：
 
 ```powershell
-py -3 scripts/python/update_task_test_refs_from_acceptance_refs.py --task-id <id> --write
+py -3 scripts/python/update_task_test_refs_from_acceptance_refs.py --task-id <id> --mode replace --write
 ```
 
 #### 3.3 默认 Refs 路径约定（Core / xUnit）

@@ -5,7 +5,7 @@ Update tasks_back.json / tasks_gameplay.json test_refs using acceptance "Refs:".
 
 This is a deterministic sync helper:
   - Parse each acceptance item for "Refs:" paths.
-  - De-duplicate and write them into test_refs (union with existing values).
+  - De-duplicate and write them into test_refs (replace by default).
 
 Why:
   - validate_acceptance_refs.py can enforce that all acceptance refs are included in test_refs.
@@ -13,6 +13,7 @@ Why:
 
 Usage (Windows):
   py -3 scripts/python/update_task_test_refs_from_acceptance_refs.py --task-id 11 --write
+  py -3 scripts/python/update_task_test_refs_from_acceptance_refs.py --task-id 11 --mode merge --write
 """
 
 from __future__ import annotations
@@ -108,6 +109,7 @@ def _add_unique(dst: list[str], items: list[str]) -> bool:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Sync test_refs from acceptance Refs: for one task.")
     ap.add_argument("--task-id", required=True, help="Task id (e.g. 11).")
+    ap.add_argument("--mode", choices=["replace", "merge"], default="replace", help="Sync mode: replace (default) or merge.")
     ap.add_argument("--write", action="store_true", help="Write files in-place. Without this flag, runs as dry-run.")
     args = ap.parse_args()
 
@@ -123,24 +125,45 @@ def main() -> int:
     task_id = str(args.task_id).strip()
     back_task = find_view_task(back, task_id)
     gameplay_task = find_view_task(gameplay, task_id)
-    if back_task is None or gameplay_task is None:
-        raise ValueError(f"taskmaster_id not found in both views: {task_id}")
+    if back_task is None and gameplay_task is None:
+        raise ValueError(f"taskmaster_id not found in either view: {task_id}")
 
-    refs_back = _extract_refs_from_acceptance(back_task.get("acceptance"))
-    refs_game = _extract_refs_from_acceptance(gameplay_task.get("acceptance"))
-    refs = []
-    refs.extend(refs_back)
-    for r in refs_game:
-        if r not in refs:
-            refs.append(r)
+    # Union refs across existing views to keep both sides consistent when both exist.
+    refs: list[str] = []
+    if back_task is not None:
+        for r in _extract_refs_from_acceptance(back_task.get("acceptance")):
+            if r not in refs:
+                refs.append(r)
+    if gameplay_task is not None:
+        for r in _extract_refs_from_acceptance(gameplay_task.get("acceptance")):
+            if r not in refs:
+                refs.append(r)
 
-    back_refs = _ensure_list_field(back_task, "test_refs")
-    game_refs = _ensure_list_field(gameplay_task, "test_refs")
+    changed_back = False
+    changed_game = False
 
-    changed_back = _add_unique(back_refs, refs)
-    changed_game = _add_unique(game_refs, refs)
+    if back_task is not None:
+        back_refs = _ensure_list_field(back_task, "test_refs")
+        if args.mode == "replace":
+            before = list(back_refs)
+            back_task["test_refs"] = list(refs)
+            changed_back = before != back_task["test_refs"]
+        else:
+            changed_back = _add_unique(back_refs, refs)
 
-    print(f"UPDATE_TEST_REFS_FROM_ACCEPTANCE task_id={task_id} refs={len(refs)} changed_back={changed_back} changed_game={changed_game} write={bool(args.write)}")
+    if gameplay_task is not None:
+        game_refs = _ensure_list_field(gameplay_task, "test_refs")
+        if args.mode == "replace":
+            before = list(game_refs)
+            gameplay_task["test_refs"] = list(refs)
+            changed_game = before != gameplay_task["test_refs"]
+        else:
+            changed_game = _add_unique(game_refs, refs)
+
+    print(
+        f"UPDATE_TEST_REFS_FROM_ACCEPTANCE task_id={task_id} mode={args.mode} refs={len(refs)} "
+        f"changed_back={changed_back} changed_game={changed_game} write={bool(args.write)}"
+    )
     if not args.write:
         return 0
 
