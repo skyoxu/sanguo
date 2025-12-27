@@ -47,6 +47,9 @@ from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text 
 
 REFS_RE = re.compile(r"\bRefs\s*:\s*(.+)$", flags=re.IGNORECASE)
 
+AUTO_BEGIN = "<!-- BEGIN AUTO:TEST_ORG_NAMING_REFS -->"
+AUTO_END = "<!-- END AUTO:TEST_ORG_NAMING_REFS -->"
+
 
 ALLOWED_TEST_PREFIXES = (
     "Game.Core.Tests/",
@@ -69,6 +72,19 @@ def _truncate(text: str, *, max_chars: int) -> str:
     if len(text) <= max_chars:
         return text
     return text[: max_chars - 3] + "..."
+
+
+def _extract_testing_framework_excerpt() -> str:
+    path = repo_root() / "docs" / "testing-framework.md"
+    if not path.exists():
+        return ""
+    text = _read_text(path)
+    a = text.find(AUTO_BEGIN)
+    b = text.find(AUTO_END)
+    if a < 0 or b < 0 or b <= a:
+        return ""
+    excerpt = text[a + len(AUTO_BEGIN) : b].strip()
+    return excerpt
 
 
 def _run_codex_exec(*, prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str, list[str]]:
@@ -256,11 +272,23 @@ def _build_prompt(
             "- Paths MUST end with .cs or .gd and be under one of:",
             f"  - {', '.join(ALLOWED_TEST_PREFIXES)}",
             "- Prefer selecting from existing candidate test files when they fit.",
-            "- If no existing file fits, propose a new path following conventions:",
-            f"  - Core default: Game.Core.Tests/Tasks/Task{task_id}AcceptanceTests.cs",
-            f"  - Godot default: Tests.Godot/tests/Scenes/Sanguo/test_task{task_id}_acceptance.gd",
+            "- If no existing file fits, propose a NEW path following repo conventions.",
+            "- Do NOT use placeholder-like names such as:",
+            f"  - Game.Core.Tests/Tasks/Task{task_id}AcceptanceTests.cs",
+            f"  - Tests.Godot/tests/Scenes/Sanguo/test_task{task_id}_acceptance.gd",
+            "- Prefer subject-based naming and directory semantics:",
+            "  - Core domain/value objects: Game.Core.Tests/Domain/<Subject>Tests.cs",
+            "  - Core services/game loop:   Game.Core.Tests/Services/<Subject>Tests.cs",
+            "  - Task-scoped only when truly cross-cutting: Game.Core.Tests/Tasks/Task<id><Topic>Tests.cs",
+            "    - <Topic> must be short English PascalCase (2-5 words), describing behavior, not 'Acceptance'.",
+            "  - Godot scene/UI behaviors:",
+            "    - Tests.Godot/tests/Scenes/Sanguo/test_sanguo_<scene>_<behavior>.gd",
+            "    - Tests.Godot/tests/UI/test_hud_<behavior>.gd",
         ]
     )
+
+    testing_excerpt = _extract_testing_framework_excerpt()
+    testing_excerpt = _truncate(testing_excerpt, max_chars=6_000)
 
     return "\n\n".join(
         [
@@ -269,6 +297,9 @@ def _build_prompt(
             "You will propose test file references for acceptance items.",
             "",
             constraints,
+            "",
+            "Repository testing conventions excerpt (docs/testing-framework.md):",
+            testing_excerpt or "(missing)",
             "",
             "PRD (truncated excerpt):",
             prd_excerpt or "(empty)",
