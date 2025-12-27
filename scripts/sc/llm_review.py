@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -53,6 +54,136 @@ def _truncate(text: str, *, max_chars: int) -> str:
     if len(text) <= max_chars:
         return text
     return text[: max_chars - 3] + "..."
+
+
+REFS_RE = re.compile(r"\bRefs\s*:\s*(.+)$", flags=re.IGNORECASE)
+
+
+def _split_refs_blob(blob: str) -> list[str]:
+    normalized = str(blob or "").replace("`", " ").replace(",", " ").replace(";", " ")
+    out: list[str] = []
+    for token in normalized.split():
+        p = token.strip().replace("\\", "/")
+        if not p:
+            continue
+        out.append(p)
+    return out
+
+
+def _parse_refs_from_acceptance_line(line: str) -> list[str]:
+    m = REFS_RE.search(str(line or "").strip())
+    if not m:
+        return []
+    return _split_refs_blob(m.group(1) or "")
+
+
+def _build_acceptance_semantic_context(
+    triplet: TaskmasterTriplet, *, max_chars: int = 12_000, max_acceptance_items: int = 60, max_files: int = 12
+) -> tuple[str, dict[str, Any]]:
+    """
+    Build a prompt-friendly snapshot of acceptance semantics:
+      - acceptance[] items with stable anchors ACC:T<id>.<n>
+      - mapping to referenced test files (Refs: ...)
+      - small excerpts from those test files (to reduce hallucination)
+
+    This is best-effort. It must not raise.
+    """
+
+    task_id = str(triplet.task_id)
+    views: list[tuple[str, dict[str, Any] | None]] = [("back", triplet.back), ("gameplay", triplet.gameplay)]
+
+    # Collect acceptance items and build refs->anchors mapping.
+    refs_to_anchors: dict[str, list[str]] = {}
+    rendered_items: list[str] = []
+    total_items = 0
+    total_items_with_refs = 0
+
+    for view_name, entry in views:
+        if not isinstance(entry, dict):
+            continue
+        acceptance = entry.get("acceptance") or []
+        if not isinstance(acceptance, list):
+            continue
+
+        rendered_items.append(f"### Acceptance items (view={view_name})")
+        for idx, raw in enumerate(acceptance[:max_acceptance_items]):
+            total_items += 1
+            text = str(raw or "").strip()
+            anchor = f"ACC:T{task_id}.{idx + 1}"
+            refs = _parse_refs_from_acceptance_line(text)
+            if refs:
+                total_items_with_refs += 1
+                for r in refs:
+                    refs_to_anchors.setdefault(r, [])
+                    if anchor not in refs_to_anchors[r]:
+                        refs_to_anchors[r].append(anchor)
+            item_line = _truncate(text, max_chars=800)
+            suffix = f" (anchor: {anchor})"
+            rendered_items.append(f"- {item_line}{suffix}")
+
+    unique_refs = sorted(refs_to_anchors.keys())
+    # Provide excerpts from referenced test files.
+    excerpts: list[str] = []
+    missing_files: list[str] = []
+    included_files = 0
+
+    for rel in unique_refs[:max_files]:
+        path = repo_root() / rel
+        if not path.is_file():
+            missing_files.append(rel)
+            continue
+
+        included_files += 1
+        anchors = refs_to_anchors.get(rel, [])
+        try:
+            content = _read_text(path)
+        except Exception:  # noqa: BLE001
+            content = ""
+
+        # Prefer the top of file because we intentionally insert anchors near the top.
+        head = "\n".join(content.splitlines()[:120]).strip()
+        head = _truncate(head, max_chars=2_000)
+
+        excerpts.append(f"### Referenced test excerpt: {rel}")
+        if anchors:
+            excerpts.append("Expected anchors in this file: " + ", ".join(anchors[:20]))
+        excerpts.append("```")
+        excerpts.append(head or "(empty)")
+        excerpts.append("```")
+
+    meta = {
+        "task_id": task_id,
+        "acceptance_items_total": total_items,
+        "acceptance_items_with_refs": total_items_with_refs,
+        "unique_ref_files": len(unique_refs),
+        "included_ref_files": included_files,
+        "missing_ref_files": missing_files[:50],
+        "max_acceptance_items": max_acceptance_items,
+        "max_files": max_files,
+    }
+
+    blocks: list[str] = []
+    blocks.append("## Acceptance Semantics (anchors + referenced tests)")
+    blocks.append(
+        "\n".join(
+            [
+                "Guidance:",
+                "- Treat each acceptance item anchor as a coverage obligation.",
+                "- Check that referenced tests contain behavior assertions (not only the anchor comment).",
+                "- If tests look weak (e.g., static string matching), call it out and suggest stronger assertions.",
+            ]
+        )
+    )
+    if rendered_items:
+        blocks.append("\n".join(rendered_items))
+    if excerpts:
+        blocks.append("\n".join(excerpts))
+    if missing_files:
+        blocks.append("Missing referenced test files (Refs points to non-existent paths):")
+        blocks.append("\n".join([f"- {p}" for p in missing_files[:30]]))
+
+    text = "\n\n".join([b for b in blocks if b.strip()]).strip() + "\n"
+    return _truncate(text, max_chars=max_chars), meta
 
 
 def _build_task_context(triplet: TaskmasterTriplet | None) -> str:
@@ -272,6 +403,16 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="sc-llm-review (optional local LLM review)")
     ap.add_argument("--task-id", default=None, help="Taskmaster id to include as review context (optional)")
     ap.add_argument(
+        "--no-acceptance-semantic",
+        action="store_true",
+        help="Do not inject acceptance anchors + referenced test excerpts into prompts (smaller prompts).",
+    )
+    ap.add_argument(
+        "--prompts-only",
+        action="store_true",
+        help="Write prompts to logs/ and skip LLM execution (all LLM agents become skipped).",
+    )
+    ap.add_argument(
         "--agents",
         default="",
         help="Comma-separated agent list. Empty = default 3 agents (architect-reviewer,code-reviewer,security-auditor). "
@@ -388,6 +529,14 @@ def main() -> int:
     acceptance_meta: dict[str, Any] | None = None
     if triplet:
         acceptance_ctx, acceptance_meta = build_acceptance_evidence(task_id=triplet.task_id)
+
+    acceptance_semantic_ctx = ""
+    acceptance_semantic_meta: dict[str, Any] | None = None
+    if triplet and not bool(args.no_acceptance_semantic):
+        try:
+            acceptance_semantic_ctx, acceptance_semantic_meta = _build_acceptance_semantic_context(triplet)
+        except Exception:  # noqa: BLE001
+            acceptance_semantic_ctx, acceptance_semantic_meta = "", {"status": "error"}
     diff_ctx = _build_diff_context(args)
 
     results: list[ReviewResult] = []
@@ -454,12 +603,35 @@ def main() -> int:
             blocks.append(threat_ctx)
         if acceptance_ctx:
             blocks.append(acceptance_ctx)
+        if acceptance_semantic_ctx:
+            blocks.append(acceptance_semantic_ctx)
         blocks.append(diff_ctx)
         prompt = "\n\n".join(blocks).strip() + "\n"
         prompt_path = out_dir / f"prompt-{agent}.md"
         output_path = out_dir / f"review-{agent}.md"
         trace_path = out_dir / f"trace-{agent}.log"
         write_text(prompt_path, prompt)
+
+        if bool(args.prompts_only):
+            had_warnings = True
+            results.append(
+                ReviewResult(
+                    agent=agent,
+                    status="skipped",
+                    rc=None,
+                    cmd=None,
+                    prompt_path=str(prompt_path.relative_to(repo_root())).replace("\\", "/"),
+                    output_path=None,
+                    details={
+                        "trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"),
+                        "claude_agents_root": str(claude_agents_root),
+                        "agent_prompt_source": prompt_meta.get("agent_prompt_source"),
+                        "note": "--prompts-only: LLM execution skipped.",
+                    },
+                )
+            )
+            write_text(trace_path, "--prompts-only: LLM execution skipped.\n")
+            continue
 
         agent_cap = per_agent_overrides.get(agent, per_agent_timeout_sec)
         effective_timeout = max(1, min(int(agent_cap), int(remaining)))
@@ -504,6 +676,7 @@ def main() -> int:
         "strict": bool(args.strict),
         "threat_model": threat_model,
         "acceptance_meta": acceptance_meta,
+        "acceptance_semantic_meta": acceptance_semantic_meta,
         "status": "fail" if hard_fail else ("warn" if had_warnings else "ok"),
         "results": [r.__dict__ for r in results],
         "out_dir": str(out_dir),
