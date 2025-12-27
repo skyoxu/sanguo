@@ -563,6 +563,18 @@ Tests.Godot/tests/                    # GdUnit4: Godot headless（依赖场景�
 对应门禁（自动运行，无需手工记）：  
 - `py -3 scripts/python/validate_acceptance_refs.py --task-id <id> --stage refactor ...`  
 - `py -3 scripts/python/validate_task_test_refs.py --task-id <id> --require-non-empty ...`
+#### 3.1.1 `Refs:` 的语义绑定：`ACC:T<id>.<n>`（硬门禁）
+
+`Refs:` 解决“指向哪个文件”，但无法保证“该文件内容真的覆盖该条 acceptance”。为降低“假 done”，本仓库引入 acceptance anchor：
+
+- 对于任务 `T<id>` 的第 `n` 条 acceptance（**1-based**，下标按该任务视图的 `acceptance[]` 数组顺序），其 anchor 为：`ACC:T<id>.<n>`
+- 该条 acceptance 的 `Refs:` 指向的测试文件中，至少有一个文件必须包含该 anchor 字符串（任意位置均可）。
+  - xUnit 建议写在 `[Trait("acceptance", "ACC:T<id>.<n>")]` 或测试文件注释块中。
+  - GdUnit4 建议写在测试函数注释（如 `# acceptance: ACC:T<id>.<n>`）或文件头注释块中。
+- 该规则只在 **refactor** 阶段作为硬门禁执行。
+
+对应门禁（自动运行，无需手工记）：  
+- `py -3 scripts/python/validate_acceptance_anchors.py --task-id <id> --stage refactor ...`
 
 #### 3.2 `test_refs[]`（任务级汇总）如何维护
 
