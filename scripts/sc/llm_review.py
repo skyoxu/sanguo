@@ -391,12 +391,19 @@ def _default_agent_prompt(agent: str) -> str:
         [
             f"Role: {agent}",
             "",
-            "Review the changes and output a concise Markdown report with:",
+            "Goal: judge whether the Task acceptance is truly completed (semantic, not only refs).",
+            "Primary evidence: the 'Acceptance Semantics (anchors + referenced tests)' section.",
+            "Secondary evidence: deterministic gates (acceptance_check/test/coverage/perf) and the diff.",
+            "",
+            "Output a concise Markdown report with:",
             "- P0/P1/P2/P3 findings (if any)",
             "- specific file paths + what to change",
+            "- call out weak tests (anchors present but no meaningful assertions)",
+            "- call out missing negative/error-path tests when acceptance implies them",
             "- a short 'Verdict: OK | Needs Fix' line at the end",
             "",
-            "Avoid speculative claims. Focus on evidence in the diff.",
+            "Avoid speculative claims. Focus on deterministic evidence when present.",
+            "Stop-loss: if the deterministic gates for this task are OK and you cannot point to a concrete missing behavior/test weakness, set Verdict to OK.",
         ]
     )
 
@@ -435,12 +442,14 @@ def _load_agent_prompt_blob(agent: str, *, claude_agents_root: Path) -> tuple[st
     return None, None
 
 
-def _agent_prompt(agent: str, *, claude_agents_root: Path) -> tuple[str, dict[str, Any]]:
+def _agent_prompt(agent: str, *, claude_agents_root: Path, skip_agent_files: bool) -> tuple[str, dict[str, Any]]:
     project_specific = {
         "adr-compliance-checker": ".claude/agents/adr-compliance-checker.md",
         "performance-slo-validator": ".claude/agents/performance-slo-validator.md",
     }
     base = _default_agent_prompt(agent)
+    if skip_agent_files:
+        return base, {"agent_prompt_source": None}
     extra, source = _load_agent_prompt_blob(agent, claude_agents_root=claude_agents_root)
     if not extra or not source:
         extra = _load_optional_agent_prompt(project_specific.get(agent, ""))
@@ -484,7 +493,30 @@ def _auto_resolve_commit_for_task(task_id: str) -> str | None:
 
 
 def _build_diff_context(args: argparse.Namespace) -> str:
+    mode = str(getattr(args, "diff_mode", "full") or "full").strip().lower()
+    if mode not in {"full", "summary", "none"}:
+        mode = "full"
+    if mode == "none":
+        return "## Diff\n(skipped: --diff-mode none)\n"
+
+    def _name_only(title: str, cmd: list[str]) -> str:
+        rc, out = _git_capture(cmd, timeout_sec=60)
+        body = out.strip()
+        if rc != 0:
+            body = "(failed to capture)"
+        body = _truncate(body, max_chars=20_000)
+        return f"{title}\n```\n{body}\n```"
+
     if args.uncommitted:
+        if mode == "summary":
+            blocks: list[str] = []
+            blocks.append(_name_only("## Staged files", ["git", "diff", "--name-only", "--staged"]))
+            blocks.append(_name_only("## Unstaged files", ["git", "diff", "--name-only"]))
+            _rc3, untracked = _git_capture(["git", "ls-files", "--others", "--exclude-standard"], timeout_sec=30)
+            if untracked.strip():
+                blocks.append("## Untracked files\n```\n" + _truncate(untracked.strip(), max_chars=20_000) + "\n```")
+            return "\n\n".join(blocks)
+
         rc1, unstaged = _git_capture(["git", "diff", "--no-color"], timeout_sec=60)
         rc2, staged = _git_capture(["git", "diff", "--no-color", "--staged"], timeout_sec=60)
         rc3, untracked = _git_capture(["git", "ls-files", "--others", "--exclude-standard"], timeout_sec=30)
@@ -500,22 +532,38 @@ def _build_diff_context(args: argparse.Namespace) -> str:
         return "\n\n".join(blocks) if blocks else "## Diff\n(no changes detected)\n"
 
     if args.commit:
+        if mode == "summary":
+            return _name_only("## Commit files", ["git", "show", "--name-only", "--pretty=format:", args.commit])
         _rc, out = _git_capture(["git", "show", "--no-color", args.commit], timeout_sec=60)
         return "## Commit diff\n```diff\n" + _truncate(out.strip(), max_chars=60_000) + "\n```"
 
     base = args.base
+    if mode == "summary":
+        return _name_only(f"## Files changed vs {base}", ["git", "diff", "--name-only", f"{base}...HEAD"])
     _rc, out = _git_capture(["git", "diff", "--no-color", f"{base}...HEAD"], timeout_sec=60)
     return f"## Diff vs {base}\n```diff\n" + _truncate(out.strip(), max_chars=60_000) + "\n```"
 
 
-def _run_codex_exec(*, prompt: str, output_last_message: Path, timeout_sec: int) -> tuple[int, str, list[str]]:
+def _run_codex_exec(
+    *,
+    prompt: str,
+    output_last_message: Path,
+    timeout_sec: int,
+    codex_configs: list[str] | None = None,
+) -> tuple[int, str, list[str]]:
     exe = shutil.which("codex")
     if not exe:
         return 127, "codex executable not found in PATH\n", ["codex"]
 
+    extra_config = [c for c in (codex_configs or []) if str(c).strip()]
+    extra_config_args: list[str] = []
+    for c in extra_config:
+        extra_config_args.extend(["-c", str(c)])
+
     cmd = [
         exe,
         "exec",
+        *extra_config_args,
         "-s",
         "read-only",
         "-C",
@@ -562,6 +610,12 @@ def main() -> int:
         help="Comma-separated agent list. Empty = default 3 agents (architect-reviewer,code-reviewer,security-auditor). "
         "Special values: all|full to run the full suite.",
     )
+    ap.add_argument(
+        "--diff-mode",
+        default="full",
+        choices=["full", "summary", "none"],
+        help="How much diff to include in prompts: full|summary|none (default: full).",
+    )
     ap.add_argument("--base", default="main", help="Base branch for diff review (default: main)")
     ap.add_argument("--uncommitted", action="store_true", help="Review staged/unstaged/untracked changes")
     ap.add_argument("--commit", default=None, help="Review a single commit SHA")
@@ -584,6 +638,12 @@ def main() -> int:
     )
     ap.add_argument("--strict", action="store_true", help="Fail if any agent cannot produce output (default: soft)")
     ap.add_argument(
+        "--model-reasoning-effort",
+        default="low",
+        choices=["low", "medium", "high"],
+        help="Codex config override for model_reasoning_effort (default: low).",
+    )
+    ap.add_argument(
         "--threat-model",
         default=None,
         help="Threat model hint for review prompts: singleplayer|modded|networked (default: env SC_THREAT_MODEL or singleplayer).",
@@ -593,7 +653,16 @@ def main() -> int:
         default=None,
         help="Claude agents root (default: env CLAUDE_AGENTS_ROOT or $env:USERPROFILE\\.claude\\agents). Used to load lst97 agent prompts.",
     )
+    ap.add_argument(
+        "--skip-agent-prompts",
+        action="store_true",
+        help="Skip loading any external Claude agent prompt files; use the built-in minimal role prompt only.",
+    )
     args = ap.parse_args()
+
+    codex_configs: list[str] = []
+    if str(args.model_reasoning_effort or "").strip():
+        codex_configs.append(f'model_reasoning_effort="{str(args.model_reasoning_effort).strip()}"')
 
     if args.uncommitted and args.commit:
         print("[sc-llm-review] ERROR: --uncommitted and --commit are mutually exclusive.")
@@ -620,7 +689,8 @@ def main() -> int:
             return 2
         args.commit = sha
 
-    out_dir = ci_dir("sc-llm-review")
+    # Prevent log overwrite when running multiple tasks back-to-back.
+    out_dir = ci_dir(f"sc-llm-review-task-{triplet.task_id}") if triplet else ci_dir("sc-llm-review")
     claude_agents_root = _resolve_claude_agents_root(args.claude_agents_root)
     default_agents = [
         "architect-reviewer",
@@ -731,7 +801,7 @@ def main() -> int:
                     output_path=det.get("output_path"),
                     details={
                         "claude_agents_root": str(claude_agents_root),
-                        "agent_prompt_source": _agent_prompt(agent, claude_agents_root=claude_agents_root)[1].get("agent_prompt_source"),
+                        "agent_prompt_source": _agent_prompt(agent, claude_agents_root=claude_agents_root, skip_agent_files=bool(args.skip_agent_prompts))[1].get("agent_prompt_source"),
                         **(det.get("details") or {}),
                         "note": "Deterministic mapping: generated from sc-acceptance-check artifacts.",
                     },
@@ -739,7 +809,7 @@ def main() -> int:
             )
             continue
 
-        agent_prompt, prompt_meta = _agent_prompt(agent, claude_agents_root=claude_agents_root)
+        agent_prompt, prompt_meta = _agent_prompt(agent, claude_agents_root=claude_agents_root, skip_agent_files=bool(args.skip_agent_prompts))
         blocks = [agent_prompt]
         if ctx:
             blocks.append(ctx)
@@ -779,7 +849,12 @@ def main() -> int:
 
         agent_cap = per_agent_overrides.get(agent, per_agent_timeout_sec)
         effective_timeout = max(1, min(int(agent_cap), int(remaining)))
-        rc, trace_out, cmd = _run_codex_exec(prompt=prompt, output_last_message=output_path, timeout_sec=effective_timeout)
+        rc, trace_out, cmd = _run_codex_exec(
+            prompt=prompt,
+            output_last_message=output_path,
+            timeout_sec=effective_timeout,
+            codex_configs=codex_configs,
+        )
         write_text(trace_path, trace_out)
 
         last_msg = ""

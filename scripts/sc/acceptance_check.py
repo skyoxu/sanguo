@@ -60,6 +60,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="sc-acceptance-check (reproducible acceptance gate)")
     ap.add_argument("--task-id", default=None, help="Taskmaster id (e.g. 10 or 10.3). Default: first status=in-progress task.")
     ap.add_argument("--godot-bin", default=None, help="Godot mono console path (or set env GODOT_BIN)")
+    ap.add_argument(
+        "--out-per-task",
+        action="store_true",
+        help="Write outputs to logs/ci/<date>/sc-acceptance-check-task-<id>/ to avoid overwriting when running many tasks.",
+    )
     ap.add_argument("--perf-p95-ms", type=int, default=None, help="Enable perf hard gate by parsing [PERF] p95_ms from latest logs/ci/**/headless.log. 0 disables.")
     ap.add_argument("--require-perf", action="store_true", help="(legacy) enable perf hard gate using env PERF_P95_THRESHOLD_MS (or default 20ms)")
     ap.add_argument("--strict-adr-status", action="store_true", help="fail if any referenced ADR is not Accepted")
@@ -80,7 +85,7 @@ def main() -> int:
         print(f"[sc-acceptance-check] ERROR: failed to resolve task: {exc}")
         return 2
 
-    out_dir = ci_dir("sc-acceptance-check")
+    out_dir = ci_dir(f"sc-acceptance-check-task-{triplet.task_id}") if bool(args.out_per_task) else ci_dir("sc-acceptance-check")
     only = None
     if args.only:
         only = {x.strip() for x in str(args.only).split(",") if x.strip()}
