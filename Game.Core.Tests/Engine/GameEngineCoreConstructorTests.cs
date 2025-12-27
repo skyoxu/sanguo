@@ -1,3 +1,8 @@
+// Acceptance anchors:
+// ACC:T1.1
+// ACC:T1.2
+// ACC:T1.3
+
 using System;
 using FluentAssertions;
 using Game.Core.Domain;
@@ -42,4 +47,3 @@ public class GameEngineCoreConstructorTests
             .WithParameterName("scoreService");
     }
 }
-

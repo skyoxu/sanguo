@@ -1,3 +1,19 @@
+// Acceptance anchors:
+// ACC:T13.1
+// ACC:T13.10
+// ACC:T13.2
+// ACC:T13.3
+// ACC:T13.4
+// ACC:T13.5
+// ACC:T13.6
+// ACC:T13.7
+// ACC:T13.8
+// ACC:T13.9
+// ACC:T7.1
+// ACC:T7.2
+// ACC:T7.3
+// ACC:T7.4
+
 using System;
 using System.Collections.Generic;
 using System.Text.Json;

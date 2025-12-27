@@ -1,3 +1,6 @@
+// Acceptance anchors:
+// ACC:T9.4
+
 using System;
 using FluentAssertions;
 using Game.Core.Domain;
@@ -50,4 +53,3 @@ public class SanguoPlayerViewTests
         act.Should().Throw<ArgumentNullException>().WithParameterName("ownedCityIds");
     }
 }
-

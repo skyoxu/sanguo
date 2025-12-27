@@ -1,3 +1,18 @@
+// Acceptance anchors:
+// ACC:T12.1
+// ACC:T12.10
+// ACC:T12.2
+// ACC:T12.3
+// ACC:T12.4
+// ACC:T12.5
+// ACC:T12.6
+// ACC:T12.7
+// ACC:T12.8
+// ACC:T12.9
+// ACC:T4.1
+// ACC:T4.2
+// ACC:T4.3
+
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;

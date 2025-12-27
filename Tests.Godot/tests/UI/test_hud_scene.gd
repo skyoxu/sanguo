@@ -1,3 +1,9 @@
+# Acceptance anchors:
+# ACC:T22.1
+# ACC:T22.3
+# ACC:T9.1
+# ACC:T9.3
+
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 func test_hud_scene_instantiates() -> void:
@@ -5,4 +11,3 @@ func test_hud_scene_instantiates() -> void:
     add_child(auto_free(scene))
     await get_tree().process_frame
     assert_bool(scene.visible).is_true()
-

@@ -1,3 +1,9 @@
+# Acceptance anchors:
+# ACC:T10.1
+# ACC:T10.2
+# ACC:T10.3
+# ACC:T10.4
+
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 const EVENT_TOKEN_MOVED := "core.sanguo.board.token.moved"

@@ -1,3 +1,7 @@
+// Acceptance anchors:
+// ACC:T5.1
+// ACC:T5.2
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -118,4 +122,3 @@ public class SanguoDiceServiceTests
         }
     }
 }
-

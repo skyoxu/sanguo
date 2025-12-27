@@ -1,3 +1,12 @@
+// Acceptance anchors:
+// ACC:T8.1
+// ACC:T8.2
+// ACC:T8.3
+// ACC:T8.4
+// ACC:T8.5
+// ACC:T8.6
+// ACC:T8.7
+
 using System;
 using System.Collections.Generic;
 using FluentAssertions;

@@ -1,3 +1,7 @@
+# Acceptance anchors:
+# ACC:T22.2
+# ACC:T9.2
+
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 var _bus: Node

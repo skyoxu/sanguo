@@ -1,3 +1,13 @@
+// Acceptance anchors:
+// ACC:T6.1
+// ACC:T6.2
+// ACC:T6.3
+// ACC:T6.4
+// ACC:T6.5
+// ACC:T6.6
+// ACC:T6.7
+// ACC:T6.8
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
