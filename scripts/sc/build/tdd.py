@@ -318,6 +318,31 @@ def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
             "status": "ok" if acceptance_rc == 0 else "fail",
         }
     )
+
+    # Hard gate: referenced tests must contain ACC:T<id>.<n> anchors for each acceptance item.
+    anchors_cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_acceptance_anchors.py",
+        "--task-id",
+        str(task_id),
+        "--stage",
+        "refactor",
+        "--out",
+        str(out_dir / "acceptance-anchors.json"),
+    ]
+    anchors_rc, anchors_out = run_cmd(anchors_cmd, cwd=repo_root(), timeout_sec=60)
+    anchors_log = out_dir / "validate_acceptance_anchors.log"
+    write_text(anchors_log, anchors_out)
+    steps.append(
+        {
+            "name": "validate_acceptance_anchors",
+            "cmd": anchors_cmd,
+            "rc": anchors_rc,
+            "log": str(anchors_log),
+            "status": "ok" if anchors_rc == 0 else "fail",
+        }
+    )
     candidates = [
         ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py", "--task-id", str(task_id), "--style", "strict"], "scripts/python/check_test_naming.py"),
         ("check_tasks_all_refs", ["py", "-3", "scripts/python/check_tasks_all_refs.py"], "scripts/python/check_tasks_all_refs.py"),

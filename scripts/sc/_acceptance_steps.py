@@ -167,6 +167,22 @@ def step_acceptance_refs_validate(out_dir: Path, triplet: TaskmasterTriplet) -> 
     return run_and_capture(out_dir, name="acceptance-refs", cmd=cmd, timeout_sec=60)
 
 
+def step_acceptance_anchors_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResult:
+    # Hard gate (deterministic): referenced tests must contain ACC:T<id>.<n> anchors.
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_acceptance_anchors.py",
+        "--task-id",
+        str(triplet.task_id),
+        "--stage",
+        "refactor",
+        "--out",
+        str(out_dir / "acceptance-anchors.json"),
+    ]
+    return run_and_capture(out_dir, name="acceptance-anchors", cmd=cmd, timeout_sec=60)
+
+
 def step_overlay_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResult:
     primary = run_and_capture(
         out_dir,
