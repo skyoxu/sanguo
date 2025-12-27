@@ -6,6 +6,10 @@ Backfill ACC:T<id>.<n> acceptance anchors into referenced test files.
 This script is deterministic and intended to retrofit existing repos after
 introducing validate_acceptance_anchors.py.
 
+Important:
+  This is a one-time migration tool for legacy tasks. New tasks MUST add anchors
+  directly in test files while implementing acceptance, before running refactor gates.
+
 Scope:
   - Reads tasks_back.json/tasks_gameplay.json acceptance items and their Refs.
   - For each acceptance item n (1-based), computes anchor "ACC:T<id>.<n>".
@@ -181,7 +185,15 @@ def main() -> int:
     ap.add_argument("--task-ids", default=None, help="Comma-separated task ids.")
     ap.add_argument("--all-done", action="store_true", help="Process all status=done tasks from tasks.json.")
     ap.add_argument("--write", action="store_true", help="Write changes to files.")
+    ap.add_argument(
+        "--migration",
+        action="store_true",
+        help="Acknowledge this is a one-time migration tool (required with --write).",
+    )
     args = ap.parse_args()
+
+    if bool(args.write) and not bool(args.migration):
+        raise SystemExit("Refusing to write without --migration acknowledgement.")
 
     root = repo_root()
     out_dir = root / "logs" / "ci" / today_str() / "backfill-acceptance-anchors"
@@ -245,4 +257,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

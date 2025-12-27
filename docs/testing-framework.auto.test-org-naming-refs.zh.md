@@ -59,6 +59,8 @@ Tests.Godot/tests/                    # GdUnit4: Godot headless（依赖场景�
   - xUnit 建议写在 `[Trait("acceptance", "ACC:T<id>.<n>")]` 或测试文件注释块中。
   - GdUnit4 建议写在测试函数注释（如 `# acceptance: ACC:T<id>.<n>`）或文件头注释块中。
 - 该规则只在 **refactor** 阶段作为硬门禁执行。
+- 新任务要求：在进入 `tdd --stage refactor` 前，必须把本任务 `Refs:` 指向的测试文件补齐 anchors（否则 refactor 将 fail-fast）。
+- 迁移说明：`scripts/python/backfill_acceptance_anchors_in_tests.py` 仅用于“历史任务的一次性迁移”，不应作为新任务的常规流程。
 
 对应门禁（自动运行，无需手工记）：  
 - `py -3 scripts/python/validate_acceptance_anchors.py --task-id <id> --stage refactor ...`
