@@ -77,6 +77,125 @@ def _parse_refs_from_acceptance_line(line: str) -> list[str]:
     return _split_refs_blob(m.group(1) or "")
 
 
+def _extract_anchor_context(*, lines: list[str], anchor: str, context_lines: int) -> list[tuple[int, list[str]]]:
+    """
+    Returns a list of (start_line_1_based, excerpt_lines) for each anchor occurrence.
+    """
+    if not anchor:
+        return []
+    hits: list[int] = []
+    for i, line in enumerate(lines):
+        if anchor in line:
+            hits.append(i)
+    out: list[tuple[int, list[str]]] = []
+    for idx0 in hits[:5]:
+        start = max(0, idx0 - context_lines)
+        end = min(len(lines), idx0 + context_lines + 1)
+        excerpt = lines[start:end]
+        out.append((start + 1, excerpt))
+    return out
+
+
+_CS_NEW_RE = re.compile(r"\bnew\s+([A-Za-z_][A-Za-z0-9_\.]*)\s*\(")
+_CS_METHOD_CALL_RE = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)\s*\(")
+_CS_FACT_RE = re.compile(r"^\s*\[\s*(Fact|Theory)\s*(?:\(|\])", flags=re.IGNORECASE)
+_CS_TEST_METHOD_RE = re.compile(r"^\s*public\s+.*\s+(Should[A-Za-z0-9_]+)\s*\(", flags=re.IGNORECASE)
+
+
+def _extract_cs_test_signals(text: str) -> dict[str, list[str]]:
+    """
+    Best-effort heuristics to help an LLM reason about semantic coverage:
+      - test method names (Should_*)
+      - instantiated types (new Type(...))
+      - called members (TypeOrVar.Method(...)) excluding assertion noise
+    """
+    lines = text.splitlines()
+    methods: list[str] = []
+    for i, line in enumerate(lines):
+        if _CS_FACT_RE.search(line):
+            # Lookahead for a method signature soon after [Fact]/[Theory].
+            for j in range(i + 1, min(i + 6, len(lines))):
+                m = _CS_TEST_METHOD_RE.search(lines[j])
+                if m:
+                    name = m.group(1)
+                    if name not in methods:
+                        methods.append(name)
+                    break
+
+    types: list[str] = []
+    for m in _CS_NEW_RE.finditer(text):
+        t = m.group(1).split(".")[-1]
+        if t and t not in types:
+            types.append(t)
+
+    noisy_left = {
+        "Assert",
+        "FluentAssertions",
+        "Substitute",
+        "JsonSerializer",
+        "Enumerable",
+        "Task",
+        "Path",
+        "File",
+        "Directory",
+        "Guid",
+        "DateTime",
+        "DateTimeOffset",
+        "Math",
+        "GC",
+        "Console",
+    }
+    noisy_right = {
+        "Should",
+        "Be",
+        "NotBe",
+        "BeNull",
+        "NotBeNull",
+        "BeTrue",
+        "BeFalse",
+        "Throw",
+        "ThrowAsync",
+        "Contain",
+        "NotContain",
+        "Match",
+        "NotMatch",
+        "GetAwaiter",
+        "GetResult",
+        "GetType",
+        "ToString",
+    }
+    calls: list[str] = []
+    for m in _CS_METHOD_CALL_RE.finditer(text):
+        left = m.group(1)
+        right = m.group(2)
+        if left in noisy_left or right in noisy_right:
+            continue
+        sig = f"{left}.{right}"
+        if sig not in calls:
+            calls.append(sig)
+
+    return {
+        "test_methods": methods[:20],
+        "new_types": types[:20],
+        "calls": calls[:30],
+    }
+
+
+_GD_TEST_FUNC_RE = re.compile(r"^\s*func\s+(test_[A-Za-z0-9_]+)\s*\(", flags=re.IGNORECASE)
+
+
+def _extract_gd_test_signals(text: str) -> dict[str, list[str]]:
+    funcs: list[str] = []
+    for line in text.splitlines():
+        m = _GD_TEST_FUNC_RE.search(line)
+        if not m:
+            continue
+        name = m.group(1)
+        if name not in funcs:
+            funcs.append(name)
+    return {"test_funcs": funcs[:30]}
+
+
 def _build_acceptance_semantic_context(
     triplet: TaskmasterTriplet, *, max_chars: int = 12_000, max_acceptance_items: int = 60, max_files: int = 12
 ) -> tuple[str, dict[str, Any]]:
@@ -135,20 +254,45 @@ def _build_acceptance_semantic_context(
 
         included_files += 1
         anchors = refs_to_anchors.get(rel, [])
-        try:
-            content = _read_text(path)
-        except Exception:  # noqa: BLE001
-            content = ""
+        content = _read_text(path)
+        content_lines = content.splitlines()
 
-        # Prefer the top of file because we intentionally insert anchors near the top.
-        head = "\n".join(content.splitlines()[:120]).strip()
-        head = _truncate(head, max_chars=2_000)
-
-        excerpts.append(f"### Referenced test excerpt: {rel}")
+        excerpts.append(f"### Referenced test: {rel}")
         if anchors:
-            excerpts.append("Expected anchors in this file: " + ", ".join(anchors[:20]))
+            excerpts.append("Expected anchors: " + ", ".join(anchors[:20]))
+
+        # Heuristic signals (help the reviewer decide whether tests are behavioral or just placeholders).
+        if rel.endswith(".cs"):
+            sig = _extract_cs_test_signals(content)
+            if sig.get("test_methods"):
+                excerpts.append("Test methods: " + ", ".join(sig["test_methods"]))
+            if sig.get("new_types"):
+                excerpts.append("Instantiated types: " + ", ".join(sig["new_types"]))
+            if sig.get("calls"):
+                excerpts.append("Notable calls: " + ", ".join(sig["calls"][:20]))
+        elif rel.endswith(".gd"):
+            sig = _extract_gd_test_signals(content)
+            if sig.get("test_funcs"):
+                excerpts.append("Test funcs: " + ", ".join(sig["test_funcs"][:20]))
+
+        # Anchor-focused excerpts (more useful than a generic file head).
+        anchor_excerpts: list[str] = []
+        for a in anchors[:5]:
+            blocks = _extract_anchor_context(lines=content_lines, anchor=a, context_lines=20)
+            for start_line, ex in blocks[:2]:
+                anchor_excerpts.append(f"[anchor={a}] @L{start_line}")
+                anchor_excerpts.extend(ex)
+                anchor_excerpts.append("")
+
+        # Fallback: include a small file head if anchors are missing or not found.
+        head = "\n".join(content_lines[:80]).strip()
+        head = _truncate(head, max_chars=1_600)
+
         excerpts.append("```")
-        excerpts.append(head or "(empty)")
+        if anchor_excerpts:
+            excerpts.append("\n".join(anchor_excerpts).rstrip())
+        else:
+            excerpts.append(head or "(empty)")
         excerpts.append("```")
 
     meta = {
