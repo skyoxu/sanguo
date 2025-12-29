@@ -1,7 +1,3 @@
-// Acceptance anchors:
-// ACC:T17.8
-// ACC:T12.2
-// ACC:T12.3
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
@@ -39,12 +35,12 @@ public sealed class SanguoBoardStateTests
         var state = new SanguoBoardState(players: new[] { player }, citiesById: citiesById);
         state.Players.Should().ContainKey(player.PlayerId);
         state.CitiesById.Should().ContainKey(city.Id);
-        state.Players[player.PlayerId].PositionIndex.Should().Be(0);
-    }
+    state.Players[player.PlayerId].PositionIndex.Should().Be(0);
+}
 
     // ACC:T12.3
     [Fact]
-    public void ShouldThrowInvalidOperationException_WhenOwnedCityIdNotInCitiesById()
+    public void ShouldEnforceUniquenessAndReferentialIntegrity_WhenCreatingBoardState()
     {
         var owned = MakeCity(id: "owned1");
         var player = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: Rules);
@@ -53,9 +49,23 @@ public sealed class SanguoBoardStateTests
             players: new[] { player },
             citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
         act.Should().Throw<InvalidOperationException>();
+
+        var cityKeyMismatch = MakeCity(id: "c2");
+        var cleanPlayer = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: Rules);
+        Action actKeyMismatch = () => new SanguoBoardState(
+            players: new[] { cleanPlayer },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal) { { "c1", cityKeyMismatch } });
+        actKeyMismatch.Should().Throw<ArgumentException>().WithParameterName("citiesById");
+
+        var okCity = MakeCity(id: "c1");
+        var p1 = new SanguoPlayer(playerId: "dup", money: 0m, positionIndex: 0, economyRules: Rules);
+        var p2 = new SanguoPlayer(playerId: "dup", money: 0m, positionIndex: 0, economyRules: Rules);
+        Action actDupPlayers = () => new SanguoBoardState(
+            players: new[] { p1, p2 },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal) { { okCity.Id, okCity } });
+        actDupPlayers.Should().Throw<ArgumentException>();
     }
 
-    // ACC:T12.3
     [Fact]
     public void ShouldThrowArgumentException_WhenCitiesByIdKeyDoesNotMatchCityId()
     {
