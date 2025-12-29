@@ -2,9 +2,12 @@
 """
 sc-acceptance-check: Local, reproducible acceptance gate (Claude Code /acceptance-check equivalent).
 
-This script does NOT call LLM subagents. Instead, it maps the 6 conceptual
+This script does NOT call LLM subagents by default. Instead, it maps the 6 conceptual
 "subagents" to deterministic checks already present in this repo, and writes
 an auditable report to logs/ci/<YYYY-MM-DD>/sc-acceptance-check/.
+
+Optionally, you may enable an LLM-backed gate to semantically check whether
+tasks.json subtasks are covered by tasks_back/tasks_gameplay acceptance items.
 
 Usage (Windows):
   py -3 scripts/sc/acceptance_check.py --task-id 10
@@ -41,6 +44,7 @@ from _acceptance_steps import (
     step_security_soft,
     step_task_links_validate,
     step_task_test_refs_validate,
+    step_subtasks_coverage_llm,
     step_test_quality_soft,
     step_tests_all,
 )
@@ -204,9 +208,16 @@ def main() -> int:
         help="fail when task acceptance refs include .gd tests but this run does not produce headless GdUnit4 artifacts under logs/e2e/<date>/sc-test/",
     )
     ap.add_argument(
+        "--subtasks-coverage",
+        default="skip",
+        choices=["skip", "warn", "require"],
+        help="Subtasks coverage gate mode (tasks.json subtasks must be covered by tasks_back/tasks_gameplay acceptance).",
+    )
+    ap.add_argument("--subtasks-timeout-sec", type=int, default=600, help="Timeout for subtasks coverage LLM gate.")
+    ap.add_argument(
         "--only",
         default=None,
-        help="Comma-separated step filter (adr,links,overlay,contracts,arch,build,security,quality,rules,tests,perf). Default: all.",
+        help="Comma-separated step filter (adr,links,subtasks,overlay,contracts,arch,build,security,quality,rules,tests,perf). Default: all.",
     )
     args = ap.parse_args()
 
@@ -229,6 +240,9 @@ def main() -> int:
     has_gd_refs = task_requires_headless_e2e(triplet)
     needs_headless = bool(args.require_headless_e2e) and has_gd_refs
     require_executed = bool(args.require_executed_refs)
+    subtasks_mode = str(args.subtasks_coverage or "skip").strip().lower()
+    if subtasks_mode not in ("skip", "warn", "require"):
+        subtasks_mode = "skip"
     run_id = uuid.uuid4().hex
 
     if enabled("adr"):
@@ -238,6 +252,20 @@ def main() -> int:
         steps.append(step_task_test_refs_validate(out_dir, triplet, require_non_empty=bool(args.require_task_test_refs)))
         steps.append(step_acceptance_refs_validate(out_dir, triplet))
         steps.append(step_acceptance_anchors_validate(out_dir, triplet))
+    if enabled("subtasks"):
+        if subtasks_mode == "skip":
+            steps.append(StepResult(name="subtasks-coverage", status="skipped", rc=0, details={"reason": "subtasks_coverage_skip"}))
+        else:
+            steps.append(step_subtasks_coverage_llm(out_dir, triplet, timeout_sec=int(args.subtasks_timeout_sec)))
+    elif subtasks_mode in ("warn", "require"):
+        steps.append(
+            StepResult(
+                name="subtasks-coverage",
+                status="fail" if subtasks_mode == "require" else "skipped",
+                rc=1 if subtasks_mode == "require" else 0,
+                details={"error": "subtasks_step_disabled", "hint": "include 'subtasks' in --only (or omit --only) when using --subtasks-coverage warn|require"},
+            )
+        )
     if enabled("overlay"):
         steps.append(step_overlay_validate(out_dir, triplet))
     if enabled("contracts"):
@@ -293,6 +321,8 @@ def main() -> int:
     for s in steps:
         if s.name == "security-soft":
             continue
+        if s.name == "subtasks-coverage" and subtasks_mode != "require":
+            continue
         if s.status == "fail":
             hard_failed = True
 
@@ -306,6 +336,7 @@ def main() -> int:
         "status": "fail" if hard_failed else "ok",
         "steps": [s.__dict__ for s in steps],
         "out_dir": str(out_dir),
+        "subtasks_coverage_mode": subtasks_mode,
     }
 
     metrics: dict[str, Any] = {}

@@ -1137,7 +1137,10 @@
     ],
     "acceptance": [
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "AI 决策读取玩家状态必须通过 `ISanguoPlayerView`（推荐使用 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView` 快照），禁止直接持有/跨线程访问 `SanguoPlayer` 实体；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs"
+      "AI 决策读取玩家状态必须通过 `ISanguoPlayerView`（推荐使用 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView` 快照），禁止直接持有/跨线程访问 `SanguoPlayer` 实体；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs",
+      "AI 基本规则逻辑（Subtask 11.1）：当轮到 AI 玩家行动时，必须自动生成并发布 `core.sanguo.ai.decision.made` 事件（至少支持 RollDice/Skip 等决策类型），并可在单测中验证事件载荷包含 GameId/AiPlayerId/CorrelationId。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "AI 扩展接口（Subtask 11.2）：AI 决策策略必须通过可替换的接口/策略（例如 Policy/StateMachine/BehaviorTree Adapter）注入到回合管理器或 AI 行为组件中，确保后续可演进为有限状态机/行为树而不改动回合循环骨干。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "AI 测试用例（Subtask 11.3）：至少包含 1 条单测钉死 AI 回合触发决策事件，以及 1 条单测钉死 AI 只读取 `ISanguoPlayerView` 快照输入（不直接使用 `SanguoPlayer` 实体）。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1609,7 +1612,9 @@
       "本任务的回合循环必须消费 Task 12 的 `SanguoBoardState`（而不是散落在多个服务中各自维护玩家/城池集合），以保证出局/城池释放/资金转移等规则可在单测中钉死且状态一致。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
       "规则（时间边界事件顺序）：同一次回合推进若同时跨越月末/季度/年度边界，必须按顺序触发：月末结算 -> 季度环境事件 -> 年度地价调整；三者均需发布 DomainEvent。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "规则（叠加语义）：时间边界事件按顺序计算并叠加生效，最终状态 = 依次应用月度结算、季度事件、年度调整后的结果；不做覆盖/屏蔽。事件序列可回放（ADR-0004/ADR-0024）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "规则（最安全作用域字段，初稿可演进）：月度仅允许修改玩家资金结算（PlayerSettlement.AmountDelta/玩家 Money）；季度仅允许修改月度结算的数值系数与适用范围（YieldMultiplier/AffectedRegionIds）；年度仅允许修改城池地价（City.BasePrice 及其 YearlyMultiplier），不直接修改所有权/位置/出局/回合等非经济字段。 Refs: Game.Core.Tests/Domain/MoneyTests.cs"
+      "规则（最安全作用域字段，初稿可演进）：月度仅允许修改玩家资金结算（PlayerSettlement.AmountDelta/玩家 Money）；季度仅允许修改月度结算的数值系数与适用范围（YieldMultiplier/AffectedRegionIds）；年度仅允许修改城池地价（City.BasePrice 及其 YearlyMultiplier），不直接修改所有权/位置/出局/回合等非经济字段。 Refs: Game.Core.Tests/Domain/MoneyTests.cs",
+      "玩家行动逻辑（Subtask 17.1）：当轮到真人玩家行动时，回合循环必须进入“等待玩家动作”阶段；在收到明确的玩家动作命令前不得推进日期/切换行动者；至少支持动作 RollDice，并发布 `core.sanguo.dice.rolled`（Value 1..6）以驱动后续移动与结算。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "AI 行动逻辑（Subtask 17.2）：当轮到 AI 玩家（约定 PlayerId 以 `ai-` 前缀）行动时，回合循环必须自动生成并应用一个动作（至少支持 RollDice 或 Skip），并发布 `core.sanguo.ai.decision.made`（SanguoAiDecisionMade.EventType）；AI 决策读取输入必须通过 `ISanguoPlayerView` 快照，禁止直接持有/跨线程访问 `SanguoPlayer`。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1915,7 +1920,9 @@
       "Game.Core.Tests/Tasks/Task25AiTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs"
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "AI 策略分析（Subtask 25.1）：对现有 AI 决策输入、约束与已知缺陷给出可回归的说明（例如同一局面 + 固定随机源 => 输出固定决策），以便后续优化可对比。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "AI 策略优化（Subtask 25.2）：提供可切换的优化策略（例如基于评分函数/启发式），并与基线对比至少覆盖 1 个“更优选择”的回归用例。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1992,7 +1999,9 @@
     ],
     "acceptance": [
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task26RequirementsTests.cs",
-      "回合/循环需正确处理出局：真人玩家出局立即 GameOver；NPC 出局退出本局并从后续轮转中移除（状态锁定），其已占领城池变为无人占领。 Refs: Game.Core.Tests/Tasks/Task26RequirementsTests.cs"
+      "回合/循环需正确处理出局：真人玩家出局立即 GameOver；NPC 出局退出本局并从后续轮转中移除（状态锁定），其已占领城池变为无人占领。 Refs: Game.Core.Tests/Tasks/Task26RequirementsTests.cs",
+      "游戏结束条件定义（Subtask 26.1）：至少定义 1 条可触发的结束条件（例如真人玩家破产/出局立即 GameOver），并将判定逻辑收敛在 Game.Core 回合循环/规则层。 Refs: Game.Core.Tests/Tasks/Task26RequirementsTests.cs",
+      "结束条件测试（Subtask 26.2）：为结束条件补齐单测覆盖正常路径与边界条件（例如 NPC 出局不结束但移出轮转；真人出局必须结束）。 Refs: Game.Core.Tests/Tasks/Task26RequirementsTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -2243,7 +2252,10 @@
     ],
     "acceptance": [
       "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd",
-      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd"
+      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd",
+      "帮助/教程内容（Subtask 30.1）：帮助/教程文本内容以可本地化的资源形式落盘（避免硬编码在脚本），并在 headless 测试中校验关键条目非空。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd",
+      "帮助/教程 UI（Subtask 30.2）：提供可打开/关闭的帮助界面，且不会阻塞主循环；在 headless 用例中验证 UI 可见性与基本导航。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd",
+      "用户测试与反馈收集（Subtask 30.3）：提供最小反馈采集入口（例如 Help/Tutorial UI 内的 Feedback 按钮/表单），提交后写入 `user://feedback/*.json`（或 ConfigFile）并在 headless 用例中验证写入成功，保证反馈闭环可回归。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",

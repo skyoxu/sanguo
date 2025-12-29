@@ -11,11 +11,12 @@ from __future__ import annotations
 
 import os
 import re
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from _quality_rules import scan_quality_rules
+from _step_result import StepResult
+from _subtasks_coverage_step import step_subtasks_coverage_llm
 from _taskmaster import TaskmasterTriplet
 from _test_quality import assess_test_quality
 from _util import repo_root, run_cmd, write_json, write_text
@@ -25,16 +26,6 @@ ADR_STATUS_RE = re.compile(r"^\s*-?\s*(?:Status|status)\s*:\s*([A-Za-z]+)\s*$", 
 PERF_METRICS_RE = re.compile(
     r"\[PERF\]\s*frames=(\d+)\s+avg_ms=([0-9]+(?:\.[0-9]+)?)\s+p50_ms=([0-9]+(?:\.[0-9]+)?)\s+p95_ms=([0-9]+(?:\.[0-9]+)?)\s+p99_ms=([0-9]+(?:\.[0-9]+)?)"
 )
-
-
-@dataclass(frozen=True)
-class StepResult:
-    name: str
-    status: str  # ok|fail|skipped
-    rc: int | None = None
-    cmd: list[str] | None = None
-    log: str | None = None
-    details: dict[str, Any] | None = None
 
 
 def find_adr_file(root: Path, adr_id: str) -> Path | None:

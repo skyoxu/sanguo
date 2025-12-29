@@ -1137,7 +1137,10 @@
     ],
     "acceptance": [
       "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "AI 决策读取玩家状态必须通过 `ISanguoPlayerView`（推荐使用 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView` 快照），禁止直接持有/跨线程访问 `SanguoPlayer` 实体；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs"
+      "AI 决策读取玩家状态必须通过 `ISanguoPlayerView`（推荐使用 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView` 快照），禁止直接持有/跨线程访问 `SanguoPlayer` 实体；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs",
+      "AI 基本规则逻辑（Subtask 11.1）：当轮到 AI 玩家行动时，必须自动生成并发布 `core.sanguo.ai.decision.made` 事件（至少支持 RollDice/Skip 等决策类型），并可在单测中验证事件载荷包含 GameId/AiPlayerId/CorrelationId。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "AI 扩展接口（Subtask 11.2）：AI 决策策略必须通过可替换的接口/策略（例如 Policy/StateMachine/BehaviorTree Adapter）注入到回合管理器或 AI 行为组件中，确保后续可演进为有限状态机/行为树而不改动回合循环骨干。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "AI 测试用例（Subtask 11.3）：至少包含 1 条单测钉死 AI 回合触发决策事件，以及 1 条单测钉死 AI 只读取 `ISanguoPlayerView` 快照输入（不直接使用 `SanguoPlayer` 实体）。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1609,7 +1612,9 @@
       "本任务的回合循环必须消费 Task 12 的 `SanguoBoardState`（而不是散落在多个服务中各自维护玩家/城池集合），以保证出局/城池释放/资金转移等规则可在单测中钉死且状态一致。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
       "规则（时间边界事件顺序）：同一次回合推进若同时跨越月末/季度/年度边界，必须按顺序触发：月末结算 -> 季度环境事件 -> 年度地价调整；三者均需发布 DomainEvent。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "规则（叠加语义）：时间边界事件按顺序计算并叠加生效，最终状态 = 依次应用月度结算、季度事件、年度调整后的结果；不做覆盖/屏蔽。事件序列可回放（ADR-0004/ADR-0024）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "规则（最安全作用域字段，初稿可演进）：月度仅允许修改玩家资金结算（PlayerSettlement.AmountDelta/玩家 Money）；季度仅允许修改月度结算的数值系数与适用范围（YieldMultiplier/AffectedRegionIds）；年度仅允许修改城池地价（City.BasePrice 及其 YearlyMultiplier），不直接修改所有权/位置/出局/回合等非经济字段。 Refs: Game.Core.Tests/Domain/MoneyTests.cs"
+      "规则（最安全作用域字段，初稿可演进）：月度仅允许修改玩家资金结算（PlayerSettlement.AmountDelta/玩家 Money）；季度仅允许修改月度结算的数值系数与适用范围（YieldMultiplier/AffectedRegionIds）；年度仅允许修改城池地价（City.BasePrice 及其 YearlyMultiplier），不直接修改所有权/位置/出局/回合等非经济字段。 Refs: Game.Core.Tests/Domain/MoneyTests.cs",
+      "玩家行动逻辑（Subtask 17.1）：当轮到真人玩家行动时，回合循环必须进入“等待玩家动作”阶段；在收到明确的玩家动作命令前不得推进日期/切换行动者；至少支持动作 RollDice，并发布 `core.sanguo.dice.rolled`（Value 1..6）以驱动后续移动与结算。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "AI 行动逻辑（Subtask 17.2）：当轮到 AI 玩家（约定 PlayerId 以 `ai-` 前缀）行动时，回合循环必须自动生成并应用一个动作（至少支持 RollDice 或 Skip），并发布 `core.sanguo.ai.decision.made`（SanguoAiDecisionMade.EventType）；AI 决策读取输入必须通过 `ISanguoPlayerView` 快照，禁止直接持有/跨线程访问 `SanguoPlayer`。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
