@@ -1,5 +1,3 @@
-// Acceptance anchors:
-// ACC:T5.1
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,6 +10,13 @@ namespace Game.Core.Tests.Services;
 public class SanguoDiceServiceTests
 {
     // ACC:T5.1
+    [Fact]
+    public void ShouldNotReferenceGodotAssemblies_WhenUsingDiceServiceInGameCore()
+    {
+        var referenced = typeof(SanguoDiceService).Assembly.GetReferencedAssemblies();
+        referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
+    }
+
     [Fact]
     public void ShouldThrowArgumentNullException_WhenBusIsNull()
     {

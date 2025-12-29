@@ -1,5 +1,3 @@
-// Acceptance anchors:
-// ACC:T11.1
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -14,6 +12,14 @@ using Xunit;
 namespace Game.Core.Tests.Services;
 public sealed class SanguoAiBehaviorTests
 {
+    // ACC:T11.1
+    [Fact]
+    public void ShouldNotReferenceGodotAssemblies_WhenUsingAiBehaviorInGameCore()
+    {
+        var referenced = typeof(SanguoTurnManager).Assembly.GetReferencedAssemblies();
+        referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
+    }
+
     [Fact]
     public async Task ShouldPublishAiDecisionMade_WhenTurnStartsForAi()
     {

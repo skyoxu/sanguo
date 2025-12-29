@@ -1,12 +1,3 @@
-// Acceptance anchors:
-// ACC:T13.1
-// ACC:T13.10
-// ACC:T13.2
-// ACC:T13.7
-// ACC:T13.8
-// ACC:T13.9
-// ACC:T7.1
-// ACC:T7.4
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -21,6 +12,7 @@ using Xunit;
 namespace Game.Core.Tests.Services;
 public class SanguoEconomyManagerTests
 {
+    // ACC:T7.1
     // ACC:T13.1
     [Fact]
     public void ShouldNotReferenceGodotAssemblies_WhenUsingEconomyManagerServices()
@@ -29,7 +21,6 @@ public class SanguoEconomyManagerTests
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
     }
 
-    // ACC:T7.1
     [Fact]
     public void ShouldThrowArgumentNullException_WhenBusIsNull()
     {
