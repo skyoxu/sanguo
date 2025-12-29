@@ -244,7 +244,8 @@ def _is_placeholder_ref(*, task_id: int, path: str) -> bool:
     if p.lower().endswith(".gd"):
         # Prefer behavior naming; task-id-in-filename is treated as a placeholder.
         name = Path(p).name
-        return re.search(rf"(?i)\\btask{task_id}\\b", name) is not None
+        # Use digit boundaries rather than word boundaries (underscore is a word char in regex).
+        return re.search(rf"(?i)(?<!\\d)task{task_id}(?!\\d)", name) is not None
     return False
 
 

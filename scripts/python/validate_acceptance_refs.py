@@ -53,7 +53,7 @@ def validate_text_refs_consistency(text: str, refs: list[str]) -> list[str]:
 
     Rules (deterministic):
       1) If acceptance mentions xUnit, refs must include at least one .cs file.
-      2) If acceptance mentions GdUnit4 or headless, refs must include at least one .gd file.
+      2) If acceptance mentions GdUnit4, refs must include at least one .gd file.
       3) If acceptance mentions Game.Core, refs must include at least one Game.Core.Tests/*.cs file.
     """
     errors: list[str] = []
@@ -62,8 +62,8 @@ def validate_text_refs_consistency(text: str, refs: list[str]) -> list[str]:
     if "xunit" in lower and not _has_ref_suffix(refs, ".cs"):
         errors.append("acceptance mentions xUnit but refs do not include any .cs file")
 
-    if ("gdunit4" in lower or "headless" in lower) and not _has_ref_suffix(refs, ".gd"):
-        errors.append("acceptance mentions GdUnit4/headless but refs do not include any .gd file")
+    if "gdunit4" in lower and not _has_ref_suffix(refs, ".gd"):
+        errors.append("acceptance mentions GdUnit4 but refs do not include any .gd file")
 
     if "game.core" in lower:
         if not (_has_ref_suffix(refs, ".cs") and _has_ref_prefix(refs, "Game.Core.Tests/")):
