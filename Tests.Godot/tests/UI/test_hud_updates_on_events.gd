@@ -1,7 +1,3 @@
-# Acceptance anchors:
-# ACC:T22.2
-# ACC:T9.2
-
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 var _bus: Node
@@ -22,8 +18,22 @@ func _hud() -> Node:
     await get_tree().process_frame
     return hud
 
-# ACC:T22.2
 # ACC:T9.2
+# ACC:T22.2
+func test_hud_core_interactions_are_wired() -> void:
+    var hud = await _hud()
+    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+    _last_emitted_type = ""
+    dice.emit_signal("pressed")
+    await get_tree().process_frame
+    assert_str(_last_emitted_type).is_equal("ui.hud.dice.roll")
+
+    _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
+    await get_tree().process_frame
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
+    await get_tree().process_frame
+    assert_str(dice.text).is_equal("Dice: 6")
+
 func test_hud_has_core_status_nodes() -> void:
     var hud = await _hud()
     assert_object(hud.get_node_or_null("TopBar/HBox/DiceButton")).is_not_null()

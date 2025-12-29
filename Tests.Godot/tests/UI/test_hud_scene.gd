@@ -1,8 +1,3 @@
-# Acceptance anchors:
-# ACC:T22.1
-# ACC:T22.3
-# ACC:T9.1
-
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 # ACC:T22.1

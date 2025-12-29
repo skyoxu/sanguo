@@ -44,8 +44,6 @@ func test_token_moves_to_index_position_without_animation() -> void:
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(_target_position(view, 3))
 
-# Acceptance anchors:
-# ACC:T10.2
 func test_token_move_sets_animated_flag_when_duration_positive() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     view.Origin = Vector2.ZERO
