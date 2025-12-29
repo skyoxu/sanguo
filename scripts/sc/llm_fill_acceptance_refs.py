@@ -229,8 +229,23 @@ def _pick_existing_candidates(*, all_tests: list[str], task_id: int, title: str,
 
 def _default_ref_for(*, task_id: int, prefer_gd: bool) -> str:
     if prefer_gd:
-        return f"Tests.Godot/tests/Scenes/Sanguo/test_task{task_id}_acceptance.gd"
+        # Fallback only (LLM should prefer behavior naming: test_<scope>_<behavior>.gd).
+        return f"Tests.Godot/tests/UI/test_task{task_id}_acceptance.gd"
     return f"Game.Core.Tests/Tasks/Task{task_id}AcceptanceTests.cs"
+
+
+def _is_placeholder_ref(*, task_id: int, path: str) -> bool:
+    p = str(path or "").strip().replace("\\", "/")
+    if not p:
+        return False
+    if p.lower().endswith(".cs"):
+        # Over-generic placeholder that tends to accumulate unrelated acceptance items.
+        return p == f"Game.Core.Tests/Tasks/Task{task_id}RequirementsTests.cs"
+    if p.lower().endswith(".gd"):
+        # Prefer behavior naming; task-id-in-filename is treated as a placeholder.
+        name = Path(p).name
+        return re.search(rf"(?i)\\btask{task_id}\\b", name) is not None
+    return False
 
 
 def _build_prompt(
@@ -275,7 +290,9 @@ def _build_prompt(
             "- If no existing file fits, propose a NEW path following repo conventions.",
             "- Do NOT use placeholder-like names such as:",
             f"  - Game.Core.Tests/Tasks/Task{task_id}AcceptanceTests.cs",
+            f"  - Game.Core.Tests/Tasks/Task{task_id}RequirementsTests.cs",
             f"  - Tests.Godot/tests/Scenes/Sanguo/test_task{task_id}_acceptance.gd",
+            f"  - (any .gd filename containing task{task_id})",
             "- Prefer subject-based naming and directory semantics:",
             "  - Core domain/value objects: Game.Core.Tests/Domain/<Subject>Tests.cs",
             "  - Core services/game loop:   Game.Core.Tests/Services/<Subject>Tests.cs",
@@ -347,6 +364,7 @@ def _apply_paths_to_view_entry(
     view_label: str,
     task_id: int,
     overwrite_existing: bool,
+    overwrite_indices: set[int] | None,
     paths_by_index: dict[int, list[str]],
     prefer_gd: bool,
     existing_cs_hint: str | None,
@@ -370,7 +388,8 @@ def _apply_paths_to_view_entry(
             continue
 
         had_refs = bool(REFS_RE.search(text))
-        if had_refs and not overwrite_existing:
+        should_overwrite = bool(overwrite_existing) or (overwrite_indices is not None and idx in overwrite_indices)
+        if had_refs and not should_overwrite:
             new_acceptance.append(text)
             continue
 
@@ -399,7 +418,7 @@ def _apply_paths_to_view_entry(
             chosen = [_default_ref_for(task_id=task_id, prefer_gd=prefer_gd)]
 
         chosen = chosen[: max(1, min(len(chosen), 5))]
-        if overwrite_existing:
+        if had_refs:
             text = _strip_refs_suffix(text)
         new_text = f"{text} Refs: {' '.join(chosen)}"
         new_acceptance.append(new_text)
@@ -420,6 +439,11 @@ def main() -> int:
     ap.add_argument("--task-id", default=None, help="Process a single task id (master id).")
     ap.add_argument("--write", action="store_true", help="Write JSON files in-place. Without this flag, dry-run.")
     ap.add_argument("--overwrite-existing", action="store_true", help="Overwrite existing Refs: in acceptance items.")
+    ap.add_argument(
+        "--rewrite-placeholders",
+        action="store_true",
+        help="Rewrite existing Refs: when they look like placeholders (e.g., Task<id>RequirementsTests.cs or *.gd containing task<id>).",
+    )
     ap.add_argument("--timeout-sec", type=int, default=300, help="codex exec timeout per task (default: 300).")
     ap.add_argument("--max-refs-per-item", type=int, default=2, help="Max refs per acceptance item (default: 2).")
     ap.add_argument("--candidate-limit", type=int, default=30, help="Max existing candidate tests to provide to the model.")
@@ -470,6 +494,7 @@ def main() -> int:
         gameplay_task = gameplay_by_id.get(tid)
 
         missing: dict[ItemKey, str] = {}
+        overwrite_by_view: dict[str, set[int]] = {"back": set(), "gameplay": set()}
         prefer_gd = False
         if isinstance(back_task, dict) and str(back_task.get("layer") or "").strip().lower() == "ui":
             prefer_gd = True
@@ -487,9 +512,18 @@ def main() -> int:
                 if not s:
                     continue
                 if REFS_RE.search(s) and not args.overwrite_existing:
-                    continue
+                    if not args.rewrite_placeholders:
+                        continue
+                    refs = _extract_refs_from_acceptance_item(s)
+                    if not refs:
+                        continue
+                    if not all(_is_placeholder_ref(task_id=tid, path=p) for p in refs):
+                        continue
+                    overwrite_by_view[view].add(idx)
                 # In overwrite mode we still need LLM mapping for every item.
-                missing[ItemKey(view=view, index=idx)] = _strip_refs_suffix(s) if args.overwrite_existing else s
+                missing[ItemKey(view=view, index=idx)] = (
+                    _strip_refs_suffix(s) if (args.overwrite_existing or idx in overwrite_by_view[view]) else s
+                )
 
         _collect("back", back_task)
         _collect("gameplay", gameplay_task)
@@ -583,6 +617,7 @@ def main() -> int:
                         view_label="back",
                         task_id=tid,
                         overwrite_existing=bool(args.overwrite_existing),
+                        overwrite_indices=overwrite_by_view["back"],
                         paths_by_index=by_view_index["back"],
                         prefer_gd=prefer_gd,
                         existing_cs_hint=existing_cs_hint,
@@ -596,6 +631,7 @@ def main() -> int:
                         view_label="gameplay",
                         task_id=tid,
                         overwrite_existing=bool(args.overwrite_existing),
+                        overwrite_indices=overwrite_by_view["gameplay"],
                         paths_by_index=by_view_index["gameplay"],
                         prefer_gd=prefer_gd,
                         existing_cs_hint=existing_cs_hint,
@@ -633,6 +669,7 @@ def main() -> int:
         "date": today_str(),
         "write": bool(args.write),
         "overwrite_existing": bool(args.overwrite_existing),
+        "rewrite_placeholders": bool(args.rewrite_placeholders),
         "tasks": len(task_ids),
         "any_updates": any_updates,
         "results": results,
