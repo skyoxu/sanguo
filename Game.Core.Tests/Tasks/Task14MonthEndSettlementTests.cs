@@ -1,6 +1,3 @@
-// Acceptance anchors:
-// ACC:T14.1
-// ACC:T14.2
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -81,7 +78,6 @@ public sealed class Task14MonthEndSettlementTests
         p2Delta.Should().Be(0m);
     }
 
-    // ACC:T14.2
     [Fact]
     public async Task ShouldNotPublishMonthSettled_WhenNotCrossingMonthBoundary()
     {

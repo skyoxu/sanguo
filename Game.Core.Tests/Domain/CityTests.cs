@@ -1,5 +1,3 @@
-// Acceptance anchors:
-// ACC:T3.1
 using System;
 using FluentAssertions;
 using Game.Core.Domain;

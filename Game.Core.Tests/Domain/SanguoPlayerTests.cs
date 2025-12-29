@@ -1,10 +1,3 @@
-// Acceptance anchors:
-// ACC:T12.1
-// ACC:T12.10
-// ACC:T12.7
-// ACC:T12.8
-// ACC:T12.9
-// ACC:T4.1
 using System;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -29,7 +22,6 @@ public class SanguoPlayerTests
             baseToll: MoneyValue.FromDecimal(baseToll ?? DefaultCityBaseToll));
 
     // ACC:T4.1
-    // ACC:T12.1
     [Fact]
     public void ShouldNotReferenceGodotAssemblies_WhenUsingSanguoPlayerDomain()
     {
