@@ -16,7 +16,6 @@ public class SanguoTurnManagerTests
     private static readonly SanguoEconomyRules Rules = new(
         maxPriceMultiplier: SanguoEconomyRules.DefaultMaxPriceMultiplier,
         maxTollMultiplier: SanguoEconomyRules.DefaultMaxTollMultiplier);
-    // Acceptance anchors:
     // ACC:T6.1
     [Fact]
     public void ShouldNotReferenceGodotAssemblies_WhenUsingGameCore()
@@ -24,7 +23,6 @@ public class SanguoTurnManagerTests
         var referenced = typeof(SanguoTurnManager).Assembly.GetReferencedAssemblies();
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
     }
-    // Acceptance anchors:
     [Fact]
     public async Task ShouldPublishTurnEventsAndRotateActivePlayer_WhenStartingNewGameThenAdvancingTurn()
     {
@@ -175,9 +173,74 @@ public class SanguoTurnManagerTests
         payload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-advance");
     }
-    // Acceptance anchors:
-    // ACC:T6.2
     // ACC:T6.3
+    [Fact]
+    public async Task ShouldEndGameOnHumanElimination_AndPruneEliminatedAiAndReleaseCities()
+    {
+        {
+            var bus = new CapturingEventBus();
+            var economy = new SanguoEconomyManager(bus);
+            var city = new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10));
+            var cities = new Dictionary<string, City>(StringComparer.Ordinal) { ["c1"] = city };
+            var payer = new SanguoPlayer(playerId: "p1", money: 5m, positionIndex: 0, economyRules: Rules);
+            var owner = new SanguoPlayer(playerId: "p2", money: 0m, positionIndex: 0, economyRules: Rules);
+            payer.TryPayTollTo(owner, city, tollMultiplier: 1.0m, treasury: new SanguoTreasury()).Should().BeTrue();
+            payer.IsEliminated.Should().BeTrue();
+
+            var (boardState, treasury) = CreateBoardState(players: new[] { payer, owner }, citiesById: cities);
+            var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+
+            await mgr.StartNewGameAsync(
+                gameId: "g1",
+                playerOrder: new[] { "p1", "p2" },
+                year: 1,
+                month: 1,
+                day: 1,
+                correlationId: "corr",
+                causationId: null);
+            await mgr.AdvanceTurnAsync(correlationId: "corr", causationId: "cmd-advance");
+
+            bus.Published.Should().Contain(e => e.Type == SanguoGameEnded.EventType, "human elimination should end the game immediately");
+            bus.Published.Should().NotContain(e => e.Type == SanguoGameTurnEnded.EventType, "ended game should not publish turn rotation events");
+        }
+
+        {
+            var bus = new CapturingEventBus();
+            var economy = new SanguoEconomyManager(bus);
+            var ownedCity = new City("owned1", "OwnedCity", "r1", Money.FromMajorUnits(10), Money.FromMajorUnits(1));
+            var tollCity = new City("toll", "TollCity", "r1", Money.Zero, Money.FromMajorUnits(10));
+            var cities = new Dictionary<string, City>(StringComparer.Ordinal)
+            {
+                [ownedCity.Id] = ownedCity,
+                [tollCity.Id] = tollCity,
+            };
+            var p1 = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules);
+            var ai = new SanguoPlayer(playerId: "ai-1", money: 15m, positionIndex: 0, economyRules: Rules);
+            var p2 = new SanguoPlayer(playerId: "p2", money: 0m, positionIndex: 0, economyRules: Rules);
+
+            ai.TryBuyCity(ownedCity, priceMultiplier: 1.0m).Should().BeTrue();
+            ai.OwnedCityIds.Should().Contain(ownedCity.Id);
+            ai.TryPayTollTo(p1, tollCity, tollMultiplier: 1.0m, treasury: new SanguoTreasury()).Should().BeTrue();
+            ai.IsEliminated.Should().BeTrue();
+            ai.OwnedCityIds.Should().BeEmpty();
+
+            var (boardState, treasury) = CreateBoardState(players: new[] { p1, ai, p2 }, citiesById: cities);
+            var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+            await mgr.StartNewGameAsync(
+                gameId: "g1",
+                playerOrder: new[] { "p1", "ai-1", "p2" },
+                year: 1,
+                month: 1,
+                day: 1,
+                correlationId: "corr",
+                causationId: null);
+            await mgr.AdvanceTurnAsync(correlationId: "corr", causationId: "cmd-advance");
+
+            boardState.TryGetOwnerOfCity(ownedCity.Id, out var owner).Should().BeFalse();
+            owner.Should().BeNull();
+        }
+    }
+
     [Fact]
     public async Task ShouldPublishGameEnded_WhenHumanPlayerIsEliminatedBeforeAdvancingTurn()
     {
@@ -205,8 +268,6 @@ public class SanguoTurnManagerTests
         Func<Task> act = async () => await mgr.AdvanceTurnAsync(correlationId: "corr", causationId: "cmd-advance-2");
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
-    // Acceptance anchors:
-    // ACC:T6.2
     [Fact]
     public async Task ShouldSkipEliminatedAiPlayer_WhenAdvancingTurnRotatesActivePlayer()
     {
@@ -234,8 +295,6 @@ public class SanguoTurnManagerTests
         var advancedPayload = ((JsonElementEventData)advanced.Data!).Value;
         advancedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("p2", "eliminated AI players must be removed from rotation");
     }
-    // Acceptance anchors:
-    // ACC:T6.2
     [Fact]
     public async Task ShouldReleaseOwnedCities_WhenEliminatedAiPlayerIsPruned()
     {
@@ -270,8 +329,6 @@ public class SanguoTurnManagerTests
         boardState.TryGetOwnerOfCity(ownedCity.Id, out var owner).Should().BeFalse();
         owner.Should().BeNull();
     }
-    // Acceptance anchors:
-    // ACC:T6.2
     [Fact]
     public async Task ShouldRotateToNextHumanPlayer_WhenActiveAiPlayerIsEliminatedAndRemoved()
     {
@@ -301,8 +358,6 @@ public class SanguoTurnManagerTests
         var advancedPayload = ((JsonElementEventData)advanced.Data!).Value;
         advancedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("p1", "removed active AI should advance to the next remaining player");
     }
-    // Acceptance anchors:
-    // ACC:T6.2
     [Fact]
     public async Task ShouldPublishGameEnded_WhenAllPlayersRemovedAfterPruningEliminatedAi()
     {
@@ -329,7 +384,7 @@ public class SanguoTurnManagerTests
         var endedPayload = ((JsonElementEventData)ended.Data!).Value;
         endedPayload.GetProperty("EndReason").GetString().Should().Be("no_players");
     }
-    // Acceptance anchors:
+    // ACC:T6.2
     [Fact]
     public async Task ShouldPublishSeasonEventBeforeYearlyPriceAdjusted_WhenCrossingYearBoundary()
     {
