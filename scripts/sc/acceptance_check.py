@@ -50,6 +50,7 @@ from _acceptance_steps import (
     step_test_quality_soft,
     step_tests_all,
 )
+from _risk_summary import write_risk_summary
 from _taskmaster import resolve_triplet
 from _unit_metrics import collect_unit_metrics
 from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text
@@ -272,7 +273,7 @@ def main() -> int:
     ap.add_argument(
         "--only",
         default=None,
-        help="Comma-separated step filter (adr,links,subtasks,overlay,contracts,arch,build,security,quality,rules,tests,perf). Default: all.",
+        help="Comma-separated step filter (adr,links,subtasks,overlay,contracts,arch,build,security,quality,rules,tests,perf,risk). Default: all.",
     )
     args = ap.parse_args()
 
@@ -408,19 +409,6 @@ def main() -> int:
         if s.status == "fail":
             hard_failed = True
 
-    summary: dict[str, Any] = {
-        "cmd": "sc-acceptance-check",
-        "date": today_str(),
-        "run_id": run_id,
-        "task_id": triplet.task_id,
-        "title": triplet.master.get("title"),
-        "only": args.only,
-        "status": "fail" if hard_failed else "ok",
-        "steps": [s.__dict__ for s in steps],
-        "out_dir": str(out_dir),
-        "subtasks_coverage_mode": subtasks_mode,
-    }
-
     metrics: dict[str, Any] = {}
 
     tests_step = next((s for s in steps if s.name == "tests-all" and s.log), None)
@@ -435,6 +423,50 @@ def main() -> int:
     perf_step = next((s for s in steps if s.name == "perf-budget" and isinstance(s.details, dict)), None)
     if perf_step and isinstance(perf_step.details, dict):
         metrics["perf"] = perf_step.details
+
+    risk_summary_rel: str | None = None
+    if enabled("risk"):
+        try:
+            risk_path, risk_payload = write_risk_summary(
+                out_dir=out_dir,
+                task_id=str(triplet.task_id),
+                run_id=run_id,
+                acceptance_status="fail" if hard_failed else "ok",
+                steps=steps,
+                metrics=metrics or None,
+            )
+            risk_summary_rel = str(risk_path.relative_to(repo_root())).replace("\\", "/")
+            steps.append(
+                StepResult(
+                    name="risk-summary",
+                    status="ok",
+                    rc=0,
+                    details={
+                        "risk_summary": risk_summary_rel,
+                        "levels": (risk_payload or {}).get("levels"),
+                        "scores": (risk_payload or {}).get("scores"),
+                        "verdict": (risk_payload or {}).get("verdict"),
+                    },
+                )
+            )
+        except Exception as exc:  # noqa: BLE001
+            hard_failed = True
+            steps.append(StepResult(name="risk-summary", status="fail", rc=1, details={"error": str(exc)}))
+
+    summary: dict[str, Any] = {
+        "cmd": "sc-acceptance-check",
+        "date": today_str(),
+        "run_id": run_id,
+        "task_id": triplet.task_id,
+        "title": triplet.master.get("title"),
+        "only": args.only,
+        "status": "fail" if hard_failed else "ok",
+        "steps": [s.__dict__ for s in steps],
+        "out_dir": str(out_dir),
+        "subtasks_coverage_mode": subtasks_mode,
+    }
+    if risk_summary_rel:
+        summary["risk_summary"] = risk_summary_rel
 
     if metrics:
         summary["metrics"] = metrics

@@ -100,6 +100,18 @@ def build_acceptance_evidence(*, task_id: str | None, max_chars: int = 4000) -> 
     tests = unit.get("tests") if isinstance(unit.get("tests"), dict) else {}
     perf = metrics.get("perf") if isinstance(metrics.get("perf"), dict) else {}
 
+    risk_payload: dict[str, Any] | None = None
+    risk_path_rel = None
+    risk_ref = summary.get("risk_summary")
+    if isinstance(risk_ref, str) and risk_ref.strip():
+        risk_path_rel = risk_ref.strip().replace("\\", "/")
+        risk_payload = _read_json(root / risk_path_rel)
+    if not risk_payload:
+        fallback = acc_dir / "risk_summary.json"
+        if fallback.is_file():
+            risk_payload = _read_json(fallback)
+            risk_path_rel = _to_posix(fallback.relative_to(root))
+
     findings_total = None
     soft_scan = acc_dir / "security-soft-scan.json"
     soft_scan_data = _read_json(soft_scan)
@@ -128,6 +140,40 @@ def build_acceptance_evidence(*, task_id: str | None, max_chars: int = 4000) -> 
     if findings_total is not None:
         lines.append(f"- security_soft_findings: total={findings_total}")
 
+    if isinstance(risk_payload, dict):
+        levels = risk_payload.get("levels") if isinstance(risk_payload.get("levels"), dict) else {}
+        scores = risk_payload.get("scores") if isinstance(risk_payload.get("scores"), dict) else {}
+        verdict = risk_payload.get("verdict")
+        lines.append("")
+        lines.append("## Risk Summary (deterministic)")
+        lines.append(
+            f"- overall: level={levels.get('overall')} score={scores.get('overall')} verdict={verdict}"
+        )
+        lines.append(f"- security: level={levels.get('security')} score={scores.get('security')}")
+        lines.append(f"- performance: level={levels.get('performance')} score={scores.get('performance')}")
+        lines.append(f"- debt: level={levels.get('debt')} score={scores.get('debt')}")
+        if risk_path_rel:
+            lines.append(f"- risk_summary: `{risk_path_rel}`")
+
+        signals = risk_payload.get("signals") if isinstance(risk_payload.get("signals"), list) else []
+        if signals:
+            # Keep only top signals to avoid prompt bloat.
+            top = []
+            for s in signals:
+                if not isinstance(s, dict):
+                    continue
+                sev = str(s.get("severity") or "")
+                if sev in {"P0", "P1"}:
+                    top.append(s)
+            if not top:
+                top = [s for s in signals if isinstance(s, dict)]
+            top = top[:5]
+            lines.append("- top_signals:")
+            for s in top:
+                lines.append(f"  - {s.get('severity')} {s.get('domain')} {s.get('id')}: {s.get('message')}")
+
+        lines.append("- interpretation: explain WHY the deterministic risk levels were assigned; propose the smallest fix list; do NOT re-score.")
+
     # Pointers for human triage (do not inline huge logs).
     lines.append("- logs:")
     lines.append(f"  - report: `{_to_posix((acc_dir / 'report.md').relative_to(root))}`")
@@ -143,5 +189,12 @@ def build_acceptance_evidence(*, task_id: str | None, max_chars: int = 4000) -> 
         "acceptance_status": status,
         "failing_steps": failing_steps,
     }
+    if isinstance(risk_payload, dict):
+        meta["risk"] = {
+            "path": risk_path_rel,
+            "levels": risk_payload.get("levels"),
+            "scores": risk_payload.get("scores"),
+            "verdict": risk_payload.get("verdict"),
+        }
     return md, meta
 
