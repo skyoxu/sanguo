@@ -36,14 +36,14 @@ func test_hud_updates_on_score_event() -> void:
     var score_label: Label = hud.get_node("TopBar/HBox/ScoreLabel")
     _bus.PublishSimple("core.score.updated", "ut", "{\"value\":42}")
     await get_tree().process_frame
-    assert_str(score_label.text).contains("42")
+    assert_str(score_label.text).is_equal("Score: 42")
 
 func test_hud_updates_on_health_event() -> void:
     var hud = await _hud()
     var hp_label: Label = hud.get_node("TopBar/HBox/HealthLabel")
     _bus.PublishSimple("core.health.updated", "ut", "{\"value\":77}")
     await get_tree().process_frame
-    assert_str(hp_label.text).contains("77")
+    assert_str(hp_label.text).is_equal("HP: 77")
 
 func test_hud_updates_on_sanguo_turn_started_event() -> void:
     var hud = await _hud()
@@ -53,12 +53,12 @@ func test_hud_updates_on_sanguo_turn_started_event() -> void:
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
-    assert_str(active_label.text).contains("p1")
-    assert_str(date_label.text).contains("0003-02-01")
+    assert_str(active_label.text).is_equal("Player: p1")
+    assert_str(date_label.text).is_equal("Date: 0003-02-01")
 
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":123,\"PositionIndex\":0}")
     await get_tree().process_frame
-    assert_str(money_label.text).contains("123")
+    assert_str(money_label.text).is_equal("Money: 123")
 
 func test_dice_button_emits_ui_roll_event() -> void:
     var hud = await _hud()

@@ -107,7 +107,8 @@
     ],
     "acceptance": [
       "Task 2 仅落地环形索引/路径计算，不引入 `City`；`City` 在 Task 3 落地并通过映射接入。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs"
+      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
+      "提供可测试的多步路径序列接口（例如 `GetPath(steps)`），返回每一步访问的索引序列（不含起点，含终点），并用 xUnit 覆盖正/负步长与跨越边界的序列正确性。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -662,7 +663,7 @@
     "acceptance": [
       "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
       "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "UI 展示层读取玩家状态必须通过 `ISanguoPlayerView`（推荐使用 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView` 快照），禁止 UI 直接持有 `SanguoPlayer` 实体作为状态源；跨层传递仅接收快照，防止未来并发/后台计算引入的调用线程违例。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Tasks/Task9UiBoundaryTests.cs"
+      "UI 展示层不得直接引用 `SanguoPlayer` 实体作为状态源；跨层传递只允许 DTO/快照（例如 `SanguoPlayerView` / `ISanguoPlayerView`）或事件 payload，防止未来并发/后台计算引入的调用线程违例。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Tasks/Task9UiBoundaryTests.cs"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",

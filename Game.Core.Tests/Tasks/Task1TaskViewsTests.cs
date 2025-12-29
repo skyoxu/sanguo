@@ -31,10 +31,18 @@ public sealed class Task1TaskViewsTests
         return JsonDocument.Parse(text);
     }
 
-    private static List<int> LoadTasksJsonIds(string repoRoot)
+    private static JsonElement GetTasksArrayFromTasksJson(string repoRoot)
     {
         using var doc = LoadJson(repoRoot, ".taskmaster", "tasks", "tasks.json");
-        var tasks = doc.RootElement.GetProperty("master").GetProperty("tasks");
+        doc.RootElement.TryGetProperty("master", out var master).Should().BeTrue("tasks.json must have master");
+        master.TryGetProperty("tasks", out var tasks).Should().BeTrue("tasks.json master must have tasks");
+        tasks.ValueKind.Should().Be(JsonValueKind.Array);
+        return tasks.Clone();
+    }
+
+    private static List<int> LoadTasksJsonIds(string repoRoot)
+    {
+        var tasks = GetTasksArrayFromTasksJson(repoRoot);
         var ids = new List<int>(tasks.GetArrayLength());
 
         foreach (var t in tasks.EnumerateArray())
@@ -71,14 +79,49 @@ public sealed class Task1TaskViewsTests
     {
         var repoRoot = FindRepoRoot();
 
-        using var tasks = LoadJson(repoRoot, ".taskmaster", "tasks", "tasks.json");
-        tasks.RootElement.TryGetProperty("master", out _).Should().BeTrue("tasks.json must have master");
+        var tasks = GetTasksArrayFromTasksJson(repoRoot);
+        tasks.GetArrayLength().Should().BeGreaterThan(0);
+        foreach (var t in tasks.EnumerateArray())
+        {
+            t.TryGetProperty("id", out var idProp).Should().BeTrue("tasks.json tasks entries must contain id");
+            idProp.ValueKind.Should().Be(JsonValueKind.String);
+
+            t.TryGetProperty("status", out var statusProp).Should().BeTrue("tasks.json tasks entries must contain status");
+            statusProp.ValueKind.Should().Be(JsonValueKind.String);
+            statusProp.GetString().Should().NotBeNullOrWhiteSpace();
+        }
 
         using var back = LoadJson(repoRoot, ".taskmaster", "tasks", "tasks_back.json");
         back.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
+        foreach (var t in back.RootElement.EnumerateArray())
+        {
+            t.TryGetProperty("id", out var idProp).Should().BeTrue("tasks_back.json entries must contain id");
+            idProp.ValueKind.Should().Be(JsonValueKind.String);
+            idProp.GetString().Should().NotBeNullOrWhiteSpace();
+
+            t.TryGetProperty("status", out var statusProp).Should().BeTrue("tasks_back.json entries must contain status");
+            statusProp.ValueKind.Should().Be(JsonValueKind.String);
+            statusProp.GetString().Should().NotBeNullOrWhiteSpace();
+
+            t.TryGetProperty("taskmaster_id", out var tidProp).Should().BeTrue("tasks_back.json entries must contain taskmaster_id");
+            tidProp.ValueKind.Should().Be(JsonValueKind.Number);
+        }
 
         using var gameplay = LoadJson(repoRoot, ".taskmaster", "tasks", "tasks_gameplay.json");
         gameplay.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
+        foreach (var t in gameplay.RootElement.EnumerateArray())
+        {
+            t.TryGetProperty("id", out var idProp).Should().BeTrue("tasks_gameplay.json entries must contain id");
+            idProp.ValueKind.Should().Be(JsonValueKind.String);
+            idProp.GetString().Should().NotBeNullOrWhiteSpace();
+
+            t.TryGetProperty("status", out var statusProp).Should().BeTrue("tasks_gameplay.json entries must contain status");
+            statusProp.ValueKind.Should().Be(JsonValueKind.String);
+            statusProp.GetString().Should().NotBeNullOrWhiteSpace();
+
+            t.TryGetProperty("taskmaster_id", out var tidProp).Should().BeTrue("tasks_gameplay.json entries must contain taskmaster_id");
+            tidProp.ValueKind.Should().Be(JsonValueKind.Number);
+        }
     }
 
     // ACC:T1.2
@@ -88,11 +131,16 @@ public sealed class Task1TaskViewsTests
         var repoRoot = FindRepoRoot();
 
         var masterIds = LoadTasksJsonIds(repoRoot);
+        var masterIdSet = masterIds.ToHashSet();
         var backIds = LoadViewTaskmasterIds(repoRoot, "tasks_back.json");
         var gameplayIds = LoadViewTaskmasterIds(repoRoot, "tasks_gameplay.json");
 
-        backIds.Count.Should().BeGreaterThan(0);
-        gameplayIds.Count.Should().BeGreaterThan(0);
+        (backIds.Count > 0 || gameplayIds.Count > 0).Should().BeTrue("at least one task view must exist (back or gameplay)");
+
+        foreach (var id in backIds)
+            masterIdSet.Contains(id).Should().BeTrue($"each view taskmaster_id must exist in tasks.json (id={id})");
+        foreach (var id in gameplayIds)
+            masterIdSet.Contains(id).Should().BeTrue($"each view taskmaster_id must exist in tasks.json (id={id})");
 
         foreach (var id in masterIds)
         {
@@ -101,4 +149,3 @@ public sealed class Task1TaskViewsTests
         }
     }
 }
-

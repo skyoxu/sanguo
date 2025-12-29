@@ -1,14 +1,12 @@
-// Acceptance anchors:
-// ACC:T2.1
-// ACC:T2.2
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Game.Core.Domain.ValueObjects;
 using Xunit;
 namespace Game.Core.Tests.Domain.ValueObjects;
 public class CircularMapPositionTests
 {
-    // ACC:T2.1
     [Fact]
     public void ShouldReturnCorrectPosition_WhenAdvancingWithinBounds()
     {
@@ -19,6 +17,68 @@ public class CircularMapPositionTests
         // Assert
         result.Current.Should().Be(8);
     }
+
+    // ACC:T2.1
+    [Fact]
+    public void ShouldAdvanceWithinBoundsAndNotReferenceCity_WhenUsingCircularMapPosition()
+    {
+        static bool ContainsType(Type type, Type needle)
+        {
+            if (type == needle)
+                return true;
+            if (type.IsArray)
+                return ContainsType(type.GetElementType()!, needle);
+            if (type.IsGenericType)
+            {
+                foreach (var a in type.GetGenericArguments())
+                {
+                    if (ContainsType(a, needle))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        var position = new CircularMapPosition(5, totalPositions: 15);
+        var result = position.Advance(3);
+        result.Current.Should().Be(8);
+
+        var cityType = typeof(Game.Core.Domain.City);
+        var inspectedTypes = new List<Type>();
+        var flags = System.Reflection.BindingFlags.Instance
+            | System.Reflection.BindingFlags.Static
+            | System.Reflection.BindingFlags.Public
+            | System.Reflection.BindingFlags.NonPublic;
+        var t = typeof(CircularMapPosition);
+
+        foreach (var f in t.GetFields(flags))
+            inspectedTypes.Add(f.FieldType);
+        foreach (var p in t.GetProperties(flags))
+            inspectedTypes.Add(p.PropertyType);
+        foreach (var c in t.GetConstructors(flags))
+            inspectedTypes.AddRange(c.GetParameters().Select(x => x.ParameterType));
+        foreach (var m in t.GetMethods(flags))
+        {
+            inspectedTypes.Add(m.ReturnType);
+            inspectedTypes.AddRange(m.GetParameters().Select(x => x.ParameterType));
+
+            var body = m.GetMethodBody();
+            if (body is not null)
+            {
+                foreach (var local in body.LocalVariables)
+                    inspectedTypes.Add(local.LocalType);
+                foreach (var clause in body.ExceptionHandlingClauses)
+                {
+                    if (clause.CatchType is not null)
+                        inspectedTypes.Add(clause.CatchType);
+                }
+            }
+        }
+
+        var referencesCity = inspectedTypes.Any(x => ContainsType(x, cityType));
+        referencesCity.Should().BeFalse("Task 2 must not introduce City dependency; City is introduced in Task 3");
+    }
     [Fact]
     public void ShouldWrapAround_WhenAdvancingBeyondBounds()
     {
@@ -28,6 +88,19 @@ public class CircularMapPositionTests
         var result = position.Advance(5);
         // Assert
         result.Current.Should().Be(2);  // (12 + 5) % 15 = 2
+    }
+
+    // ACC:T2.3
+    [Fact]
+    public void ShouldReturnVisitedIndexPath_WhenGettingPathSequence()
+    {
+        var position = new CircularMapPosition(5, totalPositions: 15);
+        position.GetPath(3).Should().Equal(6, 7, 8);
+        position.GetPath(-5).Should().Equal(4, 3, 2, 1, 0);
+
+        var nearEnd = new CircularMapPosition(13, totalPositions: 15);
+        nearEnd.GetPath(4).Should().Equal(14, 0, 1, 2);
+        nearEnd.GetPath(-4).Should().Equal(12, 11, 10, 9);
     }
     // ACC:T2.2
     [Fact]

@@ -2,7 +2,6 @@
 # ACC:T22.1
 # ACC:T22.3
 # ACC:T9.1
-# ACC:T9.3
 
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
