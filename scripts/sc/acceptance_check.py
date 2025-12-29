@@ -41,7 +41,9 @@ from _acceptance_steps import (
     step_overlay_validate,
     step_perf_budget,
     step_quality_rules,
+    step_security_hard,
     step_security_soft,
+    step_ui_event_security,
     step_task_links_validate,
     step_task_test_refs_validate,
     step_subtasks_coverage_llm,
@@ -186,6 +188,23 @@ def step_acceptance_executed_refs(out_dir: Path, *, task_id: int, expected_run_i
     return StepResult(name="acceptance-executed-refs", status="ok" if rc == 0 else "fail", rc=rc, cmd=cmd, log=str(log_path))
 
 
+def step_security_audit_evidence(out_dir: Path, *, expected_run_id: str) -> StepResult:
+    out_json = out_dir / "security-audit-executed-evidence.json"
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_security_audit_execution_evidence.py",
+        "--run-id",
+        expected_run_id,
+        "--out",
+        str(out_json),
+    ]
+    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
+    log_path = out_dir / "security-audit-executed-evidence.log"
+    write_text(log_path, out)
+    return StepResult(name="security-audit-executed-evidence", status="ok" if rc == 0 else "fail", rc=rc, cmd=cmd, log=str(log_path))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="sc-acceptance-check (reproducible acceptance gate)")
     ap.add_argument("--task-id", default=None, help="Taskmaster id (e.g. 10 or 10.3). Default: first status=in-progress task.")
@@ -202,6 +221,42 @@ def main() -> int:
     ap.add_argument("--strict-quality-rules", action="store_true", help="fail if deterministic quality rules report verdict=Needs Fix")
     ap.add_argument("--require-task-test-refs", action="store_true", help="fail if tasks_back/tasks_gameplay test_refs is empty for the resolved task id")
     ap.add_argument("--require-executed-refs", action="store_true", help="fail if acceptance anchors cannot be proven executed in this run (TRX/JUnit evidence)")
+    ap.add_argument(
+        "--security-path-gate",
+        default="require",
+        choices=["skip", "warn", "require"],
+        help="Hard gate: path safety invariants (static). Default: require.",
+    )
+    ap.add_argument(
+        "--security-sql-gate",
+        default="require",
+        choices=["skip", "warn", "require"],
+        help="Hard gate: SQL injection anti-patterns (static). Default: require.",
+    )
+    ap.add_argument(
+        "--security-audit-schema-gate",
+        default="require",
+        choices=["skip", "warn", "require"],
+        help="Hard gate: security-audit.jsonl schema keys exist in runtime code (static). Default: require.",
+    )
+    ap.add_argument(
+        "--ui-event-json-guards",
+        default="skip",
+        choices=["skip", "warn", "require"],
+        help="UI event gate: JSON size/max-depth guards (static). Default: skip.",
+    )
+    ap.add_argument(
+        "--ui-event-source-verify",
+        default="skip",
+        choices=["skip", "warn", "require"],
+        help="UI event gate: if handler has `source`, require it is used (static). Default: skip.",
+    )
+    ap.add_argument(
+        "--security-audit-evidence",
+        default="skip",
+        choices=["skip", "warn", "require"],
+        help="Require runtime evidence of security-audit.jsonl for this run_id (requires tests). Default: skip.",
+    )
     ap.add_argument(
         "--require-headless-e2e",
         action="store_true",
@@ -279,9 +334,19 @@ def main() -> int:
     if enabled("rules"):
         steps.append(step_quality_rules(out_dir, strict=bool(args.strict_quality_rules)))
     if enabled("security"):
+        steps.append(
+            step_security_hard(
+                out_dir,
+                path_mode=str(args.security_path_gate),
+                sql_mode=str(args.security_sql_gate),
+                audit_schema_mode=str(args.security_audit_schema_gate),
+            )
+        )
+        steps.append(step_ui_event_security(out_dir, json_mode=str(args.ui_event_json_guards), source_mode=str(args.ui_event_source_verify)))
         steps.append(step_security_soft(out_dir))
 
     godot_bin = args.godot_bin or os.environ.get("GODOT_BIN")
+    audit_mode = str(args.security_audit_evidence or "skip").strip().lower()
     if enabled("tests"):
         test_type = "all" if has_gd_refs else "unit"
         if test_type != "unit" and not godot_bin:
@@ -292,6 +357,12 @@ def main() -> int:
                 steps.append(step_headless_e2e_evidence(out_dir, expected_run_id=run_id))
             if require_executed:
                 steps.append(step_acceptance_executed_refs(out_dir, task_id=int(triplet.task_id), expected_run_id=run_id))
+            if audit_mode in ("warn", "require"):
+                audit_step = step_security_audit_evidence(out_dir, expected_run_id=run_id)
+                if audit_mode == "warn" and audit_step.status != "ok":
+                    steps.append(StepResult(name="security-audit-executed-evidence", status="ok", rc=0, details={"mode": "warn", "reason": "audit_evidence_missing"}))
+                else:
+                    steps.append(audit_step)
     elif needs_headless:
         steps.append(
             StepResult(
@@ -310,6 +381,17 @@ def main() -> int:
                 details={"error": "tests_step_disabled", "hint": "include 'tests' in --only (or omit --only) when using --require-executed-refs"},
             )
         )
+    elif audit_mode == "require":
+        steps.append(
+            StepResult(
+                name="security-audit-executed-evidence",
+                status="fail",
+                rc=1,
+                details={"error": "tests_step_disabled", "hint": "include 'tests' in --only (or omit --only) when using --security-audit-evidence require"},
+            )
+        )
+    elif audit_mode == "warn":
+        steps.append(StepResult(name="security-audit-executed-evidence", status="ok", rc=0, details={"mode": "warn", "reason": "tests_step_disabled"}))
 
     env_v = os.environ.get("PERF_P95_THRESHOLD_MS")
     env_p95 = int(env_v) if (env_v and env_v.isdigit()) else None

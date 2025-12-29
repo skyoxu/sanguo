@@ -12,7 +12,6 @@
         "status": "done",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0001",
           "ADR-0005",
           "ADR-0011",
           "ADR-0018"
