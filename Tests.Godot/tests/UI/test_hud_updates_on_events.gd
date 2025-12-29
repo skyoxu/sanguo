@@ -22,6 +22,8 @@ func _hud() -> Node:
     await get_tree().process_frame
     return hud
 
+# ACC:T22.2
+# ACC:T9.2
 func test_hud_has_core_status_nodes() -> void:
     var hud = await _hud()
     assert_object(hud.get_node_or_null("TopBar/HBox/DiceButton")).is_not_null()

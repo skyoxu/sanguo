@@ -1,9 +1,3 @@
-# Acceptance anchors:
-# ACC:T10.1
-# ACC:T10.2
-# ACC:T10.3
-# ACC:T10.4
-
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 const EVENT_TOKEN_MOVED := "core.sanguo.board.token.moved"
@@ -31,6 +25,8 @@ func _await_until(predicate: Callable, max_frames: int = 240) -> void:
         await get_tree().process_frame
     assert_bool(predicate.call()).is_true()
 
+# Acceptance anchors:
+# ACC:T10.1
 func test_token_moves_to_index_position_without_animation() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -48,6 +44,8 @@ func test_token_moves_to_index_position_without_animation() -> void:
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(_target_position(view, 3))
 
+# Acceptance anchors:
+# ACC:T10.2
 func test_token_move_sets_animated_flag_when_duration_positive() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     view.Origin = Vector2.ZERO
@@ -62,6 +60,8 @@ func test_token_move_sets_animated_flag_when_duration_positive() -> void:
 
     assert_bool(view.LastMoveAnimated).is_true()
 
+# Acceptance anchors:
+# ACC:T10.2
 func test_token_move_animation_duration_reaches_target_after_expected_time() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -75,16 +75,31 @@ func test_token_move_animation_duration_reaches_target_after_expected_time() -> 
 
     var start_pos: Vector2 = token.position
     var target: Vector2 = _target_position(view, 5)
+    var start_ms: int = Time.get_ticks_msec()
 
     _publish_move("p1", 5)
     assert_vector(token.position).is_equal(start_pos)
     assert_bool(view.LastMoveAnimated).is_true()
 
     await _await_until(func() -> bool: return token.position.distance_to(start_pos) > 0.01, 60)
-    await _await_until(func() -> bool: return token.position.distance_to(target) <= 0.5, 240)
+    var reached_ms := -1
+    for _i in range(240):
+        await get_tree().process_frame
+        if token.position.distance_to(target) <= 0.5:
+            reached_ms = Time.get_ticks_msec()
+            break
+    assert_int(reached_ms).is_greater(0)
+    var elapsed_ms: int = int(reached_ms - start_ms)
+    var expected_ms: int = int(view.MoveDurationSeconds * 1000.0)
+    var min_ms: int = int(round(float(expected_ms) * 0.5))
+    var max_ms: int = int(round(float(expected_ms) * 8.0))
+    assert_int(elapsed_ms).is_greater_equal(min_ms)
+    assert_int(elapsed_ms).is_less_equal(max_ms)
     assert_float(token.position.x).is_between(target.x - 0.5, target.x + 0.5)
     assert_float(token.position.y).is_between(target.y - 0.5, target.y + 0.5)
 
+# Acceptance anchors:
+# ACC:T10.3
 func test_token_moves_continuously_last_event_wins() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -107,6 +122,8 @@ func test_token_moves_continuously_last_event_wins() -> void:
     assert_int(view.LastToIndex).is_equal(1)
     assert_float(token.position.x).is_between(target.x - 0.5, target.x + 0.5)
 
+# Acceptance anchors:
+# ACC:T10.4
 func test_instant_move_overrides_animation_when_duration_is_zero() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -127,6 +144,9 @@ func test_instant_move_overrides_animation_when_duration_is_zero() -> void:
     assert_bool(view.LastMoveAnimated).is_false()
     var target: Vector2 = _target_position(view, 4)
     assert_float(token.position.x).is_between(target.x - 0.5, target.x + 0.5)
+    for _i in range(10):
+        await get_tree().process_frame
+        assert_float(token.position.x).is_between(target.x - 0.5, target.x + 0.5)
 
 func test_ready_without_eventbus_does_not_crash() -> void:
     var original_name: String = _bus.name

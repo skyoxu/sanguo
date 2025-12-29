@@ -860,6 +860,8 @@ def main() -> int:
         last_msg = ""
         if output_path.is_file():
             last_msg = output_path.read_text(encoding="utf-8", errors="ignore")
+            # Normalize to UTF-8 (with BOM for .md) for Windows-friendly viewing.
+            write_text(output_path, last_msg)
 
         status = "ok" if (rc == 0 and last_msg.strip()) else ("fail" if args.strict else "skipped")
         if status != "ok":

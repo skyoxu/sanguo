@@ -181,8 +181,6 @@ def step_acceptance_anchors_validate(out_dir: Path, triplet: TaskmasterTriplet) 
         str(out_dir / "acceptance-anchors.json"),
     ]
     return run_and_capture(out_dir, name="acceptance-anchors", cmd=cmd, timeout_sec=60)
-
-
 def step_overlay_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResult:
     primary = run_and_capture(
         out_dir,
@@ -270,9 +268,11 @@ def step_security_soft(out_dir: Path) -> StepResult:
     return StepResult(name="security-soft", status="ok", details=details)
 
 
-def step_tests_all(out_dir: Path, godot_bin: str | None) -> StepResult:
-    cmd = ["py", "-3", "scripts/sc/test.py", "--type", "all"]
-    if godot_bin:
+def step_tests_all(out_dir: Path, godot_bin: str | None, *, run_id: str | None = None, test_type: str = "all") -> StepResult:
+    cmd = ["py", "-3", "scripts/sc/test.py", "--type", test_type]
+    if run_id:
+        cmd += ["--run-id", run_id]
+    if godot_bin and test_type != "unit":
         cmd += ["--godot-bin", godot_bin]
     return run_and_capture(out_dir, name="tests-all", cmd=cmd, timeout_sec=1_200)
 

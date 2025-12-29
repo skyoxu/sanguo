@@ -1,8 +1,5 @@
 // Acceptance anchors:
 // ACC:T11.1
-// ACC:T11.2
-// ACC:T11.3
-
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -14,9 +11,7 @@ using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
 using Game.Core.Services;
 using Xunit;
-
 namespace Game.Core.Tests.Services;
-
 public sealed class SanguoAiBehaviorTests
 {
     [Fact]
@@ -24,25 +19,20 @@ public sealed class SanguoAiBehaviorTests
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
-
         var gameId = "game-1";
         var humanId = "p1";
         var aiId = "ai-1";
         var playerOrder = new[] { humanId, aiId };
         var correlationId = "corr-1";
-
         var rules = new SanguoEconomyRules(
             maxPriceMultiplier: SanguoEconomyRules.DefaultMaxPriceMultiplier,
             maxTollMultiplier: SanguoEconomyRules.DefaultMaxTollMultiplier);
-
         var cities = new Dictionary<string, City>(StringComparer.Ordinal);
         var human = new SanguoPlayer(playerId: humanId, money: 200m, positionIndex: 0, economyRules: rules);
         var ai = new SanguoPlayer(playerId: aiId, money: 200m, positionIndex: 0, economyRules: rules);
-
         var boardState = new SanguoBoardState(players: new[] { human, ai }, citiesById: cities);
         var treasury = new SanguoTreasury();
         var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
-
         await mgr.StartNewGameAsync(
             gameId: gameId,
             playerOrder: playerOrder,
@@ -51,15 +41,11 @@ public sealed class SanguoAiBehaviorTests
             day: 1,
             correlationId: correlationId,
             causationId: null);
-
         await mgr.AdvanceTurnAsync(correlationId, causationId: "cmd-advance");
-
         var decision = bus.Published.Find(e => e.Type == SanguoAiDecisionMade.EventType);
         decision.Should().NotBeNull("AI decision event should be published when it becomes the AI player's turn");
-
         decision!.Data.Should().BeOfType<JsonElementEventData>();
         var payload = ((JsonElementEventData)decision.Data!).Value;
-
         payload.GetProperty("GameId").GetString().Should().Be(gameId);
         payload.GetProperty("AiPlayerId").GetString().Should().Be(aiId);
         payload.GetProperty("DecisionType").GetString().Should().NotBeNullOrWhiteSpace();
@@ -68,19 +54,15 @@ public sealed class SanguoAiBehaviorTests
         payload.TryGetProperty("CausationId", out var causation).Should().BeTrue();
         causation.GetString().Should().Be("cmd-advance");
     }
-
     private sealed class CapturingEventBus : IEventBus
     {
         public List<DomainEvent> Published { get; } = new();
-
         public Task PublishAsync(DomainEvent evt)
         {
             Published.Add(evt);
             return Task.CompletedTask;
         }
-
         public IDisposable Subscribe(Func<DomainEvent, Task> handler) => new DummySubscription();
-
         private sealed class DummySubscription : IDisposable
         {
             public void Dispose()

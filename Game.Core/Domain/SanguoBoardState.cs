@@ -17,6 +17,34 @@ public sealed class SanguoBoardState
     private readonly IReadOnlyDictionary<string, City> _citiesById;
     private readonly IReadOnlyDictionary<string, SanguoPlayer> _playersById;
 
+    /// <summary>
+    /// Read-only view of players keyed by player id.
+    /// Intended for read access (UI/AI) without allowing mutation through this API.
+    /// </summary>
+    public IReadOnlyDictionary<string, ISanguoPlayerView> Players
+    {
+        get
+        {
+            AssertThread();
+            var snapshot = new Dictionary<string, ISanguoPlayerView>(StringComparer.Ordinal);
+            foreach (var (id, player) in _playersById)
+                snapshot[id] = player;
+            return snapshot;
+        }
+    }
+
+    /// <summary>
+    /// Read-only view of cities keyed by city id.
+    /// </summary>
+    public IReadOnlyDictionary<string, City> CitiesById
+    {
+        get
+        {
+            AssertThread();
+            return new Dictionary<string, City>(_citiesById, StringComparer.Ordinal);
+        }
+    }
+
     public SanguoBoardState(
         IReadOnlyList<SanguoPlayer> players,
         IReadOnlyDictionary<string, City> citiesById
@@ -55,10 +83,21 @@ public sealed class SanguoBoardState
             ArgumentNullException.ThrowIfNull(city, nameof(city));
             if (citiesSnapshot.ContainsKey(cityId))
                 throw new ArgumentException($"Duplicate city id: {cityId}", nameof(citiesById));
+            if (!StringComparer.Ordinal.Equals(cityId, city.Id))
+                throw new ArgumentException($"citiesById key does not match City.Id (key={cityId}, city.Id={city.Id}).", nameof(citiesById));
             citiesSnapshot.Add(cityId, city);
         }
 
         _citiesById = citiesSnapshot;
+
+        foreach (var player in _playersById.Values)
+        {
+            foreach (var ownedCityId in player.OwnedCityIds)
+            {
+                if (!_citiesById.ContainsKey(ownedCityId))
+                    throw new InvalidOperationException($"OwnedCityId not found in citiesById (playerId={player.PlayerId}, cityId={ownedCityId}).");
+            }
+        }
     }
 
     /// <summary>

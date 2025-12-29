@@ -1,17 +1,17 @@
 // Acceptance anchors:
+// ACC:T9.3
+// Acceptance anchors:
 // ACC:T9.4
 // ACC:T11.4
-
 using System;
 using FluentAssertions;
 using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
 using Xunit;
-
 namespace Game.Core.Tests.Domain;
-
 public class SanguoPlayerViewTests
 {
+    // ACC:T9.3
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -24,10 +24,8 @@ public class SanguoPlayerViewTests
             positionIndex: 0,
             ownedCityIds: Array.Empty<string>(),
             isEliminated: false);
-
         act.Should().Throw<ArgumentException>().WithParameterName("playerId");
     }
-
     [Fact]
     public void ShouldThrowArgumentOutOfRangeException_WhenPositionIndexIsNegative()
     {
@@ -37,10 +35,8 @@ public class SanguoPlayerViewTests
             positionIndex: -1,
             ownedCityIds: Array.Empty<string>(),
             isEliminated: false);
-
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("positionIndex");
     }
-
     [Fact]
     public void ShouldThrowArgumentNullException_WhenOwnedCityIdsIsNull()
     {
@@ -50,7 +46,6 @@ public class SanguoPlayerViewTests
             positionIndex: 0,
             ownedCityIds: null!,
             isEliminated: false);
-
         act.Should().Throw<ArgumentNullException>().WithParameterName("ownedCityIds");
     }
 }

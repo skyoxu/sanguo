@@ -23,6 +23,7 @@ public class GameEngineCoreConstructorTests
             Difficulty: Difficulty.Medium
         );
 
+    // ACC:T1.1
     [Fact]
     public void ShouldThrowArgumentNullException_WhenEventBusIsNull()
     {
@@ -35,6 +36,7 @@ public class GameEngineCoreConstructorTests
             .WithParameterName("bus");
     }
 
+    // ACC:T1.2
     [Fact]
     public void ShouldThrowArgumentNullException_WhenScoreServiceIsNull()
     {

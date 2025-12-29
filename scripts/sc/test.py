@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--solution", default="Game.sln")
     ap.add_argument("--configuration", default="Debug")
     ap.add_argument("--godot-bin", default=None, help="Godot mono console binary (required for e2e/all)")
+    ap.add_argument("--run-id", default=None, help="Optional run identifier for evidence binding (default: auto-generate).")
     ap.add_argument("--smoke-scene", default="res://Game.Godot/Scenes/Main.tscn", help="Main scene for smoke test")
     ap.add_argument("--timeout-sec", type=int, default=600)
     ap.add_argument("--skip-smoke", action="store_true")
@@ -37,12 +39,13 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
-def run_unit(out_dir: Path, solution: str, configuration: str) -> dict[str, Any]:
+def run_unit(out_dir: Path, solution: str, configuration: str, *, run_id: str) -> dict[str, Any]:
     cmd = ["py", "-3", "scripts/python/run_dotnet.py", "--solution", solution, "--configuration", configuration]
     rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=1_800)
     log_path = out_dir / "unit.log"
     write_text(log_path, out)
     unit_artifacts_dir = repo_root() / "logs" / "unit" / today_str()
+    write_text(unit_artifacts_dir / "run_id.txt", run_id + "\n")
     return {"name": "unit", "cmd": cmd, "rc": rc, "log": str(log_path), "artifacts_dir": str(unit_artifacts_dir)}
 
 
@@ -83,7 +86,7 @@ def run_coverage_report(out_dir: Path, unit_artifacts_dir: Path) -> dict[str, An
     }
 
 
-def run_gdunit_hard(out_dir: Path, godot_bin: str, timeout_sec: int) -> dict[str, Any]:
+def run_gdunit_hard(out_dir: Path, godot_bin: str, timeout_sec: int, *, run_id: str) -> dict[str, Any]:
     date = today_str()
     report_dir = Path("logs") / "e2e" / date / "sc-test" / "gdunit-hard"
     os.environ["AUDIT_LOG_ROOT"] = str(repo_root() / "logs" / "ci" / date)
@@ -113,6 +116,7 @@ def run_gdunit_hard(out_dir: Path, godot_bin: str, timeout_sec: int) -> dict[str
     rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=timeout_sec + 300)
     log_path = out_dir / "gdunit-hard.log"
     write_text(log_path, out)
+    write_text(repo_root() / report_dir / "run_id.txt", run_id + "\n")
     return {"name": "gdunit-hard", "cmd": cmd, "rc": rc, "log": str(log_path), "report_dir": str(report_dir)}
 
 
@@ -148,11 +152,14 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str) -> dict[str, Any]:
 def main() -> int:
     args = build_parser().parse_args()
     out_dir = ci_dir("sc-test")
+    run_id = str(args.run_id or "").strip() or uuid.uuid4().hex
+    write_text(out_dir / "run_id.txt", run_id + "\n")
 
     godot_bin = args.godot_bin or os.environ.get("GODOT_BIN")
 
     summary: dict[str, Any] = {
         "cmd": "sc-test",
+        "run_id": run_id,
         "type": args.type,
         "solution": args.solution,
         "configuration": args.configuration,
@@ -167,7 +174,7 @@ def main() -> int:
             os.environ.setdefault("COVERAGE_LINES_MIN", "90")
             os.environ.setdefault("COVERAGE_BRANCHES_MIN", "85")
 
-        step = run_unit(out_dir, args.solution, args.configuration)
+        step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id)
         summary["steps"].append(step)
         if step["rc"] != 0:
             hard_fail = True
@@ -183,7 +190,7 @@ def main() -> int:
             print("[sc-test] ERROR: --godot-bin (or env GODOT_BIN) is required for e2e/integration tests.")
             return 2
 
-        step = run_gdunit_hard(out_dir, godot_bin, args.timeout_sec)
+        step = run_gdunit_hard(out_dir, godot_bin, args.timeout_sec, run_id=run_id)
         summary["steps"].append(step)
         if step["rc"] != 0:
             hard_fail = True

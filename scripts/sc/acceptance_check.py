@@ -19,7 +19,10 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import re
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +46,7 @@ from _acceptance_steps import (
 )
 from _taskmaster import resolve_triplet
 from _unit_metrics import collect_unit_metrics
-from _util import ci_dir, repo_root, today_str, write_json
+from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text
 
 
 def parse_task_id(value: str | None) -> str | None:
@@ -54,6 +57,129 @@ def parse_task_id(value: str | None) -> str | None:
         return None
     # Accept "10" or "10.3" and normalize to master task id ("10").
     return s.split(".", 1)[0]
+
+
+REFS_RE = re.compile(r"\bRefs\s*:\s*(.+)$", flags=re.IGNORECASE)
+
+
+def _split_refs_blob(blob: str) -> list[str]:
+    s = str(blob or "").replace("`", " ").replace(",", " ").replace(";", " ")
+    return [p.strip().replace("\\", "/") for p in s.split() if p.strip()]
+
+
+def task_requires_headless_e2e(triplet: Any) -> bool:
+    for view in [getattr(triplet, "back", None), getattr(triplet, "gameplay", None)]:
+        if not isinstance(view, dict):
+            continue
+        acceptance = view.get("acceptance") or []
+        if not isinstance(acceptance, list):
+            continue
+        for raw in acceptance:
+            text = str(raw or "").strip()
+            m = REFS_RE.search(text)
+            if not m:
+                continue
+            refs = _split_refs_blob(m.group(1))
+            if any(r.lower().endswith(".gd") for r in refs):
+                return True
+    return False
+
+
+def step_headless_e2e_evidence(out_dir: Path, *, expected_run_id: str) -> StepResult:
+    root = repo_root()
+    date = today_str()
+    sc_test_summary = root / "logs" / "ci" / date / "sc-test" / "summary.json"
+    sc_test_run_id = root / "logs" / "ci" / date / "sc-test" / "run_id.txt"
+    e2e_dir = root / "logs" / "e2e" / date / "sc-test" / "gdunit-hard"
+    e2e_run_id = e2e_dir / "run_id.txt"
+
+    details: dict[str, Any] = {
+        "date": date,
+        "expected_run_id": expected_run_id,
+        "sc_test_summary": str(sc_test_summary.relative_to(root)).replace("\\", "/"),
+        "sc_test_run_id_file": str(sc_test_run_id.relative_to(root)).replace("\\", "/"),
+        "e2e_dir": str(e2e_dir.relative_to(root)).replace("\\", "/"),
+        "e2e_run_id_file": str(e2e_run_id.relative_to(root)).replace("\\", "/"),
+        "gdunit_step": None,
+    }
+
+    if not sc_test_summary.exists():
+        write_json(out_dir / "headless-e2e-evidence.json", {**details, "error": "missing_sc_test_summary"})
+        return StepResult(name="headless-e2e-evidence", status="fail", rc=1, details={**details, "error": "missing_sc_test_summary"})
+
+    try:
+        parsed = json.loads(sc_test_summary.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        write_json(out_dir / "headless-e2e-evidence.json", {**details, "error": f"invalid_sc_test_summary_json: {exc}"})
+        return StepResult(
+            name="headless-e2e-evidence",
+            status="fail",
+            rc=1,
+            details={**details, "error": f"invalid_sc_test_summary_json: {exc}"},
+        )
+
+    run_id_in_summary = parsed.get("run_id") if isinstance(parsed, dict) else None
+    details["run_id_in_summary"] = run_id_in_summary
+    if str(run_id_in_summary or "") != expected_run_id:
+        details["error"] = "run_id_mismatch"
+        write_json(out_dir / "headless-e2e-evidence.json", details)
+        return StepResult(name="headless-e2e-evidence", status="fail", rc=1, details=details)
+
+    run_id_in_file = None
+    if sc_test_run_id.exists():
+        run_id_in_file = sc_test_run_id.read_text(encoding="utf-8", errors="ignore").strip()
+    details["run_id_in_file"] = run_id_in_file
+    if str(run_id_in_file or "") != expected_run_id:
+        details["error"] = "run_id_file_mismatch"
+        write_json(out_dir / "headless-e2e-evidence.json", details)
+        return StepResult(name="headless-e2e-evidence", status="fail", rc=1, details=details)
+
+    gd_step = None
+    if isinstance(parsed, dict):
+        for s in parsed.get("steps") or []:
+            if isinstance(s, dict) and s.get("name") == "gdunit-hard":
+                gd_step = s
+                break
+    details["gdunit_step"] = gd_step
+
+    ok = True
+    if not gd_step or gd_step.get("rc") != 0:
+        ok = False
+        details["error"] = "gdunit_step_missing_or_failed"
+
+    if not e2e_dir.exists() or not any(e2e_dir.rglob("*")):
+        ok = False
+        details["error"] = details.get("error") or "e2e_dir_missing_or_empty"
+
+    e2e_run_id_value = None
+    if e2e_run_id.exists():
+        e2e_run_id_value = e2e_run_id.read_text(encoding="utf-8", errors="ignore").strip()
+    details["e2e_run_id_value"] = e2e_run_id_value
+    if str(e2e_run_id_value or "") != expected_run_id:
+        ok = False
+        details["error"] = details.get("error") or "e2e_run_id_mismatch"
+
+    write_json(out_dir / "headless-e2e-evidence.json", details)
+    return StepResult(name="headless-e2e-evidence", status="ok" if ok else "fail", rc=0 if ok else 1, details=details)
+
+
+def step_acceptance_executed_refs(out_dir: Path, *, task_id: int, expected_run_id: str) -> StepResult:
+    out_json = out_dir / "acceptance-executed-refs.json"
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_acceptance_execution_evidence.py",
+        "--task-id",
+        str(task_id),
+        "--run-id",
+        expected_run_id,
+        "--out",
+        str(out_json),
+    ]
+    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
+    log_path = out_dir / "acceptance-executed-refs.log"
+    write_text(log_path, out)
+    return StepResult(name="acceptance-executed-refs", status="ok" if rc == 0 else "fail", rc=rc, cmd=cmd, log=str(log_path))
 
 
 def main() -> int:
@@ -71,6 +197,12 @@ def main() -> int:
     ap.add_argument("--strict-test-quality", action="store_true", help="fail if deterministic test-quality heuristics report verdict=Needs Fix")
     ap.add_argument("--strict-quality-rules", action="store_true", help="fail if deterministic quality rules report verdict=Needs Fix")
     ap.add_argument("--require-task-test-refs", action="store_true", help="fail if tasks_back/tasks_gameplay test_refs is empty for the resolved task id")
+    ap.add_argument("--require-executed-refs", action="store_true", help="fail if acceptance anchors cannot be proven executed in this run (TRX/JUnit evidence)")
+    ap.add_argument(
+        "--require-headless-e2e",
+        action="store_true",
+        help="fail when task acceptance refs include .gd tests but this run does not produce headless GdUnit4 artifacts under logs/e2e/<date>/sc-test/",
+    )
     ap.add_argument(
         "--only",
         default=None,
@@ -94,6 +226,10 @@ def main() -> int:
         return True if only is None else (key in only)
 
     steps: list[StepResult] = []
+    has_gd_refs = task_requires_headless_e2e(triplet)
+    needs_headless = bool(args.require_headless_e2e) and has_gd_refs
+    require_executed = bool(args.require_executed_refs)
+    run_id = uuid.uuid4().hex
 
     if enabled("adr"):
         steps.append(step_adr_compliance(out_dir, triplet, strict_status=bool(args.strict_adr_status)))
@@ -119,7 +255,33 @@ def main() -> int:
 
     godot_bin = args.godot_bin or os.environ.get("GODOT_BIN")
     if enabled("tests"):
-        steps.append(step_tests_all(out_dir, godot_bin))
+        test_type = "all" if has_gd_refs else "unit"
+        if test_type != "unit" and not godot_bin:
+            steps.append(StepResult(name="tests-all", status="fail", rc=2, details={"error": "missing_godot_bin", "hint": "set --godot-bin or env GODOT_BIN"}))
+        else:
+            steps.append(step_tests_all(out_dir, godot_bin, run_id=run_id, test_type=test_type))
+            if needs_headless:
+                steps.append(step_headless_e2e_evidence(out_dir, expected_run_id=run_id))
+            if require_executed:
+                steps.append(step_acceptance_executed_refs(out_dir, task_id=int(triplet.task_id), expected_run_id=run_id))
+    elif needs_headless:
+        steps.append(
+            StepResult(
+                name="headless-e2e-evidence",
+                status="fail",
+                rc=1,
+                details={"error": "tests_step_disabled", "hint": "include 'tests' in --only (or omit --only) when using --require-headless-e2e"},
+            )
+        )
+    elif require_executed:
+        steps.append(
+            StepResult(
+                name="acceptance-executed-refs",
+                status="fail",
+                rc=1,
+                details={"error": "tests_step_disabled", "hint": "include 'tests' in --only (or omit --only) when using --require-executed-refs"},
+            )
+        )
 
     env_v = os.environ.get("PERF_P95_THRESHOLD_MS")
     env_p95 = int(env_v) if (env_v and env_v.isdigit()) else None
@@ -137,6 +299,7 @@ def main() -> int:
     summary: dict[str, Any] = {
         "cmd": "sc-acceptance-check",
         "date": today_str(),
+        "run_id": run_id,
         "task_id": triplet.task_id,
         "title": triplet.master.get("title"),
         "only": args.only,

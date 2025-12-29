@@ -31,6 +31,8 @@ from typing import Any
 
 
 REFS_RE = re.compile(r"\bRefs\s*:\s*(.+)$", flags=re.IGNORECASE)
+XUNIT_MARKER_RE = re.compile(r"^\s*\[\s*(Fact|Theory)\s*\]\s*$")
+GDUNIT_MARKER_RE = re.compile(r"^\s*func\s+test_", flags=re.IGNORECASE)
 
 
 def repo_root() -> Path:
@@ -96,6 +98,28 @@ class ItemResult:
     reason: str | None
 
 
+def _is_anchor_bound_to_test(lines: list[str], anchor: str, *, max_lines_after_anchor: int, kind: str) -> bool:
+    indices = [i for i, line in enumerate(lines) if anchor in line]
+    if not indices:
+        return False
+
+    if kind == "cs":
+        marker = XUNIT_MARKER_RE
+    elif kind == "gd":
+        marker = GDUNIT_MARKER_RE
+    else:
+        return False
+
+    for idx in indices:
+        start = idx + 1
+        end = min(len(lines) - 1, idx + max_lines_after_anchor)
+        for j in range(start, end + 1):
+            if marker.search(lines[j]):
+                return True
+
+    return False
+
+
 def validate_view_entry(*, root: Path, view_name: str, task_id: str, entry: dict[str, Any], stage: str) -> dict[str, Any]:
     acceptance = entry.get("acceptance") or []
     if not isinstance(acceptance, list):
@@ -154,13 +178,21 @@ def validate_view_entry(*, root: Path, view_name: str, task_id: str, entry: dict
             continue
 
         found_in: list[str] = []
+        bound_in: list[str] = []
         for p in existing_files:
             try:
                 t = p.read_text(encoding="utf-8", errors="ignore")
             except Exception:  # noqa: BLE001
                 t = ""
             if anchor in t:
-                found_in.append(str(p.relative_to(root)).replace("\\", "/"))
+                rel = str(p.relative_to(root)).replace("\\", "/")
+                found_in.append(rel)
+                ext = p.suffix.lower()
+                kind = "cs" if ext == ".cs" else ("gd" if ext == ".gd" else "other")
+                lines = t.splitlines()
+                max_lines = 5 if stage == "refactor" else 30
+                if _is_anchor_bound_to_test(lines, anchor, max_lines_after_anchor=max_lines, kind=kind):
+                    bound_in.append(rel)
 
         if not found_in:
             items.append(
@@ -175,7 +207,30 @@ def validate_view_entry(*, root: Path, view_name: str, task_id: str, entry: dict
             errors.append(f"{view_name}: acceptance[{idx}] anchor not found in any referenced test file: {anchor}")
             continue
 
-        items.append({"index": idx + 1, "anchor": anchor, "refs": refs, "status": "ok", "found_in": found_in})
+        if not bound_in:
+            items.append(
+                {
+                    "index": idx + 1,
+                    "anchor": anchor,
+                    "refs": refs,
+                    "status": "fail",
+                    "reason": "anchor_not_near_test",
+                    "found_in": found_in,
+                }
+            )
+            errors.append(f"{view_name}: acceptance[{idx}] anchor found but not bound to a test (anchor must precede marker within 5 lines at refactor): {anchor}")
+            continue
+
+        items.append(
+            {
+                "index": idx + 1,
+                "anchor": anchor,
+                "refs": refs,
+                "status": "ok",
+                "found_in": found_in,
+                "bound_in": bound_in,
+            }
+        )
 
     status = "ok" if not errors else "fail"
     return {"view": view_name, "status": status, "items": items, "errors": errors}
@@ -222,4 +277,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
