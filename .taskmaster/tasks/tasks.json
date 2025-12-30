@@ -70,7 +70,7 @@
         "id": "3",
         "title": "实现城池类",
         "description": "定义城池的属性和方法。",
-        "details": "创建City类，包含名称、所属州郡、基础价格、基础过路费等属性。实现计算当前价格和过路费的方法。",
+        "details": "创建 City 类，包含 Id/Name/RegionId/BasePrice/BaseToll 等属性；实现 GetPrice/GetToll，根据倍率计算当前价格与过路费，并使用 SanguoEconomyRules 约束倍率范围（非法倍率抛异常）。",
         "testStrategy": "通过单元测试验证城池属性的正确性和方法的输出。\nTest-Refs: Game.Core.Tests/Domain/CityTests.cs\nLocal demo paths: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
         "priority": "high",
         "dependencies": [
@@ -138,7 +138,7 @@
         "id": "5",
         "title": "实现骰子机制",
         "description": "设计骰子投掷的逻辑。",
-        "details": "使用随机数生成器实现骰子投掷，返回1到6的随机数。",
+        "details": "使用随机数生成器实现骰子投掷，返回 1..6 的随机数，并在掷骰后发布域事件（ADR-0004）：core.sanguo.dice.rolled（SanguoDiceRolled）。",
         "testStrategy": "单元测试（xUnit + FluentAssertions）：\n- 掷骰结果始终在 1..6（含边界）。\n- 随机源可控（优先复用 `Game.Core/Utilities/RandomHelper.cs`；必要时允许注入随机源以便确定性测试）。\n- 事件对齐（ADR-0004）：掷骰后发布 `SanguoDiceRolled`（`Game.Core/Contracts/Sanguo/BoardEvents.cs`），并验证 `DomainEvent.Type == SanguoDiceRolled.EventType` 且 Value 与点数一致。\n覆盖率门禁：lines>=90%、branches>=85%（ADR-0005）；产物归档到 `logs/unit/<YYYY-MM-DD>/`。\n",
         "priority": "medium",
         "dependencies": [
@@ -240,9 +240,9 @@
       {
         "id": "8",
         "title": "实现事件管理器",
-        "description": "管理季度环境事件的生成和应用。",
-        "details": "创建EventManager类，定义事件类型和逻辑，管理事件的触发和效果应用。\n可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。\n",
-        "testStrategy": "通过模拟季度变化，验证事件的触发和效果的正确应用。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype\n加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。\n加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。\n",
+        "description": "实现域事件总线（EventBus）与订阅生命周期管理。",
+        "details": "在 Game.Core 中实现事件总线（IEventBus/InMemoryEventBus）：支持订阅/取消订阅（Dispose），PublishAsync 会 fan-out 调用所有订阅者；当订阅者抛异常时不得中断其他订阅者，并在可用时向 logger/reporter 上报上下文（event_type/event_source/event_id），同时保证观测链路异常不影响业务（best-effort）。事件契约与追踪字段口径参考 ADR-0004。\n",
+        "testStrategy": "通过 xUnit 覆盖事件发布 fan-out、Dispose 后不再接收、订阅者异常隔离、logger/reporter 上下文上报，以及 logger/reporter 自身异常时的 best-effort 行为。\n",
         "priority": "medium",
         "dependencies": [
           "7"

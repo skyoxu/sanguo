@@ -25,6 +25,9 @@ public partial class HUD : Control
     private EventBusAdapter? _bus;
     private readonly Dictionary<string, Action<JsonElement>> _handlers = new(StringComparer.Ordinal);
 
+    private EventToast? _toast;
+    private EventLogPanel? _logPanel;
+
     public override void _Ready()
     {
         _score = GetNode<Label>("TopBar/HBox/ScoreLabel");
@@ -35,6 +38,9 @@ public partial class HUD : Control
         _money = GetNode<Label>("TopBar/HBox/MoneyLabel");
         _diceButton = GetNode<Button>("TopBar/HBox/DiceButton");
         _diceButton.Pressed += OnDicePressed;
+
+        _toast = GetNodeOrNull<EventToast>("EventToast");
+        _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
 
         RegisterHandlers();
 
@@ -98,12 +104,46 @@ public partial class HUD : Control
         try
         {
             using var doc = JsonDocument.Parse(json, JsonOptions);
+            RecordEventForUi(type, doc.RootElement);
             handler(doc.RootElement);
         }
         catch (System.Exception ex)
         {
             GD.PushWarning($"HUD failed to handle event '{type}': {ex.Message}");
         }
+    }
+
+    private void RecordEventForUi(string type, JsonElement root)
+    {
+        var message = BuildEventSummary(type, root);
+        _toast?.ShowMessage(message);
+        _logPanel?.Append(message);
+    }
+
+    private static string BuildEventSummary(string type, JsonElement root)
+    {
+        string? playerId = null;
+        if (root.TryGetProperty("PlayerId", out var pid))
+        {
+            playerId = pid.GetString();
+        }
+        else if (root.TryGetProperty("ActivePlayerId", out var ap))
+        {
+            playerId = ap.GetString();
+        }
+
+        if (root.TryGetProperty("Value", out var value) && value.ValueKind == JsonValueKind.Number)
+        {
+            return string.IsNullOrWhiteSpace(playerId) ? $"{type} value={value}" : $"{type} player={playerId} value={value}";
+        }
+
+        if (root.TryGetProperty("CityId", out var cityId))
+        {
+            var city = cityId.GetString();
+            return string.IsNullOrWhiteSpace(playerId) ? $"{type} city={city}" : $"{type} player={playerId} city={city}";
+        }
+
+        return string.IsNullOrWhiteSpace(playerId) ? type : $"{type} player={playerId}";
     }
 
     private void RegisterHandlers()

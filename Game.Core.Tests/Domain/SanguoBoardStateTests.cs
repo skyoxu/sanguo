@@ -88,6 +88,7 @@ public sealed class SanguoBoardStateTests
         act.Should().Throw<ArgumentException>();
     }
 
+    // ACC:T12.5
     [Fact]
     public void TryBuyCity_WhenCityOwnedByAnotherPlayer_ReturnsFalseAndDoesNotChangeBuyerState()
     {
@@ -103,6 +104,46 @@ public sealed class SanguoBoardStateTests
         buyer.Money.Should().Be(buyerMoneyBefore);
         buyer.OwnedCityIds.Should().NotContain(city.Id);
     }
+
+    // ACC:T12.4
+    [Fact]
+    public void TryBuyCity_WhenCityIsUnownedAndBuyerHasEnoughMoney_UpdatesOwnershipAndBuyerState()
+    {
+        var city = MakeCity(id: "c1", basePrice: 120m);
+        var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: Rules);
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+        var state = new SanguoBoardState(players: new[] { buyer }, citiesById: citiesById);
+
+        var moneyBefore = buyer.Money;
+        var bought = state.TryBuyCity(buyerId: buyer.PlayerId, cityId: city.Id, priceMultiplier: UnitMultiplier);
+
+        bought.Should().BeTrue();
+        buyer.Money.Should().Be(moneyBefore - MoneyValue.FromDecimal(120m));
+        buyer.OwnedCityIds.Should().Contain(city.Id);
+
+        state.TryGetOwnerOfCity(city.Id, out var owner).Should().BeTrue();
+        owner.Should().BeSameAs(buyer);
+    }
+
+    // ACC:T12.8
+    [Fact]
+    public void TryBuyCity_WhenBuyerHasInsufficientFunds_ReturnsFalseAndDoesNotChangeBuyerState()
+    {
+        var city = MakeCity(id: "c1", basePrice: 300m);
+        var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: Rules);
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+        var state = new SanguoBoardState(players: new[] { buyer }, citiesById: citiesById);
+
+        var moneyBefore = buyer.Money;
+        var bought = state.TryBuyCity(buyerId: buyer.PlayerId, cityId: city.Id, priceMultiplier: UnitMultiplier);
+
+        bought.Should().BeFalse();
+        buyer.Money.Should().Be(moneyBefore);
+        buyer.OwnedCityIds.Should().BeEmpty();
+        state.TryGetOwnerOfCity(city.Id, out _).Should().BeFalse();
+    }
+
+    // ACC:T12.6
     [Fact]
     public void ShouldReturnFalse_WhenBuyerNotFound()
     {
@@ -113,6 +154,8 @@ public sealed class SanguoBoardStateTests
         state.TryBuyCity(buyerId: "missing", cityId: city.Id, priceMultiplier: UnitMultiplier).Should().BeFalse();
         owner.OwnedCityIds.Should().BeEmpty();
     }
+
+    // ACC:T12.7
     [Fact]
     public void ShouldReturnFalse_WhenCityNotFound()
     {

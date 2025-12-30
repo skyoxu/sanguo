@@ -55,6 +55,7 @@ public class SanguoPlayerTests
         var act = () => new SanguoPlayer(playerId: "p1", money: aboveMax, positionIndex: 0, economyRules: Rules);
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
+    // ACC:T4.4
     [Fact]
     public void ShouldDeductMoneyAndAddCity_WhenBuyingCityWithEnoughMoney()
     {
@@ -66,6 +67,7 @@ public class SanguoPlayerTests
         player.Money.Should().Be(MoneyValue.FromDecimal(initialMoney - DefaultCityBasePrice));
         player.OwnedCityIds.Should().Contain("c1");
     }
+    // ACC:T4.3
     [Fact]
     public void ShouldReturnFalseAndNotChangeState_WhenBuyingCityWithoutEnoughMoney()
     {
@@ -105,6 +107,7 @@ public class SanguoPlayerTests
         var act = () => player.TryBuyCity(city, priceMultiplier: 3m);
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("priceMultiplier");
     }
+    // ACC:T4.5
     [Fact]
     public void ShouldTransferMoney_WhenPayingTollToDifferentOwner()
     {

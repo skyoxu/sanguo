@@ -5,6 +5,7 @@ using FluentAssertions;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Services;
+using Game.Core.Utilities;
 using Xunit;
 namespace Game.Core.Tests.Services;
 public class SanguoDiceServiceTests
@@ -17,6 +18,7 @@ public class SanguoDiceServiceTests
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
     }
 
+    // ACC:T5.2
     [Fact]
     public void ShouldThrowArgumentNullException_WhenBusIsNull()
     {
@@ -24,6 +26,7 @@ public class SanguoDiceServiceTests
         act.Should().Throw<ArgumentNullException>()
             .WithParameterName("bus");
     }
+    // ACC:T5.3
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -63,6 +66,7 @@ public class SanguoDiceServiceTests
             .WithParameterName("correlationId");
         bus.Published.Should().BeEmpty();
     }
+    // ACC:T5.4
     [Fact]
     public void ShouldPublishSanguoDiceRolledDomainEvent_WhenRollingD6()
     {
@@ -87,6 +91,22 @@ public class SanguoDiceServiceTests
         payload.GetProperty("CausationId").GetString().Should().Be(causationId);
         payload.TryGetProperty("OccurredAt", out _).Should().BeTrue();
     }
+
+    // ACC:T5.5
+    [Fact]
+    public void ShouldUseInjectedRandomNumberGenerator_WhenRollingD6()
+    {
+        var bus = new CapturingEventBus();
+        var rng = new FixedRng(nextIntValue: 3);
+        var svc = new SanguoDiceService(bus, rng);
+
+        var value = svc.RollD6(gameId: "game-1", playerId: "p1", correlationId: "corr-1", causationId: null);
+
+        value.Should().Be(3);
+        bus.Published.Should().ContainSingle();
+        var payload = ((JsonElementEventData)bus.Published[0].Data!).Value;
+        payload.GetProperty("Value").GetInt32().Should().Be(3);
+    }
     private sealed class CapturingEventBus : IEventBus
     {
         public List<DomainEvent> Published { get; } = new();
@@ -102,5 +122,19 @@ public class SanguoDiceServiceTests
             {
             }
         }
+    }
+
+    private sealed class FixedRng : IRandomNumberGenerator
+    {
+        private readonly int _nextIntValue;
+
+        public FixedRng(int nextIntValue)
+        {
+            _nextIntValue = nextIntValue;
+        }
+
+        public int NextInt(int minInclusive, int maxExclusive) => _nextIntValue;
+
+        public double NextDouble() => 0.5;
     }
 }

@@ -7,10 +7,12 @@ namespace Game.Core.Services;
 public sealed class SanguoDiceService
 {
     private readonly IEventBus _bus;
+    private readonly IRandomNumberGenerator _rng;
 
-    public SanguoDiceService(IEventBus bus)
+    public SanguoDiceService(IEventBus bus, IRandomNumberGenerator? rng = null)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        _rng = rng ?? ThreadLocalRandomNumberGenerator.Instance;
     }
 
     public int RollD6(string gameId, string playerId, string correlationId, string? causationId)
@@ -24,7 +26,7 @@ public sealed class SanguoDiceService
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
 
-        var value = RandomHelper.NextInt(1, 7);
+        var value = _rng.NextInt(1, 7);
         var occurredAt = DateTimeOffset.UtcNow;
 
         var evt = new DomainEvent(

@@ -27,6 +27,7 @@ public class SanguoEconomyManagerTests
         Action act = () => _ = new SanguoEconomyManager(null!);
         act.Should().Throw<ArgumentNullException>().WithParameterName("bus");
     }
+    // ACC:T7.2
     [Fact]
     public async Task ShouldPublishCityBoughtAndUpdateBuyer_WhenCityPurchaseSucceeds()
     {
@@ -68,6 +69,7 @@ public class SanguoEconomyManagerTests
         payload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-1");
     }
+    // ACC:T7.3
     [Fact]
     public async Task ShouldNotPublishAndNotChangeBuyer_WhenCityOwnedByAnotherPlayer()
     {
@@ -100,6 +102,7 @@ public class SanguoEconomyManagerTests
         buyer.OwnedCityIds.Should().NotContain(city.Id);
         bus.Published.Should().BeEmpty();
     }
+    // ACC:T7.4
     [Fact]
     public async Task ShouldRollbackBuyerAndThrow_WhenPublishCityBoughtFails()
     {
@@ -157,6 +160,7 @@ public class SanguoEconomyManagerTests
         bought.Should().BeFalse();
         bus.Published.Should().BeEmpty();
     }
+    // ACC:T13.4
     [Fact]
     public async Task ShouldPublishCityTollPaidAndUpdateBalances_WhenTollPaymentSucceeds()
     {
@@ -208,6 +212,47 @@ public class SanguoEconomyManagerTests
         payload.GetProperty("OccurredAt").GetDateTimeOffset().Should().Be(occurredAt);
         payload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-1");
+    }
+
+    // ACC:T13.5
+    [Fact]
+    public async Task ShouldNotPayTollAndNotPublish_WhenPayerLandsOnOwnCity()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var city = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m));
+
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+        var owner = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        owner.TryBuyCity(city, priceMultiplier: 1m).Should().BeTrue();
+
+        var players = new[] { owner };
+        var treasury = new SanguoTreasury();
+        var ownerMoneyBefore = owner.Money;
+        var treasuryBefore = treasury.MinorUnits;
+
+        var paid = await economy.TryPayTollAndPublishEventAsync(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            payerId: owner.PlayerId,
+            cityId: city.Id,
+            tollMultiplier: 1m,
+            treasury: treasury,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: DateTimeOffset.UtcNow);
+
+        paid.Should().BeFalse();
+        owner.Money.Should().Be(ownerMoneyBefore);
+        treasury.MinorUnits.Should().Be(treasuryBefore);
+        bus.Published.Should().BeEmpty();
     }
     [Fact]
     public async Task ShouldOverflowToTreasury_WhenOwnerHitsMoneyCap()
@@ -296,6 +341,7 @@ public class SanguoEconomyManagerTests
         payer.IsEliminated.Should().Be(payerEliminatedBefore);
         treasury.MinorUnits.Should().Be(treasuryBefore);
     }
+    // ACC:T13.3
     [Fact]
     public async Task ShouldReturnFalseAndNotPublish_WhenCityIsUnowned()
     {
@@ -435,6 +481,8 @@ public class SanguoEconomyManagerTests
             occurredAt: DateTimeOffset.UtcNow);
         await act.Should().ThrowAsync<ArgumentException>().WithParameterName("correlationId");
     }
+
+    // ACC:T7.9
     [Fact]
     public async Task ShouldPublishMonthSettled_WhenMonthChanges()
     {
@@ -608,6 +656,7 @@ public class SanguoEconomyManagerTests
             occurredAt: DateTimeOffset.UtcNow);
         await act.Should().ThrowAsync<ArgumentException>().WithParameterName("correlationId");
     }
+    // ACC:T7.8
     [Fact]
     public async Task ShouldPublishYearlyPriceAdjustedPerCity_WhenYearChanges()
     {
@@ -640,6 +689,7 @@ public class SanguoEconomyManagerTests
             payload.GetProperty("CausationId").GetString().Should().Be("cmd-1");
         }
     }
+    // ACC:T7.7
     [Fact]
     public void ShouldSumBaseTollOfOwnedCities_WhenCalculatingMonthSettlements()
     {
@@ -677,6 +727,7 @@ public class SanguoEconomyManagerTests
             citiesById: null!);
         act.Should().Throw<ArgumentNullException>().WithParameterName("citiesById");
     }
+    // ACC:T7.5
     [Fact]
     public void ShouldSkipEliminatedPlayers_WhenCalculatingMonthSettlements()
     {
@@ -704,6 +755,7 @@ public class SanguoEconomyManagerTests
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("Owned city id not found:*");
     }
+    // ACC:T7.6
     [Fact]
     public void ShouldComputeNewPriceUsingMultiplier_WhenCalculatingYearlyPriceAdjustments()
     {

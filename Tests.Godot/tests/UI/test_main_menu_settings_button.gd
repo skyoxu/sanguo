@@ -14,6 +14,7 @@ func _on_evt(type, _source, _data_json, _id, _spec, _ct, _ts) -> void:
     _received = true
     _etype = str(type)
 
+# ACC:T28.3
 func test_main_menu_emits_settings() -> void:
     _received = false
     var menu = preload("res://Game.Godot/Scenes/UI/MainMenu.tscn").instantiate()
@@ -24,4 +25,3 @@ func test_main_menu_emits_settings() -> void:
     await get_tree().process_frame
     assert_bool(_received).is_true()
     assert_str(_etype).is_equal("ui.menu.settings")
-

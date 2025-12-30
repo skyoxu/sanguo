@@ -337,6 +337,9 @@ def _build_task_context(triplet: TaskmasterTriplet | None) -> str:
     adr = ", ".join(triplet.adr_refs()) or "(none)"
     ch = ", ".join(triplet.arch_refs()) or "(none)"
     overlay = triplet.overlay() or "(none)"
+    master_desc = _truncate(str(triplet.master.get("description") or ""), max_chars=1_200)
+    back_desc = _truncate(str((triplet.back or {}).get("description") or ""), max_chars=1_200)
+    gameplay_desc = _truncate(str((triplet.gameplay or {}).get("description") or ""), max_chars=1_200)
     master_details = _truncate(str(triplet.master.get("details") or ""), max_chars=2_000)
     back_details = _truncate(str((triplet.back or {}).get("details") or ""), max_chars=2_000)
     gameplay_details = _truncate(str((triplet.gameplay or {}).get("details") or ""), max_chars=2_000)
@@ -348,6 +351,11 @@ def _build_task_context(triplet: TaskmasterTriplet | None) -> str:
             f"- adrRefs: {adr}",
             f"- archRefs: {ch}",
             f"- overlay: {overlay}",
+            "",
+            "Task Description (truncated):",
+            f"- master.description: {master_desc or '(empty)'}",
+            f"- tasks_back.description: {back_desc or '(empty)'}",
+            f"- tasks_gameplay.description: {gameplay_desc or '(empty)'}",
             "",
             "Task Details (truncated):",
             f"- master.details: {master_details or '(empty)'}",
@@ -387,6 +395,30 @@ def _load_optional_agent_prompt(rel_path: str) -> str | None:
 
 
 def _default_agent_prompt(agent: str) -> str:
+    if agent == "semantic-equivalence-auditor":
+        return "\n".join(
+            [
+                "Role: semantic-equivalence-auditor",
+                "",
+                "Goal: determine whether the acceptance set is semantically equivalent to the task description.",
+                "Important: do NOT re-run or restate deterministic gates (refs existence, anchors, ADR compliance, security/static scans).",
+                "Assume sc-acceptance-check has already enforced those. Focus only on semantic coverage.",
+                "",
+                "How to judge equivalence:",
+                "- Compare tasks.json master.description/details and the task view descriptions to acceptance items.",
+                "- Identify missing behaviors/invariants/failure-semantics implied by the description but not present in acceptance.",
+                "- Identify acceptance items that are too generic or unrelated (false coverage).",
+                "- Prefer minimal changes: adjust acceptance wording, split/merge acceptance items, or point to the correct test file.",
+                "",
+                "Output a concise Markdown report with:",
+                "- Missing semantic obligations (bullet list)",
+                "- Acceptance items to rewrite/remove (bullet list)",
+                "- Minimal delta proposal (exact acceptance lines to add/change)",
+                "- Verdict: OK | Needs Fix (single line at the end)",
+                "",
+                "Stop-loss: If you cannot point to a concrete missing obligation implied by the description, set Verdict to OK.",
+            ]
+        )
     return "\n".join(
         [
             f"Role: {agent}",
@@ -406,6 +438,18 @@ def _default_agent_prompt(agent: str) -> str:
             "Stop-loss: if the deterministic gates for this task are OK and you cannot point to a concrete missing behavior/test weakness, set Verdict to OK.",
         ]
     )
+
+
+_VERDICT_RE = re.compile(r"(?mi)^\\s*Verdict\\s*:\\s*(OK|Needs Fix)\\s*$")
+
+
+def _parse_verdict(text: str) -> str | None:
+    if not text:
+        return None
+    m = _VERDICT_RE.search(text)
+    if not m:
+        return None
+    return str(m.group(1)).strip()
 
 
 def _resolve_claude_agents_root(value: str | None) -> Path:
@@ -636,6 +680,13 @@ def main() -> int:
         default="",
         help="Optional per-agent override map: agent=seconds,agent=seconds (e.g. code-reviewer=600,security-auditor=450).",
     )
+    ap.add_argument(
+        "--semantic-gate",
+        default="skip",
+        choices=["skip", "warn", "require"],
+        help="Two-stage option: add an LLM semantic equivalence gate after deterministic sc-acceptance-check. "
+        "skip=disabled; warn=non-blocking; require=fail on Verdict!=OK.",
+    )
     ap.add_argument("--strict", action="store_true", help="Fail if any agent cannot produce output (default: soft)")
     ap.add_argument(
         "--model-reasoning-effort",
@@ -711,6 +762,13 @@ def main() -> int:
     else:
         agents = split_csv(args.agents) or default_agents
 
+    semantic_agent = "semantic-equivalence-auditor"
+    semantic_gate = str(args.semantic_gate or "skip").strip().lower()
+    if semantic_gate not in {"skip", "warn", "require"}:
+        semantic_gate = "skip"
+    if semantic_gate != "skip" and semantic_agent not in agents:
+        agents = [*agents, semantic_agent]
+
     total_timeout_sec = int(args.timeout_sec)
     if total_timeout_sec <= 0:
         print("[sc-llm-review] ERROR: --timeout-sec must be > 0.")
@@ -743,6 +801,12 @@ def main() -> int:
     acceptance_meta: dict[str, Any] | None = None
     if triplet:
         acceptance_ctx, acceptance_meta = build_acceptance_evidence(task_id=triplet.task_id)
+
+    if semantic_gate == "require":
+        acc_status = str((acceptance_meta or {}).get("acceptance_status") or "").strip().lower()
+        if acc_status and acc_status != "ok":
+            print("[sc-llm-review] ERROR: --semantic-gate require needs sc-acceptance-check status=ok.")
+            return 1
 
     acceptance_semantic_ctx = ""
     acceptance_semantic_meta: dict[str, Any] | None = None
@@ -868,6 +932,14 @@ def main() -> int:
             had_warnings = True
         if status == "fail":
             hard_fail = True
+
+        verdict = _parse_verdict(last_msg)
+        if agent == semantic_agent:
+            if semantic_gate == "warn" and verdict != "OK":
+                had_warnings = True
+            if semantic_gate == "require" and verdict != "OK":
+                had_warnings = True
+                hard_fail = True
         results.append(
             ReviewResult(
                 agent=agent,
@@ -882,6 +954,7 @@ def main() -> int:
                     "agent_prompt_source": prompt_meta.get("agent_prompt_source"),
                     "total_timeout_sec": total_timeout_sec,
                     "agent_timeout_sec": effective_timeout,
+                    "verdict": verdict,
                     "note": "This step is best-effort. Use --strict to make it a hard gate.",
                 },
             )

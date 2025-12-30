@@ -34,12 +34,38 @@ func test_hud_core_interactions_are_wired() -> void:
     await get_tree().process_frame
     assert_str(dice.text).is_equal("Dice: 6")
 
+# ACC:T20.2
+# ACC:T9.4
 func test_hud_has_core_status_nodes() -> void:
     var hud = await _hud()
     assert_object(hud.get_node_or_null("TopBar/HBox/DiceButton")).is_not_null()
     assert_object(hud.get_node_or_null("TopBar/HBox/ActivePlayerLabel")).is_not_null()
     assert_object(hud.get_node_or_null("TopBar/HBox/DateLabel")).is_not_null()
     assert_object(hud.get_node_or_null("TopBar/HBox/MoneyLabel")).is_not_null()
+
+# ACC:T9.5
+func test_hud_has_event_toast_and_log_panel_nodes() -> void:
+    var hud = await _hud()
+    assert_object(hud.get_node_or_null("EventToast")).is_not_null()
+    assert_object(hud.get_node_or_null("EventLogPanel")).is_not_null()
+
+# ACC:T9.6
+func test_hud_records_sanguo_events_to_toast_and_log_panel() -> void:
+    var hud = await _hud()
+    var toast_label: Label = hud.get_node("EventToast/Panel/Label")
+    var log_list: ItemList = hud.get_node("EventLogPanel/Margin/VBox/EventList")
+
+    _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
+    await get_tree().process_frame
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
+    await get_tree().process_frame
+
+    assert_str(toast_label.text).contains("core.sanguo.dice.rolled")
+    assert_str(toast_label.text).contains("value=6")
+
+    assert_int(log_list.get_item_count()).is_greater(0)
+    var last := log_list.get_item_text(log_list.get_item_count() - 1)
+    assert_str(last).contains("core.sanguo.dice.rolled")
 
 func test_hud_updates_on_score_event() -> void:
     var hud = await _hud()
@@ -55,6 +81,7 @@ func test_hud_updates_on_health_event() -> void:
     await get_tree().process_frame
     assert_str(hp_label.text).is_equal("HP: 77")
 
+# ACC:T20.3
 func test_hud_updates_on_sanguo_turn_started_event() -> void:
     var hud = await _hud()
     var active_label: Label = hud.get_node("TopBar/HBox/ActivePlayerLabel")
@@ -78,6 +105,7 @@ func test_dice_button_emits_ui_roll_event() -> void:
     await get_tree().process_frame
     assert_str(_last_emitted_type).is_equal("ui.hud.dice.roll")
 
+# ACC:T22.3
 func test_hud_updates_on_sanguo_dice_rolled_event() -> void:
     var hud = await _hud()
     var dice: Button = hud.get_node("TopBar/HBox/DiceButton")

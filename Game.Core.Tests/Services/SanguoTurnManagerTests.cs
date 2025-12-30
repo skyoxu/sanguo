@@ -23,6 +23,8 @@ public class SanguoTurnManagerTests
         var referenced = typeof(SanguoTurnManager).Assembly.GetReferencedAssemblies();
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
     }
+    // ACC:T6.4
+    // ACC:T6.5
     [Fact]
     public async Task ShouldPublishTurnEventsAndRotateActivePlayer_WhenStartingNewGameThenAdvancingTurn()
     {

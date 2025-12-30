@@ -1,11 +1,13 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
+# ACC:T1.1
 func test_main_scene_instantiates_and_visible() -> void:
     var scene := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
     add_child(auto_free(scene))
     await get_tree().process_frame
     assert_bool(scene.visible).is_true()
 
+# ACC:T1.2
 func test_settings_screen_can_load() -> void:
     var packed : PackedScene = preload("res://Game.Godot/Scenes/Screens/SettingsScreen.tscn")
     var inst := packed.instantiate()

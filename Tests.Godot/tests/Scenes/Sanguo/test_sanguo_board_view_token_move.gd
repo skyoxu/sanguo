@@ -196,6 +196,7 @@ func test_invalid_json_does_not_crash_and_does_not_move_token() -> void:
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
 
+# ACC:T10.5
 func test_negative_to_index_is_ignored_and_does_not_move_token() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -215,6 +216,7 @@ func test_negative_to_index_is_ignored_and_does_not_move_token() -> void:
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
 
+# ACC:T10.6
 func test_out_of_range_to_index_is_ignored_when_total_positions_set() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")

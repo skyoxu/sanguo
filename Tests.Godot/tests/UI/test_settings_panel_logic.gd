@@ -7,6 +7,8 @@ func _clear_config() -> void:
     if dir and dir.file_exists("settings.cfg"):
         dir.remove("settings.cfg")
 
+# ACC:T27.3
+# ACC:T29.2
 func test_settings_save_and_load_via_configfile() -> void:
     _clear_config()
     var packed = load("res://Game.Godot/Scenes/UI/SettingsPanel.tscn")

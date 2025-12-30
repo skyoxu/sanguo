@@ -1,8 +1,3 @@
-// Acceptance anchors:
-// ACC:T8.4
-// ACC:T8.5
-// ACC:T8.6
-// ACC:T8.7
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
@@ -70,6 +65,7 @@ public class EventBusTests
         ));
         called.Should().Be(1);
     }
+    // ACC:T8.2
     [Fact]
     public async Task ShouldSwallowSubscriberExceptionAndContinue_WhenSubscriberThrows()
     {
@@ -90,6 +86,7 @@ public class EventBusTests
         reporter.Exceptions[0].Message.Should().Be("eventbus.handler.exception");
         reporter.Exceptions[0].Context.Should().NotBeNull();
     }
+    // ACC:T8.3
     [Fact]
     public async Task ShouldLogAndReport_WhenSubscriberThrowsAndLoggerAndReporterProvided()
     {
@@ -111,6 +108,7 @@ public class EventBusTests
         reporter.Exceptions[0].Context!.Should().ContainKey("event_source");
         reporter.Exceptions[0].Context!.Should().ContainKey("event_id");
     }
+    // ACC:T8.4
     [Fact]
     public async Task ShouldSwallowSubscriberException_WhenLoggerAndReporterThrow()
     {

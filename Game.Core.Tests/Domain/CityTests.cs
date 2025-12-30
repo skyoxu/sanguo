@@ -16,6 +16,7 @@ public class CityTests
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
     }
 
+    // ACC:T3.2
     [Fact]
     public void ShouldSetProperties_WhenConstructed()
     {
@@ -31,6 +32,7 @@ public class CityTests
         city.BasePrice.Should().Be(MoneyValue.FromDecimal(100m));
         city.BaseToll.Should().Be(MoneyValue.FromDecimal(10m));
     }
+    // ACC:T3.3
     [Fact]
     public void ShouldReturnZero_WhenPriceMultiplierIsZero()
     {
@@ -63,6 +65,16 @@ public class CityTests
         var act = () => city.GetPrice(multiplier: Rules.MaxPriceMultiplier + 1m, rules: Rules);
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
+
+    [Fact]
+    public void ShouldUseRulesParameter_WhenValidatingPriceMultiplierRange()
+    {
+        var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
+        var customRules = new SanguoEconomyRules(maxPriceMultiplier: 1.1m, maxTollMultiplier: Rules.MaxTollMultiplier);
+        var act = () => city.GetPrice(multiplier: 1.2m, rules: customRules);
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .WithParameterName("multiplier");
+    }
     [Fact]
     public void ShouldReturnConsistentResult_WhenGettingPriceMultipleTimes()
     {
@@ -73,6 +85,7 @@ public class CityTests
         second.Should().Be(first);
         third.Should().Be(first);
     }
+    // ACC:T3.4
     [Fact]
     public void ShouldReturnZero_WhenTollMultiplierIsZero()
     {
