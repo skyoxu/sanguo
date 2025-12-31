@@ -172,7 +172,7 @@
         "id": "6",
         "title": "实现回合管理器",
         "description": "控制游戏回合的顺序和时间推进。",
-        "details": "创建 TurnManager 类，管理当前日期（年/月/日）和当前行动玩家，实现 NextTurn() 方法，按 T2 PRD 规定的顺序推进“玩家行动 → 日推进 → 月末结算 → 季度事件 → 年度地价调整”等阶段。时间轴与回合驱动逻辑保持在 Game.Core 中，Godot 层只负责展示当前轮次与日期。\n\n破产/出局规则（与 Task 13 对齐）：当行动者在本回合内发生资金不足支付（例如过路费）时，将其剩余资金一次性转给债权人，行动者资金归零并判定出局；出局者释放全部已占领城池为无人占领。真人玩家出局立即触发 GameOver；NPC 出局从后续回合轮转中移除并锁定状态（不再行动/不再参与结算）。\n可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。\n",
+        "details": "创建 TurnManager 类，管理当前日期（年/月/日）和当前行动玩家，实现 NextTurn() 方法，按 T2 PRD 规定的顺序推进“玩家行动 → 日推进 → 月末结算 → 季度事件 → 年度地价调整”等阶段。时间轴与回合驱动逻辑保持在 Game.Core 中，Godot 层只负责展示当前轮次与日期。\n\nT2 时间口径：为简化实现，每月固定 30 天、每年 12 个月；日期推进与月末/季度/年初触发均以此口径计算（PRD 允许的简化）。\n\nT2 终局口径：不定义胜利条件；若真人玩家破产出局则触发 GameOver 作为“失败退出”（不是对 AI 的胜利判定）。\n\n破产/出局规则（与 Task 13 对齐）：当行动者在本回合内发生资金不足支付（例如过路费）时，将其剩余资金一次性转给债权人，行动者资金归零并判定出局；出局者释放全部已占领城池为无人占领。真人玩家出局立即触发 GameOver（失败退出，见上文口径）；NPC 出局从后续回合轮转中移除并锁定状态（不再行动/不再参与结算）。\n可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。\n",
         "testStrategy": "通过 xUnit 模拟多回合游戏流程，验证在不同起始日期下推进若干回合后，玩家轮换顺序、日期、月份、季度与年度节点都与 T2 PRD 中的时间轴设计一致。\n\n补充：加入“资金不足支付→出局”场景，验证剩余资金转移给债权人、出局者资金归零且释放城池；真人玩家触发 GameOver，NPC 被从轮转列表剔除且不会再获得回合。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong\n加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。\n加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。\n",
         "priority": "high",
         "dependencies": [
@@ -370,7 +370,7 @@
         "id": "12",
         "title": "实现土地购买逻辑",
         "description": "处理玩家购买城池的逻辑。",
-        "details": "在玩家停留在无人城池时，提供购买选项，扣除资金并更新城池所有权。\n可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。\n",
+        "details": "在玩家停留在无人城池时，提供购买选项，扣除资金并更新城池所有权。\n\nT2 购买选择口径：当行动者落在无人城池时，真人玩家必须具备“购买/放弃”选择；Core 层不应自动购买，仅在上层明确调用购买 API 时才改变资金与所有权。AI 可按策略自动决定并调用购买。\n\n可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。\n可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。\n可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。\n",
         "testStrategy": "通过多次购买测试，验证购买逻辑的正确性和资金更新。\nLocal demo paths: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype\n加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。\n加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。\n加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。\n",
         "priority": "high",
         "dependencies": [
