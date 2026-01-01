@@ -121,8 +121,13 @@ def _build_prompt(*, task_id: str, title: str, subtasks: list[dict[str, Any]], a
     for s in subtasks:
         sid = str(s.get("id") or "").strip()
         st = str(s.get("title") or "").strip()
+        sd = str(s.get("details") or "").strip()
         if sid and st:
-            sub_lines.append(f"- {sid}: {st}")
+            if sd:
+                sd = re.sub(r"\s+", " ", sd).strip()
+                sub_lines.append(f"- {sid}: {st} :: {sd}")
+            else:
+                sub_lines.append(f"- {sid}: {st}")
     acceptance_blocks = []
     for view_name, acc in acceptance_by_view.items():
         acceptance_blocks.append(_format_acceptance(view_name, acc))
@@ -152,6 +157,7 @@ Rules:
 - Be conservative: mark a subtask covered ONLY if at least one acceptance item clearly implies it.
 - Coverage is semantic (do not require exact wording), but do not guess.
 - If ANY subtask is not covered => status must be "fail".
+- Use BOTH subtask title and subtask details when judging coverage.
 """
 
     return "\n".join(
@@ -182,9 +188,13 @@ def _normalize_subtasks(raw: Any) -> list[dict[str, Any]]:
             continue
         sid = str(s.get("id") or "").strip()
         title = str(s.get("title") or "").strip()
+        details = str(s.get("details") or "").strip()
         if not sid or not title:
             continue
-        out.append({"id": sid, "title": title})
+        if details:
+            details = re.sub(r"\s+", " ", details).strip()
+            details = _truncate(details, max_chars=420)
+        out.append({"id": sid, "title": title, "details": details})
     return out
 
 
