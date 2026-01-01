@@ -85,7 +85,6 @@ public class CityTests
         second.Should().Be(first);
         third.Should().Be(first);
     }
-    // ACC:T3.4
     [Fact]
     public void ShouldReturnZero_WhenTollMultiplierIsZero()
     {
@@ -111,5 +110,19 @@ public class CityTests
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
         var act = () => city.GetToll(multiplier: Rules.MaxTollMultiplier + 1m, rules: Rules);
         act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    // ACC:T3.4
+    [Fact]
+    public void ShouldUseRulesParameter_WhenValidatingTollMultiplierRange()
+    {
+        var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
+        var customRules = new SanguoEconomyRules(maxPriceMultiplier: Rules.MaxPriceMultiplier, maxTollMultiplier: 1.1m);
+
+        city.GetToll(multiplier: 1.0m, rules: customRules).Should().Be(MoneyValue.FromDecimal(10m));
+
+        var act = () => city.GetToll(multiplier: 1.2m, rules: customRules);
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .WithParameterName("multiplier");
     }
 }
