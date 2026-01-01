@@ -127,6 +127,9 @@ public sealed class SanguoBoardState
         if (!_citiesById.TryGetValue(cityId, out var city))
             return false;
 
+        if (buyer.PositionIndex != city.PositionIndex)
+            return false;
+
         foreach (var player in _playersById.Values)
         {
             if (player.PlayerId == buyerId)

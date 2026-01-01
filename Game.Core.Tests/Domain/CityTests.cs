@@ -25,12 +25,29 @@ public class CityTests
             name: "CityName",
             regionId: "r1",
             basePrice: MoneyValue.FromDecimal(100m),
-            baseToll: MoneyValue.FromDecimal(10m));
+            baseToll: MoneyValue.FromDecimal(10m),
+            positionIndex: 7);
         city.Id.Should().Be("c1");
         city.Name.Should().Be("CityName");
         city.RegionId.Should().Be("r1");
         city.BasePrice.Should().Be(MoneyValue.FromDecimal(100m));
         city.BaseToll.Should().Be(MoneyValue.FromDecimal(10m));
+        city.PositionIndex.Should().Be(7);
+    }
+
+    [Fact]
+    public void ShouldThrowArgumentOutOfRangeException_WhenPositionIndexIsNegative()
+    {
+        var act = () => _ = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: MoneyValue.FromDecimal(100m),
+            baseToll: MoneyValue.FromDecimal(10m),
+            positionIndex: -1);
+
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .WithParameterName("positionIndex");
     }
     // ACC:T3.3
     [Fact]

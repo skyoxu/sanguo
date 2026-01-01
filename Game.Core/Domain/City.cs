@@ -3,7 +3,7 @@ namespace Game.Core.Domain;
 
 public sealed record City
 {
-    public City(string id, string name, string regionId, MoneyValue basePrice, MoneyValue baseToll)
+    public City(string id, string name, string regionId, MoneyValue basePrice, MoneyValue baseToll, int positionIndex = 0)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Id must be non-empty.", nameof(id));
@@ -20,11 +20,15 @@ public sealed record City
         if (baseToll < MoneyValue.Zero)
             throw new ArgumentOutOfRangeException(nameof(baseToll), "BaseToll must be non-negative.");
 
+        if (positionIndex < 0)
+            throw new ArgumentOutOfRangeException(nameof(positionIndex), "PositionIndex must be non-negative.");
+
         Id = id;
         Name = name;
         RegionId = regionId;
         BasePrice = basePrice;
         BaseToll = baseToll;
+        PositionIndex = positionIndex;
     }
 
     public string Id { get; }
@@ -36,6 +40,8 @@ public sealed record City
     public MoneyValue BasePrice { get; }
 
     public MoneyValue BaseToll { get; }
+
+    public int PositionIndex { get; }
 
     public MoneyValue GetPrice(decimal multiplier, SanguoEconomyRules rules)
     {

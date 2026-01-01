@@ -9,13 +9,14 @@ public sealed class SanguoBoardStateTests
 {
     private const decimal UnitMultiplier = 1m;
     private static readonly SanguoEconomyRules Rules = SanguoEconomyRules.Default;
-    private static City MakeCity(string id = "c1", decimal basePrice = 100m, decimal baseToll = 10m)
+    private static City MakeCity(string id = "c1", decimal basePrice = 100m, decimal baseToll = 10m, int positionIndex = 0)
         => new(
             id: id,
             name: "CityName",
             regionId: "r1",
             basePrice: MoneyValue.FromDecimal(basePrice),
-            baseToll: MoneyValue.FromDecimal(baseToll));
+            baseToll: MoneyValue.FromDecimal(baseToll),
+            positionIndex: positionIndex);
 
     // ACC:T12.1
     [Fact]
@@ -103,6 +104,16 @@ public sealed class SanguoBoardStateTests
         state.TryBuyCity(buyerId: buyer.PlayerId, cityId: city.Id, priceMultiplier: UnitMultiplier).Should().BeFalse();
         buyer.Money.Should().Be(buyerMoneyBefore);
         buyer.OwnedCityIds.Should().NotContain(city.Id);
+
+        var remoteCity = MakeCity(id: "c2", basePrice: 120m, positionIndex: 1);
+        var remoteBuyer = new SanguoPlayer(playerId: "buyer2", money: 200m, positionIndex: 0, economyRules: Rules);
+        var remoteCities = new Dictionary<string, City>(StringComparer.Ordinal) { { remoteCity.Id, remoteCity } };
+        var remoteState = new SanguoBoardState(players: new[] { remoteBuyer }, citiesById: remoteCities);
+        var remoteMoneyBefore = remoteBuyer.Money;
+        remoteState.TryBuyCity(buyerId: remoteBuyer.PlayerId, cityId: remoteCity.Id, priceMultiplier: UnitMultiplier).Should().BeFalse();
+        remoteBuyer.Money.Should().Be(remoteMoneyBefore);
+        remoteBuyer.OwnedCityIds.Should().BeEmpty();
+        remoteState.TryGetOwnerOfCity(remoteCity.Id, out _).Should().BeFalse();
     }
 
     // ACC:T12.4
