@@ -26,7 +26,7 @@ public sealed class Task9UiBoundaryTests
 
     // ACC:T9.3
     [Fact]
-    public void ShouldNotReferenceSanguoPlayerEntity_InGodotUiScripts()
+    public void ShouldNotReferenceSanguoPlayerEntity_WhenScanningGodotUiScripts()
     {
         var repoRoot = FindRepoRoot();
         var uiDir = Path.Combine(repoRoot, "Game.Godot", "Scripts", "UI");
@@ -46,4 +46,3 @@ public sealed class Task9UiBoundaryTests
             "UI must not reference SanguoPlayer entity directly; use view snapshots/DTOs across layers instead.");
     }
 }
-
