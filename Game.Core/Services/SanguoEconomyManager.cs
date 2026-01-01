@@ -252,6 +252,9 @@ public sealed class SanguoEconomyManager
         if (!citiesById.TryGetValue(cityId, out var city))
             return false;
 
+        if (payer.PositionIndex != city.PositionIndex)
+            return false;
+
         SanguoPlayer? owner;
         try
         {

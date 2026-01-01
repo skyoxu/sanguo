@@ -370,6 +370,50 @@ public class SanguoEconomyManagerTests
         payer.Money.Should().Be(payerMoneyBefore);
         bus.Published.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task ShouldReturnFalseAndNotPublish_WhenPayerNotOnCityPosition()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var city = new City(
+            id: "c1",
+            name: "CityName",
+            regionId: "r1",
+            basePrice: Money.FromDecimal(100m),
+            baseToll: Money.FromDecimal(10m),
+            positionIndex: 1);
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { city.Id, city } };
+
+        var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        owner.TryBuyCity(city, priceMultiplier: 1m).Should().BeTrue();
+
+        var payer = new SanguoPlayer(playerId: "payer", money: 50m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
+        var players = new[] { owner, payer };
+        var treasury = new SanguoTreasury();
+
+        var payerMoneyBefore = payer.Money;
+        var ownerMoneyBefore = owner.Money;
+        var treasuryBefore = treasury.MinorUnits;
+
+        var paid = await economy.TryPayTollAndPublishEventAsync(
+            gameId: "game-1",
+            players: players,
+            citiesById: citiesById,
+            payerId: payer.PlayerId,
+            cityId: city.Id,
+            tollMultiplier: 1m,
+            treasury: treasury,
+            correlationId: "corr-1",
+            causationId: "cmd-1",
+            occurredAt: DateTimeOffset.UtcNow);
+
+        paid.Should().BeFalse();
+        payer.Money.Should().Be(payerMoneyBefore);
+        owner.Money.Should().Be(ownerMoneyBefore);
+        treasury.MinorUnits.Should().Be(treasuryBefore);
+        bus.Published.Should().BeEmpty();
+    }
     // ACC:T13.2
     [Fact]
     public async Task ShouldEliminatePayerAndPublish_WhenPayerCannotCoverFullToll()
