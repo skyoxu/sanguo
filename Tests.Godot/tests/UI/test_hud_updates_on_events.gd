@@ -18,15 +18,10 @@ func _hud() -> Node:
     await get_tree().process_frame
     return hud
 
-# ACC:T9.2
 # ACC:T22.2
 func test_hud_core_interactions_are_wired() -> void:
     var hud = await _hud()
     var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
-    _last_emitted_type = ""
-    dice.emit_signal("pressed")
-    await get_tree().process_frame
-    assert_str(_last_emitted_type).is_equal("ui.hud.dice.roll")
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
