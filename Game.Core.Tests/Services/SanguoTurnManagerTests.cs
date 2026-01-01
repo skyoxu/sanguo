@@ -177,7 +177,7 @@ public class SanguoTurnManagerTests
     }
     // ACC:T6.3
     [Fact]
-    public async Task ShouldEndGameOnHumanElimination_AndPruneEliminatedAiAndReleaseCities()
+    public async Task ShouldEndGameAndPruneEliminatedAiAndReleaseCities_WhenHumanEliminated()
     {
         {
             var bus = new CapturingEventBus();
