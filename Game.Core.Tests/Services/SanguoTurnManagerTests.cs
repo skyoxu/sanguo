@@ -118,7 +118,7 @@ public class SanguoTurnManagerTests
             playerOrder: playerOrder,
             year: 1,
             month: 1,
-            day: 31,
+            day: 30,
             correlationId: correlationId,
             causationId: null);
         boardState.TryBuyCity(buyerId: "p1", cityId: "c1", priceMultiplier: 1.0m).Should().BeTrue();
@@ -154,7 +154,7 @@ public class SanguoTurnManagerTests
             playerOrder: new[] { "p1" },
             year: 1,
             month: 3,
-            day: 31,
+            day: 30,
             correlationId: correlationId,
             causationId: null);
         await mgr.AdvanceTurnAsync(correlationId: correlationId, causationId: "cmd-advance");
@@ -174,6 +174,34 @@ public class SanguoTurnManagerTests
         payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(1.0m);
         payload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-advance");
+    }
+    // ACC:T6.6
+    [Fact]
+    public async Task ShouldAdvanceFromDay30ToDay1OfNextMonth_WhenUsingFixedCalendar()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var (boardState, treasury) = CreateBoardState(
+            players: new[] { new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules) },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 2,
+            day: 30,
+            correlationId: "corr",
+            causationId: null);
+
+        await mgr.AdvanceTurnAsync(correlationId: "corr", causationId: "cmd-advance");
+
+        var advanced = bus.Published.Single(e => e.Type == SanguoGameTurnAdvanced.EventType);
+        var payload = ((JsonElementEventData)advanced.Data!).Value;
+        payload.GetProperty("Year").GetInt32().Should().Be(1);
+        payload.GetProperty("Month").GetInt32().Should().Be(3);
+        payload.GetProperty("Day").GetInt32().Should().Be(1);
     }
     // ACC:T6.3
     [Fact]
@@ -405,7 +433,7 @@ public class SanguoTurnManagerTests
             playerOrder: new[] { "p1" },
             year: 1,
             month: 12,
-            day: 31,
+            day: 30,
             correlationId: "corr",
             causationId: null);
         await mgr.AdvanceTurnAsync(correlationId: "corr", causationId: "cmd-advance");
@@ -607,7 +635,7 @@ public class SanguoTurnManagerTests
             playerOrder: new[] { "p1", "p2" },
             year: 1,
             month: 1,
-            day: 31,
+            day: 30,
             correlationId: "corr",
             causationId: null);
         Func<Task> act = async () => await mgr.AdvanceTurnAsync("corr", causationId: "cmd-advance");

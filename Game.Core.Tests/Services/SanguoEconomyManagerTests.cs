@@ -439,8 +439,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 1, 1),
-            currentDate: new DateTime(1, 1, 2),
+            previousDate: new SanguoCalendarDate(1, 1, 1),
+            currentDate: new SanguoCalendarDate(1, 1, 2),
             settlements: Array.Empty<PlayerSettlement>(),
             correlationId: "corr-1",
             causationId: "cmd-1",
@@ -456,8 +456,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: gameId!,
-            previousDate: new DateTime(1, 1, 31),
-            currentDate: new DateTime(1, 2, 1),
+            previousDate: new SanguoCalendarDate(1, 1, 30),
+            currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: Array.Empty<PlayerSettlement>(),
             correlationId: "corr-1",
             causationId: "cmd-1",
@@ -473,8 +473,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 1, 31),
-            currentDate: new DateTime(1, 2, 1),
+            previousDate: new SanguoCalendarDate(1, 1, 30),
+            currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: Array.Empty<PlayerSettlement>(),
             correlationId: correlationId!,
             causationId: "cmd-1",
@@ -490,8 +490,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 1, 31),
-            currentDate: new DateTime(1, 2, 1),
+            previousDate: new SanguoCalendarDate(1, 1, 30),
+            currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: Array.Empty<PlayerSettlement>(),
             correlationId: "corr-1",
             causationId: "cmd-1",
@@ -515,8 +515,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 1, 1),
-            currentDate: new DateTime(1, 1, 2),
+            previousDate: new SanguoCalendarDate(1, 1, 1),
+            currentDate: new SanguoCalendarDate(1, 1, 2),
             season: 1,
             affectedRegionIds: Array.Empty<string>(),
             yieldMultiplier: 1.0m,
@@ -532,8 +532,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 1, 31),
-            currentDate: new DateTime(1, 2, 1),
+            previousDate: new SanguoCalendarDate(1, 1, 30),
+            currentDate: new SanguoCalendarDate(1, 2, 1),
             season: 1,
             affectedRegionIds: Array.Empty<string>(),
             yieldMultiplier: 1.0m,
@@ -549,8 +549,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 3, 31),
-            currentDate: new DateTime(1, 4, 1),
+            previousDate: new SanguoCalendarDate(1, 3, 30),
+            currentDate: new SanguoCalendarDate(1, 4, 1),
             season: 2,
             affectedRegionIds: new[] { "r1", "r2" },
             yieldMultiplier: 0.8m,
@@ -574,8 +574,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 1, 31),
-            currentDate: new DateTime(1, 2, 1),
+            previousDate: new SanguoCalendarDate(1, 1, 30),
+            currentDate: new SanguoCalendarDate(1, 2, 1),
             season: 0,
             affectedRegionIds: Array.Empty<string>(),
             yieldMultiplier: 1.0m,
@@ -590,8 +590,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 1, 31),
-            currentDate: new DateTime(1, 2, 1),
+            previousDate: new SanguoCalendarDate(1, 1, 30),
+            currentDate: new SanguoCalendarDate(1, 2, 1),
             season: 1,
             affectedRegionIds: Array.Empty<string>(),
             yieldMultiplier: -0.1m,
@@ -611,8 +611,8 @@ public class SanguoEconomyManagerTests
         };
         await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 12, 31),
-            currentDate: new DateTime(1, 1, 1),
+            previousDate: new SanguoCalendarDate(1, 12, 30),
+            currentDate: new SanguoCalendarDate(1, 1, 1),
             cities: cities,
             yearlyMultiplier: 1.10m,
             correlationId: "corr-1",
@@ -629,8 +629,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: gameId!,
-            previousDate: new DateTime(1, 12, 31),
-            currentDate: new DateTime(2, 1, 1),
+            previousDate: new SanguoCalendarDate(1, 12, 30),
+            currentDate: new SanguoCalendarDate(2, 1, 1),
             cities: Array.Empty<City>(),
             yearlyMultiplier: 1.10m,
             correlationId: "corr-1",
@@ -647,8 +647,8 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 12, 31),
-            currentDate: new DateTime(2, 1, 1),
+            previousDate: new SanguoCalendarDate(1, 12, 30),
+            currentDate: new SanguoCalendarDate(2, 1, 1),
             cities: Array.Empty<City>(),
             yearlyMultiplier: 1.10m,
             correlationId: correlationId!,
@@ -669,8 +669,8 @@ public class SanguoEconomyManagerTests
         };
         await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
-            previousDate: new DateTime(1, 12, 31),
-            currentDate: new DateTime(2, 1, 1),
+            previousDate: new SanguoCalendarDate(1, 12, 30),
+            currentDate: new SanguoCalendarDate(2, 1, 1),
             cities: cities,
             yearlyMultiplier: 1.10m,
             correlationId: "corr-1",

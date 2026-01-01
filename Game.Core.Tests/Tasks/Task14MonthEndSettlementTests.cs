@@ -48,7 +48,7 @@ public sealed class Task14MonthEndSettlementTests
             playerOrder: playerOrder,
             year: 1,
             month: 1,
-            day: 31,
+            day: 30,
             correlationId: correlationId,
             causationId: null);
         await mgr.AdvanceTurnAsync(correlationId, causationId: "cmd-advance");
@@ -107,7 +107,7 @@ public sealed class Task14MonthEndSettlementTests
             playerOrder: playerOrder,
             year: 1,
             month: 1,
-            day: 30,
+            day: 29,
             correlationId: correlationId,
             causationId: null);
 

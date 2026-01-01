@@ -428,7 +428,8 @@
       "回合推进阶段顺序可被验证与追踪：一次 NextTurn/AdvanceTurn 推进必须按“玩家行动结束 → 日推进 → 月末结算 → 季度事件 → 年度地价调整”的顺序执行；若同一次推进跨越多个边界，必须保证月末结算先于季度事件，季度事件先于年度地价调整（同一次推进内顺序固定为：月末结算 → 季度事件 → 年度地价调整）。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
       "回合轮转能正确处理破产/出局（与 Task 13 口径一致）：当行动者在本回合内发生资金不足以支付（如过路费）时，其剩余资金一次性转给债权人、行动者资金归零并判定出局；出局者释放其全部已占领城池为无人占领；真人玩家出局立即触发 GameOver；NPC 出局从后续回合轮转中移除并锁定状态（不再行动且不再参与任何结算/事件）。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
       "开始新局与推进回合具备可观测的状态变化：提供一个新局初始化入口（方法名不作强制），能初始化当前日期与 ActivePlayerId；每次 NextTurn/AdvanceTurn 完成一次回合推进后，ActivePlayerId 按回合顺序轮转并跳过已出局的 NPC，当前日期完成“日推进”且至少前进 1 天。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "玩家行动与时间推进的边界可被验证：一次 NextTurn/AdvanceTurn 的外部可观测效果应等价于“以当前行动玩家的行动已结束为前提”，随后按顺序执行日推进/月末结算/季度事件/年度地价调整等阶段，最后进入下一位可行动玩家作为新的 ActivePlayerId。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs"
+      "玩家行动与时间推进的边界可被验证：一次 NextTurn/AdvanceTurn 的外部可观测效果应等价于“以当前行动玩家的行动已结束为前提”，随后按顺序执行日推进/月末结算/季度事件/年度地价调整等阶段，最后进入下一位可行动玩家作为新的 ActivePlayerId。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "固定历法口径（T2）：每月固定 30 天、每年固定 12 月；日期推进使用该固定历法而非真实公历；当 Day=30 推进 1 天应进入下一月 Day=1（Year/Month/Day 变化可通过事件负载验证）。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",

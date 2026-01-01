@@ -1,6 +1,7 @@
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
+using Game.Core.Domain.ValueObjects;
 
 namespace Game.Core.Services;
 
@@ -15,7 +16,7 @@ public sealed class SanguoTurnManager
     private string[]? _playerOrder;
     private int _activePlayerIndex;
     private int _turnNumber;
-    private DateTime _currentDate;
+    private SanguoCalendarDate _currentDate;
     private bool _started;
 
     public SanguoTurnManager(
@@ -64,7 +65,7 @@ public sealed class SanguoTurnManager
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
 
-        var date = new DateTime(year, month, day);
+        var date = new SanguoCalendarDate(year, month, day);
 
         _gameId = gameId;
         _playerOrder = playerOrder.ToArray();
