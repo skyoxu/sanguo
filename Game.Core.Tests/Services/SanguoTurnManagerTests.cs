@@ -216,6 +216,8 @@ public class SanguoTurnManagerTests
             var owner = new SanguoPlayer(playerId: "p2", money: 0m, positionIndex: 0, economyRules: Rules);
             payer.TryPayTollTo(owner, city, tollMultiplier: 1.0m, treasury: new SanguoTreasury()).Should().BeTrue();
             payer.IsEliminated.Should().BeTrue();
+            payer.Money.Should().Be(Money.Zero);
+            owner.Money.Should().Be(Money.FromDecimal(5m));
 
             var (boardState, treasury) = CreateBoardState(players: new[] { payer, owner }, citiesById: cities);
             var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
@@ -252,6 +254,8 @@ public class SanguoTurnManagerTests
             ai.OwnedCityIds.Should().Contain(ownedCity.Id);
             ai.TryPayTollTo(p1, tollCity, tollMultiplier: 1.0m, treasury: new SanguoTreasury()).Should().BeTrue();
             ai.IsEliminated.Should().BeTrue();
+            ai.Money.Should().Be(Money.Zero);
+            p1.Money.Should().Be(Money.FromDecimal(5m));
             ai.OwnedCityIds.Should().BeEmpty();
 
             var (boardState, treasury) = CreateBoardState(players: new[] { p1, ai, p2 }, citiesById: cities);
@@ -282,6 +286,8 @@ public class SanguoTurnManagerTests
         var owner = new SanguoPlayer(playerId: "p2", money: 0m, positionIndex: 0, economyRules: Rules);
         payer.TryPayTollTo(owner, city, tollMultiplier: 1.0m, treasury: new SanguoTreasury()).Should().BeTrue();
         payer.IsEliminated.Should().BeTrue();
+        payer.Money.Should().Be(Money.Zero);
+        owner.Money.Should().Be(Money.FromDecimal(5m));
         var (boardState, treasury) = CreateBoardState(players: new[] { payer, owner }, citiesById: cities);
         var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
         await mgr.StartNewGameAsync(
@@ -310,6 +316,8 @@ public class SanguoTurnManagerTests
         var p2 = new SanguoPlayer(playerId: "p2", money: 0m, positionIndex: 0, economyRules: Rules);
         ai.TryPayTollTo(p1, city, tollMultiplier: 1.0m, treasury: new SanguoTreasury()).Should().BeTrue();
         ai.IsEliminated.Should().BeTrue();
+        ai.Money.Should().Be(Money.Zero);
+        p1.Money.Should().Be(Money.FromDecimal(1m));
         var (boardState, treasury) = CreateBoardState(players: new[] { p1, ai, p2 }, citiesById: cities);
         var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
         await mgr.StartNewGameAsync(
@@ -370,6 +378,8 @@ public class SanguoTurnManagerTests
         var human = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules);
         ai.TryPayTollTo(human, city, tollMultiplier: 1.0m, treasury: new SanguoTreasury()).Should().BeTrue();
         ai.IsEliminated.Should().BeTrue();
+        ai.Money.Should().Be(Money.Zero);
+        human.Money.Should().Be(Money.FromDecimal(1m));
         var (boardState, treasury) = CreateBoardState(players: new[] { ai, human }, citiesById: cities);
         var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
         await mgr.StartNewGameAsync(
