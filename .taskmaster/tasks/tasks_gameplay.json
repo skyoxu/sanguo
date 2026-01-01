@@ -3,7 +3,7 @@
     "id": "GM-0001",
     "story_id": "PRD-SANGUO-T2-BOOTSTRAP",
     "title": "设置Godot项目",
-    "description": "初始化Godot项目并配置C#环境。",
+    "description": "在 Godot 4.x 中创建并初始化新项目，并完成 C# 支持配置与所需 Mono/.NET SDK 环境准备，以确保项目可被引擎正常打开运行且 C# 脚本可加载执行。",
     "status": "pending",
     "priority": "P1",
     "layer": "infra",
@@ -36,9 +36,9 @@
       "Tests.Godot/tests/Scenes/Smoke/test_glue_connections.gd"
     ],
     "acceptance": [
-      "Godot 主场景可在 headless 冒烟测试中成功实例化且可见（C# 项目配置正确）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
-      "SettingsScreen 可在 headless 冒烟测试中成功实例化（C# 项目配置正确）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
-      "C# 胶水链路可用：在主菜单点击 Play 会发布 ui.menu.start（依赖 EventBusAdapter）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_glue_connections.gd"
+      "在 Godot 4.x 环境下，新建并初始化的项目可通过 headless 方式被引擎成功打开并完成基础启动流程，且不存在会阻断启动的导入/加载错误（用于验证“项目已创建/初始化完成”）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "在 Godot 4.x 环境下，SettingsScreen 场景可在 headless 运行中被成功加载、实例化并进树（用于验证资源路径与场景装配有效）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "在 headless 运行中，可成功实例化并运行至少一个 C# ScriptClass（例如 EventBusAdapter.cs），且通过一次可观察行为断言证明其生效（例如触发菜单开始后能收到 ui.menu.start 事件），用于验证 C# 脚本加载与执行链路可用。 Refs: Tests.Godot/tests/Scenes/Smoke/test_glue_connections.gd"
     ],
     "test_strategy": [
       "使用 Python 单元测试或最小烟测脚本验证任务视图生成逻辑。",
@@ -68,7 +68,7 @@
     "id": "GM-0002",
     "story_id": "PRD-SANGUO-T2-BOARD",
     "title": "创建环形地图数据结构",
-    "description": "设计并实现游戏地图的环形数据结构。",
+    "description": "设计并实现纯 C# 的环形地图索引抽象：支持“当前位置索引 + 骰子点数/步数”计算新位置，并能生成多步移动的索引序列；本任务不引入 City 领域对象。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -107,9 +107,9 @@
       "Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs"
     ],
     "acceptance": [
-      "Task 2 仅落地环形索引/路径计算，不引入 `City`；`City` 在 Task 3 落地并通过映射接入。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
-      "提供可测试的多步路径序列接口（例如 `GetPath(steps)`），返回每一步访问的索引序列（不含起点，含终点），并用 xUnit 覆盖正/负步长与跨越边界的序列正确性。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs"
+      "Task 2 的实现范围仅覆盖：基于总格数的环形索引抽象，以及“当前位置索引 + 步数（骰子点数）”的移动与路径计算；不引入 `City` 领域对象与计价/过路费逻辑，后续在 Task 3 通过 index→City 映射接入本结构。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
+      "与核心玩法相关的环形地图计算类型/方法必须位于 Game.Core，并且在不依赖任何 Godot API 的前提下可编译；其输入输出应可被单元测试直接验证（位置索引与路径序列）。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
+      "提供可单测的移动计算能力：给定当前位置索引与步数（例如骰子点数）可计算新位置索引；并提供可单测的多步移动路径序列 API（例如 `GetPath(steps)`）：返回每一步落点的索引序列（不包含起点，包含终点）；使用 xUnit 覆盖正步长、负步长以及跨越边界（环绕）的结果正确性。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -187,10 +187,10 @@
       "Game.Core.Tests/Domain/CityTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Domain/CityTests.cs",
-      "City 构造后属性可读取（Id/Name/RegionId/BasePrice/BaseToll）。 Refs: Game.Core.Tests/Domain/CityTests.cs",
-      "City.GetPrice 在倍率合法时按倍率计算价格，倍率非法时抛出异常。 Refs: Game.Core.Tests/Domain/CityTests.cs",
-      "City.GetToll 在倍率合法时按倍率计算过路费，倍率非法时抛出异常。 Refs: Game.Core.Tests/Domain/CityTests.cs"
+      "City 及其价格/过路费计算逻辑在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Domain/CityTests.cs",
+      "City 构造完成后属性可读取（Id/Name/RegionId/BasePrice/BaseToll），且读取值与构造入参一致。 Refs: Game.Core.Tests/Domain/CityTests.cs",
+      "City.GetPrice：当倍率在传入的 SanguoEconomyRules 允许范围内时，返回按倍率由 BasePrice 计算得到的当前价格；当倍率不在传入 rules 的允许范围内时抛出 ArgumentOutOfRangeException。 Refs: Game.Core.Tests/Domain/CityTests.cs",
+      "City.GetToll：当倍率在传入的 SanguoEconomyRules 允许范围内时，返回按倍率由 BaseToll 计算得到的当前过路费；当倍率不在传入 rules 的允许范围内时抛出 ArgumentOutOfRangeException。 Refs: Game.Core.Tests/Domain/CityTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -227,7 +227,7 @@
     "id": "GM-0004",
     "story_id": "PRD-SANGUO-T2-PLAYER",
     "title": "实现玩家类",
-    "description": "定义玩家的属性和基本操作。",
+    "description": "在 Game.Core 中新增独立的 SanguoPlayer（不复用现有战斗语义 Player），提供可单测的纯 .NET 领域状态（资金、当前位置索引、已拥有城池列表等）与经济结算能力（购买城池、支付过路费）；所有结算不依赖任何 Godot API，并按与 Task 13 对齐的破产规则产出可供上层分流处理（真人 GameOver / NPC 由 TurnManager 退出本局）的结果。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -265,11 +265,11 @@
       "Game.Core.Tests/Domain/SanguoPlayerTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
-      "过路费破产规则：资金不足支付时，将剩余资金一次性转给债权人，支付方资金归零并判定出局；出局者释放全部已占领城池为无人占领（不允许出现 Money < 0）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
-      "SanguoPlayer.TryBuyCity：资金不足时返回 false 且不改变资金与 OwnedCityIds。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
-      "SanguoPlayer.TryBuyCity：资金足够时扣除资金并将 CityId 写入 OwnedCityIds。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
-      "SanguoPlayer.TryPayTollTo：资金足够支付过路费时，支付方扣款、收款方入账，且不会出现负资金（无溢出时国库不变）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs"
+      "在 Game.Core 中新增独立的 SanguoPlayer（不复用现有战斗语义 Player）；至少包含可直接断言的状态：Money（资金）、PositionIndex（当前位置索引）、OwnedCityIds（已拥有城池列表）；并提供用于“购买城池”和“支付过路费”的经济结算能力；以上类型与逻辑可在纯 .NET 单元测试中运行且不引用/不依赖任何 Godot API。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
+      "过路费破产规则（与 Task 13 对齐）：当需要向债权人支付过路费且支付方 Money < toll 时，结算只转移支付方结算前的全部剩余资金给债权人（不允许出现分期/负债/透支），随后支付方 Money 归零并被标记为“出局”（IsEliminated=true）；出局者释放其全部已占领城池（可观察到：OwnedCityIds 被清空，且出局后尝试买城将返回 false）；整个过程任一参与方的 Money 均不得小于 0。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
+      "SanguoPlayer.TryBuyCity：当资金不足以购买目标城池时返回 false，且购买尝试不会改变任何可观测状态（Money、OwnedCityIds 以及与该城池相关的占领结果保持不变）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
+      "SanguoPlayer.TryBuyCity：当资金足够购买目标城池时返回 true，资金按价格扣减且将对应 CityId 加入 OwnedCityIds（结算后 Money 不得为负，并且 OwnedCityIds 的变化可被单测直接断言）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
+      "SanguoPlayer.TryPayTollTo：当资金足够支付过路费（Money >= toll）时，支付方按 toll 扣款、收款方按 toll 入账，并返回/暴露“未出局”的结算结果；结算不影响支付方的 OwnedCityIds，且任一方结算后 Money 不得为负。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -303,7 +303,7 @@
     "id": "GM-0005",
     "story_id": "PRD-SANGUO-T2-DICE",
     "title": "实现骰子机制",
-    "description": "设计骰子投掷的逻辑。",
+    "description": "使用随机数生成器实现 1..6 的掷骰，并在掷骰后发布域事件 core.sanguo.dice.rolled（SanguoDiceRolled，遵循 ADR-0004）。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -341,11 +341,12 @@
       "Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "SanguoDiceService 构造时 bus 为空会抛出异常。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "RollD6 入参校验失败（gameId/playerId/correlationId 为空）会抛出异常且不发布事件。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "RollD6 返回值在 1..6 且会发布 SanguoDiceRolled 事件（含 Value/CorrelationId/CausationId/OccurredAt 等字段）。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "RollD6 支持注入随机源以进行确定性测试：注入 RNG 时返回值与发布事件的 Value 必须与 RNG 输出一致。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
+      "提供可在纯 .NET 单元测试中运行的掷骰逻辑入口（例如 SanguoDiceService.RollD6），其验收聚焦于返回 1..6 与事件发布，且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "当域事件总线依赖为 null 时，构造 SanguoDiceService 必须抛出 ArgumentNullException（参数名为 \"bus\"），且不产生任何事件发布。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "RollD6 可接收调用上下文标识（gameId/playerId/correlationId/causationId）；发布事件的数据负载必须包含并正确映射 GameId、PlayerId、CorrelationId、CausationId 字段，并包含 OccurredAt 字段（不要求具体时间值断言）。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "RollD6 产生并返回 1..6 的点数；同时发布域事件 core.sanguo.dice.rolled（ADR-0004），且 SanguoDiceRolled.EventType 必须精确等于 \"core.sanguo.dice.rolled\"；事件 Source 必须为 \"SanguoDiceService\"，并保证事件的 Value 与返回值一致。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "在单元测试中可通过可控随机源或等效方式验证：RollD6 的返回值与发布事件中的 Value 必须一致，且返回点数确实来自随机数生成器的输出。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "未显式提供随机源时，RollD6 默认从系统随机源获取点数以实现非确定性的 1..6 掷骰，不限定具体封装实现。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
     ],
     "test_strategy": [
       "xUnit + FluentAssertions：掷骰结果始终在 1..6（含边界）。",
@@ -384,7 +385,7 @@
     "id": "GM-0006",
     "story_id": "PRD-SANGUO-T2-TURN-MANAGER",
     "title": "实现回合管理器",
-    "description": "控制游戏回合的顺序和时间推进。",
+    "description": "控制游戏回合的顺序和时间推进：TurnManager 在 Game.Core 管理当前日期（年/月/日）与当前行动玩家；Godot 层仅展示当前轮次与日期等只读状态。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -423,11 +424,11 @@
       "Game.Core.Tests/Services/SanguoTurnManagerTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "回合推进阶段顺序清晰可追踪：AdvanceTurn 内先推进日期（按“日 → 月末 → 季度 → 年度”），跨月触发月末结算，跨季度发布季度事件，跨年发布年度调价；同一次推进内必须保证顺序为 月末结算 → 季度事件 → 年度调价。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "回合/循环需正确处理出局：真人玩家出局立即 GameOver；NPC 出局退出本局并从后续轮转中移除（状态锁定），其已占领城池变为无人占领。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "StartNewGameAsync 与 AdvanceTurnAsync 会发布 turn.started/turn.ended/turn.advanced/下一回合 turn.started，且 ActivePlayerId 按 playerOrder 轮转，日期按天推进。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "玩家行动阶段以事件边界表示：turn.started →（外部执行玩家行动）→ turn.ended；AdvanceTurnAsync 必须先发布 turn.ended 再推进日期/结算/边界事件。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs"
+      "回合与时间轴驱动逻辑（TurnManager/回合推进器）在 Game.Core 中实现，且 TurnManager 负责管理当前日期与当前行动玩家；所有核心玩法相关类与方法不依赖 Godot API；Godot 层仅用于展示当前轮次与日期等只读状态。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "回合推进阶段顺序可被验证与追踪：一次 NextTurn/AdvanceTurn 推进必须按“玩家行动结束 → 日推进 → 月末结算 → 季度事件 → 年度地价调整”的顺序执行；若同一次推进跨越多个边界，必须保证月末结算先于季度事件，季度事件先于年度地价调整（同一次推进内顺序固定为：月末结算 → 季度事件 → 年度地价调整）。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "回合轮转能正确处理破产/出局（与 Task 13 口径一致）：当行动者在本回合内发生资金不足以支付（如过路费）时，其剩余资金一次性转给债权人、行动者资金归零并判定出局；出局者释放其全部已占领城池为无人占领；真人玩家出局立即触发 GameOver；NPC 出局从后续回合轮转中移除并锁定状态（不再行动且不再参与任何结算/事件）。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "开始新局与推进回合具备可观测的状态变化：提供一个新局初始化入口（方法名不作强制），能初始化当前日期与 ActivePlayerId；每次 NextTurn/AdvanceTurn 完成一次回合推进后，ActivePlayerId 按回合顺序轮转并跳过已出局的 NPC，当前日期完成“日推进”且至少前进 1 天。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "玩家行动与时间推进的边界可被验证：一次 NextTurn/AdvanceTurn 的外部可观测效果应等价于“以当前行动玩家的行动已结束为前提”，随后按顺序执行日推进/月末结算/季度事件/年度地价调整等阶段，最后进入下一位可行动玩家作为新的 ActivePlayerId。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -475,7 +476,7 @@
     "id": "GM-0007",
     "story_id": "PRD-SANGUO-T2-ECONOMY",
     "title": "实现经济结算管理器",
-    "description": "处理月末收益结算和地价调整。",
+    "description": "创建 EconomyManager 类：计算月末收益、处理地价调整，并发布相关事件。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -513,15 +514,15 @@
       "Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "购买城池成功会更新买家状态并发布 SanguoCityBought 事件（字段包含 GameId/BuyerId/CityId/Price/OccurredAt/CorrelationId/CausationId）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "购买失败（城池已被他人持有）不会发布事件且买家状态不变。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "发布购买事件失败会回滚买家状态并抛出异常（不允许留下部分成功状态）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "月末结算计算：跳过已出局玩家；若玩家持有的城池在 citiesById 中不存在则 fail-fast。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "年度调价计算：按倍率生成新价格；倍率为负时抛出异常。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "月末收益公式：玩家月末收益=其 OwnedCityIds 对应城池的 BaseToll 求和（已出局玩家不参与）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "跨年边界时，必须按城池逐条发布 SanguoYearPriceAdjusted（字段包含 Year/CityId/OldPrice/NewPrice/CorrelationId/CausationId）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "跨月边界时必须发布 SanguoMonthSettled（含 Year/Month/PlayerSettlements/CorrelationId/CausationId），同月不发布。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
+      "EconomyManager 对外暴露“月末收益结算”和“地价调整”两类能力，并可在纯 C# 环境下运行与单元测试（不依赖 Godot API）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "触发月末结算时，EconomyManager 基于输入的当月游戏状态计算月末收益，并向调用方产出可读取的结算结果；成功完成后发布一次与“月末结算”相关的事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "在相同的当月游戏状态输入下，重复触发月末结算应得到可重复验证的等价结算结果，且事件发布语义与结果保持一致（不依赖非确定性）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "月末结算或地价调整过程中若发生失败，应明确向调用方报告失败（例如抛出异常），并且不得发布表示成功完成的相关事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "当输入的当月游戏状态缺失/不一致导致无法完成月末收益计算时，应立即以失败向调用方报告，并不发布“月末结算”相关事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "执行地价调整时，EconomyManager 基于输入参数/规则计算并产出新的地价结果；对无法接受的输入参数应拒绝并报告失败，且不发布“地价调整”相关事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "月末收益的计算仅使用输入状态中参与结算的数据；在相同输入下输出应可复现，且不将不参与结算的对象计入收益结果。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "成功执行地价调整后，应发布一次与“地价调整”相关的事件；事件载荷能够让订阅者识别被调整对象以及新旧价格或等价差异，并包含本次调整的关联标识或时间信息。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "每次成功完成一次月末结算时，应发布一次与“月末结算”相关的事件，且该事件与本次结算结果可建立对应关系。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -561,7 +562,7 @@
     "id": "GM-0008",
     "story_id": "PRD-SANGUO-T2-ENV-EVENTS",
     "title": "实现事件管理器",
-    "description": "管理季度环境事件的生成和应用。",
+    "description": "在 Game.Core 中实现域事件总线（EventBus）并管理订阅生命周期：支持订阅/取消订阅（Dispose）；PublishAsync 对所有订阅者 fan-out 调用；订阅者异常不影响其他订阅者；在可用时以 best-effort 方式通过 logger/reporter 上报包含 event_type、event_source、event_id 的上下文，且观测链路异常不影响业务流程。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -599,10 +600,10 @@
       "Game.Core.Tests/Services/EventBusTests.cs"
     ],
     "acceptance": [
-      "发布事件会调用所有订阅者，且 Dispose 后不再接收后续事件。 Refs: Game.Core.Tests/Services/EventBusTests.cs",
-      "当某个订阅者抛异常时，事件发布不会中断其他订阅者；如提供 reporter 则会捕获并上报异常。 Refs: Game.Core.Tests/Services/EventBusTests.cs",
-      "当 logger 与 reporter 同时存在时，订阅者异常会被记录与上报，且上报上下文包含 event_type/event_source/event_id。 Refs: Game.Core.Tests/Services/EventBusTests.cs",
-      "当 logger/reporter 自身抛异常时，PublishAsync 仍应吞掉异常并返回（best-effort，不因观测链路导致崩溃）。 Refs: Game.Core.Tests/Services/EventBusTests.cs"
+      "当调用 PublishAsync 发布单个事件时，必须对发布时刻已订阅的所有订阅者逐一调用一次（fan-out）；对订阅返回的句柄调用 Dispose 之后，该订阅者不再接收后续发布的事件。 Refs: Game.Core.Tests/Services/EventBusTests.cs",
+      "任一订阅者在处理事件时抛出异常，不应阻止其他订阅者仍被调用；若提供 reporter，则以 best-effort 方式捕获该异常并进行上报。 Refs: Game.Core.Tests/Services/EventBusTests.cs",
+      "当同时提供 logger 与 reporter 时，订阅者异常应同时被记录与上报；上报的上下文信息至少包含 event_type、event_source、event_id。 Refs: Game.Core.Tests/Services/EventBusTests.cs",
+      "即使 logger/reporter 在记录或上报过程中抛出异常，PublishAsync 仍应以 best-effort 方式吞掉观测链路异常并正常返回，且不因观测链路异常影响对订阅者的事件发布流程。 Refs: Game.Core.Tests/Services/EventBusTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -649,7 +650,7 @@
     "id": "GM-0009",
     "story_id": "PRD-SANGUO-T2-UI-SKELETON",
     "title": "设计UI界面",
-    "description": "设计游戏的用户界面。",
+    "description": "在 Godot 中设计 UI，包括玩家信息面板、骰子按钮、事件提示框、资金与日期显示等，将核心显示元素组织为可复用场景（HUD、对话框、日志面板），避免在脚本中堆叠控件创建逻辑。控件选择与布局可参考 Godot 官方演示项目 gui/control_gallery、gui/accessibility 中的最佳实践，在此基础上使用项目自定义主题统一视觉风格。",
     "status": "pending",
     "priority": "P2",
     "layer": "ui",
@@ -685,12 +686,12 @@
       "Game.Core.Tests/Tasks/Task9UiBoundaryTests.cs"
     ],
     "acceptance": [
-      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "HUD 的关键交互与显示链路可用：DiceButton pressed 发布 ui.hud.dice.roll，且消费 core.sanguo.dice.rolled 后显示 Dice: <value>（GdUnit4/headless）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "UI 展示层不得直接引用 `SanguoPlayer` 实体作为状态源；跨层传递只允许 DTO/快照（例如 `SanguoPlayerView` / `ISanguoPlayerView`）或事件 payload，防止未来并发/后台计算引入的调用线程违例。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Tasks/Task9UiBoundaryTests.cs",
-      "HUD 必须包含核心显示节点：DiceButton/ActivePlayerLabel/DateLabel/MoneyLabel（GdUnit4/headless）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "HUD 必须包含事件提示框（EventToast）与事件日志面板（EventLogPanel）两个可复用场景实例（GdUnit4/headless）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "当消费 core.sanguo.* 事件时：EventToast 必须显示最近事件摘要，EventLogPanel 必须追加日志条目（GdUnit4/headless）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+      "UI 相关场景（至少覆盖 HUD/对话提示/日志面板）在 headless 冒烟测试中可成功实例化；资源引用与主题资源可正常加载（无报错、无缺失资源），且 UI 渲染使用项目自定义主题以保证一致的视觉风格。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "HUD 的关键交互与显示链路可验证：点击/触发 DiceButton 后会发布事件 ui.hud.dice.roll；当 HUD 消费到事件 core.sanguo.dice.rolled 后，HUD 上的骰子结果文本会更新为 \"Dice: <value>\"。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "UI 展示层对外暴露的状态输入边界清晰：渲染/状态更新仅接受 DTO/快照（例如 SanguoPlayerView / ISanguoPlayerView）或事件 payload；不得直接持有、传入或使用 SanguoPlayer 领域实体作为 UI 状态源，以避免并发/后台计算引入线程违例。 Refs: Game.Core.Tests/Tasks/Task9UiBoundaryTests.cs",
+      "HUD 的核心显示节点可被测试稳定定位且覆盖关键显示元素：DiceButton、ActivePlayerLabel、DateLabel、MoneyLabel；并提供一个玩家信息面板区域（PlayerInfoPanel 或等价节点/容器）用于承载玩家信息展示。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "HUD 的核心显示元素通过可复用场景进行组合：在实例化后的节点树中可验证至少包含两个可复用场景实例 EventToast 与 EventLogPanel，用于承载事件提示与事件日志；核心显示元素以场景/节点树方式组织，避免通过脚本在运行时堆叠创建控件来完成主要 UI 结构。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "当 HUD 消费 core.sanguo.* 事件时，UI 输出可被验证：EventToast 更新为“最近一次事件”的可读摘要；EventLogPanel 追加一条新的日志记录；若事件携带日期/资金变化信息，则 DateLabel/MoneyLabel 的显示同步反映最新值。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
@@ -754,9 +755,9 @@
       "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "acceptance": [
-      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "HUD 的骰子显示只会响应当前回合玩家的 core.sanguo.dice.rolled。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+      "对应的 Godot 场景与相关 UI 控件在 headless 冒烟测试中可被实例化/加载且无错误，并能定位到用于展示骰子结果的控件。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "在收到 core.sanguo.game.turn.started 指定当前玩家后，收到该玩家的 core.sanguo.dice.rolled 会将 HUD 的 DiceButton 文本更新为 \"Dice: <Value>\"。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "当 core.sanguo.dice.rolled 的 PlayerId 不等于当前玩家时，HUD 不更新 DiceButton 文本（保持上一次显示）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
@@ -787,7 +788,7 @@
     "id": "GM-0010",
     "story_id": "PRD-SANGUO-T2-TOKEN-MOVE",
     "title": "实现玩家棋子移动",
-    "description": "根据骰子结果移动玩家棋子。",
+    "description": "根据骰子结果移动玩家棋子；在 Godot 中提供移动动画（Tween 或插值）；发布 `core.sanguo.board.token.moved` 前对 ToIndex 做合法范围校验（0 <= ToIndex < TotalPositions），视图仅做防御性校验与审计。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -826,12 +827,12 @@
       "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd"
     ],
     "acceptance": [
-      "位置计算准确性：消费 `core.sanguo.board.token.moved` 后，Token 位置与 (Origin + ToIndex*StepPixels) 一致（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
-      "动画时长验证：MoveDurationSeconds>0 时触发动画并在期望时间窗口内收敛到目标位置（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
-      "连续移动测试：连续发布多次移动事件时 last-event-wins，最终位置与 LastToIndex 一致（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
-      "即时移动回退验证：MoveDurationSeconds=0 的移动必须覆盖正在进行的动画并立即到位（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
-      "输入边界：当 ToIndex < 0 时必须忽略该事件且不移动棋子（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
-      "输入边界：当 TotalPositions > 0 且 ToIndex >= TotalPositions 时必须忽略该事件且不移动棋子（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd"
+      "位置更新准确性：当根据骰子结果发布并被视图消费 `core.sanguo.board.token.moved`（包含 ToIndex）后，棋子最终位置必须与棋盘/地图数据组件提供的（ToIndex → 目标格坐标）映射一致（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
+      "移动动画可观察：当视图消费移动事件后，必须出现一次可观察的位移过渡（Tween/插值任一），并在合理时间窗口内到达 ToIndex 对应的目标格坐标（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
+      "连续移动一致性：当短时间内连续产生并消费多次 `core.sanguo.board.token.moved`（例如上一次移动未结束又收到新移动）时，棋子最终落点必须以最后一次被消费的事件 ToIndex 为准，并到达其对应的目标格坐标（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
+      "无动画/即时到位：当移动被配置为无动画（例如时长为 0）时，消费移动事件后必须立即到位于 ToIndex 对应的目标格坐标，且任何未完成的位移过渡不得继续影响最终位置（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
+      "输入边界（发布方契约+防御）：`core.sanguo.board.token.moved` 的发布方在发布前必须保证 ToIndex >= 0；若视图仍收到 ToIndex < 0 的事件（违约输入），必须不移动棋子并执行防御性校验审计（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
+      "输入边界（发布方契约+防御）：当棋盘/地图数据组件提供 TotalPositions > 0 时，`core.sanguo.board.token.moved` 的发布方在发布前必须保证 ToIndex < TotalPositions（合法范围 0 <= ToIndex < TotalPositions）；若视图仍收到 ToIndex >= TotalPositions 的事件（违约输入），必须不移动棋子并执行防御性校验审计（GdUnit4/headless）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -868,7 +869,7 @@
     "id": "GM-0012",
     "story_id": "PRD-SANGUO-T2-BUY-LAND",
     "title": "实现土地购买逻辑",
-    "description": "处理玩家购买城池的逻辑。",
+    "description": "当玩家停留在无人城池时，玩法层应能基于状态为玩家呈现“购买”选项；玩家选择购买后应扣除资金并更新城池所有权；不满足前置条件则购买失败且状态不变。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -909,14 +910,14 @@
       "Game.Core.Tests/Domain/SanguoBoardStateTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "在本任务落地一个纯 C# 的状态容器（建议命名 `SanguoBoardState` 或 `SanguoGameState`），作为 players/citiesById 的单一装配点：提供 `Players`（含出局标志/位置/OwnedCityIds）与 `CitiesById`（CityId -> City），供后续结算与回合循环直接消费。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "该状态容器必须位于 Game.Core（不依赖 Godot），并有 xUnit 覆盖：唯一性（CityId/PlayerId 不重复）、引用完整性（OwnedCityIds 必须存在于 CitiesById）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当城池无人占领且买家资金足够时返回 true，扣除资金并将 CityId 写入 OwnedCityIds，且 TryGetOwnerOfCity 可解析到买家。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当城池已被他人持有时返回 false，且买家资金与 OwnedCityIds 不变。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当 buyerId 不存在时返回 false，且不改变任何玩家状态。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当 cityId 不存在时返回 false，且不改变任何玩家状态。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当买家资金不足以支付价格时返回 false，且买家资金与 OwnedCityIds 不变。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs"
+      "玩法所依赖的土地购买核心可观察规则（购买入口仅在“停留在无人城池”时可用；成功则扣款并更新所有权；失败则状态不变）以可测试的领域逻辑提供。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "在本任务范围内提供一个纯 C# 的状态模型作为单一事实来源，使玩法层能够仅凭该模型判定：玩家停留在无人城池时应出现购买选项/交互入口；不满足条件时应等价表现为不可购买。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "该状态模型通过 xUnit 覆盖验证购买相关的一致性与可观测性：购买前后资金变化、城池所有权归属变化，以及相关状态查询/推导结果稳定一致。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当玩家实际停留在目标城池、该城池无人占领且资金足够时，触发购买应返回 true，并完成扣款与所有权归属更新，且结果可被稳定观测（例如通过所有权查询/玩家拥有列表）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当玩家停留的城池已被其他玩家拥有，或玩家并未停留在目标城池时，触发购买应返回 false，且资金与所有权状态保持不变（玩法不应出现“买走他人城池”或“远程购买”的结果）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当 buyerId 不存在时返回 false，且不改变任何玩家/城池状态（玩法侧等价为购买失败且状态不变）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当 cityId 不存在时返回 false，且不改变任何玩家/城池状态（玩法侧等价为购买失败且状态不变）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当资金不足时触发购买应返回 false，且资金与所有权状态保持不变（玩法侧等价为购买失败且状态不变）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -968,7 +969,7 @@
     "id": "GM-0023",
     "story_id": "PRD-SANGUO-T2-UI-CITY-STATE",
     "title": "实现UI城池状态显示",
-    "description": "在UI上显示城池的占有状态。",
+    "description": "在UI上显示城池的占有状态。根据城池的占有情况，更新UI显示。",
     "status": "pending",
     "priority": "P2",
     "layer": "ui",
@@ -1000,12 +1001,15 @@
     "owner": "gameplay",
     "test_refs": [
       "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd",
-      "Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
+      "Tests.Godot/tests/UI/A11y/test_button_invokable.gd",
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
     ],
     "acceptance": [
-      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd",
-      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd",
-      "城池 UI 状态必须基于单一所有权来源：Phase 1 从玩家 OwnedCityIds 派生；Phase 2 引入 CityOwnershipRegistry 后仅从 registry 读取。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
+      "包含城池占有状态显示的 UI 场景与控件在 headless 冒烟测试中可被实例化并加载完成（无崩溃/无报错），且界面上存在用于呈现“占有状态”的可见元素。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "GdUnit4 用例覆盖并断言城池占有状态显示的关键行为：初始渲染时根据当前占有数据显示正确，以及占有数据发生变化后 UI 的显示随之更新。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "城池 UI 中对“占有状态”的可观察呈现（如文本/图标/颜色等任一方式）与当前城池占有数据一致；当占有数据发生变更时，UI 在下一次可见刷新后呈现为变更后的正确状态。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "验收判断以 UI 可观察输出为准：占有状态必须能通过自动化测试读取并做断言（例如读取文本内容或可见资源/样式标识），而不是仅依赖日志或编辑器观察。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "至少在两种不同占有情况的输入下（例如占有者不同/占有与未占有），UI 的占有状态呈现存在可被断言的差异，避免“始终同一显示”仍被判定为通过。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
@@ -1079,11 +1083,11 @@
       "Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "过路费破产规则：资金不足支付时，将剩余资金一次性转给债权人，支付方资金归零并判定出局；出局者释放全部已占领城池为无人占领（不允许出现 Money < 0）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "当目标城池无人占领时支付过路费会返回 false 且不发布事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "资金足够支付过路费时：扣除支付方资金并给收款方入账（必要时溢出进入国库），同时发布 SanguoCityTollPaid（含 Amount/OwnerAmount/TreasuryOverflow/CorrelationId/CausationId/OccurredAt）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "当玩家落在自己城池（payerId == ownerId）时支付过路费会返回 false 且不发布事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
+      "过路费支付的核心规则与计算/结算逻辑位于 Game.Core，且可在不启动 Godot 引擎的情况下被单元测试验证（不依赖 Godot API）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "玩家停留在他人已占领城池需要支付过路费：若支付方资金不足，则将其剩余资金一次性转给债权人，支付方资金归零并被判定出局；出局后其全部已占领城池立即释放为无人占领；全流程不得出现 Money < 0。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "当玩家停留的目标城池为无人占领时，不发生过路费结算（函数/动作返回 false），且不产生/发布“支付过路费”领域事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "当玩家停留在他人城池且资金足够支付过路费时：从支付方扣除应付过路费并为城池拥有者入账（资金变化可被测试验证）；若启用事件溯源/领域事件，则发布 SanguoCityTollPaid，并包含 Amount/OwnerAmount/TreasuryOverflow/CorrelationId/CausationId/OccurredAt 以支持回放与排障。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "当玩家停留在自己城池（payerId == ownerId）时，不发生过路费结算（函数/动作返回 false），且不产生/发布“支付过路费”领域事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1175,11 +1179,11 @@
       "Game.Core.Tests/Domain/SanguoPlayerViewTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "AI 决策读取玩家状态必须通过 `ISanguoPlayerView`（推荐使用 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView` 快照），禁止直接持有/跨线程访问 `SanguoPlayer` 实体；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs",
-      "AI 基本规则逻辑（Subtask 11.1）：当轮到 AI 玩家行动时，必须自动生成并发布 `core.sanguo.ai.decision.made` 事件（至少支持 RollDice/Skip 等决策类型），并可在单测中验证事件载荷包含 GameId/AiPlayerId/CorrelationId。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "AI 扩展接口（Subtask 11.2）：AI 决策策略必须通过可替换的接口/策略（例如 Policy/StateMachine/BehaviorTree Adapter）注入到回合管理器或 AI 行为组件中，确保后续可演进为有限状态机/行为树而不改动回合循环骨干。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "AI 测试用例（Subtask 11.3）：至少包含 1 条单测钉死 AI 回合触发决策事件，以及 1 条单测钉死 AI 只读取 `ISanguoPlayerView` 快照输入（不直接使用 `SanguoPlayer` 实体）。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
+      "AI 回合内的决策与行动逻辑在 `Game.Core` 中实现，可通过纯 .NET 单元测试验证，且不依赖任何 Godot API。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "AI 在决策时只依赖玩家状态的只读视图/快照（`ISanguoPlayerView`，可由 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView`），不得直接持有可变的 `SanguoPlayer` 实体以避免跨线程/并发访问风险；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs",
+      "当轮到 AI 玩家行动时，系统会自动产出一个可审计的“AI 决策结果”并发布 `core.sanguo.ai.decision.made` 事件；初期事件的决策类型至少覆盖 RollDice/Skip，且单测可验证事件载荷包含 `GameId`/`AiPlayerId`/`CorrelationId`。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "AI 初期采用简单贪心策略并遵循与玩家一致的结算规则：资金允许时优先买地；踩到他人地块时按规则支付费用；同时决策策略通过可替换接口/策略注入到回合管理或 AI 行为组件中，确保后续可演进为有限状态机/行为树而不需要改动回合循环骨干。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "单元测试至少包含：1) 钉死 AI 回合会触发并发布决策事件；2) 钉死 AI 决策仅使用 `ISanguoPlayerView` 快照输入而非直接使用 `SanguoPlayer` 实体；并对贪心策略关键分支（买地/付费）有可观察断言。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1218,7 +1222,7 @@
     "id": "GM-0014",
     "story_id": "PRD-SANGUO-T2-MONTH-END",
     "title": "实现月末收益结算",
-    "description": "自动结算玩家的月末收益。",
+    "description": "在每月最后一天，自动结算玩家的月末收益并更新资金。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -1257,9 +1261,9 @@
       "Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
-      "当跨月边界（例如 01-31 → 02-01）时：必须消费 `SanguoBoardState` 计算月末收益并更新玩家资金，同时发布 SanguoMonthSettled（含 PlayerSettlements/CorrelationId/CausationId/OccurredAt）。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
-      "未跨月时不会触发月末结算：不发布 SanguoMonthSettled 且玩家资金不变。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs"
+      "月末收益结算的核心逻辑位于 Game.Core，且可在不引用任何 Godot API 的情况下独立运行与测试。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
+      "当推进日期跨越月边界时：自动结算当月收益并计入玩家资金，同时发布 core.sanguo.economy.month.settled（SanguoMonthSettled）事件，且事件 payload 含 GameId/Year/Month/CorrelationId/CausationId/PlayerSettlements。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
+      "当推进日期未跨越月边界时：不结算、不改变玩家资金，且不发布 core.sanguo.economy.month.settled（SanguoMonthSettled）事件。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1337,9 +1341,9 @@
       "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "acceptance": [
-      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "HUD 的骰子显示只会响应当前回合玩家的 core.sanguo.dice.rolled。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+      "用于显示资金的 HUD 场景与相关 UI 控件可在 headless 冒烟测试中成功加载（无报错、可实例化）。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "资金显示的关键行为（初始显示与事件触发后的更新）通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "HUD 的 MoneyLabel 仅在与玩家资金变化相关的状态更新事件（如 core.sanguo.player.state.changed）发生时更新显示。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
@@ -1370,7 +1374,7 @@
     "id": "GM-0015",
     "story_id": "PRD-SANGUO-T2-SEASON-EVENTS",
     "title": "实现季度环境事件",
-    "description": "触发并应用季度环境事件。",
+    "description": "在季度开始时，按概率触发环境事件，并调整相关城池的收益。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -1406,12 +1410,16 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task15QuarterEventTests.cs"
+      "Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
+      "Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
-      "跨季度边界时会评估是否触发季度环境事件；若触发则发布领域事件并包含足够字段以解释‘发生了什么’与‘影响了哪些城池/收益’。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
-      "季度环境事件的收益调整只在当前季度生效，进入下一季度后不会继续影响后续结算。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs"
+      "季度环境事件的“是否触发判定”与“城池收益调整”作为纯 C# 领域逻辑在 Game.Core 中实现，且不依赖/不引用 Godot API，能够通过单元测试直接验证其输入输出与状态变化。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
+      "在进入新季度（季度开始）时，会根据配置的触发概率进行判定并决定是否触发季度环境事件；若触发，则发布可被测试验证的领域事件/结果，该事件/结果需明确本次发生了什么、涉及哪些城池，并包含对相关城池收益的调整结果（例如每个城池的调整值或调整后的收益）。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
+      "季度环境事件造成的收益调整仅影响当季的收益结算；进入下一季度后，上一季度事件带来的调整不再继续影响后续季度的收益结算（除非新季度再次触发新的事件）。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
+      "触发判定的随机性在测试中可被控制与复现（例如通过注入可控随机源或固定种子），从而能确定性覆盖“触发/未触发”两条路径的验收。 Refs: Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs",
+      "当季度开始判定为未触发时：不产生季度环境事件的领域事件/结果，且本季度内城池收益结算不发生额外调整（与基线收益规则一致）。 Refs: Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs",
+      "收益调整仅作用于本次事件判定为“相关”的城池；未被涉及的城池收益不因本次季度环境事件发生变化。 Refs: Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1451,7 +1459,7 @@
     "id": "GM-0019",
     "story_id": "PRD-SANGUO-T2-UI-EVENT-TIPS",
     "title": "实现UI事件提示",
-    "description": "在UI上显示游戏事件提示。",
+    "description": "在事件发生时，通过 UI 弹出提示信息，通知玩家。",
     "status": "pending",
     "priority": "P2",
     "layer": "ui",
@@ -1487,9 +1495,8 @@
       "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "acceptance": [
-      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+      "在 headless 冒烟测试中，包含事件提示的 UI 场景与控件能够加载并完成初始化；过程中无崩溃、无资源路径错误；初始化完成后，UI 处于可在事件发生时展示提示信息的可用状态。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "当在测试中模拟/触发一次游戏事件发生时，UI 会向玩家弹出/显示一个可见的提示信息以通知玩家；提示至少包含可断言的输出（例如提示文本或提示类型），并由 Tests.Godot 的 GdUnit4 用例覆盖该关键交互。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
@@ -1497,7 +1504,8 @@
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
       "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
-      "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_event_task19.gd"
+      "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_event_task19.gd",
+      "[MIGRATED_FROM_ACCEPTANCE:absolute-path] 不要求在本仓库内集成或依赖任何外部 demo 项目；以下本地路径仅用于人工对照 UI 事件提示的交互样式与可访问性表现参考，不构成验收判定依据：C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "taskmaster_id": 19,
     "taskmaster_exported": true,
@@ -1527,7 +1535,7 @@
     "id": "GM-0016",
     "story_id": "PRD-SANGUO-T2-YEAR-PRICE",
     "title": "实现年度地价调整",
-    "description": "每年年初调整城池的地价。",
+    "description": "在每年年初随机调整城池的基础价格和过路费。",
     "status": "pending",
     "priority": "P1",
     "layer": "core",
@@ -1566,10 +1574,10 @@
       "Game.Core.Tests/Domain/MoneyTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
-      "规则（时间边界事件顺序）：同一次回合推进若同时跨越月末/季度/年度边界，必须按顺序触发：月末结算 -> 季度环境事件 -> 年度地价调整；三者均需发布 DomainEvent。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
-      "规则（叠加语义）：时间边界事件按顺序计算并叠加生效，最终状态 = 依次应用月度结算、季度事件、年度调整后的结果；不做覆盖/屏蔽。事件序列可回放（ADR-0004/ADR-0024）。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
-      "规则（最安全作用域字段，初稿可演进）：月度仅允许修改玩家资金结算（PlayerSettlement.AmountDelta/玩家 Money）；季度仅允许修改月度结算的数值系数与适用范围（YieldMultiplier/AffectedRegionIds）；年度仅允许修改城池地价（City.BasePrice 及其 YearlyMultiplier），不直接修改所有权/位置/出局/回合等非经济字段。 Refs: Game.Core.Tests/Domain/MoneyTests.cs"
+      "年度地价调整的规则与计算逻辑应可在纯 C# 单元测试中验证（不依赖任何 Godot API），以便在不启动引擎的情况下校验年初调整对基础价与过路费的影响。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
+      "在每年年初（进入新年度的边界）必须执行一次城池地价调整：对城池的基础价格与过路费进行一次随机调整，并将结果写入可观测的城池状态。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
+      "年度地价调整必须体现随机性：在不同随机输入条件下，基础价与过路费结果允许不同；在测试可控的随机源/输入下，给定相同随机输入应得到一致的基础价与过路费结果。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
+      "年度地价调整的作用域仅限地价调整相关的经济字段：仅允许修改城池基础价与过路费相关字段；不得直接修改所有权、位置、出局、回合推进等与地价调整无关的状态。 Refs: Game.Core.Tests/Domain/MoneyTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1651,17 +1659,17 @@
       "Game.Core.Tests/Domain/SanguoBoardStateTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "符合学习模块二（回合 + 时间轴）的设计：回合推进与日期/月份/年度节点清晰可追踪，并与 T2 PRD 中的“日 → 月末 → 季度 → 年度”闭环描述一致。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "回合/循环需正确处理出局：真人玩家出局立即 GameOver；NPC 出局退出本局并从后续轮转中移除（状态锁定），其已占领城池变为无人占领。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "Money overflow handling (Task 17): when a credit operation would exceed Money max limit, the game loop writes an audit entry (logs/** per AGENTS 6.3) and reports via IErrorReporter; UI shows a non-blocking toast for 3 seconds; apply cap rule: payer still pays full amount, creditor is capped at max, overflow goes to treasury (or discarded by design) and state updates must be atomic. Refs: Game.Core.Tests/Domain/MoneyTests.cs",
-      "MED-001（未来修订）：破产/出局路径需要‘事务语义’：将债权人入账、付款方出局标记、城池释放视为一次性提交，避免在未来引入事件发布/持久化/回调时出现可观察的中间态；当前 ThreadAccessGuard 单线程仅作为缓解，不作为最终保证。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "本任务的回合循环必须消费 Task 12 的 `SanguoBoardState`（而不是散落在多个服务中各自维护玩家/城池集合），以保证出局/城池释放/资金转移等规则可在单测中钉死且状态一致。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "规则（时间边界事件顺序）：同一次回合推进若同时跨越月末/季度/年度边界，必须按顺序触发：月末结算 -> 季度环境事件 -> 年度地价调整；三者均需发布 DomainEvent。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "规则（叠加语义）：时间边界事件按顺序计算并叠加生效，最终状态 = 依次应用月度结算、季度事件、年度调整后的结果；不做覆盖/屏蔽。事件序列可回放（ADR-0004/ADR-0024）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "规则（最安全作用域字段，初稿可演进）：月度仅允许修改玩家资金结算（PlayerSettlement.AmountDelta/玩家 Money）；季度仅允许修改月度结算的数值系数与适用范围（YieldMultiplier/AffectedRegionIds）；年度仅允许修改城池地价（City.BasePrice 及其 YearlyMultiplier），不直接修改所有权/位置/出局/回合等非经济字段。 Refs: Game.Core.Tests/Domain/MoneyTests.cs",
-      "玩家行动逻辑（Subtask 17.1）：当轮到真人玩家行动时，回合循环必须进入“等待玩家动作”阶段；在收到明确的玩家动作命令前不得推进日期/切换行动者；至少支持动作 RollDice，并发布 `core.sanguo.dice.rolled`（Value 1..6）以驱动后续移动与结算。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "AI 行动逻辑（Subtask 17.2）：当轮到 AI 玩家（约定 PlayerId 以 `ai-` 前缀）行动时，回合循环必须自动生成并应用一个动作（至少支持 RollDice 或 Skip），并发布 `core.sanguo.ai.decision.made`（SanguoAiDecisionMade.EventType）；AI 决策读取输入必须通过 `ISanguoPlayerView` 快照，禁止直接持有/跨线程访问 `SanguoPlayer`。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
+      "回合循环相关的核心规则与状态推进逻辑放在 Game.Core 中，并保证该部分不依赖 Godot API（可用纯 .NET 单测验证回合推进/出局/资金结算）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "回合推进与时间推进可被外部观察与追踪：能清晰看到“日推进 → 触发月末结算 → 触发季度节点 → 触发年度节点”的闭环，并与 T2 PRD 的时间轴描述一致。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "回合循环正确处理出局者：已出局 NPC 会从后续轮转中跳过且不再行动；真人玩家一旦出局，回合循环立即停止并触发游戏结束；NPC 出局后其状态锁定，且其已占领城池被释放为无人占领。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "金额入账触发 Money 上限时，回合循环必须：写入审计日志（logs/**，符合 AGENTS 6.3 约定且可落到 logs/ci/<YYYY-MM-DD>/security-audit.jsonl），并通过 IErrorReporter 上报；前台以 3 秒自动消失的非阻塞浮窗提示替代 GameOver/错误界面；采用封顶规则（付款方仍扣全额、收款方封顶、溢出进入国库或按设计丢弃）；且整笔资金与相关状态更新必须原子完成，不得出现可观察的半更新状态。 Refs: Game.Core.Tests/Domain/MoneyTests.cs",
+      "MED-001（未来修订）：破产/出局路径需具备“事务语义”，将债权人入账、付款方出局标记、城池释放/转移视为一次性提交，避免未来引入事件发布/持久化/回调后出现可观察的中间态；当前 ThreadAccessGuard 单线程仅为缓解，不作为最终保证。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "回合循环以 Task 12 的 SanguoBoardState 作为单一事实来源来驱动玩家/城池/出局/资金变更；并且必须在场景/代码中把 Task 2 的 TotalPositions 设置到 SanguoBoardView.TotalPositions；任何移动事件的 ToIndex 必须做范围校验（0 <= ToIndex < TotalPositions），且“未设置 TotalPositions”或“未被测试覆盖的范围校验”视为 Task 17 未完成。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "同一次回合推进若跨越多个时间边界，边界效果的应用顺序必须可验证且一致：先月末结算，再季度事件，最后年度地价调整；若启用 DomainEvent（ADR-0004），则事件的发布顺序也必须与该顺序一致。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "时间边界效果按顺序计算并叠加生效：最终状态等于依次应用月度结算、季度事件、年度调整后的结果，不得用后者覆盖/屏蔽前者；若启用事件溯源能力，则该序列应可回放用于排障，并保留必要的关联标识（如 CorrelationId/CausationId）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "时间边界处理应限制在与“时间推进/经济结算”直接相关的状态变更上，避免引入与回合循环无关的副作用；所有权/位置/出局等非经济字段仅能由对应规则（行动/移动/出局流程）触发变更，避免出现难以审计的隐式改写。 Refs: Game.Core.Tests/Domain/MoneyTests.cs",
+      "玩家行动逻辑（Subtask 17.1）：轮到真人玩家时，回合循环进入“等待玩家动作”阶段；在收到明确的玩家动作命令前不得推进日期或切换行动者；至少支持动作 RollDice，并发布 core.sanguo.dice.rolled（Value 1..6）以驱动后续移动与结算；同时保证 HUD 的 ui.hud.dice.roll -> SanguoDiceService.RollD6 -> core.sanguo.dice.rolled 链路成立，且 CorrelationId/CausationId 可贯穿并在日志中追踪。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "AI 行动逻辑（Subtask 17.2）：轮到 AI 玩家（PlayerId 以 ai- 前缀）时，回合循环会自动生成并应用一个动作（至少 RollDice 或 Skip），并发布 core.sanguo.ai.decision.made（SanguoAiDecisionMade.EventType）；AI 决策读取输入必须通过 ISanguoPlayerView 快照，禁止直接持有/跨线程访问 SanguoPlayer；并确保关联标识可用于追踪与审计。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1712,7 +1720,7 @@
     "id": "GM-0021",
     "story_id": "PRD-SANGUO-T2-UI-DATE",
     "title": "实现UI日期显示",
-    "description": "在UI上显示当前游戏日期。",
+    "description": "在UI上显示当前游戏日期，并在游戏日期变化时实时更新显示。",
     "status": "pending",
     "priority": "P2",
     "layer": "ui",
@@ -1745,12 +1753,15 @@
     "test_refs": [
       "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task21.gd",
       "Tests.Godot/tests/UI/test_hud_scene.gd",
-      "Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
+      "Tests.Godot/tests/UI/A11y/test_button_invokable.gd",
+      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "Tests.Godot/tests/UI/test_hud_date_display_reflects_latest_date.gd"
     ],
     "acceptance": [
-      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd",
-      "符合学习模块二（回合 + 时间轴）的设计：回合推进与日期/月份/年度节点清晰可追踪，并与 T2 PRD 中的“日 → 月末 → 季度 → 年度”闭环描述一致。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
+      "对应的 Godot 场景与 UI 控件在 headless 冒烟测试中可成功加载；加载完成后，UI 上存在用于显示“当前游戏日期”的可见文本/控件，且其内容可读（例如非空、未隐藏）。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "在 Tests.Godot 的 GdUnit4 用例中覆盖并验证：当“游戏日期”发生变化时（不限定触发来源），UI 上用于显示日期的文本会自动更新为新的日期（以可观察到的文本变化为准），无需重新进入界面或手动刷新。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "UI 日期显示应清晰表达年/月/日；当游戏日期连续变化多次时，每一次日期变化都能在可观察层面反映为日期文本的对应更新，并且日期文本始终反映最新游戏日期（不出现回退为旧值或停滞不更新等可观察异常）。 Refs: Tests.Godot/tests/UI/test_hud_date_display_reflects_latest_date.gd",
+      "进入包含该 UI 的界面后，无需额外交互即可显示“当前游戏日期”；在停留于该界面期间，后续日期变化时持续自动更新显示。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
@@ -1782,7 +1793,7 @@
     "id": "GM-0018",
     "story_id": "PRD-SANGUO-T2-SAVELOAD",
     "title": "实现存档功能",
-    "description": "实现游戏进度的保存和加载。",
+    "description": "使用本地文件系统保存游戏状态，支持游戏进度的保存和加载。",
     "status": "deferred",
     "priority": "P1",
     "layer": "core",
@@ -1818,12 +1829,19 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task18RequirementsTests.cs",
-      "Game.Core.Tests/Tasks/Task18CoreAssemblyDependencyRulesTests.cs"
+      "Game.Core.Tests/Tasks/Task18CoreAssemblyDependencyRulesTests.cs",
+      "Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs",
+      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs"
     ],
     "acceptance": [
-      "核心玩法相关类与方法在 Game.Core 中实现且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task18CoreAssemblyDependencyRulesTests.cs",
-      "保存/加载通过端口抽象完成，不允许调用绝对路径或路径穿越；最终落盘位置限定为 user://（或等价的受控根目录）。 Refs: Game.Core.Tests/Tasks/Task18RequirementsTests.cs",
-      "加载缺失或损坏的存档不会导致崩溃，应返回可处理的失败结果（或抛出明确异常）并保持内存状态不被污染。 Refs: Game.Core.Tests/Tasks/Task18RequirementsTests.cs"
+      "与存档（保存/加载游戏进度）直接相关的核心逻辑（例如进度快照的序列化/反序列化与校验）实现于 Game.Core，且在编译/运行层面不依赖任何 Godot API，因此可在不启动引擎的情况下通过单元测试验证。 Refs: Game.Core.Tests/Tasks/Task18CoreAssemblyDependencyRulesTests.cs",
+      "保存与加载能力通过端口抽象对外提供；对外接收的路径输入必须拒绝绝对路径与路径穿越，且实际本地落盘的根目录被限制在 user://（或等价的受控根目录）内，可通过行为测试验证。 Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "当存档文件缺失或内容损坏时，加载流程不得导致崩溃；必须以可处理的失败结果返回（或抛出明确异常），并确保失败后内存中的游戏进度状态不被部分写入或污染。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "当执行“保存游戏进度”且成功完成本地文件系统落盘后，外部可通过可观测的成功结果验证（例如返回成功状态/存档标识/可追踪信息，且在受控根目录下可读取到对应存档内容）；同时保存成功不应导致当前内存中的游戏进度出现非预期改变。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "当执行“加载游戏进度”且成功完成时，加载结果必须可通过可观测的状态变化验证（加载后的游戏进度与存档内容一致）；并在保存成功与加载成功时，通过可被测试断言的对外信号/事件暴露成功（例如 core.sanguo.game.saved 与 core.sanguo.game.loaded，或等价信号）。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs",
+      "对同一份游戏进度执行“保存→加载”的往返流程后，得到的游戏进度在语义上与保存前等价（字段一致/可比较），以证明存档确实可被读取并恢复进度。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "当加载遇到不兼容的存档格式（例如来自未来版本或缺少必要字段）时，必须以可处理的失败结果结束且不污染内存进度状态，以保证格式一致性在演进时可控。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
@@ -1860,7 +1878,7 @@
     "id": "GM-0024",
     "story_id": "PRD-SANGUO-T2-UI-LOG",
     "title": "实现UI事件日志",
-    "description": "记录并显示游戏事件日志。",
+    "description": "记录游戏中的重要事件，并在 UI 上显示事件日志。",
     "status": "deferred",
     "priority": "P2",
     "layer": "ui",
@@ -1896,9 +1914,11 @@
       "Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
     ],
     "acceptance": [
-      "对应的 Godot 场景与 UI 控件可以在 headless 冒烟测试中成功加载。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "关键 UI 交互通过 Tests.Godot 中的 GdUnit4 用例覆盖。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
+      "包含“游戏事件日志”的对应 Godot 场景与 UI 控件可在 headless 冒烟测试中成功加载且无错误输出。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "关键 UI 行为通过 GdUnit4 用例覆盖：当游戏重要事件发生时，事件日志在 UI 上产生可观测更新（如新增日志条目并可见/可滚动查看）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "当“重要事件”发生时，日志以“追加新条目”的方式记录，并且不会覆盖/替换已有条目；同一运行会话内可累计保留多条历史事件用于回看。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "日志条目在 UI 上的可见顺序与事件发生顺序一致（新事件对应的新条目出现在明确的位置，例如列表末尾或顶部，但需保持一致且可验证）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "每条日志条目至少包含对玩家可理解的事件摘要信息（能区分不同事件、能理解发生了什么），且 UI 展示不会因日志更新而阻塞后续日志追加与查看操作。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
@@ -1906,7 +1926,8 @@
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
       "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
-      "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_eventlogging_task24.gd"
+      "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_eventlogging_task24.gd",
+      "[MIGRATED_FROM_ACCEPTANCE:local-demo-references] Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility（用于对照事件日志 UI 的交互与可访问性，确保日志相关控件在测试中可被触发/调用且不会阻塞日志显示）。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
     ],
     "taskmaster_id": 24,
     "taskmaster_exported": true,

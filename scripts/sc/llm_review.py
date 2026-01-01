@@ -440,7 +440,7 @@ def _default_agent_prompt(agent: str) -> str:
     )
 
 
-_VERDICT_RE = re.compile(r"(?mi)^\\s*Verdict\\s*:\\s*(OK|Needs Fix)\\s*$")
+_VERDICT_RE = re.compile(r"(?mi)^\s*(?:#+\s*)?Verdict\s*:\s*(OK|Needs Fix)\s*$")
 
 
 def _parse_verdict(text: str) -> str | None:

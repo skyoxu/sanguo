@@ -54,7 +54,6 @@ AUTO_END = "<!-- END AUTO:TEST_ORG_NAMING_REFS -->"
 ALLOWED_TEST_PREFIXES = (
     "Game.Core.Tests/",
     "Tests.Godot/tests/",
-    "Tests/",
 )
 
 
@@ -364,6 +363,7 @@ def _apply_paths_to_view_entry(
     entry: dict[str, Any],
     view_label: str,
     task_id: int,
+    is_a11y_task: bool,
     overwrite_existing: bool,
     overwrite_indices: set[int] | None,
     paths_by_index: dict[int, list[str]],
@@ -402,18 +402,16 @@ def _apply_paths_to_view_entry(
 
         candidate = [p.replace("\\", "/") for p in paths_by_index[idx] if str(p).strip()]
         valid = [p for p in candidate if _is_allowed_test_path(p)]
+        if not is_a11y_task:
+            # Avoid binding unrelated UI acceptance to accessibility test suites.
+            valid = [p for p in valid if "/UI/A11y/" not in p.replace("\\", "/")]
 
         # Prefer existing files.
         existing = [p for p in valid if (root / p).exists()]
 
-        # If the model proposes only non-existing paths but we already have existing tests
-        # for this task, bind to the existing tests to avoid creating brittle placeholders.
-        desired_ext = ".gd" if (prefer_gd or any(p.endswith(".gd") for p in valid)) else ".cs"
-        hint = existing_gd_hint if desired_ext == ".gd" else existing_cs_hint
-        if not existing and hint and _is_allowed_test_path(hint) and (root / hint).exists():
-            chosen = [hint]
-        else:
-            chosen = existing if existing else valid
+        # Prefer existing files only when the model explicitly selected them.
+        # Avoid auto-binding to weak "hints" (e.g., generic UI token matches), which can create false evidence chains.
+        chosen = existing if existing else valid
 
         if not chosen:
             chosen = [_default_ref_for(task_id=task_id, prefer_gd=prefer_gd)]
@@ -508,6 +506,18 @@ def main() -> int:
             acc = entry.get("acceptance")
             if not isinstance(acc, list):
                 return
+            title_l = str((master or {}).get("title") or "").strip().lower()
+            desc_l = str((master or {}).get("description") or "").strip().lower()
+            is_a11y_task = any(
+                k in (title_l + "\n" + desc_l)
+                for k in (
+                    "a11y",
+                    "accessibility",
+                    "无障碍",
+                    "可访问",
+                    "可达性",
+                )
+            )
             for idx, a in enumerate(acc):
                 s = str(a or "").strip()
                 if not s:
@@ -517,6 +527,14 @@ def main() -> int:
                         continue
                     refs = _extract_refs_from_acceptance_item(s)
                     if not refs:
+                        continue
+                    # Treat accidental binding to accessibility suites as placeholder unless the task is actually a11y.
+                    if (
+                        not is_a11y_task
+                        and all(str(p).replace("\\", "/").startswith("Tests.Godot/tests/UI/A11y/") for p in refs)
+                    ):
+                        overwrite_by_view[view].add(idx)
+                        missing[ItemKey(view=view, index=idx)] = _strip_refs_suffix(s)
                         continue
                     if not all(_is_placeholder_ref(task_id=tid, path=p) for p in refs):
                         continue
@@ -534,6 +552,18 @@ def main() -> int:
             continue
 
         title = str((master or {}).get("title") or "")
+        title_l = title.strip().lower()
+        desc_l = str((master or {}).get("description") or "").strip().lower()
+        is_a11y_task = any(
+            k in (title_l + "\n" + desc_l)
+            for k in (
+                "a11y",
+                "accessibility",
+                "无障碍",
+                "可访问",
+                "可达性",
+            )
+        )
         existing_candidates = _pick_existing_candidates(
             all_tests=all_tests, task_id=tid, title=title, limit=int(args.candidate_limit)
         )
@@ -617,6 +647,7 @@ def main() -> int:
                         entry=back_task,
                         view_label="back",
                         task_id=tid,
+                        is_a11y_task=is_a11y_task,
                         overwrite_existing=bool(args.overwrite_existing),
                         overwrite_indices=overwrite_by_view["back"],
                         paths_by_index=by_view_index["back"],
@@ -631,6 +662,7 @@ def main() -> int:
                         entry=gameplay_task,
                         view_label="gameplay",
                         task_id=tid,
+                        is_a11y_task=is_a11y_task,
                         overwrite_existing=bool(args.overwrite_existing),
                         overwrite_indices=overwrite_by_view["gameplay"],
                         paths_by_index=by_view_index["gameplay"],

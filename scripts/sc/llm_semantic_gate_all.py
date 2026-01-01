@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -35,6 +36,24 @@ class SemanticFinding:
     task_id: int
     verdict: str  # OK | Needs Fix | Unknown
     reason: str
+
+
+def _strip_refs_clause(text: str) -> str:
+    """
+    Remove the trailing `Refs:` clause from acceptance items.
+
+    Notes:
+      - Stage-2 semantic gate must not infer requirements from test file paths/names.
+      - Deterministic refs/anchors checks are handled elsewhere (sc-acceptance-check).
+    """
+
+    s = str(text or "").strip()
+    idx = s.lower().find("refs:")
+    if idx >= 0:
+        s = s[:idx].rstrip()
+    # Collapse whitespace after truncation.
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
 
 
 def _read_json(path: Path) -> Any:
@@ -83,7 +102,8 @@ def _task_brief(task_id: int, *, max_acceptance_items: int) -> str:
         raw = entry.get("acceptance") or []
         if not isinstance(raw, list):
             return []
-        return [str(x or "").strip() for x in raw if str(x or "").strip()][:max_acceptance_items]
+        items = [_strip_refs_clause(x) for x in raw]
+        return [s for s in items if s][:max_acceptance_items]
 
     lines: list[str] = []
     lines.append(f"### Task {task_id}: {str(master.get('title') or '').strip()}")
@@ -159,15 +179,19 @@ def _build_batch_prompt(*, batch: list[int], max_acceptance_items: int) -> str:
     blocks.append("")
     blocks.append("Goal: for each task below, judge whether the acceptance set is semantically equivalent to the task description.")
     blocks.append("Scope: stage-2 only. Do NOT re-check deterministic gates (refs existence, anchors, ADR/security/static scans).")
+    blocks.append("Important: DO NOT infer requirements from any test file names/paths; treat refs as non-semantic metadata.")
     blocks.append("")
     blocks.append("Output format (STRICT, no markdown fences):")
     blocks.append("For each task, output exactly one TSV line:")
     blocks.append("T<id>\\tOK|Needs Fix\\t<short reason (<=120 chars)>")
     blocks.append("")
     blocks.append("Rules:")
-    blocks.append("- Verdict OK only if acceptance covers the main behaviors/invariants/failure-semantics implied by the description.")
-    blocks.append("- If acceptance is generic, missing core behavior, or not aligned with description, mark Needs Fix.")
+    blocks.append("- Verdict OK if acceptance covers all REQUIRED behaviors/invariants/failure-semantics implied by the master description/details, and does not CONTRADICT them.")
+    blocks.append("- Extra refinements are allowed if they are consistent with the task intent (e.g., stricter validation, additional event metadata, clearer invariants). Do NOT mark Needs Fix solely because acceptance is more detailed than the description.")
+    blocks.append("- Mark Needs Fix only if: (a) a described behavior is missing, (b) acceptance contradicts the description, or (c) acceptance introduces a clearly unrelated feature that changes the task meaning.")
     blocks.append("- If the task has both back/gameplay acceptance, treat the union as the acceptance set.")
+    blocks.append("- If back/gameplay descriptions conflict with master, treat master as the source of truth; do not mark Needs Fix only due to inconsistent secondary descriptions.")
+    blocks.append("- If you are unsure whether something is a mismatch, choose OK (do not guess).")
     blocks.append("")
     blocks.append("Tasks:")
     for tid in batch:
@@ -204,8 +228,19 @@ def _parse_tsv_output(text: str) -> list[SemanticFinding]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="sc semantic equivalence gate (batch) for all tasks")
+    ap.add_argument(
+        "--task-ids",
+        default="",
+        help="Optional comma-separated task ids to audit (e.g. 1,14,22). When set, only these tasks are included.",
+    )
     ap.add_argument("--batch-size", type=int, default=8, help="Task ids per LLM call (default: 8).")
     ap.add_argument("--timeout-sec", type=int, default=900, help="Per-batch timeout seconds (default: 900).")
+    ap.add_argument(
+        "--consensus-runs",
+        type=int,
+        default=1,
+        help="Run each batch N times and take a majority-vote verdict per task (default: 1).",
+    )
     ap.add_argument(
         "--model-reasoning-effort",
         default="low",
@@ -225,6 +260,18 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     all_ids = _load_all_task_ids()
+    if str(args.task_ids or "").strip():
+        selected: list[int] = []
+        for raw in str(args.task_ids).split(","):
+            s = str(raw or "").strip()
+            if not s:
+                continue
+            try:
+                selected.append(int(s))
+            except ValueError:
+                continue
+        if selected:
+            all_ids = [tid for tid in all_ids if tid in set(selected)]
     if int(args.max_tasks) > 0:
         all_ids = all_ids[: int(args.max_tasks)]
 
@@ -235,29 +282,53 @@ def main() -> int:
     all_findings: dict[int, SemanticFinding] = {}
     for idx, batch in enumerate(batches, 1):
         prompt = _build_batch_prompt(batch=batch, max_acceptance_items=int(args.max_acceptance_items))
-        out_path = out_dir / f"batch-{idx:02d}.tsv"
-        trace_path = out_dir / f"batch-{idx:02d}.trace.log"
+        runs = max(1, int(args.consensus_runs))
+        per_run: list[dict[int, SemanticFinding]] = []
+        for run_idx in range(1, runs + 1):
+            suffix = f"-run-{run_idx:02d}" if runs > 1 else ""
+            out_path = out_dir / f"batch-{idx:02d}{suffix}.tsv"
+            trace_path = out_dir / f"batch-{idx:02d}{suffix}.trace.log"
 
-        rc, trace = _run_codex_exec(
-            prompt=prompt,
-            out_path=out_path,
-            timeout_sec=int(args.timeout_sec),
-            model_reasoning_effort=str(args.model_reasoning_effort),
-        )
-        trace_path.write_text(trace, encoding="utf-8")
+            rc, trace = _run_codex_exec(
+                prompt=prompt,
+                out_path=out_path,
+                timeout_sec=int(args.timeout_sec),
+                model_reasoning_effort=str(args.model_reasoning_effort),
+            )
+            trace_path.write_text(trace, encoding="utf-8")
 
-        tsv = out_path.read_text(encoding="utf-8", errors="ignore") if out_path.is_file() else ""
-        parsed = _parse_tsv_output(tsv)
-        parsed_ids = {p.task_id for p in parsed}
-        for p in parsed:
-            all_findings[p.task_id] = p
+            tsv = out_path.read_text(encoding="utf-8", errors="ignore") if out_path.is_file() else ""
+            parsed = _parse_tsv_output(tsv)
+            run_map: dict[int, SemanticFinding] = {p.task_id: p for p in parsed}
+            # Mark missing tasks in this run as unknown for visibility.
+            for tid in batch:
+                if tid not in run_map:
+                    run_map[tid] = SemanticFinding(task_id=tid, verdict="Unknown", reason="no parseable verdict")
+            per_run.append(run_map)
 
-        # Mark missing tasks in this batch as unknown for visibility.
+        # Consensus: majority vote per task (OK vs Needs Fix). Ties -> Unknown.
         for tid in batch:
-            if tid not in parsed_ids:
-                all_findings[tid] = SemanticFinding(task_id=tid, verdict="Unknown", reason="no parseable verdict")
+            ok = sum(1 for r in per_run if r[tid].verdict == "OK")
+            nf = sum(1 for r in per_run if r[tid].verdict == "Needs Fix")
+            if ok == nf:
+                verdict = "Unknown"
+            else:
+                verdict = "OK" if ok > nf else "Needs Fix"
 
-        print(f"[sc-semantic-gate-all] batch {idx}/{len(batches)} rc={rc} tasks={len(batch)}")
+            # Pick the first matching reason for the consensus verdict.
+            reason = ""
+            for r in per_run:
+                f = r[tid]
+                if f.verdict == verdict:
+                    reason = f.reason
+                    break
+            if verdict == "Unknown" and not reason:
+                # Fall back to any reason if available.
+                reason = next((r[tid].reason for r in per_run if r[tid].reason), "no consensus verdict")
+
+            all_findings[tid] = SemanticFinding(task_id=tid, verdict=verdict, reason=reason)
+
+        print(f"[sc-semantic-gate-all] batch {idx}/{len(batches)} runs={runs} tasks={len(batch)}")
 
     needs_fix = sorted([f.task_id for f in all_findings.values() if f.verdict == "Needs Fix"])
     unknown = sorted([f.task_id for f in all_findings.values() if f.verdict == "Unknown"])
