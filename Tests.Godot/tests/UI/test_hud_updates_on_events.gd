@@ -92,6 +92,7 @@ func test_hud_updates_on_sanguo_turn_started_event() -> void:
     await get_tree().process_frame
     assert_str(money_label.text).is_equal("Money: 123")
 
+# ACC:T9.2
 func test_dice_button_emits_ui_roll_event() -> void:
     var hud = await _hud()
     var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
