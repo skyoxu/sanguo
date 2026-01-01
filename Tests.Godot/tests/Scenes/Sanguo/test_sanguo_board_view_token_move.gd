@@ -4,7 +4,22 @@ const EVENT_TOKEN_MOVED := "core.sanguo.board.token.moved"
 
 var _bus: Node
 
+func _security_audit_path() -> String:
+    return ProjectSettings.globalize_path("user://logs/security/security-audit.jsonl")
+
+func _read_security_audit_text() -> String:
+    var path := _security_audit_path()
+    if not FileAccess.file_exists(path):
+        return ""
+    var f := FileAccess.open(path, FileAccess.READ)
+    return f.get_as_text()
+
 func before() -> void:
+    var existing = get_node_or_null("/root/EventBus")
+    if existing != null:
+        existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
+        existing.queue_free()
+
     _bus = load("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
     _bus.name = "EventBus"
     get_tree().get_root().add_child(auto_free(_bus))
@@ -209,12 +224,18 @@ func test_negative_to_index_is_ignored_and_does_not_move_token() -> void:
     add_child(auto_free(view))
     await get_tree().process_frame
 
+    var audit_before := _read_security_audit_text()
     _publish_move("p1", -1)
     await get_tree().process_frame
 
     assert_int(view.LastToIndex).is_equal(0)
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
+
+    var audit_after := _read_security_audit_text()
+    assert_bool(audit_after.length() > audit_before.length()).is_true()
+    assert_str(audit_after).contains("\"action\":\"SANGUO_BOARD_TOKEN_MOVE_REJECTED\"")
+    assert_str(audit_after).contains("\"reason\":\"to_index_negative\"")
 
 # ACC:T10.6
 func test_out_of_range_to_index_is_ignored_when_total_positions_set() -> void:
@@ -230,9 +251,15 @@ func test_out_of_range_to_index_is_ignored_when_total_positions_set() -> void:
     add_child(auto_free(view))
     await get_tree().process_frame
 
+    var audit_before := _read_security_audit_text()
     _publish_move("p1", 3)
     await get_tree().process_frame
 
     assert_int(view.LastToIndex).is_equal(0)
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
+
+    var audit_after := _read_security_audit_text()
+    assert_bool(audit_after.length() > audit_before.length()).is_true()
+    assert_str(audit_after).contains("\"action\":\"SANGUO_BOARD_TOKEN_MOVE_REJECTED\"")
+    assert_str(audit_after).contains("\"reason\":\"to_index_out_of_range\"")
