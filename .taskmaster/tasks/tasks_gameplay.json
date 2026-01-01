@@ -1670,7 +1670,8 @@
       "时间边界效果按顺序计算并叠加生效：最终状态等于依次应用月度结算、季度事件、年度调整后的结果，不得用后者覆盖/屏蔽前者；若启用事件溯源能力，则该序列应可回放用于排障，并保留必要的关联标识（如 CorrelationId/CausationId）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "时间边界处理应限制在与“时间推进/经济结算”直接相关的状态变更上，避免引入与回合循环无关的副作用；所有权/位置/出局等非经济字段仅能由对应规则（行动/移动/出局流程）触发变更，避免出现难以审计的隐式改写。 Refs: Game.Core.Tests/Domain/MoneyTests.cs",
       "玩家行动逻辑（Subtask 17.1）：轮到真人玩家时，回合循环进入“等待玩家动作”阶段；在收到明确的玩家动作命令前不得推进日期或切换行动者；至少支持动作 RollDice，并发布 core.sanguo.dice.rolled（Value 1..6）以驱动后续移动与结算；同时保证 HUD 的 ui.hud.dice.roll -> SanguoDiceService.RollD6 -> core.sanguo.dice.rolled 链路成立，且 CorrelationId/CausationId 可贯穿并在日志中追踪。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "AI 行动逻辑（Subtask 17.2）：轮到 AI 玩家（PlayerId 以 ai- 前缀）时，回合循环会自动生成并应用一个动作（至少 RollDice 或 Skip），并发布 core.sanguo.ai.decision.made（SanguoAiDecisionMade.EventType）；AI 决策读取输入必须通过 ISanguoPlayerView 快照，禁止直接持有/跨线程访问 SanguoPlayer；并确保关联标识可用于追踪与审计。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
+      "AI 行动逻辑（Subtask 17.2）：轮到 AI 玩家（PlayerId 以 ai- 前缀）时，回合循环会自动生成并应用一个动作（至少 RollDice 或 Skip），并发布 core.sanguo.ai.decision.made（SanguoAiDecisionMade.EventType）；AI 决策读取输入必须通过 ISanguoPlayerView 快照，禁止直接持有/跨线程访问 SanguoPlayer；并确保关联标识可用于追踪与审计。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "回合循环稳定性（Subtask 17.4）：在固定随机种子/确定性输入下，模拟至少 N 回合推进（建议 ≥ 200，包含真人等待命令与 AI 自动动作），断言无异常、无卡死、日期单调推进且关键不变量不破坏（例如出局者不再获得行动）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
