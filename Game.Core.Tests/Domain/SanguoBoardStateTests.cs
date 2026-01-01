@@ -90,7 +90,7 @@ public sealed class SanguoBoardStateTests
 
     // ACC:T12.5
     [Fact]
-    public void TryBuyCity_WhenCityOwnedByAnotherPlayer_ReturnsFalseAndDoesNotChangeBuyerState()
+    public void GivenCityOwnedByAnotherPlayer_WhenTryBuyCity_ThenReturnsFalseAndBuyerStateUnchanged()
     {
         var city = MakeCity(id: "c1");
         var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: Rules);
@@ -107,7 +107,7 @@ public sealed class SanguoBoardStateTests
 
     // ACC:T12.4
     [Fact]
-    public void TryBuyCity_WhenCityIsUnownedAndBuyerHasEnoughMoney_UpdatesOwnershipAndBuyerState()
+    public void GivenCityUnownedAndBuyerHasEnoughMoney_WhenTryBuyCity_ThenOwnershipAndBuyerStateUpdated()
     {
         var city = MakeCity(id: "c1", basePrice: 120m);
         var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: Rules);
@@ -127,7 +127,7 @@ public sealed class SanguoBoardStateTests
 
     // ACC:T12.8
     [Fact]
-    public void TryBuyCity_WhenBuyerHasInsufficientFunds_ReturnsFalseAndDoesNotChangeBuyerState()
+    public void GivenBuyerHasInsufficientFunds_WhenTryBuyCity_ThenReturnsFalseAndBuyerStateUnchanged()
     {
         var city = MakeCity(id: "c1", basePrice: 300m);
         var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: Rules);
@@ -167,7 +167,7 @@ public sealed class SanguoBoardStateTests
         owner.OwnedCityIds.Should().BeEmpty();
     }
     [Fact]
-    public void TryGetOwnerOfCity_WhenCityUnowned_ReturnsFalseAndOutputsNull()
+    public void GivenCityUnowned_WhenTryGetOwnerOfCity_ThenReturnsFalseAndOwnerIsNull()
     {
         var city = MakeCity(id: "c1");
         var player = new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: Rules);
@@ -177,7 +177,7 @@ public sealed class SanguoBoardStateTests
         owner.Should().BeNull();
     }
     [Fact]
-    public void TryGetOwnerOfCity_WhenCityOwnedByPlayer_ReturnsTrueAndOutputsOwner()
+    public void GivenCityOwnedByPlayer_WhenTryGetOwnerOfCity_ThenReturnsTrueAndOutputsOwner()
     {
         var city = MakeCity(id: "c1");
         var ownerPlayer = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: Rules);
@@ -188,7 +188,7 @@ public sealed class SanguoBoardStateTests
         resolved.Should().BeSameAs(ownerPlayer);
     }
     [Fact]
-    public void TryGetOwnerOfCity_WhenMultipleOwnersDetected_ThrowsInvalidOperationException()
+    public void GivenMultipleOwnersDetected_WhenTryGetOwnerOfCity_ThenThrowsInvalidOperationException()
     {
         var city = MakeCity(id: "c1");
         var owner1 = new SanguoPlayer(playerId: "o1", money: 200m, positionIndex: 0, economyRules: Rules);
@@ -201,7 +201,7 @@ public sealed class SanguoBoardStateTests
         act.Should().Throw<InvalidOperationException>();
     }
     [Fact]
-    public void TryGetOwnerOfCity_WhenCityIdIsEmpty_ThrowsArgumentException()
+    public void GivenCityIdEmpty_WhenTryGetOwnerOfCity_ThenThrowsArgumentException()
     {
         var player = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules);
         var state = new SanguoBoardState(
@@ -211,7 +211,7 @@ public sealed class SanguoBoardStateTests
         act.Should().Throw<ArgumentException>().WithParameterName("cityId");
     }
     [Fact]
-    public void TryGetPlayer_WhenPlayerNotFound_ReturnsFalseAndOutputsNull()
+    public void GivenPlayerNotFound_WhenTryGetPlayer_ThenReturnsFalseAndPlayerIsNull()
     {
         var player = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules);
         var state = new SanguoBoardState(
@@ -221,7 +221,7 @@ public sealed class SanguoBoardStateTests
         resolved.Should().BeNull();
     }
     [Fact]
-    public void TryGetPlayer_WhenPlayerIdIsEmpty_ThrowsArgumentException()
+    public void GivenPlayerIdEmpty_WhenTryGetPlayer_ThenThrowsArgumentException()
     {
         var player = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules);
         var state = new SanguoBoardState(
@@ -231,7 +231,7 @@ public sealed class SanguoBoardStateTests
         act.Should().Throw<ArgumentException>().WithParameterName("playerId");
     }
     [Fact]
-    public void GetCitiesSnapshot_ShouldNotAffectInternalCities()
+    public void GivenCitiesSnapshotMutated_WhenGetCitiesSnapshot_ThenInternalCitiesUnchanged()
     {
         var city = MakeCity(id: "c1");
         var buyer = new SanguoPlayer(playerId: "buyer", money: 200m, positionIndex: 0, economyRules: Rules);
