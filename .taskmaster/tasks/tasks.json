@@ -138,8 +138,8 @@
         "id": "5",
         "title": "实现骰子机制",
         "description": "设计骰子投掷的逻辑。",
-        "details": "使用随机数生成器实现骰子投掷，返回 1..6 的随机数，并在掷骰后发布域事件（ADR-0004）：core.sanguo.dice.rolled（SanguoDiceRolled）。",
-        "testStrategy": "单元测试（xUnit + FluentAssertions）：\n- 掷骰结果始终在 1..6（含边界）。\n- 随机源可控（优先复用 `Game.Core/Utilities/RandomHelper.cs`；必要时允许注入随机源以便确定性测试）。\n- 事件对齐（ADR-0004）：掷骰后发布 `SanguoDiceRolled`（`Game.Core/Contracts/Sanguo/BoardEvents.cs`），并验证 `DomainEvent.Type == SanguoDiceRolled.EventType` 且 Value 与点数一致。\n覆盖率门禁：lines>=90%、branches>=85%（ADR-0005）；产物归档到 `logs/unit/<YYYY-MM-DD>/`。\n",
+        "details": "使用随机数生成器实现骰子投掷，返回 1..6 的随机数，并在掷骰后发布域事件（ADR-0004）：core.sanguo.dice.rolled（SanguoDiceRolled）。RollD6 允许调用方提供 gameId/playerId/correlationId/causationId 作为上下文标识，并将其映射到事件数据负载；构造 SanguoDiceService 时域事件总线依赖不得为 null。",
+        "testStrategy": "单元测试（xUnit + FluentAssertions）：\n- 掷骰结果始终在 1..6（含边界）。\n- 随机源可控（优先复用 `Game.Core/Utilities/RandomHelper.cs`；必要时允许注入随机源以便确定性测试）。\n- 事件对齐（ADR-0004）：掷骰后发布 `SanguoDiceRolled`（`Game.Core/Contracts/Sanguo/BoardEvents.cs`），并验证 `DomainEvent.Type == SanguoDiceRolled.EventType` 且 Value 与点数一致。\n- 调用上下文：若调用方提供 gameId/playerId/correlationId/causationId，则事件数据负载必须包含并正确映射这些字段，并包含 OccurredAt 字段（不要求对时间值做精确断言）。\n- 防御性校验：构造 SanguoDiceService 时 bus 为 null 必须抛 ArgumentNullException（参数名为 \"bus\"）。\n覆盖率门禁：lines>=90%、branches>=85%（ADR-0005）；产物归档到 `logs/unit/<YYYY-MM-DD>/`。\n",
         "priority": "medium",
         "dependencies": [
           "1"
