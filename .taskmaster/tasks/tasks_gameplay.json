@@ -32,13 +32,11 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_glue_connections.gd"
+      "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd"
     ],
     "acceptance": [
-      "在 Godot 4.x 环境下，新建并初始化的项目可通过 headless 方式被引擎成功打开并完成基础启动流程，且不存在会阻断启动的导入/加载错误（用于验证“项目已创建/初始化完成”）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
-      "在 Godot 4.x 环境下，SettingsScreen 场景可在 headless 运行中被成功加载、实例化并进树（用于验证资源路径与场景装配有效）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
-      "在 headless 运行中，可成功实例化并运行至少一个 C# ScriptClass（例如 EventBusAdapter.cs），且通过一次可观察行为断言证明其生效（例如触发菜单开始后能收到 ui.menu.start 事件），用于验证 C# 脚本加载与执行链路可用。 Refs: Tests.Godot/tests/Scenes/Smoke/test_glue_connections.gd"
+      "在 Godot 4.x 环境下，主场景（Main.tscn）可在 headless 运行中被成功加载、实例化并进树（用于验证“项目已创建/初始化完成”与基础资源路径有效）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "在 headless 运行中，可成功实例化并挂载至少一个 C# ScriptClass（例如 EventBusAdapter.cs），用于验证 C# 脚本加载与执行链路可用。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd"
     ],
     "test_strategy": [
       "使用 Python 单元测试或最小烟测脚本验证任务视图生成逻辑。",

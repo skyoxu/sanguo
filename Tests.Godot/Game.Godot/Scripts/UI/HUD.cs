@@ -52,10 +52,7 @@ public partial class HUD : Control
         }
 
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
-        if (!_bus.IsConnected(EventBusAdapter.SignalName.DomainEventEmitted, callable))
-        {
-            _bus.Connect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
-        }
+        TryConnectBus(callable);
     }
 
     public override void _ExitTree()
@@ -68,10 +65,7 @@ public partial class HUD : Control
         }
 
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
-        if (_bus.IsConnected(EventBusAdapter.SignalName.DomainEventEmitted, callable))
-        {
-            _bus.Disconnect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
-        }
+        TryDisconnectBus(callable);
 
         _bus = null;
     }
@@ -118,6 +112,51 @@ public partial class HUD : Control
         var message = BuildEventSummary(type, root);
         _toast?.ShowMessage(message);
         _logPanel?.Append(message);
+    }
+
+    private void TryConnectBus(Callable callable)
+    {
+        if (_bus == null) return;
+
+        TryConnectBusSignal(EventBusAdapter.SignalName.DomainEventEmitted, callable);
+        TryConnectBusSignal("DomainEventEmitted", callable);
+    }
+
+    private void TryDisconnectBus(Callable callable)
+    {
+        if (_bus == null) return;
+
+        TryDisconnectBusSignal(EventBusAdapter.SignalName.DomainEventEmitted, callable);
+        TryDisconnectBusSignal("DomainEventEmitted", callable);
+    }
+
+    private void TryConnectBusSignal(StringName signal, Callable callable)
+    {
+        if (_bus == null) return;
+        try
+        {
+            if (!_bus.IsConnected(signal, callable))
+            {
+                _bus.Connect(signal, callable);
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"HUD: failed to connect to EventBus signal '{signal}': {ex.Message}");
+        }
+    }
+
+    private void TryDisconnectBusSignal(StringName signal, Callable callable)
+    {
+        if (_bus == null) return;
+        try
+        {
+            if (_bus.IsConnected(signal, callable))
+            {
+                _bus.Disconnect(signal, callable);
+            }
+        }
+        catch { }
     }
 
     private static string BuildEventSummary(string type, JsonElement root)

@@ -4,6 +4,11 @@ var _bus: Node
 var _last_emitted_type := ""
 
 func before() -> void:
+    var existing = get_node_or_null("/root/EventBus")
+    if existing != null:
+        existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
+        existing.queue_free()
+
     _bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
     _bus.name = "EventBus"
     get_tree().get_root().add_child(auto_free(_bus))
