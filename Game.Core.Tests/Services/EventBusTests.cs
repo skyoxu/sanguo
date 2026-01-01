@@ -45,8 +45,10 @@ public class EventBusTests
     public async Task ShouldInvokeSubscribersAndUnsubscribe_WhenPublishing()
     {
         var bus = new InMemoryEventBus();
-        int called = 0;
-        var sub = bus.Subscribe(async e => { called++; await Task.CompletedTask; });
+        int calledA = 0;
+        int calledB = 0;
+        var subA = bus.Subscribe(async _ => { calledA++; await Task.CompletedTask; });
+        var subB = bus.Subscribe(async _ => { calledB++; await Task.CompletedTask; });
         await bus.PublishAsync(new DomainEvent(
             Type: "test.evt",
             Source: nameof(EventBusTests),
@@ -54,8 +56,10 @@ public class EventBusTests
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString()
         ));
-        called.Should().Be(1);
-        sub.Dispose();
+        calledA.Should().Be(1);
+        calledB.Should().Be(1);
+
+        subA.Dispose();
         await bus.PublishAsync(new DomainEvent(
             Type: "test.evt2",
             Source: nameof(EventBusTests),
@@ -63,7 +67,19 @@ public class EventBusTests
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString()
         ));
-        called.Should().Be(1);
+        calledA.Should().Be(1);
+        calledB.Should().Be(2);
+
+        subB.Dispose();
+        await bus.PublishAsync(new DomainEvent(
+            Type: "test.evt3",
+            Source: nameof(EventBusTests),
+            Data: null,
+            Timestamp: DateTime.UtcNow,
+            Id: Guid.NewGuid().ToString()
+        ));
+        calledA.Should().Be(1);
+        calledB.Should().Be(2);
     }
     // ACC:T8.2
     [Fact]
