@@ -1420,11 +1420,11 @@
     ],
     "acceptance": [
       "季度环境事件的“是否触发判定”与“城池收益调整”作为纯 C# 领域逻辑在 Game.Core 中实现，且不依赖/不引用 Godot API，能够通过单元测试直接验证其输入输出与状态变化。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
-      "在进入新季度（季度开始）时，会根据配置的触发概率进行判定并决定是否触发季度环境事件；若触发，则发布可被测试验证的领域事件/结果，该事件/结果需明确本次发生了什么、涉及哪些城池，并包含对相关城池收益的调整结果（例如每个城池的调整值或调整后的收益）。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
+      "在进入新季度（季度开始）时，会根据配置的触发概率进行判定并决定是否触发季度环境事件；若触发，则发布可被测试验证的领域事件/结果，该事件/结果需明确本次发生了什么、涉及哪些区域，并包含用于计算收益调整的必要参数（至少包含受影响范围标识与收益调整系数/倍率）。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
       "季度环境事件造成的收益调整仅影响当季的收益结算；进入下一季度后，上一季度事件带来的调整不再继续影响后续季度的收益结算（除非新季度再次触发新的事件）。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
-      "触发判定的随机性在测试中可被控制与复现（例如通过注入可控随机源或固定种子），从而能确定性覆盖“触发/未触发”两条路径的验收。 Refs: Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs",
+      "触发判定的随机性在测试中可被控制与复现（例如通过注入可控随机源或固定种子），从而能确定性覆盖“触发/未触发”两条路径的验收；并且触发概率配置的边界语义明确：当触发概率=0 时跨季度边界不应触发事件；当触发概率=1 时跨季度边界应稳定触发事件。 Refs: Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs",
       "当季度开始判定为未触发时：不产生季度环境事件的领域事件/结果，且本季度内城池收益结算不发生额外调整（与基线收益规则一致）。 Refs: Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs",
-      "收益调整仅作用于本次事件判定为“相关”的城池；未被涉及的城池收益不因本次季度环境事件发生变化。 Refs: Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs"
+      "收益调整仅作用于本次事件判定为“相关”的区域（州郡）内城池；未被涉及的区域内城池收益不因本次季度环境事件发生变化。 Refs: Game.Core.Tests/Services/QuarterlyEnvironmentEventTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",

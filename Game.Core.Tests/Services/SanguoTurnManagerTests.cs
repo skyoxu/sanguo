@@ -143,10 +143,20 @@ public class SanguoTurnManagerTests
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
+        var cities = new Dictionary<string, City>(StringComparer.Ordinal)
+        {
+            ["c1"] = new City("c1", "City1", "r1", Money.FromMajorUnits(1), Money.FromMajorUnits(10)),
+        };
         var (boardState, treasury) = CreateBoardState(
             players: new[] { new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules) },
-            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
-        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+            citiesById: cities);
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            quarterEnvironmentEventTriggerChance: 1.0,
+            quarterEnvironmentEventYieldMultiplier: 0.9m);
         var gameId = "game-1";
         var correlationId = "corr-1";
         await mgr.StartNewGameAsync(
@@ -171,7 +181,9 @@ public class SanguoTurnManagerTests
         payload.GetProperty("Year").GetInt32().Should().Be(1);
         payload.GetProperty("Season").GetInt32().Should().Be(2);
         payload.GetProperty("AffectedRegionIds").ValueKind.Should().Be(JsonValueKind.Array);
-        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(1.0m);
+        payload.GetProperty("AffectedRegionIds").GetArrayLength().Should().Be(1);
+        payload.GetProperty("AffectedRegionIds")[0].GetString().Should().Be("r1");
+        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.9m);
         payload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-advance");
     }
@@ -437,7 +449,13 @@ public class SanguoTurnManagerTests
         var (boardState, treasury) = CreateBoardState(
             players: new[] { new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules) },
             citiesById: cities);
-        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            quarterEnvironmentEventTriggerChance: 1.0,
+            quarterEnvironmentEventYieldMultiplier: 0.9m);
         await mgr.StartNewGameAsync(
             gameId: "g1",
             playerOrder: new[] { "p1" },
