@@ -20,6 +20,11 @@ public sealed class SanguoAiBehaviorTests
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
     }
 
+    // ACC:T11.3
+    // ACC:T11.4
+    // ACC:T11.5
+    // ACC:T11.6
+    // ACC:T11.7
     [Fact]
     public async Task ShouldPublishAiDecisionMade_WhenTurnStartsForAi()
     {
