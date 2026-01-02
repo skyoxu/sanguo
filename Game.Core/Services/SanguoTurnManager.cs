@@ -1,6 +1,8 @@
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
+using Game.Core.Domain.ValueObjects;
+using Game.Core.Utilities;
 
 namespace Game.Core.Services;
 
@@ -10,24 +12,33 @@ public sealed class SanguoTurnManager
     private readonly SanguoEconomyManager _economy;
     private readonly SanguoBoardState _boardState;
     private readonly SanguoTreasury _treasury;
+    private readonly IRandomNumberGenerator _rng;
+    private readonly ISanguoAiDecisionPolicy _aiDecisionPolicy;
+    private readonly int _totalPositionsHint;
 
     private string? _gameId;
     private string[]? _playerOrder;
     private int _activePlayerIndex;
     private int _turnNumber;
-    private DateTime _currentDate;
+    private SanguoCalendarDate _currentDate;
     private bool _started;
 
     public SanguoTurnManager(
         IEventBus bus,
         SanguoEconomyManager economy,
         SanguoBoardState boardState,
-        SanguoTreasury treasury)
+        SanguoTreasury treasury,
+        ISanguoAiDecisionPolicy? aiDecisionPolicy = null,
+        IRandomNumberGenerator? rng = null,
+        int totalPositionsHint = 0)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
         _boardState = boardState ?? throw new ArgumentNullException(nameof(boardState));
         _treasury = treasury ?? throw new ArgumentNullException(nameof(treasury));
+        _aiDecisionPolicy = aiDecisionPolicy ?? new DefaultSanguoAiDecisionPolicy();
+        _rng = rng ?? ThreadLocalRandomNumberGenerator.Instance;
+        _totalPositionsHint = totalPositionsHint;
     }
 
     public async Task StartNewGameAsync(
@@ -64,7 +75,7 @@ public sealed class SanguoTurnManager
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
 
-        var date = new DateTime(year, month, day);
+        var date = new SanguoCalendarDate(year, month, day);
 
         _gameId = gameId;
         _playerOrder = playerOrder.ToArray();
@@ -109,8 +120,14 @@ public sealed class SanguoTurnManager
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
 
+        if (await TryEndGameIfHumanEliminatedAsync(correlationId: correlationId, causationId: causationId))
+        {
+            return;
+        }
+
         var occurredAt = DateTimeOffset.UtcNow;
         var previousDate = _currentDate;
+        var activePlayerId = _playerOrder[_activePlayerIndex];
 
         var ended = new DomainEvent(
             Type: SanguoGameTurnEnded.EventType,
@@ -118,7 +135,7 @@ public sealed class SanguoTurnManager
             Data: JsonElementEventData.FromObject(new SanguoGameTurnEnded(
                 GameId: _gameId,
                 TurnNumber: _turnNumber,
-                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                ActivePlayerId: activePlayerId,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
                 CausationId: causationId
@@ -127,6 +144,27 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N")
         );
         await _bus.PublishAsync(ended);
+
+        PruneEliminatedAiPlayers(activePlayerId);
+        if (_playerOrder.Length == 0)
+        {
+            _started = false;
+            var evt = new DomainEvent(
+                Type: SanguoGameEnded.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoGameEnded(
+                    GameId: _gameId,
+                    EndReason: "no_players",
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: DateTime.UtcNow,
+                Id: Guid.NewGuid().ToString("N")
+            );
+            await _bus.PublishAsync(evt);
+            return;
+        }
 
         _turnNumber += 1;
         _activePlayerIndex = (_activePlayerIndex + 1) % _playerOrder.Length;
@@ -195,6 +233,16 @@ public sealed class SanguoTurnManager
             causationId: causationId,
             occurredAt: occurredAt);
 
+        await _economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
+            gameId: _gameId,
+            previousDate: previousDate,
+            currentDate: _currentDate,
+            cities: CreateCityList(_boardState.GetCitiesSnapshot()),
+            yearlyMultiplier: 1.0m,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+
         var advanced = new DomainEvent(
             Type: SanguoGameTurnAdvanced.EventType,
             Source: nameof(SanguoTurnManager),
@@ -239,6 +287,87 @@ public sealed class SanguoTurnManager
             occurredAt: occurredAt);
     }
 
+    private async Task<bool> TryEndGameIfHumanEliminatedAsync(string correlationId, string? causationId)
+    {
+        if (_playerOrder is null || _gameId is null)
+        {
+            return false;
+        }
+
+        foreach (var playerId in _playerOrder)
+        {
+            if (IsAiPlayerId(playerId))
+                continue;
+
+            if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+                continue;
+
+            if (!player.IsEliminated)
+                continue;
+
+            _started = false;
+
+            var occurredAt = DateTimeOffset.UtcNow;
+            var evt = new DomainEvent(
+                Type: SanguoGameEnded.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoGameEnded(
+                    GameId: _gameId,
+                    EndReason: "human_eliminated",
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: DateTime.UtcNow,
+                Id: Guid.NewGuid().ToString("N")
+            );
+
+            await _bus.PublishAsync(evt);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void PruneEliminatedAiPlayers(string activePlayerId)
+    {
+        if (_playerOrder is null || _playerOrder.Length == 0)
+        {
+            return;
+        }
+
+        var kept = new List<string>(_playerOrder.Length);
+        foreach (var playerId in _playerOrder)
+        {
+            if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+            {
+                kept.Add(playerId);
+                continue;
+            }
+
+            if (player.IsEliminated && IsAiPlayerId(playerId))
+                continue;
+
+            kept.Add(playerId);
+        }
+
+        if (kept.Count == _playerOrder.Length)
+        {
+            return;
+        }
+
+        _playerOrder = kept.ToArray();
+        _activePlayerIndex = Array.FindIndex(_playerOrder, x => string.Equals(x, activePlayerId, StringComparison.Ordinal));
+    }
+
+    private static IReadOnlyList<City> CreateCityList(IReadOnlyDictionary<string, City> citiesById)
+    {
+        var list = new System.Collections.Generic.List<City>(citiesById.Count);
+        foreach (var city in citiesById.Values)
+            list.Add(city);
+        return list;
+    }
+
     private static int GetSeasonFromMonth(int month)
     {
         if (month is < 1 or > 12)
@@ -253,6 +382,39 @@ public sealed class SanguoTurnManager
         return playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
     }
 
+    private int ResolveTotalPositions()
+    {
+        if (_totalPositionsHint > 0)
+            return _totalPositionsHint;
+
+        // Best-effort fallback: derive from known city/player position indices to avoid 0/negative values.
+        var maxIndex = 0;
+        foreach (var city in _boardState.GetCitiesSnapshot().Values)
+            maxIndex = Math.Max(maxIndex, city.PositionIndex);
+
+        if (_playerOrder is not null)
+        {
+            foreach (var playerId in _playerOrder)
+            {
+                if (!_boardState.TryGetPlayer(playerId, out var p) || p is null)
+                    continue;
+                maxIndex = Math.Max(maxIndex, p.PositionIndex);
+            }
+        }
+
+        return maxIndex + 1;
+    }
+
+    private static City? TryGetCityAtPositionIndex(IReadOnlyDictionary<string, City> citiesById, int positionIndex)
+    {
+        foreach (var city in citiesById.Values)
+        {
+            if (city.PositionIndex == positionIndex)
+                return city;
+        }
+        return null;
+    }
+
     private async Task PublishAiDecisionIfNeededAsync(
         string activePlayerId,
         string correlationId,
@@ -265,10 +427,16 @@ public sealed class SanguoTurnManager
         if (!IsAiPlayerId(activePlayerId))
             return;
 
+        if (!_boardState.TryGetPlayer(activePlayerId, out var aiPlayer) || aiPlayer is null)
+            return;
+
+        var view = aiPlayer.ToView();
+        var aiDecision = _aiDecisionPolicy.Decide(view);
+
         var decision = new SanguoAiDecisionMade(
             GameId: _gameId,
             AiPlayerId: activePlayerId,
-            DecisionType: "skip",
+            DecisionType: aiDecision.DecisionType.ToString(),
             TargetCityId: null,
             OccurredAt: occurredAt,
             CorrelationId: correlationId,
@@ -282,5 +450,123 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N"));
 
         await _bus.PublishAsync(evt);
+
+        if (aiDecision.DecisionType == SanguoAiDecisionType.Skip)
+            return;
+
+        await ExecuteAiRollDiceAndResolveAsync(
+            aiPlayerId: activePlayerId,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+    }
+
+    private async Task ExecuteAiRollDiceAndResolveAsync(
+        string aiPlayerId,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (_gameId is null || _playerOrder is null)
+            return;
+
+        if (!_boardState.TryGetPlayer(aiPlayerId, out var aiPlayer) || aiPlayer is null)
+            return;
+
+        if (aiPlayer.IsEliminated)
+            return;
+
+        var totalPositions = ResolveTotalPositions();
+        if (totalPositions <= 0)
+            return;
+
+        var value = _rng.NextInt(1, 7);
+        var dice = new DomainEvent(
+            Type: SanguoDiceRolled.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoDiceRolled(
+                GameId: _gameId,
+                PlayerId: aiPlayerId,
+                Value: value,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(dice);
+
+        var fromIndex = aiPlayer.PositionIndex;
+        if (fromIndex < 0)
+            fromIndex = 0;
+        if (fromIndex >= totalPositions)
+            fromIndex %= totalPositions;
+
+        var start = new CircularMapPosition(fromIndex, totalPositions);
+        var end = start.Advance(value);
+        var toIndex = end.Current;
+        var passedStart = fromIndex + value >= totalPositions;
+
+        aiPlayer.MoveToPosition(toIndex);
+
+        var moved = new DomainEvent(
+            Type: SanguoTokenMoved.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoTokenMoved(
+                GameId: _gameId,
+                PlayerId: aiPlayerId,
+                FromIndex: fromIndex,
+                ToIndex: toIndex,
+                Steps: value,
+                PassedStart: passedStart,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(moved);
+
+        // Greedy execution: after moving, resolve city rules using the same entrypoints as the human loop would.
+        var citiesById = _boardState.GetCitiesSnapshot();
+        var city = TryGetCityAtPositionIndex(citiesById, toIndex);
+        if (city is null)
+            return;
+
+        var players = new List<SanguoPlayer>(_playerOrder.Length);
+        foreach (var pid in _playerOrder)
+        {
+            if (!_boardState.TryGetPlayer(pid, out var p) || p is null)
+                throw new InvalidOperationException($"Player not found in board state: {pid}");
+            players.Add(p);
+        }
+
+        if (_boardState.TryGetOwnerOfCity(city.Id, out var owner) && owner is not null)
+        {
+            if (!StringComparer.Ordinal.Equals(owner.PlayerId, aiPlayerId))
+            {
+                _ = await _economy.TryPayTollAndPublishEventAsync(
+                    gameId: _gameId,
+                    players: players,
+                    citiesById: citiesById,
+                    treasury: _treasury,
+                    payerId: aiPlayerId,
+                    cityId: city.Id,
+                    tollMultiplier: 1.0m,
+                    correlationId: correlationId,
+                    causationId: causationId,
+                    occurredAt: occurredAt);
+            }
+            return;
+        }
+
+        _ = await _economy.TryBuyCityAndPublishEventAsync(
+            gameId: _gameId,
+            players: players,
+            citiesById: citiesById,
+            buyerId: aiPlayerId,
+            cityId: city.Id,
+            priceMultiplier: 1.0m,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
     }
 }

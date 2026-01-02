@@ -279,4 +279,17 @@ public sealed class SanguoPlayer : ISanguoPlayerView
         if (overflow > MoneyValue.Zero)
             treasury.Deposit(overflow);
     }
+
+    internal void MoveToPosition(int positionIndex)
+    {
+        AssertThread();
+
+        if (IsEliminated)
+            return;
+
+        if (positionIndex < 0)
+            throw new ArgumentOutOfRangeException(nameof(positionIndex), "PositionIndex must be non-negative.");
+
+        PositionIndex = positionIndex;
+    }
 }

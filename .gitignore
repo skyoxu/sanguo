@@ -113,7 +113,6 @@ __pycache__/
 analysis/
 
 # Root-level temporary files
-/prd.txt
 /temp_path.txt
 /tmp_path.txt
 /temp_*.txt

@@ -1,6 +1,8 @@
 using Godot;
 using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
+using System;
+using System.IO;
 using System.Text.Json;
 
 namespace Game.Godot.Scripts.Sanguo;
@@ -103,8 +105,30 @@ public partial class SanguoBoardView : Node2D
                 return;
             }
 
-            if (parsedToIndex < 0 || (TotalPositions > 0 && parsedToIndex >= TotalPositions))
+            if (parsedToIndex < 0)
             {
+                TryAppendSecurityAudit(
+                    action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
+                    reason: "to_index_negative",
+                    target: $"to_index={parsedToIndex} total_positions={TotalPositions}",
+                    caller: "SanguoBoardView.OnDomainEventEmitted",
+                    eventType: type,
+                    eventSource: source,
+                    eventId: id);
+                GD.PushWarning($"SanguoBoardView ignored event with out-of-range ToIndex={parsedToIndex} (TotalPositions={TotalPositions}).");
+                return;
+            }
+
+            if (TotalPositions > 0 && parsedToIndex >= TotalPositions)
+            {
+                TryAppendSecurityAudit(
+                    action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
+                    reason: "to_index_out_of_range",
+                    target: $"to_index={parsedToIndex} total_positions={TotalPositions}",
+                    caller: "SanguoBoardView.OnDomainEventEmitted",
+                    eventType: type,
+                    eventSource: source,
+                    eventId: id);
                 GD.PushWarning($"SanguoBoardView ignored event with out-of-range ToIndex={parsedToIndex} (TotalPositions={TotalPositions}).");
                 return;
             }
@@ -121,6 +145,42 @@ public partial class SanguoBoardView : Node2D
         catch
         {
             // View-only: ignore parse failures (core validation happens in Game.Core).
+        }
+    }
+
+    private static void TryAppendSecurityAudit(
+        string action,
+        string reason,
+        string target,
+        string caller,
+        string eventType,
+        string eventSource,
+        string eventId
+    )
+    {
+        try
+        {
+            var dir = ProjectSettings.GlobalizePath("user://logs/security");
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, "security-audit.jsonl");
+
+            var record = new
+            {
+                ts = DateTimeOffset.UtcNow.ToString("O"),
+                action,
+                reason,
+                target,
+                caller,
+                event_type = eventType,
+                event_source = eventSource,
+                event_id = eventId,
+            };
+
+            File.AppendAllText(path, JsonSerializer.Serialize(record) + System.Environment.NewLine);
+        }
+        catch
+        {
+            // Best-effort audit only.
         }
     }
 

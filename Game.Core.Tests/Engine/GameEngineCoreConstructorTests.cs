@@ -1,3 +1,8 @@
+// Acceptance anchors:
+// ACC:T1.1
+// ACC:T1.2
+// ACC:T1.3
+
 using System;
 using FluentAssertions;
 using Game.Core.Domain;
@@ -18,8 +23,9 @@ public class GameEngineCoreConstructorTests
             Difficulty: Difficulty.Medium
         );
 
+    // ACC:T1.1
     [Fact]
-    public void Constructor_WhenEventBusIsNull_ShouldThrowArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenEventBusIsNull()
     {
         var config = DefaultConfig();
         var inventory = new Inventory();
@@ -30,8 +36,9 @@ public class GameEngineCoreConstructorTests
             .WithParameterName("bus");
     }
 
+    // ACC:T1.2
     [Fact]
-    public void Constructor_WhenScoreServiceIsNull_ShouldThrowArgumentNullException()
+    public void ShouldThrowArgumentNullException_WhenScoreServiceIsNull()
     {
         var config = DefaultConfig();
         var inventory = new Inventory();
@@ -42,4 +49,3 @@ public class GameEngineCoreConstructorTests
             .WithParameterName("scoreService");
     }
 }
-

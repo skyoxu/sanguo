@@ -1,3 +1,6 @@
+// Acceptance anchors:
+// ACC:T34.4
+
 using System;
 using FluentAssertions;
 using Game.Core.Domain.ValueObjects;

@@ -9,7 +9,7 @@ namespace Game.Core.Tests.Engine;
 public sealed class HudSceneTests
 {
     [Fact]
-    public void HudScene_ShouldExposeDiceButton_ForPlayableLoop()
+    public void ShouldExposeDiceButton_WhenHudSceneLoaded()
     {
         var tscn = ReadText("Game.Godot/Scenes/UI/HUD.tscn");
         tscn.Should().Contain("node name=\"DiceButton\"", "HUD should expose a DiceButton node for input");
@@ -19,28 +19,28 @@ public sealed class HudSceneTests
     [InlineData("ActivePlayerLabel")]
     [InlineData("DateLabel")]
     [InlineData("MoneyLabel")]
-    public void HudScene_ShouldExposeCoreStatusLabels(string nodeName)
+    public void ShouldExposeCoreStatusLabels_WhenHudSceneLoaded(string nodeName)
     {
         var tscn = ReadText("Game.Godot/Scenes/UI/HUD.tscn");
         tscn.Should().Contain($"node name=\"{nodeName}\"", $"HUD should expose {nodeName} for status display");
     }
 
     [Fact]
-    public void HudScript_ShouldHandleSanguoTurnEvents()
+    public void ShouldContainTurnEventHandling_WhenReadingHudScript()
     {
         var code = ReadText("Game.Godot/Scripts/UI/HUD.cs");
         code.Should().MatchRegex(new Regex("\\bSanguoGameTurnStarted\\b", RegexOptions.CultureInvariant));
     }
 
     [Fact]
-    public void HudScript_ShouldHandleSanguoDiceRolledDomainEvent()
+    public void ShouldContainDiceRolledHandling_WhenReadingHudScript()
     {
         var code = ReadText("Game.Godot/Scripts/UI/HUD.cs");
         code.Should().Contain("SanguoDiceRolled.EventType");
     }
 
     [Fact]
-    public void HudScriptMirror_ShouldHandleSanguoDiceRolledDomainEvent()
+    public void ShouldContainDiceRolledHandling_WhenReadingHudScriptMirror()
     {
         var code = ReadText("Tests.Godot/Game.Godot/Scripts/UI/HUD.cs");
         code.Should().Contain("SanguoDiceRolled.EventType");

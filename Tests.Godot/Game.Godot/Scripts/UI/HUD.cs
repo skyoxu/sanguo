@@ -25,6 +25,9 @@ public partial class HUD : Control
     private EventBusAdapter? _bus;
     private readonly Dictionary<string, Action<JsonElement>> _handlers = new(StringComparer.Ordinal);
 
+    private EventToast? _toast;
+    private EventLogPanel? _logPanel;
+
     public override void _Ready()
     {
         _score = GetNode<Label>("TopBar/HBox/ScoreLabel");
@@ -36,6 +39,9 @@ public partial class HUD : Control
         _diceButton = GetNode<Button>("TopBar/HBox/DiceButton");
         _diceButton.Pressed += OnDicePressed;
 
+        _toast = GetNodeOrNull<EventToast>("EventToast");
+        _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
+
         RegisterHandlers();
 
         _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
@@ -46,10 +52,7 @@ public partial class HUD : Control
         }
 
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
-        if (!_bus.IsConnected(EventBusAdapter.SignalName.DomainEventEmitted, callable))
-        {
-            _bus.Connect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
-        }
+        TryConnectBus(callable);
     }
 
     public override void _ExitTree()
@@ -62,10 +65,7 @@ public partial class HUD : Control
         }
 
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
-        if (_bus.IsConnected(EventBusAdapter.SignalName.DomainEventEmitted, callable))
-        {
-            _bus.Disconnect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
-        }
+        TryDisconnectBus(callable);
 
         _bus = null;
     }
@@ -98,12 +98,91 @@ public partial class HUD : Control
         try
         {
             using var doc = JsonDocument.Parse(json, JsonOptions);
+            RecordEventForUi(type, doc.RootElement);
             handler(doc.RootElement);
         }
         catch (System.Exception ex)
         {
             GD.PushWarning($"HUD failed to handle event '{type}': {ex.Message}");
         }
+    }
+
+    private void RecordEventForUi(string type, JsonElement root)
+    {
+        var message = BuildEventSummary(type, root);
+        _toast?.ShowMessage(message);
+        _logPanel?.Append(message);
+    }
+
+    private void TryConnectBus(Callable callable)
+    {
+        if (_bus == null) return;
+
+        TryConnectBusSignal(EventBusAdapter.SignalName.DomainEventEmitted, callable);
+        TryConnectBusSignal("DomainEventEmitted", callable);
+    }
+
+    private void TryDisconnectBus(Callable callable)
+    {
+        if (_bus == null) return;
+
+        TryDisconnectBusSignal(EventBusAdapter.SignalName.DomainEventEmitted, callable);
+        TryDisconnectBusSignal("DomainEventEmitted", callable);
+    }
+
+    private void TryConnectBusSignal(StringName signal, Callable callable)
+    {
+        if (_bus == null) return;
+        try
+        {
+            if (!_bus.IsConnected(signal, callable))
+            {
+                _bus.Connect(signal, callable);
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"HUD: failed to connect to EventBus signal '{signal}': {ex.Message}");
+        }
+    }
+
+    private void TryDisconnectBusSignal(StringName signal, Callable callable)
+    {
+        if (_bus == null) return;
+        try
+        {
+            if (_bus.IsConnected(signal, callable))
+            {
+                _bus.Disconnect(signal, callable);
+            }
+        }
+        catch { }
+    }
+
+    private static string BuildEventSummary(string type, JsonElement root)
+    {
+        string? playerId = null;
+        if (root.TryGetProperty("PlayerId", out var pid))
+        {
+            playerId = pid.GetString();
+        }
+        else if (root.TryGetProperty("ActivePlayerId", out var ap))
+        {
+            playerId = ap.GetString();
+        }
+
+        if (root.TryGetProperty("Value", out var value) && value.ValueKind == JsonValueKind.Number)
+        {
+            return string.IsNullOrWhiteSpace(playerId) ? $"{type} value={value}" : $"{type} player={playerId} value={value}";
+        }
+
+        if (root.TryGetProperty("CityId", out var cityId))
+        {
+            var city = cityId.GetString();
+            return string.IsNullOrWhiteSpace(playerId) ? $"{type} city={city}" : $"{type} player={playerId} city={city}";
+        }
+
+        return string.IsNullOrWhiteSpace(playerId) ? type : $"{type} player={playerId}";
     }
 
     private void RegisterHandlers()

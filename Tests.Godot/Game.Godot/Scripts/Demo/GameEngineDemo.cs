@@ -13,8 +13,12 @@ public partial class GameEngineDemo : Node
 
     public override void _Ready()
     {
-        var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus")
-                  ?? throw new System.InvalidOperationException("EventBus autoload not found at /root/EventBus");
+        var bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
+        if (bus == null)
+        {
+            bus = new EventBusAdapter { Name = "EventBus" };
+            AddChild(bus);
+        }
         var cfg = new GameConfig(MaxLevel: 10, InitialHealth: 100, ScoreMultiplier: 1.0, AutoSave: false, Difficulty: Difficulty.Medium);
         var inv = new Game.Core.Domain.Inventory();
         _engine = new GameEngineCore(cfg, inv, bus, new ScoreService());

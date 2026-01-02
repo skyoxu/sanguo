@@ -1,6 +1,7 @@
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
+using Game.Core.Domain.ValueObjects;
 using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 
 namespace Game.Core.Services;
@@ -251,6 +252,9 @@ public sealed class SanguoEconomyManager
         if (!citiesById.TryGetValue(cityId, out var city))
             return false;
 
+        if (payer.PositionIndex != city.PositionIndex)
+            return false;
+
         SanguoPlayer? owner;
         try
         {
@@ -345,8 +349,8 @@ public sealed class SanguoEconomyManager
     /// </remarks>
     public async Task PublishMonthSettlementIfBoundaryAsync(
         string gameId,
-        DateTime previousDate,
-        DateTime currentDate,
+        SanguoCalendarDate previousDate,
+        SanguoCalendarDate currentDate,
         IReadOnlyList<PlayerSettlement> settlements,
         string correlationId,
         string? causationId,
@@ -437,8 +441,8 @@ public sealed class SanguoEconomyManager
     /// </remarks>
     public async Task PublishYearlyPriceAdjustmentIfBoundaryAsync(
         string gameId,
-        DateTime previousDate,
-        DateTime currentDate,
+        SanguoCalendarDate previousDate,
+        SanguoCalendarDate currentDate,
         IReadOnlyList<City> cities,
         decimal yearlyMultiplier,
         string correlationId,
@@ -504,8 +508,8 @@ public sealed class SanguoEconomyManager
     /// </remarks>
     public async Task PublishSeasonEventIfBoundaryAsync(
         string gameId,
-        DateTime previousDate,
-        DateTime currentDate,
+        SanguoCalendarDate previousDate,
+        SanguoCalendarDate currentDate,
         int season,
         IReadOnlyList<string> affectedRegionIds,
         decimal yieldMultiplier,

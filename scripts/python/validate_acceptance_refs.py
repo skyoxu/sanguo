@@ -34,6 +34,44 @@ from typing import Any
 REFS_RE = re.compile(r"\bRefs\s*:\s*(.+)$", flags=re.IGNORECASE)
 
 
+def _contains_token(text: str, token: str) -> bool:
+    return token.lower() in str(text or "").lower()
+
+
+def _has_ref_suffix(refs: list[str], suffix: str) -> bool:
+    return any(str(r).lower().endswith(suffix.lower()) for r in refs)
+
+
+def _has_ref_prefix(refs: list[str], prefix: str) -> bool:
+    pfx = prefix.replace("\\", "/").lower()
+    return any(str(r).replace("\\", "/").lower().startswith(pfx) for r in refs)
+
+
+def validate_text_refs_consistency(text: str, refs: list[str]) -> list[str]:
+    """
+    Hard rules: keep acceptance text and referenced test types consistent.
+
+    Rules (deterministic):
+      1) If acceptance mentions xUnit, refs must include at least one .cs file.
+      2) If acceptance mentions GdUnit4, refs must include at least one .gd file.
+      3) If acceptance mentions Game.Core, refs must include at least one Game.Core.Tests/*.cs file.
+    """
+    errors: list[str] = []
+    lower = str(text or "").lower()
+
+    if "xunit" in lower and not _has_ref_suffix(refs, ".cs"):
+        errors.append("acceptance mentions xUnit but refs do not include any .cs file")
+
+    if "gdunit4" in lower and not _has_ref_suffix(refs, ".gd"):
+        errors.append("acceptance mentions GdUnit4 but refs do not include any .gd file")
+
+    if "game.core" in lower:
+        if not (_has_ref_suffix(refs, ".cs") and _has_ref_prefix(refs, "Game.Core.Tests/")):
+            errors.append("acceptance mentions Game.Core but refs do not include any Game.Core.Tests/*.cs file")
+
+    return errors
+
+
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
@@ -146,6 +184,11 @@ def validate_view(
             item["status"] = "fail"
             item["errors"].append("missing Refs: in acceptance item")
         else:
+            consistency_errors = validate_text_refs_consistency(text, norm_refs)
+            if consistency_errors:
+                item["status"] = "fail"
+                item["errors"].extend(consistency_errors)
+
             for r in norm_refs:
                 if is_abs_path(r):
                     item["status"] = "fail"

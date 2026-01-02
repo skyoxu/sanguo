@@ -110,7 +110,7 @@
 
 同时提供确定性的同步脚本：
 
-- `scripts/python/update_task_test_refs_from_acceptance_refs.py --task-id <id> --write`
+- `scripts/python/update_task_test_refs_from_acceptance_refs.py --task-id <id> --mode replace --write`
 
 目的：避免只在 acceptance 写了 `Refs:`，但任务级 `test_refs` 没同步，导致后续任务无法复用/发现证据。
 

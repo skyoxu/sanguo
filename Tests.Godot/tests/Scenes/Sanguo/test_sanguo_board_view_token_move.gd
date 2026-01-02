@@ -4,7 +4,22 @@ const EVENT_TOKEN_MOVED := "core.sanguo.board.token.moved"
 
 var _bus: Node
 
+func _security_audit_path() -> String:
+    return ProjectSettings.globalize_path("user://logs/security/security-audit.jsonl")
+
+func _read_security_audit_text() -> String:
+    var path := _security_audit_path()
+    if not FileAccess.file_exists(path):
+        return ""
+    var f := FileAccess.open(path, FileAccess.READ)
+    return f.get_as_text()
+
 func before() -> void:
+    var existing = get_node_or_null("/root/EventBus")
+    if existing != null:
+        existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
+        existing.queue_free()
+
     _bus = load("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
     _bus.name = "EventBus"
     get_tree().get_root().add_child(auto_free(_bus))
@@ -25,6 +40,8 @@ func _await_until(predicate: Callable, max_frames: int = 240) -> void:
         await get_tree().process_frame
     assert_bool(predicate.call()).is_true()
 
+# Acceptance anchors:
+# ACC:T10.1
 func test_token_moves_to_index_position_without_animation() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -56,6 +73,8 @@ func test_token_move_sets_animated_flag_when_duration_positive() -> void:
 
     assert_bool(view.LastMoveAnimated).is_true()
 
+# Acceptance anchors:
+# ACC:T10.2
 func test_token_move_animation_duration_reaches_target_after_expected_time() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -69,16 +88,31 @@ func test_token_move_animation_duration_reaches_target_after_expected_time() -> 
 
     var start_pos: Vector2 = token.position
     var target: Vector2 = _target_position(view, 5)
+    var start_ms: int = Time.get_ticks_msec()
 
     _publish_move("p1", 5)
     assert_vector(token.position).is_equal(start_pos)
     assert_bool(view.LastMoveAnimated).is_true()
 
     await _await_until(func() -> bool: return token.position.distance_to(start_pos) > 0.01, 60)
-    await _await_until(func() -> bool: return token.position.distance_to(target) <= 0.5, 240)
+    var reached_ms := -1
+    for _i in range(240):
+        await get_tree().process_frame
+        if token.position.distance_to(target) <= 0.5:
+            reached_ms = Time.get_ticks_msec()
+            break
+    assert_int(reached_ms).is_greater(0)
+    var elapsed_ms: int = int(reached_ms - start_ms)
+    var expected_ms: int = int(view.MoveDurationSeconds * 1000.0)
+    var min_ms: int = int(round(float(expected_ms) * 0.5))
+    var max_ms: int = int(round(float(expected_ms) * 8.0))
+    assert_int(elapsed_ms).is_greater_equal(min_ms)
+    assert_int(elapsed_ms).is_less_equal(max_ms)
     assert_float(token.position.x).is_between(target.x - 0.5, target.x + 0.5)
     assert_float(token.position.y).is_between(target.y - 0.5, target.y + 0.5)
 
+# Acceptance anchors:
+# ACC:T10.3
 func test_token_moves_continuously_last_event_wins() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -101,6 +135,8 @@ func test_token_moves_continuously_last_event_wins() -> void:
     assert_int(view.LastToIndex).is_equal(1)
     assert_float(token.position.x).is_between(target.x - 0.5, target.x + 0.5)
 
+# Acceptance anchors:
+# ACC:T10.4
 func test_instant_move_overrides_animation_when_duration_is_zero() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -121,6 +157,9 @@ func test_instant_move_overrides_animation_when_duration_is_zero() -> void:
     assert_bool(view.LastMoveAnimated).is_false()
     var target: Vector2 = _target_position(view, 4)
     assert_float(token.position.x).is_between(target.x - 0.5, target.x + 0.5)
+    for _i in range(10):
+        await get_tree().process_frame
+        assert_float(token.position.x).is_between(target.x - 0.5, target.x + 0.5)
 
 func test_ready_without_eventbus_does_not_crash() -> void:
     var original_name: String = _bus.name
@@ -172,6 +211,7 @@ func test_invalid_json_does_not_crash_and_does_not_move_token() -> void:
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
 
+# ACC:T10.5
 func test_negative_to_index_is_ignored_and_does_not_move_token() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -184,6 +224,7 @@ func test_negative_to_index_is_ignored_and_does_not_move_token() -> void:
     add_child(auto_free(view))
     await get_tree().process_frame
 
+    var audit_before := _read_security_audit_text()
     _publish_move("p1", -1)
     await get_tree().process_frame
 
@@ -191,6 +232,12 @@ func test_negative_to_index_is_ignored_and_does_not_move_token() -> void:
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
 
+    var audit_after := _read_security_audit_text()
+    assert_bool(audit_after.length() > audit_before.length()).is_true()
+    assert_str(audit_after).contains("\"action\":\"SANGUO_BOARD_TOKEN_MOVE_REJECTED\"")
+    assert_str(audit_after).contains("\"reason\":\"to_index_negative\"")
+
+# ACC:T10.6
 func test_out_of_range_to_index_is_ignored_when_total_positions_set() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
@@ -204,9 +251,15 @@ func test_out_of_range_to_index_is_ignored_when_total_positions_set() -> void:
     add_child(auto_free(view))
     await get_tree().process_frame
 
+    var audit_before := _read_security_audit_text()
     _publish_move("p1", 3)
     await get_tree().process_frame
 
     assert_int(view.LastToIndex).is_equal(0)
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
+
+    var audit_after := _read_security_audit_text()
+    assert_bool(audit_after.length() > audit_before.length()).is_true()
+    assert_str(audit_after).contains("\"action\":\"SANGUO_BOARD_TOKEN_MOVE_REJECTED\"")
+    assert_str(audit_after).contains("\"reason\":\"to_index_out_of_range\"")

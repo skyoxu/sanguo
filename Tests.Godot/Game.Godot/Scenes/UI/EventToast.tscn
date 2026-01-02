@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game.Godot/Scripts/UI/EventToast.cs" id="1"]
+
+[node name="EventToast" type="Control"]
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+offset_left = 8.0
+offset_top = 40.0
+offset_right = -8.0
+offset_bottom = 72.0
+script = ExtResource("1")
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Label" type="Label" parent="Panel"]
+text = ""
+horizontal_alignment = 1
+

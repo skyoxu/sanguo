@@ -133,7 +133,23 @@ public partial class EventBusAdapter : Node, IEventBus
     public void PublishSimple(string type, string source, string data_json)
     {
         var evt = new DomainEvent(type, source, new RawJsonEventData(data_json), DateTime.UtcNow, Guid.NewGuid().ToString("N"));
-        _ = PublishAsync(evt);
+
+        try
+        {
+            EmitSignal(SignalName.DomainEventEmitted, evt.Type, evt.Source, data_json, evt.Id, evt.SpecVersion, evt.DataContentType, evt.Timestamp.ToString("o"));
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                Logger?.Error($"EventBusAdapter signal emit failed (type={evt.Type} source={evt.Source} id={evt.Id})", ex);
+            }
+            catch { }
+        }
+
+        List<Func<DomainEvent, Task>> snapshot;
+        lock (_gate) snapshot = _handlers.ToList();
+        foreach (var h in snapshot) _ = SafeInvoke(h, evt);
     }
 
     private sealed class Unsubscriber : IDisposable
