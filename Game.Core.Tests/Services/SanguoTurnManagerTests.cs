@@ -480,7 +480,7 @@ public class SanguoTurnManagerTests
         settledPayload.GetProperty("Month").GetInt32().Should().Be(12);
         var adjusted = bus.Published[yearlyIndex];
         var adjustedPayload = ((JsonElementEventData)adjusted.Data!).Value;
-        adjustedPayload.GetProperty("Year").GetInt32().Should().Be(1);
+        adjustedPayload.GetProperty("Year").GetInt32().Should().Be(2);
         adjustedPayload.GetProperty("CityId").GetString().Should().Be("c1");
     }
     [Theory]

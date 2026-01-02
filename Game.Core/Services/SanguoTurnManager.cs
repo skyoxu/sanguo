@@ -271,12 +271,20 @@ public sealed class SanguoTurnManager
             }
         }
 
+        var citiesBeforeYearly = CreateCityList(_boardState.GetCitiesSnapshot());
+        IReadOnlyList<City> citiesAfterYearly = citiesBeforeYearly;
+        if (previousDate.Year != _currentDate.Year)
+        {
+            citiesAfterYearly = _economy.ApplyYearlyPriceAdjustment(citiesBeforeYearly, _rng);
+            _boardState.ApplyCityEconomyUpdates(citiesAfterYearly);
+        }
+
         await _economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: _gameId,
             previousDate: previousDate,
             currentDate: _currentDate,
-            cities: CreateCityList(_boardState.GetCitiesSnapshot()),
-            yearlyMultiplier: 1.0m,
+            previousCities: citiesBeforeYearly,
+            currentCities: citiesAfterYearly,
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
