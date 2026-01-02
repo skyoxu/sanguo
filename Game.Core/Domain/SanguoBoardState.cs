@@ -14,7 +14,7 @@ namespace Game.Core.Domain;
 public sealed class SanguoBoardState
 {
     private readonly ThreadAccessGuard _threadGuard;
-    private readonly IReadOnlyDictionary<string, City> _citiesById;
+    private readonly Dictionary<string, City> _citiesById;
     private readonly IReadOnlyDictionary<string, SanguoPlayer> _playersById;
 
     /// <summary>
@@ -191,6 +191,56 @@ public sealed class SanguoBoardState
     {
         AssertThread();
         return new Dictionary<string, City>(_citiesById, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Applies updated city economy values to the existing board state.
+    /// Only <see cref="City.BasePrice"/> and <see cref="City.BaseToll"/> may change; all other fields must match.
+    /// </summary>
+    /// <param name="updatedCities">Updated city list keyed by <see cref="City.Id"/>.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="updatedCities"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="updatedCities"/> contains duplicate ids.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when any city is missing, unknown, or differs in non-economy fields.
+    /// </exception>
+    public void ApplyCityEconomyUpdates(IReadOnlyList<City> updatedCities)
+    {
+        AssertThread();
+        ArgumentNullException.ThrowIfNull(updatedCities, nameof(updatedCities));
+
+        var updatedById = new Dictionary<string, City>(StringComparer.Ordinal);
+        foreach (var city in updatedCities)
+        {
+            ArgumentNullException.ThrowIfNull(city, nameof(updatedCities));
+            if (!updatedById.TryAdd(city.Id, city))
+                throw new ArgumentException($"Duplicate city id: {city.Id}", nameof(updatedCities));
+        }
+
+        if (updatedById.Count != _citiesById.Count)
+            throw new InvalidOperationException("Updated city count does not match the current board state.");
+
+        foreach (var (cityId, existing) in _citiesById)
+        {
+            if (!updatedById.TryGetValue(cityId, out var updated))
+                throw new InvalidOperationException($"Updated city id not found: {cityId}");
+
+            if (!StringComparer.Ordinal.Equals(existing.Id, updated.Id))
+                throw new InvalidOperationException($"City id mismatch for cityId={cityId}.");
+            if (!StringComparer.Ordinal.Equals(existing.Name, updated.Name))
+                throw new InvalidOperationException($"City name mismatch for cityId={cityId}.");
+            if (!StringComparer.Ordinal.Equals(existing.RegionId, updated.RegionId))
+                throw new InvalidOperationException($"City region mismatch for cityId={cityId}.");
+            if (existing.PositionIndex != updated.PositionIndex)
+                throw new InvalidOperationException($"City position mismatch for cityId={cityId}.");
+
+            _citiesById[cityId] = new City(
+                id: existing.Id,
+                name: existing.Name,
+                regionId: existing.RegionId,
+                basePrice: updated.BasePrice,
+                baseToll: updated.BaseToll,
+                positionIndex: existing.PositionIndex);
+        }
     }
 
     private void AssertThread() => _threadGuard.AssertCurrentThread();

@@ -790,7 +790,7 @@ public class SanguoEconomyManagerTests
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
-        var cities = new[]
+        var previousCities = new[]
         {
             new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10)),
         };
@@ -798,8 +798,8 @@ public class SanguoEconomyManagerTests
             gameId: "game-1",
             previousDate: new SanguoCalendarDate(1, 12, 30),
             currentDate: new SanguoCalendarDate(1, 1, 1),
-            cities: cities,
-            yearlyMultiplier: 1.10m,
+            previousCities: previousCities,
+            currentCities: previousCities,
             correlationId: "corr-1",
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
@@ -816,8 +816,8 @@ public class SanguoEconomyManagerTests
             gameId: gameId!,
             previousDate: new SanguoCalendarDate(1, 12, 30),
             currentDate: new SanguoCalendarDate(2, 1, 1),
-            cities: Array.Empty<City>(),
-            yearlyMultiplier: 1.10m,
+            previousCities: Array.Empty<City>(),
+            currentCities: Array.Empty<City>(),
             correlationId: "corr-1",
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
@@ -834,8 +834,8 @@ public class SanguoEconomyManagerTests
             gameId: "game-1",
             previousDate: new SanguoCalendarDate(1, 12, 30),
             currentDate: new SanguoCalendarDate(2, 1, 1),
-            cities: Array.Empty<City>(),
-            yearlyMultiplier: 1.10m,
+            previousCities: Array.Empty<City>(),
+            currentCities: Array.Empty<City>(),
             correlationId: correlationId!,
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
@@ -847,17 +847,22 @@ public class SanguoEconomyManagerTests
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
-        var cities = new[]
+        var previousCities = new[]
         {
             new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10)),
             new City("c2", "City2", "r2", Money.FromMajorUnits(200), Money.FromMajorUnits(20)),
+        };
+        var currentCities = new[]
+        {
+            new City("c1", "City1", "r1", Money.FromMajorUnits(110), Money.FromMajorUnits(10)),
+            new City("c2", "City2", "r2", Money.FromMajorUnits(220), Money.FromMajorUnits(20)),
         };
         await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
             previousDate: new SanguoCalendarDate(1, 12, 30),
             currentDate: new SanguoCalendarDate(2, 1, 1),
-            cities: cities,
-            yearlyMultiplier: 1.10m,
+            previousCities: previousCities,
+            currentCities: currentCities,
             correlationId: "corr-1",
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
@@ -869,7 +874,7 @@ public class SanguoEconomyManagerTests
             evt.Data.Should().BeOfType<JsonElementEventData>();
             var payload = ((JsonElementEventData)evt.Data!).Value;
             payload.GetProperty("GameId").GetString().Should().Be("game-1");
-            payload.GetProperty("Year").GetInt32().Should().Be(1);
+            payload.GetProperty("Year").GetInt32().Should().Be(2);
             payload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
             payload.GetProperty("CausationId").GetString().Should().Be("cmd-1");
         }

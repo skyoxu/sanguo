@@ -1575,14 +1575,13 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
-      "Game.Core.Tests/Domain/MoneyTests.cs"
+      "Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs"
     ],
     "acceptance": [
       "年度地价调整的规则与计算逻辑应可在纯 C# 单元测试中验证（不依赖任何 Godot API），以便在不启动引擎的情况下校验年初调整对基础价与过路费的影响。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
       "在每年年初（进入新年度的边界）必须执行一次城池地价调整：对城池的基础价格与过路费进行一次随机调整，并将结果写入可观测的城池状态。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
       "年度地价调整必须体现随机性：在不同随机输入条件下，基础价与过路费结果允许不同；在测试可控的随机源/输入下，给定相同随机输入应得到一致的基础价与过路费结果。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
-      "年度地价调整的作用域仅限地价调整相关的经济字段：仅允许修改城池基础价与过路费相关字段；不得直接修改所有权、位置、出局、回合推进等与地价调整无关的状态。 Refs: Game.Core.Tests/Domain/MoneyTests.cs"
+      "年度地价调整的作用域仅限地价调整相关的经济字段：仅允许修改城池基础价与过路费相关字段；不得直接修改所有权、位置、出局、回合推进等与地价调整无关的状态。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",

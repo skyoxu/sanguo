@@ -2,6 +2,7 @@ using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
+using Game.Core.Utilities;
 using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 
 namespace Game.Core.Services;
@@ -475,6 +476,77 @@ public sealed class SanguoEconomyManager
         return results;
     }
 
+    public IReadOnlyList<(string CityId, MoneyValue OldPrice, MoneyValue NewPrice)> CalculateYearlyPriceAdjustments(
+        IReadOnlyList<City> cities,
+        decimal yearlyMultiplier,
+        IRandomNumberGenerator rng
+    )
+    {
+        ArgumentNullException.ThrowIfNull(cities, nameof(cities));
+        ArgumentNullException.ThrowIfNull(rng, nameof(rng));
+
+        if (yearlyMultiplier < 0)
+            throw new ArgumentOutOfRangeException(nameof(yearlyMultiplier), "Yearly price multiplier must be non-negative.");
+
+        var results = new List<(string CityId, MoneyValue OldPrice, MoneyValue NewPrice)>(cities.Count);
+        foreach (var city in cities)
+        {
+            var oldPrice = city.BasePrice;
+            var multiplier = yearlyMultiplier * SampleYearlyMultiplier(rng);
+            var newPrice = MoneyValue.FromDecimal(CapMoneyDecimal(oldPrice.ToDecimal() * multiplier));
+            results.Add((city.Id, oldPrice, newPrice));
+        }
+
+        return results;
+    }
+
+    public IReadOnlyList<City> ApplyYearlyPriceAdjustment(IReadOnlyList<City> cities, IRandomNumberGenerator rng)
+    {
+        ArgumentNullException.ThrowIfNull(cities, nameof(cities));
+        ArgumentNullException.ThrowIfNull(rng, nameof(rng));
+
+        var updated = new List<City>(cities.Count);
+        foreach (var city in cities)
+        {
+            var priceMultiplier = SampleYearlyMultiplier(rng);
+            var tollMultiplier = SampleYearlyMultiplier(rng);
+
+            var newPrice = MoneyValue.FromDecimal(CapMoneyDecimal(city.BasePrice.ToDecimal() * priceMultiplier));
+            var newToll = MoneyValue.FromDecimal(CapMoneyDecimal(city.BaseToll.ToDecimal() * tollMultiplier));
+
+            updated.Add(new City(
+                id: city.Id,
+                name: city.Name,
+                regionId: city.RegionId,
+                basePrice: newPrice,
+                baseToll: newToll,
+                positionIndex: city.PositionIndex));
+        }
+
+        return updated;
+    }
+
+    private static decimal SampleYearlyMultiplier(IRandomNumberGenerator rng)
+    {
+        var roll = rng.NextDouble();
+        if (roll < 0.0 || roll > 1.0)
+            throw new InvalidOperationException("IRandomNumberGenerator.NextDouble must return a value between 0 and 1.");
+
+        return 0.5m + (decimal)roll;
+    }
+
+    private static decimal CapMoneyDecimal(decimal amount)
+    {
+        if (amount < 0)
+            return 0;
+
+        var max = (decimal)MoneyValue.MaxMajorUnits;
+        if (amount > max)
+            return max;
+
+        return amount;
+    }
+
     /// <summary>
     /// Publishes yearly land price adjustment events when crossing a year boundary.
     /// Emits one <see cref="SanguoYearPriceAdjusted"/> per city only when <paramref name="previousDate"/> and <paramref name="currentDate"/> have different years.
@@ -498,8 +570,8 @@ public sealed class SanguoEconomyManager
         string gameId,
         SanguoCalendarDate previousDate,
         SanguoCalendarDate currentDate,
-        IReadOnlyList<City> cities,
-        decimal yearlyMultiplier,
+        IReadOnlyList<City> previousCities,
+        IReadOnlyList<City> currentCities,
         string correlationId,
         string? causationId,
         DateTimeOffset occurredAt
@@ -511,23 +583,36 @@ public sealed class SanguoEconomyManager
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
 
-        ArgumentNullException.ThrowIfNull(cities, nameof(cities));
+        ArgumentNullException.ThrowIfNull(previousCities, nameof(previousCities));
+        ArgumentNullException.ThrowIfNull(currentCities, nameof(currentCities));
 
         if (previousDate.Year == currentDate.Year)
             return;
 
-        var adjustments = CalculateYearlyPriceAdjustments(cities, yearlyMultiplier);
-        foreach (var (cityId, oldPrice, newPrice) in adjustments)
+        var currentById = new Dictionary<string, City>(StringComparer.Ordinal);
+        foreach (var city in currentCities)
         {
+            ArgumentNullException.ThrowIfNull(city, nameof(currentCities));
+            if (!currentById.TryAdd(city.Id, city))
+                throw new InvalidOperationException($"Duplicate city id in currentCities: {city.Id}");
+        }
+
+        foreach (var oldCity in previousCities)
+        {
+            ArgumentNullException.ThrowIfNull(oldCity, nameof(previousCities));
+
+            if (!currentById.TryGetValue(oldCity.Id, out var newCity))
+                throw new InvalidOperationException($"City id not found in currentCities: {oldCity.Id}");
+
             var evt = new DomainEvent(
                 Type: SanguoYearPriceAdjusted.EventType,
                 Source: nameof(SanguoEconomyManager),
                 Data: JsonElementEventData.FromObject(new SanguoYearPriceAdjusted(
                     GameId: gameId,
-                    Year: previousDate.Year,
-                    CityId: cityId,
-                    OldPrice: oldPrice.ToDecimal(),
-                    NewPrice: newPrice.ToDecimal(),
+                    Year: currentDate.Year,
+                    CityId: oldCity.Id,
+                    OldPrice: oldCity.BasePrice.ToDecimal(),
+                    NewPrice: newCity.BasePrice.ToDecimal(),
                     OccurredAt: occurredAt,
                     CorrelationId: correlationId,
                     CausationId: causationId
