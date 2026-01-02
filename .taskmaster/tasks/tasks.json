@@ -22,7 +22,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 设置godot项目.",
@@ -41,16 +41,13 @@
         "status": "done",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0004",
           "ADR-0005",
           "ADR-0015",
           "ADR-0018",
           "ADR-0020",
           "ADR-0021",
           "ADR-0024",
-          "ADR-0025",
-          "ADR-0026",
-          "ADR-0027"
+          "ADR-0025"
         ],
         "archRefs": [
           "CH01",
@@ -60,7 +57,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 创建环形地图数据结构.",
@@ -95,7 +92,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现城池类."
@@ -129,7 +126,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现玩家类."
@@ -163,7 +160,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现骰子机制."
@@ -198,7 +195,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现回合管理器."
@@ -232,7 +229,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现经济结算管理器."
@@ -267,7 +264,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现事件管理器."
@@ -296,7 +293,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 设计ui界面."
@@ -326,7 +323,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui骰子结果显示."
@@ -361,7 +358,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现玩家棋子移动."
@@ -397,7 +394,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现土地购买逻辑."
@@ -427,7 +424,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui城池状态显示."
@@ -461,7 +458,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现过路费支付逻辑."
@@ -477,7 +474,7 @@
           "4",
           "10"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -485,7 +482,7 @@
             "description": "在Game.Core中实现AI的基本行动逻辑。",
             "dependencies": [],
             "details": "使用简单贪心策略实现AI行动逻辑，包括有钱就买地、踩到别人地就付费。",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "编写单元测试，验证AI在不同资金和地块分布下的行为是否符合预期。",
             "parentId": "undefined"
           },
@@ -497,7 +494,7 @@
               1
             ],
             "details": "设计可扩展的状态机接口（例如状态/状态机抽象），确保未来可以轻松扩展AI行为（如从贪心策略演进为有限状态机或行为树）。",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "通过接口测试，确保状态机接口的正确性和可扩展性。",
             "parentId": "undefined"
           },
@@ -510,7 +507,7 @@
               2
             ],
             "details": "使用xUnit编写测试用例，模拟多轮AI行动，验证AI在各种情况下的稳定性。",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "运行测试用例，确保AI行为在极端情况下仍然稳定。",
             "parentId": "undefined"
           }
@@ -532,7 +529,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 7,
         "recommendedSubtasks": 3,
         "expansionPrompt": "将AI行为设计分为基本规则实现、状态机接口预留、测试用例编写三个子任务。"
@@ -567,7 +564,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现月末收益结算."
@@ -597,7 +594,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui资金显示."
@@ -632,7 +629,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现季度环境事件."
@@ -662,7 +659,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui事件提示."
@@ -696,7 +693,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现年度地价调整."
@@ -781,7 +778,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 8,
         "recommendedSubtasks": 4,
         "expansionPrompt": "将回合循环分为玩家行动、AI行动、时间推进、测试验证四个子任务。"
@@ -811,7 +808,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui日期显示."
@@ -845,7 +842,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现存档功能."
@@ -874,7 +871,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui事件日志."
@@ -931,7 +928,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 6,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将AI策略优化分为现有策略分析、优化策略设计两个子任务。"
@@ -988,7 +985,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将游戏结束条件分为条件设计和测试验证两个子任务。"
@@ -1017,7 +1014,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 3,
         "recommendedSubtasks": 1,
         "expansionPrompt": "将音效和音乐分为音效选择和集成测试两个子任务。"
@@ -1046,7 +1043,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 4,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将主菜单分为UI设计和功能实现两个子任务。"
@@ -1075,7 +1072,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 4,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将设置菜单分为UI设计和功能实现两个子任务。"
@@ -1140,7 +1137,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "将帮助和教程分为内容设计、UI实现、用户测试三个子任务。"
@@ -1284,7 +1281,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
       },
       {
         "id": "37",

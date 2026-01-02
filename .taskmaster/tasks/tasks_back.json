@@ -9,7 +9,6 @@
     "layer": "infra",
     "depends_on": [],
     "adr_refs": [
-      "ADR-0001",
       "ADR-0005",
       "ADR-0011",
       "ADR-0018"
@@ -22,7 +21,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -49,7 +48,6 @@
     "taskmaster_id": 1,
     "taskmaster_exported": true,
     "adrRefs": [
-      "ADR-0001",
       "ADR-0005",
       "ADR-0011",
       "ADR-0018"
@@ -60,7 +58,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
   },
   {
     "id": "SG-0002",
@@ -92,7 +90,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -138,7 +136,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved"
     ]
@@ -173,7 +171,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -219,7 +217,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
   },
   {
     "id": "SG-0004",
@@ -251,7 +249,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -295,7 +293,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
   },
   {
     "id": "SG-0005",
@@ -327,7 +325,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -374,7 +372,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.dice.rolled"
     ]
@@ -410,7 +408,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -465,7 +463,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.turn.started",
       "core.sanguo.game.turn.ended"
@@ -501,7 +499,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -552,7 +550,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.month.settled"
     ]
@@ -575,7 +573,8 @@
       "ADR-0020",
       "ADR-0021",
       "ADR-0024",
-      "ADR-0025"
+      "ADR-0025",
+      "ADR-0026"
     ],
     "chapter_refs": [
       "CH01",
@@ -587,7 +586,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -630,7 +629,8 @@
       "ADR-0020",
       "ADR-0021",
       "ADR-0024",
-      "ADR-0025"
+      "ADR-0025",
+      "ADR-0026"
     ],
     "archRefs": [
       "CH01",
@@ -640,7 +640,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.season.event.applied"
     ]
@@ -670,7 +670,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -713,7 +713,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
   },
   {
     "id": "SG-0022",
@@ -741,7 +741,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -778,7 +778,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.dice.rolled"
     ]
@@ -814,7 +814,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -859,7 +859,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved"
     ]
@@ -883,7 +883,8 @@
       "ADR-0020",
       "ADR-0021",
       "ADR-0024",
-      "ADR-0025"
+      "ADR-0025",
+      "ADR-0027"
     ],
     "chapter_refs": [
       "CH01",
@@ -895,7 +896,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -949,7 +950,8 @@
       "ADR-0020",
       "ADR-0021",
       "ADR-0024",
-      "ADR-0025"
+      "ADR-0025",
+      "ADR-0027"
     ],
     "archRefs": [
       "CH01",
@@ -959,7 +961,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.city.bought"
     ]
@@ -990,7 +992,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1033,7 +1035,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.city.bought",
       "core.sanguo.city.toll.paid",
@@ -1070,7 +1072,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1129,7 +1131,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.city.toll.paid"
     ]
@@ -1165,7 +1167,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1216,7 +1218,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.ai.decision.made"
     ]
@@ -1252,7 +1254,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1299,7 +1301,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.month.settled"
     ]
@@ -1330,7 +1332,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1368,7 +1370,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.player.state.changed"
     ]
@@ -1404,7 +1406,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1453,7 +1455,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.season.event.applied"
     ]
@@ -1484,7 +1486,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1524,7 +1526,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved",
       "core.sanguo.city.bought",
@@ -1564,7 +1566,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1612,7 +1614,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.year.price.adjusted"
     ]
@@ -1648,7 +1650,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1715,7 +1717,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.turn.advanced"
     ]
@@ -1746,7 +1748,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1788,7 +1790,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.turn.advanced"
     ]
@@ -1823,7 +1825,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1872,7 +1874,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.saved",
       "core.sanguo.game.loaded"
@@ -1903,7 +1905,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -1947,7 +1949,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved",
       "core.sanguo.city.bought",
@@ -1988,7 +1990,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -2031,7 +2033,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.ai.decision.made"
     ]
@@ -2066,7 +2068,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -2111,7 +2113,7 @@
       "CH07",
       "CH09"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.ended"
     ]
@@ -2141,7 +2143,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -2184,7 +2186,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
   },
   {
     "id": "SG-0028",
@@ -2211,7 +2213,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -2251,7 +2253,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
   },
   {
     "id": "SG-0029",
@@ -2278,7 +2280,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -2322,7 +2324,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md"
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
   },
   {
     "id": "SG-0030",
@@ -2349,7 +2351,7 @@
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
@@ -2394,7 +2396,7 @@
       "CH07",
       "CH10"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.dice.rolled",
       "core.sanguo.board.token.moved",
@@ -2757,7 +2759,7 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
     ],
@@ -2800,7 +2802,7 @@
       "CH06",
       "CH07"
     ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-功能纵切-T2-三国大富翁闭环.md",
+    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "taskmaster_id": 36
   },
   {
