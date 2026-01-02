@@ -496,7 +496,7 @@
             "dependencies": [
               1
             ],
-            "details": "参考Godot官方演示项目，设计状态机接口，确保未来可以轻松扩展AI行为。",
+            "details": "设计可扩展的状态机接口（例如状态/状态机抽象），确保未来可以轻松扩展AI行为（如从贪心策略演进为有限状态机或行为树）。",
             "status": "pending",
             "testStrategy": "通过接口测试，确保状态机接口的正确性和可扩展性。",
             "parentId": "undefined"
