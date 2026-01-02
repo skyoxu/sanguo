@@ -77,6 +77,37 @@ public sealed class SanguoAiBehaviorTests
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-advance");
     }
 
+    [Fact]
+    public async Task ShouldNotPublishAiDecisionMade_WhenTurnStartsForHuman()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var gameId = "game-1";
+        var humanId = "p1";
+        var aiId = "ai-1";
+        var correlationId = "corr-human-1";
+
+        var rules = SanguoEconomyRules.Default;
+        var cities = new Dictionary<string, City>(StringComparer.Ordinal);
+        var human = new SanguoPlayer(playerId: humanId, money: 200m, positionIndex: 0, economyRules: rules);
+        var ai = new SanguoPlayer(playerId: aiId, money: 200m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(players: new[] { human, ai }, citiesById: cities);
+        var treasury = new SanguoTreasury();
+
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury);
+        await mgr.StartNewGameAsync(
+            gameId: gameId,
+            playerOrder: new[] { humanId, aiId },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: correlationId,
+            causationId: null);
+
+        bus.Published.Should().NotContain(e => e.Type == SanguoAiDecisionMade.EventType);
+    }
+
     // ACC:T11.5
     // ACC:T11.6
     [Fact]

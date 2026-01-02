@@ -1190,6 +1190,7 @@
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "AI 身份判定约定：当前以 PlayerId 前缀 `ai-` 作为“AI 玩家”识别规则（见 `Game.Core/Services/SanguoTurnManager.cs:IsAiPlayerId`）；此约定需由单元测试钉死，避免未来 ID 生成策略变更导致 AI 不行动或误行动。",
       "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
       "新增单测：AI 行为仅依赖 `ISanguoPlayerView`/`SanguoPlayerView` 输入；模拟后台线程调用时不得触发 `ThreadAccessGuard`（即不直接调用 `SanguoPlayer` 上的方法）。",
       "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
