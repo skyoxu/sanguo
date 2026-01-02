@@ -77,4 +77,11 @@ public class MoneyTests
         var act = () => JsonSerializer.Deserialize<Money>("\"\"");
         act.Should().Throw<JsonException>();
     }
+
+    [Fact]
+    public void Money_JsonDeserialize_WithInvalidString_ShouldThrowJsonException()
+    {
+        var act = () => JsonSerializer.Deserialize<Money>("\"not-a-number\"");
+        act.Should().Throw<JsonException>();
+    }
 }

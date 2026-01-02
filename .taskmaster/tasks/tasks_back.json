@@ -1175,16 +1175,17 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
       "Game.Core.Tests/Domain/SanguoPlayerViewTests.cs"
     ],
     "acceptance": [
       "AI 回合内的决策与行动逻辑在 `Game.Core` 中实现，可通过纯 .NET 单元测试验证，且不依赖任何 Godot API。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
       "AI 在决策时只依赖玩家状态的只读视图/快照（`ISanguoPlayerView`，可由 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView`），不得直接持有可变的 `SanguoPlayer` 实体以避免跨线程/并发访问风险；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs",
       "当轮到 AI 玩家行动时，系统会自动产出一个可审计的“AI 决策结果”并发布 `core.sanguo.ai.decision.made` 事件；初期事件的决策类型至少覆盖 RollDice/Skip，且单测可验证事件载荷包含 `GameId`/`AiPlayerId`/`CorrelationId`。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "AI 初期采用简单贪心策略并遵循与玩家一致的结算规则：资金允许时优先买地；踩到他人地块时按规则支付费用；同时决策策略通过可替换接口/策略注入到回合管理或 AI 行为组件中，确保后续可演进为有限状态机/行为树而不需要改动回合循环骨干。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "单元测试至少包含：1) 钉死 AI 回合会触发并发布决策事件；2) 钉死 AI 决策仅使用 `ISanguoPlayerView` 快照输入而非直接使用 `SanguoPlayer` 实体；并对贪心策略关键分支（买地/付费）有可观察断言。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "状态机接口（Subtask 11.2）：AI 行为的决策层必须显式提供可扩展的“状态机/行为树适配接口”（例如 `ISanguoAiState`/`ISanguoAiStateMachine` 或等价抽象），且默认贪心策略可作为其中一种实现被替换；接口与实现均不依赖 Godot API；单测验证替换后回合执行仍稳定且不抛异常。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "多轮稳定性测试（Subtask 11.3）：单测需模拟多轮 AI 行动（建议 ≥ 20 回合，固定随机种子/确定性输入），覆盖资金不足与无可购买地块两类极端情况；断言 AI 仍能稳定执行回合且不会越权修改他人状态（状态变更必须走与玩家一致的规则入口）。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
+      "AI 初期采用简单贪心策略并遵循与玩家一致的结算规则：资金允许时优先买地；踩到他人地块时按规则支付费用；同时决策策略通过可替换接口/策略注入到回合管理或 AI 行为组件中，确保后续可演进为有限状态机/行为树而不需要改动回合循环骨干。 Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
+      "单元测试至少包含：1) 钉死 AI 回合会触发并发布决策事件；2) 钉死 AI 决策仅使用 `ISanguoPlayerView` 快照输入而非直接使用 `SanguoPlayer` 实体；并对贪心策略关键分支（买地/付费）有可观察断言。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs, Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
+      "状态机接口（Subtask 11.2）：AI 行为的决策层必须显式提供可扩展的“决策扩展点”接口（例如 `ISanguoAiDecisionPolicy`，或可适配为 FSM/行为树 的等价抽象），且默认贪心策略可作为其中一种实现被替换；接口与实现均不依赖 Godot API；单测验证替换后回合执行仍稳定且不抛异常。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "多轮稳定性测试（Subtask 11.3）：单测需模拟多轮 AI 行动（建议 ≥ 20 回合，固定随机种子/确定性输入），覆盖资金不足与无可购买地块两类极端情况；断言 AI 仍能稳定执行回合且不会越权修改他人状态（状态变更必须走与玩家一致的规则入口）。 Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
