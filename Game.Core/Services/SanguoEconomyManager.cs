@@ -22,6 +22,14 @@ namespace Game.Core.Services;
 public sealed class SanguoEconomyManager
 {
     private readonly IEventBus _bus;
+    private ActiveSeasonYieldAdjustment? _activeSeasonYieldAdjustment;
+
+    private sealed record ActiveSeasonYieldAdjustment(
+        int Year,
+        int Season,
+        HashSet<string> AffectedRegionIds,
+        decimal YieldMultiplier
+    );
 
     /// <summary>
     /// Creates a new <see cref="SanguoEconomyManager"/>.
@@ -31,6 +39,53 @@ public sealed class SanguoEconomyManager
     public SanguoEconomyManager(IEventBus bus)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+    }
+
+    internal void SetActiveSeasonYieldAdjustment(
+        int year,
+        int season,
+        IReadOnlyList<string> affectedRegionIds,
+        decimal yieldMultiplier
+    )
+    {
+        if (year < 0)
+            throw new ArgumentOutOfRangeException(nameof(year), "Year must be non-negative.");
+
+        if (season is < 1 or > 4)
+            throw new ArgumentOutOfRangeException(nameof(season), "Season must be between 1 and 4.");
+
+        ArgumentNullException.ThrowIfNull(affectedRegionIds, nameof(affectedRegionIds));
+
+        if (yieldMultiplier < 0)
+            throw new ArgumentOutOfRangeException(nameof(yieldMultiplier), "Yield multiplier must be non-negative.");
+
+        if (affectedRegionIds.Count == 0 || yieldMultiplier == 1.0m)
+        {
+            _activeSeasonYieldAdjustment = null;
+            return;
+        }
+
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var id in affectedRegionIds)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                continue;
+
+            set.Add(id);
+        }
+
+        if (set.Count == 0)
+        {
+            _activeSeasonYieldAdjustment = null;
+            return;
+        }
+
+        _activeSeasonYieldAdjustment = new ActiveSeasonYieldAdjustment(
+            Year: year,
+            Season: season,
+            AffectedRegionIds: set,
+            YieldMultiplier: yieldMultiplier
+        );
     }
 
     /// <summary>
@@ -568,17 +623,24 @@ public sealed class SanguoEconomyManager
         return ((month - 1) / 3) + 1;
     }
 
-    private static MoneyValue CalculateMonthlyIncome(ISanguoPlayerView player, IReadOnlyDictionary<string, City> citiesById)
+    private MoneyValue CalculateMonthlyIncome(ISanguoPlayerView player, IReadOnlyDictionary<string, City> citiesById)
     {
         ArgumentNullException.ThrowIfNull(player, nameof(player));
 
+        var adjustment = _activeSeasonYieldAdjustment;
         var totalMinorUnits = 0L;
         foreach (var cityId in player.OwnedCityIds)
         {
             if (!citiesById.TryGetValue(cityId, out var city))
                 throw new InvalidOperationException($"Owned city id not found: {cityId}");
 
-            totalMinorUnits = checked(totalMinorUnits + city.BaseToll.MinorUnits);
+            var toll = city.BaseToll;
+            if (adjustment is not null && adjustment.AffectedRegionIds.Contains(city.RegionId))
+            {
+                toll = city.GetToll(multiplier: adjustment.YieldMultiplier, rules: SanguoEconomyRules.Default);
+            }
+
+            totalMinorUnits = checked(totalMinorUnits + toll.MinorUnits);
         }
 
         return new MoneyValue(totalMinorUnits);

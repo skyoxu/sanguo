@@ -15,6 +15,8 @@ public sealed class SanguoTurnManager
     private readonly IRandomNumberGenerator _rng;
     private readonly ISanguoAiDecisionPolicy _aiDecisionPolicy;
     private readonly int _totalPositionsHint;
+    private readonly double _quarterEnvironmentEventTriggerChance;
+    private readonly decimal _quarterEnvironmentEventYieldMultiplier;
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -30,7 +32,9 @@ public sealed class SanguoTurnManager
         SanguoTreasury treasury,
         ISanguoAiDecisionPolicy? aiDecisionPolicy = null,
         IRandomNumberGenerator? rng = null,
-        int totalPositionsHint = 0)
+        int totalPositionsHint = 0,
+        double quarterEnvironmentEventTriggerChance = 0.5,
+        decimal quarterEnvironmentEventYieldMultiplier = 0.9m)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
@@ -39,6 +43,8 @@ public sealed class SanguoTurnManager
         _aiDecisionPolicy = aiDecisionPolicy ?? new DefaultSanguoAiDecisionPolicy();
         _rng = rng ?? ThreadLocalRandomNumberGenerator.Instance;
         _totalPositionsHint = totalPositionsHint;
+        _quarterEnvironmentEventTriggerChance = quarterEnvironmentEventTriggerChance;
+        _quarterEnvironmentEventYieldMultiplier = quarterEnvironmentEventYieldMultiplier;
     }
 
     public async Task StartNewGameAsync(
@@ -221,17 +227,49 @@ public sealed class SanguoTurnManager
                 occurredAt: occurredAt);
         }
 
-        var season = GetSeasonFromMonth(_currentDate.Month);
-        await _economy.PublishSeasonEventIfBoundaryAsync(
-            gameId: _gameId,
-            previousDate: previousDate,
-            currentDate: _currentDate,
-            season: season,
-            affectedRegionIds: Array.Empty<string>(),
-            yieldMultiplier: 1.0m,
-            correlationId: correlationId,
-            causationId: causationId,
-            occurredAt: occurredAt);
+        var previousSeason = GetSeasonFromMonth(previousDate.Month);
+        var currentSeason = GetSeasonFromMonth(_currentDate.Month);
+        if (previousSeason != currentSeason)
+        {
+            _economy.SetActiveSeasonYieldAdjustment(
+                year: _currentDate.Year,
+                season: currentSeason,
+                affectedRegionIds: Array.Empty<string>(),
+                yieldMultiplier: 1.0m);
+
+            var roll = _rng.NextDouble();
+            if (roll < _quarterEnvironmentEventTriggerChance)
+            {
+                var regionIds = _boardState.GetCitiesSnapshot().Values
+                    .Select(c => c.RegionId)
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(x => x, StringComparer.Ordinal)
+                    .ToArray();
+
+                if (regionIds.Length > 0)
+                {
+                    var affectedIndex = _rng.NextInt(minInclusive: 0, maxExclusive: regionIds.Length);
+                    var affectedRegionIds = new[] { regionIds[affectedIndex] };
+
+                    _economy.SetActiveSeasonYieldAdjustment(
+                        year: _currentDate.Year,
+                        season: currentSeason,
+                        affectedRegionIds: affectedRegionIds,
+                        yieldMultiplier: _quarterEnvironmentEventYieldMultiplier);
+
+                    await _economy.PublishSeasonEventIfBoundaryAsync(
+                        gameId: _gameId,
+                        previousDate: previousDate,
+                        currentDate: _currentDate,
+                        season: currentSeason,
+                        affectedRegionIds: affectedRegionIds,
+                        yieldMultiplier: _quarterEnvironmentEventYieldMultiplier,
+                        correlationId: correlationId,
+                        causationId: causationId,
+                        occurredAt: occurredAt);
+                }
+            }
+        }
 
         await _economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: _gameId,
