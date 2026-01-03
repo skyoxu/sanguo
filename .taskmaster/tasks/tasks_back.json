@@ -1661,19 +1661,20 @@
       "Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "Game.Core.Tests/Domain/MoneyTests.cs",
       "Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd"
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
+      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "acceptance": [
       "回合循环相关的核心规则与状态推进逻辑放在 Game.Core 中，并保证该部分不依赖 Godot API（可用纯 .NET 单测验证回合推进/出局/资金结算）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "回合推进与时间推进可被外部观察与追踪：能清晰看到“日推进 → 触发月末结算 → 触发季度节点 → 触发年度节点”的闭环，并与 T2 PRD 的时间轴描述一致。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "回合循环正确处理出局者：已出局 NPC 会从后续轮转中跳过且不再行动；真人玩家一旦出局，回合循环立即停止并触发游戏结束；NPC 出局后其状态锁定，且其已占领城池被释放为无人占领。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "金额入账触发 Money 上限时，核心结算必须遵循封顶规则（付款方仍扣全额、收款方封顶、溢出进入 SanguoTreasury）；且若事件发布失败必须回滚（payer/owner/treasury 状态不变），避免出现可观察的半更新状态；并通过 IErrorReporter 记录一次可追踪的告警（包含 CorrelationId/CausationId）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "金额入账触发 Money 上限时：核心结算遵循封顶规则（付款方仍扣全额、收款方封顶、溢出进入 SanguoTreasury），且任意失败不得出现可观察的半更新状态（含事件发布失败需回滚 payer/owner/treasury）；同时必须写入结构化审计日志（运行期落盘 user://logs/security/security-audit.jsonl，并在门禁阶段汇总到 logs/ci/<YYYY-MM-DD>/security-audit.jsonl），并上报一次可追踪告警（IErrorReporter，含 CorrelationId/CausationId）；前台用 3 秒自动消失的非阻塞浮窗提示替代 GameOver/错误界面。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
       "MED-001（未来修订）：破产/出局路径需具备“事务语义”，将债权人入账、付款方出局标记、城池释放/转移视为一次性提交，避免未来引入事件发布/持久化/回调后出现可观察的中间态；当前 ThreadAccessGuard 单线程仅为缓解，不作为最终保证。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "移动事件范围校验：必须在场景/代码中把 TotalPositions 配置到 SanguoBoardView.TotalPositions（要求 > 0）；且 `core.sanguo.board.token.moved` 的 ToIndex 必须范围校验（0 <= ToIndex < TotalPositions）并被测试覆盖（发布侧+视图侧都做防御）；“未配置 TotalPositions”视为 Task 17 未完成。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
       "同一次回合推进若跨越多个时间边界，边界效果的应用顺序必须可验证且一致：先月末结算，再季度事件，最后年度地价调整；若启用 DomainEvent（ADR-0004），则事件的发布顺序也必须与该顺序一致。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "时间边界效果按顺序计算并叠加生效：最终状态等于依次应用月度结算、季度事件、年度调整后的结果，不得用后者覆盖/屏蔽前者；若启用事件溯源能力，则该序列应可回放用于排障，并保留必要的关联标识（如 CorrelationId/CausationId）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "时间边界处理应限制在与“时间推进/经济结算”直接相关的状态变更上，避免引入与回合循环无关的副作用；所有权/位置/出局等非经济字段仅能由对应规则（行动/移动/出局流程）触发变更，避免出现难以审计的隐式改写。 Refs: Game.Core.Tests/Domain/MoneyTests.cs",
-      "玩家行动逻辑（Subtask 17.1）：轮到真人玩家时，回合循环进入“等待玩家动作”阶段；在收到明确的玩家动作命令前不得推进日期或切换行动者；并提供可单测的 RollDice 能力：调用 SanguoDiceService.RollD6 必须发布 core.sanguo.dice.rolled（Value 1..6），并携带 CorrelationId/CausationId 以支持追踪。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "玩家行动逻辑（Subtask 17.1）：轮到真人玩家时，回合循环进入“等待玩家动作”阶段；在收到明确的玩家动作命令前不得推进日期或切换行动者；至少支持动作 RollDice，并发布 core.sanguo.dice.rolled（Value 1..6）以驱动后续移动与结算；并验证 HUD 的 ui.hud.dice.roll -> SanguoDiceService.RollD6 -> core.sanguo.dice.rolled 链路成立，且 CorrelationId/CausationId 可贯穿并在日志中追踪。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
       "AI 行动逻辑（Subtask 17.2）：轮到 AI 玩家（PlayerId 以 ai- 前缀）时，回合循环会自动生成并应用一个动作（至少 RollDice 或 Skip），并发布 core.sanguo.ai.decision.made（SanguoAiDecisionMade.EventType）；AI 决策读取输入必须通过 ISanguoPlayerView 快照，禁止直接持有/跨线程访问 SanguoPlayer；并确保关联标识可用于追踪与审计。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "回合循环稳定性（Subtask 17.4）：在固定随机种子/确定性输入下，模拟至少 N 回合推进（建议 ≥ 200，包含真人等待命令与 AI 自动动作），断言无异常、无卡死、日期单调推进且关键不变量不破坏（例如出局者不再获得行动）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
     ],

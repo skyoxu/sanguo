@@ -6,7 +6,7 @@ namespace Game.Godot.Scripts.UI;
 public partial class EventToast : Control
 {
     [Export(PropertyHint.Range, "0,10,0.1,or_greater")]
-    public double AutoHideSeconds { get; set; } = 2.0;
+    public double AutoHideSeconds { get; set; } = 3.0;
 
     private Label _label = default!;
     private SceneTreeTimer? _hideTimer;

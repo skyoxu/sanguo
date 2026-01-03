@@ -1,9 +1,11 @@
 using Godot;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
+using Game.Core.Services;
 using Game.Godot.Adapters;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 
 namespace Game.Godot.Scripts.UI;
@@ -12,6 +14,8 @@ public partial class HUD : Control
 {
     private const int MaxEventJsonChars = 64 * 1024;
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
+    private const string UiHudDiceRollEventType = "ui.hud.dice.roll";
+    private const string MoneyCapAuditAction = "SANGUO_MONEY_CAPPED";
 
     private Label _score = default!;
     private Label _health = default!;
@@ -23,6 +27,7 @@ public partial class HUD : Control
 
     private string? _activePlayerId;
     private EventBusAdapter? _bus;
+    private SanguoDiceService? _diceService;
     private readonly Dictionary<string, Action<JsonElement>> _handlers = new(StringComparer.Ordinal);
 
     private EventToast? _toast;
@@ -51,6 +56,8 @@ public partial class HUD : Control
             return;
         }
 
+        _diceService = new SanguoDiceService(_bus);
+
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
         TryConnectBus(callable);
     }
@@ -68,6 +75,7 @@ public partial class HUD : Control
         TryDisconnectBus(callable);
 
         _bus = null;
+        _diceService = null;
     }
 
     private void OnDicePressed()
@@ -78,7 +86,21 @@ public partial class HUD : Control
             return;
         }
 
-        _bus.PublishSimple("ui.hud.dice.roll", nameof(HUD), "{}");
+        var playerId = _activePlayerId ?? "";
+        if (string.IsNullOrWhiteSpace(playerId))
+        {
+            GD.PushWarning("HUD: ActivePlayerId is not known; publishing ui.hud.dice.roll without PlayerId");
+        }
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            GameId = "g1",
+            PlayerId = playerId,
+            CorrelationId = Guid.NewGuid().ToString("N"),
+            CausationId = UiHudDiceRollEventType,
+        });
+
+        _bus.PublishSimple(UiHudDiceRollEventType, nameof(HUD), payload);
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
@@ -203,6 +225,103 @@ public partial class HUD : Control
 
         _handlers[SanguoPlayerStateChanged.EventType] = HandlePlayerStateChangedEvent;
         _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
+        _handlers[UiHudDiceRollEventType] = HandleHudDiceRollEvent;
+        _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
+    }
+
+    private void HandleHudDiceRollEvent(JsonElement root)
+    {
+        if (_diceService == null)
+        {
+            return;
+        }
+
+        string gameId = "g1";
+        if (root.TryGetProperty("GameId", out var gid) && gid.ValueKind == JsonValueKind.String)
+        {
+            var v = gid.GetString();
+            if (!string.IsNullOrWhiteSpace(v)) gameId = v;
+        }
+
+        string playerId = _activePlayerId ?? "";
+        if (root.TryGetProperty("PlayerId", out var pid) && pid.ValueKind == JsonValueKind.String)
+        {
+            var v = pid.GetString();
+            if (!string.IsNullOrWhiteSpace(v)) playerId = v;
+        }
+
+        if (string.IsNullOrWhiteSpace(playerId))
+        {
+            return;
+        }
+
+        string correlationId = Guid.NewGuid().ToString("N");
+        if (root.TryGetProperty("CorrelationId", out var corr) && corr.ValueKind == JsonValueKind.String)
+        {
+            var v = corr.GetString();
+            if (!string.IsNullOrWhiteSpace(v)) correlationId = v;
+        }
+
+        string? causationId = UiHudDiceRollEventType;
+        if (root.TryGetProperty("CausationId", out var cause) && cause.ValueKind == JsonValueKind.String)
+        {
+            var v = cause.GetString();
+            if (!string.IsNullOrWhiteSpace(v)) causationId = v;
+        }
+
+        _ = _diceService.RollD6(gameId: gameId, playerId: playerId, correlationId: correlationId, causationId: causationId);
+    }
+
+    private void HandleCityTollPaidEvent(JsonElement root)
+    {
+        decimal overflow = 0m;
+        if (root.TryGetProperty("TreasuryOverflow", out var ov) && ov.ValueKind == JsonValueKind.Number)
+        {
+            if (!ov.TryGetDecimal(out overflow))
+            {
+                overflow = ov.GetInt64();
+            }
+        }
+
+        if (overflow <= 0m)
+        {
+            return;
+        }
+
+        var payerId = root.TryGetProperty("PayerId", out var payer) ? payer.GetString() : null;
+        var ownerId = root.TryGetProperty("OwnerId", out var owner) ? owner.GetString() : null;
+        var cityId = root.TryGetProperty("CityId", out var city) ? city.GetString() : null;
+
+        TryAppendSecurityAudit(
+            action: MoneyCapAuditAction,
+            reason: "money_cap_overflow",
+            target: $"payer_id={payerId} owner_id={ownerId} city_id={cityId} overflow={overflow}",
+            caller: "HUD.HandleCityTollPaidEvent");
+    }
+
+    private static void TryAppendSecurityAudit(string action, string reason, string target, string caller)
+    {
+        try
+        {
+            var dir = ProjectSettings.GlobalizePath("user://logs/security");
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, "security-audit.jsonl");
+
+            var record = new
+            {
+                ts = DateTimeOffset.UtcNow.ToString("O"),
+                action,
+                reason,
+                target,
+                caller,
+            };
+
+            File.AppendAllText(path, JsonSerializer.Serialize(record) + System.Environment.NewLine);
+        }
+        catch
+        {
+            // Best-effort audit only.
+        }
     }
 
     private void HandleScoreEvent(JsonElement root)

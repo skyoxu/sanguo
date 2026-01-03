@@ -2,6 +2,7 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 var _bus: Node
 var _last_emitted_type := ""
+var _events: Array = []
 
 func before() -> void:
     var existing = get_node_or_null("/root/EventBus")
@@ -13,9 +14,28 @@ func before() -> void:
     _bus.name = "EventBus"
     get_tree().get_root().add_child(auto_free(_bus))
     _bus.connect("DomainEventEmitted", Callable(self, "_on_domain_event_emitted"))
+    _events = []
 
-func _on_domain_event_emitted(type, _source, _data_json, _id, _spec, _ct, _ts) -> void:
+func _on_domain_event_emitted(type, _source, data_json, _id, _spec, _ct, _ts) -> void:
     _last_emitted_type = str(type)
+    _events.append({"type": str(type), "data_json": str(data_json)})
+
+func _security_audit_path() -> String:
+    return ProjectSettings.globalize_path("user://logs/security/security-audit.jsonl")
+
+func _read_security_audit_text() -> String:
+    var path := _security_audit_path()
+    if not FileAccess.file_exists(path):
+        return ""
+    var f := FileAccess.open(path, FileAccess.READ)
+    return f.get_as_text()
+
+func _last_event(type_name: String) -> Dictionary:
+    for i in range(_events.size() - 1, -1, -1):
+        var e: Dictionary = _events[i]
+        if str(e.get("type", "")) == type_name:
+            return e
+    return {}
 
 func _hud() -> Node:
     var hud = preload("res://Game.Godot/Scenes/UI/HUD.tscn").instantiate()
@@ -105,6 +125,57 @@ func test_dice_button_emits_ui_roll_event() -> void:
     dice.emit_signal("pressed")
     await get_tree().process_frame
     assert_str(_last_emitted_type).is_equal("ui.hud.dice.roll")
+
+# ACC:T17.10
+func test_hud_dice_roll_triggers_core_dice_event_with_trace_ids() -> void:
+    var hud = await _hud()
+    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+    _events = []
+
+    _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
+    await get_tree().process_frame
+
+    dice.emit_signal("pressed")
+    for _i in range(10):
+        await get_tree().process_frame
+
+    var ui_evt := _last_event("ui.hud.dice.roll")
+    assert_bool(ui_evt.size() > 0).is_true()
+    var ui_payload: Dictionary = JSON.parse_string(str(ui_evt.get("data_json", "{}")))
+    assert_str(str(ui_payload.get("PlayerId", ""))).is_equal("p1")
+    assert_str(str(ui_payload.get("CausationId", ""))).is_equal("ui.hud.dice.roll")
+    var corr := str(ui_payload.get("CorrelationId", ""))
+    assert_bool(corr.length() > 0).is_true()
+
+    var core_evt := _last_event("core.sanguo.dice.rolled")
+    assert_bool(core_evt.size() > 0).is_true()
+    var core_payload: Dictionary = JSON.parse_string(str(core_evt.get("data_json", "{}")))
+    assert_str(str(core_payload.get("PlayerId", ""))).is_equal("p1")
+    assert_int(int(core_payload.get("Value", 0))).is_between(1, 6)
+    assert_str(str(core_payload.get("CorrelationId", ""))).is_equal(corr)
+    assert_str(str(core_payload.get("CausationId", ""))).is_equal("ui.hud.dice.roll")
+
+# ACC:T17.4
+func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_seconds() -> void:
+    var hud = await _hud()
+    var toast: Control = hud.get_node("EventToast")
+    var audit_before := _read_security_audit_text()
+
+    _bus.PublishSimple(
+        "core.sanguo.city.toll.paid",
+        "ut",
+        "{\"GameId\":\"g1\",\"PayerId\":\"p1\",\"OwnerId\":\"o1\",\"CityId\":\"c1\",\"Amount\":10,\"OwnerAmount\":1,\"TreasuryOverflow\":9}"
+    )
+    await get_tree().process_frame
+
+    assert_bool(toast.visible).is_true()
+    var audit_after := _read_security_audit_text()
+    assert_bool(audit_after.length() > audit_before.length()).is_true()
+    assert_str(audit_after).contains("\"action\":\"SANGUO_MONEY_CAPPED\"")
+    assert_str(audit_after).contains("\"reason\":\"money_cap_overflow\"")
+
+    await get_tree().create_timer(3.2).timeout
+    assert_bool(toast.visible).is_false()
 
 # ACC:T22.3
 func test_hud_updates_on_sanguo_dice_rolled_event() -> void:
