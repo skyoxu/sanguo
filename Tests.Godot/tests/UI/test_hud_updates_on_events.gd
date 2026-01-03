@@ -108,6 +108,8 @@ func test_hud_updates_on_sanguo_turn_started_event() -> void:
     var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
     var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
 
+    assert_str(money_label.text).is_equal("Money: -")
+
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
     assert_str(active_label.text).is_equal("Player: p1")
@@ -116,6 +118,14 @@ func test_hud_updates_on_sanguo_turn_started_event() -> void:
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":123,\"PositionIndex\":0}")
     await get_tree().process_frame
     assert_str(money_label.text).is_equal("Money: 123")
+
+    _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":456,\"PositionIndex\":0}")
+    await get_tree().process_frame
+    assert_str(money_label.text).is_equal("Money: 456")
+
+    _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p2\",\"Money\":999,\"PositionIndex\":0}")
+    await get_tree().process_frame
+    assert_str(money_label.text).is_equal("Money: 456")
 
 # ACC:T9.2
 func test_dice_button_emits_ui_roll_event() -> void:
@@ -156,6 +166,7 @@ func test_hud_dice_roll_triggers_core_dice_event_with_trace_ids() -> void:
     assert_str(str(core_payload.get("CausationId", ""))).is_equal("ui.hud.dice.roll")
 
 # ACC:T17.4
+# ACC:T17.15
 func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_seconds() -> void:
     var hud = await _hud()
     var toast: Control = hud.get_node("EventToast")
@@ -209,6 +220,11 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
     assert_bool(str(obj.get("target", "")).length() > 0).is_true()
     assert_bool(str(obj.get("caller", "")).length() > 0).is_true()
 
+    assert_bool(hud.is_inside_tree()).is_true()
+    assert_bool(hud.visible).is_true()
+    assert_object(get_tree().get_root().find_child("GameOver", true, false)).is_null()
+    assert_object(get_tree().get_root().find_child("Error", true, false)).is_null()
+
     for _i in range(240):
         if not toast.visible:
             break
@@ -219,6 +235,21 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
 
 # ACC:T22.3
 func test_hud_updates_on_sanguo_dice_rolled_event() -> void:
+    var hud = await _hud()
+    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+
+    _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
+    await get_tree().process_frame
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
+    await get_tree().process_frame
+    assert_str(dice.text).is_equal("Dice: 6")
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":1}")
+    await get_tree().process_frame
+    assert_str(dice.text).is_equal("Dice: 1")
+
+func test_hud_does_not_mix_dice_results_between_players() -> void:
     var hud = await _hud()
     var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
 
