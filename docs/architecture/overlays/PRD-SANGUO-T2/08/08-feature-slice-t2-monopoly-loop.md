@@ -196,4 +196,6 @@ Arch-Refs:
 
 ## Test-Refs
 
+- `Game.Core.Tests/Tasks/Task17TurnTests.cs`
 - `Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd`
+- `Tests.Godot/tests/UI/test_hud_updates_on_events.gd`

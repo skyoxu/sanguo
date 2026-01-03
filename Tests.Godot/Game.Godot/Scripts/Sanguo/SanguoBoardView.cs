@@ -105,6 +105,20 @@ public partial class SanguoBoardView : Node2D
                 return;
             }
 
+            if (TotalPositions <= 0)
+            {
+                TryAppendSecurityAudit(
+                    action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
+                    reason: "total_positions_not_configured",
+                    target: $"to_index={parsedToIndex} total_positions={TotalPositions}",
+                    caller: "SanguoBoardView.OnDomainEventEmitted",
+                    eventType: type,
+                    eventSource: source,
+                    eventId: id);
+                GD.PushWarning($"SanguoBoardView ignored token move because TotalPositions is not configured (TotalPositions={TotalPositions}).");
+                return;
+            }
+
             if (parsedToIndex < 0)
             {
                 TryAppendSecurityAudit(
@@ -119,7 +133,7 @@ public partial class SanguoBoardView : Node2D
                 return;
             }
 
-            if (TotalPositions > 0 && parsedToIndex >= TotalPositions)
+            if (parsedToIndex >= TotalPositions)
             {
                 TryAppendSecurityAudit(
                     action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",

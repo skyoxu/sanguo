@@ -23,6 +23,7 @@ public class MoneyTests
         var act = () => Money.FromDecimal(aboveMax);
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
+    // ACC:T17.9
     [Fact]
     public void ShouldThrowOverflowException_WhenAddingWouldExceedMax()
     {

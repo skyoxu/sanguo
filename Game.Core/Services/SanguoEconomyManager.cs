@@ -2,7 +2,9 @@ using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
+using Game.Core.Ports;
 using Game.Core.Utilities;
+using System.Globalization;
 using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 
 namespace Game.Core.Services;
@@ -23,6 +25,7 @@ namespace Game.Core.Services;
 public sealed class SanguoEconomyManager
 {
     private readonly IEventBus _bus;
+    private readonly IErrorReporter? _errorReporter;
     private ActiveSeasonYieldAdjustment? _activeSeasonYieldAdjustment;
 
     private sealed record ActiveSeasonYieldAdjustment(
@@ -36,10 +39,12 @@ public sealed class SanguoEconomyManager
     /// Creates a new <see cref="SanguoEconomyManager"/>.
     /// </summary>
     /// <param name="bus">Event bus used to publish domain events (must not be null).</param>
+    /// <param name="errorReporter">Optional error reporter for observability (may be null).</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="bus"/> is null.</exception>
-    public SanguoEconomyManager(IEventBus bus)
+    public SanguoEconomyManager(IEventBus bus, IErrorReporter? errorReporter = null)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        _errorReporter = errorReporter;
     }
 
     internal void SetActiveSeasonYieldAdjustment(
@@ -372,6 +377,28 @@ public sealed class SanguoEconomyManager
         try
         {
             await _bus.PublishAsync(evt);
+            if (overflowMinorUnits > 0 && _errorReporter is not null)
+            {
+                var ctx = new Dictionary<string, string>
+                {
+                    ["game_id"] = gameId,
+                    ["payer_id"] = payerId,
+                    ["owner_id"] = owner.PlayerId,
+                    ["city_id"] = cityId,
+                    ["amount"] = amountPaid.ToString(CultureInfo.InvariantCulture),
+                    ["owner_amount"] = ownerAmount.ToString(CultureInfo.InvariantCulture),
+                    ["treasury_overflow"] = treasuryOverflow.ToString(CultureInfo.InvariantCulture),
+                    ["correlation_id"] = correlationId,
+                };
+
+                if (!string.IsNullOrWhiteSpace(causationId))
+                    ctx["causation_id"] = causationId;
+
+                _errorReporter.CaptureMessage(
+                    level: "warning",
+                    message: "sanguo.money.capped",
+                    context: ctx);
+            }
             return true;
         }
         catch (Exception ex)

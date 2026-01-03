@@ -36,8 +36,8 @@ public sealed class SanguoBoardStateTests
         var state = new SanguoBoardState(players: new[] { player }, citiesById: citiesById);
         state.Players.Should().ContainKey(player.PlayerId);
         state.CitiesById.Should().ContainKey(city.Id);
-    state.Players[player.PlayerId].PositionIndex.Should().Be(0);
-}
+        state.Players[player.PlayerId].PositionIndex.Should().Be(0);
+    }
 
     // ACC:T12.3
     [Fact]
