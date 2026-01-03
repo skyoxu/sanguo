@@ -111,6 +111,7 @@ __pycache__/
 # AI / analysis artifacts (local only)
 # Prefer storing ad-hoc analysis outputs under `analysis/` (ignored).
 analysis/
+taskdoc/
 
 # Root-level temporary files
 /temp_path.txt

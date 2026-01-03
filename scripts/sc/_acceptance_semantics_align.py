@@ -41,6 +41,8 @@ class MasterTaskInput:
     title: str
     description: str
     details: str
+    test_strategy: str
+    subtasks: list[dict[str, str]]
 
 
 def split_refs(line: str) -> tuple[str, str | None]:
@@ -80,12 +82,31 @@ def load_master_index(scope: str) -> dict[int, MasterTaskInput]:
             continue
 
         tid_i = int(tid)
+        raw_subtasks = t.get("subtasks")
+        subtasks: list[dict[str, str]] = []
+        if isinstance(raw_subtasks, list):
+            for s in raw_subtasks:
+                if not isinstance(s, dict):
+                    continue
+                sid = str(s.get("id") or "").strip()
+                stitle = str(s.get("title") or "").strip()
+                sdetails = str(s.get("details") or "").strip()
+                stest = str(s.get("testStrategy") or "").strip()
+                if not sid or not stitle:
+                    continue
+                if sdetails:
+                    sdetails = re.sub(r"\s+", " ", sdetails).strip()
+                if stest:
+                    stest = re.sub(r"\s+", " ", stest).strip()
+                subtasks.append({"id": sid, "title": stitle, "details": sdetails, "testStrategy": stest})
         out[tid_i] = MasterTaskInput(
             task_id=tid_i,
             status=status,
             title=str(t.get("title") or "").strip(),
             description=str(t.get("description") or "").strip(),
             details=str(t.get("details") or "").strip(),
+            test_strategy=str(t.get("testStrategy") or "").strip(),
+            subtasks=subtasks,
         )
     return out
 
@@ -114,11 +135,32 @@ def render_task_context(
     lines.append(f"MasterDescription: {master.description}")
     lines.append("MasterDetails:")
     lines.append(master.details)
+    if master.test_strategy:
+        lines.append("")
+        lines.append("MasterTestStrategy:")
+        lines.append(master.test_strategy)
+    if master.subtasks:
+        lines.append("")
+        lines.append(f"MasterSubtasks: {len(master.subtasks)}")
+        for s in master.subtasks:
+            sid = str(s.get('id') or '').strip()
+            st = str(s.get('title') or '').strip()
+            sd = str(s.get('details') or '').strip()
+            stest = str(s.get('testStrategy') or '').strip()
+            if sid and st:
+                if sd:
+                    lines.append(f"- {sid}: {st} :: {sd}")
+                else:
+                    lines.append(f"- {sid}: {st}")
+                if stest:
+                    lines.append(f"  testStrategy: {stest}")
     lines.append("")
     lines.append("Rulebook:")
     lines.append("- Treat master.description/details as the semantic source of truth.")
+    lines.append("- If master.subtasks exist, acceptance MUST cover those obligations (at least one acceptance item per subtask).")
     lines.append("- Preserve existing Refs: suffix tokens verbatim for existing items.")
     lines.append("- Prefer wording that is observable/testable (state/event/output), avoid binding to implementation internals.")
+    lines.append("- Avoid no-op loopholes: acceptance should be falsifiable; if applicable, include an explicit refusal/unchanged-state clause.")
     lines.append("- Do not introduce new obligations unrelated to the master description/details.")
     lines.append(f"- Mode: {mode}")
     lines.append(f"- Align view descriptions to master: {bool(align_view_descriptions)}")
@@ -151,6 +193,8 @@ def build_prompt(task_context: str) -> str:
     blocks.append("- Output must be STRICT JSON (no markdown).")
     blocks.append("- Preserve existing Refs: suffix tokens verbatim for existing acceptance items.")
     blocks.append("- Do NOT add new Refs: tokens in this step (acceptance-only phase).")
+    blocks.append("- If the task contains subtasks, acceptance must cover those obligations; if mode prevents it, explain in notes.")
+    blocks.append("- Prefer falsifiable statements: avoid wording that can be satisfied by doing nothing.")
     blocks.append("")
     blocks.append("Mode rules:")
     blocks.append('- rewrite-only: for each view, output acceptance array with EXACT SAME LENGTH as input and do NOT reorder items.')

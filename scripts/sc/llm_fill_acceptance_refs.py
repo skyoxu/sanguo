@@ -233,6 +233,51 @@ def _default_ref_for(*, task_id: int, prefer_gd: bool) -> str:
     return f"Game.Core.Tests/Tasks/Task{task_id}AcceptanceTests.cs"
 
 
+def _infer_preferred_kind(*, acceptance_text: str, prefer_gd_by_layer: bool) -> str:
+    """
+    Deterministic heuristic to reduce two common LLM pitfalls:
+      1) Core/domain obligations accidentally bound to Godot (.gd) tests.
+      2) UI/scene obligations accidentally bound to xUnit (.cs) tests.
+
+    Returns: "cs" | "gd" | "either"
+    """
+    t = str(acceptance_text or "").lower()
+
+    gd_hits = [
+        "gdunit",
+        "godot",
+        "headless",
+        "scene",
+        ".tscn",
+        "hud",
+        "toast",
+        "ui",
+        "control",
+        "node",
+        "signal",
+        "input",
+    ]
+    cs_hits = [
+        "xunit",
+        "fluentassertions",
+        "game.core",
+        "domain",
+        "service",
+        "contracts",
+        "dto",
+        "eventtype",
+        "money",
+        "economy",
+        "turn",
+    ]
+
+    if any(k in t for k in gd_hits):
+        return "gd"
+    if any(k in t for k in cs_hits):
+        return "cs"
+    return "gd" if prefer_gd_by_layer else "either"
+
+
 def _is_placeholder_ref(*, task_id: int, path: str) -> bool:
     p = str(path or "").strip().replace("\\", "/")
     if not p:
@@ -286,6 +331,9 @@ def _build_prompt(
             "- Paths MUST be repo-relative and MUST NOT be absolute Windows paths.",
             "- Paths MUST end with .cs or .gd and be under one of:",
             f"  - {', '.join(ALLOWED_TEST_PREFIXES)}",
+            "- Choose test type by obligation kind:",
+            "  - Pure core/domain/service logic => prefer xUnit .cs under Game.Core.Tests/",
+            "  - Godot scene/UI behavior, headless evidence, Signals => prefer GdUnit4 .gd under Tests.Godot/tests/",
             "- Prefer selecting from existing candidate test files when they fit.",
             "- If no existing file fits, propose a NEW path following repo conventions.",
             "- Do NOT use placeholder-like names such as:",
@@ -301,6 +349,7 @@ def _build_prompt(
             "  - Godot scene/UI behaviors:",
             "    - Tests.Godot/tests/Scenes/Sanguo/test_sanguo_<scene>_<behavior>.gd",
             "    - Tests.Godot/tests/UI/test_hud_<behavior>.gd",
+            "- Prefer refs that can *prove* behavior (state/invariants/negative paths), avoid weak refs that only check a constant exists.",
         ]
     )
 
@@ -413,6 +462,16 @@ def _apply_paths_to_view_entry(
         # Avoid auto-binding to weak "hints" (e.g., generic UI token matches), which can create false evidence chains.
         chosen = existing if existing else valid
 
+        preferred = _infer_preferred_kind(acceptance_text=text, prefer_gd_by_layer=prefer_gd)
+        if preferred == "cs" and len(chosen) > 1:
+            cs_only = [p for p in chosen if p.lower().endswith(".cs")]
+            if cs_only:
+                chosen = cs_only
+        if preferred == "gd" and len(chosen) > 1:
+            gd_only = [p for p in chosen if p.lower().endswith(".gd")]
+            if gd_only:
+                chosen = gd_only
+
         if not chosen:
             chosen = [_default_ref_for(task_id=task_id, prefer_gd=prefer_gd)]
 
@@ -513,9 +572,9 @@ def main() -> int:
                 for k in (
                     "a11y",
                     "accessibility",
-                    "无障碍",
-                    "可访问",
-                    "可达性",
+                    "wcag",
+                    "screen reader",
+                    "accessible",
                 )
             )
             for idx, a in enumerate(acc):
@@ -559,9 +618,9 @@ def main() -> int:
             for k in (
                 "a11y",
                 "accessibility",
-                "无障碍",
-                "可访问",
-                "可达性",
+                "wcag",
+                "screen reader",
+                "accessible",
             )
         )
         existing_candidates = _pick_existing_candidates(
