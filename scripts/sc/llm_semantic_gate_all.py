@@ -210,6 +210,8 @@ def _parse_tsv_output(text: str) -> list[SemanticFinding]:
             continue
         if not line.startswith("T"):
             continue
+        # Some models emit literal "\t" sequences instead of actual TAB characters.
+        line = line.replace("\\t", "\t")
         parts = line.split("\t")
         if len(parts) < 2:
             continue

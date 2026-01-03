@@ -98,6 +98,7 @@ def _split_refs_blob(blob: str) -> list[str]:
 
 def _extract_acceptance_refs(acceptance: Any) -> dict[str, list[str]]:
     # Returns mapping: ref_path -> list of acceptance texts that reference it.
+    # NOTE: This function preserves legacy behavior and is kept for backwards compatibility.
     by_ref: dict[str, list[str]] = {}
     if not isinstance(acceptance, list):
         return by_ref
@@ -111,6 +112,26 @@ def _extract_acceptance_refs(acceptance: Any) -> dict[str, list[str]]:
             if not r:
                 continue
             by_ref.setdefault(r, []).append(text)
+    return by_ref
+
+
+def _extract_acceptance_refs_with_anchors(*, acceptance: Any, task_id: str) -> dict[str, list[dict[str, str]]]:
+    # Returns mapping: ref_path -> list of {"anchor": "...", "text": "..."}.
+    by_ref: dict[str, list[dict[str, str]]] = {}
+    if not isinstance(acceptance, list):
+        return by_ref
+    for i, raw in enumerate(acceptance, start=1):
+        text = str(raw or "").strip()
+        m = REFS_RE.search(text)
+        if not m:
+            continue
+        refs = _split_refs_blob(m.group(1))
+        anchor = f"ACC:T{task_id}.{i}"
+        for r in refs:
+            rr = str(r or "").strip().replace("\\", "/")
+            if not rr:
+                continue
+            by_ref.setdefault(rr, []).append({"anchor": anchor, "text": text})
     return by_ref
 
 
@@ -171,6 +192,7 @@ def _prompt_for_ref(
     title: str,
     ref: str,
     acceptance_texts: list[str],
+    required_anchors: list[str],
     intent: str,
     task_context_markdown: str,
 ) -> str:
@@ -181,6 +203,7 @@ def _prompt_for_ref(
             "- Must be valid .gd, English only.",
             "- Must extend a GdUnit4 suite (res://addons/gdUnit4/src/GdUnitTestSuite.gd).",
             "- Do not rely on external assets; keep it minimal.",
+            "- For each required ACC anchor, place it within 5 lines ABOVE a `func test_...` definition (as a comment).",
         ]
     else:
         base_rules = [
@@ -188,6 +211,7 @@ def _prompt_for_ref(
             "- Must be valid C# code, English only (no Chinese in code/comments/strings).",
             "- Use xUnit + FluentAssertions only.",
             "- Use Should_ naming style.",
+            "- For each required ACC anchor, place it within 5 lines ABOVE a [Fact]/[Theory] attribute (as a comment).",
         ]
 
     if intent == "red":
@@ -195,12 +219,15 @@ def _prompt_for_ref(
             "TDD intent: RED-FIRST.",
             "- Must include at least one deterministic failing test aligned to acceptance intent.",
             "- Do NOT use trivial failures like assert_true(false) or throwing unconditionally.",
+            "- Prefer a behavior failure (state/result/event ordering) over a pure 'type exists' failure.",
+            "- If acceptance includes a 'must not / refuse / unchanged' clause, include a negative-path test for it.",
         ]
     else:
         intent_rules = [
             "Intent: SCAFFOLD.",
             "- Should NOT intentionally fail.",
-            "- Prefer smoke checks that are likely to hold once basic wiring exists (e.g. type exists, contract constants).",
+            "- Prefer compile-safe smoke checks (e.g., type existence, contract constants, deterministic pure functions).",
+            "- Include at least one real assertion that is likely to remain stable as implementation evolves.",
         ]
 
     constraints = "\n".join(
@@ -210,6 +237,7 @@ def _prompt_for_ref(
             "- JSON schema: {\"file_path\": \"<repo-relative>\", \"content\": \"<file content>\"}.",
             f"- file_path MUST be exactly: {ref}",
             "- Do NOT create any other files.",
+            "- The generated file MUST include the required ACC anchors listed below.",
             *base_rules,
             *intent_rules,
         ]
@@ -223,6 +251,9 @@ def _prompt_for_ref(
 
     task_context_markdown = _truncate(task_context_markdown or "", max_chars=12_000)
 
+    anchors_blob = "\n".join([f"- {a}" for a in required_anchors])
+    anchors_blob = _truncate(anchors_blob, max_chars=2_000)
+
     instruction = "\n".join(
         [
             f"Task id: {task_id}",
@@ -234,10 +265,13 @@ def _prompt_for_ref(
             "Repository testing conventions excerpt (docs/testing-framework.md):",
             testing_excerpt or "(missing)",
             "",
+            "Required ACC anchors to include in this file (each must be bound near a test marker):",
+            anchors_blob or "(none)",
+            "",
             "Acceptance items referencing this file:",
             acceptance_blob or "(none)",
             "",
-            "Generate a minimal failing test skeleton aligned to the acceptance intent.",
+            "Generate test content aligned to the acceptance intent and anchor requirements.",
         ]
     )
 
@@ -431,24 +465,29 @@ def main() -> int:
         print(f"SC_LLM_ACCEPTANCE_TESTS ERROR: task mapping missing in both tasks_back/tasks_gameplay for task_id={task_id}")
         return 1
 
-    back_map = _extract_acceptance_refs((triplet.back or {}).get("acceptance"))
-    game_map = _extract_acceptance_refs((triplet.gameplay or {}).get("acceptance"))
+    back_map = _extract_acceptance_refs_with_anchors(acceptance=(triplet.back or {}).get("acceptance"), task_id=task_id)
+    game_map = _extract_acceptance_refs_with_anchors(acceptance=(triplet.gameplay or {}).get("acceptance"), task_id=task_id)
 
-    by_ref: dict[str, list[str]] = {}
+    by_ref: dict[str, list[dict[str, str]]] = {}
     for k, v in back_map.items():
         by_ref.setdefault(k, []).extend(v)
     for k, v in game_map.items():
         by_ref.setdefault(k, []).extend(v)
 
-    # De-dup acceptance texts per ref.
-    for r, texts in list(by_ref.items()):
+    # De-dup per ref by (anchor,text).
+    for r, entries in list(by_ref.items()):
         seen = set()
-        uniq = []
-        for t in texts:
-            if t in seen:
+        uniq: list[dict[str, str]] = []
+        for e in entries:
+            if not isinstance(e, dict):
                 continue
-            seen.add(t)
-            uniq.append(t)
+            a = str(e.get("anchor") or "").strip()
+            t = str(e.get("text") or "").strip()
+            key = (a, t)
+            if key in seen:
+                continue
+            seen.add(key)
+            uniq.append({"anchor": a, "text": t})
         by_ref[r] = uniq
 
     refs = sorted(by_ref.keys())
@@ -462,7 +501,7 @@ def main() -> int:
         primary_ref, primary_meta = _select_primary_ref_with_llm(
             task_id=task_id,
             title=title,
-            by_ref=by_ref,
+            by_ref={k: [x.get("text", "") for x in v] for k, v in by_ref.items()},
             timeout_sec=int(args.select_timeout_sec),
             out_dir=out_dir,
         )
@@ -480,16 +519,17 @@ def main() -> int:
 
         if str(args.tdd_stage) == "red-first" and primary_ref and ref_norm == primary_ref:
             intent = "red"
-        elif str(args.tdd_stage) == "red-first":
-            intent = "scaffold"
         else:
-            intent = "red"
+            # Default to scaffold unless explicitly selecting a red-first primary ref.
+            # This avoids generating multiple failing tests when verify!=none.
+            intent = "scaffold"
 
         prompt = _prompt_for_ref(
             task_id=task_id,
             title=title,
             ref=ref_norm,
-            acceptance_texts=by_ref.get(ref, []),
+            acceptance_texts=[x.get("text", "") for x in by_ref.get(ref, [])],
+            required_anchors=sorted({x.get("anchor", "") for x in by_ref.get(ref, []) if str(x.get("anchor", "")).strip()}),
             intent=intent,
             task_context_markdown=task_context_md,
         )

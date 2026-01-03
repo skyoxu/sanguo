@@ -47,6 +47,11 @@ def main() -> int:
     ap.add_argument("--task-ids", default="", help="Optional CSV task ids override.")
     ap.add_argument("--apply", action="store_true", help="Write changes into tasks_back.json/tasks_gameplay.json.")
     ap.add_argument("--structural-for-not-done", action="store_true", help="Use append-only for not-done tasks.")
+    ap.add_argument(
+        "--append-only-for-done",
+        action="store_true",
+        help="Allow append-only mode for done tasks (append at end only; preserves existing anchors/Refs).",
+    )
     ap.add_argument("--align-view-descriptions-to-master", action="store_true")
     ap.add_argument("--semantic-findings-json", default="", help="Optional sc-semantic-gate-all/summary.json for hints.")
     ap.add_argument("--timeout-sec", type=int, default=240)
@@ -118,7 +123,7 @@ def main() -> int:
         # - done => rewrite-only
         # - not-done => rewrite-only by default, optionally append-only
         if str(master.status).lower() == "done":
-            mode = "rewrite-only"
+            mode = "append-only" if bool(args.append_only_for_done) else "rewrite-only"
         elif bool(args.structural_for_not_done):
             mode = "append-only"
         else:
@@ -192,6 +197,7 @@ def main() -> int:
             "apply": bool(args.apply),
             "scope": str(args.scope),
             "structural_for_not_done": bool(args.structural_for_not_done),
+            "append_only_for_done": bool(args.append_only_for_done),
             "align_view_descriptions_to_master": bool(args.align_view_descriptions_to_master),
             "results": results,
         },
@@ -200,7 +206,8 @@ def main() -> int:
     status = "ok" if failed == 0 else "warn"
     print(
         f"SC_ALIGN_ACCEPTANCE status={status} apply={bool(args.apply)} scope={args.scope} "
-        f"structural_for_not_done={bool(args.structural_for_not_done)} align_view_descriptions_to_master={bool(args.align_view_descriptions_to_master)} "
+        f"structural_for_not_done={bool(args.structural_for_not_done)} append_only_for_done={bool(args.append_only_for_done)} "
+        f"align_view_descriptions_to_master={bool(args.align_view_descriptions_to_master)} "
         f"tasks={len(task_ids)} changed={changed} skipped={skipped} failed={failed} out={out_dir}"
     )
     return 0 if status == "ok" else 1
