@@ -101,6 +101,11 @@ public partial class SanguoTokenMovePublisher : Node
 
             var boardView = GetParentOrNull<SanguoBoardView>();
             var totalPositions = boardView?.TotalPositions ?? 0;
+            if (totalPositions <= 0)
+            {
+                GD.PushWarning($"SanguoTokenMovePublisher refused to publish token move because TotalPositions is not configured (TotalPositions={totalPositions}).");
+                return;
+            }
 
             var fromIndex = _currentIndexByPlayerId.TryGetValue(playerId, out var current) ? current : 0;
             if (fromIndex < 0)
@@ -112,22 +117,14 @@ public partial class SanguoTokenMovePublisher : Node
             int toIndex;
             bool passedStart;
 
-            if (totalPositions > 0)
+            if (fromIndex >= totalPositions)
             {
-                if (fromIndex >= totalPositions)
-                {
-                    GD.PushWarning($"SanguoTokenMovePublisher corrected out-of-range FromIndex={fromIndex} (TotalPositions={totalPositions}) for PlayerId='{playerId}'.");
-                    fromIndex = 0;
-                }
+                GD.PushWarning($"SanguoTokenMovePublisher corrected out-of-range FromIndex={fromIndex} (TotalPositions={totalPositions}) for PlayerId='{playerId}'.");
+                fromIndex = 0;
+            }
 
-                toIndex = (fromIndex + steps) % totalPositions;
-                passedStart = fromIndex + steps >= totalPositions;
-            }
-            else
-            {
-                toIndex = fromIndex + steps;
-                passedStart = false;
-            }
+            toIndex = (fromIndex + steps) % totalPositions;
+            passedStart = fromIndex + steps >= totalPositions;
 
             if (toIndex < 0 || (totalPositions > 0 && toIndex >= totalPositions))
             {
