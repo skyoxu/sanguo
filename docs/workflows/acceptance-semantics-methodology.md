@@ -8,6 +8,10 @@
 - `test_refs[]`：**任务证据清单**（验收条款与测试文件的聚合索引）。
 - `test_strategy[] / details`：**实施策略与过程信息**（不作为硬验收口径）。
 
+## CI：PR 标题必须包含 Task 号
+
+当前 CI 的 “Resolve Task IDs for acceptance-check” 步骤依赖 PR 标题解析任务编号；请使用 `Task [<id>]:<title>` 形式（例如 `Task [17]:实现回合循环`）。否则 CI 会尝试从 `.taskmaster/tasks/tasks.json` 中回退到 `status=in-progress` 的任务；若不存在则 fail-fast。
+
 ## 1. 为什么会出现“done 不真实”
 
 常见根因不是代码没写，而是“语义没有固化为可验证条款”：
@@ -98,4 +102,3 @@
 - 复盘 “为何 fail-fast”
 - 对比治理前后差异
 - 作为 PR 证据链的一部分
-
