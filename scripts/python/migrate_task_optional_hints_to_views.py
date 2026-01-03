@@ -4,19 +4,22 @@
 migrate_task_optional_hints_to_views
 
 Goal:
-  Reduce "done not real" semantic drift by removing non-deliverable hints from
-  `.taskmaster/tasks/tasks.json` (master `details` / `testStrategy`) and moving them
-  into view task files:
+  Reduce semantic drift ("done not real") by removing non-core / non-portable
+  optional hints from `.taskmaster/tasks/tasks.json` (master `details` /
+  `testStrategy`) and migrating them into view task files:
     - `.taskmaster/tasks/tasks_back.json`
     - `.taskmaster/tasks/tasks_gameplay.json`
 
-What gets migrated:
-  - Optional hardening suggestions (e.g. lines starting with "可选"/"可选加固")
-  - Local demo references/paths (including absolute paths)
-  - "加固建议" style test add-ons (e.g. "加入 xUnit 用例：...")
+Deterministic policy (blacklist, conservative):
+  A line is treated as an optional hint if it matches one of:
+    - Explicit optional/hint prefixes:
+        "Optional:" / "可选:" / "建议:" / "加固:" / "演示:" / "示例:" / "参考:"
+        (CJK prefixes are matched via unicode escapes to avoid encoding issues)
+    - Local demo references/paths (including absolute Windows paths)
+    - Extra add-ons: "Supplement:" / "Add-on:" / "Extra:"
 
 Where it goes:
-  - View `test_strategy` (list of strings), prefixed with "Optional: ".
+  - View `test_strategy` list, normalized to a single "Optional: ..." prefix.
 
 Important:
   - This script does NOT touch view `acceptance` items.
@@ -74,6 +77,24 @@ def write_text(path: Path, text: str) -> None:
 ABS_PATH_RE = re.compile(r"\b[A-Za-z]:\\")
 REFS_CLAUSE_RE = re.compile(r"\bRefs\s*:\s*.+$", flags=re.IGNORECASE)
 
+_CN_OPT = r"\u53ef\u9009"  # 可选
+_CN_SUG = r"\u5efa\u8bae"  # 建议
+_CN_HARD = r"\u52a0\u56fa"  # 加固
+_CN_DEMO = r"\u6f14\u793a"  # 演示
+_CN_EXAMPLE = r"\u793a\u4f8b"  # 示例
+_CN_REF = r"\u53c2\u8003"  # 参考
+
+OPTIONAL_PREFIX_RE = re.compile(
+    rf"^\s*(?:[-*]\s*)?(?:Optional\s*:|{_CN_OPT}\s*[:：]|{_CN_SUG}\s*[:：]|{_CN_HARD}\s*[:：]|{_CN_DEMO}\s*[:：]|{_CN_EXAMPLE}\s*[:：]|{_CN_REF}\s*[:：])",
+    flags=re.IGNORECASE,
+)
+OPTIONAL_PAREN_PREFIX_RE = re.compile(
+    rf"^\s*(?:[-*]\s*)?[\(\[]?(?:{_CN_OPT}|{_CN_SUG}|{_CN_HARD})[\)\]]",
+    flags=re.IGNORECASE,
+)
+LOCAL_DEMO_RE = re.compile(r"\b(local demo|demo references|demo paths)\b", flags=re.IGNORECASE)
+SUPPLEMENT_PREFIX_RE = re.compile(r"^\s*(?:[-*]\s*)?(?:supplement|add-?on|extra)\s*[:：]", flags=re.IGNORECASE)
+
 
 def _norm_space(text: str) -> str:
     s = str(text or "").strip()
@@ -85,22 +106,13 @@ def _is_optional_hint_line(line: str) -> bool:
     s = _norm_space(line)
     if not s:
         return False
-
-    # Keep this conservative: only migrate "clearly optional" or "clearly local demo" lines.
-    if s.lower().startswith("optional:"):
+    if OPTIONAL_PREFIX_RE.match(s) or OPTIONAL_PAREN_PREFIX_RE.match(s):
         return True
-    if s.startswith("可选") or "可选加固" in s:
-        return True
-    if s.lower().startswith("local demo"):
-        return True
-    if "demo paths" in s.lower() or "demo references" in s.lower():
+    if LOCAL_DEMO_RE.search(s):
         return True
     if ABS_PATH_RE.search(s):
         return True
-    if s.startswith("加入 xUnit 用例：") or s.startswith("加入 xUnit 用例:"):
-        return True
-    if s.startswith("补充：") or s.startswith("补充:"):
-        # Treat "supplement" as non-core test add-on to avoid obligation pollution.
+    if SUPPLEMENT_PREFIX_RE.match(s):
         return True
     return False
 
@@ -113,9 +125,7 @@ def _should_migrate_to_views(line: str) -> bool:
     s = _norm_space(line)
     if not s:
         return False
-    # "补充：" lines tend to be paraphrased elsewhere in view test_strategy already.
-    # Keep the migration deterministic and low-noise by not re-copying them.
-    if s.startswith("补充：") or s.startswith("补充:"):
+    if SUPPLEMENT_PREFIX_RE.match(s):
         return False
     return True
 
@@ -123,34 +133,31 @@ def _should_migrate_to_views(line: str) -> bool:
 def _to_optional_prefix_item(text: str) -> str:
     s = str(text or "").strip()
     if not s:
-        return s
-
+        return ""
     # Strip legacy markers.
     s = re.sub(r"^\[MIGRATED_FROM_ACCEPTANCE:[^\]]+\]\s*", "", s)
-
-    # Normalize common optional prefixes into a single "Optional:" marker.
-    s = re.sub(r"^(可选加固[-：:]?|可选[-：:]?)\s*", "", s)
+    # Strip leading bullet.
+    s = re.sub(r"^\s*[-*]\s*", "", s)
+    # Normalize into a single "Optional:" marker.
+    s = OPTIONAL_PREFIX_RE.sub("", s)
+    s = OPTIONAL_PAREN_PREFIX_RE.sub("", s)
+    s = SUPPLEMENT_PREFIX_RE.sub("", s)
     s = re.sub(r"^(Optional:)\s*", "", s, flags=re.IGNORECASE)
-
     s = s.strip()
-    return f"Optional: {s}"
+    return f"Optional: {s}" if s else ""
 
 
 def _dedup_key(text: str) -> str:
-    """
-    Compare optional/test-hint items ignoring:
-      - leading Optional/可选 markers
-      - migrated tags
-      - trailing Refs: ... suffixes (view test_strategy may contain them)
-    """
     s = str(text or "").strip()
     if not s:
         return ""
     s = re.sub(r"^\[MIGRATED_FROM_ACCEPTANCE:[^\]]+\]\s*", "", s)
+    s = re.sub(r"^\s*[-*]\s*", "", s)
     s = re.sub(r"^(Optional:)\s*", "", s, flags=re.IGNORECASE)
-    s = re.sub(r"^(可选加固[-：:]?|可选[-：:]?)\s*", "", s)
+    s = OPTIONAL_PREFIX_RE.sub("", s)
+    s = OPTIONAL_PAREN_PREFIX_RE.sub("", s)
+    s = SUPPLEMENT_PREFIX_RE.sub("", s)
     s = REFS_CLAUSE_RE.sub("", s).strip()
-    # Normalize local demo markers to avoid minor wording variations.
     if s.lower().startswith("local demo") and ":" in s:
         s = s.split(":", 1)[1].strip()
     return _norm_space(s)
@@ -163,11 +170,9 @@ def _split_keep_lines(text: str) -> list[str]:
 
 
 def _rejoin_lines(lines: list[str]) -> str:
-    # Remove trailing whitespace lines while preserving paragraph breaks.
     out = list(lines)
     while out and not out[-1].strip():
         out.pop()
-    # Collapse 3+ consecutive blank lines to 2.
     collapsed: list[str] = []
     blank_run = 0
     for ln in out:
@@ -194,8 +199,18 @@ class TaskChange:
     missing_views: list[str]
 
 
+def _view_items_as_list(view_obj: Any) -> list[dict[str, Any]]:
+    if isinstance(view_obj, list):
+        return [x for x in view_obj if isinstance(x, dict)]
+    if isinstance(view_obj, dict):
+        items = view_obj.get("tasks") or view_obj.get("master", {}).get("tasks") or []
+        if isinstance(items, list):
+            return [x for x in items if isinstance(x, dict)]
+    return []
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Migrate optional/demo/hardening hints out of tasks.json into view test_strategy.")
+    ap = argparse.ArgumentParser(description="Migrate optional hints out of tasks.json into view test_strategy.")
     ap.add_argument("--task-ids", default="", help="Comma-separated master task ids (e.g. 6,12). Default: all.")
     ap.add_argument("--write", action="store_true", help="Write changes to disk.")
     args = ap.parse_args()
@@ -215,13 +230,18 @@ def main() -> int:
     if not isinstance(master_tasks, list):
         raise SystemExit("Invalid tasks.json: master.tasks is not a list.")
 
-    back_items = back if isinstance(back, list) else back.get("tasks") or back.get("master", {}).get("tasks") or []
-    gameplay_items = gameplay if isinstance(gameplay, list) else gameplay.get("tasks") or gameplay.get("master", {}).get("tasks") or []
-    if not isinstance(back_items, list) or not isinstance(gameplay_items, list):
-        raise SystemExit("Invalid view task files: expected list or {tasks: [...]} structure.")
+    back_items = _view_items_as_list(back)
+    gameplay_items = _view_items_as_list(gameplay)
+    if not back_items or not gameplay_items:
+        # Views may legitimately be empty in early stages; keep failure explicit to avoid silent no-op.
+        raise SystemExit("Invalid view task files: expected a non-empty list or {tasks:[...]} structure.")
 
-    back_by_id: dict[int, dict[str, Any]] = {int(t.get("taskmaster_id")): t for t in back_items if isinstance(t, dict) and str(t.get("taskmaster_id") or "").isdigit()}
-    gameplay_by_id: dict[int, dict[str, Any]] = {int(t.get("taskmaster_id")): t for t in gameplay_items if isinstance(t, dict) and str(t.get("taskmaster_id") or "").isdigit()}
+    back_by_id: dict[int, dict[str, Any]] = {
+        int(t.get("taskmaster_id")): t for t in back_items if str(t.get("taskmaster_id") or "").isdigit()
+    }
+    gameplay_by_id: dict[int, dict[str, Any]] = {
+        int(t.get("taskmaster_id")): t for t in gameplay_items if str(t.get("taskmaster_id") or "").isdigit()
+    }
 
     selected_ids: set[str] = set()
     if str(args.task_ids or "").strip():
@@ -256,78 +276,68 @@ def main() -> int:
                 moved_details.append(ln)
             else:
                 kept_details.append(ln)
-        details_after = _rejoin_lines(kept_details) if details_lines else details_before
+        details_after = _rejoin_lines(kept_details)
+        master_details_changed = details_after != details_before
+        if master_details_changed:
+            t["details"] = details_after
 
-        ts_before = str(t.get("testStrategy") or "")
-        ts_lines = _split_keep_lines(ts_before)
+        master_ts_before = str(t.get("testStrategy") or "")
+        master_ts_lines = _split_keep_lines(master_ts_before)
         kept_ts: list[str] = []
-        for ln in ts_lines:
+        for ln in master_ts_lines:
             if _is_optional_hint_line(ln):
                 moved_test_strategy.append(ln)
             else:
                 kept_ts.append(ln)
-        ts_after = _rejoin_lines(kept_ts) if ts_lines else ts_before
+        master_ts_after = _rejoin_lines(kept_ts)
+        master_ts_changed = master_ts_after != master_ts_before
+        if master_ts_changed:
+            t["testStrategy"] = master_ts_after
 
-        master_details_changed = details_after != details_before
-        master_ts_changed = ts_after != ts_before
+        moved_optional_raw = [*moved_details, *moved_test_strategy]
+        moved_optional = [_to_optional_prefix_item(x) for x in moved_optional_raw if _should_migrate_to_views(x)]
+        moved_optional = [x for x in moved_optional if x.strip()]
 
-        # If there is nothing to move and no normalization needed, skip.
-        # (Normalization of view test_strategy is done only when we touch the task.)
-        if not moved_details and not moved_test_strategy and not master_details_changed and not master_ts_changed:
+        views_updated: list[str] = []
+        view_items_added: dict[str, int] = {}
+        view_items_normalized: dict[str, int] = {}
+        missing_views: list[str] = []
+
+        try:
+            tid_i = int(tid)
+        except ValueError:
             skipped_no_changes += 1
             continue
 
-        # Update master task.
-        if master_details_changed:
-            t["details"] = details_after.rstrip("\n")
-        if master_ts_changed:
-            t["testStrategy"] = ts_after.rstrip("\n")
-
-        # Update views: prefer both when present; allow missing one side.
-        moved_all = [x for x in moved_details + moved_test_strategy if _norm_space(x)]
-        moved_for_views = [x for x in moved_all if _should_migrate_to_views(x)]
-        moved_optional = [_to_optional_prefix_item(x) for x in moved_for_views if _norm_space(x)]
-
-        views_updated: list[str] = []
-        missing_views: list[str] = []
-        view_items_added: dict[str, int] = {"back": 0, "gameplay": 0}
-        view_items_normalized: dict[str, int] = {"back": 0, "gameplay": 0}
-
-        for view_name, view_map in [("back", back_by_id), ("gameplay", gameplay_by_id)]:
-            view_entry = view_map.get(int(tid)) if tid.isdigit() else None
-            if not isinstance(view_entry, dict):
+        for view_name, view_map in (("back", back_by_id), ("gameplay", gameplay_by_id)):
+            view_entry = view_map.get(tid_i)
+            if not view_entry:
                 missing_views.append(view_name)
                 continue
 
-            # Ensure test_strategy is a list.
             raw_ts = view_entry.get("test_strategy")
             if raw_ts is None:
-                view_entry["test_strategy"] = []
-                raw_ts = view_entry["test_strategy"]
+                raw_ts = []
             if not isinstance(raw_ts, list):
-                # Do not silently rewrite unexpected types.
                 missing_views.append(view_name)
                 continue
 
-            # Normalize existing optional-like items in view test_strategy.
-            existing = list(raw_ts)
+            existing = [str(x or "").strip() for x in raw_ts]
             normalized: list[str] = []
             ncount = 0
             for it in existing:
-                s = str(it or "").strip()
-                if not s:
-                    normalized.append(s)
+                if not it:
                     continue
-                if _is_optional_hint_line(s) or s.startswith("[MIGRATED_FROM_ACCEPTANCE:"):
-                    pref = _to_optional_prefix_item(s)
-                    if pref != s:
+                if _is_optional_hint_line(it) or it.startswith("[MIGRATED_FROM_ACCEPTANCE:"):
+                    pref = _to_optional_prefix_item(it)
+                    if pref and pref != it:
                         ncount += 1
-                    normalized.append(pref)
-                else:
-                    normalized.append(s)
+                    if pref:
+                        normalized.append(pref)
+                    continue
+                normalized.append(it)
 
-            # Append newly moved optional hints (dedup by normalized text).
-            existing_set = { _dedup_key(x) for x in normalized if _dedup_key(x) }
+            existing_set = {_dedup_key(x) for x in normalized if _dedup_key(x)}
             add_count = 0
             for item in moved_optional:
                 k = _dedup_key(item)
@@ -346,6 +356,10 @@ def main() -> int:
                 total_normalized += ncount
 
         total_removed += len(moved_details) + len(moved_test_strategy)
+
+        if not (master_details_changed or master_ts_changed or views_updated):
+            skipped_no_changes += 1
+            continue
 
         changes.append(
             TaskChange(
@@ -376,7 +390,8 @@ def main() -> int:
     }
 
     report_lines: list[str] = []
-    report_lines.append("# Migrate optional hints from tasks.json to view test_strategy\n")
+    report_lines.append("# Migrate optional hints from tasks.json to view test_strategy")
+    report_lines.append("")
     report_lines.append(f"- date: {today_str()}")
     report_lines.append(f"- write: {bool(args.write)}")
     report_lines.append(f"- tasks_changed: {len(changes)}")
@@ -400,8 +415,12 @@ def main() -> int:
             report_lines.append("- moved_from_testStrategy:")
             for x in ch.moved_from_test_strategy[:20]:
                 report_lines.append(f"  - {x}")
-        report_lines.append(f"- view_items_added: back={ch.view_items_added.get('back', 0)} gameplay={ch.view_items_added.get('gameplay', 0)}")
-        report_lines.append(f"- view_items_normalized: back={ch.view_items_normalized.get('back', 0)} gameplay={ch.view_items_normalized.get('gameplay', 0)}")
+        report_lines.append(
+            f"- view_items_added: back={ch.view_items_added.get('back', 0)} gameplay={ch.view_items_added.get('gameplay', 0)}"
+        )
+        report_lines.append(
+            f"- view_items_normalized: back={ch.view_items_normalized.get('back', 0)} gameplay={ch.view_items_normalized.get('gameplay', 0)}"
+        )
         report_lines.append("")
 
     write_json(out_dir / "summary.json", summary)
@@ -418,3 +437,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
