@@ -133,6 +133,48 @@ public sealed class Task17TurnTests
         payload.GetProperty("CausationId").GetString().Should().Be("cause-1");
     }
 
+    // ACC:T17.10
+    [Fact]
+    [Trait("acceptance", "ACC:T17.10")]
+    public async Task ShouldRotateToNextPlayer_WhenAdvancingTurn()
+    {
+        var bus = new CapturingEventBus();
+        var rules = SanguoEconomyRules.Default;
+
+        var human = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: rules);
+        var ai = new SanguoPlayer(playerId: "ai-1", money: 0m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(
+            players: new[] { human, ai },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var treasury = new SanguoTreasury();
+        var economy = new SanguoEconomyManager(bus);
+        var mgr = new SanguoTurnManager(bus, economy, boardState, treasury, rng: new RangeAwareFixedRng(diceValue: 6, nextDouble: 1.0), totalPositionsHint: 10, quarterEnvironmentEventTriggerChance: 0.0);
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { human.PlayerId, ai.PlayerId },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-1",
+            causationId: null);
+
+        bus.Published.Should().NotContain(e => e.Type == SanguoAiDecisionMade.EventType);
+
+        await mgr.AdvanceTurnAsync(correlationId: "corr-2", causationId: "cmd-advance");
+
+        var advanced = bus.Published.FindLast(e => e.Type == SanguoGameTurnAdvanced.EventType);
+        advanced.Should().NotBeNull();
+        var payload = ((JsonElementEventData)advanced!.Data!).Value;
+        payload.GetProperty("ActivePlayerId").GetString().Should().Be(ai.PlayerId);
+        payload.GetProperty("Year").GetInt32().Should().Be(1);
+        payload.GetProperty("Month").GetInt32().Should().Be(1);
+        payload.GetProperty("Day").GetInt32().Should().Be(2);
+
+        bus.Published.Should().Contain(e => e.Type == SanguoAiDecisionMade.EventType);
+    }
+
     // ACC:T17.3
     [Fact]
     [Trait("acceptance", "ACC:T17.3")]

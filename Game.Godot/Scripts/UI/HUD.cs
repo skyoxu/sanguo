@@ -318,9 +318,9 @@ public partial class HUD : Control
 
             File.AppendAllText(path, JsonSerializer.Serialize(record) + System.Environment.NewLine);
         }
-        catch
+        catch (Exception ex)
         {
-            // Best-effort audit only.
+            GD.PushWarning($"HUD: security audit write failed: {ex.Message}");
         }
     }
 

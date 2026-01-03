@@ -161,6 +161,9 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
     var toast: Control = hud.get_node("EventToast")
     var audit_before := _read_security_audit_text()
 
+    assert_float(float(toast.AutoHideSeconds)).is_equal(3.0)
+    toast.AutoHideSeconds = 0.05
+
     _bus.PublishSimple(
         "core.sanguo.city.toll.paid",
         "ut",
@@ -168,13 +171,44 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
     )
     await get_tree().process_frame
 
+    for _i in range(30):
+        if toast.visible:
+            break
+        await get_tree().process_frame
     assert_bool(toast.visible).is_true()
-    var audit_after := _read_security_audit_text()
-    assert_bool(audit_after.length() > audit_before.length()).is_true()
-    assert_str(audit_after).contains("\"action\":\"SANGUO_MONEY_CAPPED\"")
-    assert_str(audit_after).contains("\"reason\":\"money_cap_overflow\"")
 
-    await get_tree().create_timer(3.2).timeout
+    var before_lines: Array = []
+    for line in audit_before.split("\n"):
+        var t := str(line).strip_edges()
+        if not t.is_empty():
+            before_lines.append(t)
+
+    var audit_after := _read_security_audit_text()
+    var after_lines: Array = []
+    for line in audit_after.split("\n"):
+        var t := str(line).strip_edges()
+        if not t.is_empty():
+            after_lines.append(t)
+
+    assert_int(after_lines.size()).is_equal(before_lines.size() + 1)
+    var last_line: String = str(after_lines[after_lines.size() - 1])
+    var parsed = JSON.parse_string(last_line)
+    assert_bool(parsed is Dictionary).is_true()
+    var obj: Dictionary = parsed
+    assert_bool(obj.has("ts")).is_true()
+    assert_bool(obj.has("action")).is_true()
+    assert_bool(obj.has("reason")).is_true()
+    assert_bool(obj.has("target")).is_true()
+    assert_bool(obj.has("caller")).is_true()
+    assert_str(str(obj.get("action", ""))).is_equal("SANGUO_MONEY_CAPPED")
+    assert_str(str(obj.get("reason", ""))).is_equal("money_cap_overflow")
+    assert_bool(str(obj.get("target", "")).length() > 0).is_true()
+    assert_bool(str(obj.get("caller", "")).length() > 0).is_true()
+
+    for _i in range(240):
+        if not toast.visible:
+            break
+        await get_tree().process_frame
     assert_bool(toast.visible).is_false()
 
 # ACC:T22.3
