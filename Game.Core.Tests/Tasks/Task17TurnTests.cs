@@ -412,6 +412,90 @@ public sealed class Task17TurnTests
         reporter.Messages.Should().BeEmpty();
     }
 
+    // ACC:T17.11
+    [Fact]
+    [Trait("acceptance", "ACC:T17.11")]
+    public void ShouldUseExplicitAiStateMachineAndNotAlwaysPickSameAction_WhenAiIsNotEliminated()
+    {
+        var policy = new DefaultSanguoAiDecisionPolicy();
+        var view = new SanguoPlayerView(
+            playerId: "ai-1",
+            money: Money.FromMajorUnits(0),
+            positionIndex: 0,
+            ownedCityIds: Array.Empty<string>(),
+            isEliminated: false);
+
+        var first = policy.Decide(view);
+        var second = policy.Decide(view);
+        var third = policy.Decide(view);
+
+        first.DecisionType.Should().Be(SanguoAiDecisionType.RollDice);
+        second.DecisionType.Should().Be(SanguoAiDecisionType.Skip);
+        third.DecisionType.Should().Be(SanguoAiDecisionType.RollDice);
+    }
+
+    // ACC:T17.14
+    [Fact]
+    [Trait("acceptance", "ACC:T17.14")]
+    public async Task ShouldContinueAdvancingTurns_WhenMoneyCapOverflowOccurs()
+    {
+        var bus = new CapturingEventBus();
+        var reporter = new CapturingErrorReporter();
+        var economy = new SanguoEconomyManager(bus, reporter);
+        var rules = SanguoEconomyRules.Default;
+
+        var treasury = new SanguoTreasury();
+        var ownerStart = (decimal)Money.MaxMajorUnits - 1m;
+        var owner = new SanguoPlayer(playerId: "ai-owner", money: ownerStart, positionIndex: 6, economyRules: rules);
+        var payer = new SanguoPlayer(playerId: "ai-payer", money: 100m, positionIndex: 0, economyRules: rules);
+
+        var city = new City(
+            id: "c1",
+            name: "City1",
+            regionId: "r1",
+            basePrice: Money.FromMajorUnits(0),
+            baseToll: Money.FromMajorUnits(10),
+            positionIndex: 6);
+
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { [city.Id] = city };
+        var boardState = new SanguoBoardState(players: new[] { payer, owner }, citiesById: citiesById);
+        boardState.TryBuyCity(buyerId: owner.PlayerId, cityId: city.Id, priceMultiplier: 1.0m).Should().BeTrue();
+
+        var mgr = new SanguoTurnManager(
+            bus: bus,
+            economy: economy,
+            boardState: boardState,
+            treasury: treasury,
+            rng: new RangeAwareFixedRng(diceValue: 6, nextDouble: 1.0),
+            totalPositionsHint: 10,
+            quarterEnvironmentEventTriggerChance: 0.0);
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { payer.PlayerId, owner.PlayerId },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-1",
+            causationId: null);
+
+        reporter.Messages.Should().ContainSingle(m => m.Message == "sanguo.money.capped");
+
+        await mgr.AdvanceTurnAsync(correlationId: "corr-2", causationId: "cmd-advance-1");
+        await mgr.AdvanceTurnAsync(correlationId: "corr-3", causationId: "cmd-advance-2");
+
+        var advancedEvents = bus.Published.FindAll(e => e.Type == SanguoGameTurnAdvanced.EventType);
+        advancedEvents.Should().HaveCount(2);
+
+        var lastAdvanced = advancedEvents[^1];
+        lastAdvanced.Data.Should().BeOfType<JsonElementEventData>();
+        var payload = ((JsonElementEventData)lastAdvanced.Data!).Value;
+        payload.GetProperty("TurnNumber").GetInt32().Should().Be(3);
+        payload.GetProperty("Year").GetInt32().Should().Be(1);
+        payload.GetProperty("Month").GetInt32().Should().Be(1);
+        payload.GetProperty("Day").GetInt32().Should().Be(3);
+    }
+
     // ACC:T17.2
     // ACC:T17.5
     // ACC:T17.7
