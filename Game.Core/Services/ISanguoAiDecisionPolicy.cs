@@ -35,7 +35,6 @@ internal sealed class SanguoAiDecisionStateMachine
 {
     private const string RollSkipNode = "sanguo.ai.decision.roll_skip.v1";
     private const string EliminatedNode = "sanguo.ai.decision.eliminated.v1";
-
     private readonly Dictionary<string, SanguoAiState> _stateByPlayerId = new(StringComparer.Ordinal);
     private readonly object _gate = new();
 
