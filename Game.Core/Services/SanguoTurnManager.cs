@@ -433,20 +433,14 @@ public sealed class SanguoTurnManager
         if (_totalPositionsHint > 0)
             return _totalPositionsHint;
 
-        // Best-effort fallback: derive from known city/player position indices to avoid 0/negative values.
-        var maxIndex = 0;
+        // Best-effort fallback: derive from known city position indices only.
+        // Player positions alone are not sufficient to infer a stable board size.
+        var maxIndex = -1;
         foreach (var city in _boardState.GetCitiesSnapshot().Values)
             maxIndex = Math.Max(maxIndex, city.PositionIndex);
 
-        if (_playerOrder is not null)
-        {
-            foreach (var playerId in _playerOrder)
-            {
-                if (!_boardState.TryGetPlayer(playerId, out var p) || p is null)
-                    continue;
-                maxIndex = Math.Max(maxIndex, p.PositionIndex);
-            }
-        }
+        if (maxIndex < 0)
+            return 0;
 
         return maxIndex + 1;
     }

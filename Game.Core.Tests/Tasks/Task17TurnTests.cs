@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -67,6 +68,11 @@ public sealed class Task17TurnTests
         var payload = ((JsonElementEventData)ended.Data!).Value;
         payload.GetProperty("GameId").GetString().Should().Be("g1");
         payload.GetProperty("EndReason").GetString().Should().Be("human_eliminated");
+
+        var countBefore = bus.Published.Count;
+        var act = async () => await mgr.AdvanceTurnAsync(correlationId: "corr-3", causationId: "cmd-advance-again");
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        bus.Published.Should().HaveCount(countBefore);
     }
 
     // ACC:T17.10
@@ -173,6 +179,61 @@ public sealed class Task17TurnTests
         payload.GetProperty("Day").GetInt32().Should().Be(2);
 
         bus.Published.Should().Contain(e => e.Type == SanguoAiDecisionMade.EventType);
+    }
+
+    // ACC:T17.13
+    [Fact]
+    [Trait("acceptance", "ACC:T17.13")]
+    public async Task ShouldAlternateBetweenHumanAndAi_WhenAdvancingTurns()
+    {
+        const int totalPositions = 10;
+        var bus = new CapturingEventBus();
+        var rules = SanguoEconomyRules.Default;
+
+        var human = new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: rules);
+        var ai = new SanguoPlayer(playerId: "ai-1", money: 0m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(
+            players: new[] { human, ai },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var treasury = new SanguoTreasury();
+        var economy = new SanguoEconomyManager(bus);
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            rng: new RangeAwareFixedRng(diceValue: 1, nextDouble: 0.0),
+            totalPositionsHint: totalPositions,
+            quarterEnvironmentEventTriggerChance: 0.0);
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { human.PlayerId, ai.PlayerId },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-1",
+            causationId: null);
+
+        bus.Published.Should().NotContain(e => e.Type == SanguoAiDecisionMade.EventType);
+
+        var expectedActive = new[] { ai.PlayerId, human.PlayerId, ai.PlayerId, human.PlayerId };
+        var aiDecisionCountsAfterEachAdvance = new[] { 1, 1, 2, 2 };
+
+        for (var i = 0; i < expectedActive.Length; i++)
+        {
+            await mgr.AdvanceTurnAsync(correlationId: $"corr-{i + 2}", causationId: $"cmd-advance-{i + 1}");
+
+            var advanced = bus.Published.FindLast(e => e.Type == SanguoGameTurnAdvanced.EventType);
+            advanced.Should().NotBeNull();
+            var payload = ((JsonElementEventData)advanced!.Data!).Value;
+            payload.GetProperty("ActivePlayerId").GetString().Should().Be(expectedActive[i]);
+            payload.GetProperty("Day").GetInt32().Should().Be(2 + i);
+
+            var aiDecisions = bus.Published.FindAll(e => e.Type == SanguoAiDecisionMade.EventType);
+            aiDecisions.Should().HaveCount(aiDecisionCountsAfterEachAdvance[i]);
+        }
     }
 
     // ACC:T17.3
@@ -406,20 +467,53 @@ public sealed class Task17TurnTests
         var monthIndex = bus.Published.FindIndex(e => e.Type == SanguoMonthSettled.EventType);
         var seasonIndex = bus.Published.FindIndex(e => e.Type == SanguoSeasonEventApplied.EventType);
         var yearIndex = bus.Published.FindIndex(e => e.Type == SanguoYearPriceAdjusted.EventType);
+        var advancedIndex = bus.Published.FindIndex(e => e.Type == SanguoGameTurnAdvanced.EventType);
 
         monthIndex.Should().BeGreaterThanOrEqualTo(0);
         seasonIndex.Should().BeGreaterThanOrEqualTo(0);
         yearIndex.Should().BeGreaterThanOrEqualTo(0);
+        advancedIndex.Should().BeGreaterThanOrEqualTo(0);
 
         monthIndex.Should().BeLessThan(seasonIndex);
         seasonIndex.Should().BeLessThan(yearIndex);
+
+        var advanced = bus.Published[advancedIndex];
+        var advancedPayload = ((JsonElementEventData)advanced.Data!).Value;
+        advancedPayload.GetProperty("Year").GetInt32().Should().Be(2);
+        advancedPayload.GetProperty("Month").GetInt32().Should().Be(1);
+        advancedPayload.GetProperty("Day").GetInt32().Should().Be(1);
+
+        var month = bus.Published[monthIndex];
+        var monthPayload = ((JsonElementEventData)month.Data!).Value;
+        monthPayload.GetProperty("Year").GetInt32().Should().Be(1);
+        monthPayload.GetProperty("Month").GetInt32().Should().Be(12);
+        var settlements = monthPayload.GetProperty("PlayerSettlements");
+        settlements.ValueKind.Should().Be(JsonValueKind.Array);
+        settlements.EnumerateArray().Select(x => x.GetProperty("PlayerId").GetString()).Should().Contain("p1");
+
+        var season = bus.Published[seasonIndex];
+        var seasonPayload = ((JsonElementEventData)season.Data!).Value;
+        seasonPayload.GetProperty("Year").GetInt32().Should().Be(2);
+        seasonPayload.GetProperty("Season").GetInt32().Should().Be(1);
+        seasonPayload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.9m);
+        seasonPayload.GetProperty("AffectedRegionIds").EnumerateArray().Select(x => x.GetString()).Should().Contain("r1");
+
+        var year = bus.Published[yearIndex];
+        var yearPayload = ((JsonElementEventData)year.Data!).Value;
+        yearPayload.GetProperty("Year").GetInt32().Should().Be(2);
+        yearPayload.GetProperty("CityId").GetString().Should().Be(city.Id);
+        yearPayload.GetProperty("OldPrice").GetDecimal().Should().Be(1m);
+        yearPayload.GetProperty("NewPrice").GetDecimal().Should().Be(0.5m);
     }
 
+    // ACC:T17.6
     // ACC:T17.11
     [Fact]
+    [Trait("acceptance", "ACC:T17.6")]
     [Trait("acceptance", "ACC:T17.11")]
     public async Task ShouldPublishAiDecisionAndMoveEvents_WhenStartingGameWithAiPlayer()
     {
+        const int totalPositions = 10;
         var bus = new CapturingEventBus();
         var rules = SanguoEconomyRules.Default;
 
@@ -438,7 +532,7 @@ public sealed class Task17TurnTests
             treasury,
             aiDecisionPolicy: policy,
             rng: new RangeAwareFixedRng(diceValue: 6, nextDouble: 0.0),
-            totalPositionsHint: 10);
+            totalPositionsHint: totalPositions);
 
         await mgr.StartNewGameAsync(
             gameId: "g1",
@@ -466,6 +560,109 @@ public sealed class Task17TurnTests
         decision.Should().NotBeNull();
         var decisionPayload = ((JsonElementEventData)decision!.Data!).Value;
         decisionPayload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
+
+        var moved = bus.Published.Find(e => e.Type == SanguoTokenMoved.EventType);
+        moved.Should().NotBeNull();
+        var movedPayload = ((JsonElementEventData)moved!.Data!).Value;
+        movedPayload.GetProperty("FromIndex").GetInt32().Should().Be(0);
+        var toIndex = movedPayload.GetProperty("ToIndex").GetInt32();
+        toIndex.Should().Be(6);
+        toIndex.Should().BeGreaterOrEqualTo(0);
+        toIndex.Should().BeLessThan(totalPositions);
+        movedPayload.GetProperty("Steps").GetInt32().Should().Be(6);
+        movedPayload.GetProperty("PassedStart").GetBoolean().Should().BeFalse();
+        movedPayload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
+    }
+
+    // ACC:T17.6
+    [Fact]
+    [Trait("acceptance", "ACC:T17.6")]
+    public async Task ShouldWrapTokenMove_WhenAiMovesPastBoardEnd()
+    {
+        const int totalPositions = 10;
+        const int fromIndex = 9;
+        const int steps = 6;
+        var expectedToIndex = (fromIndex + steps) % totalPositions;
+
+        var bus = new CapturingEventBus();
+        var rules = SanguoEconomyRules.Default;
+
+        var ai = new SanguoPlayer(playerId: "ai-1", money: 0m, positionIndex: fromIndex, economyRules: rules);
+        var boardState = new SanguoBoardState(
+            players: new[] { ai },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var treasury = new SanguoTreasury();
+        var economy = new SanguoEconomyManager(bus);
+        var policy = new SpyAiDecisionPolicy();
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            aiDecisionPolicy: policy,
+            rng: new RangeAwareFixedRng(diceValue: steps, nextDouble: 0.0),
+            totalPositionsHint: totalPositions);
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "ai-1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-1",
+            causationId: null);
+
+        var moved = bus.Published.Find(e => e.Type == SanguoTokenMoved.EventType);
+        moved.Should().NotBeNull();
+        var payload = ((JsonElementEventData)moved!.Data!).Value;
+        payload.GetProperty("FromIndex").GetInt32().Should().Be(fromIndex);
+        payload.GetProperty("Steps").GetInt32().Should().Be(steps);
+        payload.GetProperty("ToIndex").GetInt32().Should().Be(expectedToIndex);
+        payload.GetProperty("ToIndex").GetInt32().Should().BeGreaterOrEqualTo(0);
+        payload.GetProperty("ToIndex").GetInt32().Should().BeLessThan(totalPositions);
+        payload.GetProperty("PassedStart").GetBoolean().Should().BeTrue();
+    }
+
+    // ACC:T17.6
+    [Fact]
+    [Trait("acceptance", "ACC:T17.6")]
+    public async Task ShouldNotPublishDiceOrTokenMoved_WhenTotalPositionsNotConfigured()
+    {
+        var bus = new CapturingEventBus();
+        var rules = SanguoEconomyRules.Default;
+
+        var ai = new SanguoPlayer(playerId: "ai-1", money: 0m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(
+            players: new[] { ai },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var treasury = new SanguoTreasury();
+        var economy = new SanguoEconomyManager(bus);
+        var policy = new SpyAiDecisionPolicy();
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            aiDecisionPolicy: policy,
+            rng: new RangeAwareFixedRng(diceValue: 6, nextDouble: 0.0),
+            totalPositionsHint: 0);
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "ai-1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-1",
+            causationId: null);
+
+        bus.Published.Should().Contain(e => e.Type == SanguoAiDecisionMade.EventType);
+        bus.Published.Should().NotContain(e => e.Type == SanguoDiceRolled.EventType);
+        bus.Published.Should().NotContain(e => e.Type == SanguoTokenMoved.EventType);
+
+        ai.PositionIndex.Should().Be(0);
     }
 
     // ACC:T17.12
@@ -508,8 +705,44 @@ public sealed class Task17TurnTests
             await mgr.AdvanceTurnAsync(correlationId: $"corr-{i + 2}", causationId: $"cmd-{i + 1}");
         }
 
-        bus.Published.Should().Contain(e => e.Type == SanguoGameTurnAdvanced.EventType);
-        bus.Published.FindAll(e => e.Type == SanguoGameTurnAdvanced.EventType).Should().HaveCount(turns);
+        var advancedEvents = bus.Published.FindAll(e => e.Type == SanguoGameTurnAdvanced.EventType);
+        advancedEvents.Should().HaveCount(turns);
+
+        static int ToDayNumber(int year, int month, int day)
+        {
+            var y = (year - 1) * SanguoCalendarDate.MonthsPerYear * SanguoCalendarDate.DaysPerMonth;
+            var m = (month - 1) * SanguoCalendarDate.DaysPerMonth;
+            var d = day - 1;
+            return y + m + d;
+        }
+
+        var dateNumbers = new int[advancedEvents.Count];
+        var activePlayers = new string[advancedEvents.Count];
+        var turnNumbers = new int[advancedEvents.Count];
+        for (var i = 0; i < advancedEvents.Count; i++)
+        {
+            var payload = ((JsonElementEventData)advancedEvents[i].Data!).Value;
+            var year = payload.GetProperty("Year").GetInt32();
+            var month = payload.GetProperty("Month").GetInt32();
+            var day = payload.GetProperty("Day").GetInt32();
+
+            dateNumbers[i] = ToDayNumber(year, month, day);
+            activePlayers[i] = payload.GetProperty("ActivePlayerId").GetString() ?? "";
+            turnNumbers[i] = payload.GetProperty("TurnNumber").GetInt32();
+        }
+
+        for (var i = 1; i < dateNumbers.Length; i++)
+            dateNumbers[i].Should().Be(dateNumbers[i - 1] + 1);
+
+        turnNumbers[0].Should().Be(2);
+        turnNumbers[^1].Should().Be(turns + 1);
+
+        activePlayers.Should().OnlyContain(x => x == "ai-1" || x == "ai-2");
+        for (var i = 1; i < activePlayers.Length; i++)
+            activePlayers[i].Should().NotBe(activePlayers[i - 1]);
+
+        ai1.IsEliminated.Should().BeFalse();
+        ai2.IsEliminated.Should().BeFalse();
     }
 
     private sealed class CapturingEventBus : IEventBus

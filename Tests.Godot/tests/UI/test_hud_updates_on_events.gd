@@ -159,6 +159,7 @@ func test_hud_dice_roll_triggers_core_dice_event_with_trace_ids() -> void:
 func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_seconds() -> void:
     var hud = await _hud()
     var toast: Control = hud.get_node("EventToast")
+    var toast_label: Label = hud.get_node("EventToast/Panel/Label")
     var audit_before := _read_security_audit_text()
 
     assert_float(float(toast.AutoHideSeconds)).is_equal(3.0)
@@ -176,6 +177,9 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
             break
         await get_tree().process_frame
     assert_bool(toast.visible).is_true()
+    assert_str(toast_label.text).contains("core.sanguo.city.toll.paid")
+    assert_str(toast_label.text).contains("city=c1")
+    var shown_ms: int = Time.get_ticks_msec()
 
     var before_lines: Array = []
     for line in audit_before.split("\n"):
@@ -210,6 +214,8 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
             break
         await get_tree().process_frame
     assert_bool(toast.visible).is_false()
+    var elapsed_ms: int = int(Time.get_ticks_msec() - shown_ms)
+    assert_int(elapsed_ms).is_less_equal(3000)
 
 # ACC:T22.3
 func test_hud_updates_on_sanguo_dice_rolled_event() -> void:
