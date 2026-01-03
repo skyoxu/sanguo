@@ -56,6 +56,22 @@ def _truncate(text: str, *, max_chars: int) -> str:
     return text[: max_chars - 3] + "..."
 
 
+_EMOJI_RE = re.compile(
+    "["
+    "\U0001F300-\U0001FAFF"  # emojis/symbols
+    "\U00002700-\U000027BF"  # dingbats
+    "\U00002600-\U000026FF"  # misc symbols
+    "\U0001F100-\U0001F1FF"  # enclosed alnum + flags
+    "]",
+    flags=re.UNICODE,
+)
+
+
+def _strip_emoji(text: str) -> str:
+    # Repository policy: do not emit emoji characters into prompts/logs.
+    return _EMOJI_RE.sub("", str(text or ""))
+
+
 REFS_RE = re.compile(r"\bRefs\s*:\s*(.+)$", flags=re.IGNORECASE)
 
 
@@ -639,6 +655,17 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="sc-llm-review (optional local LLM review)")
     ap.add_argument("--task-id", default=None, help="Taskmaster id to include as review context (optional)")
     ap.add_argument(
+        "--review-profile",
+        default="default",
+        choices=["default", "bmad-godot"],
+        help="Inject a structured review template into prompts (default: default).",
+    )
+    ap.add_argument(
+        "--review-template",
+        default="",
+        help="Optional template file path (relative to repo root) to inject into prompts. Overrides --review-profile.",
+    )
+    ap.add_argument(
         "--no-acceptance-semantic",
         action="store_true",
         help="Do not inject acceptance anchors + referenced test excerpts into prompts (smaller prompts).",
@@ -802,6 +829,26 @@ def main() -> int:
     if triplet:
         acceptance_ctx, acceptance_meta = build_acceptance_evidence(task_id=triplet.task_id)
 
+    review_template = ""
+    template_meta: dict[str, Any] = {"review_profile": str(args.review_profile)}
+    template_path_arg = str(args.review_template or "").strip()
+    if template_path_arg:
+        p = repo_root() / template_path_arg
+        if p.is_file():
+            review_template = _truncate(_strip_emoji(_read_text(p)), max_chars=8_000)
+            template_meta["review_template_source"] = template_path_arg.replace("\\", "/")
+        else:
+            template_meta["review_template_source"] = None
+            template_meta["review_template_error"] = f"missing:{template_path_arg}"
+    elif str(args.review_profile).strip().lower() == "bmad-godot":
+        p = repo_root() / "scripts/sc/templates/llm_review/bmad-godot-review-template.txt"
+        if p.is_file():
+            review_template = _truncate(_strip_emoji(_read_text(p)), max_chars=8_000)
+            template_meta["review_template_source"] = str(p.relative_to(repo_root())).replace("\\", "/")
+        else:
+            template_meta["review_template_source"] = None
+            template_meta["review_template_error"] = "missing:built_in_bmad_godot_template"
+
     if semantic_gate == "require":
         acc_status = str((acceptance_meta or {}).get("acceptance_status") or "").strip().lower()
         if acc_status and acc_status != "ok":
@@ -875,6 +922,8 @@ def main() -> int:
 
         agent_prompt, prompt_meta = _agent_prompt(agent, claude_agents_root=claude_agents_root, skip_agent_files=bool(args.skip_agent_prompts))
         blocks = [agent_prompt]
+        if review_template:
+            blocks.append("## Structured Review Template\n" + review_template.strip() + "\n")
         if ctx:
             blocks.append(ctx)
         if threat_ctx:
@@ -969,6 +1018,7 @@ def main() -> int:
         "task_id": triplet.task_id if triplet else None,
         "strict": bool(args.strict),
         "threat_model": threat_model,
+        "template_meta": template_meta,
         "acceptance_meta": acceptance_meta,
         "acceptance_semantic_meta": acceptance_semantic_meta,
         "status": "fail" if hard_fail else ("warn" if had_warnings else "ok"),
