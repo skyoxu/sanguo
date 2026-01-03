@@ -17,6 +17,8 @@ func test_hud_scene_instantiates() -> void:
     assert_object(hud).is_not_null()
     assert_object(hud.get_node_or_null("EventToast")).is_not_null()
     assert_object(hud.get_node_or_null("EventLogPanel")).is_not_null()
+    var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
+    assert_str(money_label.text).is_equal("Money: -")
 
     var toast := preload("res://Game.Godot/Scenes/UI/EventToast.tscn").instantiate()
     add_child(auto_free(toast))

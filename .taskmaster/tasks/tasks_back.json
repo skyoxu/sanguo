@@ -40,8 +40,8 @@
     "test_strategy": [
       "使用 Python 单元测试或最小烟测脚本验证任务视图生成逻辑。",
       "在本地运行 Taskmaster MCP 读取新视图，确认解析无错误。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\casus-belli",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\casus-belli Refs: Game.Core.Tests/Engine/GameEngineCoreConstructorTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\casus-belli",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\casus-belli Refs: Game.Core.Tests/Engine/GameEngineCoreConstructorTests.cs",
       "（从 acceptance 迁移：执行环境/CI 事实由脚本门禁提供证据）",
       "- 原条款“脚本可运行/不破坏 CI”以 CI/验收脚本的可重复证据链为准，不再作为单测锚点验收。"
     ],
@@ -111,8 +111,8 @@
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线的索引跳转与多步路径序列（不依赖 `City`）。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
       "- 符合学习模块一（棋盘 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。 Refs: Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs"
@@ -192,8 +192,8 @@
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone Refs: Game.Core.Tests/Domain/CityTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone Refs: Game.Core.Tests/Domain/CityTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Domain/CityTests.cs",
       "- 符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。 Refs: Game.Core.Tests/Domain/CityTests.cs"
@@ -337,19 +337,19 @@
       "Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
     ],
     "acceptance": [
-      "提供可在纯 .NET 单元测试中运行的掷骰逻辑入口（例如 SanguoDiceService.RollD6），其验收聚焦于返回 1..6 与事件发布，且不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "当域事件总线依赖为 null 时，构造 SanguoDiceService 必须抛出 ArgumentNullException（参数名为 \"bus\"），且不产生任何事件发布。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "RollD6 可接收调用上下文标识（gameId/playerId/correlationId/causationId）；发布事件的数据负载必须包含并正确映射 GameId、PlayerId、CorrelationId、CausationId 字段，并包含 OccurredAt 字段（不要求具体时间值断言）。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "RollD6 产生并返回 1..6 的点数；同时发布域事件 core.sanguo.dice.rolled（ADR-0004），且 SanguoDiceRolled.EventType 必须精确等于 \"core.sanguo.dice.rolled\"；事件 Source 必须为 \"SanguoDiceService\"，并保证事件的 Value 与返回值一致。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "在单元测试中可通过可控随机源或等效方式验证：RollD6 的返回值与发布事件中的 Value 必须一致，且返回点数确实来自随机数生成器的输出。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "未显式提供随机源时，RollD6 默认从系统随机源获取点数以实现非确定性的 1..6 掷骰，不限定具体封装实现。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
+      "提供可在纯 .NET 单元测试中调用的掷骰逻辑入口（例如 SanguoDiceService.RollD6）；调用后必须返回 1..6（含边界）的整数，且该入口不依赖 Godot API。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "当域事件总线依赖 bus 为 null 时，构造 SanguoDiceService 必须抛出 ArgumentNullException（参数名为 \"bus\"），且不得产生任何事件发布。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "RollD6 可接收调用上下文标识（gameId/playerId/correlationId/causationId）；若提供这些值，则发布事件的数据负载必须包含并正确映射 GameId、PlayerId、CorrelationId、CausationId 字段，同时必须包含 OccurredAt 字段（不要求对时间值做精确断言）。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "每次调用 RollD6 必须发布域事件 core.sanguo.dice.rolled（ADR-0004）：发布的 DomainEvent.Type 必须等于 SanguoDiceRolled.EventType，且 SanguoDiceRolled.EventType 必须精确等于 \"core.sanguo.dice.rolled\"；事件数据负载中的 Value 必须与本次 RollD6 返回点数一致。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "在单元测试中可通过可控随机源（例如复用 RandomHelper 或允许注入等效随机源）验证：RollD6 的返回值与发布事件中的 Value 必须一致，且返回点数来自该可控随机源的输出。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "未显式提供可控随机源时，RollD6 必须使用系统随机性产生非确定性的 1..6 掷骰结果；不得返回固定常量或与随机数生成器输出无关的点数。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
     ],
     "test_strategy": [
       "xUnit + FluentAssertions：掷骰结果始终在 1..6（含边界）。",
       "随机性可测试：优先复用 `Game.Core/Utilities/RandomHelper.cs`；必要时允许注入随机源以便确定性测试。",
       "事件对齐（ADR-0004）：掷骰后发布 `SanguoDiceRolled`（`Game.Core/Contracts/Sanguo/BoardEvents.cs`）；用可捕获的 `IEventBus` 断言 `DomainEvent.Type == SanguoDiceRolled.EventType` 且 Value 与点数一致。",
       "覆盖率门禁：运行 `dotnet test --collect:\"XPlat Code Coverage\"` 并通过 `py -3 scripts/python/run_dotnet.py` 校验（lines>=90%、branches>=85%）；产物归档到 `logs/unit/<YYYY-MM-DD>/`。",
-      "可选统计（软门）：投掷 10_000 次输出频次分布到 `logs/perf/<YYYY-MM-DD>/summary.json`，仅用于回归观察。",
+      "Optional: 统计（软门）：投掷 10_000 次输出频次分布到 `logs/perf/<YYYY-MM-DD>/summary.json`，仅用于回归观察。",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
     ],
@@ -432,15 +432,15 @@
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
       "加入出局相关的轮转/结束用例：验证玩家出局触发 GameOver，NPC 出局后轮转跳过且不会再获得回合，并校验其城池已释放为无人占领。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
-      "加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。",
-      "加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
-      "加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
+      "Optional: 加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。",
+      "Optional: 加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "Optional: 加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
       "---",
-      "可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "Optional: 审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "Optional: 事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "Optional: 资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs"
     ],
@@ -512,21 +512,21 @@
     ],
     "acceptance": [
       "EconomyManager 对外暴露“月末收益结算”和“地价调整”两类能力，并可在纯 C# 环境下运行与单元测试（不依赖 Godot API）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "触发月末结算时，EconomyManager 基于输入的当月游戏状态计算月末收益，并向调用方产出可读取的结算结果；成功完成后发布一次与“月末结算”相关的事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "触发月末结算时，EconomyManager 基于输入的当月游戏状态计算月末收益，并向调用方产出可读取的结算结果；成功完成后发布一次与“月末结算”相关的事件 core.sanguo.economy.month.settled（SanguoMonthSettled）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "在相同的当月游戏状态输入下，重复触发月末结算应得到可重复验证的等价结算结果，且事件发布语义与结果保持一致（不依赖非确定性）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "月末结算或地价调整过程中若发生失败，应明确向调用方报告失败（例如抛出异常），并且不得发布表示成功完成的相关事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "当输入的当月游戏状态缺失/不一致导致无法完成月末收益计算时，应立即以失败向调用方报告，并不发布“月末结算”相关事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "执行地价调整时，EconomyManager 基于输入参数/规则计算并产出新的地价结果；对无法接受的输入参数应拒绝并报告失败，且不发布“地价调整”相关事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "月末收益的计算仅使用输入状态中参与结算的数据；在相同输入下输出应可复现，且不将不参与结算的对象计入收益结果。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "成功执行地价调整后，应发布一次与“地价调整”相关的事件；事件载荷能够让订阅者识别被调整对象以及新旧价格或等价差异，并包含本次调整的关联标识或时间信息。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "每次成功完成一次月末结算时，应发布一次与“月末结算”相关的事件，且该事件与本次结算结果可建立对应关系。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
+      "成功执行地价调整后，应发布一次与“地价调整”相关的事件 core.sanguo.economy.year.price.adjusted（SanguoYearPriceAdjusted）；事件载荷能够让订阅者识别被调整对象以及新旧价格或等价差异，并包含本次调整的关联标识或时间信息。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "每次成功完成一次月末结算时，应发布一次与“月末结算”相关的事件 core.sanguo.economy.month.settled（SanguoMonthSettled），且该事件与本次结算结果可建立对应关系。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
@@ -552,7 +552,8 @@
     ],
     "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
-      "core.sanguo.economy.month.settled"
+      "core.sanguo.economy.month.settled",
+      "core.sanguo.economy.year.price.adjusted"
     ]
   },
   {
@@ -695,9 +696,9 @@
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
       "编写/更新 UI 用例：UI 数据绑定仅使用 `SanguoPlayerView`（或 `ISanguoPlayerView`）快照输入，不得直接引用 `SanguoPlayer`；若需要背景线程更新 UI，必须先生成快照再发送到主线程渲染。",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
     ],
     "taskmaster_id": 9,
     "taskmaster_exported": true,
@@ -755,14 +756,15 @@
     ],
     "acceptance": [
       "对应的 Godot 场景与相关 UI 控件在 headless 冒烟测试中可被实例化/加载且无错误，并能定位到用于展示骰子结果的控件。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "在收到 core.sanguo.game.turn.started 指定当前玩家后，收到该玩家的 core.sanguo.dice.rolled 会将 HUD 的 DiceButton 文本更新为 \"Dice: <Value>\"。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "当 core.sanguo.dice.rolled 的 PlayerId 不等于当前玩家时，HUD 不更新 DiceButton 文本（保持上一次显示）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+      "当收到 core.sanguo.dice.rolled 事件后，HUD 的 DiceButton 文本会更新为 \"Dice: <Value>\" 以展示最近一次掷骰结果。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "当短时间内连续收到多次 core.sanguo.dice.rolled 事件时，HUD 必须以最后一次事件的 Value 为准更新 DiceButton 文本（后到覆盖先到）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: 同一局面下收到非当前玩家的 core.sanguo.dice.rolled 时，不得错误覆盖当前显示（防串台）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
     ],
     "taskmaster_id": 22,
     "taskmaster_exported": true,
@@ -837,8 +839,8 @@
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd"
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd"
     ],
     "taskmaster_id": 10,
     "taskmaster_exported": true,
@@ -910,29 +912,29 @@
       "Game.Core.Tests/Domain/SanguoBoardStateTests.cs"
     ],
     "acceptance": [
-      "土地购买的核心可观察语义（仅当玩家停留在无人城池时才出现/可用购买入口；购买成功会扣款并更新所有权；购买失败则状态不变）在领域层以可测试方式实现。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "在本任务范围内提供一个纯 C# 的状态模型作为单一事实来源，能够仅凭该模型判定：玩家是否停留在某城池、城池是否无人占领，以及是否应提供购买选项（含等价可观测的不可购买原因/状态）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "该状态模型具备并保持购买相关的一致性不变量，使购买后的资金与所有权结果可被稳定查询与回归验证（例如：标识唯一、拥有列表引用有效、购买前后状态推导一致）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当买家当前停留在目标城池、该城池无人占领且买家资金足够时返回 true，并以可观测的状态变更完成结算：扣除买家资金、更新城池归属到买家，且可查询到该城池拥有者为买家。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当目标城池已被他人持有，或买家并未停留在目标城池时返回 false，且买家资金与所有权状态保持不变（不发生城池归属变更）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当 buyerId 不存在时返回 false，且不改变任何玩家/城池状态（等价为购买失败且状态不变）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当 cityId 不存在时返回 false，且不改变任何玩家/城池状态（等价为购买失败且状态不变）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
-      "SanguoBoardState.TryBuyCity：当买家资金不足以支付价格时返回 false，且买家资金与所有权状态保持不变（不发生购买/不改变所有权）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs"
+      "在领域层以可单测方式实现土地购买的可观察语义：仅当行动者停留在无人城池时才存在/可用购买入口；购买成功会扣除资金并更新城池所有权；任一失败路径均保持资金与所有权状态不变；领域层不得自动发生购买：只有在上层显式调用购买 API（例如 TryBuyCity）时才允许扣款并变更所有权；上层未调用（含放弃购买）时资金与城池所有权必须保持不变。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "提供纯 C# 领域状态模型作为单一事实来源，使测试可仅凭该模型判定：行动者是否停留在某城池、城池是否无人占领，以及因此是否应提供购买选项或不可购买状态（包含等价可观测的不可购买原因/状态）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "该状态模型在购买相关状态上保持可观测一致性：城池所有权与玩家拥有列表/查询结果相互一致；购买前后派生判断（例如可购买性）可重复计算且结果稳定一致。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当买家当前停留在目标城池、该城池无人占领且买家资金足以支付价格时返回 true，并以可观测的状态变更完成结算（扣除资金、将城池所有权更新为买家，且查询可验证该城池拥有者为买家）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当目标城池已被他人持有，或买家并未停留在目标城池时返回 false，且买家资金、城池所有权与玩家拥有列表均保持不变（不得出现“买走他人城池”或“远程购买”的可观测结果）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当 buyerId 不存在时返回 false，且不改变任何玩家/城池的可观测状态（不扣款、不产生所有权或拥有列表变化）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当 cityId 不存在时返回 false，且不改变任何玩家/城池的可观测状态（不扣款、不产生所有权或拥有列表变化）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+      "SanguoBoardState.TryBuyCity：当买家资金不足以支付价格时返回 false，且买家资金与所有权相关状态保持不变（不扣款、不改变城池归属、玩家拥有列表不变）。 Refs: Game.Core.Tests/Domain/SanguoBoardStateTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
-      "加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。",
-      "加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
-      "加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。",
-      "加入 xUnit 用例：验证 CityOwnershipRegistry 的单一事实来源不变式（同一 CityId 不能同时属于多个玩家；出局释放后 owner 必为 null）。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: 加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。",
+      "Optional: 加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "Optional: 加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。",
+      "Optional: 加入 xUnit 用例：验证 CityOwnershipRegistry 的单一事实来源不变式（同一 CityId 不能同时属于多个玩家；出局释放后 owner 必为 null）。",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
       "---",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
+      "Optional: 审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
+      "Optional: 事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
+      "Optional: 资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
       "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs Game.Core.Tests/Domain/CityTests.cs",
@@ -1016,8 +1018,8 @@
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
       "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd"
     ],
@@ -1095,16 +1097,16 @@
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
       "加入资金不足支付过路费的测试：验证剩余资金转移给债权人、支付方资金归零并出局、城池释放为无人占领，并确保不会出现负资金。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
-      "加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。",
-      "加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
-      "加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。",
-      "加入 xUnit 用例：覆盖足额/不足额/收款方封顶溢出三路径，并断言 TollPaymentOutcome 字段与实际状态一致。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: 加入 xUnit 用例：买地/付费/出局释放城池时，断言审计条目写入且字段完整。",
+      "Optional: 加入 xUnit 用例：买地/付费/出局/城池释放均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "Optional: 加入 xUnit 用例：当 OwnedCityIds.Count 达到上限时，TryBuyCity 返回 false 且资金/OwnedCityIds 不变，并写入审计条目。",
+      "Optional: 加入 xUnit 用例：覆盖足额/不足额/收款方封顶溢出三路径，并断言 TollPaymentOutcome 字段与实际状态一致。",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "---",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "Optional: 审计追踪：记录城池购买/过路费支付/出局导致的城池释放（含涉及的玩家与城池列表）；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "Optional: 事件溯源：对‘购买成功/支付过路费/出局/城池释放’发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+      "Optional: 资源限制：最大拥有城池数上限（可配置）；达到上限后购买失败且状态不变，同时记录审计/事件。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
       "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
@@ -1193,9 +1195,9 @@
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "AI 身份判定约定：当前以 PlayerId 前缀 `ai-` 作为“AI 玩家”识别规则（见 `Game.Core/Services/SanguoTurnManager.cs:IsAiPlayerId`）；此约定需由单元测试钉死，避免未来 ID 生成策略变更导致 AI 不行动或误行动。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
       "新增单测：AI 行为仅依赖 `ISanguoPlayerView`/`SanguoPlayerView` 输入；模拟后台线程调用时不得触发 `ThreadAccessGuard`（即不直接调用 `SanguoPlayer` 上的方法）。",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
     ],
@@ -1267,15 +1269,15 @@
     ],
     "acceptance": [
       "月末收益结算的核心逻辑位于 Game.Core，且可在不引用任何 Godot API 的情况下独立运行与测试。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
-      "当推进日期跨越月边界时：自动结算当月收益并计入玩家资金，同时发布 core.sanguo.economy.month.settled（SanguoMonthSettled）事件，且事件 payload 含 GameId/Year/Month/CorrelationId/CausationId/PlayerSettlements。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
+      "当推进日期跨越月边界时：自动结算“上一个月”的收益并计入玩家资金（结算月份=跨越前的 Year/Month），同时发布 core.sanguo.economy.month.settled（SanguoMonthSettled）事件，且事件 payload 含 GameId/Year/Month/CorrelationId/CausationId/PlayerSettlements。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
       "当推进日期未跨越月边界时：不结算、不改变玩家资金，且不发布 core.sanguo.economy.month.settled（SanguoMonthSettled）事件。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
       "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Game.Core.Tests/Tasks/Task14MonthEndSettlementTests.cs",
@@ -1341,20 +1343,19 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task20.gd",
       "Tests.Godot/tests/UI/test_hud_scene.gd",
       "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "acceptance": [
       "用于显示资金的 HUD 场景与相关 UI 控件可在 headless 冒烟测试中成功加载（无报错、可实例化）。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "HUD 场景中存在用于显示资金的 MoneyLabel 节点，且其节点路径为 TopBar/HBox/MoneyLabel。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "当收到 core.sanguo.player.state.changed 事件时，HUD 的 MoneyLabel 显示内容会随玩家资金变化而更新。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+      "HUD 场景中存在用于显示资金的 MoneyLabel 节点（节点路径 TopBar/HBox/MoneyLabel），且在未接收任何事件前默认显示为 \"Money: -\"。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "资金显示的“持续实时刷新”以事件驱动方式成立：当连续收到 core.sanguo.player.state.changed（同一 ActivePlayerId）时，HUD 的 MoneyLabel 会按最后一次事件更新为最新资金值；当收到非当前玩家的 state.changed 时不得错误覆盖当前显示。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task20.gd"
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "taskmaster_id": 20,
     "taskmaster_exported": true,
@@ -1430,8 +1431,8 @@
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs",
       "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Game.Core.Tests/Tasks/Task15QuarterEventTests.cs"
@@ -1507,10 +1508,10 @@
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_event_task19.gd",
-      "[MIGRATED_FROM_ACCEPTANCE:absolute-path] 不要求在本仓库内集成或依赖任何外部 demo 项目；以下本地路径仅用于人工对照 UI 事件提示的交互样式与可访问性表现参考，不构成验收判定依据：C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+      "Optional: 不要求在本仓库内集成或依赖任何外部 demo 项目；以下本地路径仅用于人工对照 UI 事件提示的交互样式与可访问性表现参考，不构成验收判定依据：C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "taskmaster_id": 19,
     "taskmaster_exported": true,
@@ -1587,9 +1588,9 @@
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
       "新增组合用例（12/31->1/1）：断言依次发布 core.sanguo.economy.month.settled -> core.sanguo.economy.season.event.applied -> core.sanguo.economy.year.price.adjusted；并断言最终状态等价于按‘月度结算（可被季度系数影响）->季度事件->年度调价’顺序依次应用后的叠加结果。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs",
       "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Game.Core.Tests/Tasks/Task16YearEndPriceTests.cs"
@@ -1668,33 +1669,34 @@
       "回合循环相关的核心规则与状态推进逻辑放在 Game.Core 中，并保证该部分不依赖 Godot API（可用纯 .NET 单测验证回合推进/出局/资金结算）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "回合推进与时间推进可被外部观察与追踪：能清晰看到“日推进 → 触发月末结算 → 触发季度节点 → 触发年度节点”的闭环，并与 T2 PRD 的时间轴描述一致。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "回合循环正确处理出局者：已出局 NPC 会从后续轮转中跳过且不再行动；真人玩家一旦出局，回合循环立即停止并触发游戏结束；游戏结束后进一步调用 AdvanceTurn/AdvanceTurnAsync 必须被拒绝（抛出 InvalidOperationException）且不得推进日期/轮转行动者/发布新事件；NPC 出局后其状态锁定，且其已占领城池被释放为无人占领。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "金额入账触发 Money 上限时：核心结算遵循封顶规则（付款方仍扣全额、收款方封顶、溢出进入 SanguoTreasury（或按设计丢弃，但必须可审计且不得半更新）），且任意失败不得出现可观察的半更新状态（含事件发布失败需回滚 payer/owner/treasury）；同时必须写入结构化审计日志（运行期落盘 user://logs/security/security-audit.jsonl，并在门禁阶段汇总到 logs/ci/<YYYY-MM-DD>/security-audit.jsonl），并上报一次可追踪告警（IErrorReporter，含 CorrelationId/CausationId）；前台用 3 秒自动消失的非阻塞浮窗提示进行告警提示。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "金额入账触发 Money 上限时：核心结算遵循封顶规则（付款方仍扣全额、收款方封顶、溢出进入 SanguoTreasury（或按设计丢弃，但必须可审计且不得半更新）），且任意失败不得出现可观察的半更新状态（含事件发布失败需回滚 payer/owner/treasury）；同时必须写入结构化审计日志（运行期落盘 user://logs/security/security-audit.jsonl，并在门禁阶段汇总到 logs/ci/<YYYY-MM-DD>/security-audit.jsonl），并上报一次可追踪告警（IErrorReporter，含 CorrelationId/CausationId）；前台必须用 3 秒自动消失的非阻塞浮窗提示替代 GameOver/错误界面（不得进入阻塞式错误/结束界面）进行告警提示。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
       "MED-001（未来修订）：破产/出局路径需具备“事务语义”，将债权人入账、付款方出局标记、城池释放/转移视为一次性提交，避免未来引入事件发布/持久化/回调后出现可观察的中间态；当前 ThreadAccessGuard 单线程仅为缓解，不作为最终保证。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "移动事件范围校验：必须在场景/代码中把 TotalPositions 配置到 SanguoBoardView.TotalPositions（要求 > 0）；且 `core.sanguo.board.token.moved` 的 ToIndex 必须范围校验（0 <= ToIndex < TotalPositions）并被测试覆盖（发布侧+视图侧都做防御）；“未配置 TotalPositions”视为 Task 17 未完成。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd",
       "同一次回合推进若跨越多个时间边界，边界效果的应用顺序必须可验证且一致：先月末结算，再季度事件，最后年度地价调整；若启用 DomainEvent（ADR-0004），则事件的发布顺序也必须与该顺序一致。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "时间边界效果按顺序计算并叠加生效：最终状态等于依次应用月度结算、季度事件、年度调整后的结果，不得用后者覆盖/屏蔽前者；若启用事件溯源能力，则该序列应可回放用于排障，并保留必要的关联标识（如 CorrelationId/CausationId）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "Money 值对象的边界语义可验证：禁止负数/超过 MaxMajorUnits 的构造；加法溢出抛出 OverflowException；AddCapped 返回（封顶值+溢出额），并保证 JSON 反序列化超上限失败。 Refs: Game.Core.Tests/Domain/MoneyTests.cs",
       "玩家行动逻辑（Subtask 17.1）：轮到真人玩家时，回合循环进入“等待玩家动作”阶段；在收到明确的玩家动作命令前不得推进日期或切换行动者；至少支持动作 RollDice，并发布 core.sanguo.dice.rolled（Value 1..6）以驱动后续移动与结算；并验证 HUD 的 ui.hud.dice.roll -> SanguoDiceService.RollD6 -> core.sanguo.dice.rolled 链路成立，且 CorrelationId/CausationId 可贯穿并在日志中追踪；在真人玩家完成其动作并推进回合后，ActivePlayerId 必须切换到下一位未出局行动者；在“等待玩家动作”阶段，AI 不得推进日期或轮转。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "AI 行动逻辑（Subtask 17.2）：轮到 AI 玩家（PlayerId 以 ai- 前缀）时，回合循环会自动生成并应用一个动作（至少 RollDice 或 Skip），并发布 core.sanguo.ai.decision.made（SanguoAiDecisionMade.EventType）；AI 决策读取输入必须通过 ISanguoPlayerView 快照，禁止直接持有/跨线程访问 SanguoPlayer；并确保关联标识可用于追踪与审计。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "AI 行动逻辑（Subtask 17.2）：轮到 AI 玩家（PlayerId 以 ai- 前缀）时，回合循环会自动生成并应用一个动作（至少 RollDice 或 Skip），并发布 core.sanguo.ai.decision.made（SanguoAiDecisionMade.EventType）；AI 决策逻辑必须以显式“决策树/状态机”形式实现（具备可审计的状态/节点与转移/选择），不得用固定单一动作替代；在固定输入序列下决策输出必须可复现（不引入随机性）；AI 决策读取输入必须通过 ISanguoPlayerView 快照，禁止直接持有/跨线程访问 SanguoPlayer；并确保关联标识可用于追踪与审计。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "回合循环稳定性（Subtask 17.4 / 纯 AI）：在固定随机种子/确定性输入下，使用仅 AI 玩家阵容模拟至少 N 回合推进（建议 ≥ 200），断言无异常/无卡死、日期单调推进、ActivePlayerId 在存活 AI 间轮转且相邻回合不同、关键不变量不破坏。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "回合循环稳定性（Subtask 17.4 / 混编轮流）：在“真人 + AI”混编阵容下，驱动真人按命令推进至少 N 次（例如每次调用 AdvanceTurn 表示真人完成动作），断言回合严格按“真人(等待→命令)→AI(自动)→下一位…”轮转；等待阶段不推进日期；AI 出局后在后续轮转中被跳过且不再发布 AI 决策/移动事件。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
+      "回合循环稳定性（Subtask 17.4 / 混编轮流）：在“真人 + AI”混编阵容下，驱动真人按命令推进至少 N 次（例如每次调用 AdvanceTurn 表示真人完成动作），断言回合严格按“真人(等待→命令)→AI(自动)→下一位…”轮转；等待阶段不推进日期；AI 出局后在后续轮转中被跳过且不再发布 AI 决策/移动事件。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "当金额入账触发 Money 上限并产生告警时，回合循环不得中断：后续 AdvanceTurn/AdvanceTurnAsync 仍可继续轮转行动者并推进日期（不得卡死或提前终止）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
       "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
       "加入出局相关的轮转/结束用例：验证玩家出局触发 GameOver，NPC 出局后轮转跳过且不会再获得回合，并校验其城池已释放为无人占领。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong",
       "Add a test scenario to force Money overflow during turn processing and assert: (1) payer deducted full amount, (2) creditor capped at max, (3) overflow accounted to treasury (or discarded), (4) audit/error reporter invoked, (5) toast shown and auto-dismissed.",
-      "加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。",
-      "加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
-      "加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。",
+      "Optional: 加入 xUnit 用例：触发出局/城池释放/资金转移时，断言审计条目写入（可用内存 sink 或临时文件）且字段完整。",
+      "Optional: 加入 xUnit 用例：关键状态变更均发布 DomainEvent；校验事件 type/source/id/correlationId 以及顺序可回放。",
+      "Optional: 加入 xUnit 用例：当玩家拥有城池数达到上限时，购买被拒绝且状态不变，并写入审计条目。",
       "新增组合用例（12/31->1/1）：断言依次发布 core.sanguo.economy.month.settled -> core.sanguo.economy.season.event.applied -> core.sanguo.economy.year.price.adjusted；并断言最终状态等价于按‘月度结算（可被季度系数影响）->季度事件->年度调价’顺序依次应用后的叠加结果。",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "---",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
-      "[MIGRATED_FROM_ACCEPTANCE:optional_hardening] 可选加固-资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "Optional: 审计追踪：记录出局事件与城池释放/转移；写入结构化审计日志 `logs/ci/<YYYY-MM-DD>/security-audit.jsonl`（字段至少 {ts, action, reason, target, caller}）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "Optional: 事件溯源：对关键状态变更发布 `DomainEvent`（ADR-0004），并保留 CorrelationId/CausationId 以支持回放与排障。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
+      "Optional: 资源限制：定义‘最大拥有城池数’上限（可配置），超限购买失败且记录审计/事件，避免状态膨胀与滥用。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Tasks/Task17TurnTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
@@ -1775,8 +1777,8 @@
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
       "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task21.gd"
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task21.gd"
     ],
     "taskmaster_id": 21,
     "taskmaster_exported": true,
@@ -1932,10 +1934,10 @@
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_eventlogging_task24.gd",
-      "[MIGRATED_FROM_ACCEPTANCE:local-demo-references] Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility（用于对照事件日志 UI 的交互与可访问性，确保日志相关控件在测试中可被触发/调用且不会阻塞日志显示）。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility（用于对照事件日志 UI 的交互与可访问性，确保日志相关控件在测试中可被触发/调用且不会阻塞日志显示）。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
     ],
     "taskmaster_id": 24,
     "taskmaster_exported": true,
@@ -2011,8 +2013,8 @@
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
       "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
       "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs"
     ],
@@ -2163,8 +2165,6 @@
     ],
     "acceptance": [
       "AudioPlayerAdapter 初始化完成后，可分别播放与控制音效和背景音乐：名为 SfxPlayer 与 MusicPlayer 的两个 AudioStreamPlayer 子节点均存在，且二者互不干扰地触发播放/停止（或等价可观测行为）。 Refs: Tests.Godot/tests/Adapters/test_audio_player_adapter_nodes.gd",
-      "在 SettingsPanel 调整音量滑条时，主音量会立即生效：滑条线性值 0..1 会映射为 Master bus 的实际音量（dB 或等价可观测表示），并可在 Master bus 上观测到变化已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
-      "SettingsPanel 保存音量设置后会写入 user://settings.cfg；重新打开/加载后能从 user://settings.cfg 读回并恢复到相同音量设置，且滑条显示与 Master bus 实际音量一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_logic.gd",
       "进入游戏的主要可玩流程/主场景后，会自动开始播放背景音乐：可观测到 MusicPlayer 处于播放中（playing 为 true 或等价可观测状态）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
       "当至少一个玩家可执行的关键交互/动作发生时，会触发一次音效播放：触发后可观测到 SfxPlayer 的播放被触发（playing 变为 true、或播放被重新触发的等价可观测状态）。 Refs: Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
       "当背景音乐正在播放时触发音效，音效播放不会导致背景音乐停止：可观测到 MusicPlayer 保持持续播放状态，同时 SfxPlayer 发生播放。 Refs: Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd",
@@ -2172,7 +2172,9 @@
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
-      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。"
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "Optional: 在 SettingsPanel 调整音量滑条时，主音量会立即生效（滑条 0..1 映射到 Master bus），并可在 Master bus 上观测到变化已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
+      "Optional: SettingsPanel 保存音量设置后会写入 user://settings.cfg；重新打开/加载后能从 user://settings.cfg 读回并恢复到相同音量设置，且滑条显示与 Master bus 实际音量一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_logic.gd"
     ],
     "taskmaster_id": 27,
     "taskmaster_exported": true,
@@ -2374,15 +2376,15 @@
       "存在可进入帮助/教程的入口，其对应的 Godot 场景与 UI 控件可在 headless 冒烟测试中成功实例化并进入可交互状态（可观察到可见性/焦点/信号或输入响应等状态变化），以验证新手引导入口在无渲染环境下仍可用。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_help_ui_loads_headless.gd",
       "帮助/教程的关键用户可见交互（打开/关闭、章节/步骤切换、基础导航）由 Tests.Godot 的 GdUnit4 用例覆盖，并可通过可观察的 UI 状态变化与/或信号事件进行回归验证。 Refs: Tests.Godot/tests/UI/test_help_tutorial_basic_interactions.gd",
       "帮助/教程 UI 的基础风格必须与项目整体 UI 一致：复用项目统一 Theme/皮肤（避免硬编码颜色/字体）；GdUnit4 用例验证帮助/教程 UI 的关键控件使用项目主题（例如与 HUD 主题一致或使用同一 ThemeTypeVariation 族）。 Refs: Tests.Godot/tests/UI/test_help_tutorial_uses_project_theme.gd",
-      "帮助/教程文本以可本地化的资源形式落盘（避免脚本硬编码）；内容明确覆盖 T2 核心闭环（掷骰子、移动、买地/付费、月末结算、季节事件、年度地价调整），并以“学习路线建议/团队知识库”式结构组织学习路径，同时在文档中记录本项目参考的官方示例；headless 测试校验上述关键条目存在且非空。 Refs: Tests.Godot/tests/Integration/test_help_tutorial_localized_content_non_empty.gd",
-      "提供可打开/关闭的帮助界面且不阻塞主循环；在 headless 用例中验证 UI 可见性可切换、导航路径可达，并可浏览与 T2 核心闭环对应的章节/步骤内容。 Refs: Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd",
-      "在帮助/教程 UI 内提供一个可选的反馈入口，用于支持“用户测试/观察/反馈收集”：至少支持填写简短文本并以结构化 JSONL 追加写入 `user://feedback/feedback.jsonl`（离线、无出网）；GdUnit4 用例验证写入成功且字段包含 `ts`/`scene`/`message`（或等价字段）。 Refs: Tests.Godot/tests/Integration/test_help_feedback_persists_to_user_storage.gd"
+      "帮助/教程文本以可本地化的资源形式落盘（避免脚本硬编码）；内容明确覆盖 T2 核心闭环（掷骰子、移动、买地/付费、月末结算、季节事件、年度地价调整），并以“学习路线建议/团队知识库”式结构组织学习路径，同时在文档中记录本项目参考的官方示例；headless 测试校验上述关键条目存在且非空，并验证其能在教程 UI 中以章节/步骤形式呈现为玩家可读文本。 Refs: Tests.Godot/tests/Integration/test_help_tutorial_localized_content_non_empty.gd",
+      "提供可打开/关闭的帮助界面且不阻塞主循环；在 headless 用例中验证 UI 可见性可切换、导航路径可达，并可浏览与 T2 核心闭环对应的章节/步骤内容；每个章节/步骤至少包含一段可见且非空的文本（可读/可理解的教学描述）。 Refs: Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md",
-      "Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd"
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd",
+      "Optional: 在帮助/教程 UI 内提供反馈入口用于离线“用户测试/观察/反馈收集”：支持填写简短文本并以结构化 JSONL 追加写入 `user://feedback/feedback.jsonl`；GdUnit4 用例验证写入成功且字段包含 `ts`/`scene`/`message`（或等价字段）。 Refs: Tests.Godot/tests/Integration/test_help_feedback_persists_to_user_storage.gd"
     ],
     "taskmaster_id": 30,
     "taskmaster_exported": true,
@@ -2455,7 +2457,8 @@
       "单元测试：为性能库编写 xUnit 基准级测试，验证统计函数在不同样本上的正确性。",
       "本地演练：运行 Godot 场景 + PerfTracker，生成 perf.json，再用 performance_gates.py 校验阈值与报告。",
       "CI 集成：在 windows-quality-gate 工作流中增加可选性能门禁 step，观察超阈值时的报告与退出码。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-and-Gates.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md Refs: Game.Core.Tests/Tasks/Task31PerformanceGateTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-and-Gates.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md Refs: Game.Core.Tests/Tasks/Task31PerformanceGateTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-and-Gates.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md"
     ],
     "id": "SG-0031",
     "taskmaster_exported": true,
@@ -2520,7 +2523,8 @@
     "test_strategy": [
       "核心测试：为 ObservabilityClient 编写 xUnit 测试，验证日志结构化与 PII 脱敏行为。",
       "脚本测试：使用假数据或 Mock Sentry API 响应运行 release_health_gate.py，验证阈值判定与 JSON 输出格式。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Sentry-Integration.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Backlog.md Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Sentry-Integration.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Backlog.md Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Sentry-Integration.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Backlog.md"
     ],
     "id": "SG-0032",
     "taskmaster_exported": true,
@@ -2592,9 +2596,11 @@
       "生成的 `build/build-info.json` 与 `build/release-profile.json` 中可解析出版本号、渠道、构建时间与 Commit SHA（字段命名可实现自定，但信息不可缺失）。 Refs: Game.Core.Tests/Tasks/Task33WindowsBuildArtifactsTests.cs"
     ],
     "test_strategy": [
-      "本地构建：在开发机运行 build_windows.py release/debug，验证输出文件与日志。",
+      "本地构建：在开发机运行 build_windows.py release，验证输出文件与日志。",
       "CI 集成：触发 Windows Release (Manual/Tag) 工作流，确认 Artifact 中包含 EXE、PCK、build-info.json 与 SHA256 校验文件。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-System-and-Godot-Export.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Export-Checklist.md Refs: Game.Core.Tests/Tasks/Task33RequirementsTests.cs"
+      "Optional: 本地构建：在开发机运行 build_windows.py debug，验证 Debug 导出路径与产物结构（不作为 Release 工作流硬门禁）。",
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-System-and-Godot-Export.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Export-Checklist.md Refs: Game.Core.Tests/Tasks/Task33RequirementsTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-System-and-Godot-Export.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Export-Checklist.md"
     ],
     "id": "SG-0033",
     "taskmaster_exported": true,
@@ -2658,7 +2664,8 @@
     "test_strategy": [
       "本地验证：手工设置不同 RELEASE_CHANNEL，运行构建脚本并检查 release-profile.json 差异。",
       "CI 验证：在测试分支上运行带渠道参数的 Release 工作流，确认生成的 profile 与工件符合预期。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-18-Staged-Release-and-Canary-Strategy.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-18-Staged-Release-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-19-Emergency-Rollback-and-Monitoring.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-19-Emergency-Rollback-Backlog.md Refs: Game.Core.Tests/Tasks/Task34RequirementsTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-18-Staged-Release-and-Canary-Strategy.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-18-Staged-Release-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-19-Emergency-Rollback-and-Monitoring.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-19-Emergency-Rollback-Backlog.md Refs: Game.Core.Tests/Tasks/Task34RequirementsTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-18-Staged-Release-and-Canary-Strategy.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-18-Staged-Release-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-19-Emergency-Rollback-and-Monitoring.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-19-Emergency-Rollback-Backlog.md"
     ],
     "id": "SG-0034",
     "taskmaster_exported": true,
@@ -2722,7 +2729,8 @@
     "test_strategy": [
       "文档审阅：由架构/产品共同确认模板文档结构对真实项目足够且不过度约束。",
       "链接检查：task-links-validate 或等价脚本对新模板文档进行路径与引用校验。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-20-Functional-Acceptance-Testing.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-20-Functional-Acceptance-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-21-Performance-Optimization.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-21-Performance-Optimization-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-22-Documentation-and-Release-Notes.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-22-Documentation-Backlog.md Refs: Game.Core.Tests/Tasks/Task35RequirementsTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-20-Functional-Acceptance-Testing.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-20-Functional-Acceptance-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-21-Performance-Optimization.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-21-Performance-Optimization-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-22-Documentation-and-Release-Notes.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-22-Documentation-Backlog.md Refs: Game.Core.Tests/Tasks/Task35RequirementsTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-20-Functional-Acceptance-Testing.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-20-Functional-Acceptance-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-21-Performance-Optimization.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-21-Performance-Optimization-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-22-Documentation-and-Release-Notes.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-22-Documentation-Backlog.md"
     ],
     "id": "SG-0035",
     "taskmaster_exported": true,
@@ -2787,7 +2795,8 @@
     "test_strategy": [
       "本地：运行 GameEngineCoreEventTests，并通过全文搜索核对事件类型常量。",
       "CI：在质量门禁中增加针对 core.*.* 事件类型前缀的简单字符串检查脚本。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-9-Signal-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-9-Signal-System.md Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_event_task36.gd"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-9-Signal-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-9-Signal-System.md Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_event_task36.gd",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-9-Signal-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-9-Signal-System.md"
     ],
     "id": "SG-0036",
     "taskmaster_exported": true,
@@ -2854,7 +2863,8 @@
     "test_strategy": [
       "本地：为 ObservabilityClient 编写 xUnit 测试，使用 fake/spy 对象捕获日志与事件上报行为。",
       "CI：在 dotnet-unit 任务中确保 Observability 测试纳入覆盖率统计，并在质量门禁报告中展示相关用例。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Backlog.md Refs: Game.Core.Tests/Tasks/Task37LoggingTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Backlog.md Refs: Game.Core.Tests/Tasks/Task37LoggingTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-16-Observability-Backlog.md"
     ],
     "id": "SG-0037",
     "taskmaster_exported": true,
@@ -2907,15 +2917,16 @@
       "Game.Core.Tests/Tasks/Task38GateTests.cs"
     ],
     "acceptance": [
-      "提供脚本或配置，可生成“重复率(Duplication%)”与“圈复杂度(Cyclomatic Complexity)”的机器可读报告，并分别写入 `logs/ci/<date>/quality-gates-duplication.json` 与 `logs/ci/<date>/quality-gates-complexity.json`。 Refs: Game.Core.Tests/Tasks/Task38GateTests.cs",
-      "`quality_gates.py` 可读取上述两份报告，并按 Phase-13 约定的阈值规则输出 PASS/FAIL（示例：Dup% ≤ 2%，最大圈复杂度 ≤ 10，平均圈复杂度 ≤ 5）。 Refs: Game.Core.Tests/Tasks/Task38GateTests.cs",
-      "CI 中至少存在一个 Job 以 `quality_gates.py` 作为质量门禁；当门禁失败时，输出可定位问题的重复率与复杂度摘要信息。 Refs: Game.Core.Tests/Tasks/Task38GateTests.cs",
-      "实现与使用方式的参考文档在本仓库可查：`docs/migration/Phase-13-Quality-Gates-Backlog.md` 与 `docs/migration/Phase-13-Quality-Gates-Script.md`。 Refs: Game.Core.Tests/Tasks/Task38GateTests.cs"
+      "提供可在 Windows/CI 环境执行的脚本或配置（可选用 jscpd、Roslyn、SonarQube 任一或组合），对本仓库代码生成“重复率（Duplication%）”与“圈复杂度（Cyclomatic Complexity）”的机器可读 JSON 报告，并分别写入 `logs/ci/<date>/quality-gates-duplication.json` 与 `logs/ci/<date>/quality-gates-complexity.json`；报告包含用于门禁判定的数值字段且非空。 Refs: Game.Core.Tests/Tasks/Task38GateTests.cs",
+      "`quality_gates.py` 在统一门禁流程中读取上述两份报告并应用 Phase-13 约定的阈值规则输出 PASS/FAIL（示例：Dup% ≤ 2%，最大圈复杂度 ≤ 10，平均圈复杂度 ≤ 5）；当任一报告缺失/不可解析/缺少必要字段时必须判定为 FAIL，并输出可定位原因的错误信息。 Refs: Game.Core.Tests/Tasks/Task38GateTests.cs",
+      "在本仓库 CI 配置中至少存在一个 Job 调用 `quality_gates.py` 并将 duplication 与 complexity 纳入门禁判定；当门禁失败时在日志或 Step Summary 输出可复核的摘要（至少包含 Dup% 数值、最大/平均圈复杂度数值及超标项/超标阈值），以支持快速定位问题。 Refs: Game.Core.Tests/Tasks/Task38GateTests.cs",
+      "本仓库文档 `docs/migration/Phase-13-Quality-Gates-Backlog.md` 与 `docs/migration/Phase-13-Quality-Gates-Script.md` 明确说明上述两类报告的生成方式与文件路径，并说明 `quality_gates.py` 如何读取并据此做 PASS/FAIL 判定，使读者不依赖外部仓库文档也能复现该门禁流程。 Refs: Game.Core.Tests/Tasks/Task38GateTests.cs"
     ],
     "test_strategy": [
       "本地：构造一个故意高重复率、高复杂度的小示例，验证 quality_gates.py 能将其标记为 failed。",
       "CI：在 windows-quality-gate 工作流中增加对 duplication 与 complexity 报告的校验，并在 Step Summary 中展示关键指标。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Script.md Refs: Game.Core.Tests/Tasks/Task38GateTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Script.md Refs: Game.Core.Tests/Tasks/Task38GateTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Script.md"
     ],
     "id": "SG-0038",
     "taskmaster_exported": true,
@@ -2976,7 +2987,8 @@
     "test_strategy": [
       "单元：为 validate_perf 与 validate_audit_logs 编写测试，验证边界条件与错误路径。",
       "集成：在 CI 中对刻意构造的超阈值样例运行 quality_gates.py，验证能够正确失败并输出预期的 JSON 摘要。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-and-Gates.md Refs: Game.Core.Tests/Tasks/Task39AuditPerformanceTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-and-Gates.md Refs: Game.Core.Tests/Tasks/Task39AuditPerformanceTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-and-Gates.md"
     ],
     "id": "SG-0039",
     "taskmaster_exported": true,
@@ -3045,7 +3057,8 @@
     "test_strategy": [
       "GdUnit4：为安全相关 Signal 编写 Hard 套件，用于验证触发路径与 XML 注释是否齐全。",
       "CI：在 signal-compliance 相关工作流中集成健康度检查脚本，并观察在故意缺失注释或错误命名时是否会失败。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Baseline.md Refs: Game.Core.Tests/Tasks/Task40SecurityGateTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Baseline.md Refs: Game.Core.Tests/Tasks/Task40SecurityGateTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Baseline.md"
     ],
     "id": "SG-0040",
     "taskmaster_exported": true,
@@ -3107,7 +3120,8 @@
     "test_strategy": [
       "本地：构造多次性能采样结果，运行报告生成脚本，检查历史文件是否按预期累积数据。",
       "CI：在性能相关 Job 中执行报告生成步骤，并检查 artifact 中是否包含预期文件。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md Refs: Game.Core.Tests/Tasks/Task41PerformanceTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md Refs: Game.Core.Tests/Tasks/Task41PerformanceTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md"
     ],
     "id": "SG-0041",
     "taskmaster_exported": true,
@@ -3164,13 +3178,14 @@
     "acceptance": [
       "仓库中存在独立的性能门禁 CI 工作流文件（例如 `.github/workflows/performance-gates.yml`），且仓库内文档明确说明其触发条件与适用场景。 Refs: Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs",
       "性能门禁工作流仅执行性能采集与阈值校验相关脚本/步骤，不运行或重复常规 build/test 工作流中的构建与测试步骤。 Refs: Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs",
-      "当性能阈值校验未通过时，performance-gates 工作流在 CI 中以失败状态结束并清晰标记失败原因，同时输出 JSON 摘要到 `logs/ci/<date>/performance-gates-summary.json`。 Refs: Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs",
+      "当性能阈值校验未通过时，performance-gates 工作流在 CI 中以失败状态结束并清晰标记失败原因，同时输出 JSON 摘要到 `logs/ci/<date>/performance-gates-summary.json`。；当性能阈值校验通过时，工作流同样以成功状态结束并输出同路径 JSON 摘要（摘要可据此判断本次关键指标数值、阈值与最终通过/失败结论，而非空文件/空对象）。；performance-gates 工作流支持在 CI 中被单独触发运行且其运行不以常规 build/test 工作流作为前置依赖条件。 Refs: Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs",
       "参考文档（本仓库）：`docs/migration/Phase-15-Performance-Budgets-Backlog.md`。 Refs: Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs"
     ],
     "test_strategy": [
       "CI：针对测试分支手动触发 performance-gates 工作流，观察在性能超阈值和正常情况下的行为差异。",
       "文档：在 Phase-15 或 README 中记录如何启用或关闭性能门禁工作流。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md Refs: Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md Refs: Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-15-Performance-Budgets-Backlog.md"
     ],
     "id": "SG-0042",
     "taskmaster_exported": true,
@@ -3242,7 +3257,8 @@
     "test_strategy": [
       "本地：在具备测试证书的环境下执行构建，验证 EXE 已被签名且系统属性中可见。",
       "CI：在 Windows 构建 Job 中对 signing-summary.json 做基础格式检查，确保脚本在有与无证书两种场景下都能稳定运行。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md Refs: Game.Core.Tests/Tasks/Task43SecurityTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md Refs: Game.Core.Tests/Tasks/Task43SecurityTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md"
     ],
     "id": "SG-0043",
     "taskmaster_exported": true,
@@ -3310,7 +3326,8 @@
     "test_strategy": [
       "本地：在 Godot 编辑器与 headless 模式下分别验证各导出预设可以成功生成可运行的 EXE。",
       "CI：在 export 相关工作流中记录所用预设名称，并检查导出 summary 中的配置字段。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Export-Checklist.md Refs: Game.Core.Tests/Tasks/Task44RequirementsTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Export-Checklist.md Refs: Game.Core.Tests/Tasks/Task44RequirementsTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Build-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-17-Export-Checklist.md"
     ],
     "id": "SG-0044",
     "taskmaster_exported": true,
@@ -3376,7 +3393,8 @@
     "test_strategy": [
       "本地：构造刻意违反依赖矩阵的示例（例如在 Game.Core 中添加 using Godot; 或在 Scripts/Core 中直接引用 Godot API），运行 dependency_guard 脚本验证其能正确发现并在 JSON/文本摘要中报告。",
       "CI：在测试分支上启用依赖护栏步骤，故意保留一处违规依赖，确认 windows-quality-gate（或等价工作流）中的 Step Summary 能显示违规详情，并在规则配置为硬门禁时正确使 Job 失败。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-7-UI-Migration.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-5-Adapter-Layer.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-4-Domain-Layer.md Refs: Game.Core.Tests/Tasks/Task45RequirementsTests.cs"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-7-UI-Migration.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-5-Adapter-Layer.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-4-Domain-Layer.md Refs: Game.Core.Tests/Tasks/Task45RequirementsTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-7-UI-Migration.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-5-Adapter-Layer.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-4-Domain-Layer.md"
     ],
     "id": "SG-0045",
     "taskmaster_exported": true,
@@ -3444,7 +3462,8 @@
     "test_strategy": [
       "本地运行：在 Windows 环境下通过 dev_cli.py 调用 Python 版 smoke，验证日志与退出码。",
       "CI 演练：在非受保护分支上打开 strict 模式，观察 smoke 失败时的门禁行为与日志输出。",
-      "参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-12-Headless-Smoke-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-12-Headless-Smoke-Tests.md Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_requirements_task46.gd"
+      "Optional: 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-12-Headless-Smoke-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-12-Headless-Smoke-Tests.md Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_requirements_task46.gd",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-12-Headless-Smoke-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-12-Headless-Smoke-Tests.md"
     ],
     "id": "SG-0046",
     "taskmaster_exported": true,
@@ -3511,7 +3530,8 @@
     "test_strategy": [
       "本地模拟：手工降低测试覆盖率，验证 quality_gates.py 将其标记为 failed，并按配置返回非零 exit code。",
       "CI 验证：在 PR 上运行 windows-quality-gate 工作流，观察 coverage 与 GdUnit4 结果是否在 Step Summary 与 artifacts 中正确展示。",
-      "[MIGRATED_FROM_ACCEPTANCE:absolute-path] 任务实现与验收以外部仓库参考文档为对照：C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Script.md Refs: Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs"
+      "Optional: 任务实现与验收以外部仓库参考文档为对照：C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Script.md Refs: Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-13-Quality-Gates-Script.md"
     ],
     "id": "SG-0047",
     "taskmaster_exported": true,
@@ -3577,7 +3597,8 @@
     "test_strategy": [
       "GdUnit4 安全用例：编写/扩展 Hard 集测试外链、文件、进程三类接口的 allow/deny/invalid 行为。",
       "脚本校验：新增或扩展 scripts/python/validate_audit_logs.py，针对 security-audit.jsonl 做格式与字段校验，在 CI 中运行。",
-      "[MIGRATED_FROM_ACCEPTANCE:absolute-path] 本实现对齐的外部参考文档为：C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Backlog.md；C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Baseline.md。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs"
+      "Optional: 本实现对齐的外部参考文档为：C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Backlog.md；C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Baseline.md。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs",
+      "Optional: - 参考文档（外部仓库）: C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Backlog.md ; C:\\buildgame\\newguild\\docs\\migration\\Phase-14-Godot-Security-Baseline.md"
     ],
     "id": "SG-0048",
     "taskmaster_exported": true,
