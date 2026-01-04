@@ -37,6 +37,9 @@ func test_hud_scene_instantiates() -> void:
     var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
     assert_str(money_label.text).is_equal("Money: -")
 
+    assert_object(main.get_node_or_null("SanguoBoardView")).is_not_null()
+    assert_object(main.get_node_or_null("Overlays/CityOwnershipStatus")).is_not_null()
+
     _bus.PublishSimple("ui.menu.start", "ut", "{}")
     for _i in range(20):
         await get_tree().process_frame

@@ -1,8 +1,10 @@
 using Godot;
 using Game.Core.Domain;
+using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 using Game.Core.Services;
 using Game.Godot.Adapters;
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 
 namespace Game.Godot.Scripts.Sanguo;
@@ -108,7 +110,32 @@ public partial class SanguoGameLoopController : Node
             new SanguoPlayer(playerId: "ai-1", money: 100m, positionIndex: 0, economyRules: economyRules),
         };
 
-        var boardState = new SanguoBoardState(players: players, citiesById: new System.Collections.Generic.Dictionary<string, City>(StringComparer.Ordinal));
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal)
+        {
+            ["c1"] = new City(
+                id: "c1",
+                name: "City 1",
+                regionId: "r1",
+                basePrice: MoneyValue.FromDecimal(100m),
+                baseToll: MoneyValue.FromDecimal(10m),
+                positionIndex: 2),
+            ["c2"] = new City(
+                id: "c2",
+                name: "City 2",
+                regionId: "r1",
+                basePrice: MoneyValue.FromDecimal(100m),
+                baseToll: MoneyValue.FromDecimal(10m),
+                positionIndex: 4),
+            ["c3"] = new City(
+                id: "c3",
+                name: "City 3",
+                regionId: "r2",
+                basePrice: MoneyValue.FromDecimal(100m),
+                baseToll: MoneyValue.FromDecimal(10m),
+                positionIndex: 6),
+        };
+
+        var boardState = new SanguoBoardState(players: players, citiesById: citiesById);
         var treasury = new SanguoTreasury();
         var economy = new SanguoEconomyManager(_bus);
 
@@ -185,4 +212,3 @@ public partial class SanguoGameLoopController : Node
         }
     }
 }
-

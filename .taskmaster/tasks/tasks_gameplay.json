@@ -4,7 +4,7 @@
     "story_id": "PRD-SANGUO-T2-BOOTSTRAP",
     "title": "设置Godot项目",
     "description": "在 Godot 4.x 中创建并初始化新项目，并完成 C# 支持配置与所需 Mono/.NET SDK 环境准备，以确保项目可被引擎正常打开运行且 C# 脚本可加载执行。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "infra",
     "depends_on": [],
@@ -65,7 +65,7 @@
     "story_id": "PRD-SANGUO-T2-BOARD",
     "title": "创建环形地图数据结构",
     "description": "设计并实现纯 C# 的环形地图索引抽象：支持“当前位置索引 + 骰子点数/步数”计算新位置，并能生成多步移动的索引序列；本任务不引入 City 领域对象。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -146,7 +146,7 @@
     "story_id": "PRD-SANGUO-T2-CITY",
     "title": "实现城池类",
     "description": "定义城池的属性和方法。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -224,7 +224,7 @@
     "story_id": "PRD-SANGUO-T2-PLAYER",
     "title": "实现玩家类",
     "description": "在 Game.Core 中新增独立的 SanguoPlayer（不复用现有战斗语义 Player），提供可单测的纯 .NET 领域状态（资金、当前位置索引、已拥有城池列表等）与经济结算能力（购买城池、支付过路费）；所有结算不依赖任何 Godot API，并按与 Task 13 对齐的破产规则产出可供上层分流处理（真人 GameOver / NPC 由 TurnManager 退出本局）的结果。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -300,7 +300,7 @@
     "story_id": "PRD-SANGUO-T2-DICE",
     "title": "实现骰子机制",
     "description": "使用随机数生成器实现 1..6 的掷骰，并在掷骰后发布域事件 core.sanguo.dice.rolled（SanguoDiceRolled，遵循 ADR-0004）。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -382,7 +382,7 @@
     "story_id": "PRD-SANGUO-T2-TURN-MANAGER",
     "title": "实现回合管理器",
     "description": "控制游戏回合的顺序和时间推进：TurnManager 在 Game.Core 管理当前日期（年/月/日）与当前行动玩家；Godot 层仅展示当前轮次与日期等只读状态。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -474,7 +474,7 @@
     "story_id": "PRD-SANGUO-T2-ECONOMY",
     "title": "实现经济结算管理器",
     "description": "创建 EconomyManager 类：计算月末收益、处理地价调整，并发布相关事件。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -561,7 +561,7 @@
     "story_id": "PRD-SANGUO-T2-ENV-EVENTS",
     "title": "实现事件管理器",
     "description": "在 Game.Core 中实现域事件总线（EventBus）并管理订阅生命周期：支持订阅/取消订阅（Dispose）；PublishAsync 对所有订阅者 fan-out 调用；订阅者异常不影响其他订阅者；在可用时以 best-effort 方式通过 logger/reporter 上报包含 event_type、event_source、event_id 的上下文，且观测链路异常不影响业务流程。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -651,7 +651,7 @@
     "story_id": "PRD-SANGUO-T2-UI-SKELETON",
     "title": "设计UI界面",
     "description": "在 Godot 中设计 UI，包括玩家信息面板、骰子按钮、事件提示框、资金与日期显示等，将核心显示元素组织为可复用场景（HUD、对话框、日志面板），避免在脚本中堆叠控件创建逻辑。控件选择与布局可参考 Godot 官方演示项目 gui/control_gallery、gui/accessibility 中的最佳实践，在此基础上使用项目自定义主题统一视觉风格。",
-    "status": "pending",
+    "status": "done",
     "priority": "P2",
     "layer": "ui",
     "depends_on": [
@@ -721,7 +721,7 @@
     "story_id": "PRD-SANGUO-T2-UI-DICE",
     "title": "实现UI骰子结果显示",
     "description": "在UI上显示骰子投掷结果。",
-    "status": "pending",
+    "status": "done",
     "priority": "P2",
     "layer": "ui",
     "depends_on": [
@@ -790,7 +790,7 @@
     "story_id": "PRD-SANGUO-T2-TOKEN-MOVE",
     "title": "实现玩家棋子移动",
     "description": "根据骰子结果移动玩家棋子；在 Godot 中提供移动动画（Tween 或插值）；发布 `core.sanguo.board.token.moved` 前对 ToIndex 做合法范围校验（0 <= ToIndex < TotalPositions），视图仅做防御性校验与审计。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -871,7 +871,7 @@
     "story_id": "PRD-SANGUO-T2-BUY-LAND",
     "title": "实现土地购买逻辑",
     "description": "当玩家停留在无人城池时，玩法层应能基于状态为玩家呈现“购买”选项；玩家选择购买后应扣除资金并更新城池所有权；不满足前置条件则购买失败且状态不变。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -973,7 +973,7 @@
     "story_id": "PRD-SANGUO-T2-UI-CITY-STATE",
     "title": "实现UI城池状态显示",
     "description": "在UI上显示城池的占有状态。根据城池的占有情况，更新UI显示。",
-    "status": "pending",
+    "status": "done",
     "priority": "P2",
     "layer": "ui",
     "depends_on": [
@@ -1048,7 +1048,7 @@
     "story_id": "PRD-SANGUO-T2-TOLL",
     "title": "实现过路费支付逻辑",
     "description": "处理玩家支付过路费的逻辑。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1142,7 +1142,7 @@
     "story_id": "PRD-SANGUO-T2-AI-CORE",
     "title": "实现AI行为",
     "description": "设计AI的基本行动逻辑。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1229,7 +1229,7 @@
     "story_id": "PRD-SANGUO-T2-MONTH-END",
     "title": "实现月末收益结算",
     "description": "在每月最后一天，自动结算玩家的月末收益并更新资金。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1312,7 +1312,7 @@
     "story_id": "PRD-SANGUO-T2-UI-MONEY",
     "title": "实现UI资金显示",
     "description": "在UI上显示玩家的资金信息。",
-    "status": "pending",
+    "status": "done",
     "priority": "P2",
     "layer": "ui",
     "depends_on": [
@@ -1380,7 +1380,7 @@
     "story_id": "PRD-SANGUO-T2-SEASON-EVENTS",
     "title": "实现季度环境事件",
     "description": "在季度开始时，按概率触发环境事件，并调整相关城池的收益。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1465,7 +1465,7 @@
     "story_id": "PRD-SANGUO-T2-UI-EVENT-TIPS",
     "title": "实现UI事件提示",
     "description": "在事件发生时，通过 UI 弹出提示信息，通知玩家。",
-    "status": "pending",
+    "status": "done",
     "priority": "P2",
     "layer": "ui",
     "depends_on": [
@@ -1540,7 +1540,7 @@
     "story_id": "PRD-SANGUO-T2-YEAR-PRICE",
     "title": "实现年度地价调整",
     "description": "在每年年初随机调整城池的基础价格和过路费。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1622,7 +1622,7 @@
     "story_id": "PRD-SANGUO-T2-GAME-LOOP",
     "title": "实现回合循环",
     "description": "确保游戏回合循环正常进行。",
-    "status": "pending",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1729,7 +1729,7 @@
     "story_id": "PRD-SANGUO-T2-UI-DATE",
     "title": "实现UI日期显示",
     "description": "在UI上显示当前游戏日期，并在游戏日期变化时实时更新显示。",
-    "status": "pending",
+    "status": "done",
     "priority": "P2",
     "layer": "ui",
     "depends_on": [
