@@ -226,7 +226,13 @@ public sealed class SanguoTurnManagerBranchCoverageTests
 
     private sealed class AlwaysRollDicePolicy : ISanguoAiDecisionPolicy
     {
-        public SanguoAiDecision Decide(ISanguoPlayerView self) => new(SanguoAiDecisionType.RollDice);
+        public SanguoAiDecision Decide(ISanguoPlayerView self)
+            => new(
+                DecisionType: SanguoAiDecisionType.RollDice,
+                DecisionNode: "test.always-roll.v1",
+                FromState: "from",
+                ToState: "to",
+                Reason: "test");
     }
 
     private sealed class FixedRng : IRandomNumberGenerator

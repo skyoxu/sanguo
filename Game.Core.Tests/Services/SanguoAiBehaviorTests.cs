@@ -222,7 +222,13 @@ public sealed class SanguoAiBehaviorTests
     {
         private readonly SanguoAiDecisionType _decisionType;
         public AlwaysDecisionPolicy(SanguoAiDecisionType decisionType) => _decisionType = decisionType;
-        public SanguoAiDecision Decide(ISanguoPlayerView self) => new(_decisionType);
+        public SanguoAiDecision Decide(ISanguoPlayerView self)
+            => new(
+                DecisionType: _decisionType,
+                DecisionNode: "test.always.v1",
+                FromState: "from",
+                ToState: "to",
+                Reason: "test");
     }
 
     private sealed class CapturingDecisionPolicy : ISanguoAiDecisionPolicy
@@ -231,7 +237,12 @@ public sealed class SanguoAiBehaviorTests
         public SanguoAiDecision Decide(ISanguoPlayerView self)
         {
             Captured = self;
-            return new SanguoAiDecision(SanguoAiDecisionType.Skip);
+            return new SanguoAiDecision(
+                DecisionType: SanguoAiDecisionType.Skip,
+                DecisionNode: "test.capture.v1",
+                FromState: "from",
+                ToState: "to",
+                Reason: "test");
         }
     }
 

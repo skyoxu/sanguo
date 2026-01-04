@@ -432,6 +432,29 @@ public sealed class Task17TurnTests
         first.DecisionType.Should().Be(SanguoAiDecisionType.RollDice);
         second.DecisionType.Should().Be(SanguoAiDecisionType.Skip);
         third.DecisionType.Should().Be(SanguoAiDecisionType.RollDice);
+
+        first.DecisionNode.Should().NotBeNullOrWhiteSpace();
+        first.FromState.Should().Be("RollDice");
+        first.ToState.Should().Be("Skip");
+        first.Reason.Should().NotBeNullOrWhiteSpace();
+
+        second.FromState.Should().Be("Skip");
+        second.ToState.Should().Be("RollDice");
+
+        // Deterministic: for a fixed input sequence, two fresh policies should produce the same decisions.
+        var policyA = new DefaultSanguoAiDecisionPolicy();
+        var policyB = new DefaultSanguoAiDecisionPolicy();
+        var seq1 = new[] { policyA.Decide(view).DecisionType, policyA.Decide(view).DecisionType, policyA.Decide(view).DecisionType };
+        var seq2 = new[] { policyB.Decide(view).DecisionType, policyB.Decide(view).DecisionType, policyB.Decide(view).DecisionType };
+        seq1.Should().Equal(seq2);
+
+        // Architecture constraint: policy must not hold onto SanguoPlayer instances.
+        typeof(DefaultSanguoAiDecisionPolicy)
+            .GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)
+            .Select(f => f.FieldType)
+            .Any(t => t == typeof(SanguoPlayer) || t == typeof(SanguoBoardState))
+            .Should()
+            .BeFalse();
     }
 
     // ACC:T17.14
@@ -644,6 +667,11 @@ public sealed class Task17TurnTests
         decision.Should().NotBeNull();
         var decisionPayload = ((JsonElementEventData)decision!.Data!).Value;
         decisionPayload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
+        decisionPayload.GetProperty("DecisionType").GetString().Should().NotBeNullOrWhiteSpace();
+        decisionPayload.GetProperty("DecisionNode").GetString().Should().NotBeNullOrWhiteSpace();
+        decisionPayload.GetProperty("FromState").GetString().Should().NotBeNullOrWhiteSpace();
+        decisionPayload.GetProperty("ToState").GetString().Should().NotBeNullOrWhiteSpace();
+        decisionPayload.GetProperty("Reason").GetString().Should().NotBeNullOrWhiteSpace();
 
         var moved = bus.Published.Find(e => e.Type == SanguoTokenMoved.EventType);
         moved.Should().NotBeNull();
@@ -888,7 +916,12 @@ public sealed class Task17TurnTests
         {
             Seen = true;
             SeenSelfType = self.GetType();
-            return new SanguoAiDecision(SanguoAiDecisionType.RollDice);
+            return new SanguoAiDecision(
+                DecisionType: SanguoAiDecisionType.RollDice,
+                DecisionNode: "test.spy.v1",
+                FromState: "RollDice",
+                ToState: "Skip",
+                Reason: "test");
         }
     }
 

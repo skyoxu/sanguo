@@ -180,6 +180,10 @@ public sealed class SanguoContractInstantiationTests
             GameId: "game-1",
             AiPlayerId: "ai-1",
             DecisionType: "buy",
+            DecisionNode: "test.node.v1",
+            FromState: "state-a",
+            ToState: "state-b",
+            Reason: "test",
             TargetCityId: "city-1",
             OccurredAt: now,
             CorrelationId: "corr-1",
@@ -188,6 +192,10 @@ public sealed class SanguoContractInstantiationTests
         decision.GameId.Should().Be("game-1");
         decision.AiPlayerId.Should().Be("ai-1");
         decision.DecisionType.Should().Be("buy");
+        decision.DecisionNode.Should().Be("test.node.v1");
+        decision.FromState.Should().Be("state-a");
+        decision.ToState.Should().Be("state-b");
+        decision.Reason.Should().Be("test");
         decision.TargetCityId.Should().Be("city-1");
         decision.OccurredAt.Should().Be(now);
         decision.CorrelationId.Should().Be("corr-1");

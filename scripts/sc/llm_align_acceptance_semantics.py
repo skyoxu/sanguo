@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from _taskmaster import default_paths, load_json  # type: ignore
-from _util import ci_dir, today_str, write_json, write_text  # type: ignore
+from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text  # type: ignore
 
 from _acceptance_semantics_align import (  # noqa: E402
     MasterTaskInput,
@@ -46,6 +46,17 @@ def main() -> int:
     ap.add_argument("--scope", default="all", choices=["all", "done", "not-done"])
     ap.add_argument("--task-ids", default="", help="Optional CSV task ids override.")
     ap.add_argument("--apply", action="store_true", help="Write changes into tasks_back.json/tasks_gameplay.json.")
+    ap.add_argument(
+        "--preflight-migrate-optional-hints",
+        action="store_true",
+        help="Preflight: migrate optional/demo/hardening hints out of tasks.json into view test_strategy before alignment. "
+        "Runs deterministically via scripts/python/migrate_task_optional_hints_to_views.py.",
+    )
+    ap.add_argument(
+        "--skip-preflight-migrate-optional-hints",
+        action="store_true",
+        help="Disable the optional-hints preflight (default is enabled when --apply is set).",
+    )
     ap.add_argument("--structural-for-not-done", action="store_true", help="Use append-only for not-done tasks.")
     ap.add_argument(
         "--append-only-for-done",
@@ -79,6 +90,26 @@ def main() -> int:
         task_ids = sorted(master_index.keys())
 
     out_dir = ci_dir("sc-llm-align-acceptance-semantics")
+
+    # Step A (upstream governance): remove non-core / non-portable optional hints
+    # from master tasks so they don't pollute acceptance semantics alignment.
+    preflight_ran = False
+    preflight_rc: int | None = None
+    # Default: enabled when --apply is set (can be disabled via --skip-preflight-migrate-optional-hints).
+    preflight_enabled = bool(args.apply) and not bool(args.skip_preflight_migrate_optional_hints)
+    # If not applying, allow a dry-run preflight report only when explicitly requested.
+    preflight_dry_run = (not bool(args.apply)) and bool(args.preflight_migrate_optional_hints) and not bool(args.skip_preflight_migrate_optional_hints)
+
+    if (bool(args.apply) and preflight_enabled) or preflight_dry_run:
+        cmd = ["py", "-3", "scripts/python/migrate_task_optional_hints_to_views.py"]
+        if task_ids:
+            cmd += ["--task-ids", ",".join([str(x) for x in task_ids])]
+        if bool(args.apply):
+            cmd.append("--write")
+        preflight_rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=300)
+        write_text(out_dir / "preflight-migrate-optional-hints.log", out)
+        preflight_ran = True
+
     results: list[dict[str, Any]] = []
     changed = 0
     skipped = 0
@@ -196,6 +227,15 @@ def main() -> int:
             "date": today_str(),
             "apply": bool(args.apply),
             "scope": str(args.scope),
+            "preflight": {
+                "migrate_optional_hints": bool(preflight_enabled),
+                "dry_run": bool(preflight_dry_run),
+                "ran": preflight_ran,
+                "rc": preflight_rc,
+                "log": str((out_dir / "preflight-migrate-optional-hints.log").relative_to(repo_root())).replace("\\", "/")
+                if preflight_ran
+                else None,
+            },
             "structural_for_not_done": bool(args.structural_for_not_done),
             "append_only_for_done": bool(args.append_only_for_done),
             "align_view_descriptions_to_master": bool(args.align_view_descriptions_to_master),
