@@ -111,6 +111,11 @@ public sealed class SanguoTurnManager
         );
 
         await _bus.PublishAsync(evt);
+        await PublishPlayerStateChangedAsync(
+            playerId: _playerOrder[_activePlayerIndex],
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
         await PublishAiDecisionIfNeededAsync(
             activePlayerId: _playerOrder[_activePlayerIndex],
             correlationId: correlationId,
@@ -326,11 +331,45 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N")
         );
         await _bus.PublishAsync(started);
+        await PublishPlayerStateChangedAsync(
+            playerId: _playerOrder[_activePlayerIndex],
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
         await PublishAiDecisionIfNeededAsync(
             activePlayerId: _playerOrder[_activePlayerIndex],
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
+    }
+
+    private async Task PublishPlayerStateChangedAsync(
+        string playerId,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (_gameId is null)
+            return;
+
+        if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+            throw new InvalidOperationException($"Player not found in board state: {playerId}");
+
+        var evt = new DomainEvent(
+            Type: SanguoPlayerStateChanged.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoPlayerStateChanged(
+                GameId: _gameId,
+                PlayerId: playerId,
+                Money: player.Money.ToDecimal(),
+                PositionIndex: player.PositionIndex,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+
+        await _bus.PublishAsync(evt);
     }
 
     private async Task<bool> TryEndGameIfHumanEliminatedAsync(string correlationId, string? causationId)

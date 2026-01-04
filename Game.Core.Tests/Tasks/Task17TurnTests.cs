@@ -103,9 +103,10 @@ public sealed class Task17TurnTests
             causationId: null);
 
         bus.Published.Should().ContainSingle(e => e.Type == SanguoGameTurnStarted.EventType);
+        bus.Published.Should().ContainSingle(e => e.Type == SanguoPlayerStateChanged.EventType);
         bus.Published.Should().NotContain(e => e.Type == SanguoGameTurnEnded.EventType);
         bus.Published.Should().NotContain(e => e.Type == SanguoGameTurnAdvanced.EventType);
-        bus.Published.Should().HaveCount(1);
+        bus.Published.Should().HaveCount(2);
 
         var started = bus.Published.Find(e => e.Type == SanguoGameTurnStarted.EventType);
         started.Should().NotBeNull();
