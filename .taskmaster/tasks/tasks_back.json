@@ -1759,9 +1759,7 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task21.gd",
       "Tests.Godot/tests/UI/test_hud_scene.gd",
-      "Tests.Godot/tests/UI/A11y/test_button_invokable.gd",
       "Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
       "Tests.Godot/tests/UI/test_hud_date_display_reflects_latest_date.gd"
     ],

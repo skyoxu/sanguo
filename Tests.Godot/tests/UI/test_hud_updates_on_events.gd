@@ -144,6 +144,7 @@ func test_hud_updates_on_health_event() -> void:
     assert_str(hp_label.text).is_equal("HP: 77")
 
 # ACC:T20.3
+# ACC:T21.2
 func test_hud_updates_on_sanguo_turn_started_event() -> void:
     var hud = await _hud()
     var active_label: Label = hud.get_node("TopBar/HBox/ActivePlayerLabel")
@@ -156,6 +157,10 @@ func test_hud_updates_on_sanguo_turn_started_event() -> void:
     await get_tree().process_frame
     assert_str(active_label.text).is_equal("Player: p1")
     assert_str(date_label.text).is_equal("Date: 0003-02-01")
+
+    _bus.PublishSimple("core.sanguo.game.turn.advanced", "ut", "{\"GameId\":\"g1\",\"ActivePlayerId\":\"p1\",\"TurnNumber\":2,\"Year\":3,\"Month\":2,\"Day\":2}")
+    await get_tree().process_frame
+    assert_str(date_label.text).is_equal("Date: 0003-02-02")
 
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":123,\"PositionIndex\":0}")
     await get_tree().process_frame

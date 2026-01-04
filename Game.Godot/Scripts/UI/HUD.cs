@@ -26,6 +26,7 @@ public partial class HUD : Control
     private Button _diceButton = default!;
 
     private string? _activePlayerId;
+    private int _lastDateKey;
     private EventBusAdapter? _bus;
     private SanguoDiceService? _diceService;
     private readonly Dictionary<string, Action<JsonElement>> _handlers = new(StringComparer.Ordinal);
@@ -35,6 +36,7 @@ public partial class HUD : Control
 
     public override void _Ready()
     {
+        _lastDateKey = -1;
         _score = GetNode<Label>("TopBar/HBox/ScoreLabel");
         _health = GetNode<Label>("TopBar/HBox/HealthLabel");
 
@@ -363,9 +365,30 @@ public partial class HUD : Control
         if (root.TryGetProperty("Month", out var m)) month = m.GetInt32();
         if (root.TryGetProperty("Day", out var d)) day = d.GetInt32();
 
+        var dateKey = ComputeDateKey(year, month, day);
+        if (dateKey > 0 && _lastDateKey > 0 && dateKey < _lastDateKey)
+        {
+            return;
+        }
+
+        if (dateKey > 0 && dateKey > _lastDateKey)
+        {
+            _lastDateKey = dateKey;
+        }
+
         _activePlayerId = string.IsNullOrWhiteSpace(active) ? null : active;
         _activePlayer.Text = $"Player: {active}";
         _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
+    }
+
+    private static int ComputeDateKey(int year, int month, int day)
+    {
+        if (year <= 0 || month <= 0 || day <= 0)
+        {
+            return -1;
+        }
+
+        return (year * 10000) + (month * 100) + day;
     }
 
     private void HandlePlayerStateChangedEvent(JsonElement root)
