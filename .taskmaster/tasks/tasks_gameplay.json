@@ -1495,7 +1495,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_event_task19.gd",
       "Tests.Godot/tests/UI/test_hud_scene.gd",
       "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
