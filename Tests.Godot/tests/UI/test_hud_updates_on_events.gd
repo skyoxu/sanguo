@@ -70,22 +70,64 @@ func test_hud_has_event_toast_and_log_panel_nodes() -> void:
     assert_object(hud.get_node_or_null("EventLogPanel")).is_not_null()
 
 # ACC:T9.6
+# ACC:T19.2
 func test_hud_records_sanguo_events_to_toast_and_log_panel() -> void:
     var hud = await _hud()
     var toast_label: Label = hud.get_node("EventToast/Panel/Label")
+    var toast: Control = hud.get_node("EventToast")
     var log_list: ItemList = hud.get_node("EventLogPanel/Margin/VBox/EventList")
+
+    assert_bool(toast.visible).is_false()
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
+    # Clear the toast visibility so we can deterministically assert the next event shows it.
+    toast.visible = false
+
     _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
     await get_tree().process_frame
 
+    assert_bool(toast.visible).is_true()
     assert_str(toast_label.text).contains("core.sanguo.dice.rolled")
     assert_str(toast_label.text).contains("value=6")
 
     assert_int(log_list.get_item_count()).is_greater(0)
     var last := log_list.get_item_text(log_list.get_item_count() - 1)
     assert_str(last).contains("core.sanguo.dice.rolled")
+
+func test_hud_records_month_season_game_end_events_to_toast_and_log_panel() -> void:
+    var hud = await _hud()
+    var toast_label: Label = hud.get_node("EventToast/Panel/Label")
+    var toast: Control = hud.get_node("EventToast")
+    var log_list: ItemList = hud.get_node("EventLogPanel/Margin/VBox/EventList")
+
+    var cases := [
+        {"type": "core.sanguo.board.token.moved", "json": "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"FromIndex\":0,\"ToIndex\":3,\"Steps\":3,\"PassedStart\":false}"},
+        {"type": "core.sanguo.city.bought", "json": "{\"GameId\":\"g1\",\"BuyerId\":\"p1\",\"CityId\":\"c1\",\"Price\":100}"},
+        {"type": "core.sanguo.economy.month.settled", "json": "{\"GameId\":\"g1\",\"Year\":3,\"Month\":2,\"PlayerSettlements\":[]}"},
+        {"type": "core.sanguo.economy.season.event.applied", "json": "{\"GameId\":\"g1\",\"Year\":3,\"Season\":\"Spring\",\"YieldMultiplier\":1.0,\"AffectedRegionIds\":[]}"},
+        {"type": "core.sanguo.game.ended", "json": "{\"GameId\":\"g1\",\"EndReason\":\"test\"}"},
+        {"type": "core.sanguo.game.turn.advanced", "json": "{\"GameId\":\"g1\",\"ActivePlayerId\":\"p1\",\"TurnNumber\":2,\"Year\":3,\"Month\":2,\"Day\":2}"},
+    ]
+
+    for c in cases:
+        toast.visible = false
+        toast_label.text = ""
+        log_list.clear()
+
+        _bus.PublishSimple(str(c["type"]), "ut", str(c["json"]))
+        for _i in range(10):
+            await get_tree().process_frame
+            if toast.visible and log_list.get_item_count() > 0:
+                break
+
+        assert_bool(toast.visible).is_true()
+        assert_bool(toast_label.text.length() > 0).is_true()
+        assert_str(toast_label.text).contains(str(c["type"]))
+
+        assert_int(log_list.get_item_count()).is_greater(0)
+        var last := log_list.get_item_text(log_list.get_item_count() - 1)
+        assert_str(last).contains(str(c["type"]))
 
 func test_hud_updates_on_score_event() -> void:
     var hud = await _hud()

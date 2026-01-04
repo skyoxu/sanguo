@@ -227,6 +227,17 @@ public partial class HUD : Control
         _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
         _handlers[UiHudDiceRollEventType] = HandleHudDiceRollEvent;
         _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
+        _handlers[SanguoCityBought.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoTokenMoved.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoGameEnded.EventType] = HandleUiOnlyEvent;
+    }
+
+    private void HandleUiOnlyEvent(JsonElement _)
+    {
+        // Intentionally empty: the UI feedback is recorded via RecordEventForUi(...)
+        // before the per-type handler is invoked.
     }
 
     private void HandleHudDiceRollEvent(JsonElement root)

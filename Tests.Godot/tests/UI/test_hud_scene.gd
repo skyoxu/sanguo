@@ -3,6 +3,7 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 # ACC:T22.1
 # ACC:T9.1
 # ACC:T20.1
+# ACC:T19.1
 func test_hud_scene_instantiates() -> void:
     var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
     add_child(auto_free(main))
@@ -29,3 +30,7 @@ func test_hud_scene_instantiates() -> void:
 
     assert_bool(toast.is_inside_tree()).is_true()
     assert_bool(log_panel.is_inside_tree()).is_true()
+    assert_object(toast.get_node_or_null("Panel/Label")).is_not_null()
+    assert_bool(toast.visible).is_false()
+    var toast_label: Label = toast.get_node("Panel/Label")
+    assert_str(toast_label.text).is_equal("")
