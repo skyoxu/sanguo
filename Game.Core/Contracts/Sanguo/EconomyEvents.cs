@@ -93,7 +93,7 @@ public sealed record SanguoYearPriceAdjusted(
 /// Description: Emitted when a player successfully buys a city.
 /// </summary>
 /// <remarks>
-/// Related ADRs: ADR-0006, ADR-0005, ADR-0024.
+/// Related ADRs: ADR-0004, ADR-0005, ADR-0024.
 /// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
 /// </remarks>
 public sealed record SanguoCityBought(
@@ -117,7 +117,13 @@ public sealed record SanguoCityBought(
 /// Description: Emitted when a player stops on another player's city and pays a toll.
 /// </summary>
 /// <remarks>
-/// Related ADRs: ADR-0006, ADR-0005, ADR-0024.
+/// Amount semantics:
+/// - Amount: money deducted from payer (may be higher than OwnerAmount when the owner hits the money cap).
+/// - OwnerAmount: actual money credited to owner after cap is applied.
+/// - TreasuryOverflow: overflow amount deposited into treasury due to owner money cap.
+/// All amounts are expressed in major units.
+/// 
+/// Related ADRs: ADR-0004, ADR-0005, ADR-0024.
 /// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
 /// </remarks>
 public sealed record SanguoCityTollPaid(
@@ -126,6 +132,8 @@ public sealed record SanguoCityTollPaid(
     string OwnerId,
     string CityId,
     decimal Amount,
+    decimal OwnerAmount,
+    decimal TreasuryOverflow,
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId

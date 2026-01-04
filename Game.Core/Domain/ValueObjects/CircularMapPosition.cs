@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Game.Core.Domain.ValueObjects;
 
@@ -47,6 +48,36 @@ public readonly record struct CircularMapPosition
             next += TotalPositions;
 
         return new CircularMapPosition((int)next, TotalPositions);
+    }
+
+    /// <summary>
+    /// Gets the path of indices visited when advancing by the given number of steps.
+    /// The returned sequence excludes the start position and includes the end position.
+    /// </summary>
+    /// <param name="steps">Steps to advance (can be negative).</param>
+    /// <returns>Visited indices in order.</returns>
+    public IReadOnlyList<int> GetPath(int steps)
+    {
+        if (steps == 0)
+            return Array.Empty<int>();
+
+        var count = Math.Abs(steps);
+        var path = new int[count];
+        var dir = steps > 0 ? 1 : -1;
+
+        var current = Current;
+        for (var i = 0; i < count; i++)
+        {
+            current += dir;
+            if (current >= TotalPositions)
+                current = 0;
+            else if (current < 0)
+                current = TotalPositions - 1;
+
+            path[i] = current;
+        }
+
+        return path;
     }
 }
 

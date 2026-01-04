@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game.Godot/Scripts/UI/EventLogPanel.cs" id="1"]
+
+[node name="EventLogPanel" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 48.0
+offset_right = -8.0
+offset_bottom = -8.0
+script = ExtResource("1")
+
+[node name="Margin" type="MarginContainer" parent="."]
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+
+[node name="TitleLabel" type="Label" parent="Margin/VBox"]
+text = "Events"
+
+[node name="EventList" type="ItemList" parent="Margin/VBox"]
+size_flags_vertical = 3
+allow_reselect = true
+auto_height = true
+

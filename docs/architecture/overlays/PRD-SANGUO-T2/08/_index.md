@@ -19,7 +19,7 @@ Arch-Refs:
 - 质量指标与门禁引用（Quality Metrics）— 见 `08-Contracts-Quality-Metrics.md`
 
 - 验收清单（Acceptance Checklist）— 见 `ACCEPTANCE_CHECKLIST.md`
-- 玩法闭环（功能纵切）— 见 `08-功能纵切-T2-三国大富翁闭环.md`
+- 玩法闭环（功能纵切）— 见 `08-feature-slice-t2-monopoly-loop.md`
 - 城池所有权模型（功能纵切）— 见 `08-t2-city-ownership-model.md`
 
 > 关联 PRD：`.taskmaster/docs/prd.txt` 中 T2 阶段「最小可玩闭环」描述  

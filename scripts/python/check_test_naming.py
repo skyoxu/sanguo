@@ -6,6 +6,8 @@ test naming conventions and prevents regression to snake_case naming.
 
 Usage:
     py -3 scripts/python/check_test_naming.py
+    py -3 scripts/python/check_test_naming.py --style strict
+    py -3 scripts/python/check_test_naming.py --task-id 14 --style strict
 
 Exit codes:
     0 - All test methods follow approved conventions
@@ -17,6 +19,8 @@ Requirements:
     - Reports violations with file path and line number
 """
 
+import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -60,13 +64,28 @@ def is_pascal_case_with_underscores(name: str) -> bool:
     return bool(re.match(pattern, name))
 
 
-def is_allowed_test_method_name(name: str) -> bool:
+def is_should_style(name: str) -> bool:
     """
-    Approved patterns:
-      A) PascalCase (covers GivenWhenThen style)
-      B) PascalCase_With_Underscores (Method_Scenario_ExpectedResult)
+    Strict style A (Should_):
+      - ShouldDoX_WhenY
     """
-    return is_pascal_case(name) or is_pascal_case_with_underscores(name)
+    return bool(re.match(r'^Should[A-Z][a-zA-Z0-9]*_When[A-Z][a-zA-Z0-9]*$', name))
+
+
+def is_given_when_then_style(name: str) -> bool:
+    """
+    Strict style B (Given_When_Then):
+      - GivenX_WhenY_ThenZ
+    """
+    return bool(re.match(r'^Given[A-Z][a-zA-Z0-9]*_When[A-Z][a-zA-Z0-9]*_Then[A-Z][a-zA-Z0-9]*$', name))
+
+
+def is_allowed_test_method_name(name: str, *, style: str) -> bool:
+    if style == "legacy":
+        return is_pascal_case(name) or is_pascal_case_with_underscores(name)
+    if style == "strict":
+        return is_should_style(name) or is_given_when_then_style(name)
+    raise ValueError(f"Unknown style: {style}")
 
 
 def extract_test_methods(file_path: Path) -> List[Tuple[int, str]]:
@@ -111,7 +130,7 @@ def extract_test_methods(file_path: Path) -> List[Tuple[int, str]]:
     return test_methods
 
 
-def scan_test_files(test_dir: Path) -> dict:
+def scan_test_files(test_dir: Path, *, style: str) -> dict:
     """
     Scan all test files and find naming violations.
 
@@ -131,7 +150,7 @@ def scan_test_files(test_dir: Path) -> dict:
         file_violations = []
 
         for line_num, method_name in test_methods:
-            if not is_allowed_test_method_name(method_name):
+            if not is_allowed_test_method_name(method_name, style=style):
                 file_violations.append((line_num, method_name))
 
         if file_violations:
@@ -140,22 +159,108 @@ def scan_test_files(test_dir: Path) -> dict:
     return violations
 
 
+def repo_root() -> Path:
+    # scripts/python/* -> repo root
+    return Path(__file__).resolve().parents[2]
+
+
+def load_task_test_refs(*, root: Path, task_id: str) -> List[Path]:
+    """
+    Resolve task's test_refs from the triplet task views (tasks_back/tasks_gameplay),
+    returning filesystem paths under the repository root.
+    """
+    back_path = root / ".taskmaster" / "tasks" / "tasks_back.json"
+    gameplay_path = root / ".taskmaster" / "tasks" / "tasks_gameplay.json"
+    if not back_path.exists() or not gameplay_path.exists():
+        return []
+
+    try:
+        back = json.loads(back_path.read_text(encoding="utf-8"))
+        gameplay = json.loads(gameplay_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    try:
+        tid_int = int(str(task_id))
+    except ValueError:
+        return []
+
+    refs: List[str] = []
+    for view in (back, gameplay):
+        if not isinstance(view, list):
+            continue
+        for t in view:
+            if not isinstance(t, dict):
+                continue
+            if t.get("taskmaster_id") != tid_int:
+                continue
+            tr = t.get("test_refs")
+            if isinstance(tr, list):
+                for r in tr:
+                    s = str(r).strip().replace("\\", "/")
+                    if s:
+                        refs.append(s)
+
+    uniq: List[str] = []
+    seen = set()
+    for r in refs:
+        if r in seen:
+            continue
+        seen.add(r)
+        uniq.append(r)
+
+    # Only C# unit tests are in scope for this validator.
+    paths: List[Path] = []
+    for r in uniq:
+        if not r.endswith(".cs"):
+            continue
+        paths.append(root / r)
+    return paths
+
+
+def scan_specific_files(*, files: List[Path], style: str) -> dict:
+    violations = {}
+    for test_file in files:
+        if not test_file.exists():
+            continue
+        test_methods = extract_test_methods(test_file)
+        file_violations = []
+        for line_num, method_name in test_methods:
+            if not is_allowed_test_method_name(method_name, style=style):
+                file_violations.append((line_num, method_name))
+        if file_violations:
+            violations[test_file] = file_violations
+    return violations
+
+
 def main():
     """Main entry point for the script."""
-    # Determine project root (script is in scripts/python/)
-    script_dir = Path(__file__).parent
-    project_root = script_dir.parent.parent
-    test_dir = project_root / 'Game.Core.Tests'
+    ap = argparse.ArgumentParser(description="Validate test method naming conventions for Game.Core.Tests.")
+    ap.add_argument("--style", choices=["legacy", "strict"], default="legacy", help="Naming style to enforce.")
+    ap.add_argument("--task-id", default=None, help="If set, validate only the task's C# test_refs (.cs).")
+    args = ap.parse_args()
+
+    project_root = repo_root()
+    test_dir = project_root / "Game.Core.Tests"
 
     if not test_dir.exists():
         print(f"Error: Test directory not found: {test_dir}", file=sys.stderr)
         return 1
 
+    scope = "all Game.Core.Tests"
+    if args.task_id:
+        scope = f"task-id={args.task_id} (test_refs .cs only)"
+
     print("Scanning Game.Core.Tests for test method naming violations...")
-    print(f"Test directory: {test_dir}")
+    print(f"Scope: {scope}")
+    print(f"Style: {args.style}")
     print()
 
-    violations = scan_test_files(test_dir)
+    if args.task_id:
+        files = load_task_test_refs(root=project_root, task_id=str(args.task_id).split(".", 1)[0])
+        violations = scan_specific_files(files=files, style=args.style)
+    else:
+        violations = scan_test_files(test_dir, style=args.style)
 
     if not violations:
         print("[OK] All test methods follow approved naming conventions")
@@ -178,8 +283,12 @@ def main():
     print(f"Total violations: {total_violations}")
     print()
     print("Fix these violations by renaming methods to an approved pattern:")
-    print("  - PascalCase: GivenNoState_WhenSaveGame_ThenThrowsInvalidOperationException")
-    print("  - PascalCase_With_Underscores: SaveGame_WhenStateMissing_ShouldThrowInvalidOperationException")
+    if args.style == "strict":
+        print("  - Should_: ShouldReturnZero_WhenMultiplierIsZero")
+        print("  - Given_When_Then: GivenEnoughMoney_WhenBuyingCity_ThenCityOwned")
+    else:
+        print("  - PascalCase: GivenNoState_WhenSaveGame_ThenThrowsInvalidOperationException")
+        print("  - PascalCase_With_Underscores: SaveGame_WhenStateMissing_ShouldThrowInvalidOperationException")
 
     return 1
 
