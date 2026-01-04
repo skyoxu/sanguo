@@ -1,7 +1,6 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 const EVENT_TOKEN_MOVED := "core.sanguo.board.token.moved"
-const EVENT_DICE_ROLLED := "core.sanguo.dice.rolled"
 
 var _bus: Node
 
@@ -55,12 +54,6 @@ func _publish_move(player_id: String, to_index: int, data_json: String = "") -> 
     if payload.is_empty():
         payload = "{\"PlayerId\":\"%s\",\"ToIndex\":%d}" % [player_id, to_index]
     _bus.PublishSimple(EVENT_TOKEN_MOVED, "gdunit", payload)
-
-func _publish_dice(player_id: String, value: int, data_json: String = "") -> void:
-    var payload := data_json
-    if payload.is_empty():
-        payload = "{\"GameId\":\"g1\",\"PlayerId\":\"%s\",\"Value\":%d,\"CorrelationId\":\"corr\",\"CausationId\":\"cause\"}" % [player_id, value]
-    _bus.PublishSimple(EVENT_DICE_ROLLED, "gdunit", payload)
 
 func _target_position(view: Node, to_index: int) -> Vector2:
     return view.Origin + Vector2(float(to_index) * float(view.StepPixels), 0.0)
@@ -301,41 +294,7 @@ func test_token_move_is_rejected_when_total_positions_not_configured() -> void:
 
 # Acceptance anchors:
 # ACC:T17.6
-func test_dice_roll_publishes_token_move_within_total_positions() -> void:
-    var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
-    var token = view.get_node("Token")
-
-    view.Origin = Vector2(10, 0)
-    view.StepPixels = 5.0
-    view.MoveDurationSeconds = 0.0
-
-    add_child(auto_free(view))
-    await get_tree().process_frame
-
-    var total_positions: int = int(view.TotalPositions)
-    assert_int(total_positions).is_greater(0)
-
-    _publish_dice("p1", 6)
-    await get_tree().process_frame
-
-    var first_to_index: int = int(view.LastToIndex)
-    assert_int(first_to_index).is_greater_equal(0)
-    assert_int(first_to_index).is_less(total_positions)
-    assert_vector(token.position).is_equal(_target_position(view, first_to_index))
-
-    _publish_dice("p1", 6)
-    await get_tree().process_frame
-
-    var expected_second: int = int((first_to_index + 6) % total_positions)
-    var second_to_index: int = int(view.LastToIndex)
-    assert_int(second_to_index).is_equal(expected_second)
-    assert_int(second_to_index).is_greater_equal(0)
-    assert_int(second_to_index).is_less(total_positions)
-    assert_vector(token.position).is_equal(_target_position(view, second_to_index))
-
-# Acceptance anchors:
-# ACC:T17.6
-func test_dice_roll_does_not_publish_token_move_when_total_positions_not_configured() -> void:
+func test_turn_manager_owns_dice_to_token_move_resolution() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     var token = view.get_node("Token")
     var start_pos: Vector2 = token.position
@@ -343,21 +302,16 @@ func test_dice_roll_does_not_publish_token_move_when_total_positions_not_configu
     view.Origin = Vector2.ZERO
     view.StepPixels = 10.0
     view.MoveDurationSeconds = 0.0
-    view.TotalPositions = 0
 
     add_child(auto_free(view))
     await get_tree().process_frame
 
-    var before_lines := _read_security_audit_lines()
-    _publish_dice("p1", 6)
+    _bus.PublishSimple("core.sanguo.dice.rolled", "gdunit", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
     await get_tree().process_frame
 
     assert_int(view.LastToIndex).is_equal(0)
     assert_bool(view.LastMoveAnimated).is_false()
     assert_vector(token.position).is_equal(start_pos)
-
-    var after_lines := _read_security_audit_lines()
-    assert_int(after_lines.size()).is_equal(before_lines.size())
 
 # ACC:T10.6
 func test_out_of_range_to_index_is_ignored_when_total_positions_set() -> void:

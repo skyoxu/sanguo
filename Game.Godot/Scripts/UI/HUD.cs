@@ -1,7 +1,6 @@
 using Godot;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
-using Game.Core.Services;
 using Game.Godot.Adapters;
 using System;
 using System.Collections.Generic;
@@ -28,7 +27,6 @@ public partial class HUD : Control
     private string? _activePlayerId;
     private int _lastDateKey;
     private EventBusAdapter? _bus;
-    private SanguoDiceService? _diceService;
     private readonly Dictionary<string, Action<JsonElement>> _handlers = new(StringComparer.Ordinal);
 
     private EventToast? _toast;
@@ -58,8 +56,6 @@ public partial class HUD : Control
             return;
         }
 
-        _diceService = new SanguoDiceService(_bus);
-
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
         TryConnectBus(callable);
     }
@@ -77,7 +73,6 @@ public partial class HUD : Control
         TryDisconnectBus(callable);
 
         _bus = null;
-        _diceService = null;
     }
 
     private void OnDicePressed()
@@ -227,7 +222,6 @@ public partial class HUD : Control
 
         _handlers[SanguoPlayerStateChanged.EventType] = HandlePlayerStateChangedEvent;
         _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
-        _handlers[UiHudDiceRollEventType] = HandleHudDiceRollEvent;
         _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
         _handlers[SanguoCityBought.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoTokenMoved.EventType] = HandleUiOnlyEvent;
@@ -240,49 +234,6 @@ public partial class HUD : Control
     {
         // Intentionally empty: the UI feedback is recorded via RecordEventForUi(...)
         // before the per-type handler is invoked.
-    }
-
-    private void HandleHudDiceRollEvent(JsonElement root)
-    {
-        if (_diceService == null)
-        {
-            return;
-        }
-
-        string gameId = "g1";
-        if (root.TryGetProperty("GameId", out var gid) && gid.ValueKind == JsonValueKind.String)
-        {
-            var v = gid.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) gameId = v;
-        }
-
-        string playerId = _activePlayerId ?? "";
-        if (root.TryGetProperty("PlayerId", out var pid) && pid.ValueKind == JsonValueKind.String)
-        {
-            var v = pid.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) playerId = v;
-        }
-
-        if (string.IsNullOrWhiteSpace(playerId))
-        {
-            return;
-        }
-
-        string correlationId = Guid.NewGuid().ToString("N");
-        if (root.TryGetProperty("CorrelationId", out var corr) && corr.ValueKind == JsonValueKind.String)
-        {
-            var v = corr.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) correlationId = v;
-        }
-
-        string? causationId = UiHudDiceRollEventType;
-        if (root.TryGetProperty("CausationId", out var cause) && cause.ValueKind == JsonValueKind.String)
-        {
-            var v = cause.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) causationId = v;
-        }
-
-        _ = _diceService.RollD6(gameId: gameId, playerId: playerId, correlationId: correlationId, causationId: causationId);
     }
 
     private void HandleCityTollPaidEvent(JsonElement root)

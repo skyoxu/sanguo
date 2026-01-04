@@ -178,6 +178,7 @@ public partial class SanguoGameLoopController : Node
                 return;
             }
 
+            await _turnManager.ExecuteHumanRollDiceAndResolveAsync(correlationId: correlationId, causationId: UiHudDiceRoll);
             await _turnManager.AdvanceTurnAsync(correlationId: correlationId, causationId: UiHudDiceRoll);
         }
         catch (Exception ex)
@@ -214,4 +215,5 @@ public partial class SanguoGameLoopController : Node
             return null;
         }
     }
+
 }
