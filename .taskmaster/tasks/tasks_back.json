@@ -1003,8 +1003,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd",
-      "Tests.Godot/tests/UI/A11y/test_button_invokable.gd",
       "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
     ],
     "acceptance": [
@@ -1012,7 +1010,8 @@
       "GdUnit4 用例覆盖并断言城池占有状态显示的关键行为：初始渲染时根据当前占有数据显示正确，以及占有数据发生变化后 UI 的显示随之更新。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
       "城池 UI 中对“占有状态”的可观察呈现（如文本/图标/颜色等任一方式）与当前城池占有数据一致；当占有数据发生变更时，UI 在下一次可见刷新后呈现为变更后的正确状态。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
       "验收判断以 UI 可观察输出为准：占有状态必须能通过自动化测试读取并做断言（例如读取文本内容或可见资源/样式标识），而不是仅依赖日志或编辑器观察。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
-      "至少在两种不同占有情况的输入下（例如占有者不同/占有与未占有），UI 的占有状态呈现存在可被断言的差异，避免“始终同一显示”仍被判定为通过。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
+      "至少在两种不同占有情况的输入下（例如占有者不同/占有与未占有），UI 的占有状态呈现存在可被断言的差异，避免“始终同一显示”仍被判定为通过。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "当发布领域事件 core.sanguo.city.bought（包含 BuyerId/CityId）且事件 CityId 与 UI 绑定的 CityId 匹配时，UI 必须在下一帧刷新后把占有者显示更新为 BuyerId（例如 Label 文本包含 BuyerId），以证明“事件→UI”接线闭环。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
