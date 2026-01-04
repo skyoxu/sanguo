@@ -196,6 +196,8 @@ func test_dice_button_emits_ui_roll_event() -> void:
     var hud = await _hud()
     var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
     _last_emitted_type = ""
+    _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
+    await get_tree().process_frame
     dice.emit_signal("pressed")
     await get_tree().process_frame
     assert_str(_last_emitted_type).is_equal("ui.hud.dice.roll")

@@ -1,4 +1,5 @@
 using Godot;
+using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
 using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 using Game.Core.Services;
@@ -25,6 +26,7 @@ public partial class SanguoGameLoopController : Node
     private SanguoTurnManager? _turnManager;
     private bool _started;
     private bool _advanceQueued;
+    private string? _activePlayerId;
 
     public override void _Ready()
     {
@@ -57,10 +59,17 @@ public partial class SanguoGameLoopController : Node
         _turnManager = null;
         _started = false;
         _advanceQueued = false;
+        _activePlayerId = null;
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
+        if (type == SanguoGameTurnStarted.EventType)
+        {
+            _activePlayerId = TryExtractActivePlayerId(dataJson);
+            return;
+        }
+
         if (type == UiMenuStart)
         {
             if (_started)
@@ -81,6 +90,17 @@ public partial class SanguoGameLoopController : Node
             }
 
             if (_advanceQueued)
+            {
+                return;
+            }
+
+            var playerId = TryExtractPlayerId(dataJson);
+            if (!string.IsNullOrWhiteSpace(_activePlayerId) && !string.IsNullOrWhiteSpace(playerId) && !string.Equals(_activePlayerId, playerId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (IsAiPlayerId(_activePlayerId) || IsAiPlayerId(playerId))
             {
                 return;
             }
@@ -211,6 +231,61 @@ public partial class SanguoGameLoopController : Node
         {
             return null;
         }
+    }
+
+    private static string? TryExtractActivePlayerId(string dataJson)
+    {
+        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
+        if (json.Length > MaxEventJsonChars)
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json, JsonOptions);
+            if (!doc.RootElement.TryGetProperty("ActivePlayerId", out var pid) || pid.ValueKind != JsonValueKind.String)
+            {
+                return null;
+            }
+
+            var value = pid.GetString();
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? TryExtractPlayerId(string dataJson)
+    {
+        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
+        if (json.Length > MaxEventJsonChars)
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json, JsonOptions);
+            if (!doc.RootElement.TryGetProperty("PlayerId", out var pid) || pid.ValueKind != JsonValueKind.String)
+            {
+                return null;
+            }
+
+            var value = pid.GetString();
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static bool IsAiPlayerId(string? playerId)
+    {
+        return !string.IsNullOrWhiteSpace(playerId) && playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
     }
 
 }

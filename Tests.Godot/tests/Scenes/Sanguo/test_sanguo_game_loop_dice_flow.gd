@@ -63,6 +63,20 @@ func _events_of_type(type_name: String) -> Array:
             out.append(e)
     return out
 
+func _has_turn_started_for(active_player_id: String) -> bool:
+    for e in _events_of_type("core.sanguo.game.turn.started"):
+        var payload: Dictionary = JSON.parse_string(str(e.get("data_json", "{}")))
+        if str(payload.get("ActivePlayerId", "")) == active_player_id:
+            return true
+    return false
+
+func _wait_for_turn_started(active_player_id: String, max_frames: int = 180) -> void:
+    for _i in range(max_frames):
+        if _has_turn_started_for(active_player_id):
+            return
+        await get_tree().process_frame
+    assert_bool(_has_turn_started_for(active_player_id)).is_true()
+
 func _wait_for_event(type_name: String, max_frames: int = 120) -> void:
     for _i in range(max_frames):
         if _last_event(type_name).size() > 0:
@@ -126,3 +140,22 @@ func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_id
         if str(payload.get("CorrelationId", "")) == corr and str(payload.get("PlayerId", "")) == "p1":
             moved_for_corr += 1
     assert_int(moved_for_corr).is_equal(1)
+
+    await _wait_for_event("core.sanguo.game.turn.advanced", 180)
+    await _wait_for_turn_started("ai-1", 180)
+
+    var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
+    var before_date := str(date_label.text)
+
+    _events = []
+    var corr2 := "corr-ai"
+    _bus.PublishSimple(UI_DICE_ROLL, "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"ai-1\",\"CorrelationId\":\"%s\",\"CausationId\":\"%s\"}" % [corr2, UI_DICE_ROLL])
+    for _i in range(80):
+        await get_tree().process_frame
+
+    var core_dice2_evt := _find_last_event_for_corr_player(CORE_DICE_ROLLED, corr2, UI_DICE_ROLL, "ai-1")
+    assert_bool(core_dice2_evt.size() == 0).is_true()
+    var core_move2_evt := _find_last_event_for_corr_player(CORE_TOKEN_MOVED, corr2, UI_DICE_ROLL, "ai-1")
+    assert_bool(core_move2_evt.size() == 0).is_true()
+
+    assert_str(str(date_label.text)).is_equal(before_date)

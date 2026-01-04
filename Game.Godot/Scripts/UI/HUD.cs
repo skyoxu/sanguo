@@ -328,6 +328,7 @@ public partial class HUD : Control
         }
 
         _activePlayerId = string.IsNullOrWhiteSpace(active) ? null : active;
+        _diceButton.Disabled = string.IsNullOrWhiteSpace(active) || IsAiPlayerId(active);
         _activePlayer.Text = $"Player: {active}";
         _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
     }
@@ -340,6 +341,11 @@ public partial class HUD : Control
         }
 
         return (year * 10000) + (month * 100) + day;
+    }
+
+    private static bool IsAiPlayerId(string playerId)
+    {
+        return !string.IsNullOrWhiteSpace(playerId) && playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
     }
 
     private void HandlePlayerStateChangedEvent(JsonElement root)
