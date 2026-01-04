@@ -43,7 +43,7 @@ public class SanguoTurnManagerTests
         var correlationId = "corr-1";
         string? startCausationId = null;
         await mgr.StartNewGameAsync(gameId, playerOrder, 1, 1, 1, correlationId, startCausationId);
-        bus.Published.Should().ContainSingle("starting a game should publish a turn.started event");
+        bus.Published.Should().HaveCount(2, "starting a game should publish turn.started then player.state.changed");
         var started = bus.Published[0];
         started.Type.Should().Be(SanguoGameTurnStarted.EventType);
         started.Source.Should().Be(nameof(SanguoTurnManager));
@@ -57,10 +57,22 @@ public class SanguoTurnManagerTests
         startedPayload.GetProperty("Day").GetInt32().Should().Be(1);
         startedPayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         startedPayload.GetProperty("CausationId").ValueKind.Should().Be(JsonValueKind.Null);
+
+        var stateChanged = bus.Published[1];
+        stateChanged.Type.Should().Be(SanguoPlayerStateChanged.EventType);
+        stateChanged.Source.Should().Be(nameof(SanguoTurnManager));
+        stateChanged.Data.Should().BeOfType<JsonElementEventData>();
+        var statePayload = ((JsonElementEventData)stateChanged.Data!).Value;
+        statePayload.GetProperty("GameId").GetString().Should().Be(gameId);
+        statePayload.GetProperty("PlayerId").GetString().Should().Be("p1");
+        statePayload.GetProperty("Money").GetDecimal().Should().Be(0m);
+        statePayload.GetProperty("PositionIndex").GetInt32().Should().Be(0);
+        statePayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
+        statePayload.GetProperty("CausationId").ValueKind.Should().Be(JsonValueKind.Null);
         var advanceCommandId = Guid.NewGuid().ToString("N");
         await mgr.AdvanceTurnAsync(correlationId, advanceCommandId);
-        bus.Published.Should().HaveCount(4, "advance should publish turn.ended, turn.advanced, and next turn.started");
-        var ended = bus.Published[1];
+        bus.Published.Should().HaveCount(6, "advance should publish turn.ended, turn.advanced, next turn.started, and next player.state.changed");
+        var ended = bus.Published[2];
         ended.Type.Should().Be(SanguoGameTurnEnded.EventType);
         ended.Source.Should().Be(nameof(SanguoTurnManager));
         ended.Data.Should().BeOfType<JsonElementEventData>();
@@ -70,7 +82,7 @@ public class SanguoTurnManagerTests
         endedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("p1");
         endedPayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         endedPayload.GetProperty("CausationId").GetString().Should().Be(advanceCommandId);
-        var advanced = bus.Published[2];
+        var advanced = bus.Published[3];
         advanced.Type.Should().Be(SanguoGameTurnAdvanced.EventType);
         advanced.Source.Should().Be(nameof(SanguoTurnManager));
         advanced.Data.Should().BeOfType<JsonElementEventData>();
@@ -83,7 +95,7 @@ public class SanguoTurnManagerTests
         advancedPayload.GetProperty("Day").GetInt32().Should().Be(2);
         advancedPayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         advancedPayload.GetProperty("CausationId").GetString().Should().Be(advanceCommandId);
-        var nextStarted = bus.Published[3];
+        var nextStarted = bus.Published[4];
         nextStarted.Type.Should().Be(SanguoGameTurnStarted.EventType);
         nextStarted.Source.Should().Be(nameof(SanguoTurnManager));
         nextStarted.Data.Should().BeOfType<JsonElementEventData>();
@@ -96,6 +108,18 @@ public class SanguoTurnManagerTests
         nextStartedPayload.GetProperty("Day").GetInt32().Should().Be(2);
         nextStartedPayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         nextStartedPayload.GetProperty("CausationId").GetString().Should().Be(advanceCommandId);
+
+        var nextStateChanged = bus.Published[5];
+        nextStateChanged.Type.Should().Be(SanguoPlayerStateChanged.EventType);
+        nextStateChanged.Source.Should().Be(nameof(SanguoTurnManager));
+        nextStateChanged.Data.Should().BeOfType<JsonElementEventData>();
+        var nextStatePayload = ((JsonElementEventData)nextStateChanged.Data!).Value;
+        nextStatePayload.GetProperty("GameId").GetString().Should().Be(gameId);
+        nextStatePayload.GetProperty("PlayerId").GetString().Should().Be("p2");
+        nextStatePayload.GetProperty("Money").GetDecimal().Should().Be(0m);
+        nextStatePayload.GetProperty("PositionIndex").GetInt32().Should().Be(0);
+        nextStatePayload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
+        nextStatePayload.GetProperty("CausationId").GetString().Should().Be(advanceCommandId);
     }
     [Fact]
     public async Task ShouldPublishMonthSettled_WhenMonthBoundaryReached()

@@ -127,6 +127,23 @@ func test_hud_updates_on_sanguo_turn_started_event() -> void:
     await get_tree().process_frame
     assert_str(money_label.text).is_equal("Money: 456")
 
+func test_hud_ignores_state_changed_before_turn_started() -> void:
+    var hud = await _hud()
+    var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
+
+    assert_str(money_label.text).is_equal("Money: -")
+
+    _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":111,\"PositionIndex\":0}")
+    await get_tree().process_frame
+    assert_str(money_label.text).is_equal("Money: -")
+
+    _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
+    await get_tree().process_frame
+
+    _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":222,\"PositionIndex\":0}")
+    await get_tree().process_frame
+    assert_str(money_label.text).is_equal("Money: 222")
+
 # ACC:T9.2
 func test_dice_button_emits_ui_roll_event() -> void:
     var hud = await _hud()

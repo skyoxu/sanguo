@@ -7,6 +7,9 @@ namespace Game.Core.Contracts.Sanguo;
 /// <remarks>
 /// Related ADRs: ADR-0018, ADR-0005, ADR-0006, ADR-0024.
 /// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
+/// Ordering: When used to update the active player's HUD, this event MUST NOT be emitted before
+/// a corresponding <see cref="SanguoGameTurnStarted"/> within the same CorrelationId.
+/// See <see cref="SanguoEventOrderingRules"/>.
 /// </remarks>
 public sealed record SanguoPlayerStateChanged(
     string GameId,

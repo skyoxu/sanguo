@@ -7,6 +7,9 @@ namespace Game.Core.Contracts.Sanguo;
 /// <remarks>
 /// Related ADRs: ADR-0018, ADR-0005, ADR-0015, ADR-0024.
 /// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
+/// Ordering: This event defines the active player context and MUST be emitted before any
+/// <see cref="SanguoPlayerStateChanged"/> that is meant to update the active player's HUD within the same CorrelationId.
+/// See <see cref="SanguoEventOrderingRules"/>.
 /// </remarks>
 public sealed record SanguoGameTurnStarted(
     string GameId,
@@ -33,6 +36,8 @@ public sealed record SanguoGameTurnStarted(
 /// <remarks>
 /// Related ADRs: ADR-0018, ADR-0005, ADR-0015, ADR-0024.
 /// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
+/// Ordering: This event closes the current turn number within a turn scope.
+/// See <see cref="SanguoEventOrderingRules"/>.
 /// </remarks>
 public sealed record SanguoGameTurnEnded(
     string GameId,
