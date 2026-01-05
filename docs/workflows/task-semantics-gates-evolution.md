@@ -180,6 +180,11 @@
 - 所有脚本读写都以 UTF-8 为准；在 Windows 控制台里建议统一用 `py -3` 执行脚本，避免 PowerShell/Console codepage 导致中文乱码或 JSON 解析失败。
 - 你现在的治理链路是“两段式”：先把 `acceptance` 语义对齐，再补 `Refs:`/`test_refs` 并落地测试证据。
 
+CI 提示（PR 标题规范）：
+
+- 任务型 PR：标题建议包含 `Task [<id>]`（例如 `Task [21]: ...` 或 `Task [10.3]: ...`），CI 会解析出 task id 并运行任务范围内的 `acceptance_check`。
+- 非任务型 PR（文档/工作流/CI 治理）：标题建议以 `Workflow:` / `Docs:` / `Chore:` / `CI:` 等前缀开头（或包含 `no-task`），CI 会跳过 task-scoped 的 `acceptance_check`，避免因为 `tasks.json` 没有 `status=in-progress` 而失败。
+
 ### 0) 结构与回链（确定性，无 LLM）
 
 #### 0.1 硬结构先过：任务映射字段一致 + 至少一侧视图存在
