@@ -147,6 +147,7 @@ jobs:
         shell: pwsh
         run: |
           $spec = ""
+          $rawSpec = ""
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $spec = "${{ inputs.task_id }}"
           } elseif ("${{ github.event_name }}" -eq "pull_request") {
@@ -172,11 +173,19 @@ jobs:
             }
           }
 
+          $rawSpec = [string]$spec
           if ($spec -match 'Task\s*\[([^\]]+)\]') { $spec = $Matches[1] }
           $spec = ($spec -replace '\s', '').Trim()
+          $isNonTaskPr = $rawSpec -match '(?i)^(workflow|docs|chore|ci|build|refactor|infra)\s*[:\\-]' -or $rawSpec -match '(?i)\\bno-task\\b'
 
           if ([string]::IsNullOrWhiteSpace($spec)) {
             if ("${{ github.event_name }}" -eq "pull_request") {
+              if ($isNonTaskPr) {
+                Write-Host "Non-task PR detected by title prefix. Skipping task-scoped acceptance_check."
+                "SC_TASK_IDS=" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+                Write-Host "SC_TASK_IDS=(skip)"
+                exit 0
+              }
               Write-Host "PR title does not contain Task [..]. Falling back to first status=in-progress task from tasks.json."
               $fallback = (& py -3 -c "import json; from pathlib import Path; p=Path('.taskmaster/tasks/tasks.json'); d=json.loads(p.read_text(encoding='utf-8')); tasks=d.get('master',{}).get('tasks',[]); t=next((x for x in tasks if str(x.get('status','')).lower()=='in-progress'), None); print((t or {}).get('id',''))").Trim()
               if ([string]::IsNullOrWhiteSpace($fallback)) {
@@ -212,6 +221,12 @@ jobs:
           $uniq = $ids | Select-Object -Unique
           if (-not $uniq -or $uniq.Count -eq 0) {
             if ("${{ github.event_name }}" -eq "pull_request") {
+              if ($isNonTaskPr) {
+                Write-Host "Non-task PR detected by title prefix. Skipping task-scoped acceptance_check."
+                "SC_TASK_IDS=" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+                Write-Host "SC_TASK_IDS=(skip)"
+                exit 0
+              }
               Write-Host "PR title Task spec '$spec' produced no numeric ids. Falling back to first status=in-progress task from tasks.json."
               $fallback = (& py -3 -c "import json; from pathlib import Path; p=Path('.taskmaster/tasks/tasks.json'); d=json.loads(p.read_text(encoding='utf-8')); tasks=d.get('master',{}).get('tasks',[]); t=next((x for x in tasks if str(x.get('status','')).lower()=='in-progress'), None); print((t or {}).get('id',''))").Trim()
               if ([string]::IsNullOrWhiteSpace($fallback)) {
