@@ -1,6 +1,7 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 const EVENT_TOKEN_MOVED := "core.sanguo.board.token.moved"
+const EVENT_CITY_BOUGHT := "core.sanguo.city.bought"
 
 var _bus: Node
 
@@ -55,7 +56,13 @@ func _publish_move(player_id: String, to_index: int, data_json: String = "") -> 
         payload = "{\"PlayerId\":\"%s\",\"ToIndex\":%d}" % [player_id, to_index]
     _bus.PublishSimple(EVENT_TOKEN_MOVED, "gdunit", payload)
 
+func _publish_city_bought(buyer_id: String, city_id: String) -> void:
+    var payload := "{\"BuyerId\":\"%s\",\"CityId\":\"%s\"}" % [buyer_id, city_id]
+    _bus.PublishSimple(EVENT_CITY_BOUGHT, "gdunit", payload)
+
 func _target_position(view: Node, to_index: int) -> Vector2:
+    if view.has_method("GetPositionForIndex"):
+        return view.GetPositionForIndex(to_index)
     return view.Origin + Vector2(float(to_index) * float(view.StepPixels), 0.0)
 
 func _await_until(predicate: Callable, max_frames: int = 240) -> void:
@@ -105,6 +112,26 @@ func test_token_move_sets_animated_flag_when_duration_positive() -> void:
     await _await_until(func() -> bool: return view.LastMoveAnimated, 30)
 
     assert_bool(view.LastMoveAnimated).is_true()
+
+# Acceptance anchors:
+# ACC:T23.1
+func test_city_bought_sets_owner_label_for_last_moved_tile() -> void:
+    var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
+    view.Origin = Vector2.ZERO
+    view.StepPixels = 10.0
+    view.MoveDurationSeconds = 0.0
+
+    add_child(auto_free(view))
+    await get_tree().process_frame
+
+    _publish_move("p1", 2)
+    await get_tree().process_frame
+
+    _publish_city_bought("p1", "c2")
+    await get_tree().process_frame
+
+    var label = view.get_node("__BoardTileLabel__2")
+    assert_str(str(label.text)).is_equal("p1")
 
 # Acceptance anchors:
 # ACC:T10.2

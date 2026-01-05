@@ -227,13 +227,33 @@ public partial class HUD : Control
         _handlers[SanguoTokenMoved.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoGameEnded.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoGameEnded.EventType] = HandleGameEndedEvent;
     }
 
     private void HandleUiOnlyEvent(JsonElement _)
     {
         // Intentionally empty: the UI feedback is recorded via RecordEventForUi(...)
         // before the per-type handler is invoked.
+    }
+
+    private void HandleGameEndedEvent(JsonElement root)
+    {
+        _activePlayerId = null;
+        _diceButton.Disabled = true;
+        _diceButton.Text = "Game Over";
+        _activePlayer.Text = "Player: -";
+
+        var reason = root.TryGetProperty("EndReason", out var r) && r.ValueKind == JsonValueKind.String
+            ? (r.GetString() ?? "")
+            : "";
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            _toast?.ShowMessage(SanguoGameEnded.EventType);
+            return;
+        }
+
+        _toast?.ShowMessage($"{SanguoGameEnded.EventType} reason={reason}");
     }
 
     private void HandleCityTollPaidEvent(JsonElement root)

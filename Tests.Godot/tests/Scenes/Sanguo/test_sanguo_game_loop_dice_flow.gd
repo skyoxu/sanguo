@@ -98,6 +98,11 @@ func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_id
     add_child(auto_free(main))
     await get_tree().process_frame
 
+    var controller := main.get_node_or_null("SanguoGameLoopController")
+    if controller != null:
+        controller.set("AiAutoAdvanceDelaySeconds", 0.65)
+        controller.set("AiAutoAdvanceDelaySecondsWhenSkip", 0.10)
+
     _bus.PublishSimple("ui.menu.start", "ut", "{}")
     await _wait_for_event("core.sanguo.game.turn.started", 180)
 
@@ -144,13 +149,10 @@ func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_id
     await _wait_for_event("core.sanguo.game.turn.advanced", 180)
     await _wait_for_turn_started("ai-1", 180)
 
-    var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
-    var before_date := str(date_label.text)
-
     _events = []
     var corr2 := "corr-ai"
     _bus.PublishSimple(UI_DICE_ROLL, "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"ai-1\",\"CorrelationId\":\"%s\",\"CausationId\":\"%s\"}" % [corr2, UI_DICE_ROLL])
-    for _i in range(80):
+    for _i in range(30):
         await get_tree().process_frame
 
     var core_dice2_evt := _find_last_event_for_corr_player(CORE_DICE_ROLLED, corr2, UI_DICE_ROLL, "ai-1")
@@ -158,4 +160,5 @@ func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_id
     var core_move2_evt := _find_last_event_for_corr_player(CORE_TOKEN_MOVED, corr2, UI_DICE_ROLL, "ai-1")
     assert_bool(core_move2_evt.size() == 0).is_true()
 
-    assert_str(str(date_label.text)).is_equal(before_date)
+    # Runtime auto-advances AI turns; verify we return control to the human player.
+    await _wait_for_turn_started("p1", 240)

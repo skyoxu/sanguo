@@ -55,6 +55,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="ScreenNavigator" type="Node" parent="."]
 script = ExtResource("13")
@@ -69,7 +70,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 z_index = 100
-mouse_filter = 1
+mouse_filter = 2
 
 [node name="CityOwnershipStatus" parent="Overlays" instance=ExtResource("16")]
 layout_mode = 2

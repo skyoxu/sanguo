@@ -6,7 +6,6 @@ using Game.Core.Services;
 using Game.Godot.Adapters;
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 
 namespace Game.Godot.Scripts.Sanguo;
 
@@ -16,17 +15,23 @@ namespace Game.Godot.Scripts.Sanguo;
 /// </summary>
 public partial class SanguoGameLoopController : Node
 {
-    private const int MaxEventJsonChars = 64 * 1024;
-    private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
-
     private const string UiMenuStart = "ui.menu.start";
     private const string UiHudDiceRoll = "ui.hud.dice.roll";
+    private const string AiAutoAdvanceCausationId = "runtime.ai.auto.advance";
+
+    [Export(PropertyHint.Range, "0,30,0.1,or_greater")]
+    public double AiAutoAdvanceDelaySeconds { get; set; } = 5.0;
+
+    [Export(PropertyHint.Range, "0,30,0.1,or_greater")]
+    public double AiAutoAdvanceDelaySecondsWhenSkip { get; set; } = 5.0;
 
     private EventBusAdapter? _bus;
     private SanguoTurnManager? _turnManager;
     private bool _started;
     private bool _advanceQueued;
     private string? _activePlayerId;
+    private bool _aiAutoAdvanceRequested;
+    private double _aiAutoAdvanceDelaySec = 5.0;
 
     public override void _Ready()
     {
@@ -64,9 +69,31 @@ public partial class SanguoGameLoopController : Node
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
+        if (type == SanguoGameEnded.EventType)
+        {
+            _started = false;
+            _turnManager = null;
+            _advanceQueued = false;
+            _activePlayerId = null;
+            _aiAutoAdvanceRequested = false;
+            return;
+        }
+
         if (type == SanguoGameTurnStarted.EventType)
         {
-            _activePlayerId = TryExtractActivePlayerId(dataJson);
+            _activePlayerId = SanguoGlueJson.TryExtractActivePlayerId(dataJson);
+            return;
+        }
+
+        if (type == SanguoAiDecisionMade.EventType)
+        {
+            var decisionType = SanguoGlueJson.TryExtractAiDecisionType(dataJson);
+            _aiAutoAdvanceRequested = true;
+            _aiAutoAdvanceDelaySec = string.Equals(decisionType, "Skip", StringComparison.OrdinalIgnoreCase)
+                ? AiAutoAdvanceDelaySecondsWhenSkip
+                : AiAutoAdvanceDelaySeconds;
+
+            TryQueueAiAutoAdvanceIfNeeded();
             return;
         }
 
@@ -94,18 +121,18 @@ public partial class SanguoGameLoopController : Node
                 return;
             }
 
-            var playerId = TryExtractPlayerId(dataJson);
+            var playerId = SanguoGlueJson.TryExtractPlayerId(dataJson);
             if (!string.IsNullOrWhiteSpace(_activePlayerId) && !string.IsNullOrWhiteSpace(playerId) && !string.Equals(_activePlayerId, playerId, StringComparison.Ordinal))
             {
                 return;
             }
 
-            if (IsAiPlayerId(_activePlayerId) || IsAiPlayerId(playerId))
+            if (SanguoGlueJson.IsAiPlayerId(_activePlayerId) || SanguoGlueJson.IsAiPlayerId(playerId))
             {
                 return;
             }
 
-            var correlationId = TryExtractCorrelationId(dataJson) ?? Guid.NewGuid().ToString("N");
+            var correlationId = SanguoGlueJson.TryExtractCorrelationId(dataJson) ?? Guid.NewGuid().ToString("N");
             _advanceQueued = true;
             CallDeferred(nameof(AdvanceTurnDeferred), correlationId);
         }
@@ -126,34 +153,25 @@ public partial class SanguoGameLoopController : Node
         var economyRules = SanguoEconomyRules.Default;
         var players = new[]
         {
-            new SanguoPlayer(playerId: "p1", money: 100m, positionIndex: 0, economyRules: economyRules),
-            new SanguoPlayer(playerId: "ai-1", money: 100m, positionIndex: 0, economyRules: economyRules),
+            new SanguoPlayer(playerId: "p1", money: 300m, positionIndex: 0, economyRules: economyRules),
+            new SanguoPlayer(playerId: "ai-1", money: 300m, positionIndex: 0, economyRules: economyRules),
         };
 
-        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal)
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal);
+        // Demo board: make most tiles purchasable to keep the playable loop moving.
+        // PositionIndex 0 acts as the start tile (non-city).
+        for (var pos = 1; pos <= 9; pos++)
         {
-            ["c1"] = new City(
-                id: "c1",
-                name: "City 1",
-                regionId: "r1",
-                basePrice: MoneyValue.FromDecimal(100m),
-                baseToll: MoneyValue.FromDecimal(10m),
-                positionIndex: 2),
-            ["c2"] = new City(
-                id: "c2",
-                name: "City 2",
-                regionId: "r1",
-                basePrice: MoneyValue.FromDecimal(100m),
-                baseToll: MoneyValue.FromDecimal(10m),
-                positionIndex: 4),
-            ["c3"] = new City(
-                id: "c3",
-                name: "City 3",
-                regionId: "r2",
-                basePrice: MoneyValue.FromDecimal(100m),
-                baseToll: MoneyValue.FromDecimal(10m),
-                positionIndex: 6),
-        };
+            var cityId = $"c{pos}";
+            var regionId = (pos % 2 == 0) ? "r1" : "r2";
+            citiesById[cityId] = new City(
+                id: cityId,
+                name: $"City {pos}",
+                regionId: regionId,
+                basePrice: MoneyValue.FromDecimal(50m),
+                baseToll: MoneyValue.FromDecimal(20m),
+                positionIndex: pos);
+        }
 
         var boardState = new SanguoBoardState(players: players, citiesById: citiesById);
         var treasury = new SanguoTreasury();
@@ -177,6 +195,7 @@ public partial class SanguoGameLoopController : Node
                 correlationId: correlationId,
                 causationId: UiMenuStart);
             _started = true;
+            TryQueueAiAutoAdvanceIfNeeded();
         }
         catch (Exception ex)
         {
@@ -206,86 +225,57 @@ public partial class SanguoGameLoopController : Node
         {
             _advanceQueued = false;
         }
+
+        TryQueueAiAutoAdvanceIfNeeded();
     }
 
-    private static string? TryExtractCorrelationId(string dataJson)
+    private void TryQueueAiAutoAdvanceIfNeeded()
     {
-        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (json.Length > MaxEventJsonChars)
-        {
-            return null;
-        }
+        if (!_started || _turnManager == null)
+            return;
 
+        if (_advanceQueued)
+            return;
+
+        if (!SanguoGlueJson.IsAiPlayerId(_activePlayerId))
+            return;
+
+        if (!_aiAutoAdvanceRequested)
+            return;
+
+        _advanceQueued = true;
+        _aiAutoAdvanceRequested = false;
+        var correlationId = Guid.NewGuid().ToString("N");
+        CallDeferred(nameof(AdvanceAiTurnDeferred), correlationId, _aiAutoAdvanceDelaySec);
+    }
+
+    private async void AdvanceAiTurnDeferred(string correlationId, double delaySec)
+    {
         try
         {
-            using var doc = JsonDocument.Parse(json, JsonOptions);
-            if (!doc.RootElement.TryGetProperty("CorrelationId", out var corr) || corr.ValueKind != JsonValueKind.String)
-            {
-                return null;
-            }
+            if (!_started || _turnManager == null)
+                return;
 
-            var value = corr.GetString();
-            return string.IsNullOrWhiteSpace(value) ? null : value;
+        if (!SanguoGlueJson.IsAiPlayerId(_activePlayerId))
+            return;
+
+            // Give the board view time to animate AI moves (if any) before the next turn starts.
+            var timer = GetTree().CreateTimer(delaySec <= 0 ? AiAutoAdvanceDelaySeconds : delaySec);
+            await ToSignal(timer, SceneTreeTimer.SignalName.Timeout);
+
+            await _turnManager.AdvanceTurnAsync(correlationId: correlationId, causationId: AiAutoAdvanceCausationId);
         }
-        catch
+        catch (Exception ex)
         {
-            return null;
+            GD.PushWarning($"SanguoGameLoopController: failed to auto-advance AI turn: {ex.Message}");
         }
-    }
-
-    private static string? TryExtractActivePlayerId(string dataJson)
-    {
-        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (json.Length > MaxEventJsonChars)
+        finally
         {
-            return null;
+            _advanceQueued = false;
         }
 
-        try
-        {
-            using var doc = JsonDocument.Parse(json, JsonOptions);
-            if (!doc.RootElement.TryGetProperty("ActivePlayerId", out var pid) || pid.ValueKind != JsonValueKind.String)
-            {
-                return null;
-            }
-
-            var value = pid.GetString();
-            return string.IsNullOrWhiteSpace(value) ? null : value;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static string? TryExtractPlayerId(string dataJson)
-    {
-        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (json.Length > MaxEventJsonChars)
-        {
-            return null;
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(json, JsonOptions);
-            if (!doc.RootElement.TryGetProperty("PlayerId", out var pid) || pid.ValueKind != JsonValueKind.String)
-            {
-                return null;
-            }
-
-            var value = pid.GetString();
-            return string.IsNullOrWhiteSpace(value) ? null : value;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static bool IsAiPlayerId(string? playerId)
-    {
-        return !string.IsNullOrWhiteSpace(playerId) && playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
+        // In case multiple AIs exist, keep advancing until a non-AI player becomes active.
+        TryQueueAiAutoAdvanceIfNeeded();
     }
 
 }

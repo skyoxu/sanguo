@@ -2,6 +2,7 @@ using Godot;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
+using Game.Godot.Scripts.Config;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +16,7 @@ public partial class HUD : Control
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
     private const string UiHudDiceRollEventType = "ui.hud.dice.roll";
     private const string MoneyCapAuditAction = "SANGUO_MONEY_CAPPED";
+    private const string EventLogOverlayFlag = "event_log_overlay";
 
     private Label _score = default!;
     private Label _health = default!;
@@ -31,6 +33,7 @@ public partial class HUD : Control
 
     private EventToast? _toast;
     private EventLogPanel? _logPanel;
+    private bool _logVisible;
 
     public override void _Ready()
     {
@@ -46,6 +49,13 @@ public partial class HUD : Control
 
         _toast = GetNodeOrNull<EventToast>("EventToast");
         _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
+        _logVisible = false;
+        if (_logPanel != null)
+        {
+            var ff = GetNodeOrNull<FeatureFlags>("/root/FeatureFlags");
+            _logVisible = ff != null && ff.IsEnabled(EventLogOverlayFlag);
+            _logPanel.Visible = _logVisible;
+        }
 
         RegisterHandlers();
 
@@ -75,6 +85,25 @@ public partial class HUD : Control
         _bus = null;
     }
 
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event is InputEventKey key && key.Pressed && !key.Echo && key.Keycode == Key.F1)
+        {
+            ToggleEventLogOverlay();
+        }
+    }
+
+    private void ToggleEventLogOverlay()
+    {
+        if (_logPanel == null)
+        {
+            return;
+        }
+
+        _logVisible = !_logVisible;
+        _logPanel.Visible = _logVisible;
+    }
+
     private void OnDicePressed()
     {
         if (_bus == null)
@@ -86,7 +115,9 @@ public partial class HUD : Control
         var playerId = _activePlayerId ?? "";
         if (string.IsNullOrWhiteSpace(playerId))
         {
+            _toast?.ShowMessage("Game is starting. Please wait...");
             GD.PushWarning("HUD: ActivePlayerId is not known; publishing ui.hud.dice.roll without PlayerId");
+            return;
         }
 
         var payload = JsonSerializer.Serialize(new
@@ -227,13 +258,33 @@ public partial class HUD : Control
         _handlers[SanguoTokenMoved.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoGameEnded.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoGameEnded.EventType] = HandleGameEndedEvent;
     }
 
     private void HandleUiOnlyEvent(JsonElement _)
     {
         // Intentionally empty: the UI feedback is recorded via RecordEventForUi(...)
         // before the per-type handler is invoked.
+    }
+
+    private void HandleGameEndedEvent(JsonElement root)
+    {
+        _activePlayerId = null;
+        _diceButton.Disabled = true;
+        _diceButton.Text = "Game Over";
+        _activePlayer.Text = "Player: -";
+
+        var reason = root.TryGetProperty("EndReason", out var r) && r.ValueKind == JsonValueKind.String
+            ? (r.GetString() ?? "")
+            : "";
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            _toast?.ShowMessage(SanguoGameEnded.EventType);
+            return;
+        }
+
+        _toast?.ShowMessage($"{SanguoGameEnded.EventType} reason={reason}");
     }
 
     private void HandleCityTollPaidEvent(JsonElement root)
@@ -329,6 +380,7 @@ public partial class HUD : Control
 
         _activePlayerId = string.IsNullOrWhiteSpace(active) ? null : active;
         _diceButton.Disabled = string.IsNullOrWhiteSpace(active) || IsAiPlayerId(active);
+        _diceButton.Text = string.IsNullOrWhiteSpace(active) ? "Roll Dice" : (IsAiPlayerId(active) ? "AI Turn" : "Roll Dice");
         _activePlayer.Text = $"Player: {active}";
         _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
     }
