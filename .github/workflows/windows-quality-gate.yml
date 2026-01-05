@@ -150,7 +150,26 @@ jobs:
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $spec = "${{ inputs.task_id }}"
           } elseif ("${{ github.event_name }}" -eq "pull_request") {
+            # NOTE: Re-runs may use a stale event payload. Resolve the latest PR title via API for robustness.
             $spec = "${{ github.event.pull_request.title }}"
+            try {
+              $prNumber = "${{ github.event.pull_request.number }}"
+              if ($prNumber -match '^\d+$') {
+                $repo = "${{ github.repository }}"
+                $token = "${{ github.token }}"
+                $headers = @{
+                  Authorization = "Bearer $token"
+                  Accept = "application/vnd.github+json"
+                  "X-GitHub-Api-Version" = "2022-11-28"
+                }
+                $pr = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/pulls/$prNumber" -Headers $headers -Method Get
+                if ($pr -and $pr.title) {
+                  $spec = [string]$pr.title
+                }
+              }
+            } catch {
+              Write-Warning "Failed to resolve live PR title via GitHub API. Falling back to event payload title."
+            }
           }
 
           if ($spec -match 'Task\s*\[([^\]]+)\]') { $spec = $Matches[1] }
