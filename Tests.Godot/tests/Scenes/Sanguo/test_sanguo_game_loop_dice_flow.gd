@@ -146,6 +146,11 @@ func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_id
             moved_for_corr += 1
     assert_int(moved_for_corr).is_equal(1)
 
+    # The human turn now waits for an explicit tile action selection (or Skip) before advancing.
+    var to_index := int(core_move_payload.get("ToIndex", 0))
+    _bus.PublishSimple("ui.sanguo.tile.action.selected", "ut",
+        "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"ToIndex\":%d,\"Action\":\"skip\",\"CorrelationId\":\"%s\",\"CausationId\":\"ui.sanguo.tile.action.selected\"}" % [to_index, corr])
+
     await _wait_for_event("core.sanguo.game.turn.advanced", 180)
     await _wait_for_turn_started("ai-1", 180)
 

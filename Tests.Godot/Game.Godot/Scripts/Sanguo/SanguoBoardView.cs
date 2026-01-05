@@ -102,6 +102,26 @@ public partial class SanguoBoardView : Node2D
         _bus = null;
     }
 
+    public void ApplyMapDefinition(SanguoMapDefinition map)
+    {
+        if (map is null)
+        {
+            return;
+        }
+
+        TotalPositions = map.TileCount;
+        _lastPositionByPlayerId.Clear();
+
+        foreach (var tile in map.Tiles)
+        {
+            _overlay.SetTileTypeForIndex(tile.PositionIndex, tile.TileType);
+            _overlay.SetBaseLabelForIndex(tile.PositionIndex, tile.Name ?? string.Empty);
+        }
+
+        EnsureBoardVisuals();
+        _overlay.ClearOwners(_layout);
+    }
+
     private void OnDomainEventEmitted(
         string type,
         string source,

@@ -28,6 +28,40 @@ internal static class SanguoGlueJson
         return TryExtractStringProperty(dataJson, "PlayerId");
     }
 
+    internal static string? TryExtractAction(string dataJson)
+    {
+        return TryExtractStringProperty(dataJson, "Action");
+    }
+
+    internal static int? TryExtractIntProperty(string dataJson, string propertyName)
+    {
+        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
+        if (json.Length > MaxEventJsonChars)
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json, Options);
+            if (!doc.RootElement.TryGetProperty(propertyName, out var el))
+            {
+                return null;
+            }
+
+            if (el.ValueKind != JsonValueKind.Number)
+            {
+                return null;
+            }
+
+            return el.TryGetInt32(out var v) ? v : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     internal static bool IsAiPlayerId(string? playerId)
     {
         return !string.IsNullOrWhiteSpace(playerId) && playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
@@ -58,4 +92,3 @@ internal static class SanguoGlueJson
         }
     }
 }
-

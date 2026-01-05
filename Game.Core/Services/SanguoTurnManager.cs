@@ -480,16 +480,19 @@ public sealed class SanguoTurnManager
             }
             else
             {
-                _ = await _economy.TryBuyCityAndPublishEventAsync(
-                    gameId: gameId,
-                    players: players,
-                    citiesById: citiesById,
-                    buyerId: playerId,
-                    cityId: city.Id,
-                    priceMultiplier: 1.0m,
-                    correlationId: correlationId,
-                    causationId: causationId,
-                    occurredAt: occurredAt);
+                if (IsAiPlayerId(playerId))
+                {
+                    _ = await _economy.TryBuyCityAndPublishEventAsync(
+                        gameId: gameId,
+                        players: players,
+                        citiesById: citiesById,
+                        buyerId: playerId,
+                        cityId: city.Id,
+                        priceMultiplier: 1.0m,
+                        correlationId: correlationId,
+                        causationId: causationId,
+                        occurredAt: occurredAt);
+                }
             }
         }
 
@@ -501,6 +504,84 @@ public sealed class SanguoTurnManager
                 causationId: causationId,
                 occurredAt: occurredAt);
         }
+    }
+
+    public async Task ExecuteHumanTileActionAsync(string action, string correlationId, string? causationId)
+    {
+        if (!_started || _gameId is null || _playerOrder is null)
+            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+            throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
+
+        var activePlayerId = _playerOrder[_activePlayerIndex];
+        if (IsAiPlayerId(activePlayerId))
+        {
+            return;
+        }
+
+        if (!_boardState.TryGetPlayer(activePlayerId, out var activePlayer) || activePlayer is null)
+            throw new InvalidOperationException($"Player not found in board state: {activePlayerId}");
+
+        var normalized = (action ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized) || string.Equals(normalized, "skip", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // Currently supported: house_build => buy city.
+        var shouldBuy = string.Equals(normalized, "house_build", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "buy", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "purchase", StringComparison.OrdinalIgnoreCase);
+
+        if (!shouldBuy)
+        {
+            return;
+        }
+
+        var occurredAt = DateTimeOffset.UtcNow;
+        var citiesById = _boardState.GetCitiesSnapshot();
+        var city = TryGetCityAtPositionIndex(citiesById, activePlayer.PositionIndex);
+        if (city is null)
+        {
+            return;
+        }
+
+        if (_boardState.TryGetOwnerOfCity(city.Id, out _))
+        {
+            // Owned: no purchase action.
+            return;
+        }
+
+        var players = new List<SanguoPlayer>(_playerOrder.Length);
+        foreach (var pid in _playerOrder)
+        {
+            if (!_boardState.TryGetPlayer(pid, out var p) || p is null)
+                throw new InvalidOperationException($"Player not found in board state: {pid}");
+            players.Add(p);
+        }
+
+        var bought = await _economy.TryBuyCityAndPublishEventAsync(
+            gameId: _gameId,
+            players: players,
+            citiesById: citiesById,
+            buyerId: activePlayerId,
+            cityId: city.Id,
+            priceMultiplier: 1.0m,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+
+        if (!bought)
+        {
+            return;
+        }
+
+        await PublishPlayerStateChangedAsync(
+            playerId: activePlayerId,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
     }
 
     private async Task PublishPlayerStateChangedAsync(

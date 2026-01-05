@@ -2,6 +2,7 @@ using Godot;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
+using Game.Godot.Scripts.Sanguo;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +15,7 @@ public partial class HUD : Control
     private const int MaxEventJsonChars = 64 * 1024;
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
     private const string UiHudDiceRollEventType = "ui.hud.dice.roll";
+    private const string UiTileActionSelectedEventType = "ui.sanguo.tile.action.selected";
     private const string MoneyCapAuditAction = "SANGUO_MONEY_CAPPED";
 
     private Label _score = default!;
@@ -24,6 +26,11 @@ public partial class HUD : Control
     private Label _money = default!;
     private Button _diceButton = default!;
 
+    private Control? _actionPanel;
+    private Label? _actionTitle;
+    private VBoxContainer? _actionButtons;
+    private Button? _skipActionButton;
+
     private string? _activePlayerId;
     private int _lastDateKey;
     private EventBusAdapter? _bus;
@@ -31,6 +38,11 @@ public partial class HUD : Control
 
     private EventToast? _toast;
     private EventLogPanel? _logPanel;
+
+    private readonly Dictionary<int, TileInfo> _tilesByIndex = new();
+    private bool _awaitingTileAction;
+    private string _awaitingCorrelationId = string.Empty;
+    private int _awaitingToIndex;
 
     public override void _Ready()
     {
@@ -43,11 +55,23 @@ public partial class HUD : Control
         _money = GetNode<Label>("TopBar/HBox/MoneyLabel");
         _diceButton = GetNode<Button>("TopBar/HBox/DiceButton");
         _diceButton.Pressed += OnDicePressed;
+        _diceButton.Disabled = true;
+        _diceButton.Text = "Waiting...";
+
+        _actionPanel = GetNodeOrNull<Control>("ActionPanel");
+        _actionTitle = GetNodeOrNull<Label>("ActionPanel/VBox/ActionTitle");
+        _actionButtons = GetNodeOrNull<VBoxContainer>("ActionPanel/VBox/Actions");
+        _skipActionButton = GetNodeOrNull<Button>("ActionPanel/VBox/SkipButton");
+        if (_skipActionButton != null)
+        {
+            _skipActionButton.Pressed += OnSkipTileActionPressed;
+        }
 
         _toast = GetNodeOrNull<EventToast>("EventToast");
         _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
 
         RegisterHandlers();
+        TryLoadMapTilesForUi();
 
         _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
         if (_bus == null)
@@ -63,6 +87,10 @@ public partial class HUD : Control
     public override void _ExitTree()
     {
         _diceButton.Pressed -= OnDicePressed;
+        if (_skipActionButton != null)
+        {
+            _skipActionButton.Pressed -= OnSkipTileActionPressed;
+        }
 
         if (_bus == null)
         {
@@ -83,10 +111,18 @@ public partial class HUD : Control
             return;
         }
 
+        if (_awaitingTileAction)
+        {
+            _toast?.ShowMessage("Please choose a tile action or Skip.");
+            return;
+        }
+
         var playerId = _activePlayerId ?? "";
         if (string.IsNullOrWhiteSpace(playerId))
         {
-            GD.PushWarning("HUD: ActivePlayerId is not known; publishing ui.hud.dice.roll without PlayerId");
+            _toast?.ShowMessage("Game is starting. Please wait...");
+            GD.PushWarning("HUD: ActivePlayerId is not known; not publishing ui.hud.dice.roll");
+            return;
         }
 
         var payload = JsonSerializer.Serialize(new
@@ -224,7 +260,7 @@ public partial class HUD : Control
         _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
         _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
         _handlers[SanguoCityBought.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoTokenMoved.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoTokenMoved.EventType] = HandleTokenMovedEvent;
         _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoGameEnded.EventType] = HandleGameEndedEvent;
@@ -326,6 +362,7 @@ public partial class HUD : Control
 
     private void HandleTurnEvent(JsonElement root)
     {
+        var previousActive = _activePlayerId;
         string active = "";
         int year = 0;
         int month = 0;
@@ -351,6 +388,11 @@ public partial class HUD : Control
         _diceButton.Disabled = string.IsNullOrWhiteSpace(active) || IsAiPlayerId(active);
         _activePlayer.Text = $"Player: {active}";
         _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
+
+        if (_awaitingTileAction && previousActive != null && !string.Equals(previousActive, _activePlayerId, StringComparison.Ordinal))
+        {
+            HideTileActionPanel();
+        }
     }
 
     private static int ComputeDateKey(int year, int month, int day)
@@ -421,6 +463,171 @@ public partial class HUD : Control
 
         _diceButton.Text = $"Dice: {value}";
     }
+
+    private void HandleTokenMovedEvent(JsonElement root)
+    {
+        if (_tilesByIndex.Count == 0)
+        {
+            return;
+        }
+
+        if (!root.TryGetProperty("PlayerId", out var pidProp) || pidProp.ValueKind != JsonValueKind.String)
+        {
+            return;
+        }
+
+        var playerId = pidProp.GetString() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(playerId) || IsAiPlayerId(playerId))
+        {
+            return;
+        }
+
+        if (_activePlayerId == null || !string.Equals(_activePlayerId, playerId, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (!root.TryGetProperty("ToIndex", out var toProp) || !toProp.TryGetInt32(out var toIndex) || toIndex < 0)
+        {
+            return;
+        }
+
+        if (!_tilesByIndex.TryGetValue(toIndex, out var tile))
+        {
+            return;
+        }
+
+        var corr = root.TryGetProperty("CorrelationId", out var corrProp) && corrProp.ValueKind == JsonValueKind.String
+            ? (corrProp.GetString() ?? string.Empty)
+            : string.Empty;
+
+        ShowTileActionPanel(playerId, toIndex, corr, tile);
+    }
+
+    private void ShowTileActionPanel(string playerId, int toIndex, string correlationId, TileInfo tile)
+    {
+        if (_actionPanel == null || _actionButtons == null || _skipActionButton == null || _bus == null)
+        {
+            return;
+        }
+
+        if (tile.Actions.Length == 0)
+        {
+            return;
+        }
+
+        _awaitingTileAction = true;
+        _awaitingCorrelationId = correlationId ?? string.Empty;
+        _awaitingToIndex = toIndex;
+
+        _diceButton.Disabled = true;
+
+        if (_actionTitle != null)
+        {
+            _actionTitle.Text = $"Tile: {tile.Name}";
+        }
+
+        foreach (var child in _actionButtons.GetChildren())
+        {
+            if (child is Node n)
+            {
+                n.QueueFree();
+            }
+        }
+
+        foreach (var action in tile.Actions)
+        {
+            var a = action ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(a))
+            {
+                continue;
+            }
+
+            var btn = new Button { Text = a, FocusMode = FocusModeEnum.All };
+            btn.Pressed += () => OnTileActionPressed(playerId, toIndex, _awaitingCorrelationId, a);
+            _actionButtons.AddChild(btn);
+        }
+
+        _actionPanel.Visible = true;
+        _toast?.ShowMessage($"Choose action for '{tile.Name}' or Skip.");
+    }
+
+    private void OnTileActionPressed(string playerId, int toIndex, string correlationId, string action)
+    {
+        PublishTileActionSelected(playerId, toIndex, correlationId, action);
+        HideTileActionPanel();
+    }
+
+    private void OnSkipTileActionPressed()
+    {
+        if (_activePlayerId == null)
+        {
+            return;
+        }
+
+        PublishTileActionSelected(_activePlayerId, _awaitingToIndex, _awaitingCorrelationId, "skip");
+        HideTileActionPanel();
+    }
+
+    private void PublishTileActionSelected(string playerId, int toIndex, string correlationId, string action)
+    {
+        if (_bus == null)
+        {
+            return;
+        }
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            GameId = "g1",
+            PlayerId = playerId,
+            ToIndex = toIndex,
+            Action = action,
+            CorrelationId = string.IsNullOrWhiteSpace(correlationId) ? Guid.NewGuid().ToString("N") : correlationId,
+            CausationId = UiTileActionSelectedEventType,
+        });
+
+        _bus.PublishSimple(UiTileActionSelectedEventType, nameof(HUD), payload);
+    }
+
+    private void HideTileActionPanel()
+    {
+        _awaitingTileAction = false;
+        _awaitingCorrelationId = string.Empty;
+        _awaitingToIndex = 0;
+
+        if (_actionPanel != null)
+        {
+            _actionPanel.Visible = false;
+        }
+    }
+
+    private void TryLoadMapTilesForUi()
+    {
+        _tilesByIndex.Clear();
+
+        try
+        {
+            var loader = new ResourceLoaderAdapter();
+            var correlationId = Guid.NewGuid().ToString("N");
+            if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out _, out _))
+            {
+                return;
+            }
+
+            foreach (var tile in map.Tiles)
+            {
+                var actions = tile.Actions is null ? Array.Empty<string>() : new List<string>(tile.Actions).ToArray();
+                _tilesByIndex[tile.PositionIndex] = new TileInfo(
+                    Name: tile.Name ?? string.Empty,
+                    Actions: actions);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private readonly record struct TileInfo(string Name, string[] Actions);
 
     public void SetScore(int v) => _score.Text = $"Score: {v}";
     public void SetHealth(int v) => _health.Text = $"HP: {v}";
