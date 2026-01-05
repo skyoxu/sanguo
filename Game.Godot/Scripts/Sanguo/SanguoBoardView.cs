@@ -2,7 +2,7 @@ using Godot;
 using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Text.Json;
 
 namespace Game.Godot.Scripts.Sanguo;
@@ -11,7 +11,10 @@ public partial class SanguoBoardView : Node2D
 {
     private const int MaxEventJsonChars = 64 * 1024;
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
-    private const string TokenVisualNodeName = "__TokenVisual__";
+
+    private static readonly Color HumanColor = new(0.9f, 0.2f, 0.2f, 1f);
+    private static readonly Color AiColor = new(0.2f, 0.4f, 0.9f, 1f);
+    private static readonly Color NeutralColor = new(0.32f, 0.32f, 0.32f, 1f);
 
     [Export]
     public NodePath TokenPath { get; set; } = new NodePath("Token");
@@ -28,25 +31,49 @@ public partial class SanguoBoardView : Node2D
     [Export(PropertyHint.Range, "0,512,1,or_greater")]
     public int TotalPositions { get; set; } = 0;
 
+    [Export]
+    public bool UseSquareLayout { get; set; } = true;
+
+    [Export(PropertyHint.Range, "0,128,1,or_greater")]
+    public float TokenLaneOffsetPixels { get; set; } = 16f;
+
     public int LastToIndex { get; private set; }
     public string? LastPlayerId { get; private set; }
     public bool LastMoveAnimated { get; private set; }
 
     private EventBusAdapter? _bus;
-    private Tween? _moveTween;
+    private readonly SanguoBoardLayout _layout = new();
+    private readonly SanguoBoardTileOverlay _overlay;
+    private readonly SanguoTokenAnimator _animator;
+    private readonly SanguoBoardTokens _tokens;
+
+    private readonly Dictionary<string, Node2D> _tokensByPlayerId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _lastPositionByPlayerId = new(StringComparer.Ordinal);
+
+    public SanguoBoardView()
+    {
+        _overlay = new SanguoBoardTileOverlay(this);
+        _animator = new SanguoTokenAnimator(this);
+        _tokens = new SanguoBoardTokens(this, _tokensByPlayerId);
+    }
 
     public override void _Ready()
     {
-        var token = ResolveToken();
+        var token = _tokens.ResolvePrimary(TokenPath);
         if (token != null)
         {
-            EnsureTokenHasVisual(token);
+            SanguoBoardTokens.EnsureTokenHasVisual(token, HumanColor);
+            _tokensByPlayerId["p1"] = token;
         }
+
+        var aiToken = _tokens.EnsureExtraToken("ai-1");
+        SanguoBoardTokens.EnsureTokenHasVisual(aiToken, AiColor);
+
+        EnsureBoardVisuals();
 
         _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
         if (_bus == null)
         {
-            GD.PushWarning("SanguoBoardView: EventBus not found at /root/EventBus");
             return;
         }
 
@@ -59,8 +86,7 @@ public partial class SanguoBoardView : Node2D
 
     public override void _ExitTree()
     {
-        _moveTween?.Kill();
-        _moveTween = null;
+        _animator.KillAll();
 
         if (_bus == null)
         {
@@ -76,15 +102,17 @@ public partial class SanguoBoardView : Node2D
         _bus = null;
     }
 
-    private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
+    private void OnDomainEventEmitted(
+        string type,
+        string source,
+        string dataJson,
+        string id,
+        string specVersion,
+        string dataContentType,
+        string timestampIso
+    )
     {
-        if (type != SanguoTokenMoved.EventType)
-        {
-            return;
-        }
-
-        var token = ResolveToken();
-        if (token == null)
+        if (type != SanguoTokenMoved.EventType && type != SanguoCityBought.EventType)
         {
             return;
         }
@@ -99,7 +127,32 @@ public partial class SanguoBoardView : Node2D
         try
         {
             using var doc = JsonDocument.Parse(json, JsonOptions);
-            if (!doc.RootElement.TryGetProperty("ToIndex", out var toIndex) || !toIndex.TryGetInt32(out var parsedToIndex))
+            var root = doc.RootElement;
+
+            if (type == SanguoCityBought.EventType)
+            {
+                if (!root.TryGetProperty("BuyerId", out var buyerProp) || buyerProp.ValueKind != JsonValueKind.String)
+                {
+                    return;
+                }
+
+                var buyerId = buyerProp.GetString() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(buyerId))
+                {
+                    return;
+                }
+
+                if (!_lastPositionByPlayerId.TryGetValue(buyerId, out var pos))
+                {
+                    return;
+                }
+
+                EnsureBoardVisuals();
+                _overlay.SetOwnerForIndex(_layout, _layout.ClampIndex(pos), buyerId);
+                return;
+            }
+
+            if (!root.TryGetProperty("ToIndex", out var toIndex) || !toIndex.TryGetInt32(out var parsedToIndex))
             {
                 GD.PushWarning($"SanguoBoardView ignored event without valid ToIndex (type='{type}').");
                 return;
@@ -107,7 +160,7 @@ public partial class SanguoBoardView : Node2D
 
             if (TotalPositions <= 0)
             {
-                TryAppendSecurityAudit(
+                SanguoSecurityAuditWriter.TryAppendSecurityAudit(
                     action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
                     reason: "total_positions_not_configured",
                     target: $"to_index={parsedToIndex} total_positions={TotalPositions}",
@@ -121,7 +174,7 @@ public partial class SanguoBoardView : Node2D
 
             if (parsedToIndex < 0)
             {
-                TryAppendSecurityAudit(
+                SanguoSecurityAuditWriter.TryAppendSecurityAudit(
                     action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
                     reason: "to_index_negative",
                     target: $"to_index={parsedToIndex} total_positions={TotalPositions}",
@@ -135,7 +188,7 @@ public partial class SanguoBoardView : Node2D
 
             if (parsedToIndex >= TotalPositions)
             {
-                TryAppendSecurityAudit(
+                SanguoSecurityAuditWriter.TryAppendSecurityAudit(
                     action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
                     reason: "to_index_out_of_range",
                     target: $"to_index={parsedToIndex} total_positions={TotalPositions}",
@@ -147,14 +200,64 @@ public partial class SanguoBoardView : Node2D
                 return;
             }
 
-            if (doc.RootElement.TryGetProperty("PlayerId", out var playerId))
+            var playerId = "p1";
+            if (root.TryGetProperty("PlayerId", out var pid) && pid.ValueKind == JsonValueKind.String)
             {
-                LastPlayerId = playerId.GetString();
+                var v = pid.GetString();
+                if (!string.IsNullOrWhiteSpace(v))
+                {
+                    playerId = v;
+                }
             }
 
+            var token = _tokens.ResolveTokenForPlayerId(playerId, TokenPath, HumanColor, AiColor, NeutralColor);
+            if (token == null)
+            {
+                return;
+            }
+
+            EnsureBoardVisuals();
+
+            LastPlayerId = playerId;
             LastToIndex = parsedToIndex;
-            var target = Origin + new Vector2(LastToIndex * StepPixels, 0f);
-            MoveTokenTo(token, target);
+
+            var fromIndex = LastToIndex;
+            if (root.TryGetProperty("FromIndex", out var fromEl) && fromEl.TryGetInt32(out var parsedFromIndex))
+            {
+                fromIndex = parsedFromIndex;
+            }
+            else if (_lastPositionByPlayerId.TryGetValue(playerId, out var previous))
+            {
+                fromIndex = previous;
+            }
+
+            var stepCount = 0;
+            if (root.TryGetProperty("Steps", out var stepsEl) && stepsEl.TryGetInt32(out var parsedSteps))
+            {
+                stepCount = parsedSteps;
+            }
+
+            var clampedFrom = ClampIndexToBoard(fromIndex);
+            var clampedTo = _layout.ClampIndex(LastToIndex);
+            var effectiveSteps = ResolveEffectiveSteps(clampedFrom, clampedTo, stepCount);
+
+            _lastPositionByPlayerId[playerId] = clampedTo;
+
+            if (MoveDurationSeconds <= 0 || effectiveSteps <= 1)
+            {
+                var target = GetTokenTargetPosition(playerId, clampedTo);
+                LastMoveAnimated = _animator.MoveTo(playerId, token, target, MoveDurationSeconds);
+                return;
+            }
+
+            LastMoveAnimated = _animator.MoveAlongPath(
+                playerId,
+                token,
+                _layout.TotalPositions,
+                clampedFrom,
+                effectiveSteps,
+                MoveDurationSeconds,
+                index => GetTokenTargetPosition(playerId, index));
         }
         catch
         {
@@ -162,98 +265,51 @@ public partial class SanguoBoardView : Node2D
         }
     }
 
-    private static void TryAppendSecurityAudit(
-        string action,
-        string reason,
-        string target,
-        string caller,
-        string eventType,
-        string eventSource,
-        string eventId
-    )
+    private int ClampIndexToBoard(int index) => _layout.ClampIndex(index);
+
+    private int ResolveEffectiveSteps(int fromIndex, int toIndex, int declaredSteps)
     {
-        try
+        if (TotalPositions <= 0)
         {
-            var dir = ProjectSettings.GlobalizePath("user://logs/security");
-            Directory.CreateDirectory(dir);
-            var path = Path.Combine(dir, "security-audit.jsonl");
-
-            var record = new
-            {
-                ts = DateTimeOffset.UtcNow.ToString("O"),
-                action,
-                reason,
-                target,
-                caller,
-                event_type = eventType,
-                event_source = eventSource,
-                event_id = eventId,
-            };
-
-            File.AppendAllText(path, JsonSerializer.Serialize(record) + System.Environment.NewLine);
+            return 1;
         }
-        catch
+
+        var delta = (toIndex - fromIndex) % TotalPositions;
+        if (delta < 0)
         {
-            // Best-effort audit only.
+            delta += TotalPositions;
         }
+
+        if (declaredSteps > 0 && declaredSteps <= TotalPositions && ((fromIndex + declaredSteps) % TotalPositions) == toIndex)
+        {
+            return declaredSteps;
+        }
+
+        return delta <= 0 ? 1 : delta;
     }
 
-    private Node2D? ResolveToken()
+    public Vector2 GetPositionForIndex(int index)
     {
-        if (!TokenPath.IsEmpty)
-        {
-            return GetNodeOrNull<Node2D>(TokenPath);
-        }
-
-        return null;
+        EnsureBoardVisuals();
+        return _layout.GetBasePositionForIndex(index);
     }
 
-    private void MoveTokenTo(Node2D token, Vector2 targetLocalPosition)
+    private Vector2 GetTokenTargetPosition(string playerId, int index)
     {
-        _moveTween?.Kill();
-        _moveTween = null;
-
-        if (MoveDurationSeconds <= 0)
+        EnsureBoardVisuals();
+        var basePos = _layout.GetBasePositionForIndex(index);
+        if (string.IsNullOrWhiteSpace(playerId) || string.Equals(playerId, "p1", StringComparison.Ordinal))
         {
-            token.Position = targetLocalPosition;
-            LastMoveAnimated = false;
-            return;
+            return basePos;
         }
 
-        LastMoveAnimated = true;
-        _moveTween = CreateTween();
-        _moveTween.TweenProperty(token, "position", targetLocalPosition, MoveDurationSeconds);
+        // Keep human token on the lane, offset other players so overlapping tokens remain distinguishable.
+        return basePos + new Vector2(0f, TokenLaneOffsetPixels);
     }
 
-    private static void EnsureTokenHasVisual(Node2D token)
+    private void EnsureBoardVisuals()
     {
-        if (token.GetNodeOrNull<Node2D>(TokenVisualNodeName) != null)
-        {
-            return;
-        }
-
-        foreach (var child in token.GetChildren())
-        {
-            if (child is CanvasItem)
-            {
-                return;
-            }
-        }
-
-        var visual = new Polygon2D
-        {
-            Name = TokenVisualNodeName,
-            Color = new Color(0.9f, 0.2f, 0.2f, 1f),
-            Polygon =
-                new[]
-                {
-                    new Vector2(-8, -8),
-                    new Vector2(8, -8),
-                    new Vector2(8, 8),
-                    new Vector2(-8, 8),
-                },
-        };
-
-        token.AddChild(visual);
+        _layout.Configure(TotalPositions, StepPixels, Origin, UseSquareLayout);
+        _overlay.EnsureBuilt(_layout);
     }
 }

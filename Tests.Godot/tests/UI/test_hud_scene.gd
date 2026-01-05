@@ -1,9 +1,23 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
+var _bus: Node
+
+func before() -> void:
+    var existing = get_node_or_null("/root/EventBus")
+    if existing != null:
+        existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
+        existing.queue_free()
+
+    _bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
+    _bus.name = "EventBus"
+    get_tree().get_root().add_child(auto_free(_bus))
+
 # ACC:T22.1
 # ACC:T9.1
 # ACC:T20.1
 # ACC:T19.1
+# ACC:T21.1
+# ACC:T21.4
 func test_hud_scene_instantiates() -> void:
     var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
     add_child(auto_free(main))
@@ -18,8 +32,20 @@ func test_hud_scene_instantiates() -> void:
     assert_object(hud).is_not_null()
     assert_object(hud.get_node_or_null("EventToast")).is_not_null()
     assert_object(hud.get_node_or_null("EventLogPanel")).is_not_null()
+    var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
+    assert_bool(date_label.is_visible_in_tree()).is_true()
     var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
     assert_str(money_label.text).is_equal("Money: -")
+
+    assert_object(main.get_node_or_null("SanguoBoardView")).is_not_null()
+    assert_object(main.get_node_or_null("Overlays/CityOwnershipStatus")).is_not_null()
+
+    _bus.PublishSimple("ui.menu.start", "ut", "{}")
+    for _i in range(20):
+        await get_tree().process_frame
+        if date_label.text != "Date: -":
+            break
+    assert_str(date_label.text).is_equal("Date: 0003-02-01")
 
     var toast := preload("res://Game.Godot/Scenes/UI/EventToast.tscn").instantiate()
     add_child(auto_free(toast))

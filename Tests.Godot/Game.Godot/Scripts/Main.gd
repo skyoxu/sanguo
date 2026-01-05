@@ -1,11 +1,26 @@
-﻿extends Control
+extends Control
 
 @onready var _label: Label = $VBox/Output
 var _score: int = 0
 var _hp: int = 100
 
+func _should_show_template_demo_overlay() -> bool:
+    var ff = get_node_or_null("/root/FeatureFlags")
+    if ff != null and ff.has_method("IsEnabled"):
+        if ff.IsEnabled("demo_overlay"):
+            return true
+
+    if OS.has_environment("TEMPLATE_DEMO") and str(OS.get_environment("TEMPLATE_DEMO")).to_lower() == "1":
+        return true
+
+    return false
+
 func _ready() -> void:
     print("[TEMPLATE_SMOKE_READY] Main scene initialized")
+
+    if has_node("VBox"):
+        $VBox.visible = _should_show_template_demo_overlay()
+
     var db = get_node_or_null("/root/SqlDb")
     if db != null:
         var ok = db.TryOpen("user://data/game.db")
@@ -102,8 +117,8 @@ func _on_domain_event(type: String, source: String, data_json: String, id: Strin
                 var ok = nav.SwitchTo("res://Game.Godot/Examples/Screens/DemoScreen.tscn")
                 if ok:
                     return
-            if ResourceLoader.exists("res://Game.Godot/Scenes/Screens/StartScreen.tscn"):
-                nav.SwitchTo("res://Game.Godot/Scenes/Screens/StartScreen.tscn")
+            # Default gameplay uses the always-present Main scene (HUD + board view).
+            # Avoid switching to placeholder screens that can block input.
     elif type == "ui.menu.settings":
         var sp = get_node_or_null("/root/Main/SettingsPanel")
         if sp != null and sp.has_method("ShowPanel"):

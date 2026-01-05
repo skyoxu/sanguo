@@ -123,6 +123,46 @@ public sealed class SanguoTurnManager
             occurredAt: occurredAt);
     }
 
+
+    public async Task ExecuteHumanRollDiceAndResolveAsync(string correlationId, string? causationId)
+    {
+        if (!_started || _gameId is null || _playerOrder is null)
+            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+            throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
+
+        if (await TryEndGameIfHumanEliminatedAsync(correlationId: correlationId, causationId: causationId))
+        {
+            return;
+        }
+
+        var activePlayerId = _playerOrder[_activePlayerIndex];
+        if (IsAiPlayerId(activePlayerId))
+        {
+            return;
+        }
+
+        if (!_boardState.TryGetPlayer(activePlayerId, out var activePlayer) || activePlayer is null)
+            throw new InvalidOperationException($"Player not found in board state: {activePlayerId}");
+
+        var totalPositions = ResolveTotalPositions();
+        var occurredAt = DateTimeOffset.UtcNow;
+        var diceValue = _rng.NextInt(1, 7);
+
+        await ExecuteRollDiceMoveAndResolveCityAsync(
+            gameId: _gameId,
+            playerOrder: _playerOrder,
+            activePlayer: activePlayer,
+            totalPositions: totalPositions,
+            diceValue: diceValue,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+
+        await TryEndGameIfHumanEliminatedAsync(correlationId: correlationId, causationId: causationId);
+    }
+
     public async Task AdvanceTurnAsync(string correlationId, string? causationId)
     {
         if (!_started || _gameId is null || _playerOrder is null)
@@ -341,6 +381,126 @@ public sealed class SanguoTurnManager
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
+    }
+
+
+    private async Task ExecuteRollDiceMoveAndResolveCityAsync(
+        string gameId,
+        string[] playerOrder,
+        SanguoPlayer activePlayer,
+        int totalPositions,
+        int diceValue,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (totalPositions <= 0)
+            return;
+
+        var playerId = activePlayer.PlayerId;
+        var value = Math.Clamp(diceValue, 1, 6);
+
+        var fromIndex = activePlayer.PositionIndex;
+        if (fromIndex < 0)
+            fromIndex = 0;
+        if (fromIndex >= totalPositions)
+            fromIndex %= totalPositions;
+
+        var start = new CircularMapPosition(fromIndex, totalPositions);
+        var end = start.Advance(value);
+        var toIndex = end.Current;
+        var passedStart = fromIndex + value >= totalPositions;
+
+        var dice = new DomainEvent(
+            Type: SanguoDiceRolled.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoDiceRolled(
+                GameId: gameId,
+                PlayerId: playerId,
+                Value: value,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(dice);
+
+        activePlayer.MoveToPosition(toIndex);
+
+        var moved = new DomainEvent(
+            Type: SanguoTokenMoved.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoTokenMoved(
+                GameId: gameId,
+                PlayerId: playerId,
+                FromIndex: fromIndex,
+                ToIndex: toIndex,
+                Steps: value,
+                PassedStart: passedStart,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(moved);
+
+        var affectedPlayerIds = new HashSet<string>(StringComparer.Ordinal) { playerId };
+
+        var citiesById = _boardState.GetCitiesSnapshot();
+        var city = TryGetCityAtPositionIndex(citiesById, toIndex);
+        if (city is not null)
+        {
+            var players = new List<SanguoPlayer>(playerOrder.Length);
+            foreach (var pid in playerOrder)
+            {
+                if (!_boardState.TryGetPlayer(pid, out var p) || p is null)
+                    throw new InvalidOperationException($"Player not found in board state: {pid}");
+                players.Add(p);
+            }
+
+            if (_boardState.TryGetOwnerOfCity(city.Id, out var owner) && owner is not null)
+            {
+                if (!StringComparer.Ordinal.Equals(owner.PlayerId, playerId))
+                {
+                    var paid = await _economy.TryPayTollAndPublishEventAsync(
+                        gameId: gameId,
+                        players: players,
+                        citiesById: citiesById,
+                        treasury: _treasury,
+                        payerId: playerId,
+                        cityId: city.Id,
+                        tollMultiplier: 1.0m,
+                        correlationId: correlationId,
+                        causationId: causationId,
+                        occurredAt: occurredAt);
+
+                    if (paid)
+                        affectedPlayerIds.Add(owner.PlayerId);
+                }
+            }
+            else
+            {
+                _ = await _economy.TryBuyCityAndPublishEventAsync(
+                    gameId: gameId,
+                    players: players,
+                    citiesById: citiesById,
+                    buyerId: playerId,
+                    cityId: city.Id,
+                    priceMultiplier: 1.0m,
+                    correlationId: correlationId,
+                    causationId: causationId,
+                    occurredAt: occurredAt);
+            }
+        }
+
+        foreach (var pid in affectedPlayerIds)
+        {
+            await PublishPlayerStateChangedAsync(
+                playerId: pid,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+        }
     }
 
     private async Task PublishPlayerStateChangedAsync(

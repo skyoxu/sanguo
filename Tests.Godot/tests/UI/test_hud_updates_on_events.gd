@@ -144,6 +144,7 @@ func test_hud_updates_on_health_event() -> void:
     assert_str(hp_label.text).is_equal("HP: 77")
 
 # ACC:T20.3
+# ACC:T21.2
 func test_hud_updates_on_sanguo_turn_started_event() -> void:
     var hud = await _hud()
     var active_label: Label = hud.get_node("TopBar/HBox/ActivePlayerLabel")
@@ -156,6 +157,10 @@ func test_hud_updates_on_sanguo_turn_started_event() -> void:
     await get_tree().process_frame
     assert_str(active_label.text).is_equal("Player: p1")
     assert_str(date_label.text).is_equal("Date: 0003-02-01")
+
+    _bus.PublishSimple("core.sanguo.game.turn.advanced", "ut", "{\"GameId\":\"g1\",\"ActivePlayerId\":\"p1\",\"TurnNumber\":2,\"Year\":3,\"Month\":2,\"Day\":2}")
+    await get_tree().process_frame
+    assert_str(date_label.text).is_equal("Date: 0003-02-02")
 
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":123,\"PositionIndex\":0}")
     await get_tree().process_frame
@@ -191,12 +196,15 @@ func test_dice_button_emits_ui_roll_event() -> void:
     var hud = await _hud()
     var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
     _last_emitted_type = ""
+    _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
+    await get_tree().process_frame
     dice.emit_signal("pressed")
     await get_tree().process_frame
     assert_str(_last_emitted_type).is_equal("ui.hud.dice.roll")
 
-# ACC:T17.10
-func test_hud_dice_roll_triggers_core_dice_event_with_trace_ids() -> void:
+# The HUD is responsible for emitting the UI command with trace ids.
+# Core domain events are validated in an integration test that includes the game loop controller.
+func test_hud_dice_roll_emits_ui_event_with_trace_ids() -> void:
     var hud = await _hud()
     var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
     _events = []
@@ -215,14 +223,6 @@ func test_hud_dice_roll_triggers_core_dice_event_with_trace_ids() -> void:
     assert_str(str(ui_payload.get("CausationId", ""))).is_equal("ui.hud.dice.roll")
     var corr := str(ui_payload.get("CorrelationId", ""))
     assert_bool(corr.length() > 0).is_true()
-
-    var core_evt := _last_event("core.sanguo.dice.rolled")
-    assert_bool(core_evt.size() > 0).is_true()
-    var core_payload: Dictionary = JSON.parse_string(str(core_evt.get("data_json", "{}")))
-    assert_str(str(core_payload.get("PlayerId", ""))).is_equal("p1")
-    assert_int(int(core_payload.get("Value", 0))).is_between(1, 6)
-    assert_str(str(core_payload.get("CorrelationId", ""))).is_equal(corr)
-    assert_str(str(core_payload.get("CausationId", ""))).is_equal("ui.hud.dice.roll")
 
 # ACC:T17.4
 # ACC:T17.15

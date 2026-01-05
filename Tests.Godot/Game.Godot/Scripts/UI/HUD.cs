@@ -1,7 +1,6 @@
 using Godot;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
-using Game.Core.Services;
 using Game.Godot.Adapters;
 using System;
 using System.Collections.Generic;
@@ -26,8 +25,8 @@ public partial class HUD : Control
     private Button _diceButton = default!;
 
     private string? _activePlayerId;
+    private int _lastDateKey;
     private EventBusAdapter? _bus;
-    private SanguoDiceService? _diceService;
     private readonly Dictionary<string, Action<JsonElement>> _handlers = new(StringComparer.Ordinal);
 
     private EventToast? _toast;
@@ -35,6 +34,7 @@ public partial class HUD : Control
 
     public override void _Ready()
     {
+        _lastDateKey = -1;
         _score = GetNode<Label>("TopBar/HBox/ScoreLabel");
         _health = GetNode<Label>("TopBar/HBox/HealthLabel");
 
@@ -56,8 +56,6 @@ public partial class HUD : Control
             return;
         }
 
-        _diceService = new SanguoDiceService(_bus);
-
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
         TryConnectBus(callable);
     }
@@ -75,7 +73,6 @@ public partial class HUD : Control
         TryDisconnectBus(callable);
 
         _bus = null;
-        _diceService = null;
     }
 
     private void OnDicePressed()
@@ -225,13 +222,12 @@ public partial class HUD : Control
 
         _handlers[SanguoPlayerStateChanged.EventType] = HandlePlayerStateChangedEvent;
         _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
-        _handlers[UiHudDiceRollEventType] = HandleHudDiceRollEvent;
         _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
         _handlers[SanguoCityBought.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoTokenMoved.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoGameEnded.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoGameEnded.EventType] = HandleGameEndedEvent;
     }
 
     private void HandleUiOnlyEvent(JsonElement _)
@@ -240,47 +236,24 @@ public partial class HUD : Control
         // before the per-type handler is invoked.
     }
 
-    private void HandleHudDiceRollEvent(JsonElement root)
+    private void HandleGameEndedEvent(JsonElement root)
     {
-        if (_diceService == null)
+        _activePlayerId = null;
+        _diceButton.Disabled = true;
+        _diceButton.Text = "Game Over";
+        _activePlayer.Text = "Player: -";
+
+        var reason = root.TryGetProperty("EndReason", out var r) && r.ValueKind == JsonValueKind.String
+            ? (r.GetString() ?? "")
+            : "";
+
+        if (string.IsNullOrWhiteSpace(reason))
         {
+            _toast?.ShowMessage(SanguoGameEnded.EventType);
             return;
         }
 
-        string gameId = "g1";
-        if (root.TryGetProperty("GameId", out var gid) && gid.ValueKind == JsonValueKind.String)
-        {
-            var v = gid.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) gameId = v;
-        }
-
-        string playerId = _activePlayerId ?? "";
-        if (root.TryGetProperty("PlayerId", out var pid) && pid.ValueKind == JsonValueKind.String)
-        {
-            var v = pid.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) playerId = v;
-        }
-
-        if (string.IsNullOrWhiteSpace(playerId))
-        {
-            return;
-        }
-
-        string correlationId = Guid.NewGuid().ToString("N");
-        if (root.TryGetProperty("CorrelationId", out var corr) && corr.ValueKind == JsonValueKind.String)
-        {
-            var v = corr.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) correlationId = v;
-        }
-
-        string? causationId = UiHudDiceRollEventType;
-        if (root.TryGetProperty("CausationId", out var cause) && cause.ValueKind == JsonValueKind.String)
-        {
-            var v = cause.GetString();
-            if (!string.IsNullOrWhiteSpace(v)) causationId = v;
-        }
-
-        _ = _diceService.RollD6(gameId: gameId, playerId: playerId, correlationId: correlationId, causationId: causationId);
+        _toast?.ShowMessage($"{SanguoGameEnded.EventType} reason={reason}");
     }
 
     private void HandleCityTollPaidEvent(JsonElement root)
@@ -363,9 +336,36 @@ public partial class HUD : Control
         if (root.TryGetProperty("Month", out var m)) month = m.GetInt32();
         if (root.TryGetProperty("Day", out var d)) day = d.GetInt32();
 
+        var dateKey = ComputeDateKey(year, month, day);
+        if (dateKey > 0 && _lastDateKey > 0 && dateKey < _lastDateKey)
+        {
+            return;
+        }
+
+        if (dateKey > 0 && dateKey > _lastDateKey)
+        {
+            _lastDateKey = dateKey;
+        }
+
         _activePlayerId = string.IsNullOrWhiteSpace(active) ? null : active;
+        _diceButton.Disabled = string.IsNullOrWhiteSpace(active) || IsAiPlayerId(active);
         _activePlayer.Text = $"Player: {active}";
         _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
+    }
+
+    private static int ComputeDateKey(int year, int month, int day)
+    {
+        if (year <= 0 || month <= 0 || day <= 0)
+        {
+            return -1;
+        }
+
+        return (year * 10000) + (month * 100) + day;
+    }
+
+    private static bool IsAiPlayerId(string playerId)
+    {
+        return !string.IsNullOrWhiteSpace(playerId) && playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
     }
 
     private void HandlePlayerStateChangedEvent(JsonElement root)

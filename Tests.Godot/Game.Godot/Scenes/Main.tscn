@@ -10,6 +10,9 @@
 [ext_resource type="Script" path="res://Game.Godot/Scripts/UI/SettingsLoader.cs" id="11"]
 [ext_resource type="Script" path="res://Game.Godot/Scripts/Navigation/ScreenNavigator.cs" id="13"]
 [ext_resource type="Script" path="res://Game.Godot/Scripts/Bootstrap/InputMapper.cs" id="12"]
+[ext_resource type="Script" path="res://Game.Godot/Scripts/Sanguo/SanguoGameLoopController.cs" id="14"]
+[ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoCityOwnershipStatusDisplay.tscn" id="16"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -35,9 +38,15 @@ script = ExtResource("8")
 [node name="EngineDemo" type="Node" parent="."]
 script = ExtResource("6")
 
+[node name="SanguoGameLoopController" type="Node" parent="."]
+script = ExtResource("14")
+
 [node name="HUD" parent="." instance=ExtResource("2")]
 
 [node name="MainMenu" parent="." instance=ExtResource("3")]
+
+[node name="SanguoBoardView" parent="." instance=ExtResource("15")]
+position = Vector2(80, 360)
 
 [node name="ScreenRoot" type="Control" parent="."]
 layout_mode = 3
@@ -46,6 +55,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="ScreenNavigator" type="Node" parent="."]
 script = ExtResource("13")
@@ -60,7 +70,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 z_index = 100
-mouse_filter = 1
+mouse_filter = 2
+
+[node name="CityOwnershipStatus" parent="Overlays" instance=ExtResource("16")]
+layout_mode = 2
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 8.0
+offset_top = 56.0
+offset_right = 360.0
+offset_bottom = 96.0
+mouse_filter = 2
 
 
 
@@ -98,4 +119,3 @@ text = "+10 Score"
 [node name="LoseHpBtn" type="Button" parent="VBox"]
 layout_mode = 2
 text = "-5 HP"
-
