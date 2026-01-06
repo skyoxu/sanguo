@@ -46,19 +46,7 @@
       "- 原条款“脚本可运行/不破坏 CI”以 CI/验收脚本的可重复证据链为准，不再作为单测锚点验收。"
     ],
     "taskmaster_id": 1,
-    "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0011",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    "taskmaster_exported": true
   },
   {
     "id": "SG-0002",
@@ -119,24 +107,6 @@
     ],
     "taskmaster_id": 2,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved"
     ]
@@ -199,25 +169,7 @@
       "- 符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。 Refs: Game.Core.Tests/Domain/CityTests.cs"
     ],
     "taskmaster_id": 3,
-    "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    "taskmaster_exported": true
   },
   {
     "id": "SG-0004",
@@ -275,25 +227,7 @@
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs"
     ],
     "taskmaster_id": 4,
-    "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    "taskmaster_exported": true
   },
   {
     "id": "SG-0005",
@@ -355,24 +289,6 @@
     ],
     "taskmaster_id": 5,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.dice.rolled"
     ]
@@ -446,24 +362,6 @@
     ],
     "taskmaster_id": 6,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.turn.started",
       "core.sanguo.game.turn.ended"
@@ -533,24 +431,6 @@
     ],
     "taskmaster_id": 7,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.month.settled",
       "core.sanguo.economy.year.price.adjusted"
@@ -623,25 +503,6 @@
     ],
     "taskmaster_id": 8,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025",
-      "ADR-0026"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.season.event.applied"
     ]
@@ -701,20 +562,7 @@
       "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
     ],
     "taskmaster_id": 9,
-    "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    "taskmaster_exported": true
   },
   {
     "id": "SG-0022",
@@ -768,19 +616,6 @@
     ],
     "taskmaster_id": 22,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.dice.rolled"
     ]
@@ -844,24 +679,6 @@
     ],
     "taskmaster_id": 10,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved"
     ]
@@ -945,25 +762,6 @@
     ],
     "taskmaster_id": 12,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025",
-      "ADR-0027"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.city.bought"
     ]
@@ -1024,19 +822,6 @@
     ],
     "taskmaster_id": 23,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.city.bought",
       "core.sanguo.city.toll.paid",
@@ -1115,24 +900,6 @@
     ],
     "taskmaster_id": 13,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.city.toll.paid"
     ]
@@ -1202,24 +969,6 @@
     ],
     "taskmaster_id": 11,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.ai.decision.made"
     ]
@@ -1285,24 +1034,6 @@
     ],
     "taskmaster_id": 14,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.month.settled"
     ]
@@ -1358,19 +1089,6 @@
     ],
     "taskmaster_id": 20,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.player.state.changed"
     ]
@@ -1438,24 +1156,6 @@
     ],
     "taskmaster_id": 15,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.season.event.applied"
     ]
@@ -1513,19 +1213,6 @@
     ],
     "taskmaster_id": 19,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved",
       "core.sanguo.city.bought",
@@ -1595,24 +1282,6 @@
     ],
     "taskmaster_id": 16,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.economy.year.price.adjusted"
     ]
@@ -1702,24 +1371,6 @@
     ],
     "taskmaster_id": 17,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.turn.advanced"
     ]
@@ -1778,19 +1429,6 @@
     ],
     "taskmaster_id": 21,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.turn.advanced"
     ]
@@ -1857,24 +1495,6 @@
     ],
     "taskmaster_id": 18,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.saved",
       "core.sanguo.game.loaded"
@@ -1937,19 +1557,6 @@
     ],
     "taskmaster_id": 24,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved",
       "core.sanguo.dice.rolled",
@@ -2018,24 +1625,6 @@
     ],
     "taskmaster_id": 25,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.ai.decision.made"
     ]
@@ -2098,24 +1687,6 @@
     ],
     "taskmaster_id": 26,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.game.ended"
     ]
@@ -2175,20 +1746,7 @@
       "Optional: SettingsPanel 保存音量设置后会写入 user://settings.cfg；重新打开/加载后能从 user://settings.cfg 读回并恢复到相同音量设置，且滑条显示与 Master bus 实际音量一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_logic.gd"
     ],
     "taskmaster_id": 27,
-    "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    "taskmaster_exported": true
   },
   {
     "id": "SG-0028",
@@ -2242,20 +1800,7 @@
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。"
     ],
     "taskmaster_id": 28,
-    "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    "taskmaster_exported": true
   },
   {
     "id": "SG-0029",
@@ -2313,20 +1858,7 @@
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。"
     ],
     "taskmaster_id": 29,
-    "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    "taskmaster_exported": true
   },
   {
     "id": "SG-0030",
@@ -2386,19 +1918,6 @@
     ],
     "taskmaster_id": 30,
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.dice.rolled",
       "core.sanguo.board.token.moved",
@@ -2460,18 +1979,6 @@
     ],
     "id": "SG-0031",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0015",
-      "ADR-0005",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "",
     "taskmaster_id": 31
   },
   {
@@ -2526,20 +2033,6 @@
     ],
     "id": "SG-0032",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0003",
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH03",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "",
     "taskmaster_id": 32
   },
   {
@@ -2602,19 +2095,6 @@
     ],
     "id": "SG-0033",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0008",
-      "ADR-0011",
-      "ADR-0003",
-      "ADR-0015"
-    ],
-    "archRefs": [
-      "CH03",
-      "CH07",
-      "CH09",
-      "CH10"
-    ],
-    "overlay": "",
     "taskmaster_id": 33
   },
   {
@@ -2667,17 +2147,6 @@
     ],
     "id": "SG-0034",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0003",
-      "ADR-0005",
-      "ADR-0015"
-    ],
-    "archRefs": [
-      "CH03",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "",
     "taskmaster_id": 34
   },
   {
@@ -2732,17 +2201,6 @@
     ],
     "id": "SG-0035",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0003"
-    ],
-    "archRefs": [
-      "CH03",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "",
     "taskmaster_id": 35
   },
   {
@@ -2798,20 +2256,6 @@
     ],
     "id": "SG-0036",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0004",
-      "ADR-0006",
-      "ADR-0018",
-      "ADR-0023"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07"
-    ],
-    "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "taskmaster_id": 36
   },
   {
@@ -2866,20 +2310,6 @@
     ],
     "id": "SG-0037",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0003",
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH03",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "",
     "taskmaster_id": 37
   },
   {
@@ -2928,17 +2358,6 @@
     ],
     "id": "SG-0038",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0024"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH06",
-      "CH07"
-    ],
-    "overlay": "",
     "taskmaster_id": 38
   },
   {
@@ -2990,20 +2409,6 @@
     ],
     "id": "SG-0039",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0015",
-      "ADR-0005",
-      "ADR-0019",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH02",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "",
     "taskmaster_id": 39
   },
   {
@@ -3060,20 +2465,6 @@
     ],
     "id": "SG-0040",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0019",
-      "ADR-0004",
-      "ADR-0005",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH02",
-      "CH04",
-      "CH06",
-      "CH07"
-    ],
-    "overlay": "",
     "taskmaster_id": 40
   },
   {
@@ -3123,18 +2514,6 @@
     ],
     "id": "SG-0041",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0015",
-      "ADR-0005",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "",
     "taskmaster_id": 41
   },
   {
@@ -3187,21 +2566,6 @@
     ],
     "id": "SG-0042",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0015",
-      "ADR-0005",
-      "ADR-0011",
-      "ADR-0008",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH06",
-      "CH07",
-      "CH09",
-      "CH10"
-    ],
-    "overlay": "",
     "taskmaster_id": 42
   },
   {
@@ -3260,21 +2624,6 @@
     ],
     "id": "SG-0043",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0008",
-      "ADR-0011",
-      "ADR-0019",
-      "ADR-0005",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH02",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "",
     "taskmaster_id": 43
   },
   {
@@ -3329,18 +2678,6 @@
     ],
     "id": "SG-0044",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0011",
-      "ADR-0018",
-      "ADR-0005"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "",
     "taskmaster_id": 44
   },
   {
@@ -3396,18 +2733,6 @@
     ],
     "id": "SG-0045",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0007",
-      "ADR-0005",
-      "ADR-0018"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH05",
-      "CH06",
-      "CH07"
-    ],
-    "overlay": "",
     "taskmaster_id": 45
   },
   {
@@ -3465,19 +2790,6 @@
     ],
     "id": "SG-0046",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0011",
-      "ADR-0018",
-      "ADR-0024"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "",
     "taskmaster_id": 46
   },
   {
@@ -3533,19 +2845,6 @@
     ],
     "id": "SG-0047",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0024"
-    ],
-    "archRefs": [
-      "CH01",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay": "",
     "taskmaster_id": 47
   },
   {
@@ -3600,19 +2899,6 @@
     ],
     "id": "SG-0048",
     "taskmaster_exported": true,
-    "adrRefs": [
-      "ADR-0019",
-      "ADR-0006",
-      "ADR-0005",
-      "ADR-0011"
-    ],
-    "archRefs": [
-      "CH02",
-      "CH05",
-      "CH07",
-      "CH10"
-    ],
-    "overlay": "",
     "taskmaster_id": 48
   }
 ]

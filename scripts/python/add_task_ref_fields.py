@@ -3,8 +3,8 @@
 """
 Add ADR/architecture reference metadata fields to Taskmaster task JSON files:
   - .taskmaster/tasks/tasks.json       (adrRefs, archRefs, overlay)
-  - .taskmaster/tasks/tasks_back.json  (adrRefs, archRefs, overlay)
-  - .taskmaster/tasks/tasks_gameplay.json (adrRefs, archRefs, overlay)
+  - .taskmaster/tasks/tasks_back.json  (adr_refs, chapter_refs, overlay_refs)
+  - .taskmaster/tasks/tasks_gameplay.json (adr_refs, chapter_refs, overlay_refs)
 
 The goal is to satisfy AGENTS/CLAUDE 2.2 requirements and make Python
 validation scripts (validate_task_links.py, etc.) pass, while preserving
@@ -73,30 +73,26 @@ def update_tasks_main() -> None:
 
 def update_view_file(path: Path) -> None:
     """
-    Mirror ADR/CH metadata into camelCase fields for back/gameplay views.
-    Existing snake_case fields (adr_refs, chapter_refs, overlay_refs)
-    are preserved; we only add adrRefs/archRefs/overlay for scripts that
-    expect these names.
+    Ensure the view task file keeps the snake_case reference fields.
+
+    Note:
+      - View files are the SSoT for: adr_refs/chapter_refs/overlay_refs.
+      - We intentionally DO NOT add the legacy duplicate fields:
+            adrRefs/archRefs/overlay
+        because they cause drift and confusion (different scripts reading
+        different keys).
     """
     entries: List[Dict[str, Any]] = json.loads(path.read_text(encoding="utf-8"))
 
     for e in entries:
-        # Derive from existing snake_case fields if present.
-        adr_refs = e.get("adr_refs") or []
-        ch_refs = e.get("chapter_refs") or []
-        overlay_refs = e.get("overlay_refs") or []
-
-        if not e.get("adrRefs"):
-            e["adrRefs"] = list(adr_refs)
-        if not e.get("archRefs"):
-            e["archRefs"] = list(ch_refs)
-
-        if "overlay" not in e:
-            overlay = None
-            if overlay_refs:
-                # Use the first overlay reference as primary overlay hint.
-                overlay = overlay_refs[0]
-            e["overlay"] = overlay
+        # Keep existing keys; do not mutate schema beyond ensuring lists exist.
+        # Any missing values are left to the generator/workflow to populate.
+        if "adr_refs" not in e:
+            e["adr_refs"] = []
+        if "chapter_refs" not in e:
+            e["chapter_refs"] = []
+        if "overlay_refs" not in e:
+            e["overlay_refs"] = []
 
     path.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -112,10 +108,9 @@ def main() -> int:
     update_view_file(TASKS_BACK)
     update_view_file(TASKS_GAMEPLAY)
 
-    print("[add-task-ref-fields] Added adrRefs/archRefs/overlay to tasks.json, tasks_back.json, tasks_gameplay.json.")
+    print("[add-task-ref-fields] Ensured tasks.json has adrRefs/archRefs/overlay; views use adr_refs/chapter_refs/overlay_refs only.")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -46,8 +46,7 @@ def ensure_refs(task: dict) -> bool:
     changed = False
     refs = task.get("overlay_refs")
     if not isinstance(refs, list):
-        overlay = task.get("overlay")
-        refs = [overlay] if isinstance(overlay, str) and overlay else []
+        refs = []
         task["overlay_refs"] = refs
         changed = True
 

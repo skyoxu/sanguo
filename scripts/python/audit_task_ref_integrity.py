@@ -9,11 +9,9 @@ Audit reference integrity across the Taskmaster triplet:
 This script is deterministic (no LLM usage) and focuses on:
   1) ADR refs: file exists + Status is Accepted.
   2) Arch refs: CHxx values are within the known range (CH01..CH12).
-  3) Overlay refs: referenced files exist; overlay is consistent with overlay_refs.
-  4) Duplicate fields consistency in task views:
-        adr_refs    vs adrRefs
-        chapter_refs vs archRefs
-        overlay_refs vs overlay
+  3) Overlay refs: referenced files exist (overlay_refs in views; overlay in master tasks).
+  4) View task refs are snake_case only:
+        adr_refs, chapter_refs, overlay_refs
   5) contractRefs: every event type must exist as an EventType constant in Game.Core/Contracts/**.cs
   6) tasks.json (master) vs views: for each master task id, compare adr/arch/overlay with the
      exported view task (tasks_back is expected to exist for every taskmaster_id).
@@ -137,36 +135,24 @@ def audit_view_task(
     tid = str(task.get("id", "")).strip() or None
     findings: list[Finding] = []
 
-    # Duplicate fields consistency: adr_refs vs adrRefs
-    adr_refs = normalize_str_list(task.get("adr_refs"))
-    adrRefs = normalize_str_list(task.get("adrRefs"))
-    if as_set(adr_refs) != as_set(adrRefs):
-        findings.append(
-            Finding(
-                "P1",
-                view_name,
-                tid,
-                "adr_refs/adrRefs",
-                f"Mismatch between adr_refs={adr_refs} and adrRefs={adrRefs}. Keep them identical to avoid drift.",
+    # Views must not carry master-only camelCase fields (prevent regression).
+    for deprecated in ["adrRefs", "archRefs", "overlay"]:
+        if deprecated in task:
+            findings.append(
+                Finding(
+                    "P1",
+                    view_name,
+                    tid,
+                    deprecated,
+                    f"Deprecated master-only field present in view task: {deprecated} (views must use adr_refs/chapter_refs/overlay_refs).",
+                )
             )
-        )
 
-    # Duplicate fields consistency: chapter_refs vs archRefs
+    adr_refs = normalize_str_list(task.get("adr_refs"))
     chapter_refs = normalize_str_list(task.get("chapter_refs"))
-    archRefs = normalize_str_list(task.get("archRefs"))
-    if as_set(chapter_refs) != as_set(archRefs):
-        findings.append(
-            Finding(
-                "P1",
-                view_name,
-                tid,
-                "chapter_refs/archRefs",
-                f"Mismatch between chapter_refs={chapter_refs} and archRefs={archRefs}. Keep them identical to avoid drift.",
-            )
-        )
 
     # ADR existence + status accepted
-    for adr in sorted(as_set(adr_refs) | as_set(adrRefs)):
+    for adr in sorted(as_set(adr_refs)):
         meta = adr_statuses.get(adr)
         if not meta:
             findings.append(Finding("P0", view_name, tid, "adr_refs", f"Missing ADR file for {adr}."))
@@ -178,27 +164,12 @@ def audit_view_task(
             )
 
     # CH validity (we cannot validate base index file here; ensure CH01..CH12 only)
-    for ch in sorted(as_set(chapter_refs) | as_set(archRefs)):
+    for ch in sorted(as_set(chapter_refs)):
         if not ch_is_valid(ch):
             findings.append(Finding("P1", view_name, tid, "chapter_refs", f"Invalid chapter ref: {ch}"))
 
     # Overlay existence + consistency
     overlay_refs = normalize_str_list(task.get("overlay_refs"))
-    overlay = str(task.get("overlay") or "").strip()
-    if overlay:
-        overlay_path = root / overlay
-        if not overlay_path.exists():
-            findings.append(Finding("P0", view_name, tid, "overlay", f"Overlay file not found: {overlay}"))
-        if overlay_refs and overlay not in overlay_refs:
-            findings.append(
-                Finding(
-                    "P2",
-                    view_name,
-                    tid,
-                    "overlay/overlay_refs",
-                    f"overlay is not included in overlay_refs (overlay={overlay}). This is usually expected.",
-                )
-            )
 
     for p in overlay_refs:
         full = root / p
@@ -245,8 +216,8 @@ def audit_master_task(
         findings.append(Finding("P0", "tasks.json", tid, "mapping", "Missing tasks_back entry for this taskmaster id."))
         return findings
 
-    # Compare master refs against view duplicates (adrRefs/archRefs/overlay)
-    back_adr = normalize_str_list(back_task.get("adrRefs")) or normalize_str_list(back_task.get("adr_refs"))
+    # Compare master refs against views (views use snake_case only).
+    back_adr = normalize_str_list(back_task.get("adr_refs"))
     if as_set(adrRefs) != as_set(back_adr):
         findings.append(
             Finding(
@@ -258,7 +229,7 @@ def audit_master_task(
             )
         )
 
-    back_ch = normalize_str_list(back_task.get("archRefs")) or normalize_str_list(back_task.get("chapter_refs"))
+    back_ch = normalize_str_list(back_task.get("chapter_refs"))
     if as_set(archRefs) != as_set(back_ch):
         findings.append(
             Finding(
@@ -270,15 +241,15 @@ def audit_master_task(
             )
         )
 
-    back_overlay = str(back_task.get("overlay") or "").strip()
-    if overlay and back_overlay and overlay != back_overlay:
+    back_overlay_refs = normalize_str_list(back_task.get("overlay_refs"))
+    if overlay and back_overlay_refs and overlay not in back_overlay_refs:
         findings.append(
             Finding(
                 "P1",
                 "tasks.json",
                 tid,
                 "overlay",
-                f"tasks.json overlay differs from tasks_back overlay (tasks.json={overlay}, tasks_back={back_overlay}).",
+                f"tasks.json overlay is not included in tasks_back overlay_refs (tasks.json={overlay}).",
             )
         )
 
