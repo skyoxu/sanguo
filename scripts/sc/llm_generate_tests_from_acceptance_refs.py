@@ -564,7 +564,7 @@ def main() -> int:
             if not content.strip():
                 raise ValueError("empty content")
             disk.parent.mkdir(parents=True, exist_ok=True)
-            disk.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
+            disk.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\r\n")
             created += 1
             results.append(
                 GenResult(

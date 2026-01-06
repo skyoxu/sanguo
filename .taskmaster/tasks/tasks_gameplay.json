@@ -1914,26 +1914,26 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_eventlogging_task24.gd",
       "Tests.Godot/tests/UI/test_hud_scene.gd",
-      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
+      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "acceptance": [
-      "包含“游戏事件日志”的对应 Godot 场景与 UI 控件可在 headless 冒烟测试中成功加载且无错误输出。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "关键 UI 行为通过 GdUnit4 用例覆盖：当游戏重要事件发生时，事件日志在 UI 上产生可观测更新（如新增日志条目并可见/可滚动查看）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "当“重要事件”发生时，日志以“追加新条目”的方式记录，并且不会覆盖/替换已有条目；同一运行会话内可累计保留多条历史事件用于回看。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "日志条目在 UI 上的可见顺序与事件发生顺序一致（新事件对应的新条目出现在明确的位置，例如列表末尾或顶部，但需保持一致且可验证）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "每条日志条目至少包含对玩家可理解的事件摘要信息（能区分不同事件、能理解发生了什么），且 UI 展示不会因日志更新而阻塞后续日志追加与查看操作。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+      "HUD scene instantiates and exposes an EventLogPanel (event log UI) that can be shown for players (toggle via HUD.ToggleEventLogOverlay). Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "For valid JSON payloads, publishing core.sanguo.dice.rolled appends an event log entry (independent of panel visibility) containing the event type; when the panel is shown, the entry is visible to the player. Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "Minimum 'important events' set for this task: core.sanguo.dice.rolled + core.sanguo.city.bought; log retains history across hide/show; invalid/malformed JSON payloads do not crash and do not append misleading log entries. Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "Event log entry order matches event emission order for the supported important events. Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "Log entry text includes minimal summary fields when present (Value for dice.rolled; CityId/Price for city.bought). Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
       "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
       "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
-      "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_eventlogging_task24.gd",
-      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility（用于对照事件日志 UI 的交互与可访问性，确保日志相关控件在测试中可被触发/调用且不会阻塞日志显示）。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd"
+      "Optional: Migrated from acceptance: non-deterministic/cross-cutting/CI-only statements are kept in test_strategy and are not hard acceptance criteria.",
+      "Optional: When economy/season/year events are implemented, surface them via the UI event log for traceability. Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility（用于对照事件日志 UI 的交互与可访问性，确保日志相关控件在测试中可被触发/调用且不会阻塞日志显示）。 Refs: Tests.Godot/tests/UI/A11y/test_button_invokable.gd",
+      "Optional: Keep local demo paths out of acceptance; store them only in test_strategy/details to avoid breaking deterministic gates.",
+      "Optional: Keep performance budget notes out of acceptance unless the project defines a deterministic perf gate for this task."
     ],
     "taskmaster_id": 24,
     "taskmaster_exported": true,
@@ -1952,11 +1952,13 @@
     "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
     "contractRefs": [
       "core.sanguo.board.token.moved",
+      "core.sanguo.dice.rolled",
       "core.sanguo.city.bought",
       "core.sanguo.city.toll.paid",
       "core.sanguo.economy.month.settled",
       "core.sanguo.economy.season.event.applied",
       "core.sanguo.economy.year.price.adjusted",
+      "core.sanguo.game.turn.advanced",
       "core.sanguo.game.ended"
     ]
   }

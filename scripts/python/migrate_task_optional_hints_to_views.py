@@ -67,11 +67,11 @@ def read_json(path: Path) -> Any:
 
 
 def write_json(path: Path, obj: Any) -> None:
-    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\r\n")
 
 
 def write_text(path: Path, text: str) -> None:
-    path.write_text(str(text).replace("\r\n", "\n"), encoding="utf-8", newline="\n")
+    path.write_text(str(text).replace("\r\n", "\n"), encoding="utf-8", newline="\r\n")
 
 
 ABS_PATH_RE = re.compile(r"\b[A-Za-z]:\\")

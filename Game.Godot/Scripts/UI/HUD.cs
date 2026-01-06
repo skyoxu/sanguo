@@ -136,7 +136,7 @@ public partial class HUD : Control
         }
     }
 
-    private void ToggleEventLogOverlay()
+    public void ToggleEventLogOverlay()
     {
         if (_logPanel == null)
         {

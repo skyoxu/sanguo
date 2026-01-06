@@ -33,13 +33,13 @@ def write_text(path: Path, content: str) -> None:
     # Use UTF-8 BOM for Markdown files to avoid mojibake in Windows tools that
     # default to ANSI when no BOM is present (e.g., Windows PowerShell 5.1).
     encoding = "utf-8-sig" if path.suffix.lower() == ".md" else "utf-8"
-    with path.open("w", encoding=encoding, newline="\n") as f:
+    with path.open("w", encoding=encoding, newline="\r\n") as f:
         f.write(content)
 
 
 def write_json(path: Path, payload: Any) -> None:
     ensure_dir(path.parent)
-    with path.open("w", encoding="utf-8", newline="\n") as f:
+    with path.open("w", encoding="utf-8", newline="\r\n") as f:
         f.write(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
 
 

@@ -322,3 +322,195 @@ func test_hud_does_not_mix_dice_results_between_players() -> void:
     _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p2\",\"Value\":1}")
     await get_tree().process_frame
     assert_str(dice.text).is_equal("Dice: 6")
+
+
+
+
+# ACC:T24.2
+
+func test_event_log_updates_when_core_event_is_emitted() -> void:
+
+    var hud = await _hud()
+
+    var log_panel: Control = hud.get_node("EventLogPanel")
+    var log_list: ItemList = hud.get_node("EventLogPanel/Margin/VBox/EventList")
+
+    log_list.clear()
+    assert_bool(log_panel.visible).is_false()
+
+
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
+
+    for _i in range(10):
+
+        await get_tree().process_frame
+
+        if log_list.get_item_count() > 0:
+
+            break
+
+
+
+    assert_int(log_list.get_item_count()).is_equal(1)
+
+    assert_str(log_list.get_item_text(0)).contains("core.sanguo.dice.rolled")
+
+    hud.call("ToggleEventLogOverlay")
+    await get_tree().process_frame
+    assert_bool(log_panel.is_visible_in_tree()).is_true()
+    assert_bool(log_list.is_visible_in_tree()).is_true()
+
+
+
+# ACC:T24.3
+
+func test_event_log_appends_entries_and_keeps_history_in_session() -> void:
+
+    var hud = await _hud()
+
+    var log_panel: Control = hud.get_node("EventLogPanel")
+    var log_list: ItemList = hud.get_node("EventLogPanel/Margin/VBox/EventList")
+
+    log_list.clear()
+    assert_bool(log_panel.visible).is_false()
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{not-json")
+    for _i in range(10):
+        await get_tree().process_frame
+    assert_int(log_list.get_item_count()).is_equal(0)
+
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
+
+    for _i in range(10):
+
+        await get_tree().process_frame
+
+        if log_list.get_item_count() == 1:
+
+            break
+
+    assert_int(log_list.get_item_count()).is_equal(1)
+
+    var first := log_list.get_item_text(0)
+
+
+
+    _bus.PublishSimple("core.sanguo.city.bought", "ut", "{\"GameId\":\"g1\",\"BuyerId\":\"p1\",\"CityId\":\"c1\",\"Price\":100}")
+
+    for _i in range(10):
+
+        await get_tree().process_frame
+
+        if log_list.get_item_count() == 2:
+
+            break
+
+
+
+    assert_int(log_list.get_item_count()).is_equal(2)
+
+    assert_str(log_list.get_item_text(0)).is_equal(first)
+
+    assert_str(log_list.get_item_text(1)).contains("core.sanguo.city.bought")
+
+    hud.call("ToggleEventLogOverlay")
+    await get_tree().process_frame
+    assert_bool(log_panel.is_visible_in_tree()).is_true()
+    assert_bool(log_list.is_visible_in_tree()).is_true()
+
+
+
+# ACC:T24.4
+
+func test_event_log_entry_order_matches_event_emission_order() -> void:
+
+    var hud = await _hud()
+
+    var log_panel: Control = hud.get_node("EventLogPanel")
+    var log_list: ItemList = hud.get_node("EventLogPanel/Margin/VBox/EventList")
+
+    log_list.clear()
+    assert_bool(log_panel.visible).is_false()
+
+
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
+
+    _bus.PublishSimple("core.sanguo.city.bought", "ut", "{\"GameId\":\"g1\",\"BuyerId\":\"p1\",\"CityId\":\"c1\",\"Price\":100}")
+
+    for _i in range(10):
+
+        await get_tree().process_frame
+
+        if log_list.get_item_count() == 2:
+
+            break
+
+
+
+    assert_int(log_list.get_item_count()).is_equal(2)
+
+    assert_str(log_list.get_item_text(0)).contains("core.sanguo.dice.rolled")
+
+    assert_str(log_list.get_item_text(1)).contains("core.sanguo.city.bought")
+
+    hud.call("ToggleEventLogOverlay")
+    await get_tree().process_frame
+    assert_bool(log_panel.is_visible_in_tree()).is_true()
+    assert_bool(log_list.is_visible_in_tree()).is_true()
+
+
+
+# ACC:T24.5
+
+func test_event_log_entries_contain_player_facing_summary_fields() -> void:
+
+    var hud = await _hud()
+
+    var log_panel: Control = hud.get_node("EventLogPanel")
+    var log_list: ItemList = hud.get_node("EventLogPanel/Margin/VBox/EventList")
+
+    log_list.clear()
+    assert_bool(log_panel.visible).is_false()
+
+
+
+    _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
+
+    _bus.PublishSimple("core.sanguo.city.bought", "ut", "{\"GameId\":\"g1\",\"BuyerId\":\"p1\",\"CityId\":\"c1\",\"Price\":100}")
+
+    for _i in range(10):
+
+        await get_tree().process_frame
+
+        if log_list.get_item_count() == 2:
+
+            break
+
+
+
+    assert_int(log_list.get_item_count()).is_equal(2)
+
+    var a := log_list.get_item_text(0)
+
+    var b := log_list.get_item_text(1)
+
+
+
+    assert_str(a).contains("core.sanguo.dice.rolled")
+
+    assert_str(a).contains("value=6")
+
+    assert_str(b).contains("core.sanguo.city.bought")
+
+    assert_str(b).contains("city=c1")
+
+    assert_str(a).is_not_equal(b)
+
+    hud.call("ToggleEventLogOverlay")
+    await get_tree().process_frame
+    assert_bool(log_panel.is_visible_in_tree()).is_true()
+    assert_bool(log_list.is_visible_in_tree()).is_true()
+
