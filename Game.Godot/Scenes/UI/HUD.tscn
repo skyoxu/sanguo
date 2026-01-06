@@ -58,6 +58,14 @@ text = "HP: 100"
 layout_mode = 2
 text = "Roll Dice"
 
+[node name="SaveButton" type="Button" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Save"
+
+[node name="LoadButton" type="Button" parent="TopBar/HBox"]
+layout_mode = 2
+text = "Load"
+
 [node name="ActionPanel" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 1

@@ -16,9 +16,12 @@ public partial class HUD : Control
     private const int MaxEventJsonChars = 64 * 1024;
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
     private const string UiHudDiceRollEventType = "ui.hud.dice.roll";
+    private const string UiHudSaveEventType = "ui.hud.save";
+    private const string UiHudLoadEventType = "ui.hud.load";
     private const string UiTileActionSelectedEventType = "ui.sanguo.tile.action.selected";
     private const string MoneyCapAuditAction = "SANGUO_MONEY_CAPPED";
     private const string EventLogOverlayFlag = "event_log_overlay";
+    private const string DefaultSaveSlotId = "quick";
 
     private Label _score = default!;
     private Label _health = default!;
@@ -27,6 +30,8 @@ public partial class HUD : Control
     private Label _date = default!;
     private Label _money = default!;
     private Button _diceButton = default!;
+    private Button _saveButton = default!;
+    private Button _loadButton = default!;
 
     private Control? _actionPanel;
     private Label? _actionTitle;
@@ -60,6 +65,14 @@ public partial class HUD : Control
         _diceButton.Pressed += OnDicePressed;
         _diceButton.Disabled = true;
         _diceButton.Text = "Waiting...";
+
+        _saveButton = GetNode<Button>("TopBar/HBox/SaveButton");
+        _saveButton.Pressed += OnSavePressed;
+        _saveButton.Disabled = true;
+
+        _loadButton = GetNode<Button>("TopBar/HBox/LoadButton");
+        _loadButton.Pressed += OnLoadPressed;
+        _loadButton.Disabled = false;
 
         _actionPanel = GetNodeOrNull<Control>("ActionPanel");
         _actionTitle = GetNodeOrNull<Label>("ActionPanel/VBox/ActionTitle");
@@ -97,6 +110,8 @@ public partial class HUD : Control
     public override void _ExitTree()
     {
         _diceButton.Pressed -= OnDicePressed;
+        _saveButton.Pressed -= OnSavePressed;
+        _loadButton.Pressed -= OnLoadPressed;
         if (_skipActionButton != null)
         {
             _skipActionButton.Pressed -= OnSkipTileActionPressed;
@@ -163,6 +178,58 @@ public partial class HUD : Control
         });
 
         _bus.PublishSimple(UiHudDiceRollEventType, nameof(HUD), payload);
+    }
+
+    private void OnSavePressed()
+    {
+        if (_bus == null)
+        {
+            GD.PushWarning("HUD: EventBus not found; cannot publish ui.hud.save");
+            return;
+        }
+
+        if (_awaitingTileAction)
+        {
+            _toast?.ShowMessage("Please choose a tile action or Skip.");
+            return;
+        }
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            GameId = "g1",
+            PlayerId = _activePlayerId ?? string.Empty,
+            SaveSlotId = DefaultSaveSlotId,
+            CorrelationId = Guid.NewGuid().ToString("N"),
+            CausationId = UiHudSaveEventType,
+        });
+
+        _bus.PublishSimple(UiHudSaveEventType, nameof(HUD), payload);
+    }
+
+    private void OnLoadPressed()
+    {
+        if (_bus == null)
+        {
+            GD.PushWarning("HUD: EventBus not found; cannot publish ui.hud.load");
+            return;
+        }
+
+        if (_awaitingTileAction)
+        {
+            _toast?.ShowMessage("Please choose a tile action or Skip.");
+            return;
+        }
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            GameId = "g1",
+            PlayerId = _activePlayerId ?? string.Empty,
+            SaveSlotId = DefaultSaveSlotId,
+            CorrelationId = Guid.NewGuid().ToString("N"),
+            CausationId = UiHudLoadEventType,
+        });
+
+        _bus.PublishSimple(UiHudLoadEventType, nameof(HUD), payload);
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
@@ -289,6 +356,8 @@ public partial class HUD : Control
         _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
         _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
         _handlers[SanguoCityBought.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoGameSaved.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoGameLoaded.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoTokenMoved.EventType] = HandleTokenMovedEvent;
         _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
@@ -416,6 +485,7 @@ public partial class HUD : Control
         _activePlayerId = string.IsNullOrWhiteSpace(active) ? null : active;
         _diceButton.Disabled = string.IsNullOrWhiteSpace(active) || IsAiPlayerId(active);
         _diceButton.Text = string.IsNullOrWhiteSpace(active) ? "Roll Dice" : (IsAiPlayerId(active) ? "AI Turn" : "Roll Dice");
+        _saveButton.Disabled = string.IsNullOrWhiteSpace(active);
         _activePlayer.Text = $"Player: {active}";
         _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
 

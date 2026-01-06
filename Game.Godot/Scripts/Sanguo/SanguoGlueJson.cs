@@ -33,6 +33,11 @@ internal static class SanguoGlueJson
         return TryExtractStringProperty(dataJson, "Action");
     }
 
+    internal static string? TryExtractSaveSlotId(string dataJson)
+    {
+        return TryExtractStringProperty(dataJson, "SaveSlotId");
+    }
+
     internal static int? TryExtractIntProperty(string dataJson, string propertyName)
     {
         var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;

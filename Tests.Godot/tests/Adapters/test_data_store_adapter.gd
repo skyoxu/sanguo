@@ -6,6 +6,8 @@ func before() -> void:
     _store = load("res://Game.Godot/Adapters/DataStoreAdapter.cs").new()
     add_child(auto_free(_store))
 
+# ACC:T18.2
+# ACC:T18.4
 func test_save_load_delete_user_path() -> void:
     var key := "selfcheck/test-" + str(Time.get_unix_time_from_system())
     var payload := "{\"ok\":true}"

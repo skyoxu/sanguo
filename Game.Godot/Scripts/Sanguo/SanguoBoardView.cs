@@ -49,6 +49,7 @@ public partial class SanguoBoardView : Node2D
 
     private readonly Dictionary<string, Node2D> _tokensByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _lastPositionByPlayerId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _positionIndexByTileId = new(StringComparer.Ordinal);
 
     public SanguoBoardView()
     {
@@ -111,11 +112,16 @@ public partial class SanguoBoardView : Node2D
 
         TotalPositions = map.TileCount;
         _lastPositionByPlayerId.Clear();
+        _positionIndexByTileId.Clear();
 
         foreach (var tile in map.Tiles)
         {
             _overlay.SetTileTypeForIndex(tile.PositionIndex, tile.TileType);
             _overlay.SetBaseLabelForIndex(tile.PositionIndex, tile.Name ?? string.Empty);
+            if (!string.IsNullOrWhiteSpace(tile.TileId))
+            {
+                _positionIndexByTileId[tile.TileId] = tile.PositionIndex;
+            }
         }
 
         EnsureBoardVisuals();
@@ -162,13 +168,19 @@ public partial class SanguoBoardView : Node2D
                     return;
                 }
 
-                if (!_lastPositionByPlayerId.TryGetValue(buyerId, out var pos))
+                var cityId = root.TryGetProperty("CityId", out var cityProp) && cityProp.ValueKind == JsonValueKind.String
+                    ? (cityProp.GetString() ?? string.Empty)
+                    : string.Empty;
+
+                var cityIndex = 0;
+                var hasIndex = !string.IsNullOrWhiteSpace(cityId) && _positionIndexByTileId.TryGetValue(cityId, out cityIndex);
+                if (!hasIndex && !_lastPositionByPlayerId.TryGetValue(buyerId, out cityIndex))
                 {
                     return;
                 }
 
                 EnsureBoardVisuals();
-                _overlay.SetOwnerForIndex(_layout, _layout.ClampIndex(pos), buyerId);
+                _overlay.SetOwnerForIndex(_layout, _layout.ClampIndex(cityIndex), buyerId);
                 return;
             }
 

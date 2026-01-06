@@ -1834,17 +1834,17 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task18RequirementsTests.cs",
       "Game.Core.Tests/Tasks/Task18CoreAssemblyDependencyRulesTests.cs",
       "Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs",
       "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
-      "Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs"
+      "Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs",
+      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd"
     ],
     "acceptance": [
       "与存档（保存/加载游戏进度）直接相关的核心逻辑（例如进度快照的序列化/反序列化与校验）实现于 Game.Core，且在编译/运行层面不依赖任何 Godot API，因此可在不启动引擎的情况下通过单元测试验证。 Refs: Game.Core.Tests/Tasks/Task18CoreAssemblyDependencyRulesTests.cs",
-      "保存与加载能力通过端口抽象对外提供；对外接收的路径输入必须拒绝绝对路径与路径穿越，且实际本地落盘的根目录被限制在 user://（或等价的受控根目录）内，可通过行为测试验证。 Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "保存与加载能力通过端口抽象对外提供；对外接收的路径输入必须拒绝绝对路径与路径穿越，且实际本地落盘的根目录被限制在 user://（或等价的受控根目录）内，可通过行为测试验证。 Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
       "当存档文件缺失或内容损坏时，加载流程不得导致崩溃；必须以可处理的失败结果返回（或抛出明确异常），并确保失败后内存中的游戏进度状态不被部分写入或污染。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
-      "当执行“保存游戏进度”且成功完成本地文件系统落盘后，外部可通过可观测的成功结果验证（例如返回成功状态/存档标识/可追踪信息，且在受控根目录下可读取到对应存档内容）；同时保存成功不应导致当前内存中的游戏进度出现非预期改变。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "当执行“保存游戏进度”且成功完成本地文件系统落盘后，外部可通过可观测的成功结果验证（例如返回成功状态/存档标识/可追踪信息，且在受控根目录下可读取到对应存档内容）；同时保存成功不应导致当前内存中的游戏进度出现非预期改变。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
       "当执行“加载游戏进度”且成功完成时，加载结果必须可通过可观测的状态变化验证（加载后的游戏进度与存档内容一致）；并在保存成功与加载成功时，通过可被测试断言的对外信号/事件暴露成功（例如 core.sanguo.game.saved 与 core.sanguo.game.loaded，或等价信号）。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs",
       "对同一份游戏进度执行“保存→加载”的往返流程后，得到的游戏进度在语义上与保存前等价（字段一致/可比较），以证明存档确实可被读取并恢复进度。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
       "当加载遇到不兼容的存档格式（例如来自未来版本或缺少必要字段）时，必须以可处理的失败结果结束且不污染内存进度状态，以保证格式一致性在演进时可控。 Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"

@@ -98,6 +98,11 @@ public class GameStateManager
     public async Task<(GameState state, GameConfig config)> LoadGameAsync(string saveId)
     {
         var save = await LoadFromStoreAsync(saveId);
+        if (save.State is null || save.Config is null || save.Metadata is null)
+            throw new InvalidOperationException("Save file is corrupted");
+        if (string.IsNullOrWhiteSpace(save.Metadata.Checksum) || string.IsNullOrWhiteSpace(save.Metadata.Version))
+            throw new InvalidOperationException("Save file is corrupted");
+
         var checksum = CalculateChecksum(save.State);
         if (!string.Equals(checksum, save.Metadata.Checksum, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Save file is corrupted");

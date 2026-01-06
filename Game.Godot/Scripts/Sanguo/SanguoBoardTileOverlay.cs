@@ -106,10 +106,11 @@ internal sealed class SanguoBoardTileOverlay
             return;
         }
 
-        _tileTypeByIndex[index] = tileType ?? string.Empty;
+        var safeTileType = tileType ?? string.Empty;
+        _tileTypeByIndex[index] = safeTileType;
         if (_built)
         {
-            ApplyBase(index, tileType);
+            ApplyBase(index, safeTileType);
             ApplyOwnerColor(index, _ownerByIndex.TryGetValue(index, out var owner) ? owner : string.Empty);
         }
     }
@@ -121,10 +122,11 @@ internal sealed class SanguoBoardTileOverlay
             return;
         }
 
-        _baseLabelByIndex[index] = label ?? string.Empty;
+        var safeLabel = label ?? string.Empty;
+        _baseLabelByIndex[index] = safeLabel;
         if (_built)
         {
-            ApplyBaseLabel(index, label);
+            ApplyBaseLabel(index, safeLabel);
             ApplyOwnerLabel(index, _ownerByIndex.TryGetValue(index, out var owner) ? owner : string.Empty);
         }
     }
