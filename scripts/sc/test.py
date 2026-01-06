@@ -34,6 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--smoke-scene", default="res://Game.Godot/Scenes/Main.tscn", help="Main scene for smoke test")
     ap.add_argument("--timeout-sec", type=int, default=600)
     ap.add_argument("--skip-smoke", action="store_true")
+    ap.add_argument("--include-sanguo-saveload-restart", action="store_true", help="Run Sanguo save/load restart e2e proof (two-process).")
     ap.add_argument("--no-coverage-gate", action="store_true", help="do not enforce default coverage thresholds")
     ap.add_argument("--no-coverage-report", action="store_true", help="skip HTML coverage report generation")
     return ap
@@ -149,6 +150,22 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str) -> dict[str, Any]:
     return {"name": "smoke", "cmd": cmd, "rc": rc, "log": str(log_path)}
 
 
+def run_sanguo_saveload_restart(out_dir: Path, godot_bin: str, *, run_id: str) -> dict[str, Any]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/e2e_sanguo_save_load_restart.py",
+        "--godot-bin",
+        godot_bin,
+        "--run-id",
+        run_id,
+    ]
+    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=180)
+    log_path = out_dir / "sanguo-saveload-restart.log"
+    write_text(log_path, out)
+    return {"name": "sanguo-saveload-restart", "cmd": cmd, "rc": rc, "log": str(log_path)}
+
+
 def main() -> int:
     args = build_parser().parse_args()
     out_dir = ci_dir("sc-test")
@@ -199,6 +216,12 @@ def main() -> int:
             sm = run_smoke(out_dir, godot_bin, args.smoke_scene)
             summary["steps"].append(sm)
             if sm["rc"] != 0:
+                hard_fail = True
+
+        if args.include_sanguo_saveload_restart:
+            sr = run_sanguo_saveload_restart(out_dir, godot_bin, run_id=run_id)
+            summary["steps"].append(sr)
+            if sr["rc"] != 0:
                 hard_fail = True
 
     summary["status"] = "ok" if not hard_fail else "fail"

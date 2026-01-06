@@ -1,9 +1,11 @@
 using Godot;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
+using Game.Core.Ports;
 using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 using Game.Core.Services;
 using Game.Godot.Adapters;
+using Game.Godot.Autoloads;
 using System;
 using System.Collections.Generic;
 
@@ -17,6 +19,7 @@ public partial class SanguoGameLoopController : Node
 {
     private const string UiMenuStart = "ui.menu.start";
     private const string UiHudDiceRoll = "ui.hud.dice.roll";
+    private const string UiTileActionSelected = "ui.sanguo.tile.action.selected";
     private const string AiAutoAdvanceCausationId = "runtime.ai.auto.advance";
 
     [Export(PropertyHint.Range, "0,30,0.1,or_greater")]
@@ -25,6 +28,9 @@ public partial class SanguoGameLoopController : Node
     [Export(PropertyHint.Range, "0,30,0.1,or_greater")]
     public double AiAutoAdvanceDelaySecondsWhenSkip { get; set; } = 5.0;
 
+    [Export]
+    public NodePath BoardViewPath { get; set; } = new NodePath("../SanguoBoardView");
+
     private EventBusAdapter? _bus;
     private SanguoTurnManager? _turnManager;
     private bool _started;
@@ -32,6 +38,13 @@ public partial class SanguoGameLoopController : Node
     private string? _activePlayerId;
     private bool _aiAutoAdvanceRequested;
     private double _aiAutoAdvanceDelaySec = 5.0;
+
+    private SanguoMapDefinition? _map;
+    private readonly Dictionary<int, string[]> _actionsByIndex = new();
+    private bool _awaitingHumanTileAction;
+    private string _awaitingHumanActionCorrelationId = string.Empty;
+    private string _lastHumanMoveCorrelationId = string.Empty;
+    private int _lastHumanMoveToIndex;
 
     public override void _Ready()
     {
@@ -76,12 +89,26 @@ public partial class SanguoGameLoopController : Node
             _advanceQueued = false;
             _activePlayerId = null;
             _aiAutoAdvanceRequested = false;
+            _awaitingHumanTileAction = false;
+            _awaitingHumanActionCorrelationId = string.Empty;
+            _lastHumanMoveCorrelationId = string.Empty;
             return;
         }
 
         if (type == SanguoGameTurnStarted.EventType)
         {
             _activePlayerId = SanguoGlueJson.TryExtractActivePlayerId(dataJson);
+            return;
+        }
+
+        if (type == SanguoTokenMoved.EventType)
+        {
+            var pid = SanguoGlueJson.TryExtractPlayerId(dataJson);
+            if (!SanguoGlueJson.IsAiPlayerId(pid) && !string.IsNullOrWhiteSpace(pid))
+            {
+                _lastHumanMoveCorrelationId = SanguoGlueJson.TryExtractCorrelationId(dataJson) ?? string.Empty;
+                _lastHumanMoveToIndex = SanguoGlueJson.TryExtractIntProperty(dataJson, "ToIndex") ?? 0;
+            }
             return;
         }
 
@@ -94,6 +121,30 @@ public partial class SanguoGameLoopController : Node
                 : AiAutoAdvanceDelaySeconds;
 
             TryQueueAiAutoAdvanceIfNeeded();
+            return;
+        }
+
+        if (type == UiTileActionSelected)
+        {
+            if (!_started || _turnManager == null)
+            {
+                return;
+            }
+
+            if (!_awaitingHumanTileAction)
+            {
+                return;
+            }
+
+            var corr = SanguoGlueJson.TryExtractCorrelationId(dataJson) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(corr) || !string.Equals(corr, _awaitingHumanActionCorrelationId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var action = SanguoGlueJson.TryExtractAction(dataJson) ?? string.Empty;
+            _advanceQueued = true;
+            CallDeferred(nameof(AdvanceAfterHumanTileActionDeferred), corr, action);
             return;
         }
 
@@ -150,6 +201,25 @@ public partial class SanguoGameLoopController : Node
             return;
         }
 
+        var loader = ResolveResourceLoader();
+        if (loader == null)
+        {
+            GD.PushWarning("SanguoGameLoopController: ResourceLoaderPort not found; cannot load map config.");
+            return;
+        }
+
+        if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out var mapSourcePath, out var mapError))
+        {
+            GD.PushWarning($"SanguoGameLoopController: map config load failed (source='{mapSourcePath}', error='{mapError}').");
+            return;
+        }
+
+        _map = map;
+        LoadMapActions(map);
+
+        var boardView = GetNodeOrNull<SanguoBoardView>(BoardViewPath);
+        boardView?.ApplyMapDefinition(map);
+
         var economyRules = SanguoEconomyRules.Default;
         var players = new[]
         {
@@ -157,21 +227,7 @@ public partial class SanguoGameLoopController : Node
             new SanguoPlayer(playerId: "ai-1", money: 300m, positionIndex: 0, economyRules: economyRules),
         };
 
-        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal);
-        // Demo board: make most tiles purchasable to keep the playable loop moving.
-        // PositionIndex 0 acts as the start tile (non-city).
-        for (var pos = 1; pos <= 9; pos++)
-        {
-            var cityId = $"c{pos}";
-            var regionId = (pos % 2 == 0) ? "r1" : "r2";
-            citiesById[cityId] = new City(
-                id: cityId,
-                name: $"City {pos}",
-                regionId: regionId,
-                basePrice: MoneyValue.FromDecimal(50m),
-                baseToll: MoneyValue.FromDecimal(20m),
-                positionIndex: pos);
-        }
+        var citiesById = BuildCitiesByIdFromMap(map);
 
         var boardState = new SanguoBoardState(players: players, citiesById: citiesById);
         var treasury = new SanguoTreasury();
@@ -182,7 +238,7 @@ public partial class SanguoGameLoopController : Node
             economy: economy,
             boardState: boardState,
             treasury: treasury,
-            totalPositionsHint: 10);
+            totalPositionsHint: map.TileCount);
 
         try
         {
@@ -205,6 +261,51 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
+    private IResourceLoader? ResolveResourceLoader()
+    {
+        try
+        {
+            var root = GetNodeOrNull<Node>("/root/CompositionRoot");
+            if (root is CompositionRoot cr && cr.ResourceLoader != null)
+            {
+                return cr.ResourceLoader;
+            }
+        }
+        catch
+        {
+        }
+
+        var port = GetNodeOrNull<ResourceLoaderAdapter>("/root/CompositionRoot/ResourceLoaderPort");
+        if (port != null)
+        {
+            return port;
+        }
+
+        // Fallback for minimal scenes/tests where CompositionRoot is not available.
+        return new ResourceLoaderAdapter();
+    }
+
+    private static Dictionary<string, City> BuildCitiesByIdFromMap(SanguoMapDefinition map)
+    {
+        var citiesById = new Dictionary<string, City>(StringComparer.Ordinal);
+        foreach (var tile in map.Tiles)
+        {
+            var tileType = (tile.TileType ?? string.Empty).Trim();
+            if (!string.Equals(tileType, SanguoTileDefinition.TileTypeCity, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            citiesById[tile.TileId] = new City(
+                id: tile.TileId,
+                name: tile.Name,
+                regionId: tile.StateId,
+                basePrice: MoneyValue.FromDecimal(tile.PurchasePrice),
+                baseToll: MoneyValue.FromDecimal(tile.TollPrice),
+                positionIndex: tile.PositionIndex);
+        }
+
+        return citiesById;
+    }
+
     private async void AdvanceTurnDeferred(string correlationId)
     {
         try
@@ -215,6 +316,13 @@ public partial class SanguoGameLoopController : Node
             }
 
             await _turnManager.ExecuteHumanRollDiceAndResolveAsync(correlationId: correlationId, causationId: UiHudDiceRoll);
+            if (ShouldWaitForHumanTileAction(correlationId))
+            {
+                _awaitingHumanTileAction = true;
+                _awaitingHumanActionCorrelationId = correlationId;
+                return;
+            }
+
             await _turnManager.AdvanceTurnAsync(correlationId: correlationId, causationId: UiHudDiceRoll);
         }
         catch (Exception ex)
@@ -223,6 +331,60 @@ public partial class SanguoGameLoopController : Node
         }
         finally
         {
+            if (!_awaitingHumanTileAction)
+            {
+                _advanceQueued = false;
+            }
+        }
+
+        TryQueueAiAutoAdvanceIfNeeded();
+    }
+
+    private bool ShouldWaitForHumanTileAction(string correlationId)
+    {
+        if (_map == null || _actionsByIndex.Count == 0)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+        {
+            return false;
+        }
+
+        if (!string.Equals(_lastHumanMoveCorrelationId, correlationId, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (!_actionsByIndex.TryGetValue(_lastHumanMoveToIndex, out var actions))
+        {
+            return false;
+        }
+
+        return actions.Length > 0;
+    }
+
+    private async void AdvanceAfterHumanTileActionDeferred(string correlationId, string action)
+    {
+        try
+        {
+            if (!_started || _turnManager == null)
+            {
+                return;
+            }
+
+            await _turnManager.ExecuteHumanTileActionAsync(action: action, correlationId: correlationId, causationId: UiTileActionSelected);
+            await _turnManager.AdvanceTurnAsync(correlationId: correlationId, causationId: UiTileActionSelected);
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"SanguoGameLoopController: failed to apply tile action: {ex.Message}");
+        }
+        finally
+        {
+            _awaitingHumanTileAction = false;
+            _awaitingHumanActionCorrelationId = string.Empty;
             _advanceQueued = false;
         }
 
@@ -276,6 +438,31 @@ public partial class SanguoGameLoopController : Node
 
         // In case multiple AIs exist, keep advancing until a non-AI player becomes active.
         TryQueueAiAutoAdvanceIfNeeded();
+    }
+
+    private void LoadMapActions(SanguoMapDefinition map)
+    {
+        _actionsByIndex.Clear();
+        foreach (var tile in map.Tiles)
+        {
+            if (tile.Actions is null)
+            {
+                _actionsByIndex[tile.PositionIndex] = Array.Empty<string>();
+                continue;
+            }
+
+            var list = new List<string>();
+            foreach (var a in tile.Actions)
+            {
+                var v = (a ?? string.Empty).Trim();
+                if (!string.IsNullOrWhiteSpace(v))
+                {
+                    list.Add(v);
+                }
+            }
+
+            _actionsByIndex[tile.PositionIndex] = list.ToArray();
+        }
     }
 
 }

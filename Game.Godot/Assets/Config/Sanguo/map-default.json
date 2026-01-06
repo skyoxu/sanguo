@@ -1,0 +1,107 @@
+{
+  "mapId": "map001",
+  "tileCount": 10,
+  "tiles": [
+    {
+      "positionIndex": 0,
+      "tileType": "wild",
+      "tileId": "start",
+      "name": "起点",
+      "stateId": "states00",
+      "purchasePrice": 0,
+      "tollPrice": 0,
+      "actions": ["random_event"]
+    },
+    {
+      "positionIndex": 1,
+      "tileType": "city",
+      "tileId": "c1",
+      "name": "襄平",
+      "stateId": "states01",
+      "purchasePrice": 50,
+      "tollPrice": 20,
+      "actions": ["house_build", "industry_build"]
+    },
+    {
+      "positionIndex": 2,
+      "tileType": "city",
+      "tileId": "c2",
+      "name": "平壤",
+      "stateId": "states01",
+      "purchasePrice": 50,
+      "tollPrice": 20,
+      "actions": ["house_build", "industry_build"]
+    },
+    {
+      "positionIndex": 3,
+      "tileType": "city",
+      "tileId": "c3",
+      "name": "邺城",
+      "stateId": "states02",
+      "purchasePrice": 50,
+      "tollPrice": 20,
+      "actions": ["house_build", "industry_build"]
+    },
+    {
+      "positionIndex": 4,
+      "tileType": "pass",
+      "tileId": "pass1",
+      "name": "虎牢关",
+      "stateId": "states02",
+      "purchasePrice": 0,
+      "tollPrice": 0,
+      "actions": ["enter_battle"]
+    },
+    {
+      "positionIndex": 5,
+      "tileType": "city",
+      "tileId": "c4",
+      "name": "长安",
+      "stateId": "states03",
+      "purchasePrice": 50,
+      "tollPrice": 20,
+      "actions": ["house_build", "industry_build"]
+    },
+    {
+      "positionIndex": 6,
+      "tileType": "city",
+      "tileId": "c5",
+      "name": "成都",
+      "stateId": "states04",
+      "purchasePrice": 50,
+      "tollPrice": 20,
+      "actions": ["house_build", "industry_build"]
+    },
+    {
+      "positionIndex": 7,
+      "tileType": "wild",
+      "tileId": "wild1",
+      "name": "野外",
+      "stateId": "states00",
+      "purchasePrice": 0,
+      "tollPrice": 0,
+      "actions": ["random_event"]
+    },
+    {
+      "positionIndex": 8,
+      "tileType": "city",
+      "tileId": "c6",
+      "name": "建业",
+      "stateId": "states05",
+      "purchasePrice": 50,
+      "tollPrice": 20,
+      "actions": ["house_build", "industry_build"]
+    },
+    {
+      "positionIndex": 9,
+      "tileType": "city",
+      "tileId": "c7",
+      "name": "洛阳",
+      "stateId": "states03",
+      "purchasePrice": 50,
+      "tollPrice": 20,
+      "actions": ["house_build", "industry_build"]
+    }
+  ]
+}
+

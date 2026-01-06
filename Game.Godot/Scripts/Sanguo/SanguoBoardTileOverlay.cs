@@ -14,11 +14,16 @@ internal sealed class SanguoBoardTileOverlay
     private static readonly Color AiColor = new(0.2f, 0.4f, 0.9f, 1f);
     private static readonly Color TileBaseA = new(0.18f, 0.18f, 0.18f, 1f);
     private static readonly Color TileBaseB = new(0.22f, 0.22f, 0.22f, 1f);
+    private static readonly Color TileBasePass = new(0.62f, 0.54f, 0.18f, 1f);
+    private static readonly Color TileBaseWild = new(0.18f, 0.52f, 0.22f, 1f);
     private static readonly Color TileUnowned = new(0.32f, 0.32f, 0.32f, 1f);
 
     private readonly Node2D _root;
     private bool _built;
+    private int _builtTotalPositions;
     private readonly Dictionary<int, string> _ownerByIndex = new();
+    private readonly Dictionary<int, string> _tileTypeByIndex = new();
+    private readonly Dictionary<int, string> _baseLabelByIndex = new();
 
     internal SanguoBoardTileOverlay(Node2D root)
     {
@@ -27,6 +32,13 @@ internal sealed class SanguoBoardTileOverlay
 
     internal void EnsureBuilt(SanguoBoardLayout layout)
     {
+        if (_built && layout.TotalPositions != _builtTotalPositions)
+        {
+            TeardownExisting();
+            _built = false;
+            _builtTotalPositions = 0;
+        }
+
         if (_built)
         {
             return;
@@ -38,13 +50,38 @@ internal sealed class SanguoBoardTileOverlay
         }
 
         _built = true;
+        _builtTotalPositions = layout.TotalPositions;
 
         EnsureBackground(layout);
         EnsureTiles(layout);
 
+        foreach (var (index, tileType) in _tileTypeByIndex)
+        {
+            ApplyBase(index, tileType);
+        }
+
+        foreach (var (index, baseLabel) in _baseLabelByIndex)
+        {
+            ApplyBaseLabel(index, baseLabel);
+        }
+
         foreach (var kv in _ownerByIndex)
         {
             ApplyOwner(kv.Key, kv.Value);
+        }
+    }
+
+    internal void ClearOwners(SanguoBoardLayout layout)
+    {
+        _ownerByIndex.Clear();
+        if (!_built)
+        {
+            return;
+        }
+
+        for (var i = 0; i < layout.TotalPositions; i++)
+        {
+            ApplyOwner(i, string.Empty);
         }
     }
 
@@ -59,6 +96,38 @@ internal sealed class SanguoBoardTileOverlay
         if (_built)
         {
             ApplyOwner(index, ownerId);
+        }
+    }
+
+    internal void SetTileTypeForIndex(int index, string tileType)
+    {
+        if (index < 0)
+        {
+            return;
+        }
+
+        var safeTileType = tileType ?? string.Empty;
+        _tileTypeByIndex[index] = safeTileType;
+        if (_built)
+        {
+            ApplyBase(index, safeTileType);
+            ApplyOwnerColor(index, _ownerByIndex.TryGetValue(index, out var owner) ? owner : string.Empty);
+        }
+    }
+
+    internal void SetBaseLabelForIndex(int index, string label)
+    {
+        if (index < 0)
+        {
+            return;
+        }
+
+        var safeLabel = label ?? string.Empty;
+        _baseLabelByIndex[index] = safeLabel;
+        if (_built)
+        {
+            ApplyBaseLabel(index, safeLabel);
+            ApplyOwnerLabel(index, _ownerByIndex.TryGetValue(index, out var owner) ? owner : string.Empty);
         }
     }
 
@@ -104,7 +173,7 @@ internal sealed class SanguoBoardTileOverlay
                 continue;
             }
 
-            var tileColor = (i % 2 == 0) ? TileBaseA : TileBaseB;
+            var tileColor = ResolveBaseColor(i, _tileTypeByIndex.TryGetValue(i, out var tileType) ? tileType : string.Empty);
             var half = MathF.Max(6f, MathF.Min(24f, layout.StepPixels * 0.35f));
             var pos = layout.GetBasePositionForIndex(i);
             var tile = new Polygon2D
@@ -124,6 +193,7 @@ internal sealed class SanguoBoardTileOverlay
 
             _root.AddChild(tile);
             EnsureOwnerLabelForIndex(layout, i, pos);
+            ApplyOwner(i, _ownerByIndex.TryGetValue(i, out var owner) ? owner : string.Empty);
         }
     }
 
@@ -141,11 +211,12 @@ internal sealed class SanguoBoardTileOverlay
             return;
         }
 
-        var baseColor = (index % 2 == 0) ? TileBaseA : TileBaseB;
+        var tileType = _tileTypeByIndex.TryGetValue(index, out var tt) ? tt : string.Empty;
+        var baseColor = ResolveBaseColor(index, tileType);
         var ownerColor = string.Equals(ownerId, "p1", StringComparison.Ordinal)
             ? HumanColor
             : (SanguoGlueJson.IsAiPlayerId(ownerId) ? AiColor : TileUnowned);
-        tile.Color = baseColor.Lerp(ownerColor, 0.65f);
+        tile.Color = string.IsNullOrWhiteSpace(ownerId) ? baseColor : baseColor.Lerp(ownerColor, 0.65f);
     }
 
     private void EnsureOwnerLabelForIndex(SanguoBoardLayout layout, int index, Vector2 tileLocalPosition)
@@ -164,8 +235,8 @@ internal sealed class SanguoBoardTileOverlay
             MouseFilter = Control.MouseFilterEnum.Ignore,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            Size = new Vector2(MathF.Max(32f, layout.StepPixels), 18f),
-            Position = tileLocalPosition + new Vector2(-MathF.Max(16f, layout.StepPixels * 0.5f), -9f),
+            Size = new Vector2(MathF.Max(32f, layout.StepPixels), 32f),
+            Position = tileLocalPosition + new Vector2(-MathF.Max(16f, layout.StepPixels * 0.5f), -16f),
         };
 
         _root.AddChild(label);
@@ -179,10 +250,81 @@ internal sealed class SanguoBoardTileOverlay
             return;
         }
 
-        label.Text = ownerId;
+        if (string.IsNullOrWhiteSpace(ownerId))
+        {
+            label.Text = _baseLabelByIndex.TryGetValue(index, out var baseLabel) ? baseLabel : string.Empty;
+            label.Modulate = Colors.White;
+            return;
+        }
+
+        var baseText = _baseLabelByIndex.TryGetValue(index, out var name) ? name : string.Empty;
+        label.Text = string.IsNullOrWhiteSpace(baseText) ? ownerId : $"{baseText}\n{ownerId}";
         label.Modulate = string.Equals(ownerId, "p1", StringComparison.Ordinal)
             ? HumanColor
             : (SanguoGlueJson.IsAiPlayerId(ownerId) ? AiColor : Colors.White);
     }
-}
 
+    private void ApplyBase(int index, string tileType)
+    {
+        var tile = _root.GetNodeOrNull<Polygon2D>($"{BoardTilePrefix}{index}");
+        if (tile == null)
+        {
+            return;
+        }
+
+        var baseColor = ResolveBaseColor(index, tileType);
+        tile.Color = baseColor;
+    }
+
+    private void ApplyBaseLabel(int index, string baseLabel)
+    {
+        var label = _root.GetNodeOrNull<Label>($"{BoardTileLabelPrefix}{index}");
+        if (label == null)
+        {
+            return;
+        }
+
+        if (_ownerByIndex.TryGetValue(index, out var ownerId) && !string.IsNullOrWhiteSpace(ownerId))
+        {
+            return;
+        }
+
+        label.Text = baseLabel ?? string.Empty;
+    }
+
+    private static Color ResolveBaseColor(int index, string tileType)
+    {
+        var normalized = (tileType ?? string.Empty).Trim().ToLowerInvariant();
+        if (normalized == "pass")
+        {
+            return TileBasePass;
+        }
+
+        if (normalized == "wild")
+        {
+            return TileBaseWild;
+        }
+
+        return (index % 2 == 0) ? TileBaseA : TileBaseB;
+    }
+
+    private void TeardownExisting()
+    {
+        var children = _root.GetChildren();
+        foreach (var child in children)
+        {
+            if (child is not Node node)
+            {
+                continue;
+            }
+
+            var name = node.Name.ToString();
+            if (name == BoardBackgroundNodeName
+                || name.StartsWith(BoardTilePrefix, StringComparison.Ordinal)
+                || name.StartsWith(BoardTileLabelPrefix, StringComparison.Ordinal))
+            {
+                node.QueueFree();
+            }
+        }
+    }
+}

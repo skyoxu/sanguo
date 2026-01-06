@@ -8,6 +8,31 @@ namespace Game.Core.Tests.Domain;
 public sealed class SanguoCalendarDateTests
 {
     [Fact]
+    public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenYearIsInvalid()
+    {
+        Action act = () => _ = new SanguoCalendarDate(year: 0, month: 1, day: 1);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("year");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(13)]
+    public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenMonthIsInvalid(int month)
+    {
+        Action act = () => _ = new SanguoCalendarDate(year: 1, month: month, day: 1);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("month");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(31)]
+    public void Constructor_ShouldThrowArgumentOutOfRangeException_WhenDayIsInvalid(int day)
+    {
+        Action act = () => _ = new SanguoCalendarDate(year: 1, month: 1, day: day);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("day");
+    }
+
+    [Fact]
     public void AddDays_ShouldThrowArgumentOutOfRangeException_WhenDaysIsNegative()
     {
         var date = new SanguoCalendarDate(year: 1, month: 1, day: 1);

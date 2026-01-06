@@ -480,16 +480,19 @@ public sealed class SanguoTurnManager
             }
             else
             {
-                _ = await _economy.TryBuyCityAndPublishEventAsync(
-                    gameId: gameId,
-                    players: players,
-                    citiesById: citiesById,
-                    buyerId: playerId,
-                    cityId: city.Id,
-                    priceMultiplier: 1.0m,
-                    correlationId: correlationId,
-                    causationId: causationId,
-                    occurredAt: occurredAt);
+                if (IsAiPlayerId(playerId))
+                {
+                    _ = await _economy.TryBuyCityAndPublishEventAsync(
+                        gameId: gameId,
+                        players: players,
+                        citiesById: citiesById,
+                        buyerId: playerId,
+                        cityId: city.Id,
+                        priceMultiplier: 1.0m,
+                        correlationId: correlationId,
+                        causationId: causationId,
+                        occurredAt: occurredAt);
+                }
             }
         }
 
@@ -501,6 +504,84 @@ public sealed class SanguoTurnManager
                 causationId: causationId,
                 occurredAt: occurredAt);
         }
+    }
+
+    public async Task ExecuteHumanTileActionAsync(string action, string correlationId, string? causationId)
+    {
+        if (!_started || _gameId is null || _playerOrder is null)
+            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+            throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
+
+        var activePlayerId = _playerOrder[_activePlayerIndex];
+        if (IsAiPlayerId(activePlayerId))
+        {
+            return;
+        }
+
+        if (!_boardState.TryGetPlayer(activePlayerId, out var activePlayer) || activePlayer is null)
+            throw new InvalidOperationException($"Player not found in board state: {activePlayerId}");
+
+        var normalized = (action ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized) || string.Equals(normalized, "skip", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // Currently supported: house_build => buy city.
+        var shouldBuy = string.Equals(normalized, "house_build", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "buy", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "purchase", StringComparison.OrdinalIgnoreCase);
+
+        if (!shouldBuy)
+        {
+            return;
+        }
+
+        var occurredAt = DateTimeOffset.UtcNow;
+        var citiesById = _boardState.GetCitiesSnapshot();
+        var city = TryGetCityAtPositionIndex(citiesById, activePlayer.PositionIndex);
+        if (city is null)
+        {
+            return;
+        }
+
+        if (_boardState.TryGetOwnerOfCity(city.Id, out _))
+        {
+            // Owned: no purchase action.
+            return;
+        }
+
+        var players = new List<SanguoPlayer>(_playerOrder.Length);
+        foreach (var pid in _playerOrder)
+        {
+            if (!_boardState.TryGetPlayer(pid, out var p) || p is null)
+                throw new InvalidOperationException($"Player not found in board state: {pid}");
+            players.Add(p);
+        }
+
+        var bought = await _economy.TryBuyCityAndPublishEventAsync(
+            gameId: _gameId,
+            players: players,
+            citiesById: citiesById,
+            buyerId: activePlayerId,
+            cityId: city.Id,
+            priceMultiplier: 1.0m,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+
+        if (!bought)
+        {
+            return;
+        }
+
+        await PublishPlayerStateChangedAsync(
+            playerId: activePlayerId,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
     }
 
     private async Task PublishPlayerStateChangedAsync(
@@ -811,5 +892,281 @@ public sealed class SanguoTurnManager
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
+    }
+
+    public SanguoSaveSnapshot ExportSaveSnapshot()
+    {
+        if (!_started || _gameId is null || _playerOrder is null)
+            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+
+        var playersById = _boardState.Players;
+        var players = new List<SanguoSavePlayer>(_playerOrder.Length);
+        foreach (var pid in _playerOrder)
+        {
+            if (!playersById.TryGetValue(pid, out var p))
+                throw new InvalidOperationException($"Player not found in board state: {pid}");
+
+            var owned = p.OwnedCityIds is null ? Array.Empty<string>() : p.OwnedCityIds.ToArray();
+            players.Add(new SanguoSavePlayer(
+                PlayerId: p.PlayerId,
+                Money: p.Money.ToDecimal(),
+                PositionIndex: p.PositionIndex,
+                IsEliminated: p.IsEliminated,
+                OwnedCityIds: owned
+            ));
+        }
+
+        var cities = _boardState.CitiesById;
+        var cityEconomy = new List<SanguoSaveCityEconomy>(cities.Count);
+        foreach (var city in cities.Values.OrderBy(c => c.Id, StringComparer.Ordinal))
+        {
+            cityEconomy.Add(new SanguoSaveCityEconomy(
+                CityId: city.Id,
+                BasePrice: city.BasePrice.ToDecimal(),
+                BaseToll: city.BaseToll.ToDecimal()
+            ));
+        }
+
+        return new SanguoSaveSnapshot(
+            GameId: _gameId,
+            TurnNumber: _turnNumber,
+            ActivePlayerIndex: _activePlayerIndex,
+            Year: _currentDate.Year,
+            Month: _currentDate.Month,
+            Day: _currentDate.Day,
+            PlayerOrder: _playerOrder.ToArray(),
+            Players: players,
+            CityEconomy: cityEconomy,
+            TreasuryMinorUnits: _treasury.MinorUnits
+        );
+    }
+
+    public void RestoreFromSaveSnapshot(SanguoSaveSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot, nameof(snapshot));
+
+        if (string.IsNullOrWhiteSpace(snapshot.GameId))
+            throw new ArgumentException("Snapshot GameId must be non-empty.", nameof(snapshot));
+
+        if (snapshot.TurnNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(snapshot), "Snapshot TurnNumber must be >= 1.");
+
+        if (snapshot.PlayerOrder is null || snapshot.PlayerOrder.Count == 0)
+            throw new ArgumentException("Snapshot PlayerOrder must be non-empty.", nameof(snapshot));
+
+        if (snapshot.ActivePlayerIndex < 0 || snapshot.ActivePlayerIndex >= snapshot.PlayerOrder.Count)
+            throw new ArgumentOutOfRangeException(nameof(snapshot), "Snapshot ActivePlayerIndex is out of range.");
+
+        if (snapshot.Players is null || snapshot.Players.Count == 0)
+            throw new ArgumentException("Snapshot Players must be non-empty.", nameof(snapshot));
+
+        if (snapshot.TreasuryMinorUnits < 0)
+            throw new ArgumentOutOfRangeException(nameof(snapshot), "Snapshot TreasuryMinorUnits must be non-negative.");
+
+        var order = snapshot.PlayerOrder.Select(p => (p ?? string.Empty).Trim()).Where(p => p.Length != 0).ToArray();
+        if (order.Length != snapshot.PlayerOrder.Count)
+            throw new ArgumentException("Snapshot PlayerOrder must not contain empty player ids.", nameof(snapshot));
+
+        if (order.Distinct(StringComparer.Ordinal).Count() != order.Length)
+            throw new ArgumentException("Snapshot PlayerOrder must not contain duplicate player ids.", nameof(snapshot));
+
+        var playersById = new Dictionary<string, SanguoSavePlayer>(StringComparer.Ordinal);
+        foreach (var p in snapshot.Players)
+        {
+            ArgumentNullException.ThrowIfNull(p, nameof(snapshot));
+            var pid = (p.PlayerId ?? string.Empty).Trim();
+            if (pid.Length == 0)
+                throw new ArgumentException("Snapshot Players must not contain empty PlayerId.", nameof(snapshot));
+            if (!playersById.TryAdd(pid, p))
+                throw new ArgumentException($"Duplicate Snapshot PlayerId: {pid}", nameof(snapshot));
+        }
+
+        foreach (var pid in order)
+        {
+            if (!playersById.ContainsKey(pid))
+                throw new ArgumentException($"Snapshot is missing player entry for PlayerOrder id: {pid}", nameof(snapshot));
+        }
+
+        var citiesById = _boardState.GetCitiesSnapshot();
+        var claimedCityIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var p in playersById.Values)
+        {
+            var owned = p.OwnedCityIds ?? Array.Empty<string>();
+            foreach (var cidRaw in owned)
+            {
+                var cid = (cidRaw ?? string.Empty).Trim();
+                if (cid.Length == 0)
+                    continue;
+                if (!citiesById.ContainsKey(cid))
+                    throw new ArgumentException($"Snapshot references unknown CityId: {cid}", nameof(snapshot));
+                if (!claimedCityIds.Add(cid))
+                    throw new ArgumentException($"Snapshot has duplicate city ownership claim: {cid}", nameof(snapshot));
+            }
+        }
+
+        if (snapshot.CityEconomy is not null && snapshot.CityEconomy.Count > 0)
+        {
+            var econById = new Dictionary<string, SanguoSaveCityEconomy>(StringComparer.Ordinal);
+            foreach (var e in snapshot.CityEconomy)
+            {
+                ArgumentNullException.ThrowIfNull(e, nameof(snapshot));
+                var cid = (e.CityId ?? string.Empty).Trim();
+                if (cid.Length == 0)
+                    continue;
+                if (!citiesById.ContainsKey(cid))
+                    throw new ArgumentException($"Snapshot CityEconomy references unknown CityId: {cid}", nameof(snapshot));
+                econById[cid] = e;
+            }
+
+            var updated = new List<City>(citiesById.Count);
+            foreach (var city in citiesById.Values.OrderBy(c => c.Id, StringComparer.Ordinal))
+            {
+                if (!econById.TryGetValue(city.Id, out var econ))
+                {
+                    updated.Add(city);
+                    continue;
+                }
+
+                updated.Add(new City(
+                    id: city.Id,
+                    name: city.Name,
+                    regionId: city.RegionId,
+                    basePrice: Money.FromDecimal(econ.BasePrice),
+                    baseToll: Money.FromDecimal(econ.BaseToll),
+                    positionIndex: city.PositionIndex));
+            }
+
+            _boardState.ApplyCityEconomyUpdates(updated);
+        }
+
+        foreach (var pid in order)
+        {
+            if (!_boardState.TryGetPlayer(pid, out var player) || player is null)
+                throw new InvalidOperationException($"Player not found in board state: {pid}");
+
+            var p = playersById[pid];
+            var owned = (p.OwnedCityIds ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
+
+            player.RestoreRollbackSnapshot(new SanguoPlayer.RollbackSnapshot(
+                Money: Money.FromDecimal(p.Money),
+                PositionIndex: p.PositionIndex < 0 ? 0 : p.PositionIndex,
+                IsEliminated: p.IsEliminated,
+                OwnedCityIds: owned
+            ));
+        }
+
+        _treasury.RestoreRollbackSnapshot(snapshot.TreasuryMinorUnits);
+
+        _gameId = snapshot.GameId;
+        _playerOrder = order;
+        _activePlayerIndex = snapshot.ActivePlayerIndex;
+        _turnNumber = snapshot.TurnNumber;
+        _currentDate = new SanguoCalendarDate(snapshot.Year, snapshot.Month, snapshot.Day);
+        _started = true;
+    }
+
+    public async Task PublishStateSnapshotAsync(string correlationId, string? causationId)
+    {
+        if (!_started || _gameId is null || _playerOrder is null)
+            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+            throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
+
+        var occurredAt = DateTimeOffset.UtcNow;
+        var activePlayerId = _playerOrder[_activePlayerIndex];
+
+        await _bus.PublishAsync(new DomainEvent(
+            Type: SanguoGameTurnStarted.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoGameTurnStarted(
+                GameId: _gameId,
+                TurnNumber: _turnNumber,
+                ActivePlayerId: activePlayerId,
+                Year: _currentDate.Year,
+                Month: _currentDate.Month,
+                Day: _currentDate.Day,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N")
+        ));
+
+        var playersById = _boardState.Players;
+        if (playersById.TryGetValue(activePlayerId, out var active))
+        {
+            await PublishPlayerStateChangedAsync(
+                playerId: active.PlayerId,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+        }
+
+        foreach (var pid in _playerOrder)
+        {
+            if (StringComparer.Ordinal.Equals(pid, activePlayerId))
+                continue;
+
+            await PublishPlayerStateChangedAsync(
+                playerId: pid,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+        }
+
+        foreach (var pid in _playerOrder)
+        {
+            if (!_boardState.TryGetPlayer(pid, out var player) || player is null)
+                continue;
+
+            var idx = player.PositionIndex;
+            if (idx < 0)
+                idx = 0;
+
+            await _bus.PublishAsync(new DomainEvent(
+                Type: SanguoTokenMoved.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoTokenMoved(
+                    GameId: _gameId,
+                    PlayerId: pid,
+                    FromIndex: idx,
+                    ToIndex: idx,
+                    Steps: 1,
+                    PassedStart: false,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N")
+            ));
+
+            foreach (var cityId in player.OwnedCityIds)
+            {
+                if (string.IsNullOrWhiteSpace(cityId))
+                    continue;
+
+                if (!_boardState.CitiesById.TryGetValue(cityId, out var city))
+                    continue;
+
+                await _bus.PublishAsync(new DomainEvent(
+                    Type: SanguoCityBought.EventType,
+                    Source: nameof(SanguoTurnManager),
+                    Data: JsonElementEventData.FromObject(new SanguoCityBought(
+                        GameId: _gameId,
+                        BuyerId: pid,
+                        CityId: cityId,
+                        Price: city.BasePrice.ToDecimal(),
+                        OccurredAt: occurredAt,
+                        CorrelationId: correlationId,
+                        CausationId: causationId
+                    )),
+                    Timestamp: occurredAt.UtcDateTime,
+                    Id: Guid.NewGuid().ToString("N")
+                ));
+            }
+        }
     }
 }

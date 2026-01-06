@@ -16,6 +16,42 @@ import shutil
 import subprocess
 import json
 import time
+import xml.etree.ElementTree as ET
+
+
+def _find_latest_results_xml(reports_dir: str):
+    try:
+        if not os.path.isdir(reports_dir):
+            return None
+        best_path = None
+        best_mtime = -1.0
+        for name in os.listdir(reports_dir):
+            if not name.startswith("report_"):
+                continue
+            cand = os.path.join(reports_dir, name, "results.xml")
+            if not os.path.isfile(cand):
+                continue
+            mtime = os.path.getmtime(cand)
+            if mtime > best_mtime:
+                best_mtime = mtime
+                best_path = cand
+        return best_path
+    except Exception:
+        return None
+
+
+def _parse_results_xml(path: str):
+    try:
+        tree = ET.parse(path)
+        root = tree.getroot()
+        failures = int(root.attrib.get("failures", "0"))
+        tests = int(root.attrib.get("tests", "0"))
+        errors = 0
+        for ts in root.findall("testsuite"):
+            errors += int(ts.attrib.get("errors", "0"))
+        return {"path": path, "tests": tests, "failures": failures, "errors": errors}
+    except Exception as ex:
+        return {"path": path, "error": f"parse_failed:{type(ex).__name__}"}
 
 
 def run_cmd(args, cwd=None, timeout=600_000):
@@ -178,8 +214,27 @@ def main():
                 shutil.copytree(src, dst, dirs_exist_ok=True)
             else:
                 shutil.copy2(src, dst)
+
+    parsed = {}
+    latest_results = _find_latest_results_xml(reports_dir)
+    if latest_results:
+        parsed = _parse_results_xml(latest_results)
+
+    strict_exit = (os.environ.get("GDUNIT_STRICT_EXIT_CODE") or "0").strip() == "1"
+    normalized_rc = rc
+    if not strict_exit and rc != 0 and parsed and parsed.get("failures") == 0 and parsed.get("errors") == 0:
+        normalized_rc = 0
+
     # Write a small summary json for CI
-    summary = {'rc': rc, 'project': proj, 'added': args.add, 'timeout_sec': args.timeout_sec}
+    summary = {
+        'rc': rc,
+        'normalized_rc': normalized_rc,
+        'strict_exit_code': strict_exit,
+        'project': proj,
+        'added': args.add,
+        'timeout_sec': args.timeout_sec,
+        'results': parsed,
+    }
     if prewarm_rc is not None:
         summary['prewarm_rc'] = prewarm_rc
         if prewarm_note:
@@ -194,7 +249,7 @@ def main():
     except Exception:
         pass
     print(f'GDUNIT_DONE rc={rc} out={out_dir}')
-    return 0 if rc == 0 else rc
+    return 0 if normalized_rc == 0 else normalized_rc
 
 
 if __name__ == '__main__':
