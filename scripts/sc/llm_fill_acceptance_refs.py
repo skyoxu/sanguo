@@ -741,8 +741,8 @@ def main() -> int:
 
     if args.write and any_updates > 0:
         # Write JSON views back only when there were actual updates to avoid noisy rewrites.
-        back_p.write_text(json.dumps(back, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
-        gameplay_p.write_text(json.dumps(gameplay, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+        back_p.write_text(json.dumps(back, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\r\n")
+        gameplay_p.write_text(json.dumps(gameplay, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\r\n")
 
     # Final deterministic sanity check: all acceptance items have Refs: now (for the processed tasks).
     missing_after = 0

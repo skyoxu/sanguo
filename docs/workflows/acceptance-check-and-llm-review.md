@@ -64,7 +64,9 @@
 
 硬门禁（失败即阻断）：
 
-- ADR 合规：任务 `adrRefs/archRefs/overlay` 是否完整；ADR 文件存在；至少引用 ≥1 个 **Accepted** ADR
+- ADR 合规：
+  - master（`.taskmaster/tasks/tasks.json`）：`adrRefs/archRefs/overlay` 是否完整；ADR 文件存在；至少引用 ≥1 个 **Accepted** ADR
+  - views（`.taskmaster/tasks/tasks_back.json` / `tasks_gameplay.json`）：`adr_refs/chapter_refs/overlay_refs` 是否完整（视图文件不再使用 `adrRefs/archRefs/overlay`）
 - 任务回链：`py -3 scripts/python/task_links_validate.py`
 - Overlay 校验：`py -3 scripts/python/validate_task_overlays.py`
 - 契约一致性：`py -3 scripts/python/validate_contracts.py`

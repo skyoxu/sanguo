@@ -3,7 +3,7 @@
 Validate task overlay references and ACCEPTANCE_CHECKLIST.md front matter.
 
 Checks:
-1) Overlay paths exist (for `overlay` or `overlay_refs`).
+1) Overlay paths exist (for `overlay_refs`; master tasks may also use `overlay`).
 2) If an overlay file is ACCEPTANCE_CHECKLIST.md:
    - YAML front matter exists.
    - Required fields exist: PRD-ID, Title, Status, ADR-Refs, Test-Refs.
@@ -187,9 +187,11 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
         tid = task.get("id")
 
         overlay_refs = task.get("overlay_refs")
+        overlays: list[str] = []
         if overlay_refs:
             overlays = overlay_refs if isinstance(overlay_refs, list) else [overlay_refs]
-        else:
+        elif task_file.name == "tasks.json":
+            # Master tasks use a single primary overlay pointer.
             overlay = task.get("overlay")
             overlays = [overlay] if overlay else []
 
@@ -203,7 +205,7 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
         #     - <overlay_dir>/_index.md
         #     - <overlay_dir>/ACCEPTANCE_CHECKLIST.md
         #
-        # overlay_dir is inferred from overlay_refs/overlay using docs/architecture/overlays/<PRD-ID>/08/... patterns.
+        # overlay_dir is inferred from overlay_refs using docs/architecture/overlays/<PRD-ID>/08/... patterns.
         if task_file.name == "tasks_back.json":
             overlay_refs_list: list[str] = []
             if isinstance(overlay_refs, list):
@@ -216,9 +218,8 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
                     f"{label} task {tid}: overlay_refs must not be empty; set overlay_refs to include docs/architecture/overlays/<PRD-ID>/08/_index.md and ACCEPTANCE_CHECKLIST.md"
                 )
             else:
-                overlay_candidate = str(task.get("overlay") or "").strip()
                 overlay_dir = None
-                for cand in overlay_refs_list + ([overlay_candidate] if overlay_candidate else []):
+                for cand in overlay_refs_list:
                     m = OVERLAY_DIR_RE.match(str(cand))
                     if m:
                         overlay_dir = m.group(1)
@@ -226,7 +227,7 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
 
                 if not overlay_dir:
                     forced_errors.append(
-                        f"{label} task {tid}: cannot infer overlay_dir from overlay/overlay_refs; set overlay_refs to include docs/architecture/overlays/<PRD-ID>/08/_index.md and ACCEPTANCE_CHECKLIST.md"
+                        f"{label} task {tid}: cannot infer overlay_dir from overlay_refs; set overlay_refs to include docs/architecture/overlays/<PRD-ID>/08/_index.md and ACCEPTANCE_CHECKLIST.md"
                     )
                 else:
                     required = [

@@ -279,15 +279,15 @@ def generate_contract_catalog(
         if not isinstance(refs, list):
             refs = []
         refs = [str(x) for x in refs if isinstance(x, str)]
-        adr = v.get("adrRefs") or v.get("adr_refs") or []
+        # Views are snake_case only (master-only camelCase fields must not be relied on here).
+        adr = v.get("adr_refs") or []
         if not isinstance(adr, list):
             adr = []
         adr = [str(x) for x in adr if isinstance(x, str)]
-        overlay = str(v.get("overlay") or "")
-        if not overlay:
-            overlay_refs = v.get("overlay_refs") or []
-            if isinstance(overlay_refs, list) and overlay_refs:
-                overlay = str(overlay_refs[0])
+        overlay = ""
+        overlay_refs = v.get("overlay_refs") or []
+        if isinstance(overlay_refs, list) and overlay_refs:
+            overlay = str(overlay_refs[0])
         test_refs = v.get("test_refs") or []
         if not isinstance(test_refs, list):
             test_refs = []

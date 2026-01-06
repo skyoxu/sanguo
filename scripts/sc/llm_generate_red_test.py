@@ -302,7 +302,7 @@ def main() -> int:
 
     target = repo_root() / expected_path
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
+    target.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\r\n")
 
     print(f"SC_LLM_RED_TEST status=ok wrote={expected_path} out={out_dir}")
 

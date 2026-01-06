@@ -350,9 +350,11 @@ git checkout -b feature/task-1.1-window-init
 # 1.3 更新任务状态为 in-progress
 npx task-master set-status 1.1 in-progress
 
-# 1.4 验证 overlay 字段已填充
-# 打开 .taskmaster/tasks/tasks_back.json，确认任务 1.1 包含 overlay 字段
-# 如缺失，可手动补充 .taskmaster/tasks/*.json 中的 overlay/overlay_refs 字段，并使用 `py -3 scripts/python/task_links_validate.py` 校验回链（本仓库未提供自动批量填充 overlay 的脚本）。
+# 1.4 验证 overlay 回链字段已填充
+# 打开 .taskmaster/tasks/tasks_back.json，确认任务 1.1 包含 overlay_refs（至少包含 _index.md 与 ACCEPTANCE_CHECKLIST.md）
+# 如缺失：
+#   - 先运行 `py -3 scripts/python/patch_tasks_back_overlay_refs.py`
+#   - 再运行 `py -3 scripts/python/validate_task_overlays.py` 与 `py -3 scripts/python/task_links_validate.py` 校验回链
 ```
 
 ---
@@ -521,9 +523,11 @@ npx task-master set-status 1.1 done
 
 **常见问题与排查**
 
-**问题 1：overlay 字段缺失**
-- 症状：/acceptance-check 报错"找不到 overlay 路径"
-- 解决：当前仓库未提供自动批量填充 overlay 的脚本，可手动在 `.taskmaster/tasks/*.json` 中补充 overlay/overlay_refs 字段，并运行 `py -3 scripts/python/task_links_validate.py` 校验回链
+**问题 1：overlay/overlay_refs 缺失或路径不正确**
+- 症状：验收门禁报错"找不到 overlay 路径"或"overlay_refs must not be empty"
+- 解决：
+  - views：优先修复 `.taskmaster/tasks/tasks_back.json` 的 `overlay_refs`（运行 `py -3 scripts/python/patch_tasks_back_overlay_refs.py`）
+  - 然后运行 `py -3 scripts/python/validate_task_overlays.py` 与 `py -3 scripts/python/task_links_validate.py` 复核
 
 **问题 2：架构验收报错"ACCEPTANCE_CHECKLIST.md 不存在"**
 - 症状：overlay 字段指向的文件不存在
@@ -629,30 +633,33 @@ npx task-master parse-prd .taskmaster/docs/prd.txt -n 30
 py -3 scripts/python/task_links_validate.py
 ```
 
-如果校验失败，手动编辑 `.taskmaster/tasks/tasks_back.json` 补充 `adrRefs` 和 `archRefs`。
+如果校验失败，手动编辑 `.taskmaster/tasks/tasks_back.json` 补充 `adr_refs` 和 `chapter_refs`（视图文件只使用 snake_case 字段）。
 
-**3.3.1 批量更新 overlay 字段（推荐）**
+**3.3.1 批量更新 overlay 回链字段（推荐）**
 
-`overlay` 字段用于关联任务与架构验收清单（ACCEPTANCE_CHECKLIST.md），支持 Subagents 自动化架构验收。
+回链字段用于关联任务与架构验收清单（ACCEPTANCE_CHECKLIST.md），支持自动化架构验收：
 
-**自动化脚本：**
+- master（`.taskmaster/tasks/tasks.json`）：使用 `overlay`（单个主入口文件）
+- views（`.taskmaster/tasks/tasks_back.json` / `tasks_gameplay.json`）：使用 `overlay_refs`（必须包含 `_index.md` 与 `ACCEPTANCE_CHECKLIST.md`）
+
+**自动化脚本（仓库现有）：**
 
 ```bash
-# 批量更新 .taskmaster/tasks/*.json 中各任务的 overlay 字段
-py -3 scripts/python/link_tasks_to_overlays.py
+# 1) 确保 tasks_back.json 的 overlay_refs 至少包含两个锚点：
+#    - docs/architecture/overlays/<PRD-ID>/08/_index.md
+#    - docs/architecture/overlays/<PRD-ID>/08/ACCEPTANCE_CHECKLIST.md
+py -3 scripts/python/patch_tasks_back_overlay_refs.py
 
-# 脚本功能：
-# 1. 扫描 docs/architecture/overlays/<PRD-ID>/08/ 目录
-# 2. 匹配任务与对应的 ACCEPTANCE_CHECKLIST.md
-# 3. 自动填充 overlay 字段
+# 2) 校验所有任务文件的 overlay_refs / overlay 是否可解析、文件存在、并校验 ACCEPTANCE_CHECKLIST.md front matter
+py -3 scripts/python/validate_task_overlays.py
 ```
 
-**overlay 字段格式：**
+**字段格式：**
 
 ```json
 {
   "id": "1.1",
-  "overlay": "docs/architecture/overlays/PRD-guild/08/ACCEPTANCE_CHECKLIST.md"
+  "overlay": "docs/architecture/overlays/<PRD-ID>/08/08-feature-slice-....md"
 }
 ```
 

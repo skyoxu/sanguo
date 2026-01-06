@@ -15,6 +15,7 @@ Notes:
 - Backlog tasks added here do NOT get taskmaster_id / taskmaster_exported.
 - We hardcode absolute reference paths to the local newguild repo for convenience
   (this is intentionally machine-local only, per user request).
+ - View task files use snake_case refs only: adr_refs/chapter_refs/overlay_refs (no adrRefs/archRefs/overlay duplicates).
 
 Usage (Windows, from repo root):
   py -3 scripts/python/add_backlog_tasks_from_newguild.py
@@ -249,19 +250,11 @@ def main() -> int:
         # These backlog tasks are not exported from tasks.json by default.
         new_task["taskmaster_exported"] = False
 
-        # Mirror fields used by other scripts (keep in sync)
-        new_task["adrRefs"] = list(new_task.get("adr_refs") or [])
-        new_task["archRefs"] = list(new_task.get("chapter_refs") or [])
-
-        # Overlay is optional; for generic backlog tasks keep it empty.
-        new_task["overlay"] = ""
-
         # Avoid carrying guild-specific overlay refs into sanguo backlog tasks.
         if src_id == "NG-0023":
             new_task["overlay_refs"] = [
                 "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
             ]
-            new_task["overlay"] = "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"
 
         # For machine-local reference, append absolute doc paths.
         add_reference_lines(new_task, src_id)

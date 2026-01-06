@@ -61,11 +61,6 @@ def _infer_overlay_dir(task: dict) -> str | None:
         m = OVERLAY_DIR_RE.match(str(r))
         if m:
             return m.group(1)
-    overlay = str(task.get("overlay") or "").strip()
-    if overlay:
-        m = OVERLAY_DIR_RE.match(overlay)
-        if m:
-            return m.group(1)
     return None
 
 

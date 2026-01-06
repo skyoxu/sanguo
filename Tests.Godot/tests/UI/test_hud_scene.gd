@@ -18,6 +18,7 @@ func before() -> void:
 # ACC:T19.1
 # ACC:T21.1
 # ACC:T21.4
+# ACC:T24.1
 func test_hud_scene_instantiates() -> void:
     var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
     add_child(auto_free(main))
@@ -32,6 +33,11 @@ func test_hud_scene_instantiates() -> void:
     assert_object(hud).is_not_null()
     assert_object(hud.get_node_or_null("EventToast")).is_not_null()
     assert_object(hud.get_node_or_null("EventLogPanel")).is_not_null()
+    var event_log_panel: Control = hud.get_node("EventLogPanel")
+    assert_bool(event_log_panel.visible).is_false()
+    hud.call("ToggleEventLogOverlay")
+    await get_tree().process_frame
+    assert_bool(event_log_panel.is_visible_in_tree()).is_true()
     var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
     assert_bool(date_label.is_visible_in_tree()).is_true()
     var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
@@ -56,6 +62,7 @@ func test_hud_scene_instantiates() -> void:
 
     assert_bool(toast.is_inside_tree()).is_true()
     assert_bool(log_panel.is_inside_tree()).is_true()
+    assert_bool(log_panel.is_visible_in_tree()).is_true()
     assert_object(toast.get_node_or_null("Panel/Label")).is_not_null()
     assert_bool(toast.visible).is_false()
     var toast_label: Label = toast.get_node("Panel/Label")

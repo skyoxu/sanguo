@@ -38,6 +38,7 @@ public partial class HUD : Control
 
     private EventToast? _toast;
     private EventLogPanel? _logPanel;
+    private bool _logVisible;
 
     private readonly Dictionary<int, TileInfo> _tilesByIndex = new();
     private bool _awaitingTileAction;
@@ -69,6 +70,11 @@ public partial class HUD : Control
 
         _toast = GetNodeOrNull<EventToast>("EventToast");
         _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
+        _logVisible = false;
+        if (_logPanel != null)
+        {
+            _logPanel.Visible = _logVisible;
+        }
 
         RegisterHandlers();
         TryLoadMapTilesForUi();
@@ -101,6 +107,25 @@ public partial class HUD : Control
         TryDisconnectBus(callable);
 
         _bus = null;
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event is InputEventKey key && key.Pressed && !key.Echo && key.Keycode == Key.F1)
+        {
+            ToggleEventLogOverlay();
+        }
+    }
+
+    public void ToggleEventLogOverlay()
+    {
+        if (_logPanel == null)
+        {
+            return;
+        }
+
+        _logVisible = !_logVisible;
+        _logPanel.Visible = _logVisible;
     }
 
     private void OnDicePressed()

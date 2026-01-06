@@ -12,9 +12,9 @@ Goals:
    - unify ADR refs across the three files (union, then sort),
    - ensure chapter refs include all chapters implied by ADR_FOR_CH
      (extra chapters are allowed; we only add missing ones).
-3) Keep mirror fields in sync:
-   - tasks_back.json: adr_refs <-> adrRefs, chapter_refs <-> archRefs
-   - tasks_gameplay.json: adr_refs <-> adrRefs, chapter_refs <-> archRefs
+3) Keep views as SSoT for snake_case fields only:
+   - tasks_back.json: adr_refs, chapter_refs, overlay_refs
+   - tasks_gameplay.json: adr_refs, chapter_refs, overlay_refs
 
 This script uses Python for both reading and writing (UTF-8) per repo rules.
 
@@ -121,11 +121,9 @@ def main() -> int:
 
         if back_task is not None:
             back_task["adr_refs"] = unified_adrs
-            back_task["adrRefs"] = unified_adrs
 
         if gameplay_task is not None:
             gameplay_task["adr_refs"] = unified_adrs
-            gameplay_task["adrRefs"] = unified_adrs
 
     # 2) Ensure chapter refs include everything implied by ADR_FOR_CH (add missing only).
     for tm_id, master_task in master_by_id.items():
@@ -142,15 +140,13 @@ def main() -> int:
             current_ch = set(back_task.get("chapter_refs") or [])
             fixed = _sort_chapters(current_ch | expected)
             back_task["chapter_refs"] = fixed
-            back_task["archRefs"] = fixed
 
-        # tasks_gameplay.json mirror: chapter_refs <-> archRefs
+        # tasks_gameplay.json: chapter_refs only (no archRefs mirror)
         gameplay_task = gameplay_by_tm.get(tm_id)
         if gameplay_task is not None:
             current_ch = set(gameplay_task.get("chapter_refs") or [])
             fixed = _sort_chapters(current_ch | expected)
             gameplay_task["chapter_refs"] = fixed
-            gameplay_task["archRefs"] = fixed
 
     _write_json(TASKS_JSON_PATH, tasks_json)
     _write_json(TASKS_BACK_PATH, tasks_back)
@@ -160,4 +156,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
