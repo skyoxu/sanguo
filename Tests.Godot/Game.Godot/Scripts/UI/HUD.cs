@@ -259,7 +259,13 @@ public partial class HUD : Control
         if (root.TryGetProperty("CityId", out var cityId))
         {
             var city = cityId.GetString();
-            return string.IsNullOrWhiteSpace(playerId) ? $"{type} city={city}" : $"{type} player={playerId} city={city}";
+            var summary = string.IsNullOrWhiteSpace(playerId) ? $"{type} city={city}" : $"{type} player={playerId} city={city}";
+            if (root.TryGetProperty("Price", out var price) && price.ValueKind == JsonValueKind.Number)
+            {
+                summary += $" price={price}";
+            }
+
+            return summary;
         }
 
         return string.IsNullOrWhiteSpace(playerId) ? type : $"{type} player={playerId}";

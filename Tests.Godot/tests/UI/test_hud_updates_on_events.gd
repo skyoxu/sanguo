@@ -506,6 +506,7 @@ func test_event_log_entries_contain_player_facing_summary_fields() -> void:
     assert_str(b).contains("core.sanguo.city.bought")
 
     assert_str(b).contains("city=c1")
+    assert_str(b).contains("price=100")
 
     assert_str(a).is_not_equal(b)
 
