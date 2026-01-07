@@ -676,8 +676,11 @@ public sealed class SanguoTurnManager
             return;
         }
 
-        var kept = new List<string>(_playerOrder.Length);
-        foreach (var playerId in _playerOrder)
+        var previousOrder = _playerOrder;
+        var previousActiveIndex = Array.FindIndex(previousOrder, x => string.Equals(x, activePlayerId, StringComparison.Ordinal));
+
+        var kept = new List<string>(previousOrder.Length);
+        foreach (var playerId in previousOrder)
         {
             if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
             {
@@ -698,13 +701,34 @@ public sealed class SanguoTurnManager
             kept.Add(playerId);
         }
 
-        if (kept.Count == _playerOrder.Length)
+        if (kept.Count == previousOrder.Length)
         {
             return;
         }
 
         _playerOrder = kept.ToArray();
         _activePlayerIndex = Array.FindIndex(_playerOrder, x => string.Equals(x, activePlayerId, StringComparison.Ordinal));
+
+        // If the active player was removed (e.g., eliminated AI), keep rotation stable by selecting the nearest
+        // surviving player before the active one. This ensures the subsequent "+1" in AdvanceTurnAsync advances
+        // to the correct next player in the original order.
+        if (_activePlayerIndex < 0 && _playerOrder.Length > 0 && previousActiveIndex >= 0)
+        {
+            for (var offset = 1; offset <= previousOrder.Length; offset++)
+            {
+                var candidateIndex = (previousActiveIndex - offset) % previousOrder.Length;
+                if (candidateIndex < 0)
+                    candidateIndex += previousOrder.Length;
+
+                var candidateId = previousOrder[candidateIndex];
+                var keptIndex = Array.FindIndex(_playerOrder, x => string.Equals(x, candidateId, StringComparison.Ordinal));
+                if (keptIndex >= 0)
+                {
+                    _activePlayerIndex = keptIndex;
+                    break;
+                }
+            }
+        }
     }
 
     private static IReadOnlyList<City> CreateCityList(IReadOnlyDictionary<string, City> citiesById)
