@@ -23,11 +23,18 @@ func test_hud_plays_sfx_on_action_smoke() -> void:
 	await get_tree().process_frame
 	assert_bool(main.is_inside_tree()).is_true()
 
-	bus.call("PublishSimple", UI_MENU_START, "gdunit", "{}")
-	await get_tree().process_frame
-
 	var sfx: AudioStreamPlayer = main.get_node_or_null("Audio/SfxPlayer")
 	assert_object(sfx).is_not_null()
+
+	# Prove the causal relation: before the action, no playback exists.
+	sfx.stop()
+	sfx.stream = null
+	await get_tree().process_frame
+	assert_object(sfx.stream).is_null()
+	assert_object(sfx.get_stream_playback()).is_null()
+
+	bus.call("PublishSimple", UI_MENU_START, "gdunit", "{}")
+	await get_tree().process_frame
 
 	for _i in range(0, 10):
 		await get_tree().process_frame
