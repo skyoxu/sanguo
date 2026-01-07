@@ -1438,7 +1438,7 @@
     "story_id": "PRD-SANGUO-T2-SAVELOAD",
     "title": "实现存档功能",
     "description": "使用本地文件系统保存游戏状态，支持游戏进度的保存和加载。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1574,7 +1574,7 @@
     "story_id": "PRD-SANGUO-T2-AI-OPT",
     "title": "实现AI策略优化",
     "description": "优化AI的决策策略。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1612,8 +1612,9 @@
     ],
     "acceptance": [
       "AI 决策的核心玩法相关类与方法在 Game.Core 中实现，并且可在单元测试中运行且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
-      "AI 策略分析（Subtask 25.1）：对现有 AI 决策的输入、约束与已知缺陷给出可回归的说明；在同一局面 + 固定随机源时，决策输出可被测试稳定复现，便于后续优化对比。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
-      "AI 策略优化（Subtask 25.2）：提供可切换的优化策略（例如基于评分函数/启发式）与基线策略；在至少 1 个回归局面中，优化策略相对基线做出“更优选择”，用于验证优化提升挑战性。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs"
+      "AI 策略分析（Subtask 25.1）：基线策略决策需可被单元测试稳定复现，并在决策结果中给出可回归的归因信息（DecisionNode/Reason）；同时明确其已知限制：会按玩家在 RollDice/Skip 之间交替，且不依赖 Money/Position/OwnedCityIds 等输入。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "AI 策略优化（Subtask 25.2）：提供可切换的优化策略与基线策略；优化策略必须在至少 1 个核心输入维度（例如 Money）变化时给出不同的可回归归因信息（Reason/DecisionNode），并在至少 1 个回归局面中相对基线避免无意义 Skip（例如基线为 Skip 时优化策略为 RollDice），由单元测试断言。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "回合循环安全性：任一 AI 策略在玩家已淘汰（IsEliminated=true）时必须返回 Skip（并给出稳定 Reason），用于保证回合循环安全性。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",

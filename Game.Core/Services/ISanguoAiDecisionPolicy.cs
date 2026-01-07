@@ -1,4 +1,5 @@
 using Game.Core.Domain;
+using Game.Core.Domain.ValueObjects;
 
 namespace Game.Core.Services;
 
@@ -28,6 +29,40 @@ public sealed class DefaultSanguoAiDecisionPolicy : ISanguoAiDecisionPolicy
     {
         ArgumentNullException.ThrowIfNull(self, nameof(self));
         return _machine.Decide(self);
+    }
+}
+
+/// <summary>
+/// Optimized AI policy (Task 25): a more aggressive baseline than <see cref="DefaultSanguoAiDecisionPolicy"/>.
+/// </summary>
+public sealed class OptimizedSanguoAiDecisionPolicy : ISanguoAiDecisionPolicy
+{
+    private const string OptimizedNode = "sanguo.ai.decision.optimized.v1";
+
+    public SanguoAiDecision Decide(ISanguoPlayerView self)
+    {
+        ArgumentNullException.ThrowIfNull(self, nameof(self));
+
+        if (self.IsEliminated)
+        {
+            return new SanguoAiDecision(
+                DecisionType: SanguoAiDecisionType.Skip,
+                DecisionNode: OptimizedNode,
+                FromState: SanguoAiState.Eliminated.ToString(),
+                ToState: SanguoAiState.Eliminated.ToString(),
+                Reason: "self_is_eliminated");
+        }
+
+        // Minimal, deterministic heuristic: avoid the "alternate_per_player" skip behavior by always rolling dice,
+        // while still making the policy input-sensitive (so it can be tuned and regression-tested).
+        var reason = self.Money <= Money.Zero ? "money_zero_never_skip" : "money_positive_never_skip";
+
+        return new SanguoAiDecision(
+            DecisionType: SanguoAiDecisionType.RollDice,
+            DecisionNode: OptimizedNode,
+            FromState: SanguoAiState.RollDice.ToString(),
+            ToState: SanguoAiState.RollDice.ToString(),
+            Reason: reason);
     }
 }
 

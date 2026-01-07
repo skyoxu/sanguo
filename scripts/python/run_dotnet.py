@@ -22,6 +22,83 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+def resolve_dotnet_exe(repo_root: str) -> str:
+    """
+    Prefer the repo-local toolchain when available.
+
+    CI and local workflows may provision a pinned .NET SDK under `.dotnet/`.
+    Relying on the system-wide `dotnet` can be brittle if the host SDK is
+    missing workload-related SDK components.
+    """
+    local = os.path.join(repo_root, ".dotnet", "dotnet.exe")
+    if os.path.isfile(local):
+        return local
+    return "dotnet"
+
+
+def ensure_local_workload_locator_sdks(*, repo_root: str, dotnet_exe: str, out_dir: str) -> dict:
+    """
+    Some pinned/local SDK installs can miss workload locator SDK folders/files.
+
+    In that case, MSBuild fails very early with errors like:
+      - MSB4019: missing AutoImport.props
+      - MSB4276: failed to resolve Workload*Locator SDKs
+
+    This function creates minimal no-op stubs for:
+      - Microsoft.NET.SDK.WorkloadAutoImportPropsLocator/Sdk/{Sdk.props,Sdk.targets,AutoImport.props}
+      - Microsoft.NET.SDK.WorkloadManifestTargetsLocator/Sdk/{Sdk.props,Sdk.targets,WorkloadManifest.targets}
+
+    The directory `.dotnet/` is gitignored; creating these files is an environment repair,
+    not a source change.
+    """
+    report = {"dotnet_exe": dotnet_exe, "attempted": False, "created": [], "sdk_version": None, "error": None}
+
+    local_root = os.path.join(repo_root, ".dotnet")
+    if os.path.abspath(dotnet_exe).startswith(os.path.abspath(local_root) + os.sep):
+        report["attempted"] = True
+    else:
+        return report
+
+    def _write_if_missing(path: str) -> None:
+        if os.path.exists(path):
+            return
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with io.open(path, "w", encoding="utf-8", newline="\n") as f:
+            f.write("<Project />\n")
+        report["created"].append(path.replace("\\", "/"))
+
+    try:
+        rc, ver_out = run_cmd([dotnet_exe, "--version"], cwd=repo_root, timeout=30_000)
+        sdk_ver = (ver_out or "").strip().splitlines()[-1].strip() if rc == 0 and ver_out else ""
+        report["sdk_version"] = sdk_ver or None
+        if not sdk_ver:
+            return report
+
+        sdks_root = os.path.join(local_root, "sdk", sdk_ver, "Sdks")
+        auto_dir = os.path.join(sdks_root, "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator", "Sdk")
+        man_dir = os.path.join(sdks_root, "Microsoft.NET.SDK.WorkloadManifestTargetsLocator", "Sdk")
+
+        _write_if_missing(os.path.join(auto_dir, "Sdk.props"))
+        _write_if_missing(os.path.join(auto_dir, "Sdk.targets"))
+        _write_if_missing(os.path.join(auto_dir, "AutoImport.props"))
+
+        _write_if_missing(os.path.join(man_dir, "Sdk.props"))
+        _write_if_missing(os.path.join(man_dir, "Sdk.targets"))
+        _write_if_missing(os.path.join(man_dir, "WorkloadManifest.targets"))
+
+        with io.open(os.path.join(out_dir, "dotnet-sdk-repair.json"), "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        report["error"] = str(e)
+        try:
+            with io.open(os.path.join(out_dir, "dotnet-sdk-repair.json"), "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
+    return report
+
+
 def run_cmd(args, cwd=None, timeout=900_000):
     p = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          text=True, encoding='utf-8', errors='ignore')
@@ -91,6 +168,7 @@ def main():
     args = ap.parse_args()
 
     root = os.getcwd()
+    dotnet = resolve_dotnet_exe(root)
     date = dt.date.today().strftime('%Y-%m-%d')
     out_dir = args.out_dir or os.path.join(root, 'logs', 'unit', date)
     ensure_dir(out_dir)
@@ -99,11 +177,14 @@ def main():
         'solution': args.solution,
         'configuration': args.configuration,
         'out_dir': out_dir,
+        'dotnet': dotnet,
         'status': 'fail',
     }
 
+    summary['dotnet_sdk_repair'] = ensure_local_workload_locator_sdks(repo_root=root, dotnet_exe=dotnet, out_dir=out_dir)
+
     # Restore
-    rc, out = run_cmd(['dotnet', 'restore', args.solution], cwd=root)
+    rc, out = run_cmd([dotnet, 'restore', args.solution], cwd=root)
     with io.open(os.path.join(out_dir, 'dotnet-restore.log'), 'w', encoding='utf-8') as f:
         f.write(out)
     summary['restore_rc'] = rc
@@ -114,7 +195,7 @@ def main():
         return 1
 
     # Test with coverage
-    rc, out = run_cmd(['dotnet', 'test', args.solution,
+    rc, out = run_cmd([dotnet, 'test', args.solution,
                        f'-c', args.configuration,
                        '--collect:XPlat Code Coverage',
                        '--logger', 'trx;LogFileName=tests.trx'], cwd=root)
