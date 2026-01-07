@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://Game.Godot/Scripts/Navigation/ScreenNavigator.cs" id="13"]
 [ext_resource type="Script" path="res://Game.Godot/Scripts/Bootstrap/InputMapper.cs" id="12"]
 [ext_resource type="Script" path="res://Game.Godot/Scripts/Sanguo/SanguoGameLoopController.cs" id="14"]
+[ext_resource type="Script" path="res://Game.Godot/Adapters/AudioPlayerAdapter.cs" id="17_audio"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn" id="15"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoCityOwnershipStatusDisplay.tscn" id="16"]
 
@@ -40,6 +41,9 @@ script = ExtResource("6")
 
 [node name="SanguoGameLoopController" type="Node" parent="."]
 script = ExtResource("14")
+
+[node name="Audio" type="Node" parent="."]
+script = ExtResource("17_audio")
 
 [node name="HUD" parent="." instance=ExtResource("2")]
 

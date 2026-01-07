@@ -22,6 +22,9 @@ public partial class SanguoGameLoopController : Node
     private const string UiTileActionSelected = "ui.sanguo.tile.action.selected";
     private const string AiAutoAdvanceCausationId = "runtime.ai.auto.advance";
 
+    private const string DefaultUiClickSfxId = "res://Game.Godot/Assets/Audio/ui_click.wav";
+    private const string DefaultMusicLoopId = "res://Game.Godot/Assets/Audio/music_loop.wav";
+
     [Export(PropertyHint.Range, "0,30,0.1,or_greater")]
     public double AiAutoAdvanceDelaySeconds { get; set; } = 5.0;
 
@@ -32,6 +35,7 @@ public partial class SanguoGameLoopController : Node
     public NodePath BoardViewPath { get; set; } = new NodePath("../SanguoBoardView");
 
     private EventBusAdapter? _bus;
+    private AudioPlayerAdapter? _audio;
     private SanguoTurnManager? _turnManager;
     private bool _started;
     private bool _advanceQueued;
@@ -49,6 +53,7 @@ public partial class SanguoGameLoopController : Node
     public override void _Ready()
     {
         _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
+        _audio = GetNodeOrNull<AudioPlayerAdapter>("../Audio");
         if (_bus == null)
         {
             GD.PushWarning("SanguoGameLoopController: EventBus not found at /root/EventBus");
@@ -74,6 +79,7 @@ public partial class SanguoGameLoopController : Node
         }
 
         _bus = null;
+        _audio = null;
         _turnManager = null;
         _started = false;
         _advanceQueued = false;
@@ -155,6 +161,9 @@ public partial class SanguoGameLoopController : Node
                 return;
             }
 
+            _audio?.PlaySfx(DefaultUiClickSfxId, 1f);
+            _audio?.PlayMusic(DefaultMusicLoopId, 0.6f, true);
+
             var correlationId = Guid.NewGuid().ToString("N");
             CallDeferred(nameof(StartGameDeferred), correlationId);
             return;
@@ -162,6 +171,8 @@ public partial class SanguoGameLoopController : Node
 
         if (type == UiHudDiceRoll)
         {
+            _audio?.PlaySfx(DefaultUiClickSfxId, 1f);
+
             if (!_started || _turnManager == null)
             {
                 return;
