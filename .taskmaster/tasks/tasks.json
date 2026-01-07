@@ -880,22 +880,22 @@
         "id": "25",
         "title": "实现AI策略优化",
         "description": "优化AI的决策策略。",
-        "details": "在现有AI逻辑基础上，优化其决策策略，提高挑战性。",
-        "testStrategy": "通过多次AI对战，验证AI策略的合理性和效果。",
+        "details": "在现有AI逻辑基础上，提供可回归对比的优化策略：基线策略保持当前行为（例如交替 RollDice/Skip）；优化策略在回归场景中避免无意义 Skip，并对至少一个核心输入维度（例如 Money）输出可回归的归因信息（Reason/DecisionNode），便于后续继续调参。",
+        "testStrategy": "使用 xUnit 单元测试覆盖基线/优化策略的确定性、不变式与回归场景差异；不依赖 Godot 引擎。",
         "priority": "low",
         "dependencies": [
           "11"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "分析现有AI策略",
             "description": "对现有AI决策逻辑进行详细分析。",
             "dependencies": [],
-            "details": "研究当前AI的决策流程，识别其优缺点和改进空间。",
-            "status": "pending",
-            "testStrategy": "通过对现有AI进行多次模拟对战，记录其决策行为并分析其合理性。",
+            "details": "梳理现有AI决策流程的可回归行为与限制（例如决策状态机、交替 Skip、忽略输入维度、淘汰处理），并明确后续优化可对比的回归场景与指标。",
+            "status": "done",
+            "testStrategy": "通过单元测试固定回归局面，断言基线策略的决策序列、Reason/DecisionNode 与关键不变式，形成可回归证据。",
             "parentId": "undefined"
           },
           {
@@ -905,9 +905,9 @@
             "dependencies": [
               1
             ],
-            "details": "在分析结果的基础上，设计新的AI决策机制，可能包括引入机器学习或复杂算法。",
-            "status": "pending",
-            "testStrategy": "通过模拟对战和对比测试，验证新策略的有效性和改进效果。",
+            "details": "在分析结果的基础上，设计并实现一版可切换的优化策略（启发式即可）：在回归局面中避免无意义 Skip，并对至少一个核心输入维度（例如 Money）产生可回归的归因差异（Reason/DecisionNode）。",
+            "status": "done",
+            "testStrategy": "通过单元测试对比基线与优化策略在同一回归局面中的决策差异（DecisionType/Reason/DecisionNode），并覆盖淘汰等关键不变式。",
             "parentId": "undefined"
           }
         ],
