@@ -1724,19 +1724,19 @@
       "ux"
     ],
     "owner": "gameplay",
-    "test_refs": [
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
-      "Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
-      "Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd"
-    ],
+  "test_refs": [
+    "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+    "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
+    "Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
+    "Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd"
+  ],
     "acceptance": [
-      "AudioPlayerAdapter 初始化完成后，SfxPlayer 与 MusicPlayer 两个 AudioStreamPlayer 子节点均存在；可分别触发播放且互不干扰（播放 SFX 不会停止音乐，StopMusic 不会破坏 SFX 的 stream/播放）。 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "进入游戏的主要可玩流程/主场景后，会自动开始播放背景音乐（loop=true）：可观测到 MusicPlayer 处于播放中（playing 为 true）且其 stream 非空，并验证 loop 配置已生效（WAV: loop_mode!=DISABLED；OGG: loop==true 或等价状态）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
-      "当至少一个玩家可执行的关键交互/动作发生时，在 10 帧内可观测到音效播放已被触发：SfxPlayer 创建了 stream playback（get_stream_playback()!=null 或等价状态）。 Refs: Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
-      "当背景音乐正在播放时触发音效，音效播放不会导致背景音乐停止：可观测到 MusicPlayer 保持持续播放状态，同时 SfxPlayer 发生播放。 Refs: Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd",
-      "项目在运行时具备可用的背景音乐与音效（至少各一个），触发播放后可观测到对应 stream 与 playback 均非空；对不存在的音频 id 调用播放不会抛异常，且不应清空/破坏已在播的 stream。 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd"
-    ],
+    "AudioPlayerAdapter 初始化完成后，SfxPlayer 与 MusicPlayer 两个 AudioStreamPlayer 子节点均存在；可分别触发播放（各自 stream 与 playback 非空）。 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+    "进入游戏的主要可玩流程/主场景后，会自动开始播放背景音乐（loop=true）：可观测到 MusicPlayer 处于播放中（playing 为 true）且其 stream 非空，并验证 loop 配置已生效（WAV: loop_mode!=DISABLED；OGG: loop==true 或等价状态）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
+    "当触发进入主要可玩流程的关键动作（例如 ui.menu.start）时，在 10 帧内可观测到音效播放已被触发：触发前 SfxPlayer 未创建 stream playback（get_stream_playback()==null 或等价状态），触发后创建 playback（get_stream_playback()!=null 或等价状态）。 Refs: Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
+    "当对局内关键交互触发音效（例如 ui.hud.dice.roll）且背景音乐正在播放时，音效播放不会导致背景音乐停止：可观测到 MusicPlayer 保持持续播放状态，同时 SfxPlayer 发生播放。 Refs: Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd",
+    "项目在运行时具备可用的背景音乐与音效（至少各一个），触发播放后可观测到对应 stream 与 playback 均非空；对不存在的音频 id 调用播放不会抛异常，且不应清空/破坏已在播的 stream。 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd"
+  ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",

@@ -1,7 +1,7 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 const UI_MENU_START := "ui.menu.start"
-const SFX_ID := "res://Game.Godot/Assets/Audio/ui_click.wav"
+const CORE_TURN_STARTED := "core.sanguo.game.turn.started"
 
 func _ensure_event_bus() -> Node:
 	var existing := get_node_or_null("/root/EventBus")
@@ -14,10 +14,23 @@ func _ensure_event_bus() -> Node:
 	get_tree().get_root().add_child(auto_free(bus))
 	return bus
 
+var _events: Array = []
+
+func _on_domain_event_emitted(type, _source, _data_json, _id, _spec, _ct, _ts) -> void:
+	_events.append({"type": str(type)})
+
+func _has_event(type_name: String) -> bool:
+	for e in _events:
+		if str(e.get("type", "")) == type_name:
+			return true
+	return false
+
 # ACC:T27.4
 func test_hud_sfx_does_not_stop_music() -> void:
 	var bus := _ensure_event_bus()
 	assert_bool(bus.is_inside_tree()).is_true()
+	bus.connect("DomainEventEmitted", Callable(self, "_on_domain_event_emitted"))
+	_events = []
 
 	var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
 	add_child(auto_free(main))
@@ -25,8 +38,11 @@ func test_hud_sfx_does_not_stop_music() -> void:
 	assert_bool(main.is_inside_tree()).is_true()
 
 	bus.call("PublishSimple", UI_MENU_START, "gdunit", "{}")
-	for _i in range(0, 10):
+	for _i in range(0, 180):
 		await get_tree().process_frame
+		if _has_event(CORE_TURN_STARTED):
+			break
+	assert_bool(_has_event(CORE_TURN_STARTED)).is_true()
 
 	var music: AudioStreamPlayer = main.get_node_or_null("Audio/MusicPlayer")
 	var sfx: AudioStreamPlayer = main.get_node_or_null("Audio/SfxPlayer")
@@ -38,10 +54,21 @@ func test_hud_sfx_does_not_stop_music() -> void:
 	assert_object(music_playback_before).is_not_null()
 	assert_bool(music.playing).is_true()
 
-	var audio_node := main.get_node_or_null("Audio")
-	assert_object(audio_node).is_not_null()
-	audio_node.call("PlaySfx", SFX_ID, 1.0)
+	sfx.stop()
+	sfx.stream = null
 	await get_tree().process_frame
+	assert_object(sfx.get_stream_playback()).is_null()
+
+	var hud := main.get_node_or_null("HUD")
+	assert_object(hud).is_not_null()
+	var dice: Button = hud.get_node_or_null("TopBar/HBox/DiceButton")
+	assert_object(dice).is_not_null()
+
+	dice.emit_signal("pressed")
+	for _i in range(0, 10):
+		await get_tree().process_frame
+		if sfx.get_stream_playback() != null:
+			break
 
 	# ACC:T27.4
 	assert_object(sfx.stream).is_not_null()
