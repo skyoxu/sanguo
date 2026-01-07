@@ -1669,15 +1669,14 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task26RequirementsTests.cs",
       "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
       "Game.Core.Tests/Services/PlayerEliminationTests.cs"
     ],
     "acceptance": [
       "与游戏结束条件/出局判定相关的核心玩法类与方法位于 Game.Core 且不依赖 Godot API。 Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
-      "在回合/循环结算时，若真人玩家因资金不足无法支付过路费而出局，则立即进入 GameOver；若 NPC 因资金不足无法支付过路费而出局，则退出本局并从后续轮转中移除（状态锁定），其已占领城池状态变更为无人占领。 Refs: Game.Core.Tests/Services/PlayerEliminationTests.cs",
+      "在回合/循环结算时，若真人玩家因资金不足以支付全额过路费而出局（破产结算）：其剩余资金必须转移给收款方，玩家资金归零并标记出局；立即进入 GameOver 且后续回合推进必须被拒绝（再次调用 AdvanceTurnAsync 抛出 InvalidOperationException，且消息包含 \"GameOver\"）。若 NPC 因资金不足以支付全额过路费而出局：同样进行破产结算后退出本局并从后续轮转中移除（状态锁定，后续不会再成为 ActivePlayerId），其已占领城池状态变更为无人占领。 Refs: Game.Core.Tests/Services/PlayerEliminationTests.cs",
       "游戏结束条件定义（Subtask 26.1）：在 Game.Core 的回合循环/规则层集中定义并判定结束条件，至少包含：真人玩家因资金不足支付过路费而出局触发 GameOver；NPC 因资金不足支付过路费而出局仅出局且不触发 GameOver。 Refs: Game.Core.Tests/Services/PlayerEliminationTests.cs",
-      "结束条件测试（Subtask 26.2）：单元测试覆盖正常路径与边界条件，至少验证：NPC 出局不结束但会被移出轮转且城池变为无人占领；真人出局必须触发 GameOver。 Refs: Game.Core.Tests/Services/PlayerEliminationTests.cs"
+      "结束条件测试（Subtask 26.2）：单元测试覆盖正常路径与边界条件，至少验证：NPC 出局不结束但会被永久移出轮转且后续多次推进不会再轮到该 NPC（ActivePlayerId 不再出现）；其城池变为无人占领；真人出局必须触发 GameOver 且后续推进被拒绝。 Refs: Game.Core.Tests/Services/PlayerEliminationTests.cs"
     ],
     "test_strategy": [
       "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",

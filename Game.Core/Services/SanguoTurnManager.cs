@@ -3,6 +3,7 @@ using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
 using Game.Core.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Game.Core.Services;
 
@@ -24,6 +25,7 @@ public sealed class SanguoTurnManager
     private int _turnNumber;
     private SanguoCalendarDate _currentDate;
     private bool _started;
+    private string? _gameOverEndReason;
 
     public SanguoTurnManager(
         IEventBus bus,
@@ -45,6 +47,18 @@ public sealed class SanguoTurnManager
         _totalPositionsHint = totalPositionsHint;
         _quarterEnvironmentEventTriggerChance = quarterEnvironmentEventTriggerChance;
         _quarterEnvironmentEventYieldMultiplier = quarterEnvironmentEventYieldMultiplier;
+    }
+
+    [MemberNotNull(nameof(_gameId), nameof(_playerOrder))]
+    private void EnsureStarted()
+    {
+        if (!_started || _gameId is null || _playerOrder is null)
+        {
+            if (_gameOverEndReason is not null)
+                throw new InvalidOperationException($"GameOver: EndReason={_gameOverEndReason}. Call StartNewGame first.");
+
+            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+        }
     }
 
     public async Task StartNewGameAsync(
@@ -89,6 +103,7 @@ public sealed class SanguoTurnManager
         _turnNumber = 1;
         _currentDate = date;
         _started = true;
+        _gameOverEndReason = null;
 
         var occurredAt = DateTimeOffset.UtcNow;
 
@@ -126,8 +141,7 @@ public sealed class SanguoTurnManager
 
     public async Task ExecuteHumanRollDiceAndResolveAsync(string correlationId, string? causationId)
     {
-        if (!_started || _gameId is null || _playerOrder is null)
-            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+        EnsureStarted();
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
@@ -165,8 +179,7 @@ public sealed class SanguoTurnManager
 
     public async Task AdvanceTurnAsync(string correlationId, string? causationId)
     {
-        if (!_started || _gameId is null || _playerOrder is null)
-            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+        EnsureStarted();
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
@@ -200,6 +213,7 @@ public sealed class SanguoTurnManager
         if (_playerOrder.Length == 0)
         {
             _started = false;
+            _gameOverEndReason = "no_players";
             var evt = new DomainEvent(
                 Type: SanguoGameEnded.EventType,
                 Source: nameof(SanguoTurnManager),
@@ -508,8 +522,7 @@ public sealed class SanguoTurnManager
 
     public async Task ExecuteHumanTileActionAsync(string action, string correlationId, string? causationId)
     {
-        if (!_started || _gameId is null || _playerOrder is null)
-            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+        EnsureStarted();
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
@@ -632,6 +645,7 @@ public sealed class SanguoTurnManager
                 continue;
 
             _started = false;
+            _gameOverEndReason = "human_eliminated";
 
             var occurredAt = DateTimeOffset.UtcNow;
             var evt = new DomainEvent(
@@ -672,7 +686,14 @@ public sealed class SanguoTurnManager
             }
 
             if (player.IsEliminated && IsAiPlayerId(playerId))
+            {
+                if (player.OwnedCityIds.Count > 0)
+                {
+                    var snapshot = player.CaptureRollbackSnapshot();
+                    player.RestoreRollbackSnapshot(snapshot with { OwnedCityIds = Array.Empty<string>() });
+                }
                 continue;
+            }
 
             kept.Add(playerId);
         }
@@ -896,8 +917,7 @@ public sealed class SanguoTurnManager
 
     public SanguoSaveSnapshot ExportSaveSnapshot()
     {
-        if (!_started || _gameId is null || _playerOrder is null)
-            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+        EnsureStarted();
 
         var playersById = _boardState.Players;
         var players = new List<SanguoSavePlayer>(_playerOrder.Length);
@@ -1067,8 +1087,7 @@ public sealed class SanguoTurnManager
 
     public async Task PublishStateSnapshotAsync(string correlationId, string? causationId)
     {
-        if (!_started || _gameId is null || _playerOrder is null)
-            throw new InvalidOperationException("Game has not been started. Call StartNewGame first.");
+        EnsureStarted();
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
