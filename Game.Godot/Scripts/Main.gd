@@ -86,7 +86,7 @@ func _on_add_score() -> void:
     else:
         var bus = _bus()
         if bus != null:
-            bus.PublishSimple("core.score.updated", "ui", "{\"value\":%d}" % _score)
+            bus.PublishSimple("ui.demo.score.updated", "ui", "{\"value\":%d}" % _score)
     _label.text = "Score = %d" % _score
 
 func _on_lose_hp() -> void:
@@ -97,7 +97,7 @@ func _on_lose_hp() -> void:
     else:
         var bus = _bus()
         if bus != null:
-            bus.PublishSimple("core.health.updated", "ui", "{\"value\":%d}" % _hp)
+            bus.PublishSimple("ui.demo.health.updated", "ui", "{\"value\":%d}" % _hp)
     _label.text = "HP = %d" % _hp
 
 func _on_domain_event(type: String, source: String, data_json: String, id: String, spec: String, ct: String, ts: String) -> void:

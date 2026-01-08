@@ -12,6 +12,10 @@ Scope (4 rules):
   - P1: repeated /root/EventBus lookups in a single UI script
   - P1: EventBus DomainEventEmitted connect without _ExitTree cleanup
   - P1: JsonDocument.Parse(...) single-argument calls (no JsonDocumentOptions)
+  - P0: fire-and-forget PublishAsync in core runtime code (publishing without awaiting/returning)
+  - P1: UI publishes core.* events (UI must publish ui.* intent events; core publishes core.* fact events)
+  - P1: Core publishes ui.* events (core must not emit UI intent events)
+  - P1: Threading primitives used inside Game.Core (Task.Run / new Thread / Parallel.*)
 """
 
 from __future__ import annotations
@@ -35,6 +39,10 @@ class Finding:
 _BLOCKING_WAIT_RE = re.compile(r"\.GetAwaiter\s*\(\s*\)\s*\.GetResult\s*\(\s*\)")
 _EVENTBUS_LOOKUP_RE = re.compile(r'GetNodeOrNull\s*<\s*EventBusAdapter\s*>\s*\(\s*"/root/EventBus"\s*\)')
 _DOMAIN_EVENT_CONNECT_RE = re.compile(r"Connect\s*\(\s*EventBusAdapter\.SignalName\.DomainEventEmitted\b")
+_PUBLISHASYNC_FIRE_FORGET_RE = re.compile(r"(^|[^\w])_\s*=\s*[^;\n]*\.PublishAsync\s*\(", flags=re.MULTILINE)
+_UI_PUBLISH_CORE_EVENT_RE = re.compile(r'\bPublishSimple\s*\(\s*"core\.', flags=re.IGNORECASE)
+_CORE_PUBLISH_UI_EVENT_RE = re.compile(r'"ui\.[a-z0-9_.-]+"', flags=re.IGNORECASE)
+_THREADING_PRIMITIVES_RE = re.compile(r"\b(Task\.Run\s*\(|new\s+Thread\s*\(|Parallel\.)")
 
 
 def _to_posix(path: Path) -> str:
@@ -46,6 +54,18 @@ def _iter_cs_files(root: Path) -> Iterable[Path]:
         if not p.is_file():
             continue
         if any(seg in {".git", ".godot", "bin", "obj", "logs", "TestResults"} for seg in p.parts):
+            continue
+        yield p
+
+
+def _iter_gd_files(root: Path) -> Iterable[Path]:
+    for p in root.rglob("*.gd"):
+        if not p.is_file():
+            continue
+        if any(seg in {".git", ".godot", "bin", "obj", "logs", "TestResults"} for seg in p.parts):
+            continue
+        # Skip third-party addons/tests; only our own scripts matter here.
+        if "addons" in p.parts:
             continue
         yield p
 
@@ -62,6 +82,24 @@ def _is_blocking_wait_hard_scope(rel: str) -> bool:
     if r.startswith("Game.Godot/") and "/Scripts/" in r and "/Examples/" not in r:
         return True
     if r.startswith("Tests.Godot/Game.Godot/") and "/Scripts/" in r and "/Examples/" not in r:
+        return True
+    return False
+
+
+def _is_core_publish_hard_scope(rel: str) -> bool:
+    r = rel.replace("\\", "/")
+    if not r.startswith("Game.Core/"):
+        return False
+    if "/Services/" in r or "/Engine/" in r:
+        return True
+    return False
+
+
+def _is_ui_publish_hard_scope(rel: str) -> bool:
+    r = rel.replace("\\", "/")
+    if r.startswith("Game.Godot/") and "/Scripts/" in r and "/Examples/" not in r and "/Demo/" not in r:
+        return True
+    if r.startswith("Tests.Godot/Game.Godot/") and "/Scripts/" in r and "/Examples/" not in r and "/Demo/" not in r:
         return True
     return False
 
@@ -152,8 +190,54 @@ def scan_quality_rules(*, repo_root: Path) -> dict[str, Any]:
                     )
                 )
 
+        if _is_core_publish_hard_scope(rel) and _PUBLISHASYNC_FIRE_FORGET_RE.search(text):
+            for m in _PUBLISHASYNC_FIRE_FORGET_RE.finditer(text):
+                line = _line_number(text, m.start())
+                sample = text.splitlines()[line - 1].strip() if line - 1 < len(text.splitlines()) else None
+                findings.append(
+                    Finding(
+                        rule="cs.eventbus_publishasync_fire_and_forget",
+                        severity="p0",
+                        file=rel,
+                        line=line,
+                        message="Fire-and-forget PublishAsync detected in Game.Core (must be awaited/returned for core domain events).",
+                        sample=sample,
+                    )
+                )
+
+        if _is_core_publish_hard_scope(rel) and _CORE_PUBLISH_UI_EVENT_RE.search(text):
+            # Static string-literal check: core layer must not emit ui.* events.
+            for m in _CORE_PUBLISH_UI_EVENT_RE.finditer(text):
+                line = _line_number(text, m.start())
+                sample = text.splitlines()[line - 1].strip() if line - 1 < len(text.splitlines()) else None
+                findings.append(
+                    Finding(
+                        rule="cs.core_emits_ui_events",
+                        severity="p1",
+                        file=rel,
+                        line=line,
+                        message="String literal with ui.* found inside Game.Core; core must not emit UI intent events (ADR-0028).",
+                        sample=sample,
+                    )
+                )
+
+        if rel.replace("\\", "/").startswith("Game.Core/") and _THREADING_PRIMITIVES_RE.search(text):
+            for m in _THREADING_PRIMITIVES_RE.finditer(text):
+                line = _line_number(text, m.start())
+                sample = text.splitlines()[line - 1].strip() if line - 1 < len(text.splitlines()) else None
+                findings.append(
+                    Finding(
+                        rule="cs.core_threading_primitives",
+                        severity="p1",
+                        file=rel,
+                        line=line,
+                        message="Threading primitive detected inside Game.Core (prefer single-thread core + adapters boundaries; ADR-0030).",
+                        sample=sample,
+                    )
+                )
+
         # UI-specific rules: apply to runtime UI scripts (both main project and Tests.Godot runtime mirror).
-        if "/Scripts/" in rel and rel.endswith(".cs"):
+        if _is_ui_publish_hard_scope(rel) and rel.endswith(".cs"):
             lookups = list(_EVENTBUS_LOOKUP_RE.finditer(text))
             if len(lookups) > 1:
                 findings.append(
@@ -189,6 +273,43 @@ def scan_quality_rules(*, repo_root: Path) -> dict[str, Any]:
                     )
                 )
 
+            if _UI_PUBLISH_CORE_EVENT_RE.search(text):
+                for m in _UI_PUBLISH_CORE_EVENT_RE.finditer(text):
+                    line = _line_number(text, m.start())
+                    sample = text.splitlines()[line - 1].strip() if line - 1 < len(text.splitlines()) else None
+                    findings.append(
+                        Finding(
+                            rule="cs.ui_publishes_core_events",
+                            severity="p1",
+                            file=rel,
+                            line=line,
+                            message="UI PublishSimple(\"core.*\") detected; UI must publish ui.* intent events and never fabricate core.* facts (ADR-0028).",
+                            sample=sample,
+                        )
+                    )
+
+    # GDScript UI publish rule: detect UI publishing core.* (legacy/demo scripts are still risky drift sources).
+    for p in _iter_gd_files(repo_root / "Game.Godot"):
+        rel = _to_posix(p.relative_to(repo_root))
+        r = rel.replace("\\", "/")
+        if "/Scripts/" not in r or "/Examples/" in r or "/Demo/" in r:
+            continue
+        text = p.read_text(encoding="utf-8", errors="ignore")
+        if _UI_PUBLISH_CORE_EVENT_RE.search(text):
+            for m in _UI_PUBLISH_CORE_EVENT_RE.finditer(text):
+                line = _line_number(text, m.start())
+                sample = text.splitlines()[line - 1].strip() if line - 1 < len(text.splitlines()) else None
+                findings.append(
+                    Finding(
+                        rule="gd.ui_publishes_core_events",
+                        severity="p1",
+                        file=rel,
+                        line=line,
+                        message="GDScript PublishSimple(\"core.*\") detected; UI must publish ui.* intent events (ADR-0028).",
+                        sample=sample,
+                    )
+                )
+
     by_sev: dict[str, list[dict[str, Any]]] = {"p0": [], "p1": [], "p2": []}
     for f in findings:
         by_sev.setdefault(f.severity, []).append(
@@ -214,9 +335,14 @@ def scan_quality_rules(*, repo_root: Path) -> dict[str, Any]:
         "verdict": verdict,
         "rules": [
             "cs.blocking_async_wait",
+            "cs.eventbus_publishasync_fire_and_forget",
+            "cs.core_emits_ui_events",
+            "cs.core_threading_primitives",
             "cs.eventbus_repeated_lookup",
             "cs.domain_event_connect_without_exit_cleanup",
             "cs.jsondocument_parse_single_arg",
+            "cs.ui_publishes_core_events",
+            "gd.ui_publishes_core_events",
         ],
         "findings": by_sev,
         "counts": {

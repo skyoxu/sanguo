@@ -33,44 +33,44 @@ public class SanguoDiceServiceTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void ShouldThrowArgumentException_WhenGameIdIsNullOrWhitespace(string? gameId)
+    public async Task ShouldThrowArgumentException_WhenGameIdIsNullOrWhitespace(string? gameId)
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus);
-        Action act = () => svc.RollD6(gameId!, "p1", "corr-1", causationId: null);
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("gameId");
+        Func<Task> act = async () => await svc.RollD6Async(gameId!, "p1", "corr-1", causationId: null);
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "gameId");
         bus.Published.Should().BeEmpty();
     }
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void ShouldThrowArgumentException_WhenPlayerIdIsNullOrWhitespace(string? playerId)
+    public async Task ShouldThrowArgumentException_WhenPlayerIdIsNullOrWhitespace(string? playerId)
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus);
-        Action act = () => svc.RollD6("game-1", playerId!, "corr-1", causationId: null);
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("playerId");
+        Func<Task> act = async () => await svc.RollD6Async("game-1", playerId!, "corr-1", causationId: null);
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "playerId");
         bus.Published.Should().BeEmpty();
     }
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void ShouldThrowArgumentException_WhenCorrelationIdIsNullOrWhitespace(string? correlationId)
+    public async Task ShouldThrowArgumentException_WhenCorrelationIdIsNullOrWhitespace(string? correlationId)
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus);
-        Action act = () => svc.RollD6("game-1", "p1", correlationId!, causationId: null);
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("correlationId");
+        Func<Task> act = async () => await svc.RollD6Async("game-1", "p1", correlationId!, causationId: null);
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "correlationId");
         bus.Published.Should().BeEmpty();
     }
     // ACC:T5.4
     [Fact]
-    public void ShouldPublishSanguoDiceRolledDomainEvent_WhenRollingD6()
+    public async Task ShouldPublishSanguoDiceRolledDomainEvent_WhenRollingD6()
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus);
@@ -81,7 +81,7 @@ public class SanguoDiceServiceTests
 
         SanguoDiceRolled.EventType.Should().Be("core.sanguo.dice.rolled");
 
-        var value = svc.RollD6(gameId, playerId, correlationId, causationId);
+        var value = await svc.RollD6Async(gameId, playerId, correlationId, causationId);
         value.Should().BeInRange(1, 6);
         bus.Published.Should().ContainSingle();
         var evt = bus.Published[0];
@@ -99,13 +99,13 @@ public class SanguoDiceServiceTests
 
     // ACC:T5.5
     [Fact]
-    public void ShouldUseInjectedRandomNumberGenerator_WhenRollingD6()
+    public async Task ShouldUseInjectedRandomNumberGenerator_WhenRollingD6()
     {
         var bus = new CapturingEventBus();
         var rng = new FixedRng(nextIntValue: 3);
         var svc = new SanguoDiceService(bus, rng);
 
-        var value = svc.RollD6(gameId: "game-1", playerId: "p1", correlationId: "corr-1", causationId: null);
+        var value = await svc.RollD6Async(gameId: "game-1", playerId: "p1", correlationId: "corr-1", causationId: null);
 
         value.Should().Be(3);
         rng.NextIntCalls.Should().BeGreaterOrEqualTo(1);
@@ -119,7 +119,7 @@ public class SanguoDiceServiceTests
 
     // ACC:T5.6
     [Fact]
-    public void ShouldUseDefaultSystemRandomSource_WhenNoRngIsInjected()
+    public async Task ShouldUseDefaultSystemRandomSource_WhenNoRngIsInjected()
     {
         var rngField = typeof(RandomHelper).GetField("_rng", BindingFlags.NonPublic | BindingFlags.Static);
         rngField.Should().NotBeNull();
@@ -135,7 +135,7 @@ public class SanguoDiceServiceTests
             var bus = new CapturingEventBus();
             var svc = new SanguoDiceService(bus, rng: null);
 
-            var value = svc.RollD6(gameId: "game-1", playerId: "p1", correlationId: "corr-1", causationId: null);
+            var value = await svc.RollD6Async(gameId: "game-1", playerId: "p1", correlationId: "corr-1", causationId: null);
 
             value.Should().Be(6);
             fixedRandom.NextCalls.Should().BeGreaterOrEqualTo(1);

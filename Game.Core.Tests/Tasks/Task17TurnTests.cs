@@ -121,12 +121,12 @@ public sealed class Task17TurnTests
     // ACC:T17.10
     [Fact]
     [Trait("acceptance", "ACC:T17.10")]
-    public void ShouldPublishDiceRolledEventWithTraceIds_WhenRollingD6()
+    public async Task ShouldPublishDiceRolledEventWithTraceIds_WhenRollingD6()
     {
         var bus = new CapturingEventBus();
         var svc = new SanguoDiceService(bus, rng: new RangeAwareFixedRng(diceValue: 6, nextDouble: 0.0));
 
-        var value = svc.RollD6(gameId: "g1", playerId: "p1", correlationId: "corr-1", causationId: "cause-1");
+        var value = await svc.RollD6Async(gameId: "g1", playerId: "p1", correlationId: "corr-1", causationId: "cause-1");
         value.Should().BeInRange(1, 6);
 
         var evt = bus.Published.Find(e => e.Type == SanguoDiceRolled.EventType);

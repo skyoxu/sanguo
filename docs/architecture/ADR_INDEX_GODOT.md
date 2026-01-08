@@ -15,6 +15,9 @@
 - ADR-0025: Godot 测试策略（TDD + GdUnit4） — `docs/adr/ADR-0025-godot-test-strategy.md`
 - ADR-0026: 事件发布失败策略（PublishAsync Failure Semantics） — `docs/adr/ADR-0026-event-publish-failure-strategy.md`
 - ADR-0027: 所有权唯一写入口（Ownership Write Entry） — `docs/adr/ADR-0027-ownership-write-entry.md`
+- ADR-0028: 事件用途分级（Gameplay vs UI vs Audit/Observability） — `docs/adr/ADR-0028-event-usage-tiering.md`
+- ADR-0029: 错误处理口径（Exceptions vs Try*/Result vs Fail-Fast） — `docs/adr/ADR-0029-error-handling-policy.md`
+- ADR-0030: Core 线程模型（Single-Thread Core + 跨线程边界） — `docs/adr/ADR-0030-core-threading-model.md`
 
 ## 附录（Addenda）
 - ADR-0005 Addendum: Godot+C# 质量门禁补充 — `docs/adr/addenda/ADR-0005-godot-quality-gates-addendum.md`

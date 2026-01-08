@@ -15,7 +15,7 @@ public sealed class SanguoDiceService
         _rng = rng ?? ThreadLocalRandomNumberGenerator.Instance;
     }
 
-    public int RollD6(string gameId, string playerId, string correlationId, string? causationId)
+    public async Task<int> RollD6Async(string gameId, string playerId, string correlationId, string? causationId)
     {
         if (string.IsNullOrWhiteSpace(gameId))
             throw new ArgumentException("GameId must be non-empty.", nameof(gameId));
@@ -45,7 +45,7 @@ public sealed class SanguoDiceService
             Id: Guid.NewGuid().ToString("N")
         );
 
-        _ = _bus.PublishAsync(evt);
+        await _bus.PublishAsync(evt);
         return value;
     }
 }
