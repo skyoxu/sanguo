@@ -17,11 +17,11 @@ public class CombatService
         player.TakeDamage(amount);
     }
 
-    public void ApplyDamage(Player player, Damage damage)
+    public async Task ApplyDamage(Player player, Damage damage)
     {
         // Placeholder for future type-based mitigation; for now apply raw amount
         player.TakeDamage(damage.EffectiveAmount);
-        _ = _bus.PublishAsync(new Contracts.DomainEvent(
+        await _bus.PublishAsync(new Contracts.DomainEvent(
             Type: Contracts.CoreGameEvents.PlayerDamaged,
             Source: nameof(CombatService),
             Data: Contracts.JsonElementEventData.FromObject(new { amount = damage.EffectiveAmount, type = damage.Type.ToString(), critical = damage.IsCritical }),
@@ -49,11 +49,11 @@ public class CombatService
         return mitigated;
     }
 
-    public void ApplyDamage(Player player, Damage damage, CombatConfig config)
+    public async Task ApplyDamage(Player player, Damage damage, CombatConfig config)
     {
         var final = CalculateDamage(damage, config);
         player.TakeDamage(final);
-        _ = _bus.PublishAsync(new Contracts.DomainEvent(
+        await _bus.PublishAsync(new Contracts.DomainEvent(
             Type: Contracts.CoreGameEvents.PlayerDamaged,
             Source: nameof(CombatService),
             Data: Contracts.JsonElementEventData.FromObject(new { amount = final, type = damage.Type.ToString(), critical = damage.IsCritical }),

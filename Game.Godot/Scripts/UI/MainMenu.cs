@@ -102,7 +102,7 @@ public partial class MainMenu : Control
 
     private void Publish(string type, string source, string dataJson = "{}")
     {
-        (_bus ?? GetNodeOrNull<EventBusAdapter>("/root/EventBus"))?.PublishSimple(type, source, dataJson);
+        _bus?.PublishSimple(type, source, dataJson);
     }
 
     private void OnPlayPressed()

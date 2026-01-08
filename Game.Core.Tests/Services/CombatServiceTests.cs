@@ -61,11 +61,11 @@ public class CombatServiceTests
     }
 
     [Fact]
-    public void ApplyDamageReducesPlayerHealth()
+    public async Task ApplyDamageReducesPlayerHealth()
     {
         var p = new Player(maxHealth: 100);
         var svc = new CombatService(NullEventBus.Instance);
-        svc.ApplyDamage(p, new Damage(25, DamageType.Physical));
+        await svc.ApplyDamage(p, new Damage(25, DamageType.Physical));
         p.Health.Current.Should().Be(75);
     }
 
@@ -84,7 +84,7 @@ public class CombatServiceTests
     }
 
     [Fact]
-    public void ApplyDamageWithConfigAppliesCalculatedDamage()
+    public async Task ApplyDamageWithConfigAppliesCalculatedDamage()
     {
         // Arrange
         var player = new Player(maxHealth: 100);
@@ -94,14 +94,14 @@ public class CombatServiceTests
         var damage = new Damage(40, DamageType.Fire);
 
         // Act
-        svc.ApplyDamage(player, damage, cfg);
+        await svc.ApplyDamage(player, damage, cfg);
 
         // Assert
         player.Health.Current.Should().Be(80); // 40 * 0.5 = 20 damage
     }
 
     [Fact]
-    public void ApplyDamageWithEventBusPublishesEvent()
+    public async Task ApplyDamageWithEventBusPublishesEvent()
     {
         // Arrange
         var player = new Player(maxHealth: 100);
@@ -110,7 +110,7 @@ public class CombatServiceTests
         var damage = new Damage(25, DamageType.Physical);
 
         // Act
-        svc.ApplyDamage(player, damage);
+        await svc.ApplyDamage(player, damage);
 
         // Assert
         player.Health.Current.Should().Be(75);

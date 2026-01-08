@@ -95,6 +95,8 @@ public class GameEngineCore
 
     private void Publish(string type, IEventData? data)
     {
-        _ = _bus.PublishAsync(new DomainEvent(type, nameof(GameEngineCore), data, DateTime.UtcNow, Guid.NewGuid().ToString("N")));
+        _bus.PublishAsync(new DomainEvent(type, nameof(GameEngineCore), data, DateTime.UtcNow, Guid.NewGuid().ToString("N")))
+            .GetAwaiter()
+            .GetResult();
     }
 }
