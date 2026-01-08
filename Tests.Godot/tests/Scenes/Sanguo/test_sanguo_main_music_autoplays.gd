@@ -40,9 +40,9 @@ func test_sanguo_main_music_autoplays_when_music_player_present() -> void:
 
     # ACC:T27.2
     var stream := music.stream
-    if stream is AudioStreamWav:
-        var wav: AudioStreamWav = stream
-        assert_int(wav.loop_mode).is_not_equal(AudioStreamWav.LOOP_DISABLED)
+    if stream is AudioStreamWAV:
+        var wav: AudioStreamWAV = stream
+        assert_int(wav.loop_mode).is_not_equal(AudioStreamWAV.LOOP_DISABLED)
     elif stream is AudioStreamOggVorbis:
         var ogg: AudioStreamOggVorbis = stream
         assert_bool(ogg.loop).is_true()
