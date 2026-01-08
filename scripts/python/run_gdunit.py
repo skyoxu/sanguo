@@ -17,6 +17,7 @@ import subprocess
 import json
 import time
 import xml.etree.ElementTree as ET
+import sys
 
 
 def _find_latest_results_xml(reports_dir: str):
@@ -115,6 +116,25 @@ def write_text(path: str, content: str) -> None:
         f.write(content)
 
 
+def ensure_tests_project_junction(project_dir: str, root_dir: str) -> tuple[int, str] | None:
+    """
+    Ensure Tests.Godot/Game.Godot is a junction to <repo>/Game.Godot.
+
+    This prevents double-source drift where tests may load stale copies under Tests.Godot.
+    """
+    try:
+        proj_name = os.path.basename(os.path.abspath(project_dir)).lower()
+        if proj_name != "tests.godot":
+            return None
+        script = os.path.join(root_dir, "scripts", "python", "ensure_tests_project_junction.py")
+        if not os.path.isfile(script):
+            return None
+        # Use --migrate to make local clones resilient (move aside stale directories).
+        return run_cmd([sys.executable, script, "--project", project_dir, "--migrate"])
+    except Exception:
+        return 1, "ensure_tests_project_junction: unexpected exception"
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--godot-bin', required=True)
@@ -130,6 +150,16 @@ def main():
     date = dt.date.today().strftime('%Y-%m-%d')
     out_dir = os.path.join(root, 'logs', 'e2e', date)
     os.makedirs(out_dir, exist_ok=True)
+
+    ensured = ensure_tests_project_junction(args.project, root)
+    if ensured is not None:
+        rc_e, out_e = ensured
+        # Hard fail: a missing/mismatched junction can make tests run against stale copies.
+        if rc_e != 0:
+            write_text(os.path.join(out_dir, "ensure-tests-project-junction.log"), out_e)
+            print("ERROR: Failed to ensure Tests.Godot/Game.Godot junction. See logs/e2e/<date>/ensure-tests-project-junction.log")
+            return 1
+        write_text(os.path.join(out_dir, "ensure-tests-project-junction.log"), out_e)
 
     # Optional prewarm with fallback
     prewarm_rc = None

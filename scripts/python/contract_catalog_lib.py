@@ -24,6 +24,14 @@ def iter_cs_files(root: Path) -> Iterable[Path]:
     for p in root.rglob("*.cs"):
         if p.name.endswith(".g.cs"):
             continue
+        try:
+            rel = p.relative_to(root).as_posix()
+            # Tests.Godot/Game.Godot is a Windows junction to repo/Game.Godot (single source of truth).
+            # Avoid double-scanning the same runtime code via the junction.
+            if rel.startswith("Tests.Godot/Game.Godot/"):
+                continue
+        except Exception:
+            pass
         yield p
 
 

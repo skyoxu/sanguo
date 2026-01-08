@@ -1849,21 +1849,23 @@
     "test_refs": [
       "Tests.Godot/tests/UI/test_settings_panel_scene.gd",
       "Tests.Godot/tests/UI/test_settings_panel_logic.gd",
-      "Tests.Godot/tests/UI/test_settings_panel_closepanel.gd",
-      "Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
-      "Tests.Godot/tests/UI/test_settings_panel_applies_window_resolution.gd",
-      "Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd",
-      "Tests.Godot/tests/UI/test_settings_panel_invalid_volume_clamped.gd"
-    ],
+    "Tests.Godot/tests/UI/test_settings_panel_closepanel.gd",
+    "Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
+    "Tests.Godot/tests/UI/test_settings_panel_applies_window_resolution.gd",
+    "Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd",
+    "Tests.Godot/tests/UI/test_settings_panel_invalid_volume_clamped.gd",
+    "Tests.Godot/tests/UI/test_main_menu_settings_opens_settings_panel.gd"
+  ],
     "acceptance": [
       "在 headless 环境中实例化 SettingsPanel，并将其成功加入场景树后至少运行一帧，不产生运行时错误或未捕获异常。 Refs: Tests.Godot/tests/UI/test_settings_panel_scene.gd",
       "在 SettingsPanel 中修改用户可见的设置项（包含音量与分辨率）后执行保存，应通过 ConfigFile 持久化；随后执行加载应从 ConfigFile 读取并还原这些设置值，且 UI 显示值与对应设置数据保持一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_logic.gd",
       "触发 CloseBtn 后，SettingsPanel 会被隐藏（visible=false），以表示退出设置菜单界面。 Refs: Tests.Godot/tests/UI/test_settings_panel_closepanel.gd",
-      "音量相关设置在保存/加载后会被应用到运行时音频输出：更改前后可通过可观测信号（如音频总线音量/静音状态变化，或播放同一测试音源时的输出响度差异）验证其已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
-      "分辨率相关设置在保存/加载后会被应用到运行时显示/窗口：更改前后可通过可观测信号（如窗口尺寸或显示模式变化）验证其已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_window_resolution.gd",
-      "当分辨率/显示模式设置值无效或不受支持时，执行“应用/保存/加载”流程不会导致崩溃或未捕获异常，且运行时显示/窗口应保持当前有效设置或回退到最近一次有效设置，并保持 UI 显示值与实际生效值一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd",
-      "当音量设置值超出允许范围或为无效值时，执行“应用/保存/加载”流程不会导致崩溃或未捕获异常，且最终生效的运行时音频设置应被钳制/回退到有效范围，并保持 UI 显示值与实际生效值一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_volume_clamped.gd"
-    ],
+    "音量相关设置在保存/加载后会被应用到运行时音频输出：更改前后可通过可观测信号（如音频总线音量/静音状态变化，或播放同一测试音源时的输出响度差异）验证其已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
+    "分辨率相关设置在保存/加载后会被应用到运行时显示/窗口：更改前后可通过可观测信号（如窗口尺寸或显示模式变化）验证其已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_window_resolution.gd",
+    "当分辨率/显示模式设置值无效或不受支持时，执行“应用/保存/加载”流程不会导致崩溃或未捕获异常，且运行时显示/窗口应保持当前有效设置或回退到最近一次有效设置，并保持 UI 显示值与实际生效值一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd",
+    "当音量设置值超出允许范围或为无效值时，执行“应用/保存/加载”流程不会导致崩溃或未捕获异常，且最终生效的运行时音频设置应被钳制/回退到有效范围，并保持 UI 显示值与实际生效值一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_volume_clamped.gd",
+    "在 Main 场景中点击 MainMenu 的 Settings 按钮后，应发布 ui.menu.settings 事件并使 SettingsPanel 显示（visible=true）。 Refs: Tests.Godot/tests/UI/test_main_menu_settings_opens_settings_panel.gd"
+  ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。"

@@ -17,10 +17,8 @@ public sealed class SanguoMapConfigAssetTests
         var repoRoot = FindRepoRoot();
 
         var runtimePath = Path.Combine(repoRoot, "Game.Godot", "Assets", "Config", "Sanguo", "map-default.json");
-        var testProjectPath = Path.Combine(repoRoot, "Tests.Godot", "Game.Godot", "Assets", "Config", "Sanguo", "map-default.json");
 
         ValidateMapJson(runtimePath);
-        ValidateMapJson(testProjectPath);
     }
 
     private static void ValidateMapJson(string fullPath)

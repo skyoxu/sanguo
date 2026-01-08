@@ -39,13 +39,6 @@ public sealed class HudSceneTests
         code.Should().Contain("SanguoDiceRolled.EventType");
     }
 
-    [Fact]
-    public void ShouldContainDiceRolledHandling_WhenReadingHudScriptMirror()
-    {
-        var code = ReadText("Tests.Godot/Game.Godot/Scripts/UI/HUD.cs");
-        code.Should().Contain("SanguoDiceRolled.EventType");
-    }
-
     private static string ReadText(string relativePath)
     {
         var full = Path.Combine(

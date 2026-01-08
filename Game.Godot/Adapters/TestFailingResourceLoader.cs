@@ -6,7 +6,7 @@ namespace Game.Godot.Adapters;
 /// <summary>
 /// Test-only resource loader that always fails.
 /// </summary>
-public partial class TestFailingResourceLoader : Node, IResourceLoader
+public sealed partial class TestFailingResourceLoader : Node, IResourceLoader
 {
     public string? LoadText(string path) => null;
 

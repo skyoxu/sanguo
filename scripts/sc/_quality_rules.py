@@ -55,6 +55,10 @@ def _iter_cs_files(root: Path) -> Iterable[Path]:
             continue
         if any(seg in {".git", ".godot", "bin", "obj", "logs", "TestResults"} for seg in p.parts):
             continue
+        # Avoid scanning a junctioned mirror under Tests.Godot (single source of truth is Game.Godot at repo root).
+        r = _to_posix(p)
+        if r.startswith("Tests.Godot/Game.Godot/"):
+            continue
         yield p
 
 
@@ -63,6 +67,10 @@ def _iter_gd_files(root: Path) -> Iterable[Path]:
         if not p.is_file():
             continue
         if any(seg in {".git", ".godot", "bin", "obj", "logs", "TestResults"} for seg in p.parts):
+            continue
+        # Avoid scanning a junctioned mirror under Tests.Godot (single source of truth is Game.Godot at repo root).
+        r = _to_posix(p)
+        if r.startswith("Tests.Godot/Game.Godot/"):
             continue
         # Skip third-party addons/tests; only our own scripts matter here.
         if "addons" in p.parts:
@@ -81,8 +89,6 @@ def _is_blocking_wait_hard_scope(rel: str) -> bool:
         return True
     if r.startswith("Game.Godot/") and "/Scripts/" in r and "/Examples/" not in r:
         return True
-    if r.startswith("Tests.Godot/Game.Godot/") and "/Scripts/" in r and "/Examples/" not in r:
-        return True
     return False
 
 
@@ -98,8 +104,6 @@ def _is_core_publish_hard_scope(rel: str) -> bool:
 def _is_ui_publish_hard_scope(rel: str) -> bool:
     r = rel.replace("\\", "/")
     if r.startswith("Game.Godot/") and "/Scripts/" in r and "/Examples/" not in r and "/Demo/" not in r:
-        return True
-    if r.startswith("Tests.Godot/Game.Godot/") and "/Scripts/" in r and "/Examples/" not in r and "/Demo/" not in r:
         return True
     return False
 

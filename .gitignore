@@ -48,6 +48,10 @@ TestResults/
 *.uid
 tmp_patch.txt
 
+# Tests project single-source-of-truth (junction target; do not version mirror copies)
+Tests.Godot/Game.Godot/
+Tests.Godot/Game.Godot/**
+
 # Local .NET SDK/runtime placed in repo (should not be versioned)
 .dotnet/
 

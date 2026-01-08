@@ -44,6 +44,14 @@ def iter_code_files(root: Path, globs: tuple[str, ...]) -> list[Path]:
     for p in files:
         if not p.is_file():
             continue
+        try:
+            rel = p.relative_to(root).as_posix()
+            # Tests.Godot/Game.Godot is a Windows junction to repo/Game.Godot (single source of truth).
+            # Avoid double-scanning the same runtime code via the junction.
+            if rel.startswith("Tests.Godot/Game.Godot/"):
+                continue
+        except Exception:
+            pass
         if any(seg in {".git", ".godot", "bin", "obj", "logs"} for seg in p.parts):
             continue
         filtered.append(p)

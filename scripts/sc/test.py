@@ -118,6 +118,14 @@ def run_gdunit_hard(out_dir: Path, godot_bin: str, timeout_sec: int, *, run_id: 
     log_path = out_dir / "gdunit-hard.log"
     write_text(log_path, out)
     write_text(repo_root() / report_dir / "run_id.txt", run_id + "\n")
+    # Surface GdUnit console output into logs/ci for CI forensics (workflows usually upload logs/ci but not logs/e2e).
+    try:
+        console_src = repo_root() / report_dir / "gdunit-console.txt"
+        if console_src.exists():
+            console_dst = out_dir / "gdunit-hard-console.txt"
+            write_text(console_dst, console_src.read_text(encoding="utf-8", errors="ignore"))
+    except Exception:
+        pass
     return {"name": "gdunit-hard", "cmd": cmd, "rc": rc, "log": str(log_path), "report_dir": str(report_dir)}
 
 

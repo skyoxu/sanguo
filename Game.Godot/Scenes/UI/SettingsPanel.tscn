@@ -16,7 +16,7 @@ layout_mode = 2
 offset_left = 480.0
 offset_top = 120.0
 offset_right = 880.0
-offset_bottom = 420.0
+offset_bottom = 520.0
 
 [node name="Panel" type="Panel" parent="VBox"]
 layout_mode = 2
@@ -55,6 +55,28 @@ layout_mode = 2
 text = "Language"
 
 [node name="LangOpt" type="OptionButton" parent="VBox/LangRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ResolutionRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="ResolutionLabel" type="Label" parent="VBox/ResolutionRow"]
+layout_mode = 2
+text = "Resolution"
+
+[node name="ResolutionOpt" type="OptionButton" parent="VBox/ResolutionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="WindowModeRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="WindowModeLabel" type="Label" parent="VBox/WindowModeRow"]
+layout_mode = 2
+text = "Window Mode"
+
+[node name="WindowModeOpt" type="OptionButton" parent="VBox/WindowModeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 
