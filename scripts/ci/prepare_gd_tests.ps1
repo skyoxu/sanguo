@@ -19,20 +19,11 @@ if (Test-Path $link) {
 }
 
 Write-Host "Creating junction: $link -> $runtime"
-$mk = Start-Process -FilePath "cmd" -ArgumentList @("/c","mklink","/J","$link","$runtime") -PassThru -NoNewWindow -WindowStyle Hidden
-$ok = $mk.WaitForExit(10000)
-if (-not $ok -or $mk.ExitCode -ne 0 -or -not (Test-Path $link)) {
-  Write-Warning "mklink failed or not available (exit=$($mk.ExitCode)); falling back to copy."
-  # Fallback copy (exclude bin/obj/.import/.godot/logs)
-  $exclude = @('bin','obj','.import','.godot','logs')
-  New-Item -ItemType Directory -Force -Path $link | Out-Null
-  Get-ChildItem -Force -LiteralPath $runtime | ForEach-Object {
-    if ($exclude -contains $_.Name) { return }
-    Copy-Item -Recurse -Force -LiteralPath $_.FullName -Destination (Join-Path $link $_.Name)
-  }
-  New-Item -ItemType File -Force -Path (Join-Path $link '._copied') | Out-Null
-  if (-not (Test-Path $link)) { Write-Error "Failed to prepare test runtime at $link" }
-  Write-Host "Copied runtime to $link"
-} else {
-  Write-Host "Junction created."
+$mkOut = & cmd /c mklink /J "$link" "$runtime" 2>&1
+$rc = $LASTEXITCODE
+if ($rc -ne 0 -or -not (Test-Path $link)) {
+  $msg = ($mkOut | Out-String).Trim()
+  Write-Error "Failed to create junction (exit=$rc). Output: $msg"
 }
+
+Write-Host "Junction created."
