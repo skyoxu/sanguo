@@ -17,8 +17,10 @@ import datetime as dt
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 
 
 def run_cmd(args, cwd=None, timeout=900_000):
@@ -39,6 +41,53 @@ def read_json(path):
             return json.load(f)
     except Exception:
         return None
+
+
+def _copy_if_exists(src: str, dst: str) -> bool:
+    try:
+        if not os.path.isfile(src):
+            return False
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copyfile(src, dst)
+        return True
+    except Exception:
+        return False
+
+
+def _extract_failed_tests_from_trx(trx_path: str, max_items: int = 30) -> list[dict]:
+    try:
+        if not os.path.isfile(trx_path):
+            return []
+        tree = ET.parse(trx_path)
+        root = tree.getroot()
+        ns = ""
+        if root.tag.startswith("{"):
+            ns = root.tag.split("}")[0] + "}"
+
+        failures = []
+        for r in root.findall(f".//{ns}UnitTestResult"):
+            outcome = (r.attrib.get("outcome") or "").lower()
+            if outcome != "failed":
+                continue
+            test_name = r.attrib.get("testName") or r.attrib.get("testId") or "unknown"
+            msg = ""
+            stack = ""
+            out = r.find(f"{ns}Output")
+            if out is not None:
+                err = out.find(f"{ns}ErrorInfo")
+                if err is not None:
+                    m = err.find(f"{ns}Message")
+                    if m is not None and m.text:
+                        msg = m.text.strip()
+                    s = err.find(f"{ns}StackTrace")
+                    if s is not None and s.text:
+                        stack = s.text.strip()
+            failures.append({"test": test_name, "message": msg, "stack": stack})
+            if len(failures) >= max_items:
+                break
+        return failures
+    except Exception:
+        return []
 
 
 def main():
@@ -82,6 +131,23 @@ def main():
     }
     if rc not in (0, 2) or summary['dotnet']['status'] == 'tests_failed':
         hard_fail = True
+
+    # Persist dotnet runner stdout for CI forensics (so we can debug without unit artifacts).
+    _copy_if_exists(
+        os.path.join('logs', 'unit', date, 'dotnet-test-output.txt'),
+        os.path.join('logs', 'ci', date, 'dotnet-test-output.txt'),
+    )
+    _copy_if_exists(
+        os.path.join('logs', 'unit', date, 'tests.trx'),
+        os.path.join('logs', 'ci', date, 'tests.trx'),
+    )
+    with io.open(os.path.join('logs', 'ci', date, 'dotnet-stdout.txt'), 'w', encoding='utf-8') as f:
+        f.write(out)
+    failures = _extract_failed_tests_from_trx(os.path.join('logs', 'ci', date, 'tests.trx'))
+    if failures:
+        with io.open(os.path.join('logs', 'ci', date, 'dotnet-failures.json'), 'w', encoding='utf-8') as f:
+            json.dump({"failed": failures}, f, ensure_ascii=False, indent=2)
+        summary['dotnet']['failed_tests'] = [x.get("test") for x in failures]
 
     # 2) Godot self-check (hard gate)
     # ensure autoload fixed (explicit project path)
