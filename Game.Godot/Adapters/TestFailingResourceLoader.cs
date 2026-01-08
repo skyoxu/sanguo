@@ -1,7 +1,7 @@
 using Godot;
 using Game.Core.Ports;
 
-namespace Tests.Godot.TestDoubles;
+namespace Game.Godot.Adapters;
 
 /// <summary>
 /// Test-only resource loader that always fails.

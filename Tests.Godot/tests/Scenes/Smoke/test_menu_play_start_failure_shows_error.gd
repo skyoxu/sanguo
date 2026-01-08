@@ -28,7 +28,7 @@ func before() -> void:
     cr.name = "CompositionRoot"
     get_tree().get_root().add_child(auto_free(cr))
 
-    var loader = preload("res://tests/TestDoubles/TestFailingResourceLoader.cs").new()
+    var loader = preload("res://Game.Godot/Adapters/TestFailingResourceLoader.cs").new()
     loader.name = "ResourceLoaderPort"
     cr.add_child(auto_free(loader))
 
