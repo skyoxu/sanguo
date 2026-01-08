@@ -8,6 +8,7 @@ using Game.Godot.Adapters;
 using Game.Godot.Autoloads;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Game.Godot.Scripts.Sanguo;
@@ -21,7 +22,12 @@ namespace Game.Godot.Scripts.Sanguo;
 /// </summary>
 public partial class SanguoGameLoopController : Node
 {
+    [Signal]
+    public delegate void QuitRequestedEventHandler();
+
     private const string UiMenuStart = "ui.menu.start";
+    private const string UiMenuQuit = "ui.menu.quit";
+    private const string UiMenuStartFailed = "ui.menu.start.failed";
     private const string UiHudDiceRoll = "ui.hud.dice.roll";
     private const string UiHudSave = "ui.hud.save";
     private const string UiHudLoad = "ui.hud.load";
@@ -56,6 +62,15 @@ public partial class SanguoGameLoopController : Node
     private string _lastHumanMoveCorrelationId = string.Empty;
     private int _lastHumanMoveToIndex;
     private string _lastSaveSlotId = "quick";
+
+    private static readonly JsonSerializerOptions UiJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+    };
+
+    private static bool IsQuitSuppressed()
+        => string.Equals(System.Environment.GetEnvironmentVariable("GD_DISABLE_QUIT"), "1", StringComparison.Ordinal);
 
     public override void _Ready()
     {
@@ -209,6 +224,17 @@ public partial class SanguoGameLoopController : Node
             var action = SanguoGlueJson.TryExtractAction(dataJson) ?? string.Empty;
             _advanceQueued = true;
             CallDeferred(nameof(AdvanceAfterHumanTileActionDeferred), corr, action);
+            return;
+        }
+
+        if (type == UiMenuQuit)
+        {
+            _audio?.PlaySfx(DefaultUiClickSfxId, 1f);
+            EmitSignal(SignalName.QuitRequested);
+            if (!IsQuitSuppressed())
+            {
+                GetTree().Quit();
+            }
             return;
         }
 
@@ -375,7 +401,11 @@ public partial class SanguoGameLoopController : Node
         _advanceQueued = true;
         try
         {
-            _ = await TryStartNewGameAsync(correlationId: correlationId, causationId: UiMenuStart);
+            var (ok, reason) = await TryStartNewGameAsync(correlationId: correlationId, causationId: UiMenuStart);
+            if (!ok)
+            {
+                PublishMenuStartFailed(correlationId, reason);
+            }
         }
         finally
         {
@@ -383,29 +413,29 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
-    private async Task<bool> TryStartNewGameAsync(string correlationId, string causationId)
+    private async Task<(bool ok, string reason)> TryStartNewGameAsync(string correlationId, string causationId)
     {
         if (_started)
         {
-            return true;
+            return (true, "already_started");
         }
 
         if (_bus == null)
         {
-            return false;
+            return (false, "event_bus_missing");
         }
 
         var loader = ResolveResourceLoader();
         if (loader == null)
         {
             GD.PushWarning("SanguoGameLoopController: ResourceLoaderPort not found; cannot load map config.");
-            return false;
+            return (false, "resource_loader_missing");
         }
 
         if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out var mapSourcePath, out var mapError))
         {
             GD.PushWarning($"SanguoGameLoopController: map config load failed (source='{mapSourcePath}', error='{mapError}').");
-            return false;
+            return (false, "map_config_load_failed");
         }
 
         _map = map;
@@ -428,14 +458,14 @@ public partial class SanguoGameLoopController : Node
                 causationId: causationId);
             _started = true;
             TryQueueAiAutoAdvanceIfNeeded();
-            return true;
+            return (true, string.Empty);
         }
         catch (Exception ex)
         {
             GD.PushWarning($"SanguoGameLoopController: failed to start game: {ex.Message}");
             _turnManager = null;
             _started = false;
-            return false;
+            return (false, "exception:" + ex.GetType().Name);
         }
     }
 
@@ -508,7 +538,8 @@ public partial class SanguoGameLoopController : Node
     {
         try
         {
-            if (!await TryStartNewGameAsync(correlationId: correlationId, causationId: "e2e.saveload.save"))
+            var (started, _) = await TryStartNewGameAsync(correlationId: correlationId, causationId: "e2e.saveload.save");
+            if (!started)
             {
                 GD.Print("[E2E_SAVELOAD] failed mode=save reason=start_failed");
                 return;
@@ -629,14 +660,37 @@ public partial class SanguoGameLoopController : Node
         {
         }
 
-        var port = GetNodeOrNull<ResourceLoaderAdapter>("/root/CompositionRoot/ResourceLoaderPort");
-        if (port != null)
+        var portNode = GetNodeOrNull<Node>("/root/CompositionRoot/ResourceLoaderPort");
+        if (portNode is IResourceLoader port)
         {
             return port;
         }
 
         // Fallback for minimal scenes/tests where CompositionRoot is not available.
         return new ResourceLoaderAdapter();
+    }
+
+    private void PublishMenuStartFailed(string correlationId, string reason)
+    {
+        if (_bus == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var data = JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                ["correlationId"] = correlationId ?? string.Empty,
+                ["reason"] = reason ?? string.Empty,
+            }, UiJsonOptions);
+
+            _bus.PublishSimple(UiMenuStartFailed, "runtime", data);
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"SanguoGameLoopController: failed to publish ui.menu.start.failed: {ex.Message}");
+        }
     }
 
     private IDataStore? ResolveDataStore()
