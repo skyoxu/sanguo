@@ -1635,7 +1635,7 @@
     "story_id": "PRD-SANGUO-T2-GAME-END",
     "title": "实现游戏结束条件",
     "description": "定义并实现游戏的结束条件。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [

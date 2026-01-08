@@ -943,28 +943,28 @@
         "dependencies": [
           "17"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "设计游戏结束条件",
-            "description": "定义游戏结束的具体条件和规则。",
+            "title": "实现游戏结束条件（真人出局→GameOver）",
+            "description": "当真人玩家因无法支付过路费而出局时，触发 GameOver 并发布游戏结束事件。",
             "dependencies": [],
-            "details": "分析游戏规则，确定何时游戏应该结束，例如达到特定分数或时间限制。",
-            "status": "pending",
-            "testStrategy": "通过逻辑推演和规则验证，确保条件合理。",
+            "details": "至少覆盖：真人玩家资金不足支付过路费→资金归零、出局标记生效、回合系统停止推进并发布 core.sanguo.game.ended（EndReason=human_eliminated）。",
+            "status": "done",
+            "testStrategy": "使用 xUnit 固定回归局面：模拟真人支付过路费导致破产，断言发布 GameEnded 且后续 AdvanceTurn 抛出 GameOver（EndReason=human_eliminated）。",
             "parentId": "undefined"
           },
           {
             "id": 2,
-            "title": "测试游戏结束条件",
-            "description": "验证游戏结束条件的正确性和稳定性。",
+            "title": "实现 NPC 出局处理（移出轮转 + 城池释放）",
+            "description": "当 NPC 资金不足支付过路费而出局时，将其从轮转移除，并将其城池释放为无人占领。",
             "dependencies": [
               1
             ],
-            "details": "编写测试用例，模拟多种游戏结束场景，确保游戏在正确的条件下结束。",
-            "status": "pending",
-            "testStrategy": "使用自动化测试工具模拟不同条件，检查游戏是否按预期结束。",
+            "details": "至少覆盖：NPC 破产→IsEliminated=true、从 playerOrder 轮转移除；其 OwnedCityIds 清空，从而所有权查询应变为无人占领；后续回合不应再轮到该 NPC。",
+            "status": "done",
+            "testStrategy": "使用 xUnit 固定回归局面：构造 NPC 持有城池后破产，断言没有发布 GameOver；TurnAdvanced 的 ActivePlayerId 跳过该 NPC；并验证对应城池 owner 为空。",
             "parentId": "undefined"
           }
         ],
