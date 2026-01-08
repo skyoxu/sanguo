@@ -18,9 +18,31 @@ offset_top = 40.0
 offset_right = 300.0
 offset_bottom = 240.0
 
+[node name="LoadPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 2
+offset_left = 340.0
+offset_top = 40.0
+offset_right = 620.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="StatusLabel" type="Label" parent="."]
+visible = false
+layout_mode = 2
+offset_left = 40.0
+offset_top = 16.0
+offset_right = 620.0
+offset_bottom = 36.0
+text = ""
+
 [node name="BtnPlay" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Play"
+
+[node name="BtnLoad" type="Button" parent="VBox"]
+layout_mode = 2
+text = "Load"
 
 [node name="BtnSettings" type="Button" parent="VBox"]
 layout_mode = 2
@@ -29,4 +51,3 @@ text = "Settings"
 [node name="BtnQuit" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Quit"
-

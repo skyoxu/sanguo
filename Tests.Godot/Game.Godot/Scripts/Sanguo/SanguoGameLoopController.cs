@@ -8,6 +8,7 @@ using Game.Godot.Adapters;
 using Game.Godot.Autoloads;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Game.Godot.Scripts.Sanguo;
 
@@ -17,7 +18,12 @@ namespace Game.Godot.Scripts.Sanguo;
 /// </summary>
 public partial class SanguoGameLoopController : Node
 {
+    [Signal]
+    public delegate void QuitRequestedEventHandler();
+
     private const string UiMenuStart = "ui.menu.start";
+    private const string UiMenuQuit = "ui.menu.quit";
+    private const string UiMenuStartFailed = "ui.menu.start.failed";
     private const string UiHudDiceRoll = "ui.hud.dice.roll";
     private const string UiTileActionSelected = "ui.sanguo.tile.action.selected";
     private const string AiAutoAdvanceCausationId = "runtime.ai.auto.advance";
@@ -49,6 +55,15 @@ public partial class SanguoGameLoopController : Node
     private string _awaitingHumanActionCorrelationId = string.Empty;
     private string _lastHumanMoveCorrelationId = string.Empty;
     private int _lastHumanMoveToIndex;
+
+    private static bool IsQuitSuppressed()
+        => string.Equals(System.Environment.GetEnvironmentVariable("GD_DISABLE_QUIT"), "1", StringComparison.Ordinal);
+
+    private static readonly JsonSerializerOptions UiJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+    };
 
     public override void _Ready()
     {
@@ -154,6 +169,17 @@ public partial class SanguoGameLoopController : Node
             return;
         }
 
+        if (type == UiMenuQuit)
+        {
+            _audio?.PlaySfx(DefaultUiClickSfxId, 1f);
+            EmitSignal(SignalName.QuitRequested);
+            if (!IsQuitSuppressed())
+            {
+                GetTree().Quit();
+            }
+            return;
+        }
+
         if (type == UiMenuStart)
         {
             if (_started)
@@ -216,12 +242,14 @@ public partial class SanguoGameLoopController : Node
         if (loader == null)
         {
             GD.PushWarning("SanguoGameLoopController: ResourceLoaderPort not found; cannot load map config.");
+            PublishMenuStartFailed(correlationId, "resource_loader_missing");
             return;
         }
 
         if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out var mapSourcePath, out var mapError))
         {
             GD.PushWarning($"SanguoGameLoopController: map config load failed (source='{mapSourcePath}', error='{mapError}').");
+            PublishMenuStartFailed(correlationId, "map_config_load_failed");
             return;
         }
 
@@ -269,6 +297,7 @@ public partial class SanguoGameLoopController : Node
             GD.PushWarning($"SanguoGameLoopController: failed to start game: {ex.Message}");
             _turnManager = null;
             _started = false;
+            PublishMenuStartFailed(correlationId, "exception:" + ex.GetType().Name);
         }
     }
 
@@ -286,14 +315,37 @@ public partial class SanguoGameLoopController : Node
         {
         }
 
-        var port = GetNodeOrNull<ResourceLoaderAdapter>("/root/CompositionRoot/ResourceLoaderPort");
-        if (port != null)
+        var portNode = GetNodeOrNull<Node>("/root/CompositionRoot/ResourceLoaderPort");
+        if (portNode is IResourceLoader port)
         {
             return port;
         }
 
         // Fallback for minimal scenes/tests where CompositionRoot is not available.
         return new ResourceLoaderAdapter();
+    }
+
+    private void PublishMenuStartFailed(string correlationId, string reason)
+    {
+        if (_bus == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var data = JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                ["correlationId"] = correlationId ?? string.Empty,
+                ["reason"] = reason ?? string.Empty,
+            }, UiJsonOptions);
+
+            _bus.PublishSimple(UiMenuStartFailed, "runtime", data);
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"SanguoGameLoopController: failed to publish ui.menu.start.failed: {ex.Message}");
+        }
     }
 
     private static Dictionary<string, City> BuildCitiesByIdFromMap(SanguoMapDefinition map)

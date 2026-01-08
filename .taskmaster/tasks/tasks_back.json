@@ -1724,19 +1724,19 @@
       "ux"
     ],
     "owner": "gameplay",
-  "test_refs": [
-    "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-    "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
-    "Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
-    "Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd"
-  ],
+    "test_refs": [
+      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
+      "Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
+      "Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd"
+    ],
     "acceptance": [
-    "AudioPlayerAdapter 初始化完成后，SfxPlayer 与 MusicPlayer 两个 AudioStreamPlayer 子节点均存在；可分别触发播放（各自 stream 与 playback 非空）。 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-    "进入游戏的主要可玩流程/主场景后，会自动开始播放背景音乐（loop=true）：可观测到 MusicPlayer 处于播放中（playing 为 true）且其 stream 非空，并验证 loop 配置已生效（WAV: loop_mode!=DISABLED；OGG: loop==true 或等价状态）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
-    "当触发进入主要可玩流程的关键动作（例如 ui.menu.start）时，在 10 帧内可观测到音效播放已被触发：触发前 SfxPlayer 未创建 stream playback（get_stream_playback()==null 或等价状态），触发后创建 playback（get_stream_playback()!=null 或等价状态）。 Refs: Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
-    "当对局内关键交互触发音效（例如 ui.hud.dice.roll）且背景音乐正在播放时，音效播放不会导致背景音乐停止：可观测到 MusicPlayer 保持持续播放状态，同时 SfxPlayer 发生播放。 Refs: Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd",
-    "项目在运行时具备可用的背景音乐与音效（至少各一个），触发播放后可观测到对应 stream 与 playback 均非空；对不存在的音频 id 调用播放不会抛异常，且不应清空/破坏已在播的 stream。 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd"
-  ],
+      "AudioPlayerAdapter 初始化完成后，SfxPlayer 与 MusicPlayer 两个 AudioStreamPlayer 子节点均存在；可分别触发播放（各自 stream 与 playback 非空）。 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+      "进入游戏的主要可玩流程/主场景后，会自动开始播放背景音乐（loop=true）：可观测到 MusicPlayer 处于播放中（playing 为 true）且其 stream 非空，并验证 loop 配置已生效（WAV: loop_mode!=DISABLED；OGG: loop==true 或等价状态）。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
+      "当触发进入主要可玩流程的关键动作（例如 ui.menu.start）时，在 10 帧内可观测到音效播放已被触发：触发前 SfxPlayer 未创建 stream playback（get_stream_playback()==null 或等价状态），触发后创建 playback（get_stream_playback()!=null 或等价状态）。 Refs: Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
+      "当对局内关键交互触发音效（例如 ui.hud.dice.roll）且背景音乐正在播放时，音效播放不会导致背景音乐停止：可观测到 MusicPlayer 保持持续播放状态，同时 SfxPlayer 发生播放。 Refs: Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd",
+      "项目在运行时具备可用的背景音乐与音效（至少各一个），触发播放后可观测到对应 stream 与 playback 均非空；对不存在的音频 id 调用播放不会抛异常，且不应清空/破坏已在播的 stream。 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd"
+    ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
@@ -1782,16 +1782,22 @@
     "test_refs": [
       "Tests.Godot/tests/UI/test_main_menu_scene.gd",
       "Tests.Godot/tests/UI/test_main_menu_events.gd",
-      "Tests.Godot/tests/UI/test_main_menu_settings_button.gd",
-      "Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd"
+      "Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
+      "Tests.Godot/tests/UI/test_main_menu_quit_button.gd",
+      "Tests.Godot/tests/Scenes/Smoke/test_menu_quit_is_consumed_by_game_loop.gd",
+      "Tests.Godot/tests/Scenes/Smoke/test_menu_play_starts_game_loop.gd",
+      "Tests.Godot/tests/Scenes/Smoke/test_menu_play_start_failure_shows_error.gd"
     ],
     "acceptance": [
-      "MainMenu 场景可在 headless 中实例化且可见，并呈现“开始游戏 / 加载游戏 / 退出”三个可交互选项。 Refs: Tests.Godot/tests/UI/test_main_menu_scene.gd",
+      "MainMenu 场景可在 headless 中实例化且可见，并包含 BtnPlay/BtnLoad/BtnQuit 三个可交互按钮节点。 Refs: Tests.Godot/tests/UI/test_main_menu_scene.gd",
       "在主菜单触发“开始游戏（Play）”选项会发布 ui.menu.start 事件。 Refs: Tests.Godot/tests/UI/test_main_menu_events.gd",
-      "在主菜单触发“退出”选项会请求退出游戏（进程关闭或等价的退出行为）。 Refs: Tests.Godot/tests/UI/test_main_menu_settings_button.gd",
+      "在主菜单触发“退出”选项会发布 ui.menu.quit 事件（作为退出请求的等价表征）。 Refs: Tests.Godot/tests/UI/test_main_menu_quit_button.gd",
       "在主菜单触发“加载游戏（Load）”选项后，会进入加载游戏流程的可观测状态（例如打开加载游戏界面/弹窗，或触发等价的加载入口行为），且不会等价为“开始游戏”或“退出”。 Refs: Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
       "“加载游戏（Load）”的可观测状态需满足至少一种可验收表征：1) 可见的加载UI（如加载面板/弹窗/列表容器）出现；或 2) 发出一个可观测的“请求加载/进入加载入口”的信号/事件（不要求固定事件名），并且该表征与“开始游戏（Play）”的 ui.menu.start 事件及“退出”的退出请求可区分。 Refs: Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
-      "触发“开始游戏（Play）”与“加载游戏（Load）”时，不应直接导致与“退出”同等价的退出行为；触发“退出”时，不应发布 ui.menu.start 事件或进入加载游戏的可观测状态（避免三者语义混淆）。 Refs: Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd"
+      "触发“开始游戏（Play）”与“加载游戏（Load）”时，不应直接导致与“退出”同等价的退出行为；触发“退出”时，不应发布 ui.menu.start 事件或进入加载游戏的可观测状态（避免三者语义混淆）。 Refs: Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
+      "ui.menu.quit 退出请求在运行时需被游戏循环 Glue 消费：在 headless/CI（或 GD_DISABLE_QUIT=1）下以 QuitRequested 信号等价表示且不退出进程；在 GD_DISABLE_QUIT!=1 的正常运行时，应触发真实退出（例如调用 GetTree().Quit() 并导致 SceneTree 退出）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_menu_quit_is_consumed_by_game_loop.gd",
+      "ui.menu.start 开始游戏请求在运行时需被游戏循环 Glue 消费：触发 Play 后应进入可观测的“游戏已开始”状态（例如发布 core.sanguo.game.turn.started 等价事件），并且主菜单不应继续保持可交互状态（例如隐藏菜单）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_menu_play_starts_game_loop.gd",
+      "开始游戏启动失败时（例如地图配置加载失败），主菜单必须恢复为可交互状态并显示可观测错误提示（例如 StatusLabel 显示“Start failed”），避免出现“菜单消失但游戏未开始”的死路。 Refs: Tests.Godot/tests/Scenes/Smoke/test_menu_play_start_failure_shows_error.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
