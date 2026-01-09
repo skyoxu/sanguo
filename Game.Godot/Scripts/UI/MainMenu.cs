@@ -12,8 +12,11 @@ public partial class MainMenu : Control
     private const string UiMenuQuit = "ui.menu.quit";
     private const string UiMenuLoad = "ui.menu.load";
     private const string UiMenuStartFailed = "ui.menu.start.failed";
+    private const string UiMenuHelp = "ui.menu.help";
 
     private const string TurnStarted = "core.sanguo.game.turn.started";
+    private const string HelpTutorialGroup = "help_tutorial";
+    private const string HelpTutorialScenePath = "res://Game.Godot/Scenes/UI/HelpTutorial.tscn";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -26,6 +29,7 @@ public partial class MainMenu : Control
     private Button _btnPlay = default!;
     private Button _btnLoad = default!;
     private Button _btnSettings = default!;
+    private Button? _btnHelp;
     private Button _btnQuit = default!;
     private Control _loadPanel = default!;
     private Label _statusLabel = default!;
@@ -38,6 +42,7 @@ public partial class MainMenu : Control
         _btnPlay = GetNode<Button>("VBox/BtnPlay");
         _btnLoad = GetNode<Button>("VBox/BtnLoad");
         _btnSettings = GetNode<Button>("VBox/BtnSettings");
+        _btnHelp = GetNodeOrNull<Button>("VBox/BtnHelp");
         _btnQuit = GetNode<Button>("VBox/BtnQuit");
         _loadPanel = GetNode<Control>("LoadPanel");
         _statusLabel = GetNode<Label>("StatusLabel");
@@ -55,6 +60,10 @@ public partial class MainMenu : Control
         _btnPlay.Pressed += OnPlayPressed;
         _btnLoad.Pressed += OnLoadPressed;
         _btnSettings.Pressed += OnSettingsPressed;
+        if (_btnHelp != null)
+        {
+            _btnHelp.Pressed += OnHelpPressed;
+        }
         _btnQuit.Pressed += OnQuitPressed;
 
         _loadPanel.Visible = false;
@@ -85,6 +94,10 @@ public partial class MainMenu : Control
         _btnPlay.Disabled = !enabled;
         _btnLoad.Disabled = !enabled;
         _btnSettings.Disabled = !enabled;
+        if (_btnHelp != null)
+        {
+            _btnHelp.Disabled = !enabled;
+        }
         _btnQuit.Disabled = !enabled;
     }
 
@@ -128,6 +141,53 @@ public partial class MainMenu : Control
     private void OnQuitPressed()
     {
         Publish(UiMenuQuit, "ui");
+    }
+
+    private void OnHelpPressed()
+    {
+        Publish(UiMenuHelp, "ui");
+        ToggleHelpTutorial();
+    }
+
+    public void ToggleHelpTutorial()
+    {
+        var nodes = GetTree().GetNodesInGroup(HelpTutorialGroup);
+        if (nodes.Count > 0)
+        {
+            var anyVisible = false;
+            foreach (var node in nodes)
+            {
+                if (node is CanvasItem ci && ci.Visible)
+                {
+                    anyVisible = true;
+                    break;
+                }
+            }
+
+            var newVisible = !anyVisible;
+            foreach (var node in nodes)
+            {
+                if (node is CanvasItem ci)
+                {
+                    ci.Visible = newVisible;
+                }
+            }
+
+            return;
+        }
+
+        if (!ResourceLoader.Exists(HelpTutorialScenePath))
+        {
+            return;
+        }
+
+        var packed = GD.Load<PackedScene>(HelpTutorialScenePath);
+        var instance = packed?.Instantiate();
+        if (instance is CanvasItem canvas)
+        {
+            GetTree().Root.AddChild(canvas);
+            canvas.Visible = true;
+        }
     }
 
     private void OnDomainEventEmitted(string type, string _source, string dataJson, string _id, string _specVersion, string _dataContentType, string _timestampIso)

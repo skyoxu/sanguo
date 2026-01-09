@@ -1,0 +1,127 @@
+using Godot;
+using System;
+using System.Collections.Generic;
+
+namespace Game.Godot.Autoloads;
+
+public partial class LocalizationBootstrap : Node
+{
+    private const string HelpTutorialEnPath = "res://Game.Godot/Translations/help_tutorial.en.csv";
+    private const string HelpTutorialZhPath = "res://Game.Godot/Translations/help_tutorial.zh.csv";
+
+    private static bool _initialized;
+
+    public override void _EnterTree()
+    {
+        if (_initialized)
+        {
+            return;
+        }
+
+        _initialized = true;
+        EnsureTutorialTranslationsLoadedFromRes();
+    }
+
+    private static void EnsureTutorialTranslationsLoadedFromRes()
+    {
+        try
+        {
+            TryLoadCsvAndRegister(locale: "en", csvPath: HelpTutorialEnPath);
+            TryLoadCsvAndRegister(locale: "zh", csvPath: HelpTutorialZhPath);
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"LocalizationBootstrap: failed to register tutorial translations: {ex.Message}");
+        }
+    }
+
+    private static void TryLoadCsvAndRegister(string locale, string csvPath)
+    {
+        if (string.IsNullOrWhiteSpace(locale) || string.IsNullOrWhiteSpace(csvPath))
+        {
+            return;
+        }
+
+        var pairs = LoadKeyTextPairsFromCsv(csvPath);
+        if (pairs.Count == 0)
+        {
+            GD.PushWarning($"LocalizationBootstrap: no tutorial translations loaded from {csvPath}");
+            return;
+        }
+
+        var translation = new Translation
+        {
+            Locale = locale
+        };
+
+        foreach (var (key, text) in pairs)
+        {
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                translation.AddMessage(key, text ?? string.Empty);
+            }
+        }
+
+        TranslationServer.AddTranslation(translation);
+    }
+
+    private static List<(string Key, string Text)> LoadKeyTextPairsFromCsv(string resPath)
+    {
+        var outList = new List<(string Key, string Text)>();
+
+        try
+        {
+            using var f = FileAccess.Open(resPath, FileAccess.ModeFlags.Read);
+            if (f == null)
+            {
+                return outList;
+            }
+
+            var raw = f.GetAsText();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return outList;
+            }
+
+            var lines = raw.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var lineRaw in lines)
+            {
+                var line = (lineRaw ?? string.Empty).Trim();
+                if (line.Length == 0)
+                {
+                    continue;
+                }
+
+                if (line.StartsWith("key,", StringComparison.OrdinalIgnoreCase) || line.StartsWith("key\t", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var idx = line.IndexOf(',');
+                if (idx <= 0 || idx >= line.Length - 1)
+                {
+                    continue;
+                }
+
+                var key = line.Substring(0, idx).Trim();
+                var text = line.Substring(idx + 1).Trim();
+
+                if (text.Length >= 2 && text.StartsWith("\"", StringComparison.Ordinal) && text.EndsWith("\"", StringComparison.Ordinal))
+                {
+                    text = text.Substring(1, text.Length - 2).Replace("\"\"", "\"");
+                }
+
+                if (!string.IsNullOrWhiteSpace(key))
+                {
+                    outList.Add((key, text));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"LocalizationBootstrap: failed to load translations from {resPath}: {ex.Message}");
+        }
+
+        return outList;
+    }
+}
