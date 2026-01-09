@@ -1907,27 +1907,23 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd",
       "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_help_ui_loads_headless.gd",
       "Tests.Godot/tests/UI/test_help_tutorial_basic_interactions.gd",
       "Tests.Godot/tests/UI/test_help_tutorial_uses_project_theme.gd",
-      "Tests.Godot/tests/Integration/test_help_tutorial_localized_content_non_empty.gd",
-      "Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd",
-      "Tests.Godot/tests/Integration/test_help_feedback_persists_to_user_storage.gd"
+      "Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd",
+      "Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd"
     ],
     "acceptance": [
       "存在可进入帮助/教程的入口，其对应的 Godot 场景与 UI 控件可在 headless 冒烟测试中成功实例化并进入可交互状态（可观察到可见性/焦点/信号或输入响应等状态变化），以验证新手引导入口在无渲染环境下仍可用。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_help_ui_loads_headless.gd",
       "帮助/教程的关键用户可见交互（打开/关闭、章节/步骤切换、基础导航）由 Tests.Godot 的 GdUnit4 用例覆盖，并可通过可观察的 UI 状态变化与/或信号事件进行回归验证。 Refs: Tests.Godot/tests/UI/test_help_tutorial_basic_interactions.gd",
       "帮助/教程 UI 的基础风格必须与项目整体 UI 一致：复用项目统一 Theme/皮肤（避免硬编码颜色/字体）；GdUnit4 用例验证帮助/教程 UI 的关键控件使用项目主题（例如与 HUD 主题一致或使用同一 ThemeTypeVariation 族）。 Refs: Tests.Godot/tests/UI/test_help_tutorial_uses_project_theme.gd",
-      "??/???????????????????????????????? T2 ??????????????/??????????????????????????????/???????????????????????????????????headless ???????????????????????? UI ????/?????????????????? res://Translations/help_tutorial.*.csv ??? TranslationServer?? Refs: Tests.Godot/tests/Integration/test_help_tutorial_localized_content_non_empty.gd",
-      "?????/???????????????? headless ????? UI ??????????????????? T2 ?????????/??????????????? 01?02?03?04?05?06 ?????06 ?? Finish/????????????? 01?????????????????????????? Refs: Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd"
+      "帮助/教程文本以可本地化的资源形式落盘（避免脚本硬编码）；内容明确覆盖 T2 核心闭环（掷骰子、移动、买地/付费、月末结算、季节事件、年度地价调整），并以“学习路线建议/团队知识库”式结构组织学习路径；headless 测试校验上述关键条目存在且非空，并验证其能在教程 UI 中以章节/步骤形式呈现为玩家可读文本（例如通过 res://Translations/help_tutorial.*.csv 加载到 TranslationServer）。 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd",
+      "提供可打开/关闭的帮助界面且不阻塞主循环；在 headless 用例中验证 UI 可见性可切换、导航路径可达，并可浏览与 T2 核心闭环对应的章节/步骤内容；“学习路线建议”步骤 01→02→03→04→05→06 线性推进，06 显示 Finish/完成并停止继续前进（不回到 01）；“团队知识库”章节可循环浏览但不会跳回学习路线。 Refs: Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md",
-      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd",
-      "Optional: 在帮助/教程 UI 内提供反馈入口用于离线“用户测试/观察/反馈收集”：支持填写简短文本并以结构化 JSONL 追加写入 `user://feedback/feedback.jsonl`；GdUnit4 用例验证写入成功且字段包含 `ts`/`scene`/`message`（或等价字段）。 Refs: Tests.Godot/tests/Integration/test_help_feedback_persists_to_user_storage.gd"
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\howtouse.md"
     ],
     "taskmaster_id": 30,
     "taskmaster_exported": true,
