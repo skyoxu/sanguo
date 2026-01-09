@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 namespace Game.Godot.Scripts.UI;
 
@@ -7,6 +8,8 @@ public partial class HelpTutorial : Control
     private const string GroupName = "help_tutorial";
     private const string SectionLearningRoute = "help.tutorial.section.learning_route";
     private const string SectionTeamKnowledgeBase = "help.tutorial.section.team_knowledge_base";
+    private const int LearningRouteLastIndex = 5; // steps 01..06
+    private const int KnowledgeBaseFirstIndex = 6; // steps 07..08
 
     private static readonly string[] StepKeys =
     [
@@ -48,13 +51,38 @@ public partial class HelpTutorial : Control
 
     private void OnPrevPressed()
     {
-        _stepIndex = (_stepIndex - 1 + StepKeys.Length) % StepKeys.Length;
+        if (_stepIndex <= 0)
+        {
+            _stepIndex = 0;
+        }
+        else if (_stepIndex < KnowledgeBaseFirstIndex)
+        {
+            _stepIndex = Math.Max(0, _stepIndex - 1);
+        }
+        else
+        {
+            // Knowledge base pages loop within their own section.
+            _stepIndex = _stepIndex == KnowledgeBaseFirstIndex ? StepKeys.Length - 1 : _stepIndex - 1;
+        }
         RenderStep();
     }
 
     private void OnNextPressed()
     {
-        _stepIndex = (_stepIndex + 1) % StepKeys.Length;
+        if (_stepIndex < LearningRouteLastIndex)
+        {
+            _stepIndex++;
+        }
+        else if (_stepIndex == LearningRouteLastIndex)
+        {
+            // End of the learning route. Do not wrap to Step 01; transition to knowledge base.
+            _stepIndex = KnowledgeBaseFirstIndex;
+        }
+        else
+        {
+            // Knowledge base pages loop within their own section.
+            _stepIndex = _stepIndex >= StepKeys.Length - 1 ? KnowledgeBaseFirstIndex : _stepIndex + 1;
+        }
         RenderStep();
     }
 
@@ -66,7 +94,7 @@ public partial class HelpTutorial : Control
     private void RenderStep()
     {
         var key = StepKeys[_stepIndex];
-        var sectionKey = _stepIndex < 6 ? SectionLearningRoute : SectionTeamKnowledgeBase;
+        var sectionKey = _stepIndex <= LearningRouteLastIndex ? SectionLearningRoute : SectionTeamKnowledgeBase;
         _sectionTitle.Text = TranslateOrFallback(sectionKey);
 
         var text = TranslationServer.Translate(key);
@@ -76,8 +104,9 @@ public partial class HelpTutorial : Control
         }
 
         _content.Text = text;
-        _btnPrev.Disabled = StepKeys.Length <= 1;
+        _btnPrev.Disabled = StepKeys.Length <= 1 || (_stepIndex == 0);
         _btnNext.Disabled = StepKeys.Length <= 1;
+        _btnNext.Text = _stepIndex == LearningRouteLastIndex ? "Finish" : "Next";
     }
 
     private static string TranslateOrFallback(string key)

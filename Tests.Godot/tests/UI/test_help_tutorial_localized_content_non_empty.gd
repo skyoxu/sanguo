@@ -42,6 +42,9 @@ func test_tutorial_key_heuristic_is_deterministic() -> void:
 
 # acceptance: ACC:T30.4
 func test_help_tutorial_localized_content_entries_are_present_and_non_empty() -> void:
+	assert_bool(FileAccess.file_exists("res://Game.Godot/Translations/help_tutorial.en.csv")).is_true()
+	assert_bool(FileAccess.file_exists("res://Game.Godot/Translations/help_tutorial.zh.csv")).is_true()
+
 	var original_locale := ""
 	if TranslationServer.has_method("get_locale"):
 		original_locale = String(TranslationServer.get_locale())

@@ -312,12 +312,33 @@ func test_help_tutorial_toggle_and_navigation_does_not_pause_tree_and_shows_non_
 		uniq[String(t)] = true
 	assert_int(uniq.size()).is_equal(texts.size())
 
+	# Step 06 is the end of the learning route. "Next" should not wrap to Step 01.
+	assert_bool(String(content.text).find("06/06") != -1).is_true()
+	assert_str(String((next_btn as Button).text)).is_equal("Finish")
+
 	# After the 01 -> 06 learning route steps, navigating further should reach the knowledge base section.
 	next_btn.emit_signal("pressed")
 	await get_tree().process_frame
 	var title_after := String(title_label.text)
 	assert_bool(title_after.strip_edges().length() > 0).is_true()
 	assert_bool(title_after != title_before).is_true()
+
+	var kb_text_1 := String(content.text)
+	assert_bool(kb_text_1.strip_edges().length() > 0).is_true()
+	assert_bool(kb_text_1.find("01/06") == -1).is_true()
+
+	# Knowledge base pages may loop within the knowledge base, but must not loop back to the learning route.
+	next_btn.emit_signal("pressed")
+	await get_tree().process_frame
+	var kb_text_2 := String(content.text)
+	assert_bool(kb_text_2.strip_edges().length() > 0).is_true()
+	assert_bool(kb_text_2.find("01/06") == -1).is_true()
+
+	next_btn.emit_signal("pressed")
+	await get_tree().process_frame
+	var kb_text_3 := String(content.text)
+	assert_bool(kb_text_3.strip_edges().length() > 0).is_true()
+	assert_bool(kb_text_3.find("01/06") == -1).is_true()
 
 	# Close the help UI (toggled close).
 	var toggled_off := _try_toggle_help(main)

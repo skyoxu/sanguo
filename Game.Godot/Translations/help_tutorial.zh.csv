@@ -1,0 +1,12 @@
+key,text
+help.tutorial.section.learning_route,学习路线建议
+help.tutorial.section.team_knowledge_base,团队知识库
+help.tutorial.step_01,"步骤 01/06 - 掷骰子。触发：当前回合开始。操作：点击 Roll Dice。结果：获得点数并用于移动。"
+help.tutorial.step_02,"步骤 02/06 - 移动。触发：掷骰子后。操作：棋子按点数沿棋盘路径前进。结果：停在格子上并触发格子逻辑。"
+help.tutorial.step_03,"步骤 03/06 - 买地/付费。触发：停在城池格子。操作：无主则买地；有主则付费(过路费)。结果：所有权或资金发生变化。"
+help.tutorial.step_04,"步骤 04/06 - 月末结算。触发：跨越月边界。操作：系统对所有玩家进行月末结算。结果：资金按资产与规则更新。"
+help.tutorial.step_05,"步骤 05/06 - 季节事件。触发：月末结算后(满足条件时)。操作：季节事件作用于经济。结果：收益或修正系数变化。"
+help.tutorial.step_06,"步骤 06/06 - 年度地价调整。触发：跨越年边界。操作：城池价格调整。结果：后续买地成本与收益会变化。"
+help.tutorial.step_07,"知识库 1/2 - 术语。骰子：决定移动步数的随机值。过路费：停在他人城池时支付的金额。"
+help.tutorial.step_08,"知识库 2/2 - 口径。规则以 Contracts/事件为准，避免 UI 引入多个写入口径造成漂移。优先依赖确定性硬门证据。"
+
