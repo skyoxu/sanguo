@@ -134,6 +134,14 @@ def main():
 
     # Persist dotnet runner stdout for CI forensics (so we can debug without unit artifacts).
     _copy_if_exists(
+        os.path.join('logs', 'unit', date, 'dotnet-restore.log'),
+        os.path.join('logs', 'ci', date, 'dotnet-restore.log'),
+    )
+    _copy_if_exists(
+        os.path.join('logs', 'unit', date, 'dotnet-sdk-repair.json'),
+        os.path.join('logs', 'ci', date, 'dotnet-sdk-repair.json'),
+    )
+    _copy_if_exists(
         os.path.join('logs', 'unit', date, 'dotnet-test-output.txt'),
         os.path.join('logs', 'ci', date, 'dotnet-test-output.txt'),
     )

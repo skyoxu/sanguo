@@ -19,6 +19,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import xml.etree.ElementTree as ET
 
 
@@ -183,15 +184,39 @@ def main():
 
     summary['dotnet_sdk_repair'] = ensure_local_workload_locator_sdks(repo_root=root, dotnet_exe=dotnet, out_dir=out_dir)
 
-    # Restore
-    rc, out = run_cmd([dotnet, 'restore', args.solution], cwd=root)
-    with io.open(os.path.join(out_dir, 'dotnet-restore.log'), 'w', encoding='utf-8') as f:
-        f.write(out)
-    summary['restore_rc'] = rc
+    # Restore (with retry for transient CI/network issues)
+    restore_retries = max(1, int(os.getenv("DOTNET_RESTORE_RETRIES", "3") or "3"))
+    restore_delay_s = float(os.getenv("DOTNET_RESTORE_RETRY_DELAY_SECS", "2") or "2")
+    restore_attempts: list[dict] = []
+    rc = 1
+    out = ""
+    for attempt in range(1, restore_retries + 1):
+        rc, out = run_cmd([dotnet, "restore", args.solution], cwd=root)
+        restore_attempts.append({"attempt": attempt, "rc": rc})
+        with io.open(os.path.join(out_dir, f"dotnet-restore-attempt{attempt}.log"), "w", encoding="utf-8") as f:
+            f.write(out)
+        if rc == 0:
+            break
+        if attempt < restore_retries:
+            time.sleep(restore_delay_s)
+            restore_delay_s = min(30.0, restore_delay_s * 2)
+
+    # Keep a stable filename for CI artifact copy.
+    try:
+        shutil.copyfile(
+            os.path.join(out_dir, f"dotnet-restore-attempt{len(restore_attempts)}.log"),
+            os.path.join(out_dir, "dotnet-restore.log"),
+        )
+    except Exception:
+        with io.open(os.path.join(out_dir, "dotnet-restore.log"), "w", encoding="utf-8") as f:
+            f.write(out)
+
+    summary["restore_rc"] = rc
+    summary["restore_attempts"] = restore_attempts
     if rc != 0:
-        with io.open(os.path.join(out_dir, 'summary.json'), 'w', encoding='utf-8') as f:
+        with io.open(os.path.join(out_dir, "summary.json"), "w", encoding="utf-8") as f:
             json.dump(summary, f, ensure_ascii=False, indent=2)
-        print(f'RUN_DOTNET status=fail stage=restore out={out_dir}')
+        print(f"RUN_DOTNET status=fail stage=restore out={out_dir}")
         return 1
 
     # Test with coverage
