@@ -1849,23 +1849,23 @@
     "test_refs": [
       "Tests.Godot/tests/UI/test_settings_panel_scene.gd",
       "Tests.Godot/tests/UI/test_settings_panel_logic.gd",
-    "Tests.Godot/tests/UI/test_settings_panel_closepanel.gd",
-    "Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
-    "Tests.Godot/tests/UI/test_settings_panel_applies_window_resolution.gd",
-    "Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd",
-    "Tests.Godot/tests/UI/test_settings_panel_invalid_volume_clamped.gd",
-    "Tests.Godot/tests/UI/test_main_menu_settings_opens_settings_panel.gd"
-  ],
+      "Tests.Godot/tests/UI/test_settings_panel_closepanel.gd",
+      "Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
+      "Tests.Godot/tests/UI/test_settings_panel_applies_window_resolution.gd",
+      "Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd",
+      "Tests.Godot/tests/UI/test_settings_panel_invalid_volume_clamped.gd",
+      "Tests.Godot/tests/UI/test_main_menu_settings_opens_settings_panel.gd"
+    ],
     "acceptance": [
       "在 headless 环境中实例化 SettingsPanel，并将其成功加入场景树后至少运行一帧，不产生运行时错误或未捕获异常。 Refs: Tests.Godot/tests/UI/test_settings_panel_scene.gd",
       "在 SettingsPanel 中修改用户可见的设置项（包含音量与分辨率）后执行保存，应通过 ConfigFile 持久化；随后执行加载应从 ConfigFile 读取并还原这些设置值，且 UI 显示值与对应设置数据保持一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_logic.gd",
       "触发 CloseBtn 后，SettingsPanel 会被隐藏（visible=false），以表示退出设置菜单界面。 Refs: Tests.Godot/tests/UI/test_settings_panel_closepanel.gd",
-    "音量相关设置在保存/加载后会被应用到运行时音频输出：更改前后可通过可观测信号（如音频总线音量/静音状态变化，或播放同一测试音源时的输出响度差异）验证其已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
-    "分辨率相关设置在保存/加载后会被应用到运行时显示/窗口：更改前后可通过可观测信号（如窗口尺寸或显示模式变化）验证其已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_window_resolution.gd",
-    "当分辨率/显示模式设置值无效或不受支持时，执行“应用/保存/加载”流程不会导致崩溃或未捕获异常，且运行时显示/窗口应保持当前有效设置或回退到最近一次有效设置，并保持 UI 显示值与实际生效值一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd",
-    "当音量设置值超出允许范围或为无效值时，执行“应用/保存/加载”流程不会导致崩溃或未捕获异常，且最终生效的运行时音频设置应被钳制/回退到有效范围，并保持 UI 显示值与实际生效值一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_volume_clamped.gd",
-    "在 Main 场景中点击 MainMenu 的 Settings 按钮后，应发布 ui.menu.settings 事件并使 SettingsPanel 显示（visible=true）。 Refs: Tests.Godot/tests/UI/test_main_menu_settings_opens_settings_panel.gd"
-  ],
+      "音量相关设置在保存/加载后会被应用到运行时音频输出：更改前后可通过可观测信号（如音频总线音量/静音状态变化，或播放同一测试音源时的输出响度差异）验证其已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
+      "分辨率相关设置在保存/加载后会被应用到运行时显示/窗口：更改前后可通过可观测信号（如窗口尺寸或显示模式变化）验证其已生效。 Refs: Tests.Godot/tests/UI/test_settings_panel_applies_window_resolution.gd",
+      "当分辨率/显示模式设置值无效或不受支持时，执行“应用/保存/加载”流程不会导致崩溃或未捕获异常，且运行时显示/窗口应保持当前有效设置或回退到最近一次有效设置，并保持 UI 显示值与实际生效值一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd",
+      "当音量设置值超出允许范围或为无效值时，执行“应用/保存/加载”流程不会导致崩溃或未捕获异常，且最终生效的运行时音频设置应被钳制/回退到有效范围，并保持 UI 显示值与实际生效值一致。 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_volume_clamped.gd",
+      "在 Main 场景中点击 MainMenu 的 Settings 按钮后，应发布 ui.menu.settings 事件并使 SettingsPanel 显示（visible=true）。 Refs: Tests.Godot/tests/UI/test_main_menu_settings_opens_settings_panel.gd"
+    ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
       "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。"
@@ -1878,7 +1878,7 @@
     "story_id": "PRD-SANGUO-T2-HELP",
     "title": "实现游戏帮助和教程",
     "description": "在游戏内提供帮助信息与入门教程，用循序渐进的步骤引导新玩家理解 T2 阶段核心闭环：掷骰子、移动、买地/付费、月末结算、季节事件与年度地价调整；教程结构参考 Godot 官方 demo howtouse.md 的“学习路线建议”和“团队知识库”的写作方式，并在文档中记录本项目参考的官方示例清单。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P2",
     "layer": "ui",
     "depends_on": [
@@ -1907,20 +1907,20 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task30.gd",
       "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_help_ui_loads_headless.gd",
       "Tests.Godot/tests/UI/test_help_tutorial_basic_interactions.gd",
       "Tests.Godot/tests/UI/test_help_tutorial_uses_project_theme.gd",
-      "Tests.Godot/tests/Integration/test_help_tutorial_localized_content_non_empty.gd",
+      "Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd",
       "Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd",
-      "Tests.Godot/tests/Integration/test_help_feedback_persists_to_user_storage.gd"
+      "Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs"
     ],
     "acceptance": [
-      "存在可进入帮助/教程的入口，其对应的 Godot 场景与 UI 控件可在 headless 冒烟测试中成功实例化并进入可交互状态（可观察到可见性/焦点/信号或输入响应等状态变化），以验证新手引导入口在无渲染环境下仍可用。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_help_ui_loads_headless.gd",
-      "帮助/教程的关键用户可见交互（打开/关闭、章节/步骤切换、基础导航）由 Tests.Godot 的 GdUnit4 用例覆盖，并可通过可观察的 UI 状态变化与/或信号事件进行回归验证。 Refs: Tests.Godot/tests/UI/test_help_tutorial_basic_interactions.gd",
-      "帮助/教程 UI 的基础风格必须与项目整体 UI 一致：复用项目统一 Theme/皮肤（避免硬编码颜色/字体）；GdUnit4 用例验证帮助/教程 UI 的关键控件使用项目主题（例如与 HUD 主题一致或使用同一 ThemeTypeVariation 族）。 Refs: Tests.Godot/tests/UI/test_help_tutorial_uses_project_theme.gd",
-      "帮助/教程文本以可本地化的资源形式落盘（避免脚本硬编码）；内容明确覆盖 T2 核心闭环（掷骰子、移动、买地/付费、月末结算、季节事件、年度地价调整），并以“学习路线建议/团队知识库”式结构组织学习路径，同时在文档中记录本项目参考的官方示例；headless 测试校验上述关键条目存在且非空，并验证其能在教程 UI 中以章节/步骤形式呈现为玩家可读文本。 Refs: Tests.Godot/tests/Integration/test_help_tutorial_localized_content_non_empty.gd",
-      "提供可打开/关闭的帮助界面且不阻塞主循环；在 headless 用例中验证 UI 可见性可切换、导航路径可达，并可浏览与 T2 核心闭环对应的章节/步骤内容；每个章节/步骤至少包含一段可见且非空的文本（可读/可理解的教学描述）。 Refs: Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd"
+      "存在可进入帮助/教程的入口，其对应的 Godot 场景与 UI 控件可在 headless 冒烟测试中成功实例化并入树，且至少产生一次可观察的交互证据(例如切换 visible)，以验证新手引导入口在无渲染环境下仍可用。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_help_ui_loads_headless.gd",
+      "帮助/教程的关键用户可见交互(从主菜单打开、章节/步骤切换、关闭隐藏)由 GdUnit4 用例覆盖，并通过可观察的 UI 状态变化(visible 与文本变化)进行断言；测试不得以“UI 不存在即直接通过”方式软通过。 Refs: Tests.Godot/tests/UI/test_help_tutorial_basic_interactions.gd",
+      "帮助/教程 UI 的基础风格必须与项目整体 UI 一致: 复用项目统一 Theme/皮肤; GdUnit4 用例断言帮助/教程根控件的 effective Theme 与主界面(Main)的 Theme 一致(同一资源路径或同一实例)。 Refs: Tests.Godot/tests/UI/test_help_tutorial_uses_project_theme.gd",
+      "帮助/教程文本以可本地化资源提供(避免脚本硬编码)；内容按 “掷骰子->移动->买地/付费->月末结算->季节事件->年度地价调整” 的学习顺序组织为章节/步骤; 每一步必须明确对应其中一个机制, 并至少包含 1 条“触发条件/操作方式/结果影响”式的可执行说明; headless 测试需对 01..06 每步分别断言: 对应机制的关键词存在 + “触发/操作/结果”说明非空。 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd",
+      "提供可打开/关闭的帮助界面且不阻塞主循环; 在 headless 用例中验证 UI 可见性可切换、导航路径可达、并可按 01->06 顺序依次浏览学习路线的步骤内容; UI 内必须可见展示结构分组标题(“学习路线建议”/“团队知识库”)，并能继续导航到知识库部分以浏览术语与规则口径说明; 每个步骤至少包含一段可见且非空的教学文本。 Refs: Tests.Godot/tests/UI/test_help_tutorial_toggle_and_navigation.gd",
+      "在 overlay 文档中记录本项目参考的 Godot 官方示例清单(至少 1 条)，且明确包含 “学习路线建议” 与 “团队知识库” 两段结构说明; xUnit 校验文档 UTF-8 读取、上述两段关键词存在、且至少 1 条示例条目符合 “- [Name](url) — reason” 格式，url 必须指向 Godot 官方来源(例如 github.com/godotengine/godot-demo-projects 或 docs.godotengine.org)。 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs"
     ],
     "test_strategy": [
       "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",

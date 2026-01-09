@@ -28,6 +28,7 @@ SecurityAudit="res://Game.Godot/Scripts/Security/SecurityAudit.cs"
 PerformanceTracker="res://Game.Godot/Scripts/Perf/PerformanceTracker.cs"
 SentryClient="res://Game.Godot/Scripts/Obs/SentryClient.cs"
 FeatureFlags="res://Game.Godot/Scripts/Config/FeatureFlags.cs"
+LocalizationBootstrap="res://Game.Godot/Autoloads/LocalizationBootstrap.cs"
 CompositionRoot="*res://Game.Godot/Autoloads/CompositionRoot.cs"
 
 [display]

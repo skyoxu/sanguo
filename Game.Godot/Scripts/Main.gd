@@ -123,5 +123,21 @@ func _on_domain_event(type: String, source: String, data_json: String, id: Strin
         var sp = get_node_or_null("/root/Main/SettingsPanel")
         if sp != null and sp.has_method("ShowPanel"):
             sp.ShowPanel()
+    elif type == "ui.menu.help":
+        ToggleHelpTutorial()
     elif type == "ui.menu.quit":
         get_tree().quit()
+
+func ToggleHelpTutorial() -> void:
+    var nodes := get_tree().get_nodes_in_group("help_tutorial")
+    if nodes == null or nodes.size() == 0:
+        return
+    var any_visible := false
+    for n in nodes:
+        if n is CanvasItem and n.visible:
+            any_visible = true
+            break
+    var new_visible := not any_visible
+    for n in nodes:
+        if n is CanvasItem:
+            n.visible = new_visible

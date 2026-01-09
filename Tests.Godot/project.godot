@@ -8,6 +8,10 @@ config/name="Godot Tests"
 config/features=PackedStringArray("4.5")
 config/icon="res://icon.svg"
 
+[autoload]
+
+LocalizationBootstrap="res://Game.Godot/Autoloads/LocalizationBootstrap.cs"
+
 [editor_plugins]
 
 enabled=PackedStringArray("gdUnit4")

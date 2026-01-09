@@ -199,3 +199,12 @@ Arch-Refs:
 - `Game.Core.Tests/Tasks/Task17TurnTests.cs`
 - `Tests.Godot/tests/Scenes/Sanguo/test_sanguo_board_view_token_move.gd`
 - `Tests.Godot/tests/UI/test_hud_updates_on_events.gd`
+
+## 8.6 教程参考的官方示例清单
+
+本项目的“帮助/入门教程”任务（Task 30）在结构上参考 Godot 官方 demo howtouse.md 常见的写作方式：
+- “学习路线建议”：按玩家需要理解的顺序拆成可浏览的步骤/章节。
+- “团队知识库”：记录术语与规则口径，便于后续迭代保持一致。
+
+已参考/对照的官方示例（至少 1 条，后续可追加）：
+- [Dodge the Creeps (2D)](https://github.com/godotengine/godot-demo-projects/tree/master/2d/dodge_the_creeps) — 参考其逐步引导与示例项目结构，作为“学习路线建议/团队知识库”落地的写作参照。
