@@ -17,7 +17,7 @@ public sealed class HelpTutorialDocumentationTests
 
     // acceptance: ACC:T30.6
     [Fact]
-    public void Tutorial_doc_records_official_examples_list()
+    public void TutorialDoc_WhenCheckingOfficialExamplesList_ShouldContainAtLeastOneEntry()
     {
         var repoRoot = RepoRootLocator.FindRepoRoot();
         var docPath = Path.Combine(repoRoot, DocRelativePath.Replace('/', Path.DirectorySeparatorChar));
