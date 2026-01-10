@@ -1579,12 +1579,36 @@
           "CH10"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"
+      },
+      {
+        "id": "49",
+        "title": "Headless smoke strict 稳健化：防 marker 假阳性（smoke session 可自退出）",
+        "description": "针对 headless smoke strict 可能出现的 marker 假阳性（marker 过早打印、异常在 marker 之后发生、或长期运行只能靠 timeout kill 导致无法区分“已就绪但挂死/崩溃”），引入可自退出的 smoke session 口径，并把 strict 判定升级为“marker + 正常退出 + 可追溯原因”。\n\n目标：让 strict smoke 成为可回归的确定性门禁，而不是仅凭“出现 marker”就通过。",
+        "details": "针对 headless smoke strict 可能出现的 marker 假阳性（marker 过早打印、异常在 marker 之后发生、或长期运行只能靠 timeout kill 导致无法区分“已就绪但挂死/崩溃”），引入可自退出的 smoke session 口径，并把 strict 判定升级为“marker + 正常退出 + 可追溯原因”。\n\n目标：让 strict smoke 成为可回归的确定性门禁，而不是仅凭“出现 marker”就通过。\nStory: PH12-BACKLOG-B3\nAcceptance:\n- 新增 smoke session 自退出口径（例如环境变量 GD_SMOKE_EXIT_ON_READY=1 或等价开关）：当启用该开关时，主场景在达到“就绪”后必须在 timeout 内自动退出；strict smoke 运行不再依赖 timeout kill 才结束。\n- strict smoke 判定升级：必须同时满足（1）输出包含 marker（[TEMPLATE_SMOKE_READY] 或 [DB] opened）（2）本次运行未发生超时 kill（3）进程退出码为 0；否则返回非 0，并在 headless.log 中写入 [SMOKE] strict-failed 且包含可检索的 reason。\n- 在 .github/workflows/windows-quality-gate.yml（或 ci-windows.yml）中补充注释示例，展示 strict smoke + smoke session 自退出的用法（包含环境变量与参数）。\n",
+        "testStrategy": "实现 smoke session：在 Godot 启动参数/环境变量启用时，主场景在就绪后自动退出（避免依赖 timeout kill）。\n脚本封装：scripts/python/smoke_headless.py strict 模式下增加“超时/退出码/marker”组合判定与 reason 记录。\n单测：通过 fake process 或受控子进程验证 strict 判定与日志 reason 的确定性（不依赖真实 Godot 运行）。",
+        "priority": "high",
+        "dependencies": [
+          "46"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0011",
+          "ADR-0024"
+        ],
+        "archRefs": [
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-12-14T16:16:02.936Z",
-      "taskCount": 48,
+      "lastModified": "2026-01-10T06:18:33Z",
+      "taskCount": 49,
       "completedCount": 1,
       "tags": [
         "master"
