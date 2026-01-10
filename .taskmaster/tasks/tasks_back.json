@@ -2777,12 +2777,10 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_requirements_task46.gd",
-      "Game.Core.Tests/Tasks/Task46RequirementsTests.cs",
+      "Game.Core.Tests/Tasks/Task46HeadlessSmokeScriptTests.cs",
       "Game.Core.Tests/Tasks/Task46HeadlessSmokeNonStrictTests.cs",
       "Game.Core.Tests/Tasks/Task46HeadlessSmokeStrictModeTests.cs",
-      "Game.Core.Tests/Tasks/Task46HeadlessSmokeCiExampleTests.cs",
-      "Game.Core.Tests/Tasks/Task46HeadlessSmokeScriptTests.cs"
+      "Game.Core.Tests/Tasks/Task46HeadlessSmokeCiExampleTests.cs"
     ],
     "acceptance": [
       "新增 scripts/python/smoke_headless.py（或等价脚本），在 Windows 上可直接运行，并支持命令行参数 --godot-bin/--scene/--timeout-sec/--project-path。 Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeScriptTests.cs",
