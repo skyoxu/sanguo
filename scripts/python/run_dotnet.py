@@ -276,19 +276,56 @@ def main():
         coverage = parse_cobertura(cov_path)
         summary['coverage'] = coverage
 
-    # Thresholds (optional)
-    lines_min = os.environ.get('COVERAGE_LINES_MIN')
-    branches_min = os.environ.get('COVERAGE_BRANCHES_MIN')
-    threshold_ok = True
-    if coverage and (lines_min or branches_min):
+    # Thresholds (default hard gate; override via env)
+    #
+    # NOTE: These defaults are the project baseline. See docs/testing-framework.md.
+    default_lines_min = 90.0
+    default_branches_min = 85.0
+
+    raw_lines_min = (os.environ.get('COVERAGE_LINES_MIN') or '').strip()
+    raw_branches_min = (os.environ.get('COVERAGE_BRANCHES_MIN') or '').strip()
+
+    lines_min = default_lines_min
+    branches_min = default_branches_min
+    threshold_source = {
+        'lines_min': 'default',
+        'branches_min': 'default',
+    }
+
+    try:
+        if raw_lines_min:
+            lines_min = float(raw_lines_min)
+            threshold_source['lines_min'] = 'env'
+    except Exception:
+        pass
+
+    try:
+        if raw_branches_min:
+            branches_min = float(raw_branches_min)
+            threshold_source['branches_min'] = 'env'
+    except Exception:
+        pass
+
+    if coverage and isinstance(coverage, dict):
+        # Provide stable keys for downstream tools/tests.
+        if 'line_pct' in coverage and 'lines_pct' not in coverage:
+            coverage['lines_pct'] = coverage.get('line_pct')
+        if 'branch_pct' in coverage and 'branches_pct' not in coverage:
+            coverage['branches_pct'] = coverage.get('branch_pct')
+        coverage['lines_min'] = lines_min
+        coverage['branches_min'] = branches_min
+        coverage['threshold_source'] = threshold_source
+
+    threshold_ok = False
+    if coverage and isinstance(coverage, dict):
         try:
-            if lines_min:
-                threshold_ok = threshold_ok and (coverage.get('line_pct', 0) >= float(lines_min))
-            if branches_min:
-                threshold_ok = threshold_ok and (coverage.get('branch_pct', 0) >= float(branches_min))
+            threshold_ok = (float(coverage.get('line_pct', 0) or 0) >= float(lines_min)) and (
+                float(coverage.get('branch_pct', 0) or 0) >= float(branches_min)
+            )
         except Exception:
-            pass
-    summary['threshold_ok'] = threshold_ok
+            threshold_ok = False
+
+    summary['threshold_ok'] = bool(threshold_ok)
 
     summary['status'] = 'ok' if (rc == 0 and threshold_ok) else ('tests_failed' if rc != 0 else 'coverage_failed')
     with io.open(os.path.join(out_dir, 'summary.json'), 'w', encoding='utf-8') as f:

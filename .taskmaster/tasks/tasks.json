@@ -1516,7 +1516,7 @@
         "testStrategy": "本地运行：在 Windows 环境下通过 dev_cli.py 调用 Python 版 smoke，验证日志与退出码。\nCI 演练：在非受保护分支上打开 strict 模式，观察 smoke 失败时的门禁行为与日志输出。",
         "priority": "high",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1540,7 +1540,7 @@
         "testStrategy": "本地模拟：手工降低测试覆盖率，验证 quality_gates.py 将其标记为 failed，并按配置返回非零 exit code。\nCI 验证：在 PR 上运行 windows-quality-gate 工作流，观察 coverage 与 GdUnit4 结果是否在 Step Summary 与 artifacts 中正确展示。",
         "priority": "high",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1590,7 +1590,7 @@
         "dependencies": [
           "46"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",

@@ -137,10 +137,36 @@ jobs:
           dotnet restore GodotGame.csproj
           dotnet build GodotGame.csproj -c Release -v minimal
 
-      - name: CI pipeline (Python)
+      - name: Quality gates (Python)
         shell: pwsh
         run: |
-          py -3 scripts/python/ci_pipeline.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions
+          $date = Get-Date -Format 'yyyy-MM-dd'
+          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --smoke
+
+          # Step Summary (coverage + GdUnit + Security)
+          $sum = "logs/ci/$date/quality-gates-summary.json"
+          if (Test-Path $sum) {
+            $j = Get-Content $sum -Raw -Encoding utf8 | ConvertFrom-Json
+            $dot = $j.dotnet
+            $cov = $dot.coverage
+            $gd = $j.gdunit_hard
+
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value "## Quality Gates Summary"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value ""
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value "### Dotnet coverage"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value ("- status: " + $dot.status)
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value ("- line_pct: " + $cov.line_pct + " / lines_min: " + $cov.lines_min)
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value ("- branch_pct: " + $cov.branch_pct + " / branches_min: " + $cov.branches_min)
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value ""
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value "### GdUnit (Adapters+Security)"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value ("- enabled: " + $gd.enabled + " / rc: " + $gd.rc)
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value ""
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value "### Security"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value "- Covered by the hard GdUnit set (tests/Security/Hard)."
+          } else {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value "## Quality Gates Summary"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Value "- Missing logs/ci/$date/quality-gates-summary.json"
+          }
 
       - name: Resolve Task IDs for acceptance-check
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
