@@ -123,7 +123,7 @@ def cmd_run_smoke_strict(args: argparse.Namespace) -> int:
         "scripts/python/smoke_headless.py",
         "--godot-bin",
         args.godot_bin,
-        "--project",
+        "--project-path",
         ".",
         "--scene",
         "res://Game.Godot/Scenes/Main.tscn",

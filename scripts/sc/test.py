@@ -143,7 +143,7 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str) -> dict[str, Any]:
         "scripts/python/smoke_headless.py",
         "--godot-bin",
         godot_bin,
-        "--project",
+        "--project-path",
         ".",
         "--scene",
         scene,

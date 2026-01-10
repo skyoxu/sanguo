@@ -30,7 +30,7 @@ last_generated: 2025-12-16
 | Unit (xUnit) | 领域逻辑回归 | `dotnet test --collect:\"XPlat Code Coverage\"`（由脚本编排） | `logs/unit/<YYYY-MM-DD>/` |
 | Godot Selfcheck | 引擎启动+关键 Autoload 兜底 | `py -3 scripts/python/godot_selfcheck.py`（由脚本编排） | `logs/e2e/<YYYY-MM-DD>/` |
 | Encoding Scan (soft) | 防止文档/脚本乱码漂移 | `py -3 scripts/python/check_encoding.py --since-today` | `logs/ci/<YYYY-MM-DD>/encoding/` |
-| Smoke Headless（可选） | 主场景可启动并退出 | `py -3 scripts/python/smoke_headless.py` | `logs/ci/<YYYY-MM-DD>/smoke/` |
+| Smoke Headless（可选） | 主场景可启动并退出 | `py -3 scripts/python/smoke_headless.py` | `logs/ci/<YYYY-MM-DD>/smoke/<run_id>/` |
 | Export + EXE Smoke（可选） | 导出产物可运行 | `pwsh -File scripts/ci/export_windows.ps1` + `smoke_exe.ps1` | `build/**` + `logs/ci/<YYYY-MM-DD>/` |
 | Perf P95（可选） | 帧时间回归守门 | `pwsh -File scripts/ci/check_perf_budget.ps1 -MaxP95Ms <ms>` | `logs/ci/<YYYY-MM-DD>/smoke/headless.log` |
 

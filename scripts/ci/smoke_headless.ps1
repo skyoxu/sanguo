@@ -11,8 +11,9 @@ if (-not $GodotBin -or -not (Test-Path $GodotBin)) {
   Write-Error "GODOT_BIN is not set or file not found. Pass -GodotBin or set env var."
 }
 
-$ts = Get-Date -Format 'yyyyMMdd-HHmmss'
-$dest = Join-Path $PSScriptRoot ("../../logs/ci/$ts/smoke")
+$date = Get-Date -Format 'yyyy-MM-dd'
+$runId = Get-Date -Format 'yyyyMMdd-HHmmss'
+$dest = Join-Path $PSScriptRoot ("../../logs/ci/$date/smoke/$runId")
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 $log = Join-Path $dest 'headless.log'
 $logOut = Join-Path $dest 'headless.out.log'

@@ -248,6 +248,9 @@ jobs:
         if: ${{ env.SC_TASK_IDS != '' }}
         shell: pwsh
         run: |
+          # Example (comment-only): strict Python headless smoke gate (Task 46)
+          # py -3 scripts/python/smoke_headless.py --mode strict --godot-bin "$env:GODOT_BIN" --project-path . --scene "res://Game.Godot/Scenes/Main.tscn" --timeout-sec 120
+
           $date = (& py -3 -c "import datetime as dt; print(dt.date.today().strftime('%Y-%m-%d'))").Trim()
           $strict = "${{ github.event_name == 'workflow_dispatch' && inputs.strict_adr_status || 'false' }}"
           $reqPerf = "${{ github.event_name == 'workflow_dispatch' && inputs.require_perf || 'false' }}"
