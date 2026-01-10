@@ -40,6 +40,16 @@ func _ready() -> void:
     if bus != null:
         bus.connect("DomainEventEmitted", Callable(self, "_on_domain_event"))
 
+    if _is_smoke_exit_on_ready_enabled():
+        print("[SMOKE] exit-on-ready enabled; quitting scene tree")
+        get_tree().call_deferred("quit")
+
+func _is_smoke_exit_on_ready_enabled() -> bool:
+    if not OS.has_environment("GD_SMOKE_EXIT_ON_READY"):
+        return false
+    var v = str(OS.get_environment("GD_SMOKE_EXIT_ON_READY")).strip_edges().to_lower()
+    return v == "1" or v == "true" or v == "yes"
+
 func _exit_tree() -> void:
     var bus = get_node_or_null("/root/EventBus")
     if bus == null:

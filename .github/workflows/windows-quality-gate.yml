@@ -248,7 +248,8 @@ jobs:
         if: ${{ env.SC_TASK_IDS != '' }}
         shell: pwsh
         run: |
-          # Example (comment-only): strict Python headless smoke gate (Task 46)
+          # Example (comment-only): strict Python headless smoke gate (Task 49)
+          # GD_SMOKE_EXIT_ON_READY=1 py -3 scripts/python/smoke_headless.py --mode strict --godot-bin "$env:GODOT_BIN" --project-path . --scene "res://Game.Godot/Scenes/Main.tscn" --timeout-sec 120
           # py -3 scripts/python/smoke_headless.py --mode strict --godot-bin "$env:GODOT_BIN" --project-path . --scene "res://Game.Godot/Scenes/Main.tscn" --timeout-sec 120
 
           $date = (& py -3 -c "import datetime as dt; print(dt.date.today().strftime('%Y-%m-%d'))").Trim()

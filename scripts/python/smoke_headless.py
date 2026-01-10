@@ -16,6 +16,12 @@ Example (PowerShell):
     --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" `
     --project-path "." --scene "res://Game.Godot/Scenes/Main.tscn" `
     --timeout-sec 5 --mode loose
+
+Smoke session (exit-on-ready):
+  # When GD_SMOKE_EXIT_ON_READY=1 is set, the Godot project is expected to quit
+  # by itself after it reaches the ready state. This avoids relying on timeout-kill
+  # for strict smoke runs.
+  GD_SMOKE_EXIT_ON_READY=1 py -3 scripts/python/smoke_headless.py --mode strict --timeout-sec 120 ...
 """
 
 from __future__ import annotations
@@ -54,24 +60,36 @@ def _run_smoke(godot_bin: str, project_path: str, scene: str, timeout_sec: int, 
     print(f"[smoke_headless] starting Godot: {' '.join(cmd)} (timeout={timeout_sec}s)")
 
     timed_out = False
+    exit_code: int = -1
+    exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY", "").strip()
+    exit_on_ready_enabled = exit_on_ready in ("1", "true", "True", "yes", "YES")
 
     with out_path.open("w", encoding="utf-8", errors="ignore") as f_out, \
             err_path.open("w", encoding="utf-8", errors="ignore") as f_err:
         try:
-            proc = subprocess.Popen(cmd, stdout=f_out, stderr=f_err, text=True)
+            env = os.environ.copy()
+            if exit_on_ready_enabled:
+                env["GD_SMOKE_EXIT_ON_READY"] = "1"
+            proc = subprocess.Popen(cmd, stdout=f_out, stderr=f_err, text=True, env=env)
         except Exception as exc:  # pragma: no cover - environment-specific failure
             print(f"[smoke_headless] failed to start Godot: {exc}", file=sys.stderr)
             return 1
 
         try:
             proc.wait(timeout=timeout_sec)
+            exit_code = proc.returncode if proc.returncode is not None else -1
         except subprocess.TimeoutExpired:
             timed_out = True
             print("[smoke_headless] timeout reached; terminating Godot (expected for smoke)")
             try:
                 proc.kill()
+                try:
+                    proc.wait(timeout=5)
+                except Exception:
+                    pass
             except Exception:
                 pass
+            exit_code = proc.returncode if proc.returncode is not None else -1
 
     content_parts: list[str] = []
     if out_path.is_file():
@@ -97,11 +115,40 @@ def _run_smoke(godot_bin: str, project_path: str, scene: str, timeout_sec: int, 
         print("SMOKE INCONCLUSIVE (no output). Check logs.")
 
     if mode == "strict":
-        # Strict mode: require at least the marker or a DB opened line (independent of Godot's exit code).
-        gate = "strict-passed" if (has_marker or has_db_open) else "strict-failed"
+        # Strict mode: require marker + clean exit (exit_code == 0) + no timeout kill.
+        clean_exit = exit_code == 0
+        reason: str | None = None
+
+        if timed_out:
+            reason = "timeout"
+        elif not (has_marker or has_db_open):
+            reason = "missing_marker"
+        elif exit_code != 0:
+            reason = "exit_code_nonzero"
+
+        gate = "strict-passed" if (reason is None and clean_exit) else "strict-failed"
         timeout_note = "\n[SMOKE] timeout\n" if timed_out else ""
-        log_path.write_text(combined + f"\n[SMOKE] {gate}\n" + timeout_note, encoding="utf-8", errors="ignore")
-        return 0 if gate == "strict-passed" else 1
+
+        if gate == "strict-passed":
+            log_path.write_text(
+                combined
+                + "\n[SMOKE] strict-passed\n"
+                + f"[SMOKE] details exit_code={exit_code} timed_out={timed_out} marker={has_marker} db_open={has_db_open}\n"
+                + timeout_note,
+                encoding="utf-8",
+                errors="ignore",
+            )
+            return 0
+
+        # Example: [SMOKE] strict-failed reason=timeout
+        log_path.write_text(
+            combined
+            + f"\n[SMOKE] strict-failed reason={reason or 'unknown'} exit_code={exit_code} timed_out={timed_out} marker={has_marker} db_open={has_db_open}\n"
+            + timeout_note,
+            encoding="utf-8",
+            errors="ignore",
+        )
+        return 1
 
     # Loose mode never gates; logs are the artifact.
     timeout_note = "\n[SMOKE] timeout\n" if timed_out else ""
