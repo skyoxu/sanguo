@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -35,7 +36,9 @@ def _run_smoke(godot_bin: str, project_path: str, scene: str, timeout_sec: int, 
 
     now = _dt.datetime.now()
     date = now.strftime("%Y-%m-%d")
-    run_id = now.strftime("%Y%m%d-%H%M%S")
+    # Use a high-resolution run id to avoid collisions when smoke is invoked in parallel
+    # (e.g., multiple unit tests running within the same second on CI).
+    run_id = f"{now.strftime('%Y%m%d-%H%M%S-%f')}-{os.getpid()}"
     dest = Path("logs") / "ci" / date / "smoke" / run_id
     dest.mkdir(parents=True, exist_ok=True)
 

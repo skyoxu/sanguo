@@ -12,7 +12,7 @@ if (-not $GodotBin -or -not (Test-Path $GodotBin)) {
 }
 
 $date = Get-Date -Format 'yyyy-MM-dd'
-$runId = Get-Date -Format 'yyyyMMdd-HHmmss'
+$runId = Get-Date -Format 'yyyyMMdd-HHmmssfff'
 $dest = Join-Path $PSScriptRoot ("../../logs/ci/$date/smoke/$runId")
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 $log = Join-Path $dest 'headless.log'
