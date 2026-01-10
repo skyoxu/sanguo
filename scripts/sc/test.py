@@ -32,6 +32,12 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--godot-bin", default=None, help="Godot mono console binary (required for e2e/all)")
     ap.add_argument("--run-id", default=None, help="Optional run identifier for evidence binding (default: auto-generate).")
     ap.add_argument("--smoke-scene", default="res://Game.Godot/Scenes/Main.tscn", help="Main scene for smoke test")
+    ap.add_argument(
+        "--smoke-timeout-sec",
+        type=int,
+        default=120,
+        help="Smoke timeout seconds for scripts/python/smoke_headless.py (default 120).",
+    )
     ap.add_argument("--timeout-sec", type=int, default=600)
     ap.add_argument("--skip-smoke", action="store_true")
     ap.add_argument("--include-sanguo-saveload-restart", action="store_true", help="Run Sanguo save/load restart e2e proof (two-process).")
@@ -129,7 +135,7 @@ def run_gdunit_hard(out_dir: Path, godot_bin: str, timeout_sec: int, *, run_id: 
     return {"name": "gdunit-hard", "cmd": cmd, "rc": rc, "log": str(log_path), "report_dir": str(report_dir)}
 
 
-def run_smoke(out_dir: Path, godot_bin: str, scene: str) -> dict[str, Any]:
+def run_smoke(out_dir: Path, godot_bin: str, scene: str, *, smoke_timeout_sec: int) -> dict[str, Any]:
     if scene.startswith("res://"):
         disk_path = repo_root() / scene[len("res://") :]
         if not disk_path.exists():
@@ -148,11 +154,21 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str) -> dict[str, Any]:
         "--scene",
         scene,
         "--timeout-sec",
-        "5",
+        str(smoke_timeout_sec),
         "--mode",
         "strict",
     ]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
+    # Strict smoke requires a clean exit (see scripts/python/smoke_headless.py).
+    # Ensure the project quits deterministically once the first scene reaches ready.
+    old_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+    os.environ.setdefault("GD_SMOKE_EXIT_ON_READY", "1")
+    try:
+        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=max(30, smoke_timeout_sec + 30))
+    finally:
+        if old_exit_on_ready is None:
+            os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_ON_READY"] = old_exit_on_ready
     log_path = out_dir / "smoke.log"
     write_text(log_path, out)
     return {"name": "smoke", "cmd": cmd, "rc": rc, "log": str(log_path)}
@@ -221,7 +237,7 @@ def main() -> int:
             hard_fail = True
 
         if not args.skip_smoke:
-            sm = run_smoke(out_dir, godot_bin, args.smoke_scene)
+            sm = run_smoke(out_dir, godot_bin, args.smoke_scene, smoke_timeout_sec=int(args.smoke_timeout_sec))
             summary["steps"].append(sm)
             if sm["rc"] != 0:
                 hard_fail = True
