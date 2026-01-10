@@ -90,7 +90,7 @@ def run_smoke_headless(godot_bin: str) -> int:
         "scripts/python/smoke_headless.py",
         "--godot-bin",
         godot_bin,
-        "--project",
+        "--project-path",
         ".",
         "--scene",
         "res://Game.Godot/Scenes/Main.tscn",

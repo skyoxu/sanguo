@@ -110,7 +110,7 @@
 - 如果只跑 `--only perf`，脚本不会自动跑 smoke 生成 `headless.log`，你需要先运行一次：
   - `py -3 scripts/sc/test.py --type all --godot-bin "$env:GODOT_BIN"`  
   或  
-  - `py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project . --scene res://Game.Godot/Scenes/Main.tscn --timeout-sec 5 --mode strict`
+  - `py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project-path . --scene res://Game.Godot/Scenes/Main.tscn --timeout-sec 5 --mode strict`
 
 ---
 

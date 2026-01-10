@@ -2783,8 +2783,8 @@
       "Game.Core.Tests/Tasks/Task46HeadlessSmokeCiExampleTests.cs"
     ],
     "acceptance": [
-      "新增 scripts/python/smoke_headless.py（或等价脚本），在 Windows 上可直接运行，并支持命令行参数 --godot-bin/--scene/--timeout-sec/--project-path。 Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeScriptTests.cs",
-      "在非 strict 模式下，脚本对齐现有 PowerShell headless smoke 封装的可观察行为：输出落盘到 logs/ci/<date>/smoke/**，并保持与 PowerShell 版本等价的宽松通过/失败判定。 Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeNonStrictTests.cs",
+      "新增 scripts/python/smoke_headless.py（或等价脚本），在 Windows 上可直接运行，并支持命令行参数 --mode (loose|strict)/--godot-bin/--scene/--timeout-sec/--project-path。 Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeScriptTests.cs",
+      "在 loose（非 strict）模式下，脚本对齐现有 PowerShell headless smoke 封装的可观察行为：输出落盘到 logs/ci/<YYYY-MM-DD>/smoke/<run_id>/（至少包含 headless.out.log/headless.err.log/headless.log），且不以 marker 作为门槛（通常返回码为 0）。 Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeNonStrictTests.cs",
       "在 strict 模式下，以日志 marker 作为通过门槛：仅当日志包含 [TEMPLATE_SMOKE_READY] 或 [DB] opened 任一 marker 时进程返回码为 0；否则返回非 0，且在日志中明确标记 strict-failed。 Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeStrictModeTests.cs",
       "在 ci-windows.yml 或 windows-quality-gate.yml 中提供至少一条注释示例，展示在受保护分支的质量门禁中如何以 strict 模式运行该脚本。 Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeCiExampleTests.cs",
       "本仓库保留并可用于核对实现的参考文档：docs/migration/Phase-12-Headless-Smoke-Backlog.md 与 docs/migration/Phase-12-Headless-Smoke-Tests.md。 Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeScriptTests.cs"
