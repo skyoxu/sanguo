@@ -6,8 +6,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Marker: [TEMPLATE_SMOKE_READY]
+
 if (-not (Test-Path $ExePath)) {
   Write-Error "Executable not found: $ExePath"
+  exit 1
 }
 
 $ts = Get-Date -Format 'yyyyMMdd-HHmmss'
@@ -37,7 +40,7 @@ if (Test-Path $logOut) { $content += (Get-Content $logOut -Raw -ErrorAction Sile
 if (Test-Path $logErr) { $content += ("`n" + (Get-Content $logErr -Raw -ErrorAction SilentlyContinue)) }
 Set-Content -Path $log -Encoding UTF8 -Value $content
 
-# Prefer explicit marker, fallback to DB opened, then any output; keep non-fatal
+# Prefer explicit marker, fallback to DB opened, then any output.
 if ($content -match '\[TEMPLATE_SMOKE_READY\]') {
   Write-Host 'SMOKE PASS (marker)'
   exit 0
@@ -51,5 +54,12 @@ if ($content.Length -gt 0) {
   exit 0
 }
 
+# If the process did not exit within the timeout window, treat it as "can run"
+# even if stdout/stderr are empty (GUI export may not emit console output).
+if (-not $ok) {
+  Write-Host 'SMOKE PASS (process alive)'
+  exit 0
+}
+
 Write-Warning 'SMOKE INCONCLUSIVE (no output). Check logs.'
-exit 0
+exit 1

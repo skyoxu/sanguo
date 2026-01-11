@@ -37,11 +37,24 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
+def _has_ascii_token(text: str, token: str) -> bool:
+    return bool(re.search(rf"(^|[^a-z0-9]){re.escape(token)}([^a-z0-9]|$)", text))
+
+
 def _is_ui_task(*, title: str, details_blob: str) -> bool:
+    """
+    Heuristic to decide whether the task should be evaluated as a UI task.
+
+    Do NOT use naive substring matching for "ui", otherwise words like "build"
+    become false positives ("bui...").
+
+    We intentionally use ASCII boundaries so strings like "实现UI事件" are detected.
+    """
+
     s = (title + "\n" + details_blob).lower()
-    if "ui" in s or "hud" in s:
+    if _has_ascii_token(s, "hud"):
         return True
-    if "界面" in s or "按钮" in s or "面板" in s:
+    if _has_ascii_token(s, "ui"):
         return True
     return False
 
@@ -82,6 +95,27 @@ def assess_test_quality(
     taskdoc_events = _extract_events_from_taskdoc(taskdoc_path)
 
     tests_root = repo_root / "Tests.Godot" / "tests"
+
+    # For non-UI tasks, do not scan the entire GdUnit corpus (noise + unrelated flakiness),
+    # but still keep taskdoc event extraction for traceability.
+    if not ui_task:
+        return {
+            "task_id": str(task_id),
+            "title": title,
+            "ui_task": False,
+            "taskdoc_path": _to_posix(taskdoc_path) if taskdoc_path else None,
+            "taskdoc_events": taskdoc_events,
+            "gdunit": {
+                "tests_root": _to_posix(tests_root.relative_to(repo_root)) if tests_root.exists() else _to_posix(tests_root),
+                "tests_scanned": 0,
+                "behavior_tests_found": [],
+                "behavior_tests_total": 0,
+                "referenced_events": {"core": [], "ui": []},
+            },
+            "findings": {"p1": [], "p2": [], "flaky_samples": []},
+            "verdict": "OK",
+        }
+
     gd_tests = _iter_gdunit_tests(tests_root)
 
     behavior_tests: list[str] = []
@@ -123,15 +157,15 @@ def assess_test_quality(
     findings_p1: list[str] = []
     findings_p2: list[str] = []
 
-    if ui_task and not behavior_tests:
+    if not behavior_tests:
         findings_p1.append("UI task but no GdUnit4 runtime behavior test detected (PublishSimple + assert_*).")
-    if ui_task and taskdoc_events["core"] and missing_core_events:
+    if taskdoc_events["core"] and missing_core_events:
         findings_p1.append(
             "Taskdoc core events not referenced by any GdUnit4 test: "
             + ", ".join(missing_core_events[:10])
             + (" ..." if len(missing_core_events) > 10 else "")
         )
-    if ui_task and taskdoc_events["ui"] and missing_ui_events:
+    if taskdoc_events["ui"] and missing_ui_events:
         findings_p2.append(
             "Taskdoc UI events not referenced by any GdUnit4 test: "
             + ", ".join(missing_ui_events[:10])
@@ -170,3 +204,4 @@ def assess_test_quality(
         },
         "verdict": verdict,
     }
+

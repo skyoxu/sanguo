@@ -1,4 +1,4 @@
-# Phase 17: 构建系统与 Godot Export
+﻿# Phase 17: 构建系统与 Godot Export
 
 
 
@@ -90,13 +90,29 @@
 
 ---
 
+## 0.1 版本元数据（SSoT）
+
+为保证发布可追溯与可观测（参考 ADR-0003/0008/0015），Windows 导出流程必须在 `build/` 下生成并维护以下元数据文件：
+
+- `build/build-info.json`：构建版本元数据（版本号、渠道、构建时间、Commit SHA 等）。
+- `build/release-profile.json`：发布档案元数据（字段可与 build-info 一致，但用于发布侧对齐与后续扩展）。
+
+两份 JSON 至少包含如下字段（命名可实现自定，但信息不可缺失）：
+
+- `version`
+- `channel`
+- `buildTimeUtc`
+- `commitSha`
+
+上述 JSON 文件将作为 Release Notes / 调试取证的稳定来源；同时应为其与导出产物生成对应的 SHA256 校验文件（见 Task 33 验收条款）。
+
 
 
 ## 2. 构建系统架构
 
 ### 2.0 Godot+C# 变体（当前模板实现）
 
-> 本节描述的是 **当前 godotgame 模板已经落地的构建/导出能力**。下文所述的 `scripts/build_windows.py`、独立 Release 工作流等仍处于蓝图阶段，对应增强统一收敛到 Phase-17 Backlog。
+> 本节描述的是 **当前 godotgame 模板已经落地的构建/导出能力**。当前模板已包含 `scripts/python/build_windows.py`，并提供独立 Windows Release 工作流（见 `.github/workflows/windows-release*.yml`）。
 
 - 依赖与前置：
   - 环境变量：`GODOT_BIN` 指向 Godot .NET（mono）可执行文件路径（例如 `C:\Godot\Godot_v4.5.1-stable_mono_win64.exe`）。
@@ -127,7 +143,7 @@
     - 导出日志与产物统一收集到 `logs/ci/<date>/export/` 与 `build/` 目录。
 
 > 说明：
-> - 当前模板不包含 `scripts/build_windows.py` 或独立 Release 工作流；
+> - 当前模板已包含 `scripts/python/build_windows.py` 与独立 Windows Release 工作流；`scripts/ci/export_windows.ps1` 仍可作为低层导出适配器复用。
 > - 正式的 Release 管道（版本元数据生成、签名、GitHub Release 上传等）保留为蓝图/Backlog，不影响模板级“可导出 + 可冒烟”的最小能力。
 
 ### 2.1 构建流程图
@@ -1330,7 +1346,7 @@ jobs:
 
         run: |
 
-          python scripts/build_windows.py release
+          py -3 scripts/python/build_windows.py release
 
           Get-Item dist/godotgame-*.exe | ForEach-Object {
 
@@ -1348,7 +1364,7 @@ jobs:
 
         run: |
 
-          python scripts/build_windows.py debug
+          py -3 scripts/python/build_windows.py debug
 
         shell: powershell
 
@@ -1674,11 +1690,11 @@ def inject_version_info(project_root: Path, commit_sha: str, git_tag: str, build
 
     "build": "NodePkg run build:exe",
 
-    "build:exe": "python scripts/build_windows.py release",
+    "build:exe": "py -3 scripts/python/build_windows.py release",
 
-    "build:exe:debug": "python scripts/build_windows.py debug",
+    "build:exe:debug": "py -3 scripts/python/build_windows.py debug",
 
-    "build:sign": "set CODE_SIGN_CERT=path/to/cert.pfx && python scripts/build_windows.py release",
+    "build:sign": "set CODE_SIGN_CERT=path/to/cert.pfx && py -3 scripts/python/build_windows.py release",
 
     "release:tag": "node scripts/create-release-tag.mjs",
 
@@ -1898,7 +1914,7 @@ NodePkg run build:sign
 
 - [OK] `src/Godot/export_presets.cfg`（450+ 行，Windows Desktop 配置）
 
-- [OK] `scripts/build_windows.py`（280+ 行）
+- [OK] `scripts/python/build_windows.py`（280+ 行）
 
 - [OK] `scripts/generate_build_metadata.py`（120+ 行）
 
@@ -2033,7 +2049,7 @@ NodePkg run build:exe
 ## 8. Python 等效脚本示例（替代 PowerShell 包装）
 
 ```python
-# scripts/build_windows.py
+# scripts/python/build_windows.py
 import subprocess, pathlib
 project = pathlib.Path('Game.Godot')
 export_preset = 'Windows Desktop'
@@ -2105,3 +2121,4 @@ py -3 scripts/sign_executable.py --file dist\godotgame.exe --thumbprint <CERT_SH
 - 在 CI 中，建议将证书和密码以机密方式注入环境（GitHub Actions Secrets）。
 
 > 提示：构建与签名完成后，建议将性能报告（perf.json）、GdUnit4 场景测试报告（gdunit4-report.xml/json）、Taskmaster 与 Contracts 校验报告统一归档至 logs/ci/YYYY-MM-DD/，并在 Phase-13 的 quality_gates.py 中以 `--perf-report`、`--gdunit4-report`、`--taskmaster-report`、`--contracts-report` 作为可选输入参与门禁聚合。
+
