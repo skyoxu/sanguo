@@ -1,5 +1,6 @@
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Ports;
+using Game.Godot.Scripts.Security;
 using System;
 using System.Text.Json;
 
@@ -31,7 +32,7 @@ internal static class SanguoMapConfigLoader
         if (TryLoadFromPath(loader, UserOverrideMapPath, out map, out error))
         {
             sourcePath = UserOverrideMapPath;
-            SanguoSecurityAuditWriter.TryAppendSecurityAudit(
+            SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CONFIG_LOADED",
                 reason: "user_override",
                 target: $"path={UserOverrideMapPath}",
@@ -44,7 +45,7 @@ internal static class SanguoMapConfigLoader
 
         if (!string.IsNullOrWhiteSpace(error))
         {
-            SanguoSecurityAuditWriter.TryAppendSecurityAudit(
+            SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CONFIG_LOAD_FAILED",
                 reason: "user_override_invalid_fallback_default",
                 target: $"path={UserOverrideMapPath} error={error}",
@@ -55,7 +56,7 @@ internal static class SanguoMapConfigLoader
         }
         else
         {
-            SanguoSecurityAuditWriter.TryAppendSecurityAudit(
+            SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CONFIG_FALLBACK",
                 reason: "user_override_missing",
                 target: $"path={UserOverrideMapPath}",
@@ -68,7 +69,7 @@ internal static class SanguoMapConfigLoader
         if (TryLoadFromPath(loader, DefaultMapPath, out map, out error))
         {
             sourcePath = DefaultMapPath;
-            SanguoSecurityAuditWriter.TryAppendSecurityAudit(
+            SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CONFIG_LOADED",
                 reason: "default",
                 target: $"path={DefaultMapPath}",
@@ -80,7 +81,7 @@ internal static class SanguoMapConfigLoader
         }
 
         sourcePath = DefaultMapPath;
-        SanguoSecurityAuditWriter.TryAppendSecurityAudit(
+        SecurityAuditWriter.TryAppendSecurityAudit(
             action: "SANGUO_MAP_CONFIG_LOAD_FAILED",
             reason: "default_failed",
             target: $"path={DefaultMapPath} error={error}",

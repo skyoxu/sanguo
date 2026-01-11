@@ -2,10 +2,13 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 func _client() -> Node:
     var sc = load("res://Game.Godot/Scripts/Security/SecurityHttpClient.cs")
-    if sc == null or not sc.has_method("new"):
-        push_warning("SKIP: CSharpScript.new() unavailable, skip HTTP allowed audit")
-        return null
-    var c = sc.new()
+    assert_that(sc).is_not_null()
+    var c: Node
+    if sc.has_method("new"):
+        c = sc.new()
+    else:
+        c = Node.new()
+        c.set_script(sc)
     add_child(auto_free(c))
     return c
 
@@ -21,7 +24,7 @@ func _remove_audit_file() -> void:
 func test_audit_written_on_allow() -> void:
     _remove_audit_file()
     var c = _client()
-    if c == null: return
+    OS.set_environment("ALLOWED_EXTERNAL_HOSTS", "example.com")
     var ok = c.Validate("GET", "https://example.com/api", "", 0)
     assert_bool(ok).is_true()
     await get_tree().process_frame
@@ -41,4 +44,3 @@ func test_audit_written_on_allow() -> void:
     assert_that(obj).is_not_null()
     assert_str(str(obj["event_type"]).to_upper()).is_equal("HTTP_ALLOWED")
     assert_str(str(obj["url"])).starts_with("https://")
-

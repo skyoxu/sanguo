@@ -1,6 +1,5 @@
 ﻿using Godot;
 using System;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 
@@ -10,7 +9,10 @@ public partial class SecurityHttpClient : Node
 {
     [Signal] public delegate void RequestBlockedEventHandler(string reason, string url);
 
-    [Export] public string[] AllowedDomains { get; set; } = new[] { "example.com", "sentry.io" };
+    private const string AllowedExternalHostsEnvVar = "ALLOWED_EXTERNAL_HOSTS";
+    private const string AllowInsecureDefaultsEnvVar = "GD_ALLOW_INSECURE_DEFAULTS";
+
+    [Export] public string[] AllowedDomains { get; set; } = Array.Empty<string>();
     [Export] public string[] AllowedMethods { get; set; } = new[] { "GET", "POST" };
     [Export] public bool EnforceHttps { get; set; } = true;
     [Export] public int MaxBodyBytes { get; set; } = 10_000_000; // 10 MB
@@ -34,7 +36,19 @@ public partial class SecurityHttpClient : Node
         {
             var uri = new Uri(url);
             var host = uri.Host ?? string.Empty;
-            var allowed = AllowedDomains.Any(d => host.EndsWith(d, StringComparison.OrdinalIgnoreCase));
+            var allowlist = ResolveAllowedDomains();
+            if (allowlist.Length == 0)
+            {
+                if (IsInsecureDefaultsEnabled())
+                {
+                    Audit("HTTP_ALLOWED_INSECURE_DEFAULTS", url, $"method={method}");
+                    return true;
+                }
+
+                return Block("URL_ALLOWLIST_NOT_CONFIGURED", url, "allowlist_not_configured");
+            }
+
+            var allowed = allowlist.Any(d => IsHostAllowed(host, d));
             if (!allowed)
                 return Block("URL_DOMAIN_DENIED", url, $"host={host}");
         }
@@ -55,6 +69,51 @@ public partial class SecurityHttpClient : Node
         return true;
     }
 
+    private string[] ResolveAllowedDomains()
+    {
+        var configured = (AllowedDomains ?? Array.Empty<string>())
+            .Select(x => (x ?? string.Empty).Trim().Trim('.'))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToArray();
+        if (configured.Length > 0)
+        {
+            return configured;
+        }
+
+        var csv = (System.Environment.GetEnvironmentVariable(AllowedExternalHostsEnvVar) ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(csv))
+        {
+            return Array.Empty<string>();
+        }
+
+        return csv
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(x => (x ?? string.Empty).Trim().Trim('.'))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToArray();
+    }
+
+    private static bool IsInsecureDefaultsEnabled()
+    {
+        var raw = (System.Environment.GetEnvironmentVariable(AllowInsecureDefaultsEnvVar) ?? "0").Trim();
+        return string.Equals(raw, "1", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsHostAllowed(string host, string allowed)
+    {
+        if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(allowed))
+        {
+            return false;
+        }
+
+        if (string.Equals(host, allowed, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return host.EndsWith("." + allowed, StringComparison.OrdinalIgnoreCase);
+    }
+
     private bool Block(string evt, string url, string reason)
     {
         EmitSignal(SignalName.RequestBlocked, reason, url);
@@ -67,10 +126,8 @@ public partial class SecurityHttpClient : Node
         try
         {
             var entry = new { ts = DateTime.UtcNow.ToString("O"), event_type = eventType, url = resource, reason, source = nameof(SecurityHttpClient) };
-            var line = JsonSerializer.Serialize(entry) + System.Environment.NewLine;
-            var dir = ProjectSettings.GlobalizePath("user://logs/security");
-            Directory.CreateDirectory(dir);
-            File.AppendAllText(System.IO.Path.Combine(dir, "audit-http.jsonl"), line);
+            var line = JsonSerializer.Serialize(entry);
+            SecurityFileAdapter.TryAppendLine("user://logs/security/audit-http.jsonl", line, caller: "SecurityHttpClient.Audit", out _);
         }
         catch { /* ignore audit failures */ }
     }

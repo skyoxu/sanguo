@@ -1,7 +1,6 @@
 ﻿using Godot;
 using System;
-using System.IO;
-using System.Text.Json;
+
 
 namespace Game.Godot.Scripts.Security;
 
@@ -24,10 +23,8 @@ public partial class SecurityAudit : Node
             }
             catch { hasSqlite = false; }
 
-            var info = new
+            var details = new
             {
-                ts = DateTime.UtcNow.ToString("O"),
-                event_type = "SECURITY_BASELINE",
                 app = GetAppNameSafe(),
                 godot = Engine.GetVersionInfo()["string"].ToString(),
                 db_backend = System.Environment.GetEnvironmentVariable("GODOT_DB_BACKEND") ?? "default",
@@ -35,11 +32,15 @@ public partial class SecurityAudit : Node
                 plugin_sqlite = hasSqlite,
             };
 
-            var json = JsonSerializer.Serialize(info);
-            var dir = ProjectSettings.GlobalizePath("user://logs/security");
-            Directory.CreateDirectory(dir);
-            var path = Path.Combine(dir, "security-audit.jsonl");
-            File.AppendAllText(path, json + System.Environment.NewLine);
+            SecurityAuditWriter.TryAppendSecurityAudit(
+                action: "SECURITY_BASELINE",
+                reason: "ready",
+                target: "user://logs/security/security-audit.jsonl",
+                caller: "SecurityAudit._Ready",
+                eventType: "security.baseline.ready",
+                eventSource: nameof(SecurityAudit),
+                eventId: Guid.NewGuid().ToString("N"),
+                details: details);
         }
         catch (Exception ex)
         {

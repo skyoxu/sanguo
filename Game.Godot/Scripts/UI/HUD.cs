@@ -4,9 +4,9 @@ using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
 using Game.Godot.Scripts.Config;
 using Game.Godot.Scripts.Sanguo;
+using Game.Godot.Scripts.Security;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 
 namespace Game.Godot.Scripts.UI;
@@ -425,27 +425,14 @@ public partial class HUD : Control
 
     private static void TryAppendSecurityAudit(string action, string reason, string target, string caller)
     {
-        try
-        {
-            var dir = ProjectSettings.GlobalizePath("user://logs/security");
-            Directory.CreateDirectory(dir);
-            var path = Path.Combine(dir, "security-audit.jsonl");
-
-            var record = new
-            {
-                ts = DateTimeOffset.UtcNow.ToString("O"),
-                action,
-                reason,
-                target,
-                caller,
-            };
-
-            File.AppendAllText(path, JsonSerializer.Serialize(record) + System.Environment.NewLine);
-        }
-        catch (Exception ex)
-        {
-            GD.PushWarning($"HUD: security audit write failed: {ex.Message}");
-        }
+        SecurityAuditWriter.TryAppendSecurityAudit(
+            action: action,
+            reason: reason,
+            target: target,
+            caller: caller,
+            eventType: "ui.security.audit",
+            eventSource: nameof(HUD),
+            eventId: Guid.NewGuid().ToString("N"));
     }
 
     private void HandleScoreEvent(JsonElement root)

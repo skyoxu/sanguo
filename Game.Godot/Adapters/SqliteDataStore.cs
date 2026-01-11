@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using Game.Core.Ports;
+using Game.Godot.Scripts.Security;
 using Godot;
 using Microsoft.Data.Sqlite;
 
@@ -268,9 +269,10 @@ public partial class SqliteDataStore : Node, ISqlDatabase
         {
             // Load schema script from res://
             var schemaPath = "res://scripts/db/schema.sql";
-            using var f = FileAccess.Open(schemaPath, FileAccess.ModeFlags.Read);
-            if (f == null) return;
-            var script = f.GetAsText();
+            if (!SecurityFileAdapter.TryReadText(schemaPath, caller: nameof(SqliteDataStore), out var script, out _))
+            {
+                return;
+            }
             foreach (var stmt in SplitSql(script))
             {
                 var s = stmt.Trim();

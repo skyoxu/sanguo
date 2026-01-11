@@ -1,7 +1,7 @@
 using Godot;
 using System;
-using System.IO;
 using System.Text.Json;
+using Game.Godot.Scripts.Security;
 
 namespace Game.Godot.Scripts.Obs;
 
@@ -73,10 +73,8 @@ public partial class SentryClient : Node
 
     private void WriteLocal(object evt)
     {
-        var dir = ProjectSettings.GlobalizePath("user://logs/sentry");
-        Directory.CreateDirectory(dir);
-        var path = Path.Combine(dir, $"events-{DateTime.UtcNow:yyyyMMdd}.jsonl");
         var json = JsonSerializer.Serialize(evt);
-        File.AppendAllText(path, json + System.Environment.NewLine);
+        var path = $"user://logs/sentry/events-{DateTime.UtcNow:yyyyMMdd}.jsonl";
+        SecurityFileAdapter.TryAppendLine(path, json, caller: "SentryClient.WriteLocal", out _);
     }
 }
