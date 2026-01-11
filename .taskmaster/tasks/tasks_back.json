@@ -2887,7 +2887,10 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task48SecurityTests.cs"
+      "Game.Core.Tests/Tasks/Task48SecurityTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_security_http_allowed_audit.gd",
+      "Tests.Godot/tests/Integration/Security/test_security_http_audit.gd",
+      "Tests.Godot/tests/Integration/Security/test_security_http_block_signal.gd"
     ],
     "acceptance": [
       "所有外链打开/跳转必须经由统一外链安全入口（SecurityUrlAdapter 或等价组件）处理：仅允许 https scheme 且目标主机属于 ALLOWED_EXTERNAL_HOSTS 白名单；明确拒绝 file://、javascript: 等高风险 scheme。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs",

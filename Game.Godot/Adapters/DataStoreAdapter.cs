@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using Game.Core.Ports;
+using Game.Godot.Scripts.Security;
 
 namespace Game.Godot.Adapters;
 
@@ -18,34 +19,26 @@ public partial class DataStoreAdapter : Node, IDataStore
 
     public Task SaveAsync(string key, string json)
     {
-        DirAccess.MakeDirRecursiveAbsolute(GetSavePath());
         var path = PathFor(key);
-        using var f = FileAccess.Open(path, FileAccess.ModeFlags.Write);
-        if (f != null)
-        {
-            f.StoreString(json);
-            f.Flush();
-        }
+        SecurityFileAdapter.TryWriteText(path, json, caller: nameof(DataStoreAdapter), out _);
         return Task.CompletedTask;
     }
 
     public Task<string?> LoadAsync(string key)
     {
         var path = PathFor(key);
-        if (!FileAccess.FileExists(path))
+        if (!SecurityFileAdapter.TryReadText(path, caller: nameof(DataStoreAdapter), out var text, out _))
+        {
             return Task.FromResult<string?>(null);
-        using var f = FileAccess.Open(path, FileAccess.ModeFlags.Read);
-        if (f == null) return Task.FromResult<string?>(null);
-        return Task.FromResult<string?>(f.GetAsText());
+        }
+
+        return Task.FromResult<string?>(text);
     }
 
     public Task DeleteAsync(string key)
     {
         var path = PathFor(key);
-        if (FileAccess.FileExists(path))
-        {
-            DirAccess.RemoveAbsolute(path);
-        }
+        SecurityFileAdapter.TryDeleteFile(path, caller: nameof(DataStoreAdapter), out _);
         return Task.CompletedTask;
     }
 

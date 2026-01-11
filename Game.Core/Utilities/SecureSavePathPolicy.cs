@@ -4,6 +4,16 @@ namespace Game.Core.Utilities;
 
 public static class SecureSavePathPolicy
 {
+    public static bool TryResolveForRead(string path, out string resolved, out string reason)
+    {
+        return TryResolveByIntent(path, intent: "read", out resolved, out reason);
+    }
+
+    public static bool TryResolveForWrite(string path, out string resolved, out string reason)
+    {
+        return TryResolveByIntent(path, intent: "write", out resolved, out reason);
+    }
+
     public static bool TryResolve(string root, string input, out string resolved)
     {
         resolved = string.Empty;
@@ -55,6 +65,65 @@ public static class SecureSavePathPolicy
         return true;
     }
 
+    private static bool TryResolveByIntent(string path, string intent, out string resolved, out string reason)
+    {
+        resolved = string.Empty;
+        reason = "deny";
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            reason = "deny:empty_path";
+            return false;
+        }
+
+        var normalized = NormalizeGodotPath(path);
+
+        if (normalized.StartsWith("user://", StringComparison.Ordinal))
+        {
+            var rest = normalized["user://".Length..].TrimStart('/');
+            if (!TryNormalizeRelativeSegments(rest, out var safeRelative))
+            {
+                reason = "deny:user_path_invalid_or_traversal";
+                return false;
+            }
+
+            resolved = "user://" + safeRelative;
+            reason = string.Equals(intent, "write", StringComparison.OrdinalIgnoreCase)
+                ? "allow:user_path_allowed_write"
+                : "allow:user_path_allowed_read";
+            return true;
+        }
+
+        if (normalized.StartsWith("res://", StringComparison.Ordinal))
+        {
+            var rest = normalized["res://".Length..].TrimStart('/');
+            if (!TryNormalizeRelativeSegments(rest, out var safeRelative))
+            {
+                reason = "deny:res_path_invalid_or_traversal";
+                return false;
+            }
+
+            if (string.Equals(intent, "write", StringComparison.OrdinalIgnoreCase))
+            {
+                reason = "deny:res_path_not_writable";
+                return false;
+            }
+
+            resolved = "res://" + safeRelative;
+            reason = "allow:res_path_allowed_read";
+            return true;
+        }
+
+        if (IsDefinitelyAbsoluteNonGodotPath(normalized))
+        {
+            reason = "deny:absolute_path_not_allowed";
+            return false;
+        }
+
+        reason = "deny:unsupported_scheme";
+        return false;
+    }
+
     private static bool IsDefinitelyAbsoluteNonGodotPath(string path)
     {
         if (path.StartsWith("/", StringComparison.Ordinal))
@@ -86,6 +155,17 @@ public static class SecureSavePathPolicy
             return ("user://" + rest).TrimEnd('/');
         }
 
+        if (s.StartsWith("res://", StringComparison.Ordinal))
+        {
+            var rest = s["res://".Length..];
+            while (rest.Contains("//", StringComparison.Ordinal))
+            {
+                rest = rest.Replace("//", "/", StringComparison.Ordinal);
+            }
+
+            return ("res://" + rest).TrimEnd('/');
+        }
+
         while (s.Contains("//", StringComparison.Ordinal))
         {
             s = s.Replace("//", "/", StringComparison.Ordinal);
@@ -94,6 +174,11 @@ public static class SecureSavePathPolicy
         if (s.StartsWith("user:/", StringComparison.Ordinal))
         {
             s = "user://" + s["user:/".Length..];
+        }
+
+        if (s.StartsWith("res:/", StringComparison.Ordinal))
+        {
+            s = "res://" + s["res:/".Length..];
         }
 
         return s.TrimEnd('/');

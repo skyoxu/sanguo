@@ -1,6 +1,7 @@
 using Godot;
 using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
+using Game.Godot.Scripts.Security;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -192,7 +193,7 @@ public partial class SanguoBoardView : Node2D
 
             if (TotalPositions <= 0)
             {
-                SanguoSecurityAuditWriter.TryAppendSecurityAudit(
+                SecurityAuditWriter.TryAppendSecurityAudit(
                     action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
                     reason: "total_positions_not_configured",
                     target: $"to_index={parsedToIndex} total_positions={TotalPositions}",
@@ -206,7 +207,7 @@ public partial class SanguoBoardView : Node2D
 
             if (parsedToIndex < 0)
             {
-                SanguoSecurityAuditWriter.TryAppendSecurityAudit(
+                SecurityAuditWriter.TryAppendSecurityAudit(
                     action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
                     reason: "to_index_negative",
                     target: $"to_index={parsedToIndex} total_positions={TotalPositions}",
@@ -220,7 +221,7 @@ public partial class SanguoBoardView : Node2D
 
             if (parsedToIndex >= TotalPositions)
             {
-                SanguoSecurityAuditWriter.TryAppendSecurityAudit(
+                SecurityAuditWriter.TryAppendSecurityAudit(
                     action: "SANGUO_BOARD_TOKEN_MOVE_REJECTED",
                     reason: "to_index_out_of_range",
                     target: $"to_index={parsedToIndex} total_positions={TotalPositions}",

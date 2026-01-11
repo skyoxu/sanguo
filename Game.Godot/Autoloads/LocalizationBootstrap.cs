@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using Game.Godot.Scripts.Security;
 
 namespace Game.Godot.Autoloads;
 
@@ -71,13 +72,11 @@ public partial class LocalizationBootstrap : Node
 
         try
         {
-            using var f = FileAccess.Open(resPath, FileAccess.ModeFlags.Read);
-            if (f == null)
+            if (!SecurityFileAdapter.TryReadText(resPath, caller: nameof(LocalizationBootstrap), out var raw, out _))
             {
                 return outList;
             }
 
-            var raw = f.GetAsText();
             if (string.IsNullOrWhiteSpace(raw))
             {
                 return outList;

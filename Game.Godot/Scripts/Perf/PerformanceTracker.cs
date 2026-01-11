@@ -1,9 +1,9 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Game.Godot.Scripts.Security;
 
 namespace Game.Godot.Scripts.Perf;
 
@@ -43,10 +43,8 @@ public partial class PerformanceTracker : Node
         // Write JSON file
         try
         {
-            var dir = ProjectSettings.GlobalizePath("user://logs/perf");
-            Directory.CreateDirectory(dir);
             var json = JsonSerializer.Serialize(metrics);
-            File.WriteAllText(Path.Combine(dir, "perf.json"), json);
+            SecurityFileAdapter.TryWriteText("user://logs/perf/perf.json", json, caller: "PerformanceTracker.OnFlush", out _);
         }
         catch { }
     }

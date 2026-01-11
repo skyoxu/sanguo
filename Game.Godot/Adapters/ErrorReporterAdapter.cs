@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using Godot;
 using Game.Core.Ports;
 using Game.Godot.Scripts.Obs;
+using Game.Godot.Scripts.Security;
 
 namespace Game.Godot.Adapters;
 
@@ -79,10 +79,8 @@ public partial class ErrorReporterAdapter : Node, IErrorReporter
 
     private static void WriteLocal(object evt)
     {
-        var dir = ProjectSettings.GlobalizePath("user://logs/obs");
-        Directory.CreateDirectory(dir);
-        var path = Path.Combine(dir, $"errors-{DateTime.UtcNow:yyyyMMdd}.jsonl");
+        var path = $"user://logs/obs/errors-{DateTime.UtcNow:yyyyMMdd}.jsonl";
         var json = JsonSerializer.Serialize(evt);
-        File.AppendAllText(path, json + System.Environment.NewLine);
+        SecurityFileAdapter.TryAppendLine(path, json, caller: "ErrorReporterAdapter.WriteLocal", out _);
     }
 }

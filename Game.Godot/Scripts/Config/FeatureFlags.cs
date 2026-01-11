@@ -1,8 +1,8 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
+using Game.Godot.Scripts.Security;
 
 namespace Game.Godot.Scripts.Config;
 
@@ -10,8 +10,7 @@ public partial class FeatureFlags : Node
 {
     private readonly Dictionary<string, bool> _flags = new(StringComparer.OrdinalIgnoreCase);
 
-    private static string ConfigDir() => ProjectSettings.GlobalizePath("user://config");
-    private static string ConfigPath() => ProjectSettings.GlobalizePath("user://config/features.json");
+    private const string ConfigPath = "user://config/features.json";
 
     public override void _Ready()
     {
@@ -45,9 +44,8 @@ public partial class FeatureFlags : Node
     {
         try
         {
-            Directory.CreateDirectory(ConfigDir());
             var json = JsonSerializer.Serialize(_flags, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(ConfigPath(), json);
+            SecurityFileAdapter.TryWriteText(ConfigPath, json, caller: "FeatureFlags.Save", out _);
         }
         catch { /* best-effort; avoid crashing template */ }
     }
@@ -56,16 +54,22 @@ public partial class FeatureFlags : Node
     {
         try
         {
-            var path = ConfigPath();
-            if (File.Exists(path))
+            if (!SecurityFileAdapter.TryReadText(ConfigPath, caller: "FeatureFlags.LoadFromDisk", out var json, out var readReason))
             {
-                var json = File.ReadAllText(path);
-                var map = JsonSerializer.Deserialize<Dictionary<string, bool>>(json);
-                if (map != null)
+                if (string.Equals(readReason, "deny:file_missing", StringComparison.Ordinal))
                 {
-                    _flags.Clear();
-                    foreach (var kv in map)
-                        _flags[kv.Key] = kv.Value;
+                    return;
+                }
+                return;
+            }
+
+            var map = JsonSerializer.Deserialize<Dictionary<string, bool>>(json);
+            if (map != null)
+            {
+                _flags.Clear();
+                foreach (var kv in map)
+                {
+                    _flags[kv.Key] = kv.Value;
                 }
             }
         }
