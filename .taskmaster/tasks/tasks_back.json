@@ -2077,13 +2077,11 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_requirements_task33.gd",
-      "Game.Core.Tests/Tasks/Task33RequirementsTests.cs",
+      "Game.Core.Tests/Tasks/Task33WindowsBuildArtifactsTests.cs",
       "Game.Core.Tests/Tasks/Task33WindowsReleaseWorkflowTests.cs",
       "Game.Core.Tests/Tasks/Task33BuildMetadataDocsTests.cs",
       "Game.Core.Tests/Tasks/Task33SmokeExeValidationTests.cs",
       "Game.Core.Tests/Tasks/Task33MigrationDocsPresenceTests.cs",
-      "Game.Core.Tests/Tasks/Task33WindowsBuildArtifactsTests.cs",
       "Game.Core.Tests/Tasks/Task33BuildWindowsCliContractTests.cs"
     ],
     "acceptance": [

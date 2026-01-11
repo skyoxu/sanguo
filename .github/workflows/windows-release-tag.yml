@@ -81,11 +81,16 @@ jobs:
           dotnet restore GodotGame.csproj
           dotnet build GodotGame.csproj -c Release -v minimal
 
-      - name: Export Windows EXE
+      - name: Export Windows via build_windows.py
         shell: pwsh
         run: |
           $env:Path = "$HOME\.dotnet;" + $env:Path
-          ./scripts/ci/export_windows.ps1 -GodotBin "$env:GODOT_BIN" -Preset "Windows Desktop" -Output build/Game.exe
+          py -3 scripts/python/build_windows.py release --godot-bin "$env:GODOT_BIN" --preset "Windows Desktop" --output "build/Game.exe" --channel "tag" --version "${{ github.ref_name }}"
+
+      - name: Smoke exported EXE (return code gate)
+        shell: pwsh
+        run: |
+          ./scripts/ci/smoke_exe.ps1 -ExePath "build/Game.exe" -TimeoutSec 10
 
       - name: Print export log tail (always)
         if: always()
@@ -104,13 +109,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: export-logs
-          path: logs/ci/**/export/**
+          path: |
+            logs/ci/**/export/**
+            logs/ci/**/build-windows/**
+            logs/ci/**/smoke/**
 
       - name: Attach to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             build/Game.exe
+            build/build-info.json
+            build/release-profile.json
+            build/*.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
