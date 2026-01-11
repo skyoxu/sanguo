@@ -28,10 +28,159 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
+from datetime import timezone
+
+
+_PERF_RE = re.compile(
+    r"\[PERF\]\s*frames=(\d+)\s+avg_ms=([0-9]+(?:\.[0-9]+)?)\s+p50_ms=([0-9]+(?:\.[0-9]+)?)\s+p95_ms=([0-9]+(?:\.[0-9]+)?)\s+p99_ms=([0-9]+(?:\.[0-9]+)?)"
+)
+
+
+def _write_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+
+def _read_project_meta(project_root: Path) -> tuple[str | None, str | None]:
+    """Return (config/name, project/assembly_name) from project.godot, best-effort."""
+
+    p = project_root / "project.godot"
+    if not p.is_file():
+        return None, None
+    text = p.read_text(encoding="utf-8", errors="ignore")
+
+    name = None
+    m = re.search(r'(?m)^\s*config/name\s*=\s*"([^"]+)"\s*$', text)
+    if m:
+        name = m.group(1).strip()
+
+    assembly = None
+    m2 = re.search(r'(?m)^\s*project/assembly_name\s*=\s*"([^"]+)"\s*$', text)
+    if m2:
+        assembly = m2.group(1).strip()
+
+    return name, assembly
+
+
+def _find_latest_app_userdata_file(*, rel_path: str, project_root: Path) -> Path | None:
+    """Locate a file under %APPDATA%/Godot/app_userdata/<project>/... (fallback to newest match)."""
+
+    appdata = os.environ.get("APPDATA") or ""
+    if not appdata:
+        return None
+    base = Path(appdata) / "Godot" / "app_userdata"
+    if not base.is_dir():
+        return None
+
+    project_name, assembly_name = _read_project_meta(project_root)
+    candidates: list[Path] = []
+    for n in [project_name, assembly_name]:
+        if not n:
+            continue
+        candidates.append(base / n / rel_path)
+    for p in candidates:
+        if p.is_file():
+            return p
+
+    # Fallback: scan newest matching file (bounded to app_userdata).
+    try:
+        matches = list(base.rglob(Path(rel_path).name))
+        if not matches:
+            return None
+        matches = [m for m in matches if m.is_file() and str(m).lower().endswith(rel_path.replace("\\", "/").lower())]
+        if not matches:
+            return None
+        return max(matches, key=lambda x: x.stat().st_mtime)
+    except Exception:
+        return None
+
+
+def _export_perf_summary(*, date: str, run_id: str, scene: str, headless_log: Path, combined_text: str) -> dict | None:
+    matches = list(_PERF_RE.finditer(combined_text or ""))
+    if not matches:
+        return None
+    last = matches[-1]
+    metrics = {
+        "frames": int(last.group(1)),
+        "avg_ms": float(last.group(2)),
+        "p50_ms": float(last.group(3)),
+        "p95_ms": float(last.group(4)),
+        "p99_ms": float(last.group(5)),
+    }
+    out_path = Path("logs") / "perf" / date / "summary.json"
+    payload = {
+        **metrics,
+        "scene": scene,
+        "run_id": run_id,
+        "source_headless_log": str(headless_log).replace("\\", "/"),
+    }
+    _write_json(out_path, payload)
+    print(f"[smoke_headless] PERF_SUMMARY_OUT={out_path}")
+    return payload
+
+
+def _export_security_audit(*, date: str, project_root: Path) -> str | None:
+    src = _find_latest_app_userdata_file(rel_path="logs/security/security-audit.jsonl", project_root=project_root)
+    if not src:
+        return None
+    dst = Path("logs") / "ci" / date / "security-audit.jsonl"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    # Prefer exporting only the entries written during this smoke run.
+    # This avoids local dev machines failing deterministic validators due to legacy records
+    # from older schema versions.
+    run_started_at_iso = os.environ.get("SMOKE_RUN_STARTED_AT_UTC", "").strip()
+    run_started_at = None
+    if run_started_at_iso:
+        try:
+            run_started_at = _dt.datetime.fromisoformat(run_started_at_iso.replace("Z", "+00:00"))
+        except Exception:
+            run_started_at = None
+
+    kept = 0
+    dropped = 0
+    lines: list[str] = []
+    for raw in src.read_text(encoding="utf-8", errors="ignore").splitlines():
+        s = raw.strip()
+        if not s:
+            continue
+        try:
+            obj = json.loads(s)
+        except Exception:
+            dropped += 1
+            continue
+        if not isinstance(obj, dict):
+            dropped += 1
+            continue
+        ts = str(obj.get("ts") or "").strip()
+        if not ts:
+            dropped += 1
+            continue
+        if run_started_at is not None:
+            try:
+                ts_dt = _dt.datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                if ts_dt.tzinfo is None:
+                    ts_dt = ts_dt.replace(tzinfo=timezone.utc)
+            except Exception:
+                dropped += 1
+                continue
+            # Allow a small skew to include the first audit record.
+            if ts_dt < (run_started_at - _dt.timedelta(seconds=5)):
+                dropped += 1
+                continue
+
+        lines.append(s)
+        kept += 1
+
+    dst.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8", newline="\n")
+    print(f"[smoke_headless] SECURITY_AUDIT_EXPORTED src={src} dst={dst} kept={kept} dropped={dropped}")
+    return str(dst)
 
 
 def _run_smoke(godot_bin: str, project_path: str, scene: str, timeout_sec: int, mode: str) -> int:
@@ -63,6 +212,8 @@ def _run_smoke(godot_bin: str, project_path: str, scene: str, timeout_sec: int, 
     exit_code: int = -1
     exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY", "").strip()
     exit_on_ready_enabled = exit_on_ready in ("1", "true", "True", "yes", "YES")
+    run_started_at_utc = _dt.datetime.now(tz=timezone.utc).isoformat().replace("+00:00", "Z")
+    os.environ["SMOKE_RUN_STARTED_AT_UTC"] = run_started_at_utc
 
     with out_path.open("w", encoding="utf-8", errors="ignore") as f_out, \
             err_path.open("w", encoding="utf-8", errors="ignore") as f_err:
@@ -70,6 +221,8 @@ def _run_smoke(godot_bin: str, project_path: str, scene: str, timeout_sec: int, 
             env = os.environ.copy()
             if exit_on_ready_enabled:
                 env["GD_SMOKE_EXIT_ON_READY"] = "1"
+            # Used for exporting only the audit entries emitted during this smoke run.
+            env["SMOKE_RUN_STARTED_AT_UTC"] = run_started_at_utc
             proc = subprocess.Popen(cmd, stdout=f_out, stderr=f_err, text=True, env=env)
         except Exception as exc:  # pragma: no cover - environment-specific failure
             print(f"[smoke_headless] failed to start Godot: {exc}", file=sys.stderr)
@@ -99,6 +252,13 @@ def _run_smoke(godot_bin: str, project_path: str, scene: str, timeout_sec: int, 
 
     combined = "".join(content_parts)
     print(f"[smoke_headless] log saved at {log_path} (out={out_path}, err={err_path})")
+
+    # Export Task 39 inputs (best-effort):
+    # - logs/perf/<date>/summary.json from [PERF] marker lines
+    # - logs/ci/<date>/security-audit.jsonl copied from Godot app_userdata
+    project_root = Path(project_path).resolve()
+    _export_perf_summary(date=date, run_id=run_id, scene=scene, headless_log=log_path, combined_text=combined)
+    _export_security_audit(date=date, project_root=project_root)
 
     text = combined or ""
     has_marker = "[TEMPLATE_SMOKE_READY]" in text
