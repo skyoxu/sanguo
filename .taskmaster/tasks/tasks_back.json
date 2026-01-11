@@ -2832,14 +2832,14 @@
       "Game.Core.Tests/Tasks/Task47QualityGatesCoverageSummaryTests.cs",
       "Game.Core.Tests/Tasks/Task47QualityGatesGdUnitAggregationTests.cs",
       "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd",
       "Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs"
     ],
     "acceptance": [
       "scripts/python/run_dotnet.py 在生成的 summary.json 中记录覆盖率 lines/branches 的实测值与所采用的阈值配置（默认 lines≥90、branches≥85，且阈值可由环境变量覆盖）。 Refs: Game.Core.Tests/Tasks/Task47QualityGatesCoverageSummaryTests.cs",
       "当覆盖率（lines 或 branches 任一）低于阈值时，quality_gates.py 在汇总 summary 中将该门禁判定标记为 failed，并支持按配置作为软/硬门禁运行（至少支持硬门禁）。 Refs: Game.Core.Tests/Tasks/Task47QualityGatesCoverageSummaryTests.cs",
       "quality_gates.py 可触发执行 GdUnit4 的 Adapters+Security 硬门禁集合（通过 run_gdunit.py 或等价封装），并将该集合的运行结果与通过/失败判定汇总写入 quality-gates-summary.json。 Refs: Game.Core.Tests/Tasks/Task47QualityGatesGdUnitAggregationTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
-      "Windows Quality Gate 工作流调用 quality_gates.py all 时，Step Summary 能同时清晰展示 dotnet 覆盖率门禁（实测值/阈值/是否通过）与 GdUnit4 集合（Adapters+Security）的结果。 Refs: Game.Core.Tests/Tasks/Task47QualityGatesCoverageSummaryTests.cs Game.Core.Tests/Tasks/Task47QualityGatesGdUnitAggregationTests.cs Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "Windows Quality Gate 工作流调用 quality_gates.py all 时，Step Summary 能同时清晰展示 dotnet 覆盖率门禁（实测值/阈值/是否通过）与 GdUnit4 集合（Adapters+Security）的结果。 Refs: Game.Core.Tests/Tasks/Task47QualityGatesCoverageSummaryTests.cs Game.Core.Tests/Tasks/Task47QualityGatesGdUnitAggregationTests.cs Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd",
       "任务实现与验收以本仓库参考文档为准：docs/migration/Phase-13-Quality-Gates-Backlog.md ; docs/migration/Phase-13-Quality-Gates-Script.md Refs: Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs"
     ],
     "test_strategy": [
@@ -2886,9 +2886,7 @@
     "owner": "architecture",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task48SecurityTests.cs",
-      "Tests.Godot/tests/Integration/Security/test_security_http_allowed_audit.gd",
-      "Tests.Godot/tests/Integration/Security/test_security_http_audit.gd",
-      "Tests.Godot/tests/Integration/Security/test_security_http_block_signal.gd"
+      "Tests.Godot/tests/Integration/Security/test_task48_security_http_wrapper.gd"
     ],
     "acceptance": [
       "所有外链打开/跳转必须经由统一外链安全入口（SecurityUrlAdapter 或等价组件）处理：仅允许 https scheme 且目标主机属于 ALLOWED_EXTERNAL_HOSTS 白名单；明确拒绝 file://、javascript: 等高风险 scheme。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs",
@@ -2896,7 +2894,7 @@
       "所有文件/目录访问必须经由 SecurityFileAdapter（或等价组件）封装 Godot 的 FileAccess/DirAccess：仅允许 res:// 读取与 user:// 读写；拒绝绝对路径与包含 .. 的越权/穿越路径，并将拒绝记录写入 security-audit.jsonl。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs",
       "所有 OS.execute 调用必须经由 SecurityProcessAdapter（或等价组件）封装：运行时默认禁用；仅在开发/CI 模式下按白名单允许执行，并记录对应审计日志。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs",
       "安全审计 JSONL（logs/ci/<date>/security-audit.jsonl 与 user://logs/security/**）必须通过验证脚本检查：逐行均为合法 JSON，且每行至少包含 {ts, action, reason, target, caller} 字段。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs",
-      "提供并维护相关 GdUnit4 Hard 测试：覆盖允许/拒绝/非法三态场景，并在 CI 中作为硬门禁的一部分执行与判定。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs Tests.Godot/tests/Integration/Security/test_security_http_allowed_audit.gd Tests.Godot/tests/Integration/Security/test_security_http_audit.gd Tests.Godot/tests/Integration/Security/test_security_http_block_signal.gd",
+      "提供并维护相关 GdUnit4 Hard 测试：覆盖允许/拒绝/非法三态场景，并在 CI 中作为硬门禁的一部分执行与判定。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs Tests.Godot/tests/Integration/Security/test_task48_security_http_wrapper.gd",
       "本实现对齐的仓库内参考文档为：docs/migration/Phase-14-Godot-Security-Backlog.md；docs/migration/Phase-14-Godot-Security-Baseline.md。 Refs: Game.Core.Tests/Tasks/Task48SecurityTests.cs"
     ],
     "test_strategy": [
