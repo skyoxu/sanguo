@@ -79,6 +79,63 @@ def _as_int(value: str | None, *, default: int) -> int:
         return default
 
 
+def run_perf_and_audit_validators(*, date: str, ci_dir: str) -> tuple[int, dict]:
+    """Run Task 39 validators and emit stable artifacts under logs/ci/<date>/."""
+
+    # Keep this gate non-disruptive for tasks that do not produce perf/audit artifacts yet.
+    # Task 39 expects missing inputs to be a hard failure (but still produce artifacts),
+    # so we always invoke the validators when the output directory matches logs/ci/<date>.
+    root = os.getcwd()
+    expected_ci_dir = os.path.abspath(os.path.join(root, "logs", "ci", date))
+    actual_ci_dir = os.path.abspath(ci_dir)
+    if actual_ci_dir != expected_ci_dir:
+        return 0, {
+            "enabled": False,
+            "rc": 0,
+            "reason": "out_dir_not_date_ci_dir",
+            "expected_ci_dir": expected_ci_dir,
+            "actual_ci_dir": actual_ci_dir,
+        }
+
+    perf_in = os.path.join(root, "logs", "perf", date, "summary.json")
+    audit_in = os.path.join(root, "logs", "ci", date, "security-audit.jsonl")
+
+    perf_out = os.path.join(ci_dir, "quality-gates-perf.json")
+    audit_out = os.path.join(ci_dir, "quality-gates-audit.json")
+
+    perf_args = [
+        "py",
+        "-3",
+        "scripts/python/validate_perf.py",
+        "--date",
+        date,
+        "--out",
+        perf_out,
+    ]
+    audit_args = [
+        "py",
+        "-3",
+        "scripts/python/validate_audit_logs.py",
+        "--date",
+        date,
+        "--out",
+        audit_out,
+    ]
+
+    perf_rc = subprocess.run(perf_args, text=True).returncode
+    audit_rc = subprocess.run(audit_args, text=True).returncode
+    rc = 0 if (perf_rc == 0 and audit_rc == 0) else 1
+
+    details = {
+        "enabled": True,
+        "rc": rc,
+        "inputs": {"perf_summary": perf_in, "security_audit_jsonl": audit_in},
+        "perf": {"rc": perf_rc, "out": perf_out},
+        "audit": {"rc": audit_rc, "out": audit_out},
+    }
+    return rc, details
+
+
 def run_gdunit_hard(*, godot_bin: str, date: str) -> tuple[int, str]:
     """Run the hard-gate GdUnit4 subset (Adapters/Config + Security).
 
@@ -135,6 +192,8 @@ def run_smoke_headless(*, godot_bin: str, timeout_sec: int) -> tuple[int, str]:
     env = dict(os.environ)
     # Prefer deterministic exit over timeout kill in strict mode.
     env["GD_SMOKE_EXIT_ON_READY"] = env.get("GD_SMOKE_EXIT_ON_READY") or "1"
+    # Give perf/audit writers time to flush before quitting.
+    env["GD_SMOKE_EXIT_DELAY_SEC"] = env.get("GD_SMOKE_EXIT_DELAY_SEC") or "2"
     proc = subprocess.run(args, text=True, env=env)
     return proc.returncode, env["GD_SMOKE_EXIT_ON_READY"]
 
@@ -187,7 +246,31 @@ def main() -> int:
         if coverage_failed and not args.coverage_soft:
             hard_failed = True
 
-        # 2) Optional hard gate: GdUnit subset.
+        # 2) Optional hard gate: headless smoke (strict).
+        smoke = {"enabled": bool(args.smoke)}
+        if args.smoke:
+            if test_mode:
+                sm_rc = _as_int(os.environ.get("QUALITY_GATES_TEST_SMOKE_RC"), default=0)
+                exit_on_ready = str(os.environ.get("GD_SMOKE_EXIT_ON_READY") or "1")
+            else:
+                sm_rc, exit_on_ready = run_smoke_headless(
+                    godot_bin=args.godot_bin, timeout_sec=int(args.smoke_timeout_sec)
+                )
+            smoke["rc"] = sm_rc
+            smoke["timeout_sec"] = int(args.smoke_timeout_sec)
+            smoke["exit_on_ready"] = exit_on_ready
+            if sm_rc != 0:
+                hard_failed = True
+
+        # 2.5) Task 39: Perf P95 + audit JSONL validators (hard gate).
+        # Must run after smoke to ensure logs/perf/<date>/summary.json and logs/ci/<date>/security-audit.jsonl exist.
+        perf_audit = {"enabled": True}
+        perf_audit_rc, perf_audit_details = run_perf_and_audit_validators(date=date, ci_dir=ci_dir)
+        perf_audit.update(perf_audit_details)
+        if perf_audit_rc != 0:
+            hard_failed = True
+
+        # 3) Optional hard gate: GdUnit subset.
         gdunit = {"enabled": bool(args.gdunit_hard)}
         gdunit_rc = None
         gdunit_report_dir = None
@@ -215,22 +298,6 @@ def main() -> int:
             if gd_rc != 0:
                 hard_failed = True
 
-        # 3) Optional hard gate: headless smoke (strict).
-        smoke = {"enabled": bool(args.smoke)}
-        if args.smoke:
-            if test_mode:
-                sm_rc = _as_int(os.environ.get("QUALITY_GATES_TEST_SMOKE_RC"), default=0)
-                exit_on_ready = str(os.environ.get("GD_SMOKE_EXIT_ON_READY") or "1")
-            else:
-                sm_rc, exit_on_ready = run_smoke_headless(
-                    godot_bin=args.godot_bin, timeout_sec=int(args.smoke_timeout_sec)
-                )
-            smoke["rc"] = sm_rc
-            smoke["timeout_sec"] = int(args.smoke_timeout_sec)
-            smoke["exit_on_ready"] = exit_on_ready
-            if sm_rc != 0:
-                hard_failed = True
-
         # Aggregate a stable summary for CI/ops.
         quality_gates_summary_path = os.path.join(ci_dir, "quality-gates-summary.json")
         summary = {
@@ -246,10 +313,13 @@ def main() -> int:
                 "coverage": dotnet_coverage,
                 "summary_path": dotnet_summary_path,
             },
+            "perf_audit": perf_audit,
             "gdunit_hard": gdunit,
             "smoke": smoke,
             "artifacts": {
                 "quality_gates_summary": quality_gates_summary_path,
+                "quality_gates_perf": os.path.join(ci_dir, "quality-gates-perf.json"),
+                "quality_gates_audit": os.path.join(ci_dir, "quality-gates-audit.json"),
             },
         }
         _write_json(quality_gates_summary_path, summary)

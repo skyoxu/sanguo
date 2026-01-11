@@ -1345,7 +1345,7 @@
         "testStrategy": "单元：为 validate_perf 与 validate_audit_logs 编写测试，验证边界条件与错误路径。\n集成：在 CI 中对刻意构造的超阈值样例运行 quality_gates.py，验证能够正确失败并输出预期的 JSON 摘要。",
         "priority": "medium",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0015",

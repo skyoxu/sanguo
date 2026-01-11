@@ -41,7 +41,15 @@ func _ready() -> void:
         bus.connect("DomainEventEmitted", Callable(self, "_on_domain_event"))
 
     if _is_smoke_exit_on_ready_enabled():
-        print("[SMOKE] exit-on-ready enabled; quitting scene tree")
+        var delay_sec := 2.0
+        if OS.has_environment("GD_SMOKE_EXIT_DELAY_SEC"):
+            var raw = str(OS.get_environment("GD_SMOKE_EXIT_DELAY_SEC")).strip_edges()
+            if raw != "":
+                delay_sec = float(raw)
+        if delay_sec < 0.0:
+            delay_sec = 0.0
+        print("[SMOKE] exit-on-ready enabled; quitting scene tree after ", delay_sec, "s")
+        await get_tree().create_timer(delay_sec).timeout
         get_tree().call_deferred("quit")
 
 func _is_smoke_exit_on_ready_enabled() -> bool:
