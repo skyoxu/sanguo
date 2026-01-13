@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -27,7 +27,7 @@ TASKS_BACK = PROJECT_ROOT / ".taskmaster" / "tasks" / "tasks_back.json"
 TASKS_GAMEPLAY = PROJECT_ROOT / ".taskmaster" / "tasks" / "tasks_gameplay.json"
 
 
-def contract_refs_for_task(task_id: int) -> List[str]:
+def contract_refs_for_task(task_id: int) -> Optional[List[str]]:
     """
     Map Taskmaster task id to a list of domain event types.
     This follows the T2 overlay and previous contract suggestions.
@@ -91,8 +91,31 @@ def contract_refs_for_task(task_id: int) -> List[str]:
             "core.sanguo.game.turn.advanced",
             "core.sanguo.game.ended",
         ],
+        # T50-T60: PRD skeleton modules (contractRefs lists only the key domain events)
+        50: ["core.sanguo.game.started"],
+        51: [
+            "core.sanguo.city.bought",
+            "core.sanguo.city.toll.paid",
+            "core.sanguo.economy.month.settled",
+            "core.sanguo.economy.season.event.applied",
+            "core.sanguo.economy.year.price.adjusted",
+        ],
+        52: [
+            "core.sanguo.game.turn.started",
+            "core.sanguo.action_card.played",
+            "core.sanguo.dice.rolled",
+            "core.sanguo.game.turn.advanced",
+        ],
+        53: [],
+        54: ["core.sanguo.game.started"],
+        55: ["core.sanguo.game.started"],
+        56: ["core.sanguo.random_event.applied"],
+        57: ["core.sanguo.action_card.played"],
+        58: ["core.sanguo.building.built"],
+        59: ["core.sanguo.combat.started", "core.sanguo.combat.ended"],
+        60: ["core.sanguo.game.ended"],
     }
-    return events.get(task_id, [])
+    return events.get(task_id)
 
 
 def update_view_file(path: Path) -> None:
@@ -103,7 +126,7 @@ def update_view_file(path: Path) -> None:
         except (TypeError, ValueError):
             continue
         refs = contract_refs_for_task(tid)
-        if not refs:
+        if refs is None:
             # Leave as-is if we have no explicit mapping.
             continue
         # Only set contractRefs if not already present.
@@ -126,4 +149,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

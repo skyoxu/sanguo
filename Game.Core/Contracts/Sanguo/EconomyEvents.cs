@@ -24,13 +24,14 @@ public sealed record PlayerSettlement(
 /// </remarks>
 public sealed record SanguoMonthSettled(
     string GameId,
+    int TurnNumber,
     int Year,
     int Month,
     IReadOnlyList<PlayerSettlement> PlayerSettlements,
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId,
-    AppliedMultipliers? AppliedMultipliers = null
+    AppliedMultipliers AppliedMultipliers
 )
 {
     /// <summary>
@@ -49,6 +50,7 @@ public sealed record SanguoMonthSettled(
 /// </remarks>
 public sealed record SanguoSeasonEventApplied(
     string GameId,
+    int TurnNumber,
     int Year,
     int Season, // 1-4
     IReadOnlyList<string> AffectedRegionIds,
@@ -56,7 +58,7 @@ public sealed record SanguoSeasonEventApplied(
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId,
-    AppliedMultipliers? AppliedMultipliers = null
+    AppliedMultipliers AppliedMultipliers
 )
 {
     /// <summary>
@@ -75,6 +77,7 @@ public sealed record SanguoSeasonEventApplied(
 /// </remarks>
 public sealed record SanguoYearPriceAdjusted(
     string GameId,
+    int TurnNumber,
     int Year,
     string CityId,
     decimal OldPrice,
@@ -82,7 +85,7 @@ public sealed record SanguoYearPriceAdjusted(
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId,
-    AppliedMultipliers? AppliedMultipliers = null
+    AppliedMultipliers AppliedMultipliers
 )
 {
     /// <summary>
@@ -101,13 +104,14 @@ public sealed record SanguoYearPriceAdjusted(
 /// </remarks>
 public sealed record SanguoCityBought(
     string GameId,
+    int TurnNumber,
     string BuyerId,
     string CityId,
     decimal Price,
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId,
-    AppliedMultipliers? AppliedMultipliers = null
+    AppliedMultipliers AppliedMultipliers
 )
 {
     /// <summary>
@@ -132,6 +136,7 @@ public sealed record SanguoCityBought(
 /// </remarks>
 public sealed record SanguoCityTollPaid(
     string GameId,
+    int TurnNumber,
     string PayerId,
     string OwnerId,
     string CityId,
@@ -141,7 +146,7 @@ public sealed record SanguoCityTollPaid(
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId,
-    AppliedMultipliers? AppliedMultipliers = null
+    AppliedMultipliers AppliedMultipliers
 )
 {
     /// <summary>

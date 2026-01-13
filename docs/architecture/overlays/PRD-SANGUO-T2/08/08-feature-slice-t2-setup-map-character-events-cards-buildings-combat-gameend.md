@@ -35,6 +35,19 @@ Arch-Refs:
 - 战斗模块（PVE，触发→回主循环）
 - 每局胜利与结算界面（Core 判定，UI 展示）
 
+拆页导航（T50–T60）
+- T50：`08-t50-game-start-config.md`
+- T51：`08-t51-economy-multipliers-and-applied-multipliers.md`
+- T52：`08-t52-turn-window-and-event-ordering.md`
+- T53：`08-t53-map-config.md`
+- T54：`08-t54-new-game-menu.md`
+- T55：`08-t55-characters.md`
+- T56：`08-t56-random-events.md`
+- T57：`08-t57-action-cards.md`
+- T58：`08-t58-buildings.md`
+- T59：`08-t59-combat-pve.md`
+- T60：`08-t60-game-end-and-settlement.md`
+
 ## 8.x.2 统一口径（必须满足）
 
 ### 8.x.2.1 配置来源与只读约束（ADR-0019）
@@ -146,7 +159,8 @@ UI 仅展示事件 payload/投影字段，不得在 UI 侧自行计算金额。
 
 - **AppliedMultipliers**
   - 用途：经济计算使用的倍率快照；UI 只展示不得参与计算
-  - 字段要点：`Character`, `Building`, `Event`, `ActionCard`, `Effective`
+  - 字段要点：`Character`, `Building`, `Event`, `ActionCard`, `Effective`, `Sources`
+  - 口径：当 `Sources == None` 时，分项倍率仅为占位（通常为 1.0），UI 不得展示分项解释；只能展示 `Effective` 与结果
   - 契约位置：`Game.Core/Contracts/Sanguo/AppliedMultipliers.cs`
 
 - **SanguoTurnPhase**

@@ -24,12 +24,14 @@ public sealed class SanguoContractsTests
     {
         var evt = new SanguoMonthSettled(
             GameId: "game-1",
+            TurnNumber: 1,
             Year: 200,
             Month: 1,
             PlayerSettlements: Array.Empty<PlayerSettlement>(),
             OccurredAt: DateTimeOffset.UtcNow,
             CorrelationId: "corr-1",
-            CausationId: null
+            CausationId: null,
+            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
         );
 
         evt.GameId.Should().Be("game-1");
@@ -37,4 +39,3 @@ public sealed class SanguoContractsTests
         evt.Month.Should().Be(1);
     }
 }
-

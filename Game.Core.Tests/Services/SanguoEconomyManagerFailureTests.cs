@@ -28,6 +28,7 @@ public sealed class SanguoEconomyManagerFailureTests
 
         var ok = await economy.TryBuyCityAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             buyerId: buyer.PlayerId,

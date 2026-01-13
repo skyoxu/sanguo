@@ -191,6 +191,7 @@ public sealed class SanguoEconomyManager
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="priceMultiplier"/> is out of allowed range (enforced by buyer economy rules).</exception>
     public async Task<bool> TryBuyCityAndPublishEventAsync(
         string gameId,
+        int turnNumber,
         IReadOnlyList<SanguoPlayer> players,
         IReadOnlyDictionary<string, City> citiesById,
         string buyerId,
@@ -203,6 +204,9 @@ public sealed class SanguoEconomyManager
     {
         if (string.IsNullOrWhiteSpace(gameId))
             throw new ArgumentException("GameId must be non-empty.", nameof(gameId));
+
+        if (turnNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(turnNumber), "TurnNumber must be >= 1.");
 
         if (string.IsNullOrWhiteSpace(buyerId))
             throw new ArgumentException("BuyerId must be non-empty.", nameof(buyerId));
@@ -230,17 +234,26 @@ public sealed class SanguoEconomyManager
 
         var price = (moneyBefore - buyer.Money).ToDecimal();
 
+        var appliedMultipliers = new AppliedMultipliers(
+            Character: 1.0m,
+            Building: 1.0m,
+            Event: 1.0m,
+            ActionCard: 1.0m,
+            Effective: AppliedMultipliers.ClampToRange(priceMultiplier));
+
         var evt = new DomainEvent(
             Type: SanguoCityBought.EventType,
             Source: nameof(SanguoEconomyManager),
             Data: JsonElementEventData.FromObject(new SanguoCityBought(
                 GameId: gameId,
+                TurnNumber: turnNumber,
                 BuyerId: buyerId,
                 CityId: cityId,
                 Price: price,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
-                CausationId: causationId
+                CausationId: causationId,
+                AppliedMultipliers: appliedMultipliers
             )),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N")
@@ -279,6 +292,7 @@ public sealed class SanguoEconomyManager
     /// <exception cref="InvalidOperationException">Thrown when resolving city ownership detects corrupted board state.</exception>
     public async Task<bool> TryPayTollAndPublishEventAsync(
         string gameId,
+        int turnNumber,
         IReadOnlyList<SanguoPlayer> players,
         IReadOnlyDictionary<string, City> citiesById,
         string payerId,
@@ -292,6 +306,9 @@ public sealed class SanguoEconomyManager
     {
         if (string.IsNullOrWhiteSpace(gameId))
             throw new ArgumentException("GameId must be non-empty.", nameof(gameId));
+
+        if (turnNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(turnNumber), "TurnNumber must be >= 1.");
 
         if (string.IsNullOrWhiteSpace(payerId))
             throw new ArgumentException("PayerId must be non-empty.", nameof(payerId));
@@ -360,6 +377,7 @@ public sealed class SanguoEconomyManager
             Source: nameof(SanguoEconomyManager),
             Data: JsonElementEventData.FromObject(new SanguoCityTollPaid(
                 GameId: gameId,
+                TurnNumber: turnNumber,
                 PayerId: payerId,
                 OwnerId: owner.PlayerId,
                 CityId: cityId,
@@ -368,7 +386,13 @@ public sealed class SanguoEconomyManager
                 TreasuryOverflow: treasuryOverflow,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
-                CausationId: causationId
+                CausationId: causationId,
+                AppliedMultipliers: new AppliedMultipliers(
+                    Character: 1.0m,
+                    Building: 1.0m,
+                    Event: 1.0m,
+                    ActionCard: 1.0m,
+                    Effective: AppliedMultipliers.ClampToRange(tollMultiplier))
             )),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N")
@@ -432,6 +456,7 @@ public sealed class SanguoEconomyManager
     /// </remarks>
     public async Task PublishMonthSettlementIfBoundaryAsync(
         string gameId,
+        int turnNumber,
         SanguoCalendarDate previousDate,
         SanguoCalendarDate currentDate,
         IReadOnlyList<PlayerSettlement> settlements,
@@ -442,6 +467,9 @@ public sealed class SanguoEconomyManager
     {
         if (string.IsNullOrWhiteSpace(gameId))
             throw new ArgumentException("GameId must be non-empty.", nameof(gameId));
+
+        if (turnNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(turnNumber), "TurnNumber must be >= 1.");
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
@@ -456,12 +484,19 @@ public sealed class SanguoEconomyManager
             Source: nameof(SanguoEconomyManager),
             Data: JsonElementEventData.FromObject(new SanguoMonthSettled(
                 GameId: gameId,
+                TurnNumber: turnNumber,
                 Year: previousDate.Year,
                 Month: previousDate.Month,
                 PlayerSettlements: settlements,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
-                CausationId: causationId
+                CausationId: causationId,
+                AppliedMultipliers: new AppliedMultipliers(
+                    Character: 1.0m,
+                    Building: 1.0m,
+                    Event: 1.0m,
+                    ActionCard: 1.0m,
+                    Effective: 1.0m)
             )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
@@ -595,6 +630,7 @@ public sealed class SanguoEconomyManager
     /// </remarks>
     public async Task PublishYearlyPriceAdjustmentIfBoundaryAsync(
         string gameId,
+        int turnNumber,
         SanguoCalendarDate previousDate,
         SanguoCalendarDate currentDate,
         IReadOnlyList<City> previousCities,
@@ -606,6 +642,9 @@ public sealed class SanguoEconomyManager
     {
         if (string.IsNullOrWhiteSpace(gameId))
             throw new ArgumentException("GameId must be non-empty.", nameof(gameId));
+
+        if (turnNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(turnNumber), "TurnNumber must be >= 1.");
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
@@ -631,18 +670,29 @@ public sealed class SanguoEconomyManager
             if (!currentById.TryGetValue(oldCity.Id, out var newCity))
                 throw new InvalidOperationException($"City id not found in currentCities: {oldCity.Id}");
 
+            var oldPrice = oldCity.BasePrice.ToDecimal();
+            var newPrice = newCity.BasePrice.ToDecimal();
+            var effective = oldPrice <= 0 ? 1.0m : newPrice / oldPrice;
+
             var evt = new DomainEvent(
                 Type: SanguoYearPriceAdjusted.EventType,
                 Source: nameof(SanguoEconomyManager),
                 Data: JsonElementEventData.FromObject(new SanguoYearPriceAdjusted(
                     GameId: gameId,
+                    TurnNumber: turnNumber,
                     Year: currentDate.Year,
                     CityId: oldCity.Id,
-                    OldPrice: oldCity.BasePrice.ToDecimal(),
-                    NewPrice: newCity.BasePrice.ToDecimal(),
+                    OldPrice: oldPrice,
+                    NewPrice: newPrice,
                     OccurredAt: occurredAt,
                     CorrelationId: correlationId,
-                    CausationId: causationId
+                    CausationId: causationId,
+                    AppliedMultipliers: new AppliedMultipliers(
+                        Character: 1.0m,
+                        Building: 1.0m,
+                        Event: 1.0m,
+                        ActionCard: 1.0m,
+                        Effective: AppliedMultipliers.ClampToRange(effective))
                 )),
                 Timestamp: DateTime.UtcNow,
                 Id: Guid.NewGuid().ToString("N")
@@ -675,6 +725,7 @@ public sealed class SanguoEconomyManager
     /// </remarks>
     public async Task PublishSeasonEventIfBoundaryAsync(
         string gameId,
+        int turnNumber,
         SanguoCalendarDate previousDate,
         SanguoCalendarDate currentDate,
         int season,
@@ -687,6 +738,9 @@ public sealed class SanguoEconomyManager
     {
         if (string.IsNullOrWhiteSpace(gameId))
             throw new ArgumentException("GameId must be non-empty.", nameof(gameId));
+
+        if (turnNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(turnNumber), "TurnNumber must be >= 1.");
 
         if (string.IsNullOrWhiteSpace(correlationId))
             throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
@@ -712,13 +766,20 @@ public sealed class SanguoEconomyManager
             Source: nameof(SanguoEconomyManager),
             Data: JsonElementEventData.FromObject(new SanguoSeasonEventApplied(
                 GameId: gameId,
+                TurnNumber: turnNumber,
                 Year: currentDate.Year,
                 Season: season,
                 AffectedRegionIds: affectedRegionIds,
                 YieldMultiplier: yieldMultiplier,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
-                CausationId: causationId
+                CausationId: causationId,
+                AppliedMultipliers: new AppliedMultipliers(
+                    Character: 1.0m,
+                    Building: 1.0m,
+                    Event: 1.0m,
+                    ActionCard: 1.0m,
+                    Effective: AppliedMultipliers.ClampToRange(yieldMultiplier))
             )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")

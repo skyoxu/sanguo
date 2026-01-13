@@ -1609,7 +1609,7 @@
         "title": "Spine: GameStartConfig 与可复现开局输入",
         "description": "定义唯一开局配置与可复现输入（地图/人数/初始资金档/全局事件间隔/seed/角色分配全局唯一），并通过事件对外发布。",
         "details": "要求：GameStartConfig 必须可序列化为 JSON 审计快照；地图列表来自 res://Data/maps/_index.json；角色全局唯一分配；全局事件间隔仅允许 5/10/20；初始资金档仅允许 5000/10000/20000。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。；GdUnit4：走一遍新游戏配置界面并断言 started 事件被发布。",
         "priority": "high",
         "dependencies": [],
         "status": "deferred",
@@ -1622,6 +1622,8 @@
         ],
         "archRefs": [
           "CH01",
+          "CH02",
+          "CH04",
           "CH06",
           "CH07",
           "CH10"
@@ -1633,7 +1635,7 @@
         "title": "Spine: 倍率合成规则与 applied_multipliers 事件快照",
         "description": "锁死经济修饰合成规则（乘法链+clamp+[0.5,3.0]+0.5步进）并要求所有经济事件写入 applied_multipliers。",
         "details": "规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)；所有 multiplier 只能取 0.5 步进（建议用 step int 表达）；UI 不参与金额计算，只展示事件快照。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。；GdUnit4：UI 仅展示，不做计算回归。",
         "priority": "high",
         "dependencies": [
           "50"
@@ -1646,6 +1648,7 @@
         ],
         "archRefs": [
           "CH01",
+          "CH04",
           "CH06",
           "CH07"
         ],
@@ -1656,7 +1659,7 @@
         "title": "Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序",
         "description": "锁死 TurnPhase.BeforeRoll 窗口规则（行动卡每回合最多1张）以及事件格与全局事件触发顺序（同一 RandomEventPool）。",
         "details": "要求：事件触发包括 OnTileEvent（落到事件格）与 OnGlobalTurnEvent（每N回合，N∈{5,10,20}）；同回合双触发时顺序固定且可测；所有效果通过 multiplier_step_delta 输入并走 T51 合成规则。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：状态机窗口与乱序事件回归。",
         "priority": "high",
         "dependencies": [
           "50",
@@ -1670,6 +1673,7 @@
         ],
         "archRefs": [
           "CH01",
+          "CH04",
           "CH06",
           "CH07"
         ],
@@ -1680,7 +1684,7 @@
         "title": "模块: 地图配置（多文件）与 Tile 语义",
         "description": "引入地图配置多文件格式，并定义 city/pass/event/empty 等 tile 语义与基础数值来源。",
         "details": "格式：res://Data/maps/_index.json + res://Data/maps/<map_id>.json；每个 tile 至少包含 index/type/name，城市/关隘/事件格需有稳定字段用于触发与经济 base 值。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。",
         "priority": "high",
         "dependencies": [
           "50"
@@ -1694,9 +1698,12 @@
         ],
         "archRefs": [
           "CH01",
+          "CH02",
+          "CH04",
           "CH05",
           "CH06",
-          "CH07"
+          "CH07",
+          "CH10"
         ],
         "overlay": null
       },
@@ -1705,7 +1712,7 @@
         "title": "模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/选角）",
         "description": "新增新游戏配置界面，作为唯一开局入口，产出 GameStartConfig 并启动对局。",
         "details": "要求：玩家先选角色；总人数 4-8；初始资金档 5000/10000/20000；全局事件间隔 5/10/20；AI 随机补位且角色全局唯一；进入游戏后 HUD 只显示头像/名字/资金。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "GdUnit4：走 UI 配置→开始游戏；xUnit：角色分配唯一性。",
         "priority": "high",
         "dependencies": [
           "50",
@@ -1732,7 +1739,7 @@
         "title": "模块: 角色配置（6角色）与初始资金口径",
         "description": "完善角色数据为只读配置，并定义初始资金与三类经济系数口径。",
         "details": "来源：res://Data/characters.json；字段包含 starting_money_multiplier 与 buy/toll/income multipliers；过路费系数仅影响地主收租侧；初始资金 money0 = preset * starting_money_multiplier。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：解析/口径/事件快照测试。",
         "priority": "high",
         "dependencies": [
           "50",
@@ -1746,6 +1753,7 @@
         ],
         "archRefs": [
           "CH02",
+          "CH04",
           "CH06",
           "CH07"
         ],
@@ -1756,7 +1764,7 @@
         "title": "模块: 随机事件池（事件格 + 每N回合全局事件）",
         "description": "引入随机事件池并统一两类触发：事件格触发与每N回合全局触发；要求可复现。",
         "details": "事件定义只允许 multiplier_step_delta（整数步进，+1=+0.5）；random_seed 来自 GameStartConfig；事件效果进入 applied_multipliers.event 并走 T51 合成与 clamp。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。",
         "priority": "high",
         "dependencies": [
           "50",
@@ -1772,6 +1780,7 @@
         ],
         "archRefs": [
           "CH01",
+          "CH04",
           "CH06",
           "CH07"
         ],
@@ -1782,7 +1791,7 @@
         "title": "模块: 行动卡（BeforeRoll）止损版",
         "description": "引入行动卡卡池：掷骰前可出 0/1 张行动卡影响本回合倍率输入。",
         "details": "卡牌定义只允许 multiplier_step_delta，不允许直接改钱/改所有权；窗口严格限定 BeforeRoll；事件记录 action_card.played；效果进入 applied_multipliers.action_card。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：策略与窗口；GdUnit4：最小 UI 流程。",
         "priority": "medium",
         "dependencies": [
           "50",
@@ -1796,6 +1805,7 @@
           "ADR-0005"
         ],
         "archRefs": [
+          "CH04",
           "CH06",
           "CH07"
         ],
@@ -1806,7 +1816,7 @@
         "title": "模块: 建筑扩展（买地后建造类型）",
         "description": "扩展可购买地块为可建造资产，并用倍率输入影响收益/收租等经济结算。",
         "details": "建筑定义建议 res://Data/buildings.json，仅允许 multiplier_step_delta；建造入口限定“停留在自有城市”；事件记录 building.built/upgraded；效果进入 applied_multipliers.building。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：配置/窗口；GdUnit4：actions 与 owner label。",
         "priority": "medium",
         "dependencies": [
           "51",
@@ -1819,6 +1829,7 @@
           "ADR-0005"
         ],
         "archRefs": [
+          "CH04",
           "CH05",
           "CH06",
           "CH07"
@@ -1830,7 +1841,7 @@
         "title": "模块: 战斗（PVE）触发与回主循环",
         "description": "引入 PVE 战斗分支循环：从地图/事件触发进入战斗，结束后回到主循环。",
         "details": "本阶段不引入战斗卡池；战斗结果需在 random_seed 控制下可复现；通过事件记录 combat.started/ended 与奖励/惩罚写回。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：触发/回归/确定性；GdUnit4：场景往返。",
         "priority": "medium",
         "dependencies": [
           "50",
@@ -1845,6 +1856,7 @@
           "ADR-0005"
         ],
         "archRefs": [
+          "CH04",
           "CH06",
           "CH07"
         ],
@@ -1855,7 +1867,7 @@
         "title": "模块: 每局胜利与结算界面",
         "description": "引入胜利判定与结算 UI：Core 判定并发布 game.ended，UI 展示结果并支持返回主菜单/再来一局。",
         "details": "胜负判定必须在 Core；UI 不得自判定；事件 payload 提供 winner/reason/stats_snapshot；结算界面只展示并提供按钮。",
-        "testStrategy": "?????????????????????xUnit/GdUnit4???????????? acceptance_check.py ??????",
+        "testStrategy": "xUnit：事件契约；GdUnit4：结算 UI。",
         "priority": "medium",
         "dependencies": [
           "52"
@@ -1868,6 +1880,7 @@
           "ADR-0011"
         ],
         "archRefs": [
+          "CH04",
           "CH06",
           "CH07",
           "CH10"

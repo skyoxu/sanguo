@@ -44,6 +44,7 @@ public class SanguoEconomyManagerTests
         var occurredAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var bought = await economy.TryBuyCityAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             buyerId: buyer.PlayerId,
@@ -87,6 +88,7 @@ public class SanguoEconomyManagerTests
         var buyerMoneyBefore = buyer.Money;
         var bought = await economy.TryBuyCityAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             buyerId: buyer.PlayerId,
@@ -118,6 +120,7 @@ public class SanguoEconomyManagerTests
         var ownedBefore = buyer.OwnedCityIds;
         Func<Task> act = async () => await economy.TryBuyCityAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             buyerId: buyer.PlayerId,
@@ -146,6 +149,7 @@ public class SanguoEconomyManagerTests
         var players = new[] { new SanguoPlayer(playerId: "p1", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default) };
         var bought = await economy.TryBuyCityAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             buyerId: "missing",
@@ -178,6 +182,7 @@ public class SanguoEconomyManagerTests
         var occurredAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var paid = await economy.TryPayTollAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             payerId: payer.PlayerId,
@@ -236,6 +241,7 @@ public class SanguoEconomyManagerTests
 
         var paid = await economy.TryPayTollAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             payerId: owner.PlayerId,
@@ -272,6 +278,7 @@ public class SanguoEconomyManagerTests
         var occurredAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var paid = await economy.TryPayTollAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             payerId: payer.PlayerId,
@@ -320,6 +327,7 @@ public class SanguoEconomyManagerTests
         var treasuryBefore = treasury.MinorUnits;
         Func<Task> act = async () => await economy.TryPayTollAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             payerId: payer.PlayerId,
@@ -357,6 +365,7 @@ public class SanguoEconomyManagerTests
         var treasury = new SanguoTreasury();
         var paid = await economy.TryPayTollAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             payerId: payer.PlayerId,
@@ -398,6 +407,7 @@ public class SanguoEconomyManagerTests
 
         var paid = await economy.TryPayTollAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             payerId: payer.PlayerId,
@@ -447,6 +457,7 @@ public class SanguoEconomyManagerTests
         var occurredAt = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero);
         var paid = await economy.TryPayTollAndPublishEventAsync(
             gameId: "game-1",
+            turnNumber: 1,
             players: players,
             citiesById: citiesById,
             payerId: payer.PlayerId,
@@ -509,6 +520,7 @@ public class SanguoEconomyManagerTests
         var occurredAt = new DateTimeOffset(2025, 1, 31, 0, 0, 0, TimeSpan.Zero);
         await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: settlements,
@@ -574,6 +586,7 @@ public class SanguoEconomyManagerTests
 
         await publisherA.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: settlements1,
@@ -583,6 +596,7 @@ public class SanguoEconomyManagerTests
 
         await publisherB.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: settlements2,
@@ -607,6 +621,7 @@ public class SanguoEconomyManagerTests
 
         Func<Task> act = async () => await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: Array.Empty<PlayerSettlement>(),
@@ -624,6 +639,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 1),
             currentDate: new SanguoCalendarDate(1, 1, 2),
             settlements: Array.Empty<PlayerSettlement>(),
@@ -641,6 +657,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: gameId!,
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: Array.Empty<PlayerSettlement>(),
@@ -658,6 +675,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: Array.Empty<PlayerSettlement>(),
@@ -675,6 +693,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishMonthSettlementIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             settlements: Array.Empty<PlayerSettlement>(),
@@ -700,6 +719,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 1),
             currentDate: new SanguoCalendarDate(1, 1, 2),
             season: 1,
@@ -717,6 +737,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             season: 1,
@@ -734,6 +755,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(bus);
         await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 3, 30),
             currentDate: new SanguoCalendarDate(1, 4, 1),
             season: 2,
@@ -759,6 +781,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             season: 0,
@@ -775,6 +798,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 1, 30),
             currentDate: new SanguoCalendarDate(1, 2, 1),
             season: 1,
@@ -796,6 +820,7 @@ public class SanguoEconomyManagerTests
         };
         await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 12, 30),
             currentDate: new SanguoCalendarDate(1, 1, 1),
             previousCities: previousCities,
@@ -814,6 +839,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: gameId!,
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 12, 30),
             currentDate: new SanguoCalendarDate(2, 1, 1),
             previousCities: Array.Empty<City>(),
@@ -832,6 +858,7 @@ public class SanguoEconomyManagerTests
         var economy = new SanguoEconomyManager(NullEventBus.Instance);
         Func<Task> act = async () => await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 12, 30),
             currentDate: new SanguoCalendarDate(2, 1, 1),
             previousCities: Array.Empty<City>(),
@@ -859,6 +886,7 @@ public class SanguoEconomyManagerTests
         };
         await economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(1, 12, 30),
             currentDate: new SanguoCalendarDate(2, 1, 1),
             previousCities: previousCities,

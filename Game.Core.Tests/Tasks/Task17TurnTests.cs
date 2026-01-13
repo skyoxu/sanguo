@@ -333,6 +333,7 @@ public sealed class Task17TurnTests
         var occurredAt = new DateTimeOffset(2026, 1, 3, 0, 0, 0, TimeSpan.Zero);
         var paid = await economy.TryPayTollAndPublishEventAsync(
             gameId: "g1",
+            turnNumber: 1,
             players: new[] { owner, payer },
             citiesById: citiesById,
             payerId: payer.PlayerId,
@@ -394,6 +395,7 @@ public sealed class Task17TurnTests
         {
             _ = await economy.TryPayTollAndPublishEventAsync(
                 gameId: "g1",
+                turnNumber: 1,
                 players: new[] { owner, payer },
                 citiesById: citiesById,
                 payerId: payer.PlayerId,

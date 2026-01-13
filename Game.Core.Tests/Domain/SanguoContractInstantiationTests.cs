@@ -219,12 +219,14 @@ public sealed class SanguoContractInstantiationTests
 
         var month = new SanguoMonthSettled(
             GameId: "game-1",
+            TurnNumber: 1,
             Year: 200,
             Month: 1,
             PlayerSettlements: settlements,
             OccurredAt: now,
             CorrelationId: "corr-1",
-            CausationId: null
+            CausationId: null,
+            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
         );
         month.GameId.Should().Be("game-1");
         month.Year.Should().Be(200);
@@ -236,13 +238,15 @@ public sealed class SanguoContractInstantiationTests
 
         var season = new SanguoSeasonEventApplied(
             GameId: "game-1",
+            TurnNumber: 1,
             Year: 200,
             Season: 1,
             AffectedRegionIds: new[] { "r1", "r2" },
             YieldMultiplier: 0.9m,
             OccurredAt: now,
             CorrelationId: "corr-1",
-            CausationId: null
+            CausationId: null,
+            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
         );
         season.GameId.Should().Be("game-1");
         season.Year.Should().Be(200);
@@ -255,13 +259,15 @@ public sealed class SanguoContractInstantiationTests
 
         var priceAdjusted = new SanguoYearPriceAdjusted(
             GameId: "game-1",
+            TurnNumber: 1,
             Year: 200,
             CityId: "c1",
             OldPrice: 1000m,
             NewPrice: 1200m,
             OccurredAt: now,
             CorrelationId: "corr-1",
-            CausationId: null
+            CausationId: null,
+            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
         );
         priceAdjusted.GameId.Should().Be("game-1");
         priceAdjusted.Year.Should().Be(200);
@@ -274,12 +280,14 @@ public sealed class SanguoContractInstantiationTests
 
         var cityBought = new SanguoCityBought(
             GameId: "game-1",
+            TurnNumber: 1,
             BuyerId: "p1",
             CityId: "c1",
             Price: 1200m,
             OccurredAt: now,
             CorrelationId: "corr-1",
-            CausationId: null
+            CausationId: null,
+            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
         );
         cityBought.GameId.Should().Be("game-1");
         cityBought.BuyerId.Should().Be("p1");
@@ -291,6 +299,7 @@ public sealed class SanguoContractInstantiationTests
 
         var tollPaid = new SanguoCityTollPaid(
             GameId: "game-1",
+            TurnNumber: 1,
             PayerId: "p2",
             OwnerId: "p1",
             CityId: "c1",
@@ -299,7 +308,8 @@ public sealed class SanguoContractInstantiationTests
             TreasuryOverflow: 0m,
             OccurredAt: now,
             CorrelationId: "corr-1",
-            CausationId: null
+            CausationId: null,
+            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
         );
         tollPaid.GameId.Should().Be("game-1");
         tollPaid.PayerId.Should().Be("p2");

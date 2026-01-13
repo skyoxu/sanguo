@@ -2992,7 +2992,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md"
     ],
     "acceptance": [
       "提供唯一开局配置 GameStartConfig：map_id、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、random_seed、character_assignments(全局唯一)。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
@@ -3006,6 +3006,9 @@
     "test_strategy": [
       "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。",
       "GdUnit4：走一遍新游戏配置界面并断言 started 事件被发布。"
+    ],
+    "contractRefs": [
+      "core.sanguo.game.started"
     ]
   },
   {
@@ -3041,7 +3044,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md"
     ],
     "acceptance": [
       "锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)，所有 multiplier 仅允许 0.5 步进。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
@@ -3056,6 +3059,13 @@
     "test_strategy": [
       "xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。",
       "GdUnit4：UI 仅展示，不做计算回归。"
+    ],
+    "contractRefs": [
+      "core.sanguo.city.bought",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.month.settled",
+      "core.sanguo.economy.season.event.applied",
+      "core.sanguo.economy.year.price.adjusted"
     ]
   },
   {
@@ -3093,7 +3103,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
     ],
     "acceptance": [
       "回合状态机包含 TurnPhase.BeforeRoll，且每回合 BeforeRoll 最多允许 1 张行动卡；超出必须拒绝并可审计。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
@@ -3107,6 +3117,12 @@
     ],
     "test_strategy": [
       "xUnit：状态机窗口与乱序事件回归。"
+    ],
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.action_card.played",
+      "core.sanguo.dice.rolled",
+      "core.sanguo.game.turn.advanced"
     ]
   },
   {
@@ -3145,7 +3161,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
     ],
     "acceptance": [
       "提供地图索引：res://Data/maps/_index.json（包含 map_id/name/description/preview_path）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
@@ -3159,7 +3175,8 @@
     ],
     "test_strategy": [
       "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。"
-    ]
+    ],
+    "contractRefs": []
   },
   {
     "id": "SG-0054",
@@ -3196,7 +3213,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md"
     ],
     "acceptance": [
       "新游戏配置界面提供：选地图、人数(4-8)、初始资金档(5000/10000/20000)、全局事件间隔(5/10/20)、玩家选角。 Refs: Tests.Godot/tests/UI/test_task54_new_game_setup_ui.gd",
@@ -3210,6 +3227,9 @@
     ],
     "test_strategy": [
       "GdUnit4：走 UI 配置→开始游戏；xUnit：角色分配唯一性。"
+    ],
+    "contractRefs": [
+      "core.sanguo.game.started"
     ]
   },
   {
@@ -3245,7 +3265,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
     ],
     "acceptance": [
       "角色配置来自 res://Data/characters.json，包含 6 角色与 portrait_path(res://)。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
@@ -3259,6 +3279,9 @@
     ],
     "test_strategy": [
       "xUnit：解析/口径/事件快照测试。"
+    ],
+    "contractRefs": [
+      "core.sanguo.game.started"
     ]
   },
   {
@@ -3296,7 +3319,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
     ],
     "acceptance": [
       "事件池统一两类触发：事件格触发 + 每N回合全局触发（N∈{5,10,20}），且 random_seed 可复现。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
@@ -3310,6 +3333,9 @@
     ],
     "test_strategy": [
       "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。"
+    ],
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
     ]
   },
   {
@@ -3345,7 +3371,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
     ],
     "acceptance": [
       "行动卡定义仅允许 multiplier_step_delta，不允许直接改钱/改所有权。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
@@ -3359,6 +3385,9 @@
     ],
     "test_strategy": [
       "xUnit：策略与窗口；GdUnit4：最小 UI 流程。"
+    ],
+    "contractRefs": [
+      "core.sanguo.action_card.played"
     ]
   },
   {
@@ -3393,7 +3422,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
     ],
     "acceptance": [
       "建筑定义仅允许 multiplier_step_delta，并与合成规则一致。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
@@ -3407,6 +3436,9 @@
     ],
     "test_strategy": [
       "xUnit：配置/窗口；GdUnit4：actions 与 owner label。"
+    ],
+    "contractRefs": [
+      "core.sanguo.building.built"
     ]
   },
   {
@@ -3442,7 +3474,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md"
     ],
     "acceptance": [
       "PVE 可从地图关隘或事件触发进入战斗，结束后回主循环推进。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
@@ -3456,6 +3488,10 @@
     ],
     "test_strategy": [
       "xUnit：触发/回归/确定性；GdUnit4：场景往返。"
+    ],
+    "contractRefs": [
+      "core.sanguo.combat.started",
+      "core.sanguo.combat.ended"
     ]
   },
   {
@@ -3491,7 +3527,7 @@
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
     ],
     "acceptance": [
       "胜负判定在 Core；发布 core.sanguo.game.ended（或等价），payload 含 winner/reason/stats_snapshot；UI 不得自判定。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
@@ -3503,6 +3539,9 @@
     ],
     "test_strategy": [
       "xUnit：事件契约；GdUnit4：结算 UI。"
+    ],
+    "contractRefs": [
+      "core.sanguo.game.ended"
     ]
   }
 ]

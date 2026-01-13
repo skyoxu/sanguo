@@ -41,6 +41,7 @@ public sealed class Task15QuarterEventTests
 
         await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(year: 1, month: 3, day: 30),
             currentDate: new SanguoCalendarDate(year: 1, month: 4, day: 1),
             season: 2,
@@ -78,6 +79,7 @@ public sealed class Task15QuarterEventTests
 
         await economy.PublishSeasonEventIfBoundaryAsync(
             gameId: "game-1",
+            turnNumber: 1,
             previousDate: new SanguoCalendarDate(year: 1, month: 4, day: 1),
             currentDate: new SanguoCalendarDate(year: 1, month: 4, day: 2),
             season: 2,
