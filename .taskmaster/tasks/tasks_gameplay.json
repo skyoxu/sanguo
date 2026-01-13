@@ -1570,6 +1570,67 @@
     ]
   },
   {
+    "id": "GM-0025",
+    "taskmaster_id": 25,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-AI-OPT",
+    "title": "实现AI策略优化",
+    "description": "优化AI的决策策略。",
+    "status": "done",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "ai",
+      "tuning",
+      "t2-gameplay"
+    ],
+    "depends_on": [
+      "GM-0011"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task25AiTests.cs"
+    ],
+    "acceptance": [
+      "AI 决策的核心玩法相关类与方法在 Game.Core 中实现，并且可在单元测试中运行且不依赖 Godot API。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "AI 策略分析（Subtask 25.1）：基线策略决策需可被单元测试稳定复现，并在决策结果中给出可回归的归因信息（DecisionNode/Reason）；同时明确其已知限制：会按玩家在 RollDice/Skip 之间交替，且不依赖 Money/Position/OwnedCityIds 等输入。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "AI 策略优化（Subtask 25.2）：提供可切换的优化策略与基线策略；优化策略必须在至少 1 个核心输入维度（例如 Money）变化时给出不同的可回归归因信息（Reason/DecisionNode），并在至少 1 个回归局面中相对基线避免无意义 Skip（例如基线为 Skip 时优化策略为 RollDice），由单元测试断言。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "回合循环安全性：任一 AI 策略在玩家已淘汰（IsEliminated=true）时必须返回 Skip（并给出稳定 Reason），用于保证回合循环安全性。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
+      "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Tasks/Task25AiTests.cs"
+    ],
+    "contractRefs": [
+      "core.sanguo.ai.decision.made"
+    ]
+  },
+  {
     "id": "GM-0050",
     "taskmaster_id": 50,
     "taskmaster_exported": true,
@@ -1602,10 +1663,13 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.started"
+    ],
     "acceptance": [
       "提供唯一开局配置 GameStartConfig：map_id、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、random_seed、character_assignments(全局唯一)。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
       "地图列表只允许从 res://Data/maps/_index.json 加载，不扫描目录。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
@@ -1651,10 +1715,17 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.city.bought",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.month.settled",
+      "core.sanguo.economy.season.event.applied",
+      "core.sanguo.economy.year.price.adjusted"
+    ],
     "acceptance": [
       "锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)，所有 multiplier 仅允许 0.5 步进。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
       "所有经济相关域事件 payload 必须包含 applied_multipliers（含各因子与最终值）。 Refs: Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
@@ -1703,10 +1774,16 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.action_card.played",
+      "core.sanguo.dice.rolled",
+      "core.sanguo.game.turn.advanced"
+    ],
     "acceptance": [
       "回合状态机包含 TurnPhase.BeforeRoll，且每回合 BeforeRoll 最多允许 1 张行动卡；超出必须拒绝并可审计。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
       "事件触发统一：事件格触发 OnTileEvent；每N回合触发 OnGlobalTurnEvent（N∈{5,10,20}）；两者走同一 RandomEventPool。 Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs",
@@ -1755,8 +1832,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
     ],
     "contractRefs": [],
     "acceptance": [
@@ -1806,10 +1884,13 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.started"
+    ],
     "acceptance": [
       "新游戏配置界面提供：选地图、人数(4-8)、初始资金档(5000/10000/20000)、全局事件间隔(5/10/20)、玩家选角。 Refs: Tests.Godot/tests/UI/test_task54_new_game_setup_ui.gd",
       "AI 自动补位并随机选角，角色全局唯一且不可与玩家重复。 Refs: Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs",
@@ -1855,10 +1936,13 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.started"
+    ],
     "acceptance": [
       "角色配置来自 res://Data/characters.json，包含 6 角色与 portrait_path(res://)。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
       "初始资金口径：money0 = StartingMoneyPreset * starting_money_multiplier。 Refs: Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs",
@@ -1906,10 +1990,13 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
+    ],
     "acceptance": [
       "事件池统一两类触发：事件格触发 + 每N回合全局触发（N∈{5,10,20}），且 random_seed 可复现。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
       "事件效果仅允许 multiplier_step_delta（+1=+0.5），进入 applied_multipliers.event 并走合成与 clamp。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
@@ -1955,10 +2042,13 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.action_card.played"
+    ],
     "acceptance": [
       "行动卡定义仅允许 multiplier_step_delta，不允许直接改钱/改所有权。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
       "BeforeRoll 每回合最多 1 张，出牌发布 action_card.played，并影响 applied_multipliers.action_card。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
@@ -2003,10 +2093,13 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.building.built"
+    ],
     "acceptance": [
       "建筑定义仅允许 multiplier_step_delta，并与合成规则一致。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
       "建造入口限定“停留在自有城市”，并发布 building.built/upgraded，影响 applied_multipliers.building。 Refs: Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
@@ -2052,10 +2145,14 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.combat.started",
+      "core.sanguo.combat.ended"
+    ],
     "acceptance": [
       "PVE 可从地图关隘或事件触发进入战斗，结束后回主循环推进。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
       "本阶段不引入战斗卡池；战斗结果在 random_seed 控制下可复现。 Refs: Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
@@ -2101,10 +2198,13 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ],
     "acceptance": [
       "胜负判定在 Core；发布 core.sanguo.game.ended（或等价），payload 含 winner/reason/stats_snapshot；UI 不得自判定。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
       "结算界面展示胜者与关键统计，并提供“返回主菜单/再来一局”。 Refs: Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd"

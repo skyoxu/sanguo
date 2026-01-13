@@ -322,9 +322,13 @@ public partial class HUD : Control
             playerId = ap.GetString();
         }
 
+        var multiplierSuffix = BuildAppliedMultipliersSuffix(root);
+
         if (root.TryGetProperty("Value", out var value) && value.ValueKind == JsonValueKind.Number)
         {
-            return string.IsNullOrWhiteSpace(playerId) ? $"{type} value={value}" : $"{type} player={playerId} value={value}";
+            return string.IsNullOrWhiteSpace(playerId)
+                ? $"{type} value={value}{multiplierSuffix}"
+                : $"{type} player={playerId} value={value}{multiplierSuffix}";
         }
 
         if (root.TryGetProperty("CityId", out var cityId))
@@ -336,10 +340,95 @@ public partial class HUD : Control
                 summary += $" price={price}";
             }
 
-            return summary;
+            return summary + multiplierSuffix;
         }
 
-        return string.IsNullOrWhiteSpace(playerId) ? type : $"{type} player={playerId}";
+        return string.IsNullOrWhiteSpace(playerId) ? type + multiplierSuffix : $"{type} player={playerId}{multiplierSuffix}";
+    }
+
+    private static string BuildAppliedMultipliersSuffix(JsonElement root)
+    {
+        if (!TryGetPropertyLoose(root, "AppliedMultipliers", out var m) || m.ValueKind != JsonValueKind.Object)
+        {
+            return string.Empty;
+        }
+
+        if (!TryGetPropertyLoose(m, "Effective", out var effective) || effective.ValueKind != JsonValueKind.Number)
+        {
+            return string.Empty;
+        }
+
+        var suffix = $" mult={effective}";
+
+        var sources = 0;
+        if (TryGetPropertyLoose(m, "Sources", out var src))
+        {
+            if (src.ValueKind == JsonValueKind.Number && src.TryGetInt32(out var n))
+            {
+                sources = n;
+            }
+            else if (src.ValueKind == JsonValueKind.String && int.TryParse(src.GetString(), out var parsed))
+            {
+                sources = parsed;
+            }
+        }
+
+        if (sources == 0)
+        {
+            return suffix;
+        }
+
+        // Only display breakdown factors when Sources indicates they are trustworthy.
+        // UI must not compute money; it only echoes the event payload values.
+        if ((sources & 1) != 0 && TryGetPropertyLoose(m, "Character", out var c) && c.ValueKind == JsonValueKind.Number)
+        {
+            suffix += $" c={c}";
+        }
+
+        if ((sources & 2) != 0 && TryGetPropertyLoose(m, "Building", out var b) && b.ValueKind == JsonValueKind.Number)
+        {
+            suffix += $" b={b}";
+        }
+
+        if ((sources & 4) != 0 && TryGetPropertyLoose(m, "Event", out var e) && e.ValueKind == JsonValueKind.Number)
+        {
+            suffix += $" e={e}";
+        }
+
+        if ((sources & 8) != 0 && TryGetPropertyLoose(m, "ActionCard", out var a) && a.ValueKind == JsonValueKind.Number)
+        {
+            suffix += $" a={a}";
+        }
+
+        return suffix;
+    }
+
+    private static bool TryGetPropertyLoose(JsonElement obj, string expectedName, out JsonElement value)
+    {
+        if (obj.ValueKind != JsonValueKind.Object)
+        {
+            value = default;
+            return false;
+        }
+
+        foreach (var p in obj.EnumerateObject())
+        {
+            var name = p.Name;
+            if (string.Equals(name, expectedName, StringComparison.OrdinalIgnoreCase))
+            {
+                value = p.Value;
+                return true;
+            }
+
+            if (string.Equals(name.Trim(), expectedName, StringComparison.OrdinalIgnoreCase))
+            {
+                value = p.Value;
+                return true;
+            }
+        }
+
+        value = default;
+        return false;
     }
 
     private void RegisterHandlers()

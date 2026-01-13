@@ -36,6 +36,18 @@ Test-Refs:
 - [ ] Overlay 索引存在且链接可点击: `docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md`
 - [ ] 玩法闭环文档存在: `docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md`
 - [ ] 开局配置与模块骨架文档存在: `docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md`
+- [ ] T50–T60 拆页文档存在（按任务拆分）:
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md`
+  - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md`
 - [ ] 城池所有权模型文档存在: `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t2-city-ownership-model.md`
 - [ ] 本验收清单存在并被索引引用: `docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md`
 

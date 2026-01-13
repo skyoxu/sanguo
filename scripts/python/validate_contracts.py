@@ -12,7 +12,7 @@ Responsibilities:
 
 Exit code:
 - 0 if no blocking issues are found.
-- 1 if missing contract files are detected.
+- 1 if missing contract files are detected, or if an enabled hard gate fails.
 """
 
 from __future__ import annotations
@@ -90,7 +90,7 @@ def find_all_contract_files(root: Path) -> List[str]:
     return results
 
 
-def build_report(root: Path) -> Dict[str, object]:
+def build_report(root: Path, *, hard_gate_contracts_without_docs: bool) -> Dict[str, object]:
     """Build validation report for contracts and overlay docs."""
 
     overlay_docs = find_overlay_docs(root)
@@ -129,10 +129,23 @@ def build_report(root: Path) -> Dict[str, object]:
         c for c in all_contracts if c not in referenced_contracts
     ]
 
+    hard_gate_failures: List[Dict[str, object]] = []
     ok = not missing_contract_files
+
+    if hard_gate_contracts_without_docs and contracts_without_docs:
+        ok = False
+        hard_gate_failures.append(
+            {
+                "gate": "contracts_without_docs",
+                "count": len(contracts_without_docs),
+                "note": "Contracts exist on disk but are not referenced by any overlay 08 doc.",
+            }
+        )
 
     return {
         "ok": ok,
+        "hard_gate_contracts_without_docs": hard_gate_contracts_without_docs,
+        "hard_gate_failures": hard_gate_failures,
         "overlay_docs_count": len(overlay_docs),
         "referenced_contracts_count": len(referenced_contracts),
         "all_contracts_count": len(all_contracts),
@@ -168,11 +181,22 @@ def main(argv: list[str] | None = None) -> int:
         default=".",
         help="Project root directory (default: current directory)",
     )
+    parser.add_argument(
+        "--hard-gate-contracts-without-docs",
+        action="store_true",
+        help=(
+            "Fail if any contract exists under Game.Core/Contracts but is not "
+            "referenced by an overlay 08 doc."
+        ),
+    )
 
     args = parser.parse_args(argv)
     root = Path(args.root).resolve()
 
-    report = build_report(root)
+    report = build_report(
+        root,
+        hard_gate_contracts_without_docs=bool(args.hard_gate_contracts_without_docs),
+    )
     out_path = write_report(root, report)
 
     print(f"Contracts validation report written to: {out_path}")

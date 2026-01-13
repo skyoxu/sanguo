@@ -254,6 +254,7 @@ public sealed class SanguoTurnManager
                 settlements = _economy.SettleMonth(_boardState, _playerOrder, _treasury);
                 await _economy.PublishMonthSettlementIfBoundaryAsync(
                     gameId: _gameId,
+                    turnNumber: _turnNumber,
                     previousDate: previousDate,
                     currentDate: _currentDate,
                     settlements: settlements,
@@ -278,6 +279,7 @@ public sealed class SanguoTurnManager
         {
             await _economy.PublishMonthSettlementIfBoundaryAsync(
                 gameId: _gameId,
+                turnNumber: _turnNumber,
                 previousDate: previousDate,
                 currentDate: _currentDate,
                 settlements: settlements,
@@ -318,6 +320,7 @@ public sealed class SanguoTurnManager
 
                     await _economy.PublishSeasonEventIfBoundaryAsync(
                         gameId: _gameId,
+                        turnNumber: _turnNumber,
                         previousDate: previousDate,
                         currentDate: _currentDate,
                         season: currentSeason,
@@ -340,6 +343,7 @@ public sealed class SanguoTurnManager
 
         await _economy.PublishYearlyPriceAdjustmentIfBoundaryAsync(
             gameId: _gameId,
+            turnNumber: _turnNumber,
             previousDate: previousDate,
             currentDate: _currentDate,
             previousCities: citiesBeforeYearly,
@@ -478,6 +482,7 @@ public sealed class SanguoTurnManager
                 {
                     var paid = await _economy.TryPayTollAndPublishEventAsync(
                         gameId: gameId,
+                        turnNumber: _turnNumber,
                         players: players,
                         citiesById: citiesById,
                         treasury: _treasury,
@@ -498,6 +503,7 @@ public sealed class SanguoTurnManager
                 {
                     _ = await _economy.TryBuyCityAndPublishEventAsync(
                         gameId: gameId,
+                        turnNumber: _turnNumber,
                         players: players,
                         citiesById: citiesById,
                         buyerId: playerId,
@@ -576,6 +582,7 @@ public sealed class SanguoTurnManager
 
         var bought = await _economy.TryBuyCityAndPublishEventAsync(
             gameId: _gameId,
+            turnNumber: _turnNumber,
             players: players,
             citiesById: citiesById,
             buyerId: activePlayerId,
@@ -914,6 +921,7 @@ public sealed class SanguoTurnManager
             {
                 _ = await _economy.TryPayTollAndPublishEventAsync(
                     gameId: _gameId,
+                    turnNumber: _turnNumber,
                     players: players,
                     citiesById: citiesById,
                     treasury: _treasury,
@@ -929,6 +937,7 @@ public sealed class SanguoTurnManager
 
         _ = await _economy.TryBuyCityAndPublishEventAsync(
             gameId: _gameId,
+            turnNumber: _turnNumber,
             players: players,
             citiesById: citiesById,
             buyerId: aiPlayerId,
@@ -1199,12 +1208,19 @@ public sealed class SanguoTurnManager
                     Source: nameof(SanguoTurnManager),
                     Data: JsonElementEventData.FromObject(new SanguoCityBought(
                         GameId: _gameId,
+                        TurnNumber: _turnNumber,
                         BuyerId: pid,
                         CityId: cityId,
                         Price: city.BasePrice.ToDecimal(),
                         OccurredAt: occurredAt,
                         CorrelationId: correlationId,
-                        CausationId: causationId
+                        CausationId: causationId,
+                        AppliedMultipliers: new AppliedMultipliers(
+                            Character: 1.0m,
+                            Building: 1.0m,
+                            Event: 1.0m,
+                            ActionCard: 1.0m,
+                            Effective: 1.0m)
                     )),
                     Timestamp: occurredAt.UtcDateTime,
                     Id: Guid.NewGuid().ToString("N")
