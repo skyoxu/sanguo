@@ -12,7 +12,7 @@ Responsibilities:
 
 Exit code:
 - 0 if no blocking issues are found.
-- 1 if missing contract files or docs without any contract references are detected.
+- 1 if missing contract files are detected.
 """
 
 from __future__ import annotations

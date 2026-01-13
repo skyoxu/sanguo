@@ -101,7 +101,81 @@ UI 仅展示事件 payload/投影字段，不得在 UI 侧自行计算金额。
 - 事件命名遵循 ADR-0004（`core.sanguo.*`），禁止魔法字符串散落。
 - 新增或扩展事件时，必须包含必要的关联字段与 `applied_multipliers` 快照（见上文）。
 
-## 8.x.4 Taskmaster 任务映射（T50–T60）
+## 8.x.4 契约定义（新增/扩展清单）
+
+说明：以下仅列“事件名/触发时机/字段要点/契约位置”，字段以 Contracts 为准；本文不复制完整代码，以免口径漂移。
+
+### 领域事件（core.*）
+
+- **SanguoGameStarted** (`core.sanguo.game.started`)
+  - 触发时机：从 `GameStartConfig` 创建新游戏并进入可玩主循环后
+  - 字段要点：`GameId`, `MapId`, `PlayersCount`, `StartingMoneyPreset`, `GlobalEventIntervalTurns`, `RandomSeed`, `PlayerOrder`, `CharacterAssignments`, `OccurredAt`, `CorrelationId`, `CausationId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/GameEvents.cs`
+
+- **SanguoActionCardPlayed** (`core.sanguo.action_card.played`)
+  - 触发时机：`TurnPhase.BeforeRoll` 使用行动卡后
+  - 字段要点：`GameId`, `PlayerId`, `CardId`, `MultiplierStepDelta`, `OccurredAt`, `CorrelationId`, `CausationId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+
+- **SanguoRandomEventApplied** (`core.sanguo.random_event.applied`)
+  - 触发时机：事件格触发或每 N 回合全局事件触发时
+  - 字段要点：`GameId`, `PlayerId`, `EventId`, `MultiplierStepDelta`, `OccurredAt`, `CorrelationId`, `CausationId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+
+- **SanguoBuildingBuilt** (`core.sanguo.building.built`)
+  - 触发时机：停留在自有城市并建造/升级建筑后
+  - 字段要点：`GameId`, `PlayerId`, `CityId`, `BuildingId`, `MultiplierStepDelta`, `OccurredAt`, `CorrelationId`, `CausationId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+
+- **SanguoCombatStarted / SanguoCombatEnded** (`core.sanguo.combat.started` / `core.sanguo.combat.ended`)
+  - 触发时机：从关隘或事件触发进入战斗；战斗结束并回写结果后
+  - 字段要点：`GameId`, `PlayerId`, `EncounterId`, `RandomSeed`, `Result(Outcome/MoneyDelta)`, `OccurredAt`, `CorrelationId`, `CausationId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoCombatContracts.cs`
+
+- **SanguoGameEnded** (`core.sanguo.game.ended`)（扩展）
+  - 触发时机：Core 判定胜负并进入结算界面前
+  - 字段要点：`GameId`, `EndReason`, `WinnerPlayerId(可空)`, `StatsSnapshot(可空)`, `OccurredAt`, `CorrelationId`, `CausationId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/GameEvents.cs`
+
+### DTO（配置/快照/输入输出）
+
+- **GameStartConfig**
+  - 用途：新游戏唯一开局输入（可序列化用于审计/存档；配置模板来自 `res://`）
+  - 字段要点：`MapId`, `PlayersCount`, `StartingMoneyPreset`, `GlobalEventIntervalTurns`, `RandomSeed`, `CharacterAssignments`
+  - 契约位置：`Game.Core/Contracts/Sanguo/GameStartConfig.cs`
+
+- **AppliedMultipliers**
+  - 用途：经济计算使用的倍率快照；UI 只展示不得参与计算
+  - 字段要点：`Character`, `Building`, `Event`, `ActionCard`, `Effective`
+  - 契约位置：`Game.Core/Contracts/Sanguo/AppliedMultipliers.cs`
+
+- **SanguoTurnPhase**
+  - 用途：锁死“行动卡窗口/出牌次数/事件触发顺序”等可测口径
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoTurnPhase.cs`
+
+- **SanguoCharacterDefinition / SanguoCharacterEconomy**
+  - 用途：角色只读配置（经济系数属于角色；Core 计算、UI 展示）
+  - 字段要点：`CharacterId`, `Name`, `Description`, `PortraitPath`, `Economy(BuyPriceMultiplier/TollMultiplier/MonthSettlementMultiplier)`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs`
+
+- **SanguoActionCardDefinition / SanguoRandomEventDefinition / SanguoBuildingDefinition**
+  - 用途：卡牌/随机事件/建筑配置（止损版仅允许 `MultiplierStepDelta` 效果输入）
+  - 契约位置：
+    - `Game.Core/Contracts/Sanguo/SanguoActionCardDefinition.cs`
+    - `Game.Core/Contracts/Sanguo/SanguoRandomEventDefinition.cs`
+    - `Game.Core/Contracts/Sanguo/SanguoBuildingDefinition.cs`
+
+- **SanguoGameEndStatsSnapshot / SanguoGameEndPlayerStats**
+  - 用途：结算界面展示用快照（UI 不得自判定胜负）
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoGameEndStatsSnapshot.cs`
+
+### 接口契约（Ports）
+
+本阶段不新增 Ports；优先复用既有端口（保持 Core 可单测）：
+- `Game.Core/Ports/IResourceLoader.cs`：读取 `res://Data/**.json`（地图/角色/事件/卡牌/建筑配置）
+- `Game.Core/Services/IEventBus`（位于 `Game.Core/Services/EventBus.cs`）：发布领域事件（ADR-0004）
+
+## 8.x.5 Taskmaster 任务映射（T50–T60）
 
 本纵切与任务映射如下（按 Spine → Modules 顺序）：
 

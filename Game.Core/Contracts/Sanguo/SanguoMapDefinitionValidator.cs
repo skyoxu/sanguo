@@ -57,6 +57,8 @@ public static class SanguoMapDefinitionValidator
             var normalizedType = (tile.TileType ?? "").Trim().ToLowerInvariant();
             if (normalizedType != SanguoTileDefinition.TileTypeCity
                 && normalizedType != SanguoTileDefinition.TileTypePass
+                && normalizedType != SanguoTileDefinition.TileTypeEvent
+                && normalizedType != SanguoTileDefinition.TileTypeEmpty
                 && normalizedType != SanguoTileDefinition.TileTypeWild)
             {
                 list.Add($"Unsupported TileType '{tile.TileType}' (pos={tile.PositionIndex}).");

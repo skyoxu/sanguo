@@ -305,6 +305,11 @@ internal sealed class SanguoBoardTileOverlay
             return TileBaseWild;
         }
 
+        if (normalized == "event")
+        {
+            return TileBaseWild;
+        }
+
         return (index % 2 == 0) ? TileBaseA : TileBaseB;
     }
 
