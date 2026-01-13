@@ -43,8 +43,12 @@
 - `labels`：
   - 如 `"labels": ["t2-playable", "gm-core-loop", "godot-csharp"]`。
 - `layer`：
-  - NG-0020/0021：`"crosscutting"` 或类似。
-  - GM-0101/0103：`"core"`。
+  - 本仓库允许值仅为：`docs|core|adapter|ci`（视图任务文件会被 `scripts/python/validate_task_master_triplet.py` 校验）。
+  - 通常映射：
+    - 纯 C# 领域逻辑 / 单测（Game.Core/**）：`core`
+    - Godot 侧脚本/场景/GUI/GdUnit4（Game.Godot/**、Tests.Godot/**）：`adapter`
+    - 文档/PRD/Overlay：`docs`
+    - 脚本/流水线/门禁：`ci`
 - `adr_refs`：至少包含：
   - `ADR-0018`（Godot+C# 技术栈）、`ADR-0019`（安全基线）、`ADR-0003`（可观测性）、
     `ADR-0004`（事件总线）、`ADR-0005`（质量门禁）、`ADR-0025`（测试策略）等。

@@ -6,7 +6,7 @@
     "description": "在 Godot 4.x 中创建并初始化新项目，并完成 C# 支持配置与所需 Mono/.NET SDK 环境准备，以确保项目可被引擎正常打开运行且 C# 脚本可加载执行。",
     "status": "done",
     "priority": "P1",
-    "layer": "infra",
+    "layer": "ci",
     "depends_on": [],
     "adr_refs": [
       "ADR-0005",
@@ -515,7 +515,7 @@
     "description": "在 Godot 中设计 UI，包括玩家信息面板、骰子按钮、事件提示框、资金与日期显示等，将核心显示元素组织为可复用场景（HUD、对话框、日志面板），避免在脚本中堆叠控件创建逻辑。控件选择与布局可参考 Godot 官方演示项目 gui/control_gallery、gui/accessibility 中的最佳实践，在此基础上使用项目自定义主题统一视觉风格。",
     "status": "done",
     "priority": "P2",
-    "layer": "ui",
+    "layer": "adapter",
     "depends_on": [
       "SG-0001"
     ],
@@ -564,62 +564,6 @@
     ],
     "taskmaster_id": 9,
     "taskmaster_exported": true
-  },
-  {
-    "id": "SG-0022",
-    "story_id": "PRD-SANGUO-T2-UI-DICE",
-    "title": "实现UI骰子结果显示",
-    "description": "在UI上显示骰子投掷结果。",
-    "status": "done",
-    "priority": "P2",
-    "layer": "ui",
-    "depends_on": [
-      "SG-0009",
-      "SG-0005"
-    ],
-    "adr_refs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "chapter_refs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
-    ],
-    "labels": [
-      "ui",
-      "dice"
-    ],
-    "owner": "gameplay",
-    "test_refs": [
-      "Tests.Godot/tests/UI/test_hud_scene.gd",
-      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
-    ],
-    "acceptance": [
-      "对应的 Godot 场景与相关 UI 控件在 headless 冒烟测试中可被实例化/加载且无错误，并能定位到用于展示骰子结果的控件。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "当收到 core.sanguo.dice.rolled 事件后，HUD 的 DiceButton 文本会更新为 \"Dice: <Value>\" 以展示最近一次掷骰结果。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "当短时间内连续收到多次 core.sanguo.dice.rolled 事件时，HUD 必须以最后一次事件的 Value 为准更新 DiceButton 文本（后到覆盖先到）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
-    ],
-    "test_strategy": [
-      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
-      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "Optional: 同一局面下收到非当前玩家的 core.sanguo.dice.rolled 时，不得错误覆盖当前显示（防串台）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
-    ],
-    "taskmaster_id": 22,
-    "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.dice.rolled"
-    ]
   },
   {
     "id": "SG-0010",
@@ -682,6 +626,76 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.board.token.moved"
+    ]
+  },
+  {
+    "id": "SG-0011",
+    "story_id": "PRD-SANGUO-T2-AI-CORE",
+    "title": "实现AI行为",
+    "description": "设计AI的基本行动逻辑。",
+    "status": "done",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0004",
+      "SG-0010"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0018",
+      "ADR-0020",
+      "ADR-0021",
+      "ADR-0024",
+      "ADR-0025",
+      "ADR-0030"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "ai",
+      "agent"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
+      "Game.Core.Tests/Domain/SanguoPlayerViewTests.cs"
+    ],
+    "acceptance": [
+      "AI 回合内的决策与行动逻辑在 `Game.Core` 中实现，可通过纯 .NET 单元测试验证，且不依赖任何 Godot API。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "AI 在决策时只依赖玩家状态的只读视图/快照（`ISanguoPlayerView`，可由 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView`），不得直接持有可变的 `SanguoPlayer` 实体以避免跨线程/并发访问风险；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs",
+      "当轮到 AI 玩家行动时，系统会自动产出一个可审计的“AI 决策结果”并发布 `core.sanguo.ai.decision.made` 事件；初期事件的决策类型至少覆盖 RollDice/Skip，且单测可验证事件载荷包含 `GameId`/`AiPlayerId`/`CorrelationId`。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "AI 初期采用简单贪心策略并遵循与玩家一致的结算规则：资金允许时优先买地；踩到他人地块时按规则支付费用；同时决策策略通过可替换接口/策略注入到回合管理或 AI 行为组件中，确保后续可演进为有限状态机/行为树而不需要改动回合循环骨干。 Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
+      "单元测试至少包含：1) 钉死 AI 回合会触发并发布决策事件；2) 钉死 AI 决策仅使用 `ISanguoPlayerView` 快照输入而非直接使用 `SanguoPlayer` 实体；并对贪心策略关键分支（买地/付费）有可观察断言。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs, Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
+      "状态机接口（Subtask 11.2）：AI 行为的决策层必须显式提供可扩展的“决策扩展点”接口（例如 `ISanguoAiDecisionPolicy`，或可适配为 FSM/行为树 的等价抽象），且默认贪心策略可作为其中一种实现被替换；接口与实现均不依赖 Godot API；单测验证替换后回合执行仍稳定且不抛异常。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "多轮稳定性测试（Subtask 11.3）：单测需模拟多轮 AI 行动（建议 ≥ 20 回合，固定随机种子/确定性输入），覆盖资金不足与无可购买地块两类极端情况；断言 AI 仍能稳定执行回合且不会越权修改他人状态（状态变更必须走与玩家一致的规则入口）。 Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs"
+    ],
+    "test_strategy": [
+      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
+      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
+      "AI 身份判定约定：当前以 PlayerId 前缀 `ai-` 作为“AI 玩家”识别规则（见 `Game.Core/Services/SanguoTurnManager.cs:IsAiPlayerId`）；此约定需由单元测试钉死，避免未来 ID 生成策略变更导致 AI 不行动或误行动。",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
+      "新增单测：AI 行为仅依赖 `ISanguoPlayerView`/`SanguoPlayerView` 输入；模拟后台线程调用时不得触发 `ThreadAccessGuard`（即不直接调用 `SanguoPlayer` 上的方法）。",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
+      "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
+    ],
+    "taskmaster_id": 11,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.ai.decision.made"
     ]
   },
   {
@@ -770,68 +784,6 @@
     ]
   },
   {
-    "id": "SG-0023",
-    "story_id": "PRD-SANGUO-T2-UI-CITY-STATE",
-    "title": "实现UI城池状态显示",
-    "description": "在UI上显示城池的占有状态。根据城池的占有情况，更新UI显示。",
-    "status": "done",
-    "priority": "P2",
-    "layer": "ui",
-    "depends_on": [
-      "SG-0009",
-      "SG-0012"
-    ],
-    "adr_refs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "chapter_refs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
-    ],
-    "labels": [
-      "ui",
-      "city"
-    ],
-    "owner": "gameplay",
-    "test_refs": [
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
-    ],
-    "acceptance": [
-      "包含城池占有状态显示的 UI 场景与控件在 headless 冒烟测试中可被实例化并加载完成（无崩溃/无报错），且界面上存在用于呈现“占有状态”的可见元素。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
-      "GdUnit4 用例覆盖并断言城池占有状态显示的关键行为：初始渲染时根据当前占有数据显示正确，以及占有数据发生变化后 UI 的显示随之更新。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
-      "城池 UI 中对“占有状态”的可观察呈现（如文本/图标/颜色等任一方式）与当前城池占有数据一致；当占有数据发生变更时，UI 在下一次可见刷新后呈现为变更后的正确状态。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
-      "验收判断以 UI 可观察输出为准：占有状态必须能通过自动化测试读取并做断言（例如读取文本内容或可见资源/样式标识），而不是仅依赖日志或编辑器观察。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
-      "至少在两种不同占有情况的输入下（例如占有者不同/占有与未占有），UI 的占有状态呈现存在可被断言的差异，避免“始终同一显示”仍被判定为通过。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
-      "当发布领域事件 core.sanguo.city.bought（包含 BuyerId/CityId）且事件 CityId 与 UI 绑定的 CityId 匹配时，UI 必须在下一帧刷新后把占有者显示更新为 BuyerId（例如 Label 文本包含 BuyerId），以证明“事件→UI”接线闭环。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
-    ],
-    "test_strategy": [
-      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
-      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
-      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd",
-      "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
-      "- 符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd"
-    ],
-    "taskmaster_id": 23,
-    "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.city.bought",
-      "core.sanguo.city.toll.paid",
-      "core.sanguo.economy.season.event.applied"
-    ]
-  },
-  {
     "id": "SG-0013",
     "story_id": "PRD-SANGUO-T2-TOLL",
     "title": "实现过路费支付逻辑",
@@ -908,76 +860,6 @@
     ]
   },
   {
-    "id": "SG-0011",
-    "story_id": "PRD-SANGUO-T2-AI-CORE",
-    "title": "实现AI行为",
-    "description": "设计AI的基本行动逻辑。",
-    "status": "done",
-    "priority": "P1",
-    "layer": "core",
-    "depends_on": [
-      "SG-0004",
-      "SG-0010"
-    ],
-    "adr_refs": [
-      "ADR-0005",
-      "ADR-0015",
-      "ADR-0018",
-      "ADR-0020",
-      "ADR-0021",
-      "ADR-0024",
-      "ADR-0025",
-      "ADR-0030"
-    ],
-    "chapter_refs": [
-      "CH01",
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
-      "CH09"
-    ],
-    "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
-    ],
-    "labels": [
-      "ai",
-      "agent"
-    ],
-    "owner": "gameplay",
-    "test_refs": [
-      "Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
-      "Game.Core.Tests/Domain/SanguoPlayerViewTests.cs"
-    ],
-    "acceptance": [
-      "AI 回合内的决策与行动逻辑在 `Game.Core` 中实现，可通过纯 .NET 单元测试验证，且不依赖任何 Godot API。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "AI 在决策时只依赖玩家状态的只读视图/快照（`ISanguoPlayerView`，可由 `SanguoPlayer.ToView()` 生成 `SanguoPlayerView`），不得直接持有可变的 `SanguoPlayer` 实体以避免跨线程/并发访问风险；后台线程仅接收快照输入。参考：`Game.Core/Domain/ISanguoPlayerView.cs`、`Game.Core/Domain/SanguoPlayer.cs:ToView()`、`Game.Core/Domain/SanguoPlayerView.cs`。 Refs: Game.Core.Tests/Domain/SanguoPlayerViewTests.cs",
-      "当轮到 AI 玩家行动时，系统会自动产出一个可审计的“AI 决策结果”并发布 `core.sanguo.ai.decision.made` 事件；初期事件的决策类型至少覆盖 RollDice/Skip，且单测可验证事件载荷包含 `GameId`/`AiPlayerId`/`CorrelationId`。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "AI 初期采用简单贪心策略并遵循与玩家一致的结算规则：资金允许时优先买地；踩到他人地块时按规则支付费用；同时决策策略通过可替换接口/策略注入到回合管理或 AI 行为组件中，确保后续可演进为有限状态机/行为树而不需要改动回合循环骨干。 Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
-      "单元测试至少包含：1) 钉死 AI 回合会触发并发布决策事件；2) 钉死 AI 决策仅使用 `ISanguoPlayerView` 快照输入而非直接使用 `SanguoPlayer` 实体；并对贪心策略关键分支（买地/付费）有可观察断言。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs, Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
-      "状态机接口（Subtask 11.2）：AI 行为的决策层必须显式提供可扩展的“决策扩展点”接口（例如 `ISanguoAiDecisionPolicy`，或可适配为 FSM/行为树 的等价抽象），且默认贪心策略可作为其中一种实现被替换；接口与实现均不依赖 Godot API；单测验证替换后回合执行仍稳定且不抛异常。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "多轮稳定性测试（Subtask 11.3）：单测需模拟多轮 AI 行动（建议 ≥ 20 回合，固定随机种子/确定性输入），覆盖资金不足与无可购买地块两类极端情况；断言 AI 仍能稳定执行回合且不会越权修改他人状态（状态变更必须走与玩家一致的规则入口）。 Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs"
-    ],
-    "test_strategy": [
-      "为核心玩法编写 xUnit + FluentAssertions 单元测试覆盖主要状态机与计算。",
-      "使用覆盖率工具（coverlet）确保核心逻辑达到 ADR-0005 规定的门禁。",
-      "AI 身份判定约定：当前以 PlayerId 前缀 `ai-` 作为“AI 玩家”识别规则（见 `Game.Core/Services/SanguoTurnManager.cs:IsAiPlayerId`）；此约定需由单元测试钉死，避免未来 ID 生成策略变更导致 AI 不行动或误行动。",
-      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype",
-      "新增单测：AI 行为仅依赖 `ISanguoPlayerView`/`SanguoPlayerView` 输入；模拟后台线程调用时不得触发 `ThreadAccessGuard`（即不直接调用 `SanguoPlayer` 上的方法）。",
-      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\finite_state_machine ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
-      "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
-      "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
-    ],
-    "taskmaster_id": 11,
-    "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.ai.decision.made"
-    ]
-  },
-  {
     "id": "SG-0014",
     "story_id": "PRD-SANGUO-T2-MONTH-END",
     "title": "实现月末收益结算",
@@ -1040,61 +922,6 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.economy.month.settled"
-    ]
-  },
-  {
-    "id": "SG-0020",
-    "story_id": "PRD-SANGUO-T2-UI-MONEY",
-    "title": "实现UI资金显示",
-    "description": "在UI上显示玩家的资金信息。",
-    "status": "done",
-    "priority": "P2",
-    "layer": "ui",
-    "depends_on": [
-      "SG-0009",
-      "SG-0014"
-    ],
-    "adr_refs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "chapter_refs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
-    ],
-    "labels": [
-      "ui",
-      "money"
-    ],
-    "owner": "gameplay",
-    "test_refs": [
-      "Tests.Godot/tests/UI/test_hud_scene.gd",
-      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
-    ],
-    "acceptance": [
-      "用于显示资金的 HUD 场景与相关 UI 控件可在 headless 冒烟测试中成功加载（无报错、可实例化）。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "HUD 场景中存在用于显示资金的 MoneyLabel 节点（节点路径 TopBar/HBox/MoneyLabel），且在未接收任何事件前默认显示为 \"Money: -\"。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "资金显示的“持续实时刷新”以事件驱动方式成立：当连续收到 core.sanguo.player.state.changed（同一 ActivePlayerId）时，HUD 的 MoneyLabel 会按最后一次事件更新为最新资金值；当收到非当前玩家的 state.changed 时不得错误覆盖当前显示。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
-    ],
-    "test_strategy": [
-      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
-      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
-    ],
-    "taskmaster_id": 20,
-    "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.player.state.changed"
     ]
   },
   {
@@ -1162,69 +989,6 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.economy.season.event.applied"
-    ]
-  },
-  {
-    "id": "SG-0019",
-    "story_id": "PRD-SANGUO-T2-UI-EVENT-TIPS",
-    "title": "实现UI事件提示",
-    "description": "在事件发生时，通过 UI 弹出提示信息，通知玩家。",
-    "status": "done",
-    "priority": "P2",
-    "layer": "ui",
-    "depends_on": [
-      "SG-0009",
-      "SG-0015"
-    ],
-    "adr_refs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022",
-      "ADR-0028"
-    ],
-    "chapter_refs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
-    ],
-    "labels": [
-      "ui",
-      "notifications"
-    ],
-    "owner": "gameplay",
-    "test_refs": [
-      "Tests.Godot/tests/UI/test_hud_scene.gd",
-      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
-    ],
-    "acceptance": [
-      "在 headless 冒烟测试中，包含事件提示的 UI 场景与控件能够加载并完成初始化；过程中无崩溃、无资源路径错误；初始化完成后，UI 处于可在事件发生时展示提示信息的可用状态。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "当在测试中模拟/触发一次游戏事件发生时，UI 会向玩家弹出/显示一个可见的提示信息以通知玩家；提示至少包含可断言的输出（例如提示文本或提示类型），并由 Tests.Godot 的 GdUnit4 用例覆盖该关键交互。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
-    ],
-    "test_strategy": [
-      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
-      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
-      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
-      "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_event_task19.gd",
-      "Optional: 不要求在本仓库内集成或依赖任何外部 demo 项目；以下本地路径仅用于人工对照 UI 事件提示的交互样式与可访问性表现参考，不构成验收判定依据：C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
-    ],
-    "taskmaster_id": 19,
-    "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.board.token.moved",
-      "core.sanguo.city.bought",
-      "core.sanguo.city.toll.paid",
-      "core.sanguo.economy.month.settled",
-      "core.sanguo.economy.season.event.applied",
-      "core.sanguo.game.ended"
     ]
   },
   {
@@ -1383,64 +1147,6 @@
     ]
   },
   {
-    "id": "SG-0021",
-    "story_id": "PRD-SANGUO-T2-UI-DATE",
-    "title": "实现UI日期显示",
-    "description": "在UI上显示当前游戏日期，并在游戏日期变化时实时更新显示。",
-    "status": "done",
-    "priority": "P2",
-    "layer": "ui",
-    "depends_on": [
-      "SG-0009",
-      "SG-0017"
-    ],
-    "adr_refs": [
-      "ADR-0005",
-      "ADR-0018",
-      "ADR-0022"
-    ],
-    "chapter_refs": [
-      "CH01",
-      "CH04",
-      "CH06",
-      "CH07",
-      "CH10"
-    ],
-    "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
-    ],
-    "labels": [
-      "ui",
-      "calendar"
-    ],
-    "owner": "gameplay",
-    "test_refs": [
-      "Tests.Godot/tests/UI/test_hud_scene.gd",
-      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "Tests.Godot/tests/UI/test_hud_date_display_reflects_latest_date.gd"
-    ],
-    "acceptance": [
-      "对应的 Godot 场景与 UI 控件在 headless 冒烟测试中可成功加载；加载完成后，UI 上存在用于显示“当前游戏日期”的可见文本/控件，且其内容可读（例如非空、未隐藏）。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
-      "在 Tests.Godot 的 GdUnit4 用例中覆盖并验证：当“游戏日期”发生变化时（不限定触发来源），UI 上用于显示日期的文本会自动更新为新的日期（以可观察到的文本变化为准），无需重新进入界面或手动刷新。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
-      "UI 日期显示应清晰表达年/月/日；当游戏日期连续变化多次时，每一次日期变化都能在可观察层面反映为日期文本的对应更新，并且日期文本始终反映最新游戏日期（不出现回退为旧值或停滞不更新等可观察异常）。 Refs: Tests.Godot/tests/UI/test_hud_date_display_reflects_latest_date.gd",
-      "进入包含该 UI 的界面后，无需额外交互即可显示“当前游戏日期”；在停留于该界面期间，后续日期变化时持续自动更新显示。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
-    ],
-    "test_strategy": [
-      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
-      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
-      "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
-      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
-      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task21.gd"
-    ],
-    "taskmaster_id": 21,
-    "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.game.turn.advanced"
-    ]
-  },
-  {
     "id": "SG-0018",
     "story_id": "PRD-SANGUO-T2-SAVELOAD",
     "title": "实现存档功能",
@@ -1508,13 +1214,307 @@
     ]
   },
   {
+    "id": "SG-0019",
+    "story_id": "PRD-SANGUO-T2-UI-EVENT-TIPS",
+    "title": "实现UI事件提示",
+    "description": "在事件发生时，通过 UI 弹出提示信息，通知玩家。",
+    "status": "done",
+    "priority": "P2",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0009",
+      "SG-0015"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022",
+      "ADR-0028"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "ui",
+      "notifications"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_hud_scene.gd",
+      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+    ],
+    "acceptance": [
+      "在 headless 冒烟测试中，包含事件提示的 UI 场景与控件能够加载并完成初始化；过程中无崩溃、无资源路径错误；初始化完成后，UI 处于可在事件发生时展示提示信息的可用状态。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "当在测试中模拟/触发一次游戏事件发生时，UI 会向玩家弹出/显示一个可见的提示信息以通知玩家；提示至少包含可断言的输出（例如提示文本或提示类型），并由 Tests.Godot 的 GdUnit4 用例覆盖该关键交互。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "在实现经济与事件系统之前，先对照 taskup.md 中的模块三说明，以及 Godot 演示项目中与资源产出 / 状态机相关的示例，编写覆盖月末结算、季度事件和年度调价的组合测试场景，确保数值变化与日志记录都可以在测试中被验证。",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
+      "- 符合学习模块三（地产 / 租金 / 经济结算 / 环境事件）的设计：城池收益、过路费、季度环境事件与年度地价调整都由 Game.Core 统一结算，并在 UI 中有清晰可追踪的反馈。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_event_task19.gd",
+      "Optional: 不要求在本仓库内集成或依赖任何外部 demo 项目；以下本地路径仅用于人工对照 UI 事件提示的交互样式与可访问性表现参考，不构成验收判定依据：C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+    ],
+    "taskmaster_id": 19,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.board.token.moved",
+      "core.sanguo.city.bought",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.month.settled",
+      "core.sanguo.economy.season.event.applied",
+      "core.sanguo.game.ended"
+    ]
+  },
+  {
+    "id": "SG-0020",
+    "story_id": "PRD-SANGUO-T2-UI-MONEY",
+    "title": "实现UI资金显示",
+    "description": "在UI上显示玩家的资金信息。",
+    "status": "done",
+    "priority": "P2",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0009",
+      "SG-0014"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "ui",
+      "money"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_hud_scene.gd",
+      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+    ],
+    "acceptance": [
+      "用于显示资金的 HUD 场景与相关 UI 控件可在 headless 冒烟测试中成功加载（无报错、可实例化）。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "HUD 场景中存在用于显示资金的 MoneyLabel 节点（节点路径 TopBar/HBox/MoneyLabel），且在未接收任何事件前默认显示为 \"Money: -\"。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "资金显示的“持续实时刷新”以事件驱动方式成立：当连续收到 core.sanguo.player.state.changed（同一 ActivePlayerId）时，HUD 的 MoneyLabel 会按最后一次事件更新为最新资金值；当收到非当前玩家的 state.changed 时不得错误覆盖当前显示。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+    ],
+    "taskmaster_id": 20,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.player.state.changed"
+    ]
+  },
+  {
+    "id": "SG-0021",
+    "story_id": "PRD-SANGUO-T2-UI-DATE",
+    "title": "实现UI日期显示",
+    "description": "在UI上显示当前游戏日期，并在游戏日期变化时实时更新显示。",
+    "status": "done",
+    "priority": "P2",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0009",
+      "SG-0017"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "ui",
+      "calendar"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_hud_scene.gd",
+      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "Tests.Godot/tests/UI/test_hud_date_display_reflects_latest_date.gd"
+    ],
+    "acceptance": [
+      "对应的 Godot 场景与 UI 控件在 headless 冒烟测试中可成功加载；加载完成后，UI 上存在用于显示“当前游戏日期”的可见文本/控件，且其内容可读（例如非空、未隐藏）。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "在 Tests.Godot 的 GdUnit4 用例中覆盖并验证：当“游戏日期”发生变化时（不限定触发来源），UI 上用于显示日期的文本会自动更新为新的日期（以可观察到的文本变化为准），无需重新进入界面或手动刷新。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "UI 日期显示应清晰表达年/月/日；当游戏日期连续变化多次时，每一次日期变化都能在可观察层面反映为日期文本的对应更新，并且日期文本始终反映最新游戏日期（不出现回退为旧值或停滞不更新等可观察异常）。 Refs: Tests.Godot/tests/UI/test_hud_date_display_reflects_latest_date.gd",
+      "进入包含该 UI 的界面后，无需额外交互即可显示“当前游戏日期”；在停留于该界面期间，后续日期变化时持续自动更新显示。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "参考 Godot 官方演示项目中基于 game loop 的示例（如 dodge_the_creeps、pong），编写 xUnit 测试模拟多轮回合推进，验证在不同起始日期与玩家顺序下，时间轴事件触发点与 PRD 定义完全对齐。",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\dafuweng\\Prototype ; C:\\buildgame\\godotdemo\\dafuweng\\casus-belli ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\pong ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_ui_task21.gd"
+    ],
+    "taskmaster_id": 21,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.turn.advanced"
+    ]
+  },
+  {
+    "id": "SG-0022",
+    "story_id": "PRD-SANGUO-T2-UI-DICE",
+    "title": "实现UI骰子结果显示",
+    "description": "在UI上显示骰子投掷结果。",
+    "status": "done",
+    "priority": "P2",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0009",
+      "SG-0005"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "ui",
+      "dice"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_hud_scene.gd",
+      "Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+    ],
+    "acceptance": [
+      "对应的 Godot 场景与相关 UI 控件在 headless 冒烟测试中可被实例化/加载且无错误，并能定位到用于展示骰子结果的控件。 Refs: Tests.Godot/tests/UI/test_hud_scene.gd",
+      "当收到 core.sanguo.dice.rolled 事件后，HUD 的 DiceButton 文本会更新为 \"Dice: <Value>\" 以展示最近一次掷骰结果。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "当短时间内连续收到多次 core.sanguo.dice.rolled 事件时，HUD 必须以最后一次事件的 Value 为准更新 DiceButton 文本（后到覆盖先到）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: 同一局面下收到非当前玩家的 core.sanguo.dice.rolled 时，不得错误覆盖当前显示（防串台）。 Refs: Tests.Godot/tests/UI/test_hud_updates_on_events.gd",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
+    ],
+    "taskmaster_id": 22,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.dice.rolled"
+    ]
+  },
+  {
+    "id": "SG-0023",
+    "story_id": "PRD-SANGUO-T2-UI-CITY-STATE",
+    "title": "实现UI城池状态显示",
+    "description": "在UI上显示城池的占有状态。根据城池的占有情况，更新UI显示。",
+    "status": "done",
+    "priority": "P2",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0009",
+      "SG-0012"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0018",
+      "ADR-0022"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "ui",
+      "city"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
+    ],
+    "acceptance": [
+      "包含城池占有状态显示的 UI 场景与控件在 headless 冒烟测试中可被实例化并加载完成（无崩溃/无报错），且界面上存在用于呈现“占有状态”的可见元素。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "GdUnit4 用例覆盖并断言城池占有状态显示的关键行为：初始渲染时根据当前占有数据显示正确，以及占有数据发生变化后 UI 的显示随之更新。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "城池 UI 中对“占有状态”的可观察呈现（如文本/图标/颜色等任一方式）与当前城池占有数据一致；当占有数据发生变更时，UI 在下一次可见刷新后呈现为变更后的正确状态。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "验收判断以 UI 可观察输出为准：占有状态必须能通过自动化测试读取并做断言（例如读取文本内容或可见资源/样式标识），而不是仅依赖日志或编辑器观察。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "至少在两种不同占有情况的输入下（例如占有者不同/占有与未占有），UI 的占有状态呈现存在可被断言的差异，避免“始终同一显示”仍被判定为通过。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "当发布领域事件 core.sanguo.city.bought（包含 BuyerId/CityId）且事件 CityId 与 UI 绑定的 CityId 匹配时，UI 必须在下一帧刷新后把占有者显示更新为 BuyerId（例如 Label 文本包含 BuyerId），以证明“事件→UI”接线闭环。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
+    ],
+    "test_strategy": [
+      "使用 GdUnit4 为主要 UI 流程编写场景级测试，至少覆盖 T2 垂直切片。",
+      "在 smoke_headless 流水线中运行 UI 冒烟，确保不会阻塞主循环或崩溃。",
+      "在本项目实现前，先运行并阅读 2d/hexagonal_map 或相关 TileMap 演示项目，据此设计一组棋盘位置与移动路径的单元测试 / 场景测试，用于验证环形路线与城池状态更新逻辑。",
+      "Optional: Local demo paths for implementation/tests: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility",
+      "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\hexagonal_map ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\2d\\dynamic_tilemap_layers ; C:\\buildgame\\godotdemo\\dafuweng\\monopoly_clone ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd",
+      "（从 acceptance 迁移：非确定性/跨切面/CI事实条款，不作为硬验收）",
+      "- 符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_task23.gd"
+    ],
+    "taskmaster_id": 23,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.city.bought",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.season.event.applied"
+    ]
+  },
+  {
     "id": "SG-0024",
     "story_id": "PRD-SANGUO-T2-UI-LOG",
     "title": "实现UI事件日志",
     "description": "记录游戏中的重要事件，并在 UI 上显示事件日志。",
     "status": "deferred",
     "priority": "P2",
-    "layer": "ui",
+    "layer": "adapter",
     "depends_on": [
       "SG-0019"
     ],
@@ -1705,7 +1705,7 @@
     "description": "在游戏中添加合适的音效和背景音乐，增强游戏体验。",
     "status": "deferred",
     "priority": "P2",
-    "layer": "ui",
+    "layer": "adapter",
     "depends_on": [
       "SG-0009"
     ],
@@ -1760,7 +1760,7 @@
     "description": "在Godot中设计主菜单，提供开始游戏、加载游戏、退出等选项。",
     "status": "done",
     "priority": "P2",
-    "layer": "ui",
+    "layer": "adapter",
     "depends_on": [
       "SG-0009"
     ],
@@ -1820,7 +1820,7 @@
     "description": "在 Godot 中设计并实现游戏的设置菜单，提供音量、分辨率等设置选项。",
     "status": "deferred",
     "priority": "P2",
-    "layer": "ui",
+    "layer": "adapter",
     "depends_on": [
       "SG-0028"
     ],
@@ -1880,7 +1880,7 @@
     "description": "在游戏内提供帮助信息与入门教程，用循序渐进的步骤引导新玩家理解 T2 阶段核心闭环：掷骰子、移动、买地/付费、月末结算、季节事件与年度地价调整；教程结构参考 Godot 官方 demo howtouse.md 的“学习路线建议”和“团队知识库”的写作方式，并在文档中记录本项目参考的官方示例清单。",
     "status": "done",
     "priority": "P2",
-    "layer": "ui",
+    "layer": "adapter",
     "depends_on": [
       "SG-0028"
     ],
@@ -2956,5 +2956,553 @@
     "id": "SG-0049",
     "taskmaster_exported": true,
     "taskmaster_id": 49
+  },
+  {
+    "id": "SG-0050",
+    "taskmaster_id": 50,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-50",
+    "title": "Spine: GameStartConfig 与可复现开局输入",
+    "description": "定义唯一开局配置与可复现输入（地图/人数/初始资金档/全局事件间隔/seed/角色分配全局唯一），并通过事件对外发布。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "setup",
+      "config",
+      "seed",
+      "determinism"
+    ],
+    "depends_on": [],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH02",
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "提供唯一开局配置 GameStartConfig：map_id、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、random_seed、character_assignments(全局唯一)。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "地图列表只允许从 res://Data/maps/_index.json 加载，不扫描目录。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "新游戏入口完成后发布 core.sanguo.game.started（或等价事件），payload 含 game_start_config 与 random_seed。 Refs: Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd"
+    ],
+    "test_strategy": [
+      "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。",
+      "GdUnit4：走一遍新游戏配置界面并断言 started 事件被发布。"
+    ]
+  },
+  {
+    "id": "SG-0051",
+    "taskmaster_id": 51,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-51",
+    "title": "Spine: 倍率合成规则与 applied_multipliers 事件快照",
+    "description": "锁死经济修饰合成规则（乘法链+clamp+[0.5,3.0]+0.5步进）并要求所有经济事件写入 applied_multipliers。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "economy",
+      "multipliers",
+      "events",
+      "contracts"
+    ],
+    "depends_on": [
+      "SG-0050"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)，所有 multiplier 仅允许 0.5 步进。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
+      "所有经济相关域事件 payload 必须包含 applied_multipliers（含各因子与最终值）。 Refs: Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
+      "UI 不参与金额计算：展示值必须来自事件 payload/投影。 Refs: Tests.Godot/tests/Integration/test_task51_ui_does_not_compute_money.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
+      "Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
+      "Tests.Godot/tests/Integration/test_task51_ui_does_not_compute_money.gd"
+    ],
+    "test_strategy": [
+      "xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。",
+      "GdUnit4：UI 仅展示，不做计算回归。"
+    ]
+  },
+  {
+    "id": "SG-0052",
+    "taskmaster_id": 52,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-52",
+    "title": "Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序",
+    "description": "锁死 TurnPhase.BeforeRoll 窗口规则（行动卡每回合最多1张）以及事件格与全局事件触发顺序（同一 RandomEventPool）。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "turn",
+      "phase",
+      "cards",
+      "events",
+      "ordering"
+    ],
+    "depends_on": [
+      "SG-0050",
+      "SG-0051"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "回合状态机包含 TurnPhase.BeforeRoll，且每回合 BeforeRoll 最多允许 1 张行动卡；超出必须拒绝并可审计。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
+      "事件触发统一：事件格触发 OnTileEvent；每N回合触发 OnGlobalTurnEvent（N∈{5,10,20}）；两者走同一 RandomEventPool。 Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs",
+      "构造同回合双触发场景，顺序固定且 applied_multipliers 记录一致。 Refs: Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
+      "Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs",
+      "Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs"
+    ],
+    "test_strategy": [
+      "xUnit：状态机窗口与乱序事件回归。"
+    ]
+  },
+  {
+    "id": "SG-0053",
+    "taskmaster_id": 53,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-53",
+    "title": "模块: 地图配置（多文件）与 Tile 语义",
+    "description": "引入地图配置多文件格式，并定义 city/pass/event/empty 等 tile 语义与基础数值来源。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "map",
+      "config",
+      "tiles"
+    ],
+    "depends_on": [
+      "SG-0050"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0011",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH02",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "提供地图索引：res://Data/maps/_index.json（包含 map_id/name/description/preview_path）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
+      "提供地图定义：res://Data/maps/<map_id>.json（tile 至少包含 index/type/name；type 覆盖 city/pass/event/empty）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "地图格 UI 显示 name 字段，避免黑底不可读。 Refs: Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
+      "Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd"
+    ],
+    "test_strategy": [
+      "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。"
+    ]
+  },
+  {
+    "id": "SG-0054",
+    "taskmaster_id": 54,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-54",
+    "title": "模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/选角）",
+    "description": "新增新游戏配置界面，作为唯一开局入口，产出 GameStartConfig 并启动对局。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "owner": "gameplay",
+    "labels": [
+      "ui",
+      "setup",
+      "menu"
+    ],
+    "depends_on": [
+      "SG-0050",
+      "SG-0053",
+      "SG-0055"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "新游戏配置界面提供：选地图、人数(4-8)、初始资金档(5000/10000/20000)、全局事件间隔(5/10/20)、玩家选角。 Refs: Tests.Godot/tests/UI/test_task54_new_game_setup_ui.gd",
+      "AI 自动补位并随机选角，角色全局唯一且不可与玩家重复。 Refs: Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs",
+      "进入游戏后 HUD 只显示头像/名字/资金（不展示系数）。 Refs: Tests.Godot/tests/UI/test_task54_hud_shows_name_money_portrait_only.gd"
+    ],
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_task54_new_game_setup_ui.gd",
+      "Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs",
+      "Tests.Godot/tests/UI/test_task54_hud_shows_name_money_portrait_only.gd"
+    ],
+    "test_strategy": [
+      "GdUnit4：走 UI 配置→开始游戏；xUnit：角色分配唯一性。"
+    ]
+  },
+  {
+    "id": "SG-0055",
+    "taskmaster_id": 55,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-55",
+    "title": "模块: 角色配置（6角色）与初始资金口径",
+    "description": "完善角色数据为只读配置，并定义初始资金与三类经济系数口径。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "character",
+      "economy",
+      "config"
+    ],
+    "depends_on": [
+      "SG-0050",
+      "SG-0051"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH04",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "角色配置来自 res://Data/characters.json，包含 6 角色与 portrait_path(res://)。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "初始资金口径：money0 = StartingMoneyPreset * starting_money_multiplier。 Refs: Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs",
+      "过路费系数仅影响地主收租侧，并写入 applied_multipliers。 Refs: Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs",
+      "Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs"
+    ],
+    "test_strategy": [
+      "xUnit：解析/口径/事件快照测试。"
+    ]
+  },
+  {
+    "id": "SG-0056",
+    "taskmaster_id": 56,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-56",
+    "title": "模块: 随机事件池（事件格 + 每N回合全局事件）",
+    "description": "引入随机事件池并统一两类触发：事件格触发与每N回合全局触发；要求可复现。",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "events",
+      "random",
+      "determinism"
+    ],
+    "depends_on": [
+      "SG-0050",
+      "SG-0051",
+      "SG-0052",
+      "SG-0053"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH01",
+      "CH04",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "事件池统一两类触发：事件格触发 + 每N回合全局触发（N∈{5,10,20}），且 random_seed 可复现。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
+      "事件效果仅允许 multiplier_step_delta（+1=+0.5），进入 applied_multipliers.event 并走合成与 clamp。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
+      "踩事件格后 UI 可见事件提示（展示来自事件 payload）。 Refs: Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
+      "Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
+      "Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd"
+    ],
+    "test_strategy": [
+      "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。"
+    ]
+  },
+  {
+    "id": "SG-0057",
+    "taskmaster_id": 57,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-57",
+    "title": "模块: 行动卡（BeforeRoll）止损版",
+    "description": "引入行动卡卡池：掷骰前可出 0/1 张行动卡影响本回合倍率输入。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "cards",
+      "action",
+      "turn"
+    ],
+    "depends_on": [
+      "SG-0050",
+      "SG-0051",
+      "SG-0052"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "行动卡定义仅允许 multiplier_step_delta，不允许直接改钱/改所有权。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "BeforeRoll 每回合最多 1 张，出牌发布 action_card.played，并影响 applied_multipliers.action_card。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
+      "UI 提供“出牌/跳过”，出牌后进入掷骰。 Refs: Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
+      "Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd"
+    ],
+    "test_strategy": [
+      "xUnit：策略与窗口；GdUnit4：最小 UI 流程。"
+    ]
+  },
+  {
+    "id": "SG-0058",
+    "taskmaster_id": 58,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-58",
+    "title": "模块: 建筑扩展（买地后建造类型）",
+    "description": "扩展可购买地块为可建造资产，并用倍率输入影响收益/收租等经济结算。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "buildings",
+      "economy"
+    ],
+    "depends_on": [
+      "SG-0051",
+      "SG-0053"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "建筑定义仅允许 multiplier_step_delta，并与合成规则一致。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
+      "建造入口限定“停留在自有城市”，并发布 building.built/upgraded，影响 applied_multipliers.building。 Refs: Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
+      "城市格 UI 显示拥有者名字，并提供 actions（建造/跳过）。 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
+      "Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
+      "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd"
+    ],
+    "test_strategy": [
+      "xUnit：配置/窗口；GdUnit4：actions 与 owner label。"
+    ]
+  },
+  {
+    "id": "SG-0059",
+    "taskmaster_id": 59,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-59",
+    "title": "模块: 战斗（PVE）触发与回主循环",
+    "description": "引入 PVE 战斗分支循环：从地图/事件触发进入战斗，结束后回到主循环。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "combat",
+      "pve"
+    ],
+    "depends_on": [
+      "SG-0050",
+      "SG-0052",
+      "SG-0053",
+      "SG-0056"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "PVE 可从地图关隘或事件触发进入战斗，结束后回主循环推进。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
+      "本阶段不引入战斗卡池；战斗结果在 random_seed 控制下可复现。 Refs: Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
+      "UI 可完成战斗场景往返（进入→展示结果→回到地图）。 Refs: Tests.Godot/tests/Scenes/test_task59_pve_combat_scene_roundtrip.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
+      "Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
+      "Tests.Godot/tests/Scenes/test_task59_pve_combat_scene_roundtrip.gd"
+    ],
+    "test_strategy": [
+      "xUnit：触发/回归/确定性；GdUnit4：场景往返。"
+    ]
+  },
+  {
+    "id": "SG-0060",
+    "taskmaster_id": 60,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-60",
+    "title": "模块: 每局胜利与结算界面",
+    "description": "引入胜利判定与结算 UI：Core 判定并发布 game.ended，UI 展示结果并支持返回主菜单/再来一局。",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "adapter",
+    "owner": "gameplay",
+    "labels": [
+      "ui",
+      "end",
+      "summary"
+    ],
+    "depends_on": [
+      "SG-0052"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "acceptance": [
+      "胜负判定在 Core；发布 core.sanguo.game.ended（或等价），payload 含 winner/reason/stats_snapshot；UI 不得自判定。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
+      "结算界面展示胜者与关键统计，并提供“返回主菜单/再来一局”。 Refs: Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
+      "Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd"
+    ],
+    "test_strategy": [
+      "xUnit：事件契约；GdUnit4：结算 UI。"
+    ]
   }
 ]
