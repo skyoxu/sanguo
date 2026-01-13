@@ -26,6 +26,8 @@ public sealed record SanguoTileDefinition(
 {
     public const string TileTypeCity = "city";
     public const string TileTypePass = "pass";
+    public const string TileTypeEvent = "event";
+    public const string TileTypeEmpty = "empty";
     public const string TileTypeWild = "wild";
 }
 

@@ -29,7 +29,8 @@ public sealed record SanguoMonthSettled(
     IReadOnlyList<PlayerSettlement> PlayerSettlements,
     DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    AppliedMultipliers? AppliedMultipliers = null
 )
 {
     /// <summary>
@@ -54,7 +55,8 @@ public sealed record SanguoSeasonEventApplied(
     decimal YieldMultiplier,
     DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    AppliedMultipliers? AppliedMultipliers = null
 )
 {
     /// <summary>
@@ -79,7 +81,8 @@ public sealed record SanguoYearPriceAdjusted(
     decimal NewPrice,
     DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    AppliedMultipliers? AppliedMultipliers = null
 )
 {
     /// <summary>
@@ -103,7 +106,8 @@ public sealed record SanguoCityBought(
     decimal Price,
     DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    AppliedMultipliers? AppliedMultipliers = null
 )
 {
     /// <summary>
@@ -136,7 +140,8 @@ public sealed record SanguoCityTollPaid(
     decimal TreasuryOverflow,
     DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    AppliedMultipliers? AppliedMultipliers = null
 )
 {
     /// <summary>
