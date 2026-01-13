@@ -24,6 +24,14 @@
 
 该 Story 只是“形状示例”，真实项目可替换为任何领域切片，但建议保持同样的 Core→Adapter→Scene→Test 分解模式。
 
+注意（本仓库口径收敛）：
+- 视图任务文件中的 `layer` 已收敛为硬门禁：仅允许 `docs|core|adapter|ci`。
+- 因此：
+  - 原本的 `Scene/Glue`（HUD/Main/ScreenNavigator 等）统一归为 `adapter`；
+  - 测试任务不再使用 `layer="test"`，而是按被测对象归类：
+    - xUnit（Game.Core.Tests/**）→ `core`
+    - GdUnit4（Tests.Godot/**）→ `adapter`
+
 ---
 
 ## 2. 任务拆分示例（tasks.json 片段）
@@ -58,7 +66,7 @@
     "id": "PH8-SCORE-SCENE-001",
     "story_id": "PH8-SCORE-VERTICAL-SLICE",
     "title": "Update HUD text on core.score.updated",
-    "layer": "scene",
+    "layer": "adapter",
     "adr_refs": ["ADR-0004"],
     "chapter_refs": ["CH06", "Phase-8-Scene-Design"],
     "overlay_refs": [],
@@ -69,7 +77,7 @@
     "id": "PH8-SCORE-TEST-CORE-001",
     "story_id": "PH8-SCORE-VERTICAL-SLICE",
     "title": "Add xUnit tests for Score service",
-    "layer": "test",
+    "layer": "core",
     "adr_refs": ["ADR-0005"],
     "chapter_refs": ["CH07", "Phase-10-Unit-Tests"],
     "overlay_refs": [],
@@ -80,7 +88,7 @@
     "id": "PH8-SCORE-TEST-SCENE-001",
     "story_id": "PH8-SCORE-VERTICAL-SLICE",
     "title": "Add GdUnit4 HUD scene test for score updates",
-    "layer": "test",
+    "layer": "adapter",
     "adr_refs": ["ADR-0005"],
     "chapter_refs": ["Phase-11-Scene-Integration-Tests-REVISED"],
     "overlay_refs": [],
@@ -120,8 +128,8 @@
 - 读取 `tasks.json` 时：
   - 先按 Story 聚合，再按 depends_on 拓扑排序；
   - 对 `layer="core"` 的任务优先改 `Game.Core/**` 与 `Game.Core.Tests/**`，并通过 dotnet 测试验证；
-  - 对 `layer="adapter"`/`"scene"` 的任务，在 `Game.Godot/**` 中新增/修改 C# 与 GDScript，并通过 GdUnit4 小集验证；
-  - 对 `layer="test"` 的任务，补充 xUnit/GdUnit4 用例，使上述改动有适当覆盖率。
+  - 对 `layer="adapter"` 的任务，在 `Game.Godot/**` 中新增/修改 C# 与 GDScript，并通过 GdUnit4 小集验证；
+  - 测试任务按被测对象归类为 `core` 或 `adapter`，并补充 xUnit/GdUnit4 用例，使上述改动有适当覆盖率。
 
 - 在每一批任务完成后：
   - 优先调用 `py -3 scripts/python/dev_cli.py run-ci-basic ...` 确认核心门禁；
@@ -133,4 +141,3 @@
 
 - 本文件仅定义“纵向切片 Story 与任务结构模板”，不要求模板仓库内预置具体 Score Demo 代码，避免对真实项目造成约束。
 - 真实项目应基于此模板定义自己的 Story/Story ID，并在 PRD/ADR/Phase 文档中维持一致的命名与回链。
-

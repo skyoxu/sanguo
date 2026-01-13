@@ -35,6 +35,7 @@ Test-Refs:
 
 - [ ] Overlay 索引存在且链接可点击: `docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md`
 - [ ] 玩法闭环文档存在: `docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md`
+- [ ] 开局配置与模块骨架文档存在: `docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md`
 - [ ] 城池所有权模型文档存在: `docs/architecture/overlays/PRD-SANGUO-T2/08/08-t2-city-ownership-model.md`
 - [ ] 本验收清单存在并被索引引用: `docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md`
 

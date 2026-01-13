@@ -108,6 +108,11 @@ __pycache__/
 # Local editor/tooling
 .cursor/
 
+# Project-level MCP configs are forbidden in this repo (use user-level config instead)
+.claude/mcp.json
+.cursor/mcp.json
+.codex/
+
 # Task files
 # tasks.json
 # tasks/ 
@@ -143,6 +148,9 @@ taskdoc/
 
 # Serena local state
 .serena/
+
+# BMAD local bundles (user-level, not for VCS)
+.bmad/
 
 # Generic scratch patterns (root only)
 /*_ANALYSIS*.md

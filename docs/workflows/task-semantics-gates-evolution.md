@@ -205,7 +205,7 @@ py -3 scripts/python/validate_task_master_triplet.py
 py -3 scripts/python/verify_task_mapping.py
 ```
 
-说明：`validate_task_master_triplet.py` 当前对 `layer` 允许值为 `docs|core|adapter|ci`，因此会把 `ui/infra` 打印为 invalid（更像 warning）。如果你准备把 `layer` 变成硬门禁，需要先统一口径（例如把 UI 任务映射为 `adapter` 或扩展允许集合）。
+说明：本仓库已将 `layer` 收敛为硬门禁，允许值仅为 `docs|core|adapter|ci`（由 `scripts/python/validate_task_master_triplet.py` 校验）。历史/遗留值（例如 `ui/infra/scene/test`）不应再出现在视图任务文件中；如遇到遗留值，优先运行 `scripts/python/normalize_task_layers.py --write` 做确定性归一化（其中 `test` 会按 refs 推断为 `core` 或 `adapter`），再重新跑 triplet 校验。
 
 #### 0.2 回链先对齐：ADR/CH/Overlay 引用校验
 

@@ -20,6 +20,7 @@ Arch-Refs:
 
 - 验收清单（Acceptance Checklist）— 见 `ACCEPTANCE_CHECKLIST.md`
 - 玩法闭环（功能纵切）— 见 `08-feature-slice-t2-monopoly-loop.md`
+- 开局配置与模块骨架（T50–T60）— 见 `08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md`
 - 城池所有权模型（功能纵切）— 见 `08-t2-city-ownership-model.md`
 
 > 关联 PRD：`.taskmaster/docs/prd.txt` 中 T2 阶段「最小可玩闭环」描述  
