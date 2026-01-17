@@ -20,14 +20,19 @@ Arch-Refs:
 - 不做 PVP。
 - 不做复杂战斗系统与数值成长。
 
+## 口径冻结
+- 无论是否进入战斗场景，结果计算与事件字段必须一致；AI 一律不进入场景但仍发布 started/ended。
+- `core.sanguo.combat.ended` 结果字段至少包含 `base_rating` / `effective_rating` / `encounter_target` / `won`。
+- relic_id 同局唯一；重复掉落则重抽，耗尽候选则返回 null 并写入审计（不使用“max_id 兜底”）。
+
 ## 契约（EventType + 触发点）
-- `core.sanguo.battle.started`：进入战斗场景时。
-- `core.sanguo.battle.ended`：战斗结束并回到主循环时。
+- `core.sanguo.combat.started`：进入战斗场景时。
+- `core.sanguo.combat.ended`：战斗结束并回到主循环时。
 
 ## 验收条款（ACC）
-- ACC:T59.1 触发战斗时发布 `core.sanguo.battle.started`。
-- ACC:T59.2 战斗结束后发布 `core.sanguo.battle.ended` 并返回主循环。
+- ACC:T59.1 触发战斗时发布 `core.sanguo.combat.started`。
+- ACC:T59.2 战斗结束后发布 `core.sanguo.combat.ended` 并返回主循环。
 
 ## Test-Refs
-- `Tests.Godot/tests/E2E/test_task59_battle_enter_exit.gd`
+- `Tests.Godot/tests/E2E/test_task59_combat_enter_exit.gd`
 

@@ -438,10 +438,15 @@ T52 Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序
   - `Game.Core.Tests/Tasks/Task52TurnWindowOrderingTests.cs`
 
 T53 模块: 地图配置（多文件）与 Tile 语义
-- 范围：多文件地图配置：索引 `_index.json` + 单图 `<map_id>.json`；track 为任意循环轨道（格子数以 `track.length` 为准，例如 45）；Tile 最小集合：city / pass / event / empty。
+- 范围：多文件地图配置：索引 `_index.json` + 单图 `<map_id>.json`；track 为任意循环轨道（格子数以 `track.length` 为准，例如 45）；Tile 最小集合：city / facility / event / empty。
+  - 口径冻结：Core 只识别 `tile_kind = city | facility | event | empty`；当 `tile_kind=facility` 时必须给出 `facility_kind`（荒野/商店/战场/监狱/医院/职业所/传送点等）。
+  - 口径冻结：`tile_id` 仅要求 map 内唯一；跨地图允许重复。
+  - 口径冻结：`layout:{x,y}` 必须在 `[0,1]`（归一化坐标、原点左上）；越界视为数据无效，禁止开始（硬失败）。
+  - 口径冻结：任何资源路径（地图预览、action 图标等）必须位于 `res://Assets/...` 子树内，且扩展名白名单（.png/.webp/.svg）+ 大小上限（1MB）。
+  - 口径冻结：`action_id` 在同一 tile 内唯一；事件/日志引用使用 `(map_id, tile_id, action_id)` 组合，避免重排导致语义漂移。
   - 坐标：tile 带 `layout:{x,y}` 归一化坐标，原点左上角(0,0)，UI 负责缩放/自适应（不做旋转）。
-  - pass：允许 `facility_id`（引用 `res://Data/facilities.json`），用于荒野/商店/战场/监狱/医院/职业所/传送点。
-  - actions：稳定 `action_id` + `icon_res_path`，city 必含 buy_land（可选 build），event 必含 trigger_event，pass/empty 按配置。
+  - facility：允许 `facility_id`（引用 `res://Data/facilities.json`），用于荒野/商店/战场/监狱/医院/职业所/传送点。
+  - actions：稳定 `action_id` + `icon_res_path`，city 必含 buy_land（可选 build），event 必含 trigger_event，facility/empty 按配置。
   - 传送点（teleporter）止损语义：
     - 不允许传送到自身 tile；允许传送到出局角色占用格；不需要“路径经过格”的动画/事件。
     - 传送落点会执行一次落点结算（触发落地事件/付费/购买/设施 actions 等）后结束回合；落点结算只允许执行一次，禁止在该次落点结算中再次触发战斗或 teleport（防连锁）。
@@ -453,6 +458,8 @@ T53 模块: 地图配置（多文件）与 Tile 语义
 
 T54 模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/选角）
 - 范围：新游戏界面作为唯一开局入口：选择 map、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、玩家角色；剩余席位由 AI 随机补位且不可重复。
+- 口径冻结：默认选中“第一张地图 + 第一个角色”，未选地图/未选角色时禁用开始按钮（但默认会自动选中）。
+- 口径冻结：启动超时默认 20 秒（可由环境变量覆盖）；超时/失败必须清理已创建的 GameLoop/状态并回滚到配置界面。
   - 约束：开始游戏前必须满足 `available_character_count >= players_count`（角色不可重复），否则 UI 必须阻止开始。
   - 启动失败策略：失败弹窗（error_code+message）后自动回滚默认地图/默认角色/默认人数/默认资金档，并重生 random_seed（避免卡死在不可开局组合）。
 - 验收：
@@ -463,6 +470,7 @@ T54 模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/�
 
 T55 模块: 角色配置（≥8角色）与战斗基线
 - 范围：角色属于配置（只读）；包含经济系数与战斗基线：BuyPriceMultiplier / TollMultiplier / MonthSettlementMultiplier / CombatRating。
+- 口径冻结：角色头像资源路径必须位于 `res://Assets/...`，扩展名白名单（.png/.webp/.svg），大小上限 1MB；越界/非法则禁止开始。
 - 验收：
   - ACC:T55.1 角色配置可加载且 ≥8 角色可展示。
   - ACC:T55.2 `CombatRating` 为静态战斗强度基线（整数）；PVE 用它与 `encounter_target` 对比判定胜负；relic/事件若影响战斗，则影响“本次战斗有效 combat_rating 快照”，并写入 `core.sanguo.combat.ended` 的 result（用于复盘）。
@@ -492,6 +500,7 @@ T57 模块: 行动卡模块（开局发牌 + BeforeRoll 0/1 + 强制弃牌）
 
 T58 模块: 可购买地块的建筑建造类型扩展
 - 范围：买地/建造/升级成本与收益都来源于配置（不同地块可有不同可建造清单）；本阶段先支持 3 种建筑类型；同一 tile 上同一 building_id 最多 1 份，用 level 升级表示成长（不做类型互换）。
+- 口径冻结：建筑“未建造”= 该 tile 的 building 状态列表中不存在该 `building_id`；首次建造直接落 `level=1`，升级递增直到 `max_level`（不使用 `level=0` 作为哨兵值）。
   - 回合互斥：一回合内不能同时买地和建造/升级；一回合内最多升级/建造一次；买地后不提供 build。
   - 经济点：建造/升级成本使用 buy_effective_multiplier；过路费与收益结算使用相应经济点的 character multiplier，并写入 applied_multipliers（UI 只展示）。
 - 验收：
@@ -501,12 +510,16 @@ T58 模块: 可购买地块的建筑建造类型扩展
   - `Game.Core.Tests/Tasks/Task58BuildingsTests.cs`
 
 T59 模块: 战斗模块（PVE）
-- 范围：PVE 触发点：pass(battlefield) 或 event(start_battle)；战斗可进入场景，也可快速结算；玩家可在设置中关闭战斗场景（或在战斗场景内选择跳出并快速结算）；AI 一律不进入战斗场景。
+- 范围：PVE 触发点：facility(battlefield) 或 event(start_battle)；战斗可进入场景，也可快速结算；玩家可在设置中关闭战斗场景（或在战斗场景内选择跳出并快速结算）；AI 一律不进入战斗场景。
+- 口径冻结：`core.sanguo.combat.ended` 结果字段至少包含 `result.outcome` / `result.money_delta` / `result.encounter_target` / `result.effective_combat_rating`，用于复盘。
+- 口径冻结：无论是否进入战斗场景，结果计算与事件字段必须一致；AI 一律不进入场景但仍发布 started/ended。
+- 口径冻结：`core.sanguo.combat.ended`（或 `battle.ended`）结果字段至少包含 `base_rating` / `effective_rating` / `encounter_target` / `won`，用于复盘。
+- 口径冻结：relic_id 同局唯一；重复掉落则重抽，耗尽候选则返回 null 并写入审计（不使用“max_id 兜底”）。
   - 战斗判定（止损）：基于 `CombatRating`（静态基线）与 `encounter_target` 对比判定胜负；relic/事件若影响战斗，则影响“本次战斗有效 combat_rating 快照”，并写入 `core.sanguo.combat.ended` 的 result（用于复盘）。
   - 掉落：胜利可发放金钱/卡牌/宝物（宝物强制生效、无上限、同局 relic_id 唯一不重复）。
   - relic 效果合成与顺序（稳定性优先）：每个 relic 在 JSON 中声明自身 effect 为加法/乘法；多 relic 同时生效时，按 `relic_id` 升序应用（保证同输入复现同输出）。
 - 验收：
-  - ACC:T59.1 战斗可从 pass 与 event 两种来源触发，并发布 `core.sanguo.combat.started`。
+  - ACC:T59.1 战斗可从 facility 与 event 两种来源触发，并发布 `core.sanguo.combat.started`。
   - ACC:T59.2 战斗结束后发布 `core.sanguo.combat.ended` 并返回主循环（无论是否进入场景）。
 - Test-Refs（占位）：
   - `Tests.Godot/tests/E2E/test_task59_battle_enter_exit.gd`
