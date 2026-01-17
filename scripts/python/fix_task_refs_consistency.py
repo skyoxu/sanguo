@@ -10,8 +10,8 @@ Goals:
 1) Keep existing schemas/field names unchanged.
 2) For tasks mapped by taskmaster_id:
    - unify ADR refs across the three files (union, then sort),
-   - ensure chapter refs include all chapters implied by ADR_FOR_CH
-     (extra chapters are allowed; we only add missing ones).
+   - ensure chapter refs include all chapters implied by ADR_FOR_CH,
+   - optionally prune extra chapters not implied by ADR_FOR_CH (hard cleanup to remove WARN noise).
 3) Keep views as SSoT for snake_case fields only:
    - tasks_back.json: adr_refs, chapter_refs, overlay_refs
    - tasks_gameplay.json: adr_refs, chapter_refs, overlay_refs
@@ -20,11 +20,14 @@ This script uses Python for both reading and writing (UTF-8) per repo rules.
 
 Usage (Windows, from repo root):
   py -3 scripts/python/fix_task_refs_consistency.py
+  py -3 scripts/python/fix_task_refs_consistency.py --prune-extra-chapters
 """
 
 from __future__ import annotations
 
 import importlib.util
+import argparse
+import datetime as dt
 import json
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
@@ -41,7 +44,7 @@ def _load_json(path: Path) -> Any:
 
 
 def _write_json(path: Path, data: Any) -> None:
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def _load_adr_for_ch() -> Dict[str, List[str]]:
@@ -83,6 +86,19 @@ def _expected_chapters(adr_refs: Iterable[str], adr_for_ch: Dict[str, List[str]]
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser(description="Fix consistency across Taskmaster triplet refs.")
+    ap.add_argument(
+        "--prune-extra-chapters",
+        action="store_true",
+        help="Remove chapter_refs/archRefs chapters that are not implied by ADR_FOR_CH (hard cleanup).",
+    )
+    ap.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Compute changes and write logs only; do not modify files.",
+    )
+    args = ap.parse_args()
+
     if not TASKS_JSON_PATH.exists():
         raise SystemExit(f"tasks.json not found: {TASKS_JSON_PATH}")
     if not TASKS_BACK_PATH.exists():
@@ -106,6 +122,8 @@ def main() -> int:
         int(t["taskmaster_id"]): t for t in tasks_gameplay if t.get("taskmaster_id") is not None
     }
 
+    changes: list[dict[str, Any]] = []
+
     # 1) Unify ADR refs for mapped tasks (union across files).
     for tm_id, master_task in master_by_id.items():
         back_task = back_by_tm.get(tm_id)
@@ -125,32 +143,69 @@ def main() -> int:
         if gameplay_task is not None:
             gameplay_task["adr_refs"] = unified_adrs
 
-    # 2) Ensure chapter refs include everything implied by ADR_FOR_CH (add missing only).
+    # 2) Ensure chapter refs include everything implied by ADR_FOR_CH.
     for tm_id, master_task in master_by_id.items():
         unified_adrs = master_task.get("adrRefs") or []
         expected = _expected_chapters(unified_adrs, adr_for_ch)
 
         # tasks.json mirror: archRefs
         current_arch = set(master_task.get("archRefs") or [])
-        master_task["archRefs"] = _sort_chapters(current_arch | expected)
+        fixed_arch = set(expected) if args.prune_extra_chapters else (current_arch | expected)
+        master_task["archRefs"] = _sort_chapters(fixed_arch)
 
         # tasks_back.json mirror: chapter_refs <-> archRefs
         back_task = back_by_tm.get(tm_id)
         if back_task is not None:
             current_ch = set(back_task.get("chapter_refs") or [])
-            fixed = _sort_chapters(current_ch | expected)
+            fixed_set = set(expected) if args.prune_extra_chapters else (current_ch | expected)
+            fixed = _sort_chapters(fixed_set)
             back_task["chapter_refs"] = fixed
 
         # tasks_gameplay.json: chapter_refs only (no archRefs mirror)
         gameplay_task = gameplay_by_tm.get(tm_id)
         if gameplay_task is not None:
             current_ch = set(gameplay_task.get("chapter_refs") or [])
-            fixed = _sort_chapters(current_ch | expected)
+            fixed_set = set(expected) if args.prune_extra_chapters else (current_ch | expected)
+            fixed = _sort_chapters(fixed_set)
             gameplay_task["chapter_refs"] = fixed
 
-    _write_json(TASKS_JSON_PATH, tasks_json)
-    _write_json(TASKS_BACK_PATH, tasks_back)
-    _write_json(TASKS_GAMEPLAY_PATH, tasks_gameplay)
+    # Build change summary
+    for tm_id, master_task in master_by_id.items():
+        back_task = back_by_tm.get(tm_id)
+        gameplay_task = gameplay_by_tm.get(tm_id)
+        changes.append(
+            {
+                "taskmaster_id": tm_id,
+                "master_archRefs": master_task.get("archRefs") or [],
+                "back_chapter_refs": (back_task.get("chapter_refs") if back_task else None),
+                "gameplay_chapter_refs": (gameplay_task.get("chapter_refs") if gameplay_task else None),
+            }
+        )
+
+    today = dt.date.today().strftime("%Y-%m-%d")
+    out_dir = PROJECT_ROOT / "logs" / "ci" / today / "task-chapter-refs"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "summary.json").write_text(
+        json.dumps(
+            {
+                "prune_extra_chapters": bool(args.prune_extra_chapters),
+                "dry_run": bool(args.dry_run),
+                "tasks_total": len(master_by_id),
+                "notes": "chapter_refs/archRefs are derived from ADR_FOR_CH when prune_extra_chapters is enabled.",
+                "sample": changes[:10],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    if not args.dry_run:
+        _write_json(TASKS_JSON_PATH, tasks_json)
+        _write_json(TASKS_BACK_PATH, tasks_back)
+        _write_json(TASKS_GAMEPLAY_PATH, tasks_gameplay)
     return 0
 
 
