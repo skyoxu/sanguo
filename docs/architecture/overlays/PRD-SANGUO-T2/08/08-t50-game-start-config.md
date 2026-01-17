@@ -25,6 +25,9 @@ Arch-Refs:
 - Data 校验失败必须审计记录（至少 path/sha256/version/reason），并阻止开始。
 - i18n 统一使用 `message_key + params`；params 必须是扁平键值（仅 string/int/decimal/bool），禁止嵌套对象/数组。
 
+## 示例（规范化 JSON）
+- `docs/workflows/examples/gamestartconfig-canonical.example.json`
+
 ## 非目标
 - 不实现存档系统（写入/读回 `user://` 属于后续任务）。
 - 不做目录扫描与资源发现（只读取明确路径的 `res://Data/**`）。
@@ -46,4 +49,3 @@ Arch-Refs:
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs`
 - `Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd`
-

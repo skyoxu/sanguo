@@ -112,7 +112,7 @@ AI行为：AI按照与玩家相同的规则行动。AI策略在本阶段可简�
 
 收益结算：如果 `RoundNumber` 达到收益结算周期边界（本阶段：每 15 轮一次），则执行一次收益结算并入账。
 
-全局事件（T63）：在每轮开始前（发布 `core.sanguo.game.turn.started` 之前）进行一次全局事件检查；若命中则应用并发布 `core.sanguo.global_event.triggered`（同输入可复现）。
+全局事件（T63）：在每轮开始前（发布 `core.sanguo.game.turn.started` 之前）进行一次全局事件检查；若命中则应用并发布 `core.sanguo.random_event.applied`（source=global，同输入可复现）。
 
 执行次序（止损）：全局事件检查 → turn.started → 回合内行动（含落地动作/战斗可选）→ turn.advanced → 胜负检查/结算界面（若触发）。
 
@@ -537,6 +537,8 @@ T59 模块: 战斗模块（PVE）
 
 T60 模块: 每局胜利与结算界面
 - 范围：Core 判定胜利/失败；进入结算界面展示结果与关键统计；结算只展示不计算。
+- 口径冻结：出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；释放/买下/夺取导致的归属变化必须发布 `core.sanguo.city.owner.changed`。
+- 口径冻结：`sequence` 仅用于审计落盘/复盘稳定排序，不进入域事件 payload（不依赖 OccurredAt 排序）。
 - 口径冻结：玩家控制角色资金 <=0 时立刻触发失败并结束游戏；AI 出局可延后到 `turn.advanced` 后统一判定“最后存活者胜利”（你已确认）。
 - 口径冻结：出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；如需事件级复盘城市归属变化，后续补充 `core.sanguo.city.owner.changed`（Proposed）。
 - 口径冻结：主日志/审计为稳定重放，建议为每局维护单调递增 `sequence`（不依赖 OccurredAt 排序）。
@@ -573,7 +575,7 @@ T63 模块: 全局事件触发机制（RoundNumber，替代季度/年度）
 - 验收：
   - ACC:T63.1 每轮最多触发一次全局事件检查与应用（同轮内不重复触发）。
   - ACC:T63.2 全局事件选择与效果应用在同一 random_seed 下可复现（均匀抽样/冷却规则以配置为准）。
-  - ACC:T63.3 触发后发布 `core.sanguo.global_event.triggered` 以供 UI 展示与复盘。
+  - ACC:T63.3 触发后发布 `core.sanguo.random_event.applied`（source=global）以供 UI 展示与复盘。
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs`
 
@@ -594,5 +596,4 @@ T65 模块: 州郡机制（全占增益 + 连协收费）
   - ACC:T65.3 连协收费可被卡牌/宝物机制规避（规避作为机制能力，不是规则例外）。
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs`
-
 

@@ -29,7 +29,9 @@ def _read_utf8(path: Path) -> str:
 
 def _write_utf8(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
+    # Repo enforces CRLF in working tree via .gitattributes; write CRLF to avoid churn/warnings.
+    normalized = text.replace("\r\n", "\n").replace("\n", "\r\n")
+    path.write_bytes(normalized.encode("utf-8"))
 
 
 def _find_section(text: str, start_token: str, end_token: str) -> tuple[int, int]:
@@ -158,6 +160,9 @@ def _update_prd(prd_text: str) -> str:
     )
     prd_text = prd_text[:s50] + t50 + prd_text[e51:]
 
+    # Normalize legacy global-event naming: T63 uses the already-defined random_event contract.
+    prd_text = prd_text.replace("core.sanguo.global_event.triggered", "core.sanguo.random_event.applied")
+
     # --- T53 ---
     s53, e54 = section(53, 54)
     t53 = prd_text[s53:e54]
@@ -243,8 +248,8 @@ def _update_prd(prd_text: str) -> str:
         t60,
         bullets=[
             "- 口径冻结：玩家控制角色资金 <=0 时立刻触发失败并结束游戏；AI 出局可延后到 `turn.advanced` 后统一判定“最后存活者胜利”（你已确认）。",
-            "- 口径冻结：出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；如需事件级复盘城市归属变化，后续补充 `core.sanguo.city.owner.changed`（Proposed）。",
-            "- 口径冻结：主日志/审计为稳定重放，建议为每局维护单调递增 `sequence`（不依赖 OccurredAt 排序）。",
+            "- 口径冻结：出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；释放/买下/夺取导致的归属变化必须发布 `core.sanguo.city.owner.changed`。",
+            "- 口径冻结：`sequence` 仅用于审计落盘/复盘稳定排序，不进入域事件 payload（不依赖 OccurredAt 排序）。",
         ],
     )
     prd_text = prd_text[:s60] + t60 + prd_text[e61:]
