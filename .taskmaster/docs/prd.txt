@@ -68,14 +68,21 @@ T2阶段「最小可玩闭环」PRD文档
 T50 Spine: GameStartConfig 与可复现开局输入
 - 范围：定义唯一 `GameStartConfig`（map_id / players_count / starting_money_preset / global_event_interval_turns / random_seed / character_assignments），并以事件对外发布。
 - 口径冻结：GameStartConfig 的审计快照必须使用“规范化 JSON”（UTF-8、LF、键排序、稳定字段名；不依赖对象枚举顺序），以保证 diff/复盘稳定。
+- 口径冻结：`players_count` 的 player_id/seat_id 锁死为 `p1..p8`；本阶段人类玩家固定为 `p1`，AI 为 `p2..pN`。
+- 口径冻结：`character_assignments` 的键为 player_id（例如 `p1`），值为 `character_id`；该字典必须覆盖 `p1..pN` 且 value 全局唯一（不可重复角色）。
+- 口径冻结：`random_seed` 取值范围锁死为 0..2147483647（32-bit 非负整数）；越界属于 `config_invalid`（禁止开始）。
+- 口径冻结：`game_id` 在 Core 校验通过且初始状态成功生成后创建；校验失败不得消耗/生成 `game_id`。
+- 口径冻结：规范化 JSON 细则：
+  - 对象键：Ordinal 字典序排序。
+  - `character_assignments`：按 player_id（Ordinal）排序输出（`p1,p2,...`）。
 - 口径冻结：所有域事件必须携带 `CorrelationId`/`CausationId`（ADR-0024）；它们仅用于链路追踪，不得影响任何玩法计算与确定性结果。
 - 口径冻结：Data 校验失败属于 `data_invalid`，必须审计记录（至少包含 path/sha256/version/reason），并阻止开始。
 - 口径冻结：i18n 统一使用 `message_key + params`；params 必须是扁平键值（仅 string/int/decimal/bool），禁止嵌套对象/数组，降低 UI 解析复杂度。
 - 非目标：不做存档；不做 UI 美术与动画；不做角色成长。
 - 验收：
-  - ACC:T50.1 `GameStartConfig` 字段/范围/唯一性校验通过。
-  - ACC:T50.2 地图列表仅从 `res://Data/maps/_index.json` 加载，不扫描目录。
-  - ACC:T50.3 新游戏完成后发布 `core.sanguo.game.started`（含 `game_start_config` 与 `random_seed`）。
+  - ACC:T50.1 Given `GameStartConfig`（map_id/players_count/starting_money_preset/global_event_interval_turns/random_seed/character_assignments）When Core 进行校验 Then 字段范围正确、`players_count=4..8`、`character_assignments` 覆盖 `p1..pN` 且 value 全局唯一，否则禁止开始并给出 `config_invalid` 或 `data_invalid`。
+  - ACC:T50.2 Given 地图列表需求 When 加载可用地图 Then 仅从 `res://Data/maps/_index.json` 读取并构建候选，不扫描目录。
+  - ACC:T50.3 Given Core 校验通过且初始状态成功生成 When 开始新游戏 Then 先发布 `core.sanguo.game.started`（含 `game_start_config` 与 `random_seed`），随后进入回合循环并发布首个 `core.sanguo.game.turn.started`。
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs`
   - `Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd`
@@ -141,13 +148,17 @@ T54 模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/�
 - 范围：新游戏界面作为唯一开局入口：选择 map、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、玩家角色；剩余席位由 AI 随机补位且不可重复。
 - 口径冻结：启动失败的 error_code 枚举固定为：`data_invalid` / `config_invalid` / `runtime_failed` / `timeout` / `security_denied`；同类原因必须复用同一 code，避免 UI/测试分裂。
 - 口径冻结：启动失败回滚必须包含地图/角色/人数/资金档/间隔（全部回滚到默认），并重生 random_seed（你已确认）。
-- 口径冻结：默认选中“第一张地图 + 第一个角色”，未选地图/未选角色时禁用开始按钮（但默认会自动选中）。
-- 口径冻结：启动超时默认 20 秒（可由环境变量覆盖）；超时/失败必须清理已创建的 GameLoop/状态并回滚到配置界面。
-  - 约束：开始游戏前必须满足 `available_character_count >= players_count`（角色不可重复），否则 UI 必须阻止开始。
-  - 启动失败策略：失败弹窗（error_code+message）后自动回滚默认地图/默认角色/默认人数/默认资金档，并重生 random_seed（避免卡死在不可开局组合）。
+- 口径冻结：UI 必须始终保持一个有效选择（默认选中“第一张地图 + 第一个角色”）；不提供“未选中”的非法状态。
+- 口径冻结：启动超时默认 20 秒（可由环境变量覆盖）；从点击“开始”起计时，以“收到首个 `core.sanguo.game.turn.started`”为成功条件；超时/失败必须清理已创建的 GameLoop/状态并回滚到配置界面。
+  - 约束：开始游戏前必须满足 `available_character_count >= players_count`（角色不可重复）；不满足则禁止开始（`config_invalid`）。
+  - 启动中界面：点击开始后进入独立 loading/轮播界面；收到首个 `turn.started` 才隐藏菜单并切入游戏；失败则弹窗并返回配置界面。
+  - 启动失败提示：弹窗只允许展示 `error_code + message_key + params`（params 扁平键值）；敏感/细节仅写入审计日志，不直接展示 raw message。
+  - 降级：地图预览图缺失/无法加载属于展示降级（仍可选，使用占位图或仅展示 key），并审计记录。
+  - 禁止重试：失败弹窗不提供“重试”按钮；关闭后强制回滚默认配置并重生 random_seed。
 - 验收：
-  - ACC:T54.1 UI 可完成上述配置并进入游戏。
-  - ACC:T54.2 AI 补位：角色全局唯一，不与玩家重复。
+  - ACC:T54.1 Given 默认已选中第一张地图与第一个角色 When 点击开始并通过校验 Then 进入 loading/轮播界面，随后发布 `core.sanguo.game.started`，并在收到首个 `core.sanguo.game.turn.started` 后切入游戏。
+  - ACC:T54.2 Given 启动期间发生 `data_invalid/config_invalid/runtime_failed/security_denied/timeout` When 失败被捕获 Then 弹窗展示 `error_code + message_key + params`，并清理状态后回滚到默认配置且重生 random_seed。
+  - ACC:T54.3 Given `players_count` 与角色池 When AI 补位 Then `p1..pN` 角色全局唯一、不与玩家重复。
 - Test-Refs（占位）：
   - `Tests.Godot/tests/UI/test_task54_new_game_menu_flow.gd`
 
