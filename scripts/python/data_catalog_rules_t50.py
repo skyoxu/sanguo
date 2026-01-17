@@ -233,7 +233,6 @@ def collect_findings(repo_root: Path) -> list[core.Finding]:
         Path("Data/characters.json"),
         Path("Data/i18n/zh_cn.json"),
         Path("Data/maps/_index.json"),
-        Path("Data/maps/map001.json"),
         Path("Data/facilities.json"),
         Path("Data/random_events.json"),
         Path("Data/action_cards.json"),
