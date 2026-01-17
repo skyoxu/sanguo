@@ -26,6 +26,12 @@ public sealed class SanguoContractsTests
     }
 
     [Fact]
+    public void RandomEventAppliedHasExpectedEventType()
+    {
+        SanguoRandomEventApplied.EventType.Should().Be("core.sanguo.random_event.applied");
+    }
+
+    [Fact]
     public void CanCreateMonthSettledEventWithBasicValues()
     {
         var evt = new SanguoMonthSettled(

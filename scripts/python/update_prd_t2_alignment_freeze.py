@@ -162,6 +162,8 @@ def _update_prd(prd_text: str) -> str:
 
     # Normalize legacy global-event naming: T63 uses the already-defined random_event contract.
     prd_text = prd_text.replace("core.sanguo.global_event.triggered", "core.sanguo.random_event.applied")
+    # Remove legacy "(source=global)" notation and prefer EventId prefixes instead.
+    prd_text = prd_text.replace("(source=global", "(")
 
     # --- T53 ---
     s53, e54 = section(53, 54)
