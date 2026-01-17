@@ -46,7 +46,7 @@ public sealed class Task15QuarterEventTests
             currentDate: new SanguoCalendarDate(year: 1, month: 4, day: 1),
             season: 2,
             affectedRegionIds: new[] { "r1", "r2" },
-            yieldMultiplier: 0.9m,
+            yieldMultiplier: 0.5m,
             correlationId: "corr-1",
             causationId: "cmd-1",
             occurredAt: occurredAt);
@@ -62,7 +62,7 @@ public sealed class Task15QuarterEventTests
         payload.GetProperty("GameId").GetString().Should().Be("game-1");
         payload.GetProperty("Year").GetInt32().Should().Be(1);
         payload.GetProperty("Season").GetInt32().Should().Be(2);
-        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.9m);
+        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.5m);
         payload.GetProperty("OccurredAt").GetDateTimeOffset().Should().Be(occurredAt);
         payload.GetProperty("CorrelationId").GetString().Should().Be("corr-1");
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-1");

@@ -240,7 +240,11 @@ def fill_for_view(
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Fill acceptance Refs: in tasks_back/tasks_gameplay using PRD context.")
-    ap.add_argument("--prd", default="prd.txt", help="PRD file path (utf-8). Default: prd.txt")
+    ap.add_argument(
+        "--prd",
+        default=".taskmaster/docs/prd.txt",
+        help="PRD file path (utf-8). Default: .taskmaster/docs/prd.txt",
+    )
     ap.add_argument("--prd-yuan", default="prd_yuan.md", help="Optional secondary PRD file path (utf-8). Default: prd_yuan.md")
     ap.add_argument(
         "--tasks-dir",

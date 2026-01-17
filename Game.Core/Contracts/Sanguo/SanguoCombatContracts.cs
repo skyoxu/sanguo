@@ -13,7 +13,9 @@ namespace Game.Core.Contracts.Sanguo;
 /// </remarks>
 public sealed record SanguoCombatResult(
     string Outcome, // win | lose | draw
-    decimal MoneyDelta
+    decimal MoneyDelta,
+    int EncounterTarget,
+    int EffectiveCombatRating
 );
 
 /// <summary>
@@ -63,4 +65,3 @@ public sealed record SanguoCombatEnded(
     /// </summary>
     public const string EventType = "core.sanguo.combat.ended";
 }
-

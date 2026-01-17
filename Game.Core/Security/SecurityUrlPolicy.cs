@@ -27,12 +27,7 @@ public static class SecurityUrlPolicy
             return false;
         }
 
-        var host = uri.Host?.Trim() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(host))
-        {
-            reason = "deny:missing_host";
-            return false;
-        }
+        var host = uri.Host.Trim();
 
         var allowList = ParseCsv(allowedHostsCsv);
         if (allowList.Count == 0 && !allowInsecureDefaults)
@@ -67,11 +62,6 @@ public static class SecurityUrlPolicy
 
     private static bool IsHostAllowed(string host, string allowed)
     {
-        if (string.IsNullOrWhiteSpace(allowed))
-        {
-            return false;
-        }
-
         if (string.Equals(host, allowed, StringComparison.OrdinalIgnoreCase))
         {
             return true;
@@ -91,7 +81,7 @@ public static class SecurityUrlPolicy
 
         foreach (var raw in s.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            var item = (raw ?? string.Empty).Trim().TrimStart('.').TrimEnd('.');
+            var item = raw.Trim().TrimStart('.').TrimEnd('.');
             if (string.IsNullOrWhiteSpace(item))
             {
                 continue;

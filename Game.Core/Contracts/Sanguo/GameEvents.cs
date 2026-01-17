@@ -170,8 +170,39 @@ public sealed record SanguoGameEnded(
     SanguoGameEndStatsSnapshot? StatsSnapshot = null
 )
 {
+    public const string ReasonNoPlayers = "no_players";
+
+    public const string ReasonPlayerBankrupt = "player_bankrupt";
+
+    public const string ReasonLastActorStanding = "last_actor_standing";
+
     /// <summary>
     /// CloudEvents type for this domain event.
     /// </summary>
     public const string EventType = "core.sanguo.game.ended";
+}
+
+/// <summary>
+/// Domain event: core.sanguo.player.eliminated
+/// Description: Emitted when a player transitions into an eliminated state (audit-oriented).
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004 (event bus and contracts), ADR-0024 (CorrelationId/CausationId).
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
+/// </remarks>
+public sealed record SanguoPlayerEliminated(
+    string GameId,
+    int TurnNumber,
+    string PlayerId,
+    string ReasonCode,
+    decimal MoneyBefore,
+    decimal MoneyAfter,
+    System.DateTimeOffset OccurredAt,
+    string CorrelationId,
+    string? CausationId
+)
+{
+    public const string ReasonBankrupt = "bankrupt";
+
+    public const string EventType = "core.sanguo.player.eliminated";
 }

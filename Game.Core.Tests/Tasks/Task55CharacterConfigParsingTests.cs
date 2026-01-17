@@ -12,15 +12,20 @@ public sealed class Task55CharacterConfigParsingTests
     {
         var c = new SanguoCharacterDefinition(
             "c_liu_bei",
-            "刘备",
-            "desc",
+            "character.c_liu_bei.name",
+            "character.c_liu_bei.desc",
+            10,
             "res://Assets/Textures/portraits/liu_bei.png",
-            new SanguoCharacterEconomy(
-                1.0m,
-                1.0m,
-                1.0m));
+            StartingMoneyStepDelta: 0,
+            new SanguoEconomyStepDeltas(
+                BuyPrice: 0,
+                Toll: 0,
+                IncomeSettlement: 0,
+                BuildCost: 0,
+                UpgradeCost: 0));
 
         c.CharacterId.Should().Be("c_liu_bei");
-        c.Economy.BuyPriceMultiplier.Should().Be(1.0m);
+        c.CombatRating.Should().Be(10);
+        c.EconomyStepDeltas.BuyPrice.Should().Be(0);
     }
 }

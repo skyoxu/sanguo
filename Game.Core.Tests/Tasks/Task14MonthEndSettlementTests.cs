@@ -30,8 +30,8 @@ public sealed class Task14MonthEndSettlementTests
         var playerOrder = new[] { "p1", "p2" };
         var correlationId = "corr-1";
         var rules = new SanguoEconomyRules(
-            maxPriceMultiplier: SanguoEconomyRules.DefaultMaxPriceMultiplier,
-            maxTollMultiplier: SanguoEconomyRules.DefaultMaxTollMultiplier);
+            maxPriceSteps: SanguoEconomyRules.DefaultMaxPriceSteps,
+            maxTollSteps: SanguoEconomyRules.DefaultMaxTollSteps);
         var cities = new Dictionary<string, City>(StringComparer.Ordinal)
         {
             ["c1"] = new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10)),
@@ -88,8 +88,8 @@ public sealed class Task14MonthEndSettlementTests
         var playerOrder = new[] { "p1", "p2" };
         var correlationId = "corr-1";
         var rules = new SanguoEconomyRules(
-            maxPriceMultiplier: SanguoEconomyRules.DefaultMaxPriceMultiplier,
-            maxTollMultiplier: SanguoEconomyRules.DefaultMaxTollMultiplier);
+            maxPriceSteps: SanguoEconomyRules.DefaultMaxPriceSteps,
+            maxTollSteps: SanguoEconomyRules.DefaultMaxTollSteps);
         var cities = new Dictionary<string, City>(StringComparer.Ordinal)
         {
             ["c1"] = new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10)),

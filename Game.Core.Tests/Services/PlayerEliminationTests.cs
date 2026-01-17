@@ -58,12 +58,12 @@ public sealed class PlayerEliminationTests
         var ended = published.Single(e => e.Type == SanguoGameEnded.EventType);
         ended.Data.Should().BeOfType<JsonElementEventData>();
         JsonElement endedPayload = ((JsonElementEventData)ended.Data!).Value;
-        endedPayload.GetProperty("EndReason").GetString().Should().Be("human_eliminated");
+        endedPayload.GetProperty("EndReason").GetString().Should().Be(SanguoGameEnded.ReasonPlayerBankrupt);
 
         var afterFirstAdvance = bus.Published.Count;
         Func<Task> act = () => mgr.AdvanceTurnAsync(correlationId: "corr-advance-2", causationId: "cmd-advance-2");
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*GameOver: EndReason=human_eliminated*");
+            .WithMessage($"*GameOver: EndReason={SanguoGameEnded.ReasonPlayerBankrupt}*");
         bus.Published.Count.Should().Be(afterFirstAdvance);
     }
 

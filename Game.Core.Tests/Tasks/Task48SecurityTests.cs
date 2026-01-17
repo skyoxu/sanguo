@@ -113,6 +113,54 @@ public sealed class Task48SecurityTests
     }
 
     [Fact]
+    public void ShouldDenyExternalUrl_WhenUrlIsEmpty()
+    {
+        var decision = SecurityUrlPolicy.Validate(
+            url: "",
+            allowedHostsCsv: "example.com",
+            allowInsecureDefaults: false);
+
+        decision.IsAllowed.Should().BeFalse();
+        decision.Reason.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public void ShouldDenyExternalUrl_WhenHostIsMissing()
+    {
+        var decision = SecurityUrlPolicy.Validate(
+            url: "https:///path",
+            allowedHostsCsv: "example.com",
+            allowInsecureDefaults: false);
+
+        decision.IsAllowed.Should().BeFalse();
+        decision.Reason.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public void ShouldTreatDotOnlyAllowListAsEmpty_WhenValidatingExternalUrl()
+    {
+        var decision = SecurityUrlPolicy.Validate(
+            url: "https://example.com/path",
+            allowedHostsCsv: ".",
+            allowInsecureDefaults: false);
+
+        decision.IsAllowed.Should().BeFalse();
+        decision.Reason.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public void ShouldAllowExternalUrl_WhenAllowListItemHasLeadingAndTrailingDots()
+    {
+        var decision = SecurityUrlPolicy.Validate(
+            url: "https://example.com/path",
+            allowedHostsCsv: ".example.com.",
+            allowInsecureDefaults: false);
+
+        decision.IsAllowed.Should().BeTrue();
+        decision.Reason.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
     public void ShouldDenyExternalUrl_WhenSchemeIsNotHttps()
     {
         var decision = SecurityUrlPolicy.Validate(

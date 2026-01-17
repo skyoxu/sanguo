@@ -142,13 +142,13 @@ public sealed class SanguoContractInstantiationTests
 
         var gameEnded = new SanguoGameEnded(
             GameId: "game-1",
-            EndReason: "bankrupt",
+            EndReason: SanguoGameEnded.ReasonPlayerBankrupt,
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null
         );
         gameEnded.GameId.Should().Be("game-1");
-        gameEnded.EndReason.Should().Be("bankrupt");
+        gameEnded.EndReason.Should().Be(SanguoGameEnded.ReasonPlayerBankrupt);
         gameEnded.OccurredAt.Should().Be(now);
         gameEnded.CorrelationId.Should().Be("corr-1");
         gameEnded.CausationId.Should().BeNull();
@@ -226,7 +226,15 @@ public sealed class SanguoContractInstantiationTests
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null,
-            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
+            AppliedMultipliers: new AppliedMultipliers(
+                BaseSteps: 2,
+                CharacterStepDelta: 0,
+                BuildingStepDelta: 0,
+                EventStepDelta: 0,
+                ActionCardStepDelta: 0,
+                RelicStepDelta: 0,
+                RegionStepDelta: 0,
+                EffectiveSteps: 2)
         );
         month.GameId.Should().Be("game-1");
         month.Year.Should().Be(200);
@@ -246,7 +254,15 @@ public sealed class SanguoContractInstantiationTests
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null,
-            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
+            AppliedMultipliers: new AppliedMultipliers(
+                BaseSteps: 2,
+                CharacterStepDelta: 0,
+                BuildingStepDelta: 0,
+                EventStepDelta: 0,
+                ActionCardStepDelta: 0,
+                RelicStepDelta: 0,
+                RegionStepDelta: 0,
+                EffectiveSteps: 2)
         );
         season.GameId.Should().Be("game-1");
         season.Year.Should().Be(200);
@@ -267,7 +283,15 @@ public sealed class SanguoContractInstantiationTests
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null,
-            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
+            AppliedMultipliers: new AppliedMultipliers(
+                BaseSteps: 2,
+                CharacterStepDelta: 0,
+                BuildingStepDelta: 0,
+                EventStepDelta: 0,
+                ActionCardStepDelta: 0,
+                RelicStepDelta: 0,
+                RegionStepDelta: 0,
+                EffectiveSteps: 2)
         );
         priceAdjusted.GameId.Should().Be("game-1");
         priceAdjusted.Year.Should().Be(200);
@@ -287,7 +311,15 @@ public sealed class SanguoContractInstantiationTests
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null,
-            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
+            AppliedMultipliers: new AppliedMultipliers(
+                BaseSteps: 2,
+                CharacterStepDelta: 0,
+                BuildingStepDelta: 0,
+                EventStepDelta: 0,
+                ActionCardStepDelta: 0,
+                RelicStepDelta: 0,
+                RegionStepDelta: 0,
+                EffectiveSteps: 2)
         );
         cityBought.GameId.Should().Be("game-1");
         cityBought.BuyerId.Should().Be("p1");
@@ -309,7 +341,15 @@ public sealed class SanguoContractInstantiationTests
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null,
-            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
+            AppliedMultipliers: new AppliedMultipliers(
+                BaseSteps: 2,
+                CharacterStepDelta: 0,
+                BuildingStepDelta: 0,
+                EventStepDelta: 0,
+                ActionCardStepDelta: 0,
+                RelicStepDelta: 0,
+                RegionStepDelta: 0,
+                EffectiveSteps: 2)
         );
         tollPaid.GameId.Should().Be("game-1");
         tollPaid.PayerId.Should().Be("p2");

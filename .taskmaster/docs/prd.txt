@@ -3,10 +3,10 @@ T2阶段「最小可玩闭环」PRD文档
 
 本项目是一款基于 Godot 4.x、使用 C# 开发的2D单机游戏，题材取自三国时期，玩法类似“大富翁”（Monopoly）。地图采用真实三国地理的“城池-州郡”结构，设计为环形单一路线（无分叉）。本文件定义T2阶段的最小可玩闭环，实现核心游戏循环和基础玩法。
 
-范围：在该阶段，游戏包含玩家与至少一个AI对手，支持轮流掷骰前进、购买城池、收取过路费、定期结算收益及触发环境事件等核心机制。战斗、装备、道具、卡片等高级元素暂不引入，仅保留金钱和城池所有权作为主要变量。游戏为单机离线模式，平台限定为Windows（Godot Mono版本）
+范围：在该阶段，游戏包含玩家与AI对手（总人数 4–8），支持新游戏配置（地图/人数/起始资金档位/选角与AI补位）、回合制掷骰移动、落地动作（买地/收租/建造/触发事件/设施动作）、周期性收益结算、行动卡（BeforeRoll 0/1）、PVE 战斗（可快速结算）与掉落（含宝物/卡牌/金钱）、以及明确的破产出局与结算界面。时间“日/月/年/季度/年度”仅作为 UI 投影显示，不参与任何逻辑计算；季度/年度事件在本阶段已弃用，由 RoundNumber 驱动的全局事件机制替代。游戏为单机离线模式，平台限定为 Windows（Godot Mono 版本）。
 
 
-目标：实现完整的玩法闭环：玩家掷骰子→按点数移动→停留格子判断购买或付费→月末结算收益→季度环境事件→年初地价调整→下一轮循环。确保这一循环可以周而复始进行，形成基本的玩法体验。该阶段侧重验证核心机制，无明确胜负条件（可在后续阶段添加例如破产判负等规则）。
+目标：实现“可复现开局 → 回合循环（BeforeRoll→掷骰→移动→落地动作）→ 经济结算/全局事件/战斗（可选）→ 胜负判定 → 结算界面 → 回主菜单”的完整可玩闭环。保证同一输入（配置+random_seed+状态）可复现同一输出；所有经济数值计算仅在 Core 发生，UI 只展示事件/投影字段；事件命名遵循 ADR-0004（CloudEvents-like type）。
 
 用户故事
 
@@ -14,11 +14,11 @@ T2阶段「最小可玩闭环」PRD文档
 
 购地收租：作为玩家，当我的棋子停在一个无人占有的城池时，我希望能够购买该城池，将其纳入我的资产；当停在他人拥有的城池时，我需要支付过路费给拥有者，体现资源争夺与经营策略。
 
-收益结算：作为玩家，我希望每月最后一天自动结算我所拥有城池的收益，使我的资金随着时间增长，增加经营管理的维度。
+收益结算：作为玩家，我希望按固定轮次周期自动结算我所拥有城池的收益（例如每 15 轮一次；UI 可投影为“月末”），使我的资金随着进程增长，增加经营管理的维度。
 
-环境事件：作为玩家，我希望每季度开始时出现随机的环境事件影响某些区域（州郡）的土地收益，这会带来正负不定的效果，为游戏增加变化和策略性。
+全局事件：作为玩家，我希望每轮开始前触发全局事件检查，并可能对特定区域或经济/战斗产生影响，为游戏增加变化与策略性（同输入可复现）。
 
-地价变动：作为玩家，我希望每年年初进行一次全国性的地价调整，使所有城池的价值发生变化，从而影响我未来的投资和资金策略。
+终局与结算：作为玩家，我希望当资金降为 0（或以下）时出局；当只剩 1 个未出局角色时判定胜利，并进入结算界面查看结果与统计快照。
 
 轮流对抗：作为玩家，我希望能和AI对手轮流行动，看着AI也掷骰、走格、买地或付费，使游戏具有竞争性和挑战性。
 
@@ -30,9 +30,9 @@ T2阶段的功能划分如下，每个模块对应游戏闭环中的关键功能
 
 环形地图：地图由若干相邻的城池格组成，首尾相连形成环路（一条闭合的线路）。没有分叉路线，每前进一定步数必然按照固定顺序经过城池。
 
-城池属性：每个城池有名称（可取三国时期真实城池名）、所属州郡（用于区域事件）、基础价格和基础过路费。初始时所有城池无人占有。环形地图的数据结构可以使用列表维护城池顺序，并支持根据玩家当前位置和骰子点数计算新的位置（越过列表末尾则从头部继续，形成环）。
+城池属性：每个城池有名称（可取三国时期真实城池名）、所属州郡（用于州郡机制/全局事件）、基础价格和基础过路费。初始时所有城池无人占有。环形地图的数据结构可以使用列表维护城池顺序，并支持根据玩家当前位置和骰子点数计算新的位置（越过列表末尾则从头部继续，形成环）。
 
-州郡结构：城池按历史上的州/郡划分区域，每个城池记录所属的州郡名称。季度环境事件将以此为单位影响区域内城池的收益。
+州郡结构：城池按历史上的州/郡划分区域，每个城池记录所属的州郡名称；全局事件与州郡机制可能以此为单位影响区域内城池的经济点。
 
 玩家与棋子
 
@@ -62,9 +62,15 @@ AI行为：AI按照与玩家相同的规则行动。AI策略在本阶段可简�
 
 资金与收益：玩家资金会因为购地支出、支付过路费而减少，因收取他人过路费、月末收益而增加。需要实时更新玩家的资金值，并在UI上展示。
 
-月末结算：游戏时间以“天”为单位推进，每经过一天需要检查是否月末。每月最后一天结束后，触发一次产业产出结算：计算每位玩家在该月从其拥有的所有城池的产业类建筑所获得的收益（其他类型建筑没有月度结算收益），并将收益累加到玩家资金中。收益计算方式可简单设定为每座城池每月固定产生一定金额（例如按照城池基础价格的一定比例作为月收益），受环境事件影响时按调整后的比例计算。月末结算在当月最后一个回合执行完毕后自动进行，无需玩家操作。结算过程和结果可通过日志或UI提示告知玩家。
+收益结算（本阶段按轮次）：内部逻辑不依赖“日/月/年”，统一按 `RoundNumber`（一轮所有角色行动完 +1）做周期判定。本阶段先按“每 15 轮”触发一次收益结算（可将其在 UI 中显示为“月末结算”，但不要求 UI 标注周期差异）：计算每位玩家在该周期内从其拥有的所有城池的产业类建筑所获得的收益（其他类型建筑不产生周期结算收益），并将收益累加到玩家资金中。收益计算可按城池固定值或价格比例，受环境事件影响时按调整后的比例计算。结算无需玩家操作；结算完成后发布 `core.sanguo.economy.month.settled` 供 UI 展示与复盘。
+- `core.sanguo.economy.month.settled` 的 Month/Year 字段口径：使用“结算周期月”（不是 UI 投影月），从结算周期索引推导：
+  - `SettlementCycleIndex = RoundNumber / 15`（仅当 RoundNumber 为 15 的整数倍时触发结算）
+  - `Month = ((SettlementCycleIndex - 1) % 12) + 1`
+  - `Year = ((SettlementCycleIndex - 1) // 12) + 1`
 
-季度环境事件
+季度环境事件（已弃用）
+
+本阶段不实现季度/年度事件；统一由 T63「全局事件触发机制（RoundNumber）」替代。以下内容仅保留为历史参考。
 
 事件触发：每当进入新的季度（即游戏内时间的1月1日、4月1日、7月1日或10月1日）时，可能触发一次环境事件。可设定一定的随机概率决定该季度是否出现事件（例如50%几率）。若触发，则随机选择一个州或郡，以及该事件的效果类型。
 
@@ -80,7 +86,9 @@ AI行为：AI按照与玩家相同的规则行动。AI策略在本阶段可简�
 
 信息提示：当事件触发时，应通过UI通知玩家事件内容（例如弹出消息：“发生干旱！荆州本季度粮产减半”），以便玩家调整策略。未触发事件的季度，可略过不提示。
 
-年度地价调整
+年度地价调整（已弃用）
+
+本阶段不实现年度地价调整；统一由 T63「全局事件触发机制（RoundNumber）」替代或延后到后续阶段。以下内容仅保留为历史参考。
 
 触发时机：每当进入新的一年（游戏时间的1月1日，即每第12月结束后）年初，执行一次全国性的地价调整。这表示所有城池的基础价格和基础过路费发生变化。
 
@@ -96,21 +104,19 @@ AI行为：AI按照与玩家相同的规则行动。AI策略在本阶段可简�
 
 回合与时间管理
 
-回合顺序：游戏按照回合制进行，以“天”为最小时间单位。每个回合代表一天，由所有玩家（人类玩家和AI）交替轮流行动。即：回合开始→玩家A行动→玩家B行动→回合结束，以此循环。轮替顺序在游戏开始时固定（例如玩家先手，然后AI），除非后续设计加入特殊规则改变顺序。
+回合顺序：游戏按照回合制进行。每位行动者获得一次行动机会即计为 1 次 `TurnNumber`（与既有 `core.sanguo.game.turn.*` Contracts 语义一致）；当所有角色都完成一次行动机会后，`RoundNumber` +1。轮替顺序在游戏开始时固定（例如玩家先手，然后AI），除非后续设计加入特殊规则改变顺序。
 
-时间推进：需要有一个全局的时间跟踪，包括当前的日、月、年。初始可设定为第1年1月1日。每执行完一次所有玩家的回合，天数增加1，更新日期。若天数超出当前月天数，则重置为1并月份+1；若月份超过12则重置为1并年份+1。为了简化，可将每月视为固定30天处理。
+显示层时间投影（非逻辑）：UI 可提供日/月/年显示，但它只是 `TurnNumber/RoundNumber` 的投影结果，不参与任何逻辑判定。本阶段推荐默认投影规则（仅用于显示）：每 30 轮视为 1 个月；每 12 个月视为 1 年；月份与日期可按固定 30 天/每月处理。
 
-事件检查：在每个回合结束后，根据更新后的日期检查是否有特殊事件触发：
+事件检查：在回合推进检查点（`core.sanguo.game.turn.advanced`）后，按固定的“轮次边界/投影边界”检查是否有周期性事件触发：
 
-月末：如果刚结束的这一天是该月最后一天，则执行月末收益结算。
+收益结算：如果 `RoundNumber` 达到收益结算周期边界（本阶段：每 15 轮一次），则执行一次收益结算并入账。
 
-季度首日：如果新的日期是1月1日、4月1日、7月1日或10月1日，则进入新的季度，按概率触发环境事件。
+全局事件（T63）：在每轮开始前（发布 `core.sanguo.game.turn.started` 之前）进行一次全局事件检查；若命中则应用并发布 `core.sanguo.global_event.triggered`（同输入可复现）。
 
-年初：如果新的日期是1月1日且年份变化，则执行年初地价调整（然后同样按季度规则处理Q1的环境事件）。
+执行次序（止损）：全局事件检查 → turn.started → 回合内行动（含落地动作/战斗可选）→ turn.advanced → 胜负检查/结算界面（若触发）。
 
-执行次序：当年初与季度重合时（1月1日），应先执行地价调整，再执行该季度的环境事件，以免事件影响前后不一致；月末结算总是在月最后一天当晚进行（在日期推进到下月之前）。时间管理模块确保以上事件按顺序触发。
-
-回合循环：在处理完当前回合的一切事务（包括上述时间事件）后，游戏进入下一回合，如此循环往复，直到出现游戏终局条件（T2阶段暂未定义终局，可无限循环）。
+回合循环：在处理完当前回合的一切事务（包括上述时间事件）后，游戏进入下一回合，如此循环往复，直到出现终局条件（破产出局/仅剩 1 个未出局角色/玩家控制角色出局）。终局触发后进入结算界面并返回主菜单。
 
 回合机制详述
 
@@ -249,30 +255,35 @@ PRD-CHARACTER-ECONOMY-MODULE
 
 角色与经济系数（增量模块）
 
-SSoT rule: Character economy multipliers apply only at Core economy calculation points; UI must not compute money.
+SSoT 规则：所有 steps/金额计算只在 Core 发生；UI 仅展示事件快照（i18n 文本渲染在 UI 完成），不得在 UI 层自行计算金额。
 
 目标
 - 新游戏开始前，玩家选择角色、总参与人数与初始资金档位。
-- 角色经济系数仅在 Core 经济计算点应用，并把本次实际使用的系数值写入域事件 payload；UI 仅展示，不参与计算。
+- 角色/事件/卡牌/宝物/州郡等只提供 step_delta；Core 统一合成 effective_steps（0.5 步进）并把“本次实际使用的 steps 快照”写入域事件 payload；UI 仅展示，不参与计算。
 
 范围与非范围
-- 范围：选角（含 AI 补位）、初始资金档位、经济系数（买地/收租/月末收益）三处应用、事件 payload 记录 applied_multipliers、UI 展示（选角界面全展示；游戏界面展示头像/名字/资金）。
-- 非范围：技能池、体力系统、战斗/装备/道具、角色进度成长（除经济系数快照外）。
+- 范围：选角（含 AI 补位）、初始资金档位、角色战斗基线（combat_rating）、角色经济 step_delta（买地/收租/结算/建造/升级）、事件 payload 记录 applied_steps（概念）/applied_multipliers（Contracts 名称）、UI 展示（选角界面全展示；游戏界面展示头像/名字/资金）。
+- 非范围：技能池、体力系统、装备/道具、角色进度成长（除 economic steps/战斗基线快照外）。
 
 数据配置（只读）
 - 角色数据文件：res://Data/characters.json（只读）
-- 角色数量：6 个（全局唯一，不可重复选择）
+- 本地化文件：res://Data/i18n/zh_cn.json（只读；UI 渲染用）
+- 角色数量：至少 8 个（全局唯一，不可重复选择；满足总人数 4–8 的补位约束）
 - portrait_path：仅允许 res:// 路径
 
 角色字段（每个角色）
-- id: string（唯一）
-- name: string
-- description: string
-- portrait_path: string（res://...）
-- starting_money_multiplier: decimal（默认 1.0）
-- buy_price_multiplier: decimal（范围 0.5-3.0，步进 0.5，默认 1.0）
-- toll_multiplier: decimal（范围 0.5-3.0，步进 0.5，默认 1.0；只影响“地主收租侧”）
-- income_multiplier: decimal（范围 0.5-3.0，步进 0.5，默认 1.0）
+- characterId: string（唯一）
+- nameKey: string（i18n key；例如 character.c_liu_bei.name）
+- descriptionKey: string（i18n key）
+- portraitPath: string（res://...）
+- combatRating: int（静态战斗强度基线，0..100）
+- startingMoneyStepDelta: int（开局资金 steps 增量；base_steps=2）
+- economyStepDeltas: object（每个经济点的 step_delta，整数；允许后续扩展字段）
+  - buyPrice: int
+  - toll: int
+  - incomeSettlement: int
+  - buildCost: int
+  - upgradeCost: int
 
 开局参数（玩家在选角界面选择）
 - 总参与人数（含玩家）：4-8
@@ -286,25 +297,24 @@ SSoT rule: Character economy multipliers apply only at Core economy calculation 
 - 系统为剩余席位分配 AI：从剩余角色池随机抽取，直到达到总人数；不允许同角色。
 
 经济计算口径（唯一施加点）
-- 买地价格：price = base_price * buyer.buy_price_multiplier
-- 收租金额：toll = base_toll * owner.toll_multiplier（只影响地主收租侧，不影响路人支付侧）
-- 月末收益：income = base_income * player.income_multiplier
-- 初始资金：money0 = StartingMoneyPreset * player.starting_money_multiplier
+- steps 口径（统一）：`base_steps=2(=1.0)`；对每个经济点 `effective_steps = clamp(base_steps + sum(step_delta), 1, 6)`；`effective_multiplier = effective_steps * 0.5`
+- 买地价格：`price = floor(base_price * effective_multiplier_buy_price)`
+- 收租金额：`toll = floor(base_toll * effective_multiplier_toll)`（只影响地主收租侧，不影响路人支付侧）
+- 结算收益：`income = floor(base_income * effective_multiplier_income_settlement)`
+- 初始资金：`money0 = floor(StartingMoneyPreset * effective_multiplier_starting_money)`
 
 事件与可观测性口径（ADR-0004）
-- 与经济相关的域事件（买地/收租/月末结算）payload 必须包含 applied_multipliers：
-  - buy_price_multiplier
-  - toll_multiplier
-  - income_multiplier
-  - starting_money_multiplier（若本事件与开局资金有关）
-- UI 的显示必须来自事件/投影字段，不得在 UI 层自行乘系数计算金额。
+- 与经济相关的域事件（买地/收租/结算/建造/升级）payload 必须包含 applied_steps 快照（Contracts 名称为 applied_multipliers）：
+  - effective_steps + effective_multiplier（按经济点）
+  - sources_step_deltas（character/building/event/card/relic/region 等）
+- UI 的显示必须来自事件/投影字段，不得在 UI 层自行计算金额。
 
 验收条款（可证伪）
-- 选角界面：能加载 res://Data/characters.json 并展示 6 个角色的 name/description/portrait_path/四个 multiplier 字段。
-- 选角界面：玩家可选择总人数 4-8 与初始资金三档；进入游戏后玩家资金等于 StartingMoneyPreset * starting_money_multiplier。
+- 选角界面：能加载 res://Data/characters.json，并展示至少 8 个角色的 nameKey/descriptionKey/portraitPath/combatRating 与 economyStepDeltas（含 buyPrice/toll/incomeSettlement/buildCost/upgradeCost）。
+- 选角界面：玩家可选择总人数 4-8 与初始资金三档；进入游戏后玩家资金等于 StartingMoneyPreset 乘以 starting_money_step_delta 合成后的 effective_multiplier_starting_money。
 - AI 补位：AI 数量正确、角色全局唯一、不可与玩家重复。
 - 经济口径：买地/收租/月末结算只在 Core 经济计算点应用系数；UI 不参与计算。
-- 事件口径：每次买地/收租/月末结算的事件 payload 均带 applied_multipliers，且数值等于本次计算实际使用的系数值。
+- 事件口径：每次经济相关事件 payload 均带 applied_steps/applied_multipliers 快照，且数值等于本次计算实际使用的 steps。
 - UI 展示：游戏界面状态栏只展示头像/名字/资金，并且展示值来自事件/投影字段。
 
 测试策略（建议）
@@ -330,21 +340,51 @@ PRD-TASK-SKELETON-DRAFT-T50-T60
 - 所有“经济数值计算”只在 Core 发生；UI 只展示事件/投影字段，不参与计算。
 - 事件命名遵循 ADR-0004（CloudEvents-like `type`）：领域事件 `core.sanguo.*`；UI 事件 `ui.*`；Screen/状态切换 `screen.*`。
 - 随机与可复现：任何随机选择都必须由 `random_seed` 驱动；同输入必须复现同输出。
+- 回合与轮次（必须锁死，避免口径漂移）：
+  - `TurnNumber`：每位行动者获得一次行动机会即 +1（与既有 Contracts 语义对齐，见 `core.sanguo.game.turn.*`）。
+  - `RoundNumber`：一轮所有角色都行动完 +1；由 `TurnNumber` 推导：`RoundNumber = floor((TurnNumber-1)/PlayersCount)+1`。
+  - “每 N 回合触发一次”的周期逻辑（收益结算、全局事件等）都以 `RoundNumber` 为准（不是 TurnNumber）。
+
+通用约定（Schema / i18n / Effects / Events）
+- Data JSON（`res://Data/**/*.json`）统一使用 camelCase 键名；禁止 meta 字段（避免内容污染）。
+- Data JSON 必须包含顶层 `schemaVersion:int` 与 `version:int`；修改任何内容必须手动递增 `version`（CI main 分支硬门禁：Data version gate）。
+- id 规范：`id`/`*_Id` 统一稳定英文标识（建议 `^[a-z0-9_]{1,32}$`），禁止 Windows 保留名（CON/PRN/AUX/NUL/COM1…）。
+- i18n：
+  - 文件结构：`{schemaVersion, version, locale, strings:{...}}`；strings 为扁平 key-value。
+  - key 命名空间建议：`ui.*`、`character.*`、`map.*`、`region.*`、`event.*`、`card.*`、`relic.*`、`facility.*`、`err.*`。
+  - 逻辑必需引用缺 key => 禁止开始；纯展示可降级显示 key，但必须审计。
+- Effects（统一效果表达，减少分支）：
+  - effectKind 白名单（本阶段）：`economyStepDelta`、`moneyDelta`、`fixedDice`、`skipNextTurn`、`teleport`、`pendingSteal`。
+  - 统一结构建议：`{effectKind, target:{scope,id|roleId}, lifetime:oneShot|duration|untilConsumed, durationRounds?, expiresRounds?, params}`。
+  - 冲突规则：同槽位 last-write-wins（最新覆盖旧值），必须审计覆盖（旧值/新值/source）。
+  - percent_of_base_price.value：步进 0.05，clamp 到 [0, 1]；取整规则统一使用 floor。
+- Events（最小可回放字段建议）：
+  - 通用字段：`gameId, turnNumber, roundNumber, actorSlotId, actorCharacterId, mapId, tileId(可为 null 但字段必须存在), occurredAt, correlationId, causationId?`。
+  - RNG 抽样证据：`rngStream, rngContextId, candidatesSortedIdsHash, pickedIndex, pickedId`（候选集合先按 id 升序稳定化）。
+- AppliedMultipliers（steps 体系，事件快照）：
+  - base_steps=2（=1.0）；`effective_steps = clamp(base_steps + sum(step_delta), 1, 6)`；`effective_multiplier = effective_steps * 0.5`。
+  - 经济事件 payload 必带（按 economyPoint）：`baseAmount, effectiveSteps, effectiveMultiplier, sourcesSteps{character/building/event/card/relic/region}, amount`。
+- 卡牌定义 vs 实例：
+  - `cardDefId`（定义）全局唯一；手牌/卡组允许同一 `cardDefId` 多次出现（实例重复）。
 
 确定性输入（本阶段统一）
 - 地图索引：`res://Data/maps/_index.json`
 - 地图定义：`res://Data/maps/<map_id>.json`
-- 角色定义：`res://Data/characters.json`（6 角色，全局唯一不可重复）
+- 角色定义：`res://Data/characters.json`（≥8 角色，全局唯一不可重复）
+- 本地化：`res://Data/i18n/zh_cn.json`（UI 文本渲染用；逻辑不读取）
 - 随机种子：`random_seed`（新游戏配置阶段生成或输入；必须可审计/可回放）
 
 事件与 DTO（仅列 EventType + 触发点，不展开字段）
 - `core.sanguo.game.started`：新游戏配置完成并进入可玩主循环时。
-- `core.sanguo.turn.started`：每回合开始。
-- `core.sanguo.turn.advanced`：回合推进完成（从当前玩家切换到下一个玩家）。
+- `core.sanguo.game.turn.started`：每位行动者回合开始。
+- `core.sanguo.game.turn.advanced`：推进到下一位行动者完成后。
 - `core.sanguo.random_event.applied`：随机事件效果应用后。
 - `core.sanguo.action_card.played`：行动卡在 BeforeRoll 窗口被使用后。
 - `core.sanguo.building.built`：建造完成并对经济/状态产生影响后。
-- `core.sanguo.battle.started` / `core.sanguo.battle.ended`：进入/退出 PVE 战斗场景时。
+- `core.sanguo.combat.started` / `core.sanguo.combat.ended`：进入/退出 PVE 战斗场景时。
+- `core.sanguo.city.bought` / `core.sanguo.city.toll.paid`：买地/过路费结算完成后。
+- `core.sanguo.economy.month.settled`：收益结算周期入账完成后（本阶段按 RoundNumber 周期触发；Month/Year 为“结算周期月”，不是 UI 投影月）。
+- `core.sanguo.player.state.changed`：玩家出局/状态变化时（用于审计与结算口径）。
 - `core.sanguo.game.ended`：满足胜利/失败条件并进入结算前。
 
 - DTO: `GameStartConfig`：唯一开局输入快照（必须可序列化 JSON）。
@@ -364,7 +404,11 @@ T50 Spine: GameStartConfig 与可复现开局输入
   - `Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd`
 
 T51 Spine: 倍率合成规则与 applied_multipliers 事件快照
-- 范围：统一倍率合成 `effective = clamp(character * building * event * action_card, 0.5, 3.0)`；并把“本次实际使用的倍率值”写入相关经济事件 payload（`applied_multipliers`）。
+- 范围：统一 steps 合成（0.5 步进，稳定可复现）：
+  - `base_steps = 2`（=1.0）
+  - 对每个经济点：`effective_steps = clamp(base_steps + sum(step_delta), 1, 6)`，`effective_multiplier = effective_steps * 0.5`
+  - 金额：`amount = floor(base_amount * effective_multiplier)`（UI 不参与计算）
+  - 并把“本次实际使用的 effective_steps / sources_step_deltas”写入相关经济事件 payload（`applied_multipliers` / applied_steps 概念上等价）。
 - 非目标：不引入复杂浮点档位（仅 0.5 步进）；不支持 UI 侧推导。
 - 验收：
   - ACC:T51.1 任意组合输入下 `effective` 必须 clamp 到 [0.5, 3.0]，且只允许 0.5 步进。
@@ -376,8 +420,16 @@ T51 Spine: 倍率合成规则与 applied_multipliers 事件快照
   - `Tests.Godot/tests/UI/test_hud_event_log_applied_multipliers.gd`
 
 T52 Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序
-- 范围：锁死回合阶段（至少含 BeforeRoll），止损版每回合最多使用 1 张行动卡（0/1）；并锁死“行动卡/事件触发/掷骰/移动/落点效果”的顺序。
+- 范围：锁死回合阶段（至少含 BeforeRoll），止损版每回合最多使用 1 张行动卡（0/1）；并锁死“全局事件检查/抽卡/行动卡/掷骰/移动/落点效果”的顺序。
 - 非目标：不做多卡连锁；不做 PVP。
+- 回合顺序（本阶段锁死，便于测试与复盘）：
+  1. PreTurn：若 `RoundNumber` 达到 `global_event_interval_turns` 周期边界，则触发 1 次“全局随机事件”（source=global），发布 `core.sanguo.random_event.applied`。
+  2. `core.sanguo.game.turn.started`：进入该行动者回合。
+  3. Draw：按配置发 N 张行动卡（本阶段默认 0）；抽到的卡强制入手牌；若超过上限则弹弃牌界面，不弃牌无法继续（AI 走同规则，仅决策自动化）。
+  4. BeforeRoll：玩家可使用 0/1 张行动卡；使用后发布 `core.sanguo.action_card.played`，并影响本回合 `AppliedMultipliers`。
+  5. Roll&Move：掷骰并移动（可逐格动画；逻辑不依赖动画），发布 `core.sanguo.dice.rolled` / `core.sanguo.board.token.moved`。
+  6. ResolveLanding：结算落点（city/pass/event/empty）并结束该行动者回合。
+  7. `core.sanguo.game.turn.advanced`：推进到下一位行动者；当推进造成一轮结束时 `RoundNumber+1`。
 - 验收：
   - ACC:T52.1 BeforeRoll 窗口每回合只允许 0/1 张行动卡。
   - ACC:T52.2 同一回合内“事件格触发 + 每N回合全局事件”的顺序固定且可测。
@@ -386,7 +438,13 @@ T52 Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序
   - `Game.Core.Tests/Tasks/Task52TurnWindowOrderingTests.cs`
 
 T53 模块: 地图配置（多文件）与 Tile 语义
-- 范围：多文件地图配置：索引 `_index.json` + 单图 `<map_id>.json`；Tile 最小集合：city / pass / event / empty；所有 tile 必含 name 用于 UI 展示。
+- 范围：多文件地图配置：索引 `_index.json` + 单图 `<map_id>.json`；track 为任意循环轨道（格子数以 `track.length` 为准，例如 45）；Tile 最小集合：city / pass / event / empty。
+  - 坐标：tile 带 `layout:{x,y}` 归一化坐标，原点左上角(0,0)，UI 负责缩放/自适应（不做旋转）。
+  - pass：允许 `facility_id`（引用 `res://Data/facilities.json`），用于荒野/商店/战场/监狱/医院/职业所/传送点。
+  - actions：稳定 `action_id` + `icon_res_path`，city 必含 buy_land（可选 build），event 必含 trigger_event，pass/empty 按配置。
+  - 传送点（teleporter）止损语义：
+    - 不允许传送到自身 tile；允许传送到出局角色占用格；不需要“路径经过格”的动画/事件。
+    - 传送落点会执行一次落点结算（触发落地事件/付费/购买/设施 actions 等）后结束回合；落点结算只允许执行一次，禁止在该次落点结算中再次触发战斗或 teleport（防连锁）。
 - 验收：
   - ACC:T53.1 `_index.json` 可列出可用地图（id/name/path）。
   - ACC:T53.2 `<map_id>.json` 中每个 tile 有确定的 type 与 name；UI 能显示 name。
@@ -395,58 +453,119 @@ T53 模块: 地图配置（多文件）与 Tile 语义
 
 T54 模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/选角）
 - 范围：新游戏界面作为唯一开局入口：选择 map、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、玩家角色；剩余席位由 AI 随机补位且不可重复。
+  - 约束：开始游戏前必须满足 `available_character_count >= players_count`（角色不可重复），否则 UI 必须阻止开始。
+  - 启动失败策略：失败弹窗（error_code+message）后自动回滚默认地图/默认角色/默认人数/默认资金档，并重生 random_seed（避免卡死在不可开局组合）。
 - 验收：
   - ACC:T54.1 UI 可完成上述配置并进入游戏。
   - ACC:T54.2 AI 补位：角色全局唯一，不与玩家重复。
 - Test-Refs（占位）：
   - `Tests.Godot/tests/UI/test_task54_new_game_menu_flow.gd`
 
-T55 模块: 角色配置（6角色）与初始资金口径
-- 范围：角色属于配置（只读）；只引入经济系数（starting_money_multiplier / buy_price_multiplier / toll_multiplier / income_multiplier）。
+T55 模块: 角色配置（≥8角色）与战斗基线
+- 范围：角色属于配置（只读）；包含经济系数与战斗基线：BuyPriceMultiplier / TollMultiplier / MonthSettlementMultiplier / CombatRating。
 - 验收：
-  - ACC:T55.1 角色配置可加载且 6 角色可展示。
-  - ACC:T55.2 初始资金 = StartingMoneyPreset * starting_money_multiplier。
+  - ACC:T55.1 角色配置可加载且 ≥8 角色可展示。
+  - ACC:T55.2 `CombatRating` 为静态战斗强度基线（整数）；PVE 用它与 `encounter_target` 对比判定胜负；relic/事件若影响战斗，则影响“本次战斗有效 combat_rating 快照”，并写入 `core.sanguo.combat.ended` 的 result（用于复盘）。
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task55CharacterConfigTests.cs`
   - `Tests.Godot/tests/UI/test_task55_character_select_ui.gd`
 
 T56 模块: 随机事件池（事件格 + 每N回合全局事件）
 - 范围：事件格触发 + 每 N 回合全局事件统一进入 RandomEventPool；止损版事件效果仅允许 `multiplier_step_delta`（整型步进，1=+0.5）。
+- 冷却：scope=player_id；对某玩家生效后，在接下来 N 个该玩家行动次数内不再对该玩家生效（计数口径：该玩家每次成为 ActivePlayerId 时 player_action_count +1）；若对当前玩家“可选事件集合”因冷却为空，则忽略冷却规则回退为全量事件均匀抽样（避免死锁）。
 - 验收：
   - ACC:T56.1 事件格触发能从池中取出事件并应用。
   - ACC:T56.2 每 N 回合全局事件触发稳定可复现（由 seed 驱动）。
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task56RandomEventPoolTests.cs`
 
-T57 模块: 行动卡（BeforeRoll）止损版
-- 范围：行动卡池（配置只读）；仅在 BeforeRoll 窗口可用；止损版每回合最多 1 张；效果仅 `multiplier_step_delta`。
+T57 模块: 行动卡模块（开局发牌 + BeforeRoll 0/1 + 强制弃牌）
+- 范围：行动卡池（配置只读）；开局固定发 3 张；每轮可配置发 N 张（本阶段默认 0）；仅在 BeforeRoll 窗口可用；止损版每回合最多 1 张；效果仅 `multiplier_step_delta`。
+  - 抽到的卡强制入手牌（无“放弃抽卡”选项）。
+  - 手牌上限固定为 5：若抽卡导致超上限，则必须进入弃牌界面并丢弃至 ≤5，否则回合无法继续（AI 同规则，仅弃牌决策自动化）。
 - 验收：
   - ACC:T57.1 行动卡只允许 BeforeRoll 使用，且 0/1。
   - ACC:T57.2 使用行动卡后发布 `core.sanguo.action_card.played`，并影响本回合经济倍率快照。
+  - ACC:T57.3 弃牌门禁生效：超上限必须弃牌后才能继续（建议发布 `core.sanguo.action_card.discarded` 作为审计事件）。
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task57ActionCardTests.cs`
 
-T58 模块: 建筑扩展（买地后建造类型）
-- 范围：买地后可选择建造类型（配置只读）；止损版只通过 `multiplier_step_delta` 影响经济；建造行为可审计（事件）。
+T58 模块: 可购买地块的建筑建造类型扩展
+- 范围：买地/建造/升级成本与收益都来源于配置（不同地块可有不同可建造清单）；本阶段先支持 3 种建筑类型；同一 tile 上同一 building_id 最多 1 份，用 level 升级表示成长（不做类型互换）。
+  - 回合互斥：一回合内不能同时买地和建造/升级；一回合内最多升级/建造一次；买地后不提供 build。
+  - 经济点：建造/升级成本使用 buy_effective_multiplier；过路费与收益结算使用相应经济点的 character multiplier，并写入 applied_multipliers（UI 只展示）。
 - 验收：
-  - ACC:T58.1 建造触发后发布 `core.sanguo.building.built`。
-  - ACC:T58.2 建造效果只通过倍率快照进入经济计算。
+  - ACC:T58.1 无主 city 落地弹 buy/skip；己方 city 落地弹 build/skip；买地后回合结束且不再提供 build。
+  - ACC:T58.2 建造/升级触发后发布 `core.sanguo.building.built`，且其效果只通过倍率快照进入经济计算。
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task58BuildingsTests.cs`
 
-T59 模块: 战斗（PVE）触发与回主循环
-- 范围：落到指定 tile 或事件触发进入 PVE；完成后回到主循环；止损版战斗只要求“可进入、可退出、可复现”。
+T59 模块: 战斗模块（PVE）
+- 范围：PVE 触发点：pass(battlefield) 或 event(start_battle)；战斗可进入场景，也可快速结算；玩家可在设置中关闭战斗场景（或在战斗场景内选择跳出并快速结算）；AI 一律不进入战斗场景。
+  - 战斗判定（止损）：基于 `CombatRating`（静态基线）与 `encounter_target` 对比判定胜负；relic/事件若影响战斗，则影响“本次战斗有效 combat_rating 快照”，并写入 `core.sanguo.combat.ended` 的 result（用于复盘）。
+  - 掉落：胜利可发放金钱/卡牌/宝物（宝物强制生效、无上限、同局 relic_id 唯一不重复）。
+  - relic 效果合成与顺序（稳定性优先）：每个 relic 在 JSON 中声明自身 effect 为加法/乘法；多 relic 同时生效时，按 `relic_id` 升序应用（保证同输入复现同输出）。
 - 验收：
-  - ACC:T59.1 触发战斗时发布 `core.sanguo.battle.started`。
-  - ACC:T59.2 战斗结束后发布 `core.sanguo.battle.ended` 并返回主循环。
+  - ACC:T59.1 战斗可从 pass 与 event 两种来源触发，并发布 `core.sanguo.combat.started`。
+  - ACC:T59.2 战斗结束后发布 `core.sanguo.combat.ended` 并返回主循环（无论是否进入场景）。
 - Test-Refs（占位）：
   - `Tests.Godot/tests/E2E/test_task59_battle_enter_exit.gd`
 
 T60 模块: 每局胜利与结算界面
-- 范围：Core 判定胜利/失败（止损版先 1 条）；进入结算界面展示结果与关键统计；结算只展示不计算。
+- 范围：Core 判定胜利/失败；进入结算界面展示结果与关键统计；结算只展示不计算。
+  - 出局：资金≤0 立即出局；出局者名下资产清空并释放为无主（可再次购买/建造）。
+  - 胜利：场上仅剩 1 个未出局角色即胜利；单机特例：人类玩家控制角色出局则立即结束整局。
+  - 检查时点：统一在 `core.sanguo.game.turn.advanced` 之后做胜负检查（避免回合中途多点触发造成 UI/日志漂移）。
+  - 事件顺序（止损，固定以便复盘）：先发事实事件（如 `core.sanguo.city.toll.paid`；若资金不足则通过 `TreasuryOverflow` 记录未支付部分），再发状态变化（`core.sanguo.player.state.changed`），最后在检查点后发终局（`core.sanguo.game.ended`）。
 - 验收：
   - ACC:T60.1 满足条件时发布 `core.sanguo.game.ended` 并进入结算界面。
-  - ACC:T60.2 结算界面展示 winner/原因/统计快照（来自事件或投影）。
+  - ACC:T60.2 结算界面展示 winner/原因/统计快照（来自事件或投影），并仅提供“返回主菜单”。
 - Test-Refs（占位）：
   - `Tests.Godot/tests/UI/test_task60_game_end_screen.gd`
+T61 模块: AI 最小确定性策略（止损层）
+- 范围：AI 行为与玩家同规则、同约束；所有决策点（buy/skip、build/skip、choose_building_type、discard_cards、teleport_target、facility_action 等）均采用“总是选择第一个合法选项”的确定性策略；本阶段 AI 不使用额外随机。
+  - 可观测性：每次 AI 做出选择必须发布 `core.sanguo.ai.decision.made`（原因/决策点/候选数量等，便于复盘）。
+- 验收：
+  - ACC:T61.1 同一输入（game_start_config + random_seed + state + TurnNumber/RoundNumber）下，AI 选择结果 100% 可复现。
+  - ACC:T61.2 关键决策点均走统一策略与统一审计事件（不得出现“未审计的隐式选择”）。
+  - ACC:T61.3 AI 决策事件包含足够信息复盘“为何该选择合法/为何被选中”。
+- Test-Refs（占位）：
+  - `Game.Core.Tests/Tasks/Task61AiDeterminismTests.cs`
+
+T62 模块: 宝物系统（Relics）
+- 范围：宝物掉落来源包含战斗/事件格/设施；同一局内 relic_id 全局唯一不重复；宝物效果覆盖经济/战斗/全局事件三类；每个宝物在配置中声明 effect 为“加/乘”，多宝物叠加按 relic_id 升序应用（稳定性优先）。
+- 验收：
+  - ACC:T62.1 宝物掉落能被记录并立刻生效，且同局内不重复。
+  - ACC:T62.2 同一输入下宝物应用顺序与最终效果可复现。
+  - ACC:T62.3 掉落与生效产生可审计的域事件（建议 `core.sanguo.loot.granted` 与/或 `core.sanguo.relic.applied`，最终以 Contracts 为准）。
+- Test-Refs（占位）：
+  - `Game.Core.Tests/Tasks/Task62RelicsTests.cs`
+
+T63 模块: 全局事件触发机制（RoundNumber，替代季度/年度）
+- 范围：第二套事件池（建议 `res://Data/global_events.json`）；每轮只检查一次全局事件（RoundNumber 边界）；事件在 turn.started 之前触发并发布审计事件；显示层按“每 30 轮=1月、每 360 轮=1年”投影，仅展示不计算。
+- 验收：
+  - ACC:T63.1 每轮最多触发一次全局事件检查与应用（同轮内不重复触发）。
+  - ACC:T63.2 全局事件选择与效果应用在同一 random_seed 下可复现（均匀抽样/冷却规则以配置为准）。
+  - ACC:T63.3 触发后发布 `core.sanguo.global_event.triggered` 以供 UI 展示与复盘。
+- Test-Refs（占位）：
+  - `Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs`
+
+T64 模块: 州郡数据模型（Regions）
+- 范围：随地图定义 regions；每个 city tile 必须包含 region_id；region 可跨地图复用同一 region_id；region 字段最小集：region_id/name_key/bonus_kind/bonus_params。
+- 验收：
+  - ACC:T64.1 地图加载时校验 region 定义与 tile.region_id 引用完整性；缺失/越界 fail-fast。
+  - ACC:T64.2 name/description 走 i18n key（地图索引与 region 均用 key，不直接写展示文本）。
+- Test-Refs（占位）：
+  - `Game.Core.Tests/Tasks/Task64RegionsDataModelTests.cs`
+
+T65 模块: 州郡机制（全占增益 + 连协收费）
+- 范围：当某州郡内所有城市归属同一角色时，立即生效州郡增益（不可选择、不可取消；买下最后一城生效，出局释放资产立即失效）；连协收费：落到他人 city 时，按“该 owner 在该州郡拥有的所有城市的最终过路费之和”收费（先算每城最终过路费，再求和）。
+  - 止损：同回合 teleport 最多一次；teleport 落点结算只一次；落点不得再次 teleport/战斗（避免连锁不可控）。
+- 验收：
+  - ACC:T65.1 全占增益的生效/失效时点正确，且只影响本州郡城市的经济点（buy/toll/settlement）。
+  - ACC:T65.2 连协收费按 owner 在 region 内的占有城市集合求和；缺失 region 数据 fail-fast。
+  - ACC:T65.3 连协收费可被卡牌/宝物机制规避（规避作为机制能力，不是规则例外）。
+- Test-Refs（占位）：
+  - `Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs`
+
 

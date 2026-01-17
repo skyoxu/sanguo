@@ -149,7 +149,7 @@ public class QuarterlyEnvironmentEventTests
             rng: rng,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: triggerChance,
-            quarterEnvironmentEventYieldMultiplier: 0.9m);
+            quarterEnvironmentEventYieldMultiplier: 0.5m);
 
         await mgr.StartNewGameAsync(
             gameId: "g1",

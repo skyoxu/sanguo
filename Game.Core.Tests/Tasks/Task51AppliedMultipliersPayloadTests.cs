@@ -12,7 +12,15 @@ public sealed class Task51AppliedMultipliersPayloadTests
     [Fact]
     public void EconomyEvents_ShouldExposeAppliedMultipliersField()
     {
-        var m = new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m);
+        var m = new AppliedMultipliers(
+            BaseSteps: 2,
+            CharacterStepDelta: 0,
+            BuildingStepDelta: 0,
+            EventStepDelta: 0,
+            ActionCardStepDelta: 0,
+            RelicStepDelta: 0,
+            RegionStepDelta: 0,
+            EffectiveSteps: 2);
 
         var evt = new SanguoCityBought(
             "g1",
@@ -26,14 +34,22 @@ public sealed class Task51AppliedMultipliersPayloadTests
             m);
 
         evt.AppliedMultipliers.Should().NotBeNull();
-        evt.AppliedMultipliers!.Effective.Should().Be(1.0m);
+        evt.AppliedMultipliers!.EffectiveMultiplier.Should().Be(1.0m);
     }
 
     // ACC:T51.4
     [Fact]
     public void EconomyEvent_WithAppliedMultipliers_ShouldRoundTrip_WithSystemTextJson()
     {
-        var m = new AppliedMultipliers(1.5m, 1.0m, 0.5m, 1.0m, 0.75m);
+        var m = new AppliedMultipliers(
+            BaseSteps: 2,
+            CharacterStepDelta: 1,
+            BuildingStepDelta: 0,
+            EventStepDelta: 0,
+            ActionCardStepDelta: 0,
+            RelicStepDelta: 0,
+            RegionStepDelta: 0,
+            EffectiveSteps: 3);
 
         var evt = new SanguoCityBought(
             "g1",
@@ -51,6 +67,6 @@ public sealed class Task51AppliedMultipliersPayloadTests
 
         restored.Should().NotBeNull();
         restored!.AppliedMultipliers.Should().NotBeNull();
-        restored.AppliedMultipliers!.Effective.Should().Be(0.75m);
+        restored.AppliedMultipliers!.EffectiveMultiplier.Should().Be(1.5m);
     }
 }

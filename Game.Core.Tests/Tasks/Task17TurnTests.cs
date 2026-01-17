@@ -67,7 +67,7 @@ public sealed class Task17TurnTests
 
         var payload = ((JsonElementEventData)ended.Data!).Value;
         payload.GetProperty("GameId").GetString().Should().Be("g1");
-        payload.GetProperty("EndReason").GetString().Should().Be("human_eliminated");
+        payload.GetProperty("EndReason").GetString().Should().Be(SanguoGameEnded.ReasonPlayerBankrupt);
 
         var countBefore = bus.Published.Count;
         var act = async () => await mgr.AdvanceTurnAsync(correlationId: "corr-3", causationId: "cmd-advance-again");
@@ -295,10 +295,11 @@ public sealed class Task17TurnTests
 
         await mgr.AdvanceTurnAsync(correlationId: "corr-2", causationId: "cmd-advance");
 
-        var lastStarted = bus.Published.FindLast(e => e.Type == SanguoGameTurnStarted.EventType);
-        lastStarted.Should().NotBeNull();
-        var lastStartedPayload = ((JsonElementEventData)lastStarted!.Data!).Value;
-        lastStartedPayload.GetProperty("ActivePlayerId").GetString().Should().Be(human.PlayerId);
+        var ended = bus.Published.FindLast(e => e.Type == SanguoGameEnded.EventType);
+        ended.Should().NotBeNull();
+        var endedPayload = ((JsonElementEventData)ended!.Data!).Value;
+        endedPayload.GetProperty("EndReason").GetString().Should().Be(SanguoGameEnded.ReasonLastActorStanding);
+        endedPayload.GetProperty("WinnerPlayerId").GetString().Should().Be(human.PlayerId);
 
         bus.Published.FindAll(e => e.Type == SanguoAiDecisionMade.EventType).Should().HaveCount(1);
     }
@@ -561,7 +562,7 @@ public sealed class Task17TurnTests
             rng: rng,
             totalPositionsHint: 10,
             quarterEnvironmentEventTriggerChance: 1.0,
-            quarterEnvironmentEventYieldMultiplier: 0.9m);
+            quarterEnvironmentEventYieldMultiplier: 0.5m);
 
         await mgr.StartNewGameAsync(
             gameId: "g1",
@@ -605,7 +606,7 @@ public sealed class Task17TurnTests
         var seasonPayload = ((JsonElementEventData)season.Data!).Value;
         seasonPayload.GetProperty("Year").GetInt32().Should().Be(2);
         seasonPayload.GetProperty("Season").GetInt32().Should().Be(1);
-        seasonPayload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.9m);
+        seasonPayload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.5m);
         seasonPayload.GetProperty("AffectedRegionIds").EnumerateArray().Select(x => x.GetString()).Should().Contain("r1");
 
         var year = bus.Published[yearIndex];

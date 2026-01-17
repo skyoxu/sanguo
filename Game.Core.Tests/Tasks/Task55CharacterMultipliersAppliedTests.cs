@@ -8,12 +8,15 @@ public sealed class Task55CharacterMultipliersAppliedTests
 {
     // ACC:T55.3
     [Fact]
-    public void CharacterEconomy_Multipliers_ShouldDefaultToValidRange()
+    public void CharacterEconomy_StepDeltas_ShouldBeConstructible()
     {
-        var econ = new SanguoCharacterEconomy(1.0m, 1.0m, 1.0m);
-        econ.BuyPriceMultiplier.Should().Be(1.0m);
-        econ.TollMultiplier.Should().Be(1.0m);
-        econ.MonthSettlementMultiplier.Should().Be(1.0m);
+        var deltas = new SanguoEconomyStepDeltas(
+            BuyPrice: 0,
+            Toll: 0,
+            IncomeSettlement: 0,
+            BuildCost: 0,
+            UpgradeCost: 0);
+
+        deltas.Toll.Should().Be(0);
     }
 }
-

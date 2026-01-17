@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "version": 2,
+  "locale": "zh-CN",
+  "strings": {
+    "character.c_cao_cao.desc": "善用权谋，买地更省。",
+    "character.c_cao_cao.name": "曹操",
+    "character.c_guan_yu.desc": "武勇过人，收租更强。",
+    "character.c_guan_yu.name": "关羽",
+    "character.c_liu_bei.desc": "稳健经营，四平八稳。",
+    "character.c_liu_bei.name": "刘备",
+    "character.c_lu_bu.desc": "战力极高，经济中性。",
+    "character.c_lu_bu.name": "吕布",
+    "character.c_sima_yi.desc": "谋定后动，善于布局。",
+    "character.c_sima_yi.name": "司马懿",
+    "character.c_sun_quan.desc": "内政见长，结算更优。",
+    "character.c_sun_quan.name": "孙权",
+    "character.c_zhang_fei.desc": "勇猛好战，战力更强。",
+    "character.c_zhang_fei.name": "张飞",
+    "character.c_zhuge_liang.desc": "运筹帷幄，擅长谋划。",
+    "character.c_zhuge_liang.name": "诸葛亮",
+    "ui.common.ok": "确定",
+    "ui.common.cancel": "取消",
+    "ui.common.back": "返回",
+    "ui.common.start": "开始",
+    "ui.common.errorTitle": "错误"
+  }
+}
