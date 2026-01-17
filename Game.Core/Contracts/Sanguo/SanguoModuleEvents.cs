@@ -41,12 +41,16 @@ public sealed record SanguoRandomEventApplied(
     int MultiplierStepDelta,
     DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    string? RngContextId = null,
+    string? CandidatesSortedIdsHash = null,
+    int? PickedIndex = null,
+    string? PickedId = null
 )
 {
     /// <summary>
     /// CloudEvents type for this domain event.
-    /// </summary>
+     /// </summary>
     public const string EventType = "core.sanguo.random_event.applied";
 }
 
@@ -74,4 +78,3 @@ public sealed record SanguoBuildingBuilt(
     /// </summary>
     public const string EventType = "core.sanguo.building.built";
 }
-

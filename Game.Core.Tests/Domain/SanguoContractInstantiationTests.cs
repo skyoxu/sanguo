@@ -361,5 +361,23 @@ public sealed class SanguoContractInstantiationTests
         tollPaid.OccurredAt.Should().Be(now);
         tollPaid.CorrelationId.Should().Be("corr-1");
         tollPaid.CausationId.Should().BeNull();
+
+        var ownerChanged = new SanguoCityOwnerChanged(
+            GameId: "game-1",
+            TurnNumber: 1,
+            CityId: "c1",
+            OldOwnerId: "p1",
+            NewOwnerId: null,
+            ReasonCode: SanguoCityOwnerChanged.ReasonReleased,
+            OccurredAt: now,
+            CorrelationId: "corr-1",
+            CausationId: null
+        );
+        ownerChanged.GameId.Should().Be("game-1");
+        ownerChanged.CityId.Should().Be("c1");
+        ownerChanged.OldOwnerId.Should().Be("p1");
+        ownerChanged.NewOwnerId.Should().BeNull();
+        ownerChanged.ReasonCode.Should().Be(SanguoCityOwnerChanged.ReasonReleased);
+        ownerChanged.CorrelationId.Should().Be("corr-1");
     }
 }

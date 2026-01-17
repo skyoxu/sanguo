@@ -46,7 +46,11 @@ public sealed record SanguoAiDecisionMade(
     string? TargetCityId,
     System.DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    string? RngContextId = null,
+    string? CandidatesSortedIdsHash = null,
+    int? PickedIndex = null,
+    string? PickedId = null
 )
 {
     /// <summary>
