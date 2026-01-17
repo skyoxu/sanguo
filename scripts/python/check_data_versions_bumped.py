@@ -48,11 +48,29 @@ def _run_git(args: list[str]) -> str:
 
 
 def _resolve_default_base_ref() -> str:
-    event = os.environ.get("GITHUB_EVENT_NAME", "").strip().lower()
-    if event == "pull_request":
-        return "origin/main"
-    # Push to main: compare with previous commit by default.
-    return "HEAD~1"
+    # Always compare against origin/main by default.
+    # This avoids "multi-commit PR" gaps where HEAD~1 misses earlier Data changes.
+    return "origin/main"
+
+
+def _ensure_ref_exists(base_ref: str) -> None:
+    # In some CI checkouts, remote refs may not be present (fetch-depth=1).
+    # Try to fetch origin/main lazily to keep the gate self-contained.
+    try:
+        _run_git(["rev-parse", "--verify", base_ref])
+        return
+    except Exception:
+        pass
+
+    if base_ref == "origin/main":
+        # Best-effort fetch; may fail in offline environments.
+        try:
+            _run_git(["fetch", "origin", "main", "--depth", "200"])
+        except Exception:
+            # Re-check below; if still missing we fail fast with a clear message.
+            pass
+
+    _run_git(["rev-parse", "--verify", base_ref])
 
 
 def _list_changed_data_json(base_ref: str, head_ref: str) -> list[str]:
@@ -144,6 +162,18 @@ def main() -> int:
     base_ref: str = args.base_ref
     head_ref: str = args.head_ref
 
+    try:
+        _ensure_ref_exists(base_ref)
+    except Exception as e:
+        today = dt.date.today().strftime("%Y-%m-%d")
+        out_dir = Path("logs") / "ci" / today
+        out_dir.mkdir(parents=True, exist_ok=True)
+        log_txt = out_dir / "data-version-gate.log"
+        msg = f"DATA_VERSION_GATE base={base_ref} head={head_ref}\nFAIL base_ref_not_resolvable reason={e}\n"
+        log_txt.write_text(msg, encoding="utf-8", newline="\n")
+        print(msg.strip())
+        return 1
+
     changed = _list_changed_data_json(base_ref, head_ref)
 
     today = dt.date.today().strftime("%Y-%m-%d")
@@ -197,4 +227,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
