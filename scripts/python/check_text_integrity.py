@@ -32,6 +32,11 @@ def _is_probably_semantic_garbled(text: str) -> bool:
         return True
     if re.search(r"\?{3,}", text):
         return True
+    # Common CJK mojibake punctuation when UTF-8 bytes were mis-decoded as GBK and re-saved.
+    # These characters are valid Unicode, so we treat them as suspicious only when there are many.
+    mojibake_cjk = ["锛", "銆", "鈥", "鈥", "鍙", "鎴", "绯"]
+    if sum(text.count(ch) for ch in mojibake_cjk) >= 8:
+        return True
     return False
 
 
@@ -91,6 +96,18 @@ def _scan_file(path: Path) -> list[FileFinding]:
             )
         )
 
+    mojibake_cjk = ["锛", "銆", "鈥", "鍙", "鎴", "绯"]
+    cjk_hits = {ch: text.count(ch) for ch in mojibake_cjk}
+    cjk_total = sum(cjk_hits.values())
+    if cjk_total >= 8:
+        findings.append(
+            FileFinding(
+                path=str(path).replace("\\", "/"),
+                kind="mojibake_cjk_punct",
+                detail=json.dumps(cjk_hits, ensure_ascii=False),
+            )
+        )
+
     # Optional semantic check: header should not contain "???" runs
     head = "\n".join(text.splitlines()[:20])
     if _is_probably_semantic_garbled(head):
@@ -143,4 +160,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

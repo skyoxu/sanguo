@@ -144,6 +144,20 @@ def _update_prd(prd_text: str) -> str:
     def section(start_id: int, end_id: int) -> tuple[int, int]:
         return _find_section(prd_text, f"\nT{start_id}", f"\nT{end_id}")
 
+    # --- T50 ---
+    s50, e51 = section(50, 51)
+    t50 = prd_text[s50:e51]
+    t50 = _ensure_bullets(
+        t50,
+        bullets=[
+            "- 口径冻结：GameStartConfig 的审计快照必须使用“规范化 JSON”（UTF-8、LF、键排序、稳定字段名；不依赖对象枚举顺序），以保证 diff/复盘稳定。",
+            "- 口径冻结：所有域事件必须携带 `CorrelationId`/`CausationId`（ADR-0024）；它们仅用于链路追踪，不得影响任何玩法计算与确定性结果。",
+            "- 口径冻结：Data 校验失败属于 `data_invalid`，必须审计记录（至少包含 path/sha256/version/reason），并阻止开始。",
+            "- 口径冻结：i18n 统一使用 `message_key + params`；params 必须是扁平键值（仅 string/int/decimal/bool），禁止嵌套对象/数组，降低 UI 解析复杂度。",
+        ],
+    )
+    prd_text = prd_text[:s50] + t50 + prd_text[e51:]
+
     # --- T53 ---
     s53, e54 = section(53, 54)
     t53 = prd_text[s53:e54]
@@ -159,6 +173,9 @@ def _update_prd(prd_text: str) -> str:
             "  - 口径冻结：`layout:{x,y}` 必须在 `[0,1]`（归一化坐标、原点左上）；越界视为数据无效，禁止开始（硬失败）。",
             "  - 口径冻结：任何资源路径（地图预览、action 图标等）必须位于 `res://Assets/...` 子树内，且扩展名白名单（.png/.webp/.svg）+ 大小上限（1MB）。",
             "  - 口径冻结：`action_id` 在同一 tile 内唯一；事件/日志引用使用 `(map_id, tile_id, action_id)` 组合，避免重排导致语义漂移。",
+            "  - 口径冻结：资源路径必须做规范化与绕过拦截：拒绝 `..`、拒绝 percent-encoding 绕过（如 `%2e%2e`），并拒绝任何非 `res://`/`user://` scheme（ADR-0019）。",
+            "  - 口径冻结：facility action 参数必须强类型且可校验（例如 teleport 只允许 `target_mode=tile_id|random`；mode=tile_id 时必须给出 `target_tile_id`）。",
+            "  - 口径冻结：地图/设施/事件/建筑配置必须包含 `schema_version`；不等于当前支持版本则拒绝加载（不做迁移）。",
         ],
     )
     t53 = _normalize_t53_freeze_lines_prd(t53)
@@ -172,6 +189,8 @@ def _update_prd(prd_text: str) -> str:
         bullets=[
             "- 口径冻结：默认选中“第一张地图 + 第一个角色”，未选地图/未选角色时禁用开始按钮（但默认会自动选中）。",
             "- 口径冻结：启动超时默认 20 秒（可由环境变量覆盖）；超时/失败必须清理已创建的 GameLoop/状态并回滚到配置界面。",
+            "- 口径冻结：启动失败的 error_code 枚举固定为：`data_invalid` / `config_invalid` / `runtime_failed` / `timeout` / `security_denied`；同类原因必须复用同一 code，避免 UI/测试分裂。",
+            "- 口径冻结：启动失败回滚必须包含地图/角色/人数/资金档/间隔（全部回滚到默认），并重生 random_seed（你已确认）。",
         ],
     )
     prd_text = prd_text[:s54] + t54 + prd_text[e55:]
@@ -185,6 +204,7 @@ def _update_prd(prd_text: str) -> str:
         t55,
         bullets=[
             "- 口径冻结：角色头像资源路径必须位于 `res://Assets/...`，扩展名白名单（.png/.webp/.svg），大小上限 1MB；越界/非法则禁止开始。",
+            "- 口径冻结：角色配置必须包含 `schema_version`；不等于当前支持版本则拒绝加载（不做迁移）。",
         ],
     )
     prd_text = prd_text[:s55] + t55 + prd_text[e56:]
@@ -196,6 +216,7 @@ def _update_prd(prd_text: str) -> str:
         t58,
         bullets=[
             "- 口径冻结：建筑“未建造”= 该 tile 的 building 状态列表中不存在该 `building_id`；首次建造直接落 `level=1`，升级递增直到 `max_level`（不使用 `level=0` 作为哨兵值）。",
+            "- 口径冻结：buy/toll/settlement/build/upgrade 的 base 值全部来自配置 JSON，禁止缺省（缺字段=数据无效，禁止开始）。",
         ],
     )
     prd_text = prd_text[:s58] + t58 + prd_text[e59:]
@@ -215,6 +236,19 @@ def _update_prd(prd_text: str) -> str:
     )
     prd_text = prd_text[:s59] + t59 + prd_text[e60:]
 
+    # --- T60 ---
+    s60, e61 = _find_section(prd_text, "\nT60", "\nT61")
+    t60 = prd_text[s60:e61]
+    t60 = _ensure_bullets(
+        t60,
+        bullets=[
+            "- 口径冻结：玩家控制角色资金 <=0 时立刻触发失败并结束游戏；AI 出局可延后到 `turn.advanced` 后统一判定“最后存活者胜利”（你已确认）。",
+            "- 口径冻结：出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；如需事件级复盘城市归属变化，后续补充 `core.sanguo.city.owner.changed`（Proposed）。",
+            "- 口径冻结：主日志/审计为稳定重放，建议为每局维护单调递增 `sequence`（不依赖 OccurredAt 排序）。",
+        ],
+    )
+    prd_text = prd_text[:s60] + t60 + prd_text[e61:]
+
     return prd_text
 
 
@@ -227,13 +261,28 @@ def _update_overlay_file(path: Path) -> str:
         text = text.replace("`city` / `pass` / `event` / `empty`", "`city` / `facility` / `event` / `empty`")
         text = _normalize_t53_overlay(text)
 
+    if path.name == "08-t50-game-start-config.md":
+        if "## 口径冻结" not in text:
+            text = text.replace(
+                "## 非目标",
+                "## 口径冻结\n"
+                "- GameStartConfig 的审计快照必须使用“规范化 JSON”（UTF-8、LF、键排序、稳定字段名；不依赖对象枚举顺序）。\n"
+                "- 所有域事件必须携带 `CorrelationId`/`CausationId`（ADR-0024）；它们仅用于链路追踪，不得影响任何玩法计算与确定性结果。\n"
+                "- Data 校验失败必须审计记录（至少 path/sha256/version/reason），并阻止开始。\n"
+                "- i18n 统一使用 `message_key + params`；params 必须是扁平键值（仅 string/int/decimal/bool），禁止嵌套对象/数组。\n\n"
+                "## 非目标",
+            )
+
     if path.name == "08-t54-new-game-menu.md":
-        if "启动超时" not in text:
+        if "## 口径冻结" not in text:
             text = text.replace(
                 "## 非目标\n- 不做设置持久化与跨次启动记忆（后续任务）。",
                 "## 非目标\n- 不做设置持久化与跨次启动记忆（后续任务）。\n\n"
-                "## 口径冻结\n- 默认选中“第一张地图 + 第一个角色”，未选地图/未选角色时禁用开始按钮（但默认会自动选中）。\n"
-                "- 启动超时默认 20 秒（可由环境变量覆盖）；超时/失败必须清理已创建的 GameLoop/状态并回滚到配置界面。",
+                "## 口径冻结\n"
+                "- 默认选中“第一张地图 + 第一个角色”，未选地图/未选角色时禁用开始按钮（但默认会自动选中）。\n"
+                "- 启动超时默认 20 秒（可由环境变量覆盖）；超时/失败必须清理已创建的 GameLoop/状态并回滚到配置界面。\n"
+                "- 启动失败的 error_code 枚举固定为：`data_invalid` / `config_invalid` / `runtime_failed` / `timeout` / `security_denied`。\n"
+                "- 启动失败回滚必须包含地图/角色/人数/资金档/间隔（全部回滚到默认），并重生 random_seed。",
             )
 
     if path.name == "08-t55-characters.md":
@@ -266,6 +315,17 @@ def _update_overlay_file(path: Path) -> str:
                 "## 口径冻结\n- 无论是否进入战斗场景，结果计算与事件字段必须一致；AI 一律不进入场景但仍发布 started/ended。\n"
                 "- `core.sanguo.combat.ended` 结果字段至少包含 `result.outcome` / `result.money_delta` / `result.encounter_target` / `result.effective_combat_rating`。\n"
                 "- relic_id 同局唯一；重复掉落则重抽，耗尽候选则返回 null 并写入审计（不使用“max_id 兜底”）。",
+            )
+
+    if path.name == "08-t60-game-end-and-settlement.md":
+        if "## 口径冻结" not in text:
+            text = text.replace(
+                "## 非目标\n- 不做胜利条件自定义编辑器。",
+                "## 非目标\n- 不做胜利条件自定义编辑器。\n\n"
+                "## 口径冻结\n"
+                "- 玩家控制角色资金 <=0 时立刻触发失败并结束游戏；AI 出局在 `turn.advanced` 后统一检查终局。\n"
+                "- 出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；城市归属变化如需事件级复盘，后续补充 `core.sanguo.city.owner.changed`（Proposed）。\n"
+                "- 主日志/审计建议使用单调递增 `sequence` 作为稳定排序键（不依赖 OccurredAt）。",
             )
 
     return text if text != original else original
@@ -337,11 +397,13 @@ def main() -> int:
 
     # 2) Update overlays (targeted files only)
     overlay_paths = [
+        Path("docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md"),
         Path("docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"),
         Path("docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md"),
         Path("docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"),
         Path("docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"),
         Path("docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md"),
+        Path("docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"),
     ]
     for p in overlay_paths:
         before = _read_utf8(p)

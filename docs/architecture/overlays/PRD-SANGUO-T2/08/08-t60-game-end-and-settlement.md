@@ -19,6 +19,11 @@ Arch-Refs:
 ## 非目标
 - 不做胜利条件自定义编辑器。
 
+## 口径冻结
+- 玩家控制角色资金 <=0 时立刻触发失败并结束游戏；AI 出局在 `turn.advanced` 后统一检查终局。
+- 出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；城市归属变化如需事件级复盘，后续补充 `core.sanguo.city.owner.changed`（Proposed）。
+- 主日志/审计建议使用单调递增 `sequence` 作为稳定排序键（不依赖 OccurredAt）。
+
 ## 契约（EventType + 触发点）
 - `core.sanguo.game.ended`：满足胜利/失败条件并进入结算前。
 

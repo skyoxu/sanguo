@@ -394,6 +394,10 @@ PRD-TASK-SKELETON-DRAFT-T50-T60
 
 T50 Spine: GameStartConfig 与可复现开局输入
 - 范围：定义唯一 `GameStartConfig`（map_id / players_count / starting_money_preset / global_event_interval_turns / random_seed / character_assignments），并以事件对外发布。
+- 口径冻结：GameStartConfig 的审计快照必须使用“规范化 JSON”（UTF-8、LF、键排序、稳定字段名；不依赖对象枚举顺序），以保证 diff/复盘稳定。
+- 口径冻结：所有域事件必须携带 `CorrelationId`/`CausationId`（ADR-0024）；它们仅用于链路追踪，不得影响任何玩法计算与确定性结果。
+- 口径冻结：Data 校验失败属于 `data_invalid`，必须审计记录（至少包含 path/sha256/version/reason），并阻止开始。
+- 口径冻结：i18n 统一使用 `message_key + params`；params 必须是扁平键值（仅 string/int/decimal/bool），禁止嵌套对象/数组，降低 UI 解析复杂度。
 - 非目标：不做存档；不做 UI 美术与动画；不做角色成长。
 - 验收：
   - ACC:T50.1 `GameStartConfig` 字段/范围/唯一性校验通过。
@@ -439,6 +443,9 @@ T52 Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序
 
 T53 模块: 地图配置（多文件）与 Tile 语义
 - 范围：多文件地图配置：索引 `_index.json` + 单图 `<map_id>.json`；track 为任意循环轨道（格子数以 `track.length` 为准，例如 45）；Tile 最小集合：city / facility / event / empty。
+  - 口径冻结：资源路径必须做规范化与绕过拦截：拒绝 `..`、拒绝 percent-encoding 绕过（如 `%2e%2e`），并拒绝任何非 `res://`/`user://` scheme（ADR-0019）。
+  - 口径冻结：facility action 参数必须强类型且可校验（例如 teleport 只允许 `target_mode=tile_id|random`；mode=tile_id 时必须给出 `target_tile_id`）。
+  - 口径冻结：地图/设施/事件/建筑配置必须包含 `schema_version`；不等于当前支持版本则拒绝加载（不做迁移）。
   - 口径冻结：Core 只识别 `tile_kind = city | facility | event | empty`；当 `tile_kind=facility` 时必须给出 `facility_kind`（荒野/商店/战场/监狱/医院/职业所/传送点等）。
   - 口径冻结：`tile_id` 仅要求 map 内唯一；跨地图允许重复。
   - 口径冻结：`layout:{x,y}` 必须在 `[0,1]`（归一化坐标、原点左上）；越界视为数据无效，禁止开始（硬失败）。
@@ -458,6 +465,8 @@ T53 模块: 地图配置（多文件）与 Tile 语义
 
 T54 模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/选角）
 - 范围：新游戏界面作为唯一开局入口：选择 map、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、玩家角色；剩余席位由 AI 随机补位且不可重复。
+- 口径冻结：启动失败的 error_code 枚举固定为：`data_invalid` / `config_invalid` / `runtime_failed` / `timeout` / `security_denied`；同类原因必须复用同一 code，避免 UI/测试分裂。
+- 口径冻结：启动失败回滚必须包含地图/角色/人数/资金档/间隔（全部回滚到默认），并重生 random_seed（你已确认）。
 - 口径冻结：默认选中“第一张地图 + 第一个角色”，未选地图/未选角色时禁用开始按钮（但默认会自动选中）。
 - 口径冻结：启动超时默认 20 秒（可由环境变量覆盖）；超时/失败必须清理已创建的 GameLoop/状态并回滚到配置界面。
   - 约束：开始游戏前必须满足 `available_character_count >= players_count`（角色不可重复），否则 UI 必须阻止开始。
@@ -470,6 +479,7 @@ T54 模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/�
 
 T55 模块: 角色配置（≥8角色）与战斗基线
 - 范围：角色属于配置（只读）；包含经济系数与战斗基线：BuyPriceMultiplier / TollMultiplier / MonthSettlementMultiplier / CombatRating。
+- 口径冻结：角色配置必须包含 `schema_version`；不等于当前支持版本则拒绝加载（不做迁移）。
 - 口径冻结：角色头像资源路径必须位于 `res://Assets/...`，扩展名白名单（.png/.webp/.svg），大小上限 1MB；越界/非法则禁止开始。
 - 验收：
   - ACC:T55.1 角色配置可加载且 ≥8 角色可展示。
@@ -500,6 +510,7 @@ T57 模块: 行动卡模块（开局发牌 + BeforeRoll 0/1 + 强制弃牌）
 
 T58 模块: 可购买地块的建筑建造类型扩展
 - 范围：买地/建造/升级成本与收益都来源于配置（不同地块可有不同可建造清单）；本阶段先支持 3 种建筑类型；同一 tile 上同一 building_id 最多 1 份，用 level 升级表示成长（不做类型互换）。
+- 口径冻结：buy/toll/settlement/build/upgrade 的 base 值全部来自配置 JSON，禁止缺省（缺字段=数据无效，禁止开始）。
 - 口径冻结：建筑“未建造”= 该 tile 的 building 状态列表中不存在该 `building_id`；首次建造直接落 `level=1`，升级递增直到 `max_level`（不使用 `level=0` 作为哨兵值）。
   - 回合互斥：一回合内不能同时买地和建造/升级；一回合内最多升级/建造一次；买地后不提供 build。
   - 经济点：建造/升级成本使用 buy_effective_multiplier；过路费与收益结算使用相应经济点的 character multiplier，并写入 applied_multipliers（UI 只展示）。
@@ -526,6 +537,9 @@ T59 模块: 战斗模块（PVE）
 
 T60 模块: 每局胜利与结算界面
 - 范围：Core 判定胜利/失败；进入结算界面展示结果与关键统计；结算只展示不计算。
+- 口径冻结：玩家控制角色资金 <=0 时立刻触发失败并结束游戏；AI 出局可延后到 `turn.advanced` 后统一判定“最后存活者胜利”（你已确认）。
+- 口径冻结：出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；如需事件级复盘城市归属变化，后续补充 `core.sanguo.city.owner.changed`（Proposed）。
+- 口径冻结：主日志/审计为稳定重放，建议为每局维护单调递增 `sequence`（不依赖 OccurredAt 排序）。
   - 出局：资金≤0 立即出局；出局者名下资产清空并释放为无主（可再次购买/建造）。
   - 胜利：场上仅剩 1 个未出局角色即胜利；单机特例：人类玩家控制角色出局则立即结束整局。
   - 检查时点：统一在 `core.sanguo.game.turn.advanced` 之后做胜负检查（避免回合中途多点触发造成 UI/日志漂移）。
