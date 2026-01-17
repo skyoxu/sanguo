@@ -158,3 +158,38 @@ public sealed record SanguoCityTollPaid(
     /// </summary>
     public const string EventType = "core.sanguo.city.toll.paid";
 }
+
+/// <summary>
+/// Domain event: core.sanguo.city.owner.changed
+/// Description: Emitted when a city's owner changes (buy, release on elimination, or steal).
+/// </summary>
+/// <remarks>
+/// This event is ownership-focused and should not be used for money calculations. Economic computations MUST rely on
+/// <see cref="AppliedMultipliers"/> snapshots carried by money-related events.
+/// 
+/// Related ADRs: ADR-0004, ADR-0005, ADR-0024.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md.
+/// </remarks>
+public sealed record SanguoCityOwnerChanged(
+    string GameId,
+    int TurnNumber,
+    string CityId,
+    string? OldOwnerId,
+    string? NewOwnerId,
+    string ReasonCode,
+    DateTimeOffset OccurredAt,
+    string CorrelationId,
+    string? CausationId
+)
+{
+    public const string ReasonBought = "bought";
+
+    public const string ReasonReleased = "released";
+
+    public const string ReasonStolen = "stolen";
+
+    /// <summary>
+    /// CloudEvents type for this domain event.
+    /// </summary>
+    public const string EventType = "core.sanguo.city.owner.changed";
+}

@@ -1,0 +1,11 @@
+{
+  "character_assignments": {
+    "ai-01": "character_zhangfei",
+    "p1": "character_liubei"
+  },
+  "global_event_interval_turns": 10,
+  "map_id": "map001",
+  "players_count": 4,
+  "random_seed": 123456789,
+  "starting_money_preset": 10000
+}

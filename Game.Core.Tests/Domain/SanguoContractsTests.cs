@@ -20,6 +20,12 @@ public sealed class SanguoContractsTests
     }
 
     [Fact]
+    public void CityOwnerChangedEventHasExpectedEventType()
+    {
+        SanguoCityOwnerChanged.EventType.Should().Be("core.sanguo.city.owner.changed");
+    }
+
+    [Fact]
     public void CanCreateMonthSettledEventWithBasicValues()
     {
         var evt = new SanguoMonthSettled(

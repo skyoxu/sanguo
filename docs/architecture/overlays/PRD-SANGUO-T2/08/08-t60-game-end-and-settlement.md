@@ -21,11 +21,13 @@ Arch-Refs:
 
 ## 口径冻结
 - 玩家控制角色资金 <=0 时立刻触发失败并结束游戏；AI 出局在 `turn.advanced` 后统一检查终局。
-- 出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；城市归属变化如需事件级复盘，后续补充 `core.sanguo.city.owner.changed`（Proposed）。
-- 主日志/审计建议使用单调递增 `sequence` 作为稳定排序键（不依赖 OccurredAt）。
+- 出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；释放/买下/夺取导致的归属变化必须发布 `core.sanguo.city.owner.changed`。
+- `sequence` 仅用于审计落盘/复盘稳定排序，不进入域事件 payload。
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.game.ended`：满足胜利/失败条件并进入结算前。
+- `core.sanguo.player.eliminated`：玩家/AI 出局并进入释放资产流程时（审计）。
+- `core.sanguo.city.owner.changed`：城池归属变化时（买下/释放/夺取）。
 
 ## 验收条款（ACC）
 - ACC:T60.1 满足条件时发布 `core.sanguo.game.ended` 并进入结算界面。
@@ -33,4 +35,3 @@ Arch-Refs:
 
 ## Test-Refs
 - `Tests.Godot/tests/UI/test_task60_game_end_screen.gd`
-

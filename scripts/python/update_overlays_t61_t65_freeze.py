@@ -28,7 +28,9 @@ def _read_utf8(path: Path) -> str:
 
 def _write_utf8(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
+    # Repo enforces CRLF in working tree via .gitattributes; write CRLF to avoid churn/warnings.
+    normalized = text.replace("\r\n", "\n").replace("\n", "\r\n")
+    path.write_bytes(normalized.encode("utf-8"))
 
 
 def _upsert_file(path: Path, new_text: str) -> WriteResult:
@@ -322,4 +324,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
