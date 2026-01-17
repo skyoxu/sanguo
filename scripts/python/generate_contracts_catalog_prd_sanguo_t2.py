@@ -40,6 +40,13 @@ def _rel(path: Path, root: Path) -> str:
     return path.resolve().relative_to(root.resolve()).as_posix()
 
 
+def _load_strings(path: Path) -> dict[str, str]:
+    data = json.loads(_read_text_utf8(path))
+    if not isinstance(data, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in data.items()):
+        raise ValueError(f"Invalid strings file format: {path.as_posix()}")
+    return data
+
+
 def _scan_event_types(contracts_root: Path, repo_root: Path) -> list[EventTypeOccurrence]:
     # Best-effort: find `public const string EventType = "..."` and the closest preceding type name.
     event_type_re = re.compile(
@@ -113,9 +120,9 @@ def _load_master_tasks(path: Path) -> list[dict]:
     return tasks
 
 
-def _format_list(items: list[str]) -> str:
+def _format_list(items: list[str], *, empty_text: str) -> str:
     if not items:
-        return "（空）"
+        return empty_text
     return ", ".join(f"`{x}`" for x in items)
 
 
@@ -136,8 +143,11 @@ def _build_markdown(
     back_tasks: list[dict],
     gameplay_tasks: list[dict],
     include_task_mapping: bool,
+    strings: dict[str, str],
 ) -> str:
     generated_at = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    arrow = strings["arrow"]
+    empty_list_text = strings["empty_list"]
 
     event_types_sorted = sorted(event_types, key=lambda x: (x.event_type, x.declared_in))
     by_file: dict[str, list[EventTypeOccurrence]] = {}
@@ -160,60 +170,60 @@ def _build_markdown(
             unknown_contract_refs[task_id] = missing
 
     lines: list[str] = []
-    lines.append(f"# {prd_id} 契约目录（脚本生成）")
+    lines.append(f"# {prd_id} {strings['title_suffix']}")
     lines.append("")
-    lines.append("本文件为脚本生成产物，用于在开始新任务前快速对齐“当前仓库已落盘的契约（Contracts）”与“任务视图声明的 contractRefs”。")
+    lines.append(strings["intro"])
     lines.append("")
-    lines.append(f"- 生成时间（UTC）：`{generated_at}`")
-    lines.append(f"- 生成脚本：`scripts/python/generate_contracts_catalog_prd_sanguo_t2.py`")
-    lines.append("- 事件过滤：仅收录 `core.sanguo.*`（默认规则；可用脚本参数调整）")
+    lines.append(f"- {strings['generated_at_label']}: `{generated_at}`")
+    lines.append(f"- {strings['generator_label']}: `scripts/python/generate_contracts_catalog_prd_sanguo_t2.py`")
+    lines.append(f"- {strings['event_filter_label']}: {strings['event_filter_default']}")
     lines.append("")
-    lines.append("## 来源（SSoT 引用）")
-    lines.append(f"- PRD：`{prd_path}`")
-    lines.append(f"- Overlay（目录）：`{overlay_dir}`")
-    lines.append("- Contracts（代码）：`Game.Core/Contracts/**`")
-    lines.append(f"- 任务视图（语义 SSoT）：`{tasks_back_path}`、`{tasks_gameplay_path}`")
-    lines.append(f"- 任务母表（结构/标题/状态）：`{tasks_master_path}`")
+    lines.append(f"## {strings['sources_title']}")
+    lines.append(f"- {strings['source_prd']}: `{prd_path}`")
+    lines.append(f"- {strings['source_overlay_dir']}: `{overlay_dir}`")
+    lines.append(f"- {strings['source_contracts']}: `Game.Core/Contracts/**`")
+    lines.append(f"- {strings['source_task_views']}: `{tasks_back_path}`, `{tasks_gameplay_path}`")
+    lines.append(f"- {strings['source_tasks_master']}: `{tasks_master_path}`")
     lines.append("")
 
-    lines.append("## 领域事件（Domain Events）")
+    lines.append(f"## {strings['domain_events_title']}")
     lines.append("")
-    lines.append("> 规则：事件命名与 `EventType` 常量口径遵循 ADR-0004；本目录只反映“当前代码中已落盘的 EventType”。")
+    lines.append(f"> {strings['domain_events_rule']}")
     lines.append("")
 
     for file_path, occs in by_file.items():
         lines.append(f"### `{file_path}`")
         for o in occs:
             if o.declared_by:
-                lines.append(f"- `{o.event_type}` → `{o.declared_by}`")
+                lines.append(f"- `{o.event_type}`{arrow}`{o.declared_by}`")
             else:
                 lines.append(f"- `{o.event_type}`")
         lines.append("")
 
-    lines.append("## 接口契约（Interfaces）")
+    lines.append(f"## {strings['interfaces_title']}")
     lines.append("")
-    lines.append("### Ports（Core → Adapters）")
+    lines.append(f"### {strings['ports_title']}")
     lines.append("")
     for o in sorted(interfaces_ports, key=lambda x: (x.name, x.declared_in)):
-        lines.append(f"- `{o.name}`（`{o.declared_in}`）")
+        lines.append(f"- `{o.name}` (`{o.declared_in}`)")
     lines.append("")
 
-    lines.append("### Services（Core 内部服务抽象）")
+    lines.append(f"### {strings['services_title']}")
     lines.append("")
     for o in sorted(interfaces_services, key=lambda x: (x.name, x.declared_in)):
-        lines.append(f"- `{o.name}`（`{o.declared_in}`）")
+        lines.append(f"- `{o.name}` (`{o.declared_in}`)")
     lines.append("")
 
-    lines.append("### Repositories（持久化抽象）")
+    lines.append(f"### {strings['repositories_title']}")
     lines.append("")
     for o in sorted(interfaces_repos, key=lambda x: (x.name, x.declared_in)):
-        lines.append(f"- `{o.name}`（`{o.declared_in}`）")
+        lines.append(f"- `{o.name}` (`{o.declared_in}`)")
     lines.append("")
 
     if include_task_mapping:
-        lines.append("## 按任务映射（contractRefs 视角）")
+        lines.append(f"## {strings['task_mapping_title']}")
         lines.append("")
-        lines.append("> 说明：本节以 `tasks_back.json` 为全量视图；若 `tasks_gameplay.json` 存在对应任务，则同时展示。")
+        lines.append(f"> {strings['task_mapping_note']}")
         lines.append("")
 
         for task_id in sorted(master_by_id.keys()):
@@ -224,40 +234,50 @@ def _build_markdown(
                 # Skip tasks that don't exist in views (should not happen, but keep robust).
                 continue
 
-            lines.append(f"### Task {task_id}: {master.get('title')}")
-            lines.append(f"- Master status: `{master.get('status')}`")
-            lines.append(f"- Back view: `id={back.get('id')}` layer=`{back.get('layer')}` status=`{back.get('status')}`")
+            lines.append(f"### {strings['task_heading_prefix']} {task_id}: {master.get('title')}")
+            lines.append(f"- {strings['master_status_label']}: `{master.get('status')}`")
+            lines.append(
+                f"- {strings['back_view_label']}: `id={back.get('id')}` layer=`{back.get('layer')}` status=`{back.get('status')}`"
+            )
             if gameplay:
                 lines.append(
-                    f"- Gameplay view: `id={gameplay.get('id')}` layer=`{gameplay.get('layer')}` status=`{gameplay.get('status')}`"
+                    f"- {strings['gameplay_view_label']}: `id={gameplay.get('id')}` layer=`{gameplay.get('layer')}` status=`{gameplay.get('status')}`"
                 )
             else:
-                lines.append("- Gameplay view: （无）")
+                lines.append(f"- {strings['gameplay_view_label']}: {strings['gameplay_view_none']}")
 
             back_contracts = [str(x) for x in (back.get("contractRefs") or [])]
-            lines.append(f"- contractRefs（Back）：{_format_list(back_contracts)}")
+            lines.append(
+                f"- {strings['contract_refs_back_label']}: {_format_list(back_contracts, empty_text=empty_list_text)}"
+            )
 
             if gameplay:
                 gp_contracts = [str(x) for x in (gameplay.get('contractRefs') or [])]
-                lines.append(f"- contractRefs（Gameplay）：{_format_list(gp_contracts)}")
+                lines.append(
+                    f"- {strings['contract_refs_gameplay_label']}: {_format_list(gp_contracts, empty_text=empty_list_text)}"
+                )
 
             back_overlays = [str(x) for x in (back.get("overlay_refs") or [])]
             back_tests = [str(x) for x in (back.get("test_refs") or [])]
-            lines.append(f"- overlay_refs（Back）：{_format_list(back_overlays)}")
-            lines.append(f"- test_refs（Back）：{_format_list(back_tests)}")
+            lines.append(
+                f"- {strings['overlay_refs_back_label']}: {_format_list(back_overlays, empty_text=empty_list_text)}"
+            )
+            lines.append(f"- {strings['test_refs_back_label']}: {_format_list(back_tests, empty_text=empty_list_text)}")
             lines.append("")
 
         if unknown_contract_refs:
-            lines.append("## 发现的漂移风险（contractRefs ↔ Contracts）")
+            lines.append(f"## {strings['drift_title']}")
             lines.append("")
-            lines.append("以下任务视图声明了 contractRefs，但当前 `Game.Core/Contracts/**` 未发现对应 `EventType` 常量：")
+            lines.append(strings["drift_intro"])
             lines.append("")
             for task_id in sorted(unknown_contract_refs.keys()):
-                lines.append(f"- Task {task_id}: {_format_list(unknown_contract_refs[task_id])}")
+                lines.append(
+                    f"- {strings['task_heading_prefix']} {task_id}: {_format_list(unknown_contract_refs[task_id], empty_text=empty_list_text)}"
+                )
             lines.append("")
-            lines.append("处理建议：")
-            lines.append("- 若事件确实需要：先补 Contracts（纯 C#，不依赖 Godot），再补 Overlay 08 引用页，然后回填 contractRefs。")
-            lines.append("- 若事件已更名：同步更新 contractRefs 与所有测试/文档引用，避免双口径。")
+            lines.append(strings["drift_actions_title"])
+            lines.append(f"- {strings['drift_action_add']}")
+            lines.append(f"- {strings['drift_action_rename']}")
             lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"
@@ -283,6 +303,11 @@ def main() -> int:
     parser.add_argument("--tasks-gameplay", default=".taskmaster/tasks/tasks_gameplay.json")
     parser.add_argument("--no-task-mapping", action="store_true")
     parser.add_argument(
+        "--strings",
+        default="docs/workflows/templates/contracts_catalog_strings.zh-CN.json",
+        help="Path to a UTF-8 JSON file containing localized markdown strings (repo-relative).",
+    )
+    parser.add_argument(
         "--event-type-regex",
         default=r"^core\.sanguo\.",
         help="Only include EventType values matching this regex (default: only core.sanguo.*).",
@@ -307,6 +332,8 @@ def main() -> int:
     back_tasks = _load_tasks_view(repo_root / args.tasks_back)
     gameplay_tasks = _load_tasks_view(repo_root / args.tasks_gameplay)
 
+    strings = _load_strings(repo_root / args.strings)
+
     md = _build_markdown(
         prd_id=args.prd_id,
         repo_root=repo_root,
@@ -323,6 +350,7 @@ def main() -> int:
         back_tasks=back_tasks,
         gameplay_tasks=gameplay_tasks,
         include_task_mapping=not args.no_task_mapping,
+        strings=strings,
     )
 
     _write_text_utf8(repo_root / args.out, md)

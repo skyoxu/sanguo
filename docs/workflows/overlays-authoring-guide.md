@@ -1,14 +1,25 @@
 # overlays 编写与维护指南（本项目口径）
 
-本指南面向当前仓库（Windows-only Godot 4.5 + C#）。目标是让 overlays 成为“可执行规范”的载体：能被任务视图引用、能被脚本确定性校验、能与 Contracts/测试证据链对齐，并且避免口径漂移。
+本指南面向当前仓库（Windows-only Godot 4.5 + C#）。目标是让 overlays 成为“可执行规范”的载体：在默认“严格门禁模式”下可被任务视图引用并通过脚本确定性校验；在“宽松文档模式”下仍能自证边界与口径，避免漂移。
 
 ## 0. 核心结论（先记住这几条）
 
 1) overlays 不是 PRD 的复制粘贴，也不是 Tasks 的替代；它是“功能纵切（08）”的落点，强调边界、事件、验收与测试证据链。
 2) 08 章只写在 overlays：`docs/architecture/overlays/<PRD-ID>/08/`；Base 不写具体模块内容。
 3) 合约（Contracts）SSoT 在代码：`Game.Core/Contracts/**`；文档只引用路径与 EventType，不复制字段定义。
-4) 任务语义 SSoT 在任务视图：`.taskmaster/tasks/tasks_back.json`、`.taskmaster/tasks/tasks_gameplay.json`；overlays 必须可被这些文件回链引用并通过脚本校验。
+4) 任务语义 SSoT 在任务视图：`.taskmaster/tasks/tasks_back.json`、`.taskmaster/tasks/tasks_gameplay.json`；默认“严格门禁模式”下 overlays 需要可被这些文件回链引用并通过脚本校验（否则 CI/门禁会失败）。
 5) 阈值/策略（安全、可观测性、质量门禁）以 Base + Accepted ADR 为准；overlays 只引用，不复制。
+
+### 0.1 两种工作模式（先选模式，避免口径打架）
+
+- 严格门禁模式（本仓库默认）：
+  - 目的：把 overlays 当作“可执行规范”，必须能被任务视图回链、必须能被脚本校验。
+  - 代价：需要维护 tasks_* 视图的 `overlay_refs`、`test_refs`、`contractRefs` 等引用关系。
+  - 适用：要上 CI、要做确定性验收、多人协作频繁变更时。
+- 宽松文档模式（仅做文档防漂移）：
+  - 目的：overlays 自证边界、事件触发点、验收条款；不强制与任务视图/PRD 强绑定。
+  - 代价：如果你仍启用本仓库的严格校验脚本，门禁会失败；要么关闭相应门禁，要么回到严格模式。
+  - 适用：早期探索、单人离线整理、尚未接入任务流水线时。
 
 ## 1. overlays 的目录结构（固定）
 
