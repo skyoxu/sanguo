@@ -8,14 +8,25 @@ public sealed class Task58BuildingConfigAndEffectsTests
 {
     // ACC:T58.1
     [Fact]
-    public void BuildingDefinition_ShouldOnlyUseMultiplierStepDelta()
+    public void BuildingDefinition_ShouldExposeEconomyStepDeltas()
     {
         var b = new SanguoBuildingDefinition(
-            "b_house_1",
-            "民宅",
-            "desc",
-            1);
+            BuildingId: "building_house",
+            NameKey: "building.building_house.name",
+            DescriptionKey: "building.building_house.desc",
+            MaxLevel: 3,
+            BuildCostBase: 300,
+            UpgradeCostBase: 200,
+            SettlementIncomeBase: 50,
+            EconomyStepDeltas: new SanguoEconomyStepDeltas(
+                BuyPrice: 0,
+                Toll: 1,
+                IncomeSettlement: 1,
+                BuildCost: 0,
+                UpgradeCost: 0));
 
-        b.MultiplierStepDelta.Should().Be(1);
+        b.BuildingId.Should().Be("building_house");
+        b.MaxLevel.Should().Be(3);
+        b.EconomyStepDeltas.Toll.Should().Be(1);
     }
 }

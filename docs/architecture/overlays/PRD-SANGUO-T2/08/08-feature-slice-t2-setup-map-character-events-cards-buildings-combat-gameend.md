@@ -102,13 +102,16 @@ Arch-Refs:
 
 UI 仅展示事件 payload/投影字段，不得在 UI 侧自行计算金额。
 
-### 8.x.2.7 multiplier_step_delta 口径（整数步进）
+### 8.x.2.7 effectKind + stepDelta 口径（止损版）
 
-- 事件、行动卡、建筑的效果输入统一采用 `multiplier_step_delta`（整数步进）表达：
-  - `+1` 表示 `+0.5`
-  - `-1` 表示 `-0.5`
+- 事件/行动卡/宝物等效果输入统一采用 `effectKind` 表达（白名单）：
+  - `moneyDelta`：直接改变金钱（整型）
+  - `economyStepDelta`：以 0.5 步进影响经济倍率（整型 steps）
+- `economyStepDelta.stepDelta` 语义：
+  - `+1` 表示 `+0.5x`
+  - `-1` 表示 `-0.5x`
   - `0` 表示不修改
-- 该输入必须先映射为 multiplier 因子并纳入 8.x.2.4 的合成规则，再产出 `applied_multipliers` 快照。
+- 经济相关计算必须将 stepDelta 纳入 8.x.2.4 的 steps 合成规则，并产出 `applied_multipliers` 快照（UI 只展示）。
 
 ## 8.x.3 契约与落盘位置（引用型）
 

@@ -17,6 +17,7 @@ Arch-Refs:
 - 三国大富翁闭环事件（Sanguo GameLoop Events）— 见 `08-Contracts-Sanguo-GameLoop-Events.md`
 - 安全口径引用（Security Contracts）— 见 `08-Contracts-Security.md`
 - 质量指标与门禁引用（Quality Metrics）— 见 `08-Contracts-Quality-Metrics.md`
+- T50–T65 契约映射（Events/DTO/Interfaces）— 见 `08-contracts-taskmap-t50-t65.md`
 
 - 验收清单（Acceptance Checklist）— 见 `ACCEPTANCE_CHECKLIST.md`
 - 玩法闭环（功能纵切）— 见 `08-feature-slice-t2-monopoly-loop.md`
@@ -27,12 +28,18 @@ Arch-Refs:
   - T52 回合窗口（BeforeRoll）与事件顺序 — 见 `08-t52-turn-window-and-event-ordering.md`
   - T53 地图配置（多文件）与 Tile 语义 — 见 `08-t53-map-config.md`
   - T54 新游戏配置界面（地图/人数/资金档/间隔/选角）— 见 `08-t54-new-game-menu.md`
-  - T55 角色（6 角色）与初始资金口径 — 见 `08-t55-characters.md`
+  - T55 角色（≥8 角色）与初始资金口径 — 见 `08-t55-characters.md`
   - T56 随机事件池（事件格 + 每N回合全局事件）— 见 `08-t56-random-events.md`
   - T57 行动卡（BeforeRoll，止损版）— 见 `08-t57-action-cards.md`
   - T58 建筑扩展（买地后建造类型）— 见 `08-t58-buildings.md`
   - T59 战斗（PVE）触发与回主循环 — 见 `08-t59-combat-pve.md`
   - T60 每局胜利与结算界面 — 见 `08-t60-game-end-and-settlement.md`
+- T61–T65 多页（按任务拆分）：
+  - T61 AI 最小确定性策略（止损层）— 见 `08-t61-ai-minimal-deterministic.md`
+  - T62 宝物系统（Relics）— 见 `08-t62-relics.md`
+  - T63 全局事件触发机制（RoundNumber）— 见 `08-t63-global-events.md`
+  - T64 州郡数据模型（Regions）— 见 `08-t64-regions.md`
+  - T65 州郡机制（全占增益 + 连协收费）— 见 `08-t65-regions-mechanics.md`
 - 城池所有权模型（功能纵切）— 见 `08-t2-city-ownership-model.md`
 
 > 关联 PRD：`.taskmaster/docs/prd.txt` 中 T2 阶段「最小可玩闭环」描述  

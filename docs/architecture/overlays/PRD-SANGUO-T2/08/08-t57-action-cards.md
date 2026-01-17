@@ -15,7 +15,7 @@ Arch-Refs:
 ## 范围
 - 行动卡配置只读（`res://Data/**`）。
 - 使用窗口：TurnPhase.BeforeRoll。
-- 效果表达：`multiplier_step_delta`（整型步进，1=+0.5）。
+- 效果表达：`effectKind=economyStepDelta` + `stepDelta`（steps 为整型步进，1=+0.5；最终仍按 T51 口径 clamp），并携带 `durationRounds`。
 
 ## 非目标
 - 不做多卡连锁与复杂卡牌规则。
@@ -29,4 +29,3 @@ Arch-Refs:
 
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task57ActionCardTests.cs`
-

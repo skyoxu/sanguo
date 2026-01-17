@@ -2,7 +2,7 @@ namespace Game.Core.Contracts.Sanguo;
 
 /// <summary>
 /// DTO: SanguoBuildingDefinition
-/// Description: Building contract (stop-loss version) that only allows multiplier_step_delta effects.
+/// Description: Building definition contract loaded from Data/buildings.json (stop-loss version).
 /// </summary>
 /// <remarks>
 /// Related ADRs: ADR-0004 (event bus and contracts), ADR-0005 (quality gates).
@@ -10,8 +10,11 @@ namespace Game.Core.Contracts.Sanguo;
 /// </remarks>
 public sealed record SanguoBuildingDefinition(
     string BuildingId,
-    string Name,
-    string Description,
-    int MultiplierStepDelta
+    string NameKey,
+    string DescriptionKey,
+    int MaxLevel,
+    int BuildCostBase,
+    int UpgradeCostBase,
+    int SettlementIncomeBase,
+    SanguoEconomyStepDeltas EconomyStepDeltas
 );
-

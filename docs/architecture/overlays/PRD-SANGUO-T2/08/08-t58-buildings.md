@@ -11,11 +11,12 @@ Arch-Refs:
 
 # T58：建筑扩展（买地后建造类型）
 
-本页为 T58 的功能纵切拆页。止损版建筑效果只通过 `multiplier_step_delta` 影响经济，并要求可审计（事件）。
+本页为 T58 的功能纵切拆页。止损版建筑效果只通过 steps（0.5 步进）体系影响经济，并要求可审计（事件）。
 
 ## 范围
 - 买地后允许选择建造类型（配置只读）。
-- 建造效果：`multiplier_step_delta`（整型步进，1=+0.5）。
+- 建造/升级成本与结算收益来自配置（base 值 + steps）。
+- 建造效果：`economyStepDeltas`（steps 为整型步进，1=+0.5；最终仍按 T51 口径 clamp）。
 - 建造行为发布事件，用于 UI 展示与回放定位。
 
 ## 非目标
@@ -33,4 +34,3 @@ Arch-Refs:
 
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task58BuildingsTests.cs`
-
