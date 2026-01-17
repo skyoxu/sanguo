@@ -14,8 +14,8 @@ namespace Game.Core.Tests.Services;
 public class SanguoTurnManagerTests
 {
     private static readonly SanguoEconomyRules Rules = new(
-        maxPriceMultiplier: SanguoEconomyRules.DefaultMaxPriceMultiplier,
-        maxTollMultiplier: SanguoEconomyRules.DefaultMaxTollMultiplier);
+        maxPriceSteps: SanguoEconomyRules.DefaultMaxPriceSteps,
+        maxTollSteps: SanguoEconomyRules.DefaultMaxTollSteps);
     // ACC:T6.1
     [Fact]
     public void ShouldNotReferenceGodotAssemblies_WhenUsingGameCore()
@@ -180,7 +180,7 @@ public class SanguoTurnManagerTests
             boardState,
             treasury,
             quarterEnvironmentEventTriggerChance: 1.0,
-            quarterEnvironmentEventYieldMultiplier: 0.9m);
+            quarterEnvironmentEventYieldMultiplier: 0.5m);
         var gameId = "game-1";
         var correlationId = "corr-1";
         await mgr.StartNewGameAsync(
@@ -207,7 +207,7 @@ public class SanguoTurnManagerTests
         payload.GetProperty("AffectedRegionIds").ValueKind.Should().Be(JsonValueKind.Array);
         payload.GetProperty("AffectedRegionIds").GetArrayLength().Should().Be(1);
         payload.GetProperty("AffectedRegionIds")[0].GetString().Should().Be("r1");
-        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.9m);
+        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.5m);
         payload.GetProperty("CorrelationId").GetString().Should().Be(correlationId);
         payload.GetProperty("CausationId").GetString().Should().Be("cmd-advance");
     }
@@ -430,9 +430,12 @@ public class SanguoTurnManagerTests
         var ended = bus.Published.Find(e => e.Type == SanguoGameTurnEnded.EventType)!;
         var endedPayload = ((JsonElementEventData)ended.Data!).Value;
         endedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("ai-1");
-        var advanced = bus.Published.Find(e => e.Type == SanguoGameTurnAdvanced.EventType)!;
-        var advancedPayload = ((JsonElementEventData)advanced.Data!).Value;
-        advancedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("p1", "removed active AI should advance to the next remaining player");
+
+        bus.Published.Should().NotContain(e => e.Type == SanguoGameTurnAdvanced.EventType, "last actor standing ends the game at end of turn");
+        var gameEnded = bus.Published.Find(e => e.Type == SanguoGameEnded.EventType)!;
+        var gameEndedPayload = ((JsonElementEventData)gameEnded.Data!).Value;
+        gameEndedPayload.GetProperty("EndReason").GetString().Should().Be(SanguoGameEnded.ReasonLastActorStanding);
+        gameEndedPayload.GetProperty("WinnerPlayerId").GetString().Should().Be("p1");
     }
     [Fact]
     public async Task ShouldPublishGameEnded_WhenAllPlayersRemovedAfterPruningEliminatedAi()
@@ -479,7 +482,7 @@ public class SanguoTurnManagerTests
             boardState,
             treasury,
             quarterEnvironmentEventTriggerChance: 1.0,
-            quarterEnvironmentEventYieldMultiplier: 0.9m);
+            quarterEnvironmentEventYieldMultiplier: 0.5m);
         await mgr.StartNewGameAsync(
             gameId: "g1",
             playerOrder: new[] { "p1" },

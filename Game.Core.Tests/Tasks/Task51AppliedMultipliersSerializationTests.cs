@@ -12,22 +12,24 @@ public sealed class Task51AppliedMultipliersSerializationTests
     public void AppliedMultipliers_ShouldRoundTrip_WithSystemTextJson()
     {
         var m = new AppliedMultipliers(
-            1.5m,
-            1.0m,
-            0.5m,
-            1.0m,
-            0.75m,
-            AppliedMultiplierSources.Character | AppliedMultiplierSources.ActionCard);
+            BaseSteps: 2,
+            CharacterStepDelta: 1,
+            BuildingStepDelta: 0,
+            EventStepDelta: -1,
+            ActionCardStepDelta: 0,
+            RelicStepDelta: 0,
+            RegionStepDelta: 0,
+            EffectiveSteps: 2,
+            Sources: AppliedMultiplierSources.Character | AppliedMultiplierSources.ActionCard);
 
         var json = JsonSerializer.Serialize(m);
         var restored = JsonSerializer.Deserialize<AppliedMultipliers>(json);
 
         restored.Should().NotBeNull();
-        restored!.Character.Should().Be(1.5m);
-        restored.Building.Should().Be(1.0m);
-        restored.Event.Should().Be(0.5m);
-        restored.ActionCard.Should().Be(1.0m);
-        restored.Effective.Should().Be(0.75m);
+        restored!.BaseSteps.Should().Be(2);
+        restored.CharacterStepDelta.Should().Be(1);
+        restored.EventStepDelta.Should().Be(-1);
+        restored.EffectiveSteps.Should().Be(2);
         restored.Sources.Should().Be(AppliedMultiplierSources.Character | AppliedMultiplierSources.ActionCard);
     }
 }

@@ -178,7 +178,7 @@ def _extract_refs_from_acceptance_item(text: str) -> list[str]:
 
 def _extract_prd_excerpt() -> str:
     root = repo_root()
-    prd = root / "prd.txt"
+    prd = root / ".taskmaster" / "docs" / "prd.txt"
     prd_yuan = root / "prd_yuan.md"
     blob = ""
     if prd.exists():

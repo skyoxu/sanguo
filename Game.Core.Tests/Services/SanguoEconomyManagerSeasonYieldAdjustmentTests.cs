@@ -29,13 +29,13 @@ public sealed class SanguoEconomyManagerSeasonYieldAdjustmentTests
             year: 1,
             season: 2,
             affectedRegionIds: new[] { "r1" },
-            yieldMultiplier: 0.9m);
+            yieldMultiplier: 0.5m);
 
         var adjusted = economy.CalculateMonthSettlements(
             players: new[] { player },
             citiesById: boardState.GetCitiesSnapshot());
         adjusted.Should().ContainSingle();
-        adjusted[0].AmountDelta.Should().Be(29m);
+        adjusted[0].AmountDelta.Should().Be(25m);
 
         economy.SetActiveSeasonYieldAdjustment(
             year: 1,
@@ -68,7 +68,7 @@ public sealed class SanguoEconomyManagerSeasonYieldAdjustmentTests
             year: 1,
             season: 2,
             affectedRegionIds: new[] { " ", "\t", "\n" },
-            yieldMultiplier: 0.9m);
+            yieldMultiplier: 0.5m);
 
         var settlements = economy.CalculateMonthSettlements(
             players: new[] { player },

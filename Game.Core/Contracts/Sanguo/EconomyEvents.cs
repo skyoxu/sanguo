@@ -58,7 +58,11 @@ public sealed record SanguoSeasonEventApplied(
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId,
-    AppliedMultipliers AppliedMultipliers
+    AppliedMultipliers AppliedMultipliers,
+    string? RngContextId = null,
+    string? CandidatesSortedIdsHash = null,
+    int? PickedIndex = null,
+    string? PickedId = null
 )
 {
     /// <summary>

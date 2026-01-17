@@ -14,12 +14,6 @@ public sealed record City
         if (string.IsNullOrWhiteSpace(regionId))
             throw new ArgumentException("RegionId must be non-empty.", nameof(regionId));
 
-        if (basePrice < MoneyValue.Zero)
-            throw new ArgumentOutOfRangeException(nameof(basePrice), "BasePrice must be non-negative.");
-
-        if (baseToll < MoneyValue.Zero)
-            throw new ArgumentOutOfRangeException(nameof(baseToll), "BaseToll must be non-negative.");
-
         if (positionIndex < 0)
             throw new ArgumentOutOfRangeException(nameof(positionIndex), "PositionIndex must be non-negative.");
 
@@ -45,16 +39,16 @@ public sealed record City
 
     public MoneyValue GetPrice(decimal multiplier, SanguoEconomyRules rules)
     {
-        if (multiplier < 0 || multiplier > rules.MaxPriceMultiplier)
-            throw new ArgumentOutOfRangeException(nameof(multiplier), $"Multiplier must be between 0 and {rules.MaxPriceMultiplier}.");
+        if (!rules.IsValidPriceMultiplier(multiplier))
+            throw new ArgumentOutOfRangeException(nameof(multiplier), $"Multiplier must be between {rules.MinMultiplier} and {rules.MaxPriceMultiplier} in 0.5 steps.");
 
         return MoneyValue.FromDecimal(BasePrice.ToDecimal() * multiplier);
     }
 
     public MoneyValue GetToll(decimal multiplier, SanguoEconomyRules rules)
     {
-        if (multiplier < 0 || multiplier > rules.MaxTollMultiplier)
-            throw new ArgumentOutOfRangeException(nameof(multiplier), $"Multiplier must be between 0 and {rules.MaxTollMultiplier}.");
+        if (!rules.IsValidTollMultiplier(multiplier))
+            throw new ArgumentOutOfRangeException(nameof(multiplier), $"Multiplier must be between {rules.MinMultiplier} and {rules.MaxTollMultiplier} in 0.5 steps.");
 
         return MoneyValue.FromDecimal(BaseToll.ToDecimal() * multiplier);
     }

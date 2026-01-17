@@ -11,22 +11,24 @@ public class SanguoEconomyRulesTests
     public void Default_HasExpectedBounds()
     {
         var rules = SanguoEconomyRules.Default;
-        rules.MaxPriceMultiplier.Should().Be(SanguoEconomyRules.DefaultMaxPriceMultiplier);
-        rules.MaxTollMultiplier.Should().Be(SanguoEconomyRules.DefaultMaxTollMultiplier);
+        rules.MaxPriceSteps.Should().Be(SanguoEconomyRules.DefaultMaxPriceSteps);
+        rules.MaxTollSteps.Should().Be(SanguoEconomyRules.DefaultMaxTollSteps);
+        rules.MinMultiplier.Should().Be(0.5m);
+        rules.MaxPriceMultiplier.Should().Be(3.0m);
     }
 
     [Fact]
-    public void Constructor_WhenMaxPriceMultiplierNegative_ThrowsArgumentOutOfRangeException()
+    public void Constructor_WhenMaxPriceStepsOutOfRange_ThrowsArgumentOutOfRangeException()
     {
-        Action act = () => _ = new SanguoEconomyRules(maxPriceMultiplier: -1m, maxTollMultiplier: 1m);
-        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("maxPriceMultiplier");
+        Action act = () => _ = new SanguoEconomyRules(maxPriceSteps: 0, maxTollSteps: 6);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("maxPriceSteps");
     }
 
     [Fact]
-    public void Constructor_WhenMaxTollMultiplierNegative_ThrowsArgumentOutOfRangeException()
+    public void Constructor_WhenMaxTollStepsOutOfRange_ThrowsArgumentOutOfRangeException()
     {
-        Action act = () => _ = new SanguoEconomyRules(maxPriceMultiplier: 1m, maxTollMultiplier: -1m);
-        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("maxTollMultiplier");
+        Action act = () => _ = new SanguoEconomyRules(maxPriceSteps: 6, maxTollSteps: 7);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("maxTollSteps");
     }
 }
 

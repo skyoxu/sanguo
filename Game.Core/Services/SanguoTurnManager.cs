@@ -4,6 +4,8 @@ using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
 using Game.Core.Utilities;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Game.Core.Services;
 
@@ -21,6 +23,7 @@ public sealed class SanguoTurnManager
 
     private string? _gameId;
     private string[]? _playerOrder;
+    private int _startingPlayersCount;
     private int _activePlayerIndex;
     private int _turnNumber;
     private SanguoCalendarDate _currentDate;
@@ -36,7 +39,7 @@ public sealed class SanguoTurnManager
         IRandomNumberGenerator? rng = null,
         int totalPositionsHint = 0,
         double quarterEnvironmentEventTriggerChance = 0.5,
-        decimal quarterEnvironmentEventYieldMultiplier = 0.9m)
+        decimal quarterEnvironmentEventYieldMultiplier = 0.5m)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
@@ -99,6 +102,7 @@ public sealed class SanguoTurnManager
 
         _gameId = gameId;
         _playerOrder = playerOrder.ToArray();
+        _startingPlayersCount = _playerOrder.Length;
         _activePlayerIndex = 0;
         _turnNumber = 1;
         _currentDate = date;
@@ -213,16 +217,40 @@ public sealed class SanguoTurnManager
         if (_playerOrder.Length == 0)
         {
             _started = false;
-            _gameOverEndReason = "no_players";
+            _gameOverEndReason = SanguoGameEnded.ReasonNoPlayers;
             var evt = new DomainEvent(
                 Type: SanguoGameEnded.EventType,
                 Source: nameof(SanguoTurnManager),
                 Data: JsonElementEventData.FromObject(new SanguoGameEnded(
                     GameId: _gameId,
-                    EndReason: "no_players",
+                    EndReason: SanguoGameEnded.ReasonNoPlayers,
                     OccurredAt: occurredAt,
                     CorrelationId: correlationId,
                     CausationId: causationId
+                )),
+                Timestamp: DateTime.UtcNow,
+                Id: Guid.NewGuid().ToString("N")
+            );
+            await _bus.PublishAsync(evt);
+            return;
+        }
+
+        if (_startingPlayersCount >= 2 && _playerOrder.Length == 1)
+        {
+            _started = false;
+            _gameOverEndReason = SanguoGameEnded.ReasonLastActorStanding;
+
+            var winnerPlayerId = _playerOrder[0];
+            var evt = new DomainEvent(
+                Type: SanguoGameEnded.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoGameEnded(
+                    GameId: _gameId,
+                    EndReason: SanguoGameEnded.ReasonLastActorStanding,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    WinnerPlayerId: winnerPlayerId
                 )),
                 Timestamp: DateTime.UtcNow,
                 Id: Guid.NewGuid().ToString("N")
@@ -311,6 +339,12 @@ public sealed class SanguoTurnManager
                 {
                     var affectedIndex = _rng.NextInt(minInclusive: 0, maxExclusive: regionIds.Length);
                     var affectedRegionIds = new[] { regionIds[affectedIndex] };
+                    var rngContextId = BuildRngContextId(
+                        stream: "rng.events",
+                        turnNumber: _turnNumber,
+                        roundNumber: ComputeRoundNumber(_turnNumber),
+                        sourceId: "quarter_env_region");
+                    var candidatesSortedIdsHash = ComputeSha256Hex(string.Join("\n", regionIds));
 
                     _economy.SetActiveSeasonYieldAdjustment(
                         year: _currentDate.Year,
@@ -328,7 +362,11 @@ public sealed class SanguoTurnManager
                         yieldMultiplier: _quarterEnvironmentEventYieldMultiplier,
                         correlationId: correlationId,
                         causationId: causationId,
-                        occurredAt: occurredAt);
+                        occurredAt: occurredAt,
+                        rngContextId: rngContextId,
+                        candidatesSortedIdsHash: candidatesSortedIdsHash,
+                        pickedIndex: affectedIndex,
+                        pickedId: affectedRegionIds[0]);
                 }
             }
         }
@@ -652,7 +690,7 @@ public sealed class SanguoTurnManager
                 continue;
 
             _started = false;
-            _gameOverEndReason = "human_eliminated";
+            _gameOverEndReason = SanguoGameEnded.ReasonPlayerBankrupt;
 
             var occurredAt = DateTimeOffset.UtcNow;
             var evt = new DomainEvent(
@@ -660,7 +698,7 @@ public sealed class SanguoTurnManager
                 Source: nameof(SanguoTurnManager),
                 Data: JsonElementEventData.FromObject(new SanguoGameEnded(
                     GameId: _gameId,
-                    EndReason: "human_eliminated",
+                    EndReason: SanguoGameEnded.ReasonPlayerBankrupt,
                     OccurredAt: occurredAt,
                     CorrelationId: correlationId,
                     CausationId: causationId
@@ -744,6 +782,27 @@ public sealed class SanguoTurnManager
         foreach (var city in citiesById.Values)
             list.Add(city);
         return list;
+    }
+
+    private int ComputeRoundNumber(int turnNumber)
+    {
+        if (_startingPlayersCount <= 0)
+            return 1;
+
+        if (turnNumber < 1)
+            return 1;
+
+        return ((turnNumber - 1) / _startingPlayersCount) + 1;
+    }
+
+    private static string BuildRngContextId(string stream, int turnNumber, int roundNumber, string sourceId)
+        => $"{stream}:{turnNumber}:{roundNumber}:{sourceId}";
+
+    private static string ComputeSha256Hex(string value)
+    {
+        var bytes = Encoding.UTF8.GetBytes(value);
+        var hash = SHA256.HashData(bytes);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
     private static int GetSeasonFromMonth(int month)
@@ -1112,6 +1171,7 @@ public sealed class SanguoTurnManager
 
         _gameId = snapshot.GameId;
         _playerOrder = order;
+        _startingPlayersCount = order.Length;
         _activePlayerIndex = snapshot.ActivePlayerIndex;
         _turnNumber = snapshot.TurnNumber;
         _currentDate = new SanguoCalendarDate(snapshot.Year, snapshot.Month, snapshot.Day);
@@ -1216,11 +1276,14 @@ public sealed class SanguoTurnManager
                         CorrelationId: correlationId,
                         CausationId: causationId,
                         AppliedMultipliers: new AppliedMultipliers(
-                            Character: 1.0m,
-                            Building: 1.0m,
-                            Event: 1.0m,
-                            ActionCard: 1.0m,
-                            Effective: 1.0m)
+                            BaseSteps: AppliedMultipliers.BaseDefaultSteps,
+                            CharacterStepDelta: 0,
+                            BuildingStepDelta: 0,
+                            EventStepDelta: 0,
+                            ActionCardStepDelta: 0,
+                            RelicStepDelta: 0,
+                            RegionStepDelta: 0,
+                            EffectiveSteps: AppliedMultipliers.BaseDefaultSteps)
                     )),
                     Timestamp: occurredAt.UtcDateTime,
                     Id: Guid.NewGuid().ToString("N")

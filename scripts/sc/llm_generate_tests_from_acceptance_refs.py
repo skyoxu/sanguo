@@ -290,7 +290,7 @@ def _is_allowed_test_path(p: str) -> bool:
 
 
 def _select_primary_ref_prompt(*, task_id: str, title: str, candidates: list[dict[str, Any]]) -> str:
-    prd_path = repo_root() / "prd.txt"
+    prd_path = repo_root() / ".taskmaster" / "docs" / "prd.txt"
     prd = _truncate(_read_text(prd_path), max_chars=8_000) if prd_path.exists() else ""
     constraints = "\n".join(
         [

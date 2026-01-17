@@ -35,6 +35,50 @@ public sealed class SanguoEconomyManager
         decimal YieldMultiplier
     );
 
+    private static int MultiplierToEffectiveSteps(decimal multiplier, bool allowNonHalfStep)
+    {
+        if (multiplier <= 0m)
+            return AppliedMultipliers.MinSteps;
+
+        if (!AppliedMultipliers.IsHalfStepMultiplier(multiplier))
+        {
+            if (!allowNonHalfStep)
+                throw new ArgumentOutOfRangeException(nameof(multiplier), "Multiplier must be in 0.5 steps.");
+
+            var stepsDecimal = multiplier / AppliedMultipliers.Step;
+            var rounded = (int)decimal.Round(stepsDecimal, 0, MidpointRounding.AwayFromZero);
+            return AppliedMultipliers.ClampSteps(rounded);
+        }
+
+        var steps = (int)decimal.Truncate(multiplier / AppliedMultipliers.Step);
+        return AppliedMultipliers.ClampSteps(steps);
+    }
+
+    private static AppliedMultipliers AppliedFromSingleMultiplier(decimal multiplier, AppliedMultiplierSources source, bool allowNonHalfStep = false)
+    {
+        var effectiveSteps = MultiplierToEffectiveSteps(multiplier, allowNonHalfStep);
+        var baseSteps = AppliedMultipliers.BaseDefaultSteps;
+        var delta = effectiveSteps - baseSteps;
+        var characterDelta = source.HasFlag(AppliedMultiplierSources.Character) ? delta : 0;
+        var buildingDelta = source.HasFlag(AppliedMultiplierSources.Building) ? delta : 0;
+        var eventDelta = source.HasFlag(AppliedMultiplierSources.Event) ? delta : 0;
+        var actionCardDelta = source.HasFlag(AppliedMultiplierSources.ActionCard) ? delta : 0;
+        var relicDelta = source.HasFlag(AppliedMultiplierSources.Relic) ? delta : 0;
+        var regionDelta = source.HasFlag(AppliedMultiplierSources.Region) ? delta : 0;
+
+        return new AppliedMultipliers(
+            BaseSteps: baseSteps,
+            CharacterStepDelta: characterDelta,
+            BuildingStepDelta: buildingDelta,
+            EventStepDelta: eventDelta,
+            ActionCardStepDelta: actionCardDelta,
+            RelicStepDelta: relicDelta,
+            RegionStepDelta: regionDelta,
+            EffectiveSteps: effectiveSteps,
+            Sources: source
+        );
+    }
+
     /// <summary>
     /// Creates a new <see cref="SanguoEconomyManager"/>.
     /// </summary>
@@ -64,6 +108,18 @@ public sealed class SanguoEconomyManager
 
         if (yieldMultiplier < 0)
             throw new ArgumentOutOfRangeException(nameof(yieldMultiplier), "Yield multiplier must be non-negative.");
+
+        if (yieldMultiplier != 1.0m)
+        {
+            if (yieldMultiplier < AppliedMultipliers.MinSteps * AppliedMultipliers.Step
+                || yieldMultiplier > AppliedMultipliers.MaxSteps * AppliedMultipliers.Step
+                || !AppliedMultipliers.IsHalfStepMultiplier(yieldMultiplier))
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(yieldMultiplier),
+                    $"Yield multiplier must be between {AppliedMultipliers.MinSteps * AppliedMultipliers.Step} and {AppliedMultipliers.MaxSteps * AppliedMultipliers.Step} in 0.5 steps.");
+            }
+        }
 
         if (affectedRegionIds.Count == 0 || yieldMultiplier == 1.0m)
         {
@@ -234,12 +290,7 @@ public sealed class SanguoEconomyManager
 
         var price = (moneyBefore - buyer.Money).ToDecimal();
 
-        var appliedMultipliers = new AppliedMultipliers(
-            Character: 1.0m,
-            Building: 1.0m,
-            Event: 1.0m,
-            ActionCard: 1.0m,
-            Effective: AppliedMultipliers.ClampToRange(priceMultiplier));
+        var appliedMultipliers = AppliedFromSingleMultiplier(priceMultiplier, AppliedMultiplierSources.Character);
 
         var evt = new DomainEvent(
             Type: SanguoCityBought.EventType,
@@ -371,6 +422,7 @@ public sealed class SanguoEconomyManager
         var amountPaid = new MoneyValue(amountPaidMinorUnits).ToDecimal();
         var ownerAmount = new MoneyValue(ownerAmountMinorUnits).ToDecimal();
         var treasuryOverflow = new MoneyValue(overflowMinorUnits).ToDecimal();
+        var eliminationTransition = !payerSnapshot.IsEliminated && payer.IsEliminated;
 
         var evt = new DomainEvent(
             Type: SanguoCityTollPaid.EventType,
@@ -387,12 +439,7 @@ public sealed class SanguoEconomyManager
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
                 CausationId: causationId,
-                AppliedMultipliers: new AppliedMultipliers(
-                    Character: 1.0m,
-                    Building: 1.0m,
-                    Event: 1.0m,
-                    ActionCard: 1.0m,
-                    Effective: AppliedMultipliers.ClampToRange(tollMultiplier))
+                AppliedMultipliers: AppliedFromSingleMultiplier(tollMultiplier, AppliedMultiplierSources.Character)
             )),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N")
@@ -401,6 +448,47 @@ public sealed class SanguoEconomyManager
         try
         {
             await _bus.PublishAsync(evt);
+
+            if (eliminationTransition)
+            {
+                var eliminatedEvt = new DomainEvent(
+                    Type: SanguoPlayerEliminated.EventType,
+                    Source: nameof(SanguoEconomyManager),
+                    Data: JsonElementEventData.FromObject(new SanguoPlayerEliminated(
+                        GameId: gameId,
+                        TurnNumber: turnNumber,
+                        PlayerId: payerId,
+                        ReasonCode: SanguoPlayerEliminated.ReasonBankrupt,
+                        MoneyBefore: payerMoneyBefore.ToDecimal(),
+                        MoneyAfter: payer.Money.ToDecimal(),
+                        OccurredAt: occurredAt,
+                        CorrelationId: correlationId,
+                        CausationId: causationId
+                    )),
+                    Timestamp: occurredAt.UtcDateTime,
+                    Id: Guid.NewGuid().ToString("N")
+                );
+
+                try
+                {
+                    await _bus.PublishAsync(eliminatedEvt);
+                }
+                catch (Exception eliminationEx)
+                {
+                    _errorReporter?.CaptureException(
+                        message: "sanguo.player.eliminated.publish_failed",
+                        ex: eliminationEx,
+                        context: new Dictionary<string, string>
+                        {
+                            ["level"] = "warning",
+                            ["game_id"] = gameId,
+                            ["player_id"] = payerId,
+                            ["correlation_id"] = correlationId,
+                            ["reason_code"] = SanguoPlayerEliminated.ReasonBankrupt,
+                        });
+                }
+            }
+
             if (overflowMinorUnits > 0 && _errorReporter is not null)
             {
                 var ctx = new Dictionary<string, string>
@@ -492,11 +580,14 @@ public sealed class SanguoEconomyManager
                 CorrelationId: correlationId,
                 CausationId: causationId,
                 AppliedMultipliers: new AppliedMultipliers(
-                    Character: 1.0m,
-                    Building: 1.0m,
-                    Event: 1.0m,
-                    ActionCard: 1.0m,
-                    Effective: 1.0m)
+                    BaseSteps: AppliedMultipliers.BaseDefaultSteps,
+                    CharacterStepDelta: 0,
+                    BuildingStepDelta: 0,
+                    EventStepDelta: 0,
+                    ActionCardStepDelta: 0,
+                    RelicStepDelta: 0,
+                    RegionStepDelta: 0,
+                    EffectiveSteps: AppliedMultipliers.BaseDefaultSteps)
             )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")
@@ -527,6 +618,15 @@ public sealed class SanguoEconomyManager
         if (yearlyMultiplier < 0)
             throw new ArgumentOutOfRangeException(nameof(yearlyMultiplier), "Yearly price multiplier must be non-negative.");
 
+        if (yearlyMultiplier < AppliedMultipliers.MinSteps * AppliedMultipliers.Step
+            || yearlyMultiplier > AppliedMultipliers.MaxSteps * AppliedMultipliers.Step
+            || !AppliedMultipliers.IsHalfStepMultiplier(yearlyMultiplier))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(yearlyMultiplier),
+                $"Yearly price multiplier must be between {AppliedMultipliers.MinSteps * AppliedMultipliers.Step} and {AppliedMultipliers.MaxSteps * AppliedMultipliers.Step} in 0.5 steps.");
+        }
+
         var results = new List<(string CityId, MoneyValue OldPrice, MoneyValue NewPrice)>(cities.Count);
         foreach (var city in cities)
         {
@@ -550,11 +650,23 @@ public sealed class SanguoEconomyManager
         if (yearlyMultiplier < 0)
             throw new ArgumentOutOfRangeException(nameof(yearlyMultiplier), "Yearly price multiplier must be non-negative.");
 
+        if (yearlyMultiplier < AppliedMultipliers.MinSteps * AppliedMultipliers.Step
+            || yearlyMultiplier > AppliedMultipliers.MaxSteps * AppliedMultipliers.Step
+            || !AppliedMultipliers.IsHalfStepMultiplier(yearlyMultiplier))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(yearlyMultiplier),
+                $"Yearly price multiplier must be between {AppliedMultipliers.MinSteps * AppliedMultipliers.Step} and {AppliedMultipliers.MaxSteps * AppliedMultipliers.Step} in 0.5 steps.");
+        }
+
         var results = new List<(string CityId, MoneyValue OldPrice, MoneyValue NewPrice)>(cities.Count);
         foreach (var city in cities)
         {
             var oldPrice = city.BasePrice;
-            var multiplier = yearlyMultiplier * SampleYearlyMultiplier(rng);
+            var baseSteps = (int)decimal.Truncate(yearlyMultiplier / AppliedMultipliers.Step);
+            var deltaSteps = rng.NextInt(minInclusive: -1, maxExclusive: 2); // -1,0,1
+            var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + deltaSteps);
+            var multiplier = effectiveSteps * AppliedMultipliers.Step;
             var newPrice = MoneyValue.FromDecimal(CapMoneyDecimal(oldPrice.ToDecimal() * multiplier));
             results.Add((city.Id, oldPrice, newPrice));
         }
@@ -687,12 +799,7 @@ public sealed class SanguoEconomyManager
                     OccurredAt: occurredAt,
                     CorrelationId: correlationId,
                     CausationId: causationId,
-                    AppliedMultipliers: new AppliedMultipliers(
-                        Character: 1.0m,
-                        Building: 1.0m,
-                        Event: 1.0m,
-                        ActionCard: 1.0m,
-                        Effective: AppliedMultipliers.ClampToRange(effective))
+                    AppliedMultipliers: AppliedFromSingleMultiplier(effective, AppliedMultiplierSources.Event, allowNonHalfStep: true)
                 )),
                 Timestamp: DateTime.UtcNow,
                 Id: Guid.NewGuid().ToString("N")
@@ -733,7 +840,11 @@ public sealed class SanguoEconomyManager
         decimal yieldMultiplier,
         string correlationId,
         string? causationId,
-        DateTimeOffset occurredAt
+        DateTimeOffset occurredAt,
+        string? rngContextId = null,
+        string? candidatesSortedIdsHash = null,
+        int? pickedIndex = null,
+        string? pickedId = null
     )
     {
         if (string.IsNullOrWhiteSpace(gameId))
@@ -752,6 +863,18 @@ public sealed class SanguoEconomyManager
 
         if (yieldMultiplier < 0)
             throw new ArgumentOutOfRangeException(nameof(yieldMultiplier), "Yield multiplier must be non-negative.");
+
+        if (yieldMultiplier != 1.0m)
+        {
+            if (yieldMultiplier < AppliedMultipliers.MinSteps * AppliedMultipliers.Step
+                || yieldMultiplier > AppliedMultipliers.MaxSteps * AppliedMultipliers.Step
+                || !AppliedMultipliers.IsHalfStepMultiplier(yieldMultiplier))
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(yieldMultiplier),
+                    $"Yield multiplier must be between {AppliedMultipliers.MinSteps * AppliedMultipliers.Step} and {AppliedMultipliers.MaxSteps * AppliedMultipliers.Step} in 0.5 steps.");
+            }
+        }
 
         var previousSeason = GetSeasonFromMonth(previousDate.Month);
         var currentSeason = GetSeasonFromMonth(currentDate.Month);
@@ -774,12 +897,11 @@ public sealed class SanguoEconomyManager
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
                 CausationId: causationId,
-                AppliedMultipliers: new AppliedMultipliers(
-                    Character: 1.0m,
-                    Building: 1.0m,
-                    Event: 1.0m,
-                    ActionCard: 1.0m,
-                    Effective: AppliedMultipliers.ClampToRange(yieldMultiplier))
+                AppliedMultipliers: AppliedFromSingleMultiplier(yieldMultiplier, AppliedMultiplierSources.Event),
+                RngContextId: rngContextId,
+                CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                PickedIndex: pickedIndex,
+                PickedId: pickedId
             )),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N")

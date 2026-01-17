@@ -1,17 +1,19 @@
 namespace Game.Core.Contracts.Sanguo;
 
 /// <summary>
-/// DTO: SanguoCharacterEconomy
-/// Description: Character-scoped economy coefficients (display-only for UI; applied in Core computations only).
+/// DTO: SanguoEconomyStepDeltas
+/// Description: Economy step-deltas for the fixed 0.5-step multiplier system.
 /// </summary>
 /// <remarks>
 /// Related ADRs: ADR-0004 (event bus and contracts).
 /// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md.
 /// </remarks>
-public sealed record SanguoCharacterEconomy(
-    decimal BuyPriceMultiplier,
-    decimal TollMultiplier,
-    decimal MonthSettlementMultiplier
+public sealed record SanguoEconomyStepDeltas(
+    int BuyPrice,
+    int Toll,
+    int IncomeSettlement,
+    int BuildCost,
+    int UpgradeCost
 );
 
 /// <summary>
@@ -24,9 +26,10 @@ public sealed record SanguoCharacterEconomy(
 /// </remarks>
 public sealed record SanguoCharacterDefinition(
     string CharacterId,
-    string Name,
-    string Description,
+    string NameKey,
+    string DescriptionKey,
+    int CombatRating,
     string PortraitPath,
-    SanguoCharacterEconomy Economy
+    int StartingMoneyStepDelta,
+    SanguoEconomyStepDeltas EconomyStepDeltas
 );
-

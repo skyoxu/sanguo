@@ -31,7 +31,15 @@ public sealed class SanguoContractsTests
             OccurredAt: DateTimeOffset.UtcNow,
             CorrelationId: "corr-1",
             CausationId: null,
-            AppliedMultipliers: new AppliedMultipliers(1.0m, 1.0m, 1.0m, 1.0m, 1.0m)
+            AppliedMultipliers: new AppliedMultipliers(
+                BaseSteps: 2,
+                CharacterStepDelta: 0,
+                BuildingStepDelta: 0,
+                EventStepDelta: 0,
+                ActionCardStepDelta: 0,
+                RelicStepDelta: 0,
+                RegionStepDelta: 0,
+                EffectiveSteps: 2)
         );
 
         evt.GameId.Should().Be("game-1");

@@ -108,7 +108,8 @@
     "taskmaster_id": 2,
     "taskmaster_exported": true,
     "contractRefs": [
-      "core.sanguo.board.token.moved"
+      "core.sanguo.board.token.moved",
+      "core.sanguo.city.toll.paid"
     ]
   },
   {
@@ -364,7 +365,9 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.game.turn.started",
-      "core.sanguo.game.turn.ended"
+      "core.sanguo.game.turn.ended",
+      "core.sanguo.player.eliminated",
+      "core.sanguo.city.toll.paid"
     ]
   },
   {
@@ -505,7 +508,8 @@
     "taskmaster_id": 8,
     "taskmaster_exported": true,
     "contractRefs": [
-      "core.sanguo.economy.season.event.applied"
+      "core.sanguo.economy.season.event.applied",
+      "core.sanguo.player.eliminated"
     ]
   },
   {
@@ -780,7 +784,8 @@
     "taskmaster_id": 12,
     "taskmaster_exported": true,
     "contractRefs": [
-      "core.sanguo.city.bought"
+      "core.sanguo.city.bought",
+      "core.sanguo.player.eliminated"
     ]
   },
   {
@@ -856,7 +861,8 @@
     "taskmaster_id": 13,
     "taskmaster_exported": true,
     "contractRefs": [
-      "core.sanguo.city.toll.paid"
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.player.eliminated"
     ]
   },
   {
@@ -1052,7 +1058,9 @@
     "taskmaster_id": 16,
     "taskmaster_exported": true,
     "contractRefs": [
-      "core.sanguo.economy.year.price.adjusted"
+      "core.sanguo.economy.year.price.adjusted",
+      "core.sanguo.player.eliminated",
+      "core.sanguo.city.toll.paid"
     ]
   },
   {
@@ -1143,7 +1151,8 @@
     "taskmaster_id": 17,
     "taskmaster_exported": true,
     "contractRefs": [
-      "core.sanguo.game.turn.advanced"
+      "core.sanguo.game.turn.advanced",
+      "core.sanguo.player.eliminated"
     ]
   },
   {
@@ -1695,7 +1704,9 @@
     "taskmaster_id": 26,
     "taskmaster_exported": true,
     "contractRefs": [
-      "core.sanguo.game.ended"
+      "core.sanguo.game.ended",
+      "core.sanguo.player.eliminated",
+      "core.sanguo.city.toll.paid"
     ]
   },
   {
@@ -3281,7 +3292,8 @@
       "xUnit：解析/口径/事件快照测试。"
     ],
     "contractRefs": [
-      "core.sanguo.game.started"
+      "core.sanguo.game.started",
+      "core.sanguo.city.toll.paid"
     ]
   },
   {

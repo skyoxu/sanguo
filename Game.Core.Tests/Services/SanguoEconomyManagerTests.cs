@@ -312,7 +312,7 @@ public class SanguoEconomyManagerTests
             name: "TollCity",
             regionId: "r1",
             basePrice: Money.FromDecimal(100m),
-            baseToll: Money.FromDecimal(10m));
+            baseToll: Money.FromDecimal(20m));
         var citiesById = new Dictionary<string, City>(StringComparer.Ordinal) { { tollCity.Id, tollCity } };
         var owner = new SanguoPlayer(playerId: "owner", money: 200m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
         var payer = new SanguoPlayer(playerId: "payer", money: 50m, positionIndex: 0, economyRules: SanguoEconomyRules.Default);
@@ -435,7 +435,7 @@ public class SanguoEconomyManagerTests
             name: "TollCity",
             regionId: "r1",
             basePrice: Money.FromDecimal(100m),
-            baseToll: Money.FromDecimal(10m));
+            baseToll: Money.FromDecimal(20m));
         var ownedCity = new City(
             id: "owned1",
             name: "OwnedCity",
@@ -462,7 +462,7 @@ public class SanguoEconomyManagerTests
             citiesById: citiesById,
             payerId: payer.PlayerId,
             cityId: tollCity.Id,
-            tollMultiplier: 10m,
+            tollMultiplier: 3m,
             treasury: treasury,
             correlationId: "corr-1",
             causationId: "cmd-1",
@@ -760,7 +760,7 @@ public class SanguoEconomyManagerTests
             currentDate: new SanguoCalendarDate(1, 4, 1),
             season: 2,
             affectedRegionIds: new[] { "r1", "r2" },
-            yieldMultiplier: 0.8m,
+            yieldMultiplier: 0.5m,
             correlationId: "corr-1",
             causationId: "cmd-1",
             occurredAt: DateTimeOffset.UtcNow);
@@ -772,7 +772,7 @@ public class SanguoEconomyManagerTests
         payload.GetProperty("GameId").GetString().Should().Be("game-1");
         payload.GetProperty("Year").GetInt32().Should().Be(1);
         payload.GetProperty("Season").GetInt32().Should().Be(2);
-        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.8m);
+        payload.GetProperty("YieldMultiplier").GetDecimal().Should().Be(0.5m);
         payload.GetProperty("AffectedRegionIds").GetArrayLength().Should().Be(2);
     }
     [Fact]
@@ -982,11 +982,11 @@ public class SanguoEconomyManagerTests
         {
             new City("c1", "City1", "r1", Money.FromMajorUnits(100), Money.FromMajorUnits(10)),
         };
-        var adjustments = economy.CalculateYearlyPriceAdjustments(cities, yearlyMultiplier: 1.10m);
+        var adjustments = economy.CalculateYearlyPriceAdjustments(cities, yearlyMultiplier: 1.5m);
         adjustments.Should().ContainSingle();
         adjustments[0].CityId.Should().Be("c1");
         adjustments[0].OldPrice.ToDecimal().Should().Be(100m);
-        adjustments[0].NewPrice.ToDecimal().Should().Be(110m);
+        adjustments[0].NewPrice.ToDecimal().Should().Be(150m);
     }
     [Fact]
     public void ShouldThrowArgumentOutOfRangeException_WhenMultiplierIsNegativeInYearlyPriceAdjustmentCalculation()

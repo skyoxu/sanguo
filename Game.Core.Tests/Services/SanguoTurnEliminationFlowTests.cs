@@ -146,7 +146,7 @@ public sealed class SanguoTurnEliminationFlowTests
         if (!data.Value.TryGetProperty("EndReason", out var reason))
             return false;
 
-        return string.Equals(reason.GetString(), "human_eliminated", StringComparison.Ordinal);
+        return string.Equals(reason.GetString(), SanguoGameEnded.ReasonPlayerBankrupt, StringComparison.Ordinal);
     }
 
     private sealed class FixedRng : IRandomNumberGenerator

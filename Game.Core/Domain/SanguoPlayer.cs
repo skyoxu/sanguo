@@ -166,10 +166,10 @@ public sealed class SanguoPlayer : ISanguoPlayerView
 
         ArgumentNullException.ThrowIfNull(city, nameof(city));
 
-        if (priceMultiplier < 0 || priceMultiplier > _economyRules.MaxPriceMultiplier)
+        if (!_economyRules.IsValidPriceMultiplier(priceMultiplier))
             throw new ArgumentOutOfRangeException(
                 nameof(priceMultiplier),
-                $"Price multiplier must be between 0 and {_economyRules.MaxPriceMultiplier}.");
+                $"Price multiplier must be between {_economyRules.MinMultiplier} and {_economyRules.MaxPriceMultiplier} in 0.5 steps.");
 
         if (_ownedCityIds.Contains(city.Id))
             return false;
@@ -225,10 +225,10 @@ public sealed class SanguoPlayer : ISanguoPlayerView
 
         owner.AssertThread();
 
-        if (tollMultiplier < 0 || tollMultiplier > _economyRules.MaxTollMultiplier)
+        if (!_economyRules.IsValidTollMultiplier(tollMultiplier))
             throw new ArgumentOutOfRangeException(
                 nameof(tollMultiplier),
-                $"Toll multiplier must be between 0 and {_economyRules.MaxTollMultiplier}.");
+                $"Toll multiplier must be between {_economyRules.MinMultiplier} and {_economyRules.MaxTollMultiplier} in 0.5 steps.");
 
         if (owner.IsEliminated)
             return false;
