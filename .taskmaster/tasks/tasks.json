@@ -51,7 +51,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -86,7 +85,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -120,7 +118,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -154,7 +151,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -189,7 +185,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -223,7 +218,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -259,7 +253,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -291,8 +284,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
@@ -321,8 +313,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
@@ -353,7 +344,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -391,7 +381,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -424,8 +413,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
@@ -455,7 +443,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -527,7 +514,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -562,7 +548,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -595,8 +580,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
@@ -627,7 +611,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -661,8 +644,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
@@ -692,7 +674,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -779,7 +760,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -812,8 +792,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
@@ -843,7 +822,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -875,8 +853,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
@@ -929,7 +906,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -986,7 +962,6 @@
         ],
         "archRefs": [
           "CH01",
-          "CH04",
           "CH05",
           "CH06",
           "CH07",
@@ -1018,8 +993,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 3,
@@ -1047,8 +1021,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 4,
@@ -1076,8 +1049,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 4,
@@ -1141,8 +1113,7 @@
           "CH01",
           "CH04",
           "CH06",
-          "CH07",
-          "CH10"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
@@ -1160,8 +1131,8 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0015",
           "ADR-0005",
+          "ADR-0015",
           "ADR-0018"
         ],
         "archRefs": [
@@ -1208,9 +1179,9 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
+          "ADR-0003",
           "ADR-0008",
           "ADR-0011",
-          "ADR-0003",
           "ADR-0015"
         ],
         "archRefs": [
@@ -1254,9 +1225,9 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
+          "ADR-0003",
           "ADR-0005",
-          "ADR-0015",
-          "ADR-0003"
+          "ADR-0015"
         ],
         "archRefs": [
           "CH03",
@@ -1348,10 +1319,10 @@
         "status": "done",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0015",
           "ADR-0005",
-          "ADR-0019",
-          "ADR-0018"
+          "ADR-0015",
+          "ADR-0018",
+          "ADR-0019"
         ],
         "archRefs": [
           "CH01",
@@ -1373,10 +1344,10 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0019",
           "ADR-0004",
           "ADR-0005",
-          "ADR-0018"
+          "ADR-0018",
+          "ADR-0019"
         ],
         "archRefs": [
           "CH01",
@@ -1398,8 +1369,8 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0015",
           "ADR-0005",
+          "ADR-0015",
           "ADR-0018"
         ],
         "archRefs": [
@@ -1421,10 +1392,10 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0015",
           "ADR-0005",
-          "ADR-0011",
           "ADR-0008",
+          "ADR-0011",
+          "ADR-0015",
           "ADR-0018"
         ],
         "archRefs": [
@@ -1447,11 +1418,11 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
+          "ADR-0005",
           "ADR-0008",
           "ADR-0011",
-          "ADR-0019",
-          "ADR-0005",
-          "ADR-0018"
+          "ADR-0018",
+          "ADR-0019"
         ],
         "archRefs": [
           "CH01",
@@ -1473,9 +1444,9 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
+          "ADR-0005",
           "ADR-0011",
-          "ADR-0018",
-          "ADR-0005"
+          "ADR-0018"
         ],
         "archRefs": [
           "CH01",
@@ -1496,8 +1467,8 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0007",
           "ADR-0005",
+          "ADR-0007",
           "ADR-0018"
         ],
         "archRefs": [
@@ -1567,10 +1538,10 @@
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
-          "ADR-0019",
-          "ADR-0006",
           "ADR-0005",
-          "ADR-0011"
+          "ADR-0006",
+          "ADR-0011",
+          "ADR-0019"
         ],
         "archRefs": [
           "CH02",
@@ -1621,10 +1592,8 @@
           "ADR-0019"
         ],
         "archRefs": [
-          "CH01",
           "CH02",
           "CH04",
-          "CH06",
           "CH07",
           "CH10"
         ],
@@ -1647,9 +1616,7 @@
           "ADR-0005"
         ],
         "archRefs": [
-          "CH01",
           "CH04",
-          "CH06",
           "CH07"
         ],
         "overlay": null
@@ -1672,9 +1639,7 @@
           "ADR-0005"
         ],
         "archRefs": [
-          "CH01",
           "CH04",
-          "CH06",
           "CH07"
         ],
         "overlay": null
@@ -1697,11 +1662,8 @@
           "ADR-0019"
         ],
         "archRefs": [
-          "CH01",
           "CH02",
           "CH04",
-          "CH05",
-          "CH06",
           "CH07",
           "CH10"
         ],
@@ -1728,7 +1690,6 @@
         ],
         "archRefs": [
           "CH04",
-          "CH06",
           "CH07",
           "CH10"
         ],
@@ -1753,9 +1714,7 @@
         ],
         "archRefs": [
           "CH02",
-          "CH04",
-          "CH06",
-          "CH07"
+          "CH04"
         ],
         "overlay": null
       },
@@ -1779,9 +1738,7 @@
           "ADR-0005"
         ],
         "archRefs": [
-          "CH01",
           "CH04",
-          "CH06",
           "CH07"
         ],
         "overlay": null
@@ -1806,7 +1763,6 @@
         ],
         "archRefs": [
           "CH04",
-          "CH06",
           "CH07"
         ],
         "overlay": null
@@ -1830,8 +1786,6 @@
         ],
         "archRefs": [
           "CH04",
-          "CH05",
-          "CH06",
           "CH07"
         ],
         "overlay": null
@@ -1857,7 +1811,6 @@
         ],
         "archRefs": [
           "CH04",
-          "CH06",
           "CH07"
         ],
         "overlay": null
@@ -1881,7 +1834,6 @@
         ],
         "archRefs": [
           "CH04",
-          "CH06",
           "CH07",
           "CH10"
         ],
@@ -1913,8 +1865,8 @@
         ],
         "archRefs": [
           "CH04",
-          "CH06",
-          "CH07"
+          "CH07",
+          "CH10"
         ],
         "overlay": null
       },
@@ -1939,10 +1891,10 @@
           "ADR-0019"
         ],
         "archRefs": [
+          "CH02",
           "CH04",
-          "CH05",
-          "CH06",
-          "CH07"
+          "CH07",
+          "CH10"
         ],
         "overlay": null
       },
@@ -1966,8 +1918,8 @@
         ],
         "archRefs": [
           "CH04",
-          "CH06",
-          "CH07"
+          "CH07",
+          "CH10"
         ],
         "overlay": null
       },
@@ -1992,10 +1944,10 @@
           "ADR-0019"
         ],
         "archRefs": [
+          "CH02",
           "CH04",
-          "CH05",
-          "CH06",
-          "CH07"
+          "CH07",
+          "CH10"
         ],
         "overlay": null
       },
@@ -2020,10 +1972,10 @@
           "ADR-0019"
         ],
         "archRefs": [
+          "CH02",
           "CH04",
-          "CH05",
-          "CH06",
-          "CH07"
+          "CH07",
+          "CH10"
         ],
         "overlay": null
       }

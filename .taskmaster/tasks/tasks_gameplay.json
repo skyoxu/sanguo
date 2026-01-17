@@ -70,7 +70,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -134,7 +133,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -194,7 +192,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -252,7 +249,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -317,7 +313,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -392,7 +387,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -458,11 +452,11 @@
       "ADR-0021",
       "ADR-0024",
       "ADR-0025",
-      "ADR-0026"
+      "ADR-0026",
+      "ADR-0028"
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -531,8 +525,7 @@
       "CH01",
       "CH04",
       "CH06",
-      "CH07",
-      "CH10"
+      "CH07"
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
@@ -591,7 +584,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -650,11 +642,11 @@
       "ADR-0020",
       "ADR-0021",
       "ADR-0024",
-      "ADR-0025"
+      "ADR-0025",
+      "ADR-0030"
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -720,11 +712,12 @@
       "ADR-0021",
       "ADR-0024",
       "ADR-0025",
-      "ADR-0027"
+      "ADR-0027",
+      "ADR-0028",
+      "ADR-0030"
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -806,7 +799,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -884,7 +876,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -949,7 +940,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -1015,7 +1005,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -1078,11 +1067,12 @@
       "ADR-0020",
       "ADR-0021",
       "ADR-0024",
-      "ADR-0025"
+      "ADR-0025",
+      "ADR-0029",
+      "ADR-0030"
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -1171,7 +1161,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -1231,14 +1220,14 @@
     "adr_refs": [
       "ADR-0005",
       "ADR-0018",
-      "ADR-0022"
+      "ADR-0022",
+      "ADR-0028"
     ],
     "chapter_refs": [
       "CH01",
       "CH04",
       "CH06",
-      "CH07",
-      "CH10"
+      "CH07"
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
@@ -1299,8 +1288,7 @@
       "CH01",
       "CH04",
       "CH06",
-      "CH07",
-      "CH10"
+      "CH07"
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
@@ -1354,8 +1342,7 @@
       "CH01",
       "CH04",
       "CH06",
-      "CH07",
-      "CH10"
+      "CH07"
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
@@ -1412,8 +1399,7 @@
       "CH01",
       "CH04",
       "CH06",
-      "CH07",
-      "CH10"
+      "CH07"
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
@@ -1468,8 +1454,7 @@
       "CH01",
       "CH04",
       "CH06",
-      "CH07",
-      "CH10"
+      "CH07"
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
@@ -1529,8 +1514,7 @@
       "CH01",
       "CH04",
       "CH06",
-      "CH07",
-      "CH10"
+      "CH07"
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
@@ -1608,7 +1592,6 @@
     ],
     "chapter_refs": [
       "CH01",
-      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -1664,10 +1647,8 @@
       "ADR-0019"
     ],
     "chapter_refs": [
-      "CH01",
       "CH02",
       "CH04",
-      "CH06",
       "CH07",
       "CH10"
     ],
@@ -1718,9 +1699,7 @@
       "ADR-0005"
     ],
     "chapter_refs": [
-      "CH01",
       "CH04",
-      "CH06",
       "CH07"
     ],
     "overlay_refs": [
@@ -1777,9 +1756,7 @@
       "ADR-0005"
     ],
     "chapter_refs": [
-      "CH01",
       "CH04",
-      "CH06",
       "CH07"
     ],
     "overlay_refs": [
@@ -1832,11 +1809,8 @@
       "ADR-0019"
     ],
     "chapter_refs": [
-      "CH01",
       "CH02",
       "CH04",
-      "CH05",
-      "CH06",
       "CH07",
       "CH10"
     ],
@@ -1888,7 +1862,6 @@
     ],
     "chapter_refs": [
       "CH04",
-      "CH06",
       "CH07",
       "CH10"
     ],
@@ -1940,9 +1913,7 @@
     ],
     "chapter_refs": [
       "CH02",
-      "CH04",
-      "CH06",
-      "CH07"
+      "CH04"
     ],
     "overlay_refs": [
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
@@ -1994,9 +1965,7 @@
       "ADR-0005"
     ],
     "chapter_refs": [
-      "CH01",
       "CH04",
-      "CH06",
       "CH07"
     ],
     "overlay_refs": [
@@ -2048,7 +2017,6 @@
     ],
     "chapter_refs": [
       "CH04",
-      "CH06",
       "CH07"
     ],
     "overlay_refs": [
@@ -2098,8 +2066,6 @@
     ],
     "chapter_refs": [
       "CH04",
-      "CH05",
-      "CH06",
       "CH07"
     ],
     "overlay_refs": [
@@ -2151,7 +2117,6 @@
     ],
     "chapter_refs": [
       "CH04",
-      "CH06",
       "CH07"
     ],
     "overlay_refs": [
@@ -2203,7 +2168,6 @@
     ],
     "chapter_refs": [
       "CH04",
-      "CH06",
       "CH07",
       "CH10"
     ],
@@ -2253,7 +2217,6 @@
     ],
     "chapter_refs": [
       "CH04",
-      "CH06",
       "CH07",
       "CH10"
     ],
@@ -2308,11 +2271,9 @@
       "ADR-0019"
     ],
     "chapter_refs": [
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
       "CH02",
+      "CH04",
+      "CH07",
       "CH10"
     ],
     "overlay_refs": [
@@ -2361,7 +2322,6 @@
     ],
     "chapter_refs": [
       "CH04",
-      "CH06",
       "CH07",
       "CH10"
     ],
@@ -2411,11 +2371,9 @@
       "ADR-0019"
     ],
     "chapter_refs": [
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
       "CH02",
+      "CH04",
+      "CH07",
       "CH10"
     ],
     "overlay_refs": [
@@ -2464,11 +2422,9 @@
       "ADR-0019"
     ],
     "chapter_refs": [
-      "CH04",
-      "CH05",
-      "CH06",
-      "CH07",
       "CH02",
+      "CH04",
+      "CH07",
       "CH10"
     ],
     "overlay_refs": [
