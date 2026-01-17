@@ -19,6 +19,12 @@ Arch-Refs:
 - 定义唯一开局配置对象（或等价结构）`GameStartConfig`，作为“新游戏”的唯一输入快照，可序列化为 JSON 用于审计/回放。
 - UI 新游戏配置界面完成配置后，进入主循环并发布 `core.sanguo.game.started`（或等价事件）。
 
+## 口径冻结
+- GameStartConfig 的审计快照必须使用“规范化 JSON”（UTF-8、LF、键排序、稳定字段名；不依赖对象枚举顺序）。
+- 所有域事件必须携带 `CorrelationId`/`CausationId`（ADR-0024）；它们仅用于链路追踪，不得影响任何玩法计算与确定性结果。
+- Data 校验失败必须审计记录（至少 path/sha256/version/reason），并阻止开始。
+- i18n 统一使用 `message_key + params`；params 必须是扁平键值（仅 string/int/decimal/bool），禁止嵌套对象/数组。
+
 ## 非目标
 - 不实现存档系统（写入/读回 `user://` 属于后续任务）。
 - 不做目录扫描与资源发现（只读取明确路径的 `res://Data/**`）。
