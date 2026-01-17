@@ -75,10 +75,12 @@ Arch-Refs:
 
 ### 8.x.2.4 经济修饰合成与 clamp（ADR-0004）
 
-本阶段所有经济修饰统一采用“乘法链 + clamp + 0.5 步进”口径：
-- 所有 multiplier 仅允许 0.5 步进（建议内部用 step int 表达：+1=+0.5）。
-- 合成规则（唯一）：`effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)`。
-- 最终金额：`effective_value = base_value * effective_multiplier`。
+本阶段所有经济修饰统一采用“steps 加法 + clamp + 单次乘法”口径：
+- steps 范围：`1..6`，对应倍率 `0.5x..3.0x`；仅允许 0.5 步进。
+- `base_steps = 2`（= 1.0x）。
+- 合成（唯一）：`effective_steps = clamp(base_steps + sum(step_delta), 1, 6)`，`effective_multiplier = effective_steps * 0.5`。
+- 最终金额：`effective_value = floor(base_value * effective_multiplier)`。
+- 任意发生金钱数值的域事件都必须携带 `AppliedMultipliers`（事件快照），UI 只展示不计算（ADR-0004）。
 - 过路费系数仅影响“地主收租侧”，不影响路人支付侧。
 
 ### 8.x.2.5 事件触发与行动卡窗口（ADR-0004）
