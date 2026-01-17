@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "relics": [
+    {
+      "relicId": "relic_gold_pouch",
+      "nameKey": "relic.relic_gold_pouch.name",
+      "descriptionKey": "relic.relic_gold_pouch.desc",
+      "effectKind": "moneyDelta",
+      "moneyDelta": 500
+    },
+    {
+      "relicId": "relic_tax_ledger",
+      "nameKey": "relic.relic_tax_ledger.name",
+      "descriptionKey": "relic.relic_tax_ledger.desc",
+      "effectKind": "economyStepDelta",
+      "stepDelta": 1
+    }
+  ]
+}

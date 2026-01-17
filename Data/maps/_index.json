@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "maps": [
+    {
+      "mapId": "map001",
+      "nameKey": "map.map001.name",
+      "descriptionKey": "map.map001.desc",
+      "path": "res://Data/maps/map001.json",
+      "previewImagePath": "res://Assets/maps/map001_preview.svg",
+      "recommendedPlayersMin": 4,
+      "recommendedPlayersMax": 8
+    }
+  ]
+}

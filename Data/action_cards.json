@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "cards": [
+    {
+      "cardId": "card_coupon",
+      "nameKey": "card.card_coupon.name",
+      "descriptionKey": "card.card_coupon.desc",
+      "durationRounds": 3,
+      "effectKind": "economyStepDelta",
+      "stepDelta": -1
+    },
+    {
+      "cardId": "card_toll_boost",
+      "nameKey": "card.card_toll_boost.name",
+      "descriptionKey": "card.card_toll_boost.desc",
+      "durationRounds": 3,
+      "effectKind": "economyStepDelta",
+      "stepDelta": 1
+    }
+  ]
+}
