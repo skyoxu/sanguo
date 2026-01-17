@@ -445,6 +445,7 @@ T53 模块: 地图配置（多文件）与 Tile 语义
 - 范围：多文件地图配置：索引 `_index.json` + 单图 `<map_id>.json`；track 为任意循环轨道（格子数以 `track.length` 为准，例如 45）；Tile 最小集合：city / facility / event / empty。
   - 口径冻结：资源路径必须做规范化与绕过拦截：拒绝 `..`、拒绝 percent-encoding 绕过（如 `%2e%2e`），并拒绝任何非 `res://`/`user://` scheme（ADR-0019）。
   - 口径冻结：facility action 参数必须强类型且可校验（例如 teleport 只允许 `target_mode=tile_id|random`；mode=tile_id 时必须给出 `target_tile_id`）。
+  - 口径冻结：actions.params 为强类型 JSON 对象；按 action_kind 设字段白名单（未知字段=数据无效，禁止开始），避免内容侧随意加字段导致 Core 逻辑分叉与测试爆炸。
   - 口径冻结：地图/设施/事件/建筑配置必须包含 `schema_version`；不等于当前支持版本则拒绝加载（不做迁移）。
   - 口径冻结：Core 只识别 `tile_kind = city | facility | event | empty`；当 `tile_kind=facility` 时必须给出 `facility_kind`（荒野/商店/战场/监狱/医院/职业所/传送点等）。
   - 口径冻结：`tile_id` 仅要求 map 内唯一；跨地图允许重复。
@@ -489,7 +490,7 @@ T55 模块: 角色配置（≥8角色）与战斗基线
   - `Tests.Godot/tests/UI/test_task55_character_select_ui.gd`
 
 T56 模块: 随机事件池（事件格 + 每N回合全局事件）
-- 范围：事件格触发 + 每 N 回合全局事件统一进入 RandomEventPool；止损版事件效果仅允许 `multiplier_step_delta`（整型步进，1=+0.5）。
+- 范围：事件格触发 + 每 N 回合全局事件统一进入 RandomEventPool；止损版事件 effectKind 仅允许 `moneyDelta` 或 `economyStepDelta`（steps 为整型步进，1=+0.5；最终仍按 T51 口径 clamp）。
 - 冷却：scope=player_id；对某玩家生效后，在接下来 N 个该玩家行动次数内不再对该玩家生效（计数口径：该玩家每次成为 ActivePlayerId 时 player_action_count +1）；若对当前玩家“可选事件集合”因冷却为空，则忽略冷却规则回退为全量事件均匀抽样（避免死锁）。
 - 验收：
   - ACC:T56.1 事件格触发能从池中取出事件并应用。
@@ -498,7 +499,7 @@ T56 模块: 随机事件池（事件格 + 每N回合全局事件）
   - `Game.Core.Tests/Tasks/Task56RandomEventPoolTests.cs`
 
 T57 模块: 行动卡模块（开局发牌 + BeforeRoll 0/1 + 强制弃牌）
-- 范围：行动卡池（配置只读）；开局固定发 3 张；每轮可配置发 N 张（本阶段默认 0）；仅在 BeforeRoll 窗口可用；止损版每回合最多 1 张；效果仅 `multiplier_step_delta`。
+- 范围：行动卡池（配置只读）；开局固定发 3 张；每轮可配置发 N 张（本阶段默认 0）；仅在 BeforeRoll 窗口可用；止损版每回合最多 1 张；效果仅 `economyStepDelta`（steps 为整型步进，1=+0.5）。
   - 抽到的卡强制入手牌（无“放弃抽卡”选项）。
   - 手牌上限固定为 5：若抽卡导致超上限，则必须进入弃牌界面并丢弃至 ≤5，否则回合无法继续（AI 同规则，仅弃牌决策自动化）。
 - 验收：
@@ -528,7 +529,7 @@ T59 模块: 战斗模块（PVE）
 - 口径冻结：relic_id 同局唯一；重复掉落则重抽，耗尽候选则返回 null 并写入审计（不使用“max_id 兜底”）。
   - 战斗判定（止损）：基于 `CombatRating`（静态基线）与 `encounter_target` 对比判定胜负；relic/事件若影响战斗，则影响“本次战斗有效 combat_rating 快照”，并写入 `core.sanguo.combat.ended` 的 result（用于复盘）。
   - 掉落：胜利可发放金钱/卡牌/宝物（宝物强制生效、无上限、同局 relic_id 唯一不重复）。
-  - relic 效果合成与顺序（稳定性优先）：每个 relic 在 JSON 中声明自身 effect 为加法/乘法；多 relic 同时生效时，按 `relic_id` 升序应用（保证同输入复现同输出）。
+  - relic 生效顺序（稳定性优先）：同局 relic_id 全局唯一不重复；多 relic 同时生效时按 `relic_id` 升序应用（保证同输入复现同输出）。relic 效果类型以配置 `effectKind` 表达（与 Data 白名单一致），不在本阶段引入“可组合的加/乘表达式系统”。
 - 验收：
   - ACC:T59.1 战斗可从 facility 与 event 两种来源触发，并发布 `core.sanguo.combat.started`。
   - ACC:T59.2 战斗结束后发布 `core.sanguo.combat.ended` 并返回主循环（无论是否进入场景）。
@@ -540,7 +541,6 @@ T60 模块: 每局胜利与结算界面
 - 口径冻结：出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；释放/买下/夺取导致的归属变化必须发布 `core.sanguo.city.owner.changed`。
 - 口径冻结：`sequence` 仅用于审计落盘/复盘稳定排序，不进入域事件 payload（不依赖 OccurredAt 排序）。
 - 口径冻结：玩家控制角色资金 <=0 时立刻触发失败并结束游戏；AI 出局可延后到 `turn.advanced` 后统一判定“最后存活者胜利”（你已确认）。
-- 口径冻结：出局处理必须发布 `core.sanguo.player.eliminated`（审计）并释放资产为无主；如需事件级复盘城市归属变化，后续补充 `core.sanguo.city.owner.changed`（Proposed）。
 - 口径冻结：主日志/审计为稳定重放，建议为每局维护单调递增 `sequence`（不依赖 OccurredAt 排序）。
   - 出局：资金≤0 立即出局；出局者名下资产清空并释放为无主（可再次购买/建造）。
   - 胜利：场上仅剩 1 个未出局角色即胜利；单机特例：人类玩家控制角色出局则立即结束整局。
@@ -552,7 +552,7 @@ T60 模块: 每局胜利与结算界面
 - Test-Refs（占位）：
   - `Tests.Godot/tests/UI/test_task60_game_end_screen.gd`
 T61 模块: AI 最小确定性策略（止损层）
-- 范围：AI 行为与玩家同规则、同约束；所有决策点（buy/skip、build/skip、choose_building_type、discard_cards、teleport_target、facility_action 等）均采用“总是选择第一个合法选项”的确定性策略；本阶段 AI 不使用额外随机。
+- 范围：AI 行为与玩家同规则、同约束；所有决策点（buy/skip、build/skip、choose_building_type、discard_cards、teleport_target、facility_action 等）均采用“总是选择第一个合法选项”的确定性策略。若后续引入随机策略，必须绑定 rng_context 子流（禁止直接 Random.Shared），以保证同输入可复现。
   - 可观测性：每次 AI 做出选择必须发布 `core.sanguo.ai.decision.made`（原因/决策点/候选数量等，便于复盘）。
 - 验收：
   - ACC:T61.1 同一输入（game_start_config + random_seed + state + TurnNumber/RoundNumber）下，AI 选择结果 100% 可复现。
@@ -562,7 +562,7 @@ T61 模块: AI 最小确定性策略（止损层）
   - `Game.Core.Tests/Tasks/Task61AiDeterminismTests.cs`
 
 T62 模块: 宝物系统（Relics）
-- 范围：宝物掉落来源包含战斗/事件格/设施；同一局内 relic_id 全局唯一不重复；宝物效果覆盖经济/战斗/全局事件三类；每个宝物在配置中声明 effect 为“加/乘”，多宝物叠加按 relic_id 升序应用（稳定性优先）。
+- 范围：宝物掉落来源包含战斗/事件格/设施；同一局内 relic_id 全局唯一不重复；宝物效果以 `effectKind` 表达（与 Data 白名单一致，例如 `moneyDelta` / `economyStepDelta`），多宝物叠加按 relic_id 升序应用（稳定性优先）。
 - 验收：
   - ACC:T62.1 宝物掉落能被记录并立刻生效，且同局内不重复。
   - ACC:T62.2 同一输入下宝物应用顺序与最终效果可复现。
@@ -571,7 +571,7 @@ T62 模块: 宝物系统（Relics）
   - `Game.Core.Tests/Tasks/Task62RelicsTests.cs`
 
 T63 模块: 全局事件触发机制（RoundNumber，替代季度/年度）
-- 范围：第二套事件池（建议 `res://Data/global_events.json`）；每轮只检查一次全局事件（RoundNumber 边界）；事件在 turn.started 之前触发并发布审计事件；显示层按“每 30 轮=1月、每 360 轮=1年”投影，仅展示不计算。
+- 范围：复用 `res://Data/random_events.json` 的 `poolId=global` 作为全局事件池；每轮只检查一次全局事件（RoundNumber 边界）；事件在 turn.started 之前触发并发布审计事件；显示层按“每 30 轮=1月、每 360 轮=1年”投影，仅展示不计算。
 - 验收：
   - ACC:T63.1 每轮最多触发一次全局事件检查与应用（同轮内不重复触发）。
   - ACC:T63.2 全局事件选择与效果应用在同一 random_seed 下可复现（均匀抽样/冷却规则以配置为准）。
@@ -596,4 +596,3 @@ T65 模块: 州郡机制（全占增益 + 连协收费）
   - ACC:T65.3 连协收费可被卡牌/宝物机制规避（规避作为机制能力，不是规则例外）。
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs`
-

@@ -14,7 +14,9 @@ public sealed record SanguoActionCardPlayed(
     string GameId,
     string PlayerId,
     string CardId,
-    int MultiplierStepDelta,
+    string EffectKind,
+    int StepDelta,
+    int DurationRounds,
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId
@@ -38,7 +40,9 @@ public sealed record SanguoRandomEventApplied(
     string GameId,
     string PlayerId,
     string EventId,
-    int MultiplierStepDelta,
+    string EffectKind,
+    int? MoneyDelta,
+    int? StepDelta,
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId,
@@ -50,7 +54,7 @@ public sealed record SanguoRandomEventApplied(
 {
     /// <summary>
     /// CloudEvents type for this domain event.
-     /// </summary>
+    /// </summary>
     public const string EventType = "core.sanguo.random_event.applied";
 }
 
@@ -67,7 +71,8 @@ public sealed record SanguoBuildingBuilt(
     string PlayerId,
     string CityId,
     string BuildingId,
-    int MultiplierStepDelta,
+    int NewLevel,
+    SanguoEconomyStepDeltas EconomyStepDeltas,
     DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId
