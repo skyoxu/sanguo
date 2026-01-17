@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect x="8" y="8" width="112" height="112" rx="16" fill="#1f2937"/>
+  <path d="M36 64h56" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
+  <path d="M64 36v56" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
+  <text x="64" y="118" text-anchor="middle" font-family="system-ui,Segoe UI,Arial" font-size="10" fill="#9ca3af">action</text>
+</svg>
