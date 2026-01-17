@@ -21,6 +21,9 @@ Arch-Refs:
 ## 非目标
 - 不引入复杂建筑树/升级链。
 
+## 口径冻结
+- 建筑“未建造”= 该 tile 的 building 状态列表中不存在该 `building_id`；首次建造直接落 `level=1`，升级递增直到 `max_level`（不使用 `level=0` 作为哨兵值）。
+
 ## 契约（EventType + 触发点）
 - `core.sanguo.building.built`：建造完成并对经济/状态产生影响后。
 
