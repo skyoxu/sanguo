@@ -2226,5 +2226,270 @@
     "test_strategy": [
       "xUnit：事件契约；GdUnit4：结算 UI。"
     ]
+  },
+  {
+    "id": "GM-0061",
+    "taskmaster_id": 61,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-61",
+    "title": "模块: AI 最小确定性策略（止损版）",
+    "description": "AI 与玩家行为一致：总是选第一个合法选项，并提供可复盘取证字段。",
+    "acceptance": [
+      "AI 在相同输入下可复盘（RngContextId + CandidatesSortedIdsHash + PickedIndex/PickedId），并发布 core.sanguo.ai.decision.made（或等价事件）。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs",
+      "AI 总是选择第一个合法选项（买地/建造/用卡/弃牌），并且与玩家同一套合法性校验。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs",
+      "玩家出局立刻 game over；AI 出局在 turn.advanced 后统一终局检查。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs"
+    ],
+    "test_strategy": [
+      "xUnit：覆盖 AI 决策一致性与可复盘取证（同输入同输出）。"
+    ],
+    "contractRefs": [],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md"
+    ],
+    "depends_on": [
+      "GM-0052",
+      "GM-0053",
+      "GM-0055",
+      "GM-0056",
+      "GM-0057",
+      "GM-0058",
+      "GM-0059",
+      "GM-0060"
+    ],
+    "labels": [
+      "ai",
+      "determinism",
+      "decision"
+    ],
+    "priority": "P3",
+    "status": "deferred",
+    "layer": "core",
+    "owner": "gameplay"
+  },
+  {
+    "id": "GM-0062",
+    "taskmaster_id": 62,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-62",
+    "title": "模块: 宝物系统（relics）止损版",
+    "description": "宝物掉落与永久效果（经济型止损版）：唯一性、重抽策略、稳定应用顺序。",
+    "acceptance": [
+      "掉落来源：战斗/事件/设施；relicId 全局唯一，重复掉落重抽耗尽→空并审计。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "宝物效果先仅支持 moneyDelta/economyStepDelta；应用顺序按 relicId 升序（稳定性优先）。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "Data/relics.json 的 schemaVersion/version/id/字段类型校验失败时禁止开始。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task62RelicsTests.cs"
+    ],
+    "test_strategy": [
+      "xUnit：覆盖重抽/耗尽与按 relicId 升序应用的确定性。"
+    ],
+    "contractRefs": [],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH02",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+    ],
+    "depends_on": [
+      "GM-0056",
+      "GM-0058",
+      "GM-0059"
+    ],
+    "labels": [
+      "relic",
+      "drop",
+      "economy"
+    ],
+    "priority": "P3",
+    "status": "deferred",
+    "layer": "core",
+    "owner": "gameplay"
+  },
+  {
+    "id": "GM-0063",
+    "taskmaster_id": 63,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-63",
+    "title": "模块: 全局事件触发机制（RoundNumber）",
+    "description": "每轮只检查一次全局事件（RoundNumber），通过 random_event.applied 对外发布并带确定性取证。",
+    "acceptance": [
+      "周期逻辑统一使用 RoundNumber（每轮所有角色都行动完+1），每轮只检查一次全局事件。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs",
+      "全局事件仍通过 core.sanguo.random_event.applied 发布，EventId 使用 global:<id> 前缀区分来源。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs",
+      "全局事件抽样必须可复盘（RngContextId + CandidatesSortedIdsHash + PickedIndex/PickedId）。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs"
+    ],
+    "test_strategy": [
+      "xUnit：覆盖 RoundNumber 周期检查与事件取证字段一致性。"
+    ],
+    "contractRefs": [],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "depends_on": [
+      "GM-0052",
+      "GM-0056"
+    ],
+    "labels": [
+      "global",
+      "event",
+      "round",
+      "determinism"
+    ],
+    "priority": "P3",
+    "status": "deferred",
+    "layer": "core",
+    "owner": "gameplay"
+  },
+  {
+    "id": "GM-0064",
+    "taskmaster_id": 64,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-64",
+    "title": "模块: 州郡（regions）配置与全占增益",
+    "description": "州郡配置与全占增益（经济型止损版）：满足条件即时生效/失效。",
+    "acceptance": [
+      "Data/regions.json 允许跨地图复用 regionId；map city 必须声明 regionId 且可解析，否则禁止开始。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
+      "买下最后一座 city 时立即激活全占增益；出局释放资产为无主时立即失效。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
+      "全占增益先仅经济型（economyStepDeltas），且增益范围限定本州郡城市。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task64RegionsTests.cs"
+    ],
+    "test_strategy": [
+      "xUnit：覆盖 region 交叉引用、全占判定与增益生效/失效时机。"
+    ],
+    "contractRefs": [],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH02",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t64-regions.md"
+    ],
+    "depends_on": [
+      "GM-0051",
+      "GM-0053",
+      "GM-0058"
+    ],
+    "labels": [
+      "region",
+      "bonus",
+      "economy"
+    ],
+    "priority": "P3",
+    "status": "deferred",
+    "layer": "core",
+    "owner": "gameplay"
+  },
+  {
+    "id": "GM-0065",
+    "taskmaster_id": 65,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T2-SKEL-65",
+    "title": "模块: 州郡连协收费（经济型止损版）",
+    "description": "州郡连协收费：按落点城 owner 的本州郡城市集合汇总路过费（先算每城再求和）。",
+    "acceptance": [
+      "连协收费：先算每城最终过路费再求和，输出 total+breakdown；若缺数据/越界则 fail-fast。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
+      "仅对落点城 owner 的“本州郡已拥有城市集合”生效；无主/自身/无城集合时为 0 额外项。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
+      "连协收费仅做经济型止损路径，为后续规避机制扩展保留接口但不实现。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs"
+    ],
+    "test_strategy": [
+      "xUnit：覆盖连协收费的汇总逻辑与边界条件。"
+    ],
+    "contractRefs": [],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH02",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t65-regions-mechanics.md"
+    ],
+    "depends_on": [
+      "GM-0064",
+      "GM-0058",
+      "GM-0051"
+    ],
+    "labels": [
+      "region",
+      "synergy",
+      "toll",
+      "economy"
+    ],
+    "priority": "P3",
+    "status": "deferred",
+    "layer": "core",
+    "owner": "gameplay"
   }
 ]
