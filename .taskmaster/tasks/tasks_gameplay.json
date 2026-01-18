@@ -7,7 +7,10 @@
     "status": "done",
     "priority": "P1",
     "layer": "ci",
-    "depends_on": [],
+    "depends_on": [
+      "GM-0053",
+      "GM-0055"
+    ],
     "adr_refs": [
       "ADR-0005",
       "ADR-0011",
@@ -1639,7 +1642,10 @@
       "seed",
       "determinism"
     ],
-    "depends_on": [],
+    "depends_on": [
+      "GM-0053",
+      "GM-0055"
+    ],
     "adr_refs": [
       "ADR-0004",
       "ADR-0005",
@@ -1691,9 +1697,7 @@
       "events",
       "contracts"
     ],
-    "depends_on": [
-      "GM-0050"
-    ],
+    "depends_on": [],
     "adr_refs": [
       "ADR-0004",
       "ADR-0005"
@@ -1748,8 +1752,7 @@
       "ordering"
     ],
     "depends_on": [
-      "GM-0050",
-      "GM-0051"
+      "GM-0050"
     ],
     "adr_refs": [
       "ADR-0004",
@@ -1800,9 +1803,7 @@
       "config",
       "tiles"
     ],
-    "depends_on": [
-      "GM-0050"
-    ],
+    "depends_on": [],
     "adr_refs": [
       "ADR-0004",
       "ADR-0011",
@@ -1851,9 +1852,7 @@
       "menu"
     ],
     "depends_on": [
-      "GM-0050",
-      "GM-0053",
-      "GM-0055"
+      "GM-0050"
     ],
     "adr_refs": [
       "ADR-0004",
@@ -1904,7 +1903,6 @@
       "config"
     ],
     "depends_on": [
-      "GM-0050",
       "GM-0051"
     ],
     "adr_refs": [
@@ -1955,10 +1953,8 @@
       "determinism"
     ],
     "depends_on": [
-      "GM-0050",
       "GM-0051",
-      "GM-0052",
-      "GM-0053"
+      "GM-0052"
     ],
     "adr_refs": [
       "ADR-0004",
@@ -2007,7 +2003,6 @@
       "turn"
     ],
     "depends_on": [
-      "GM-0050",
       "GM-0051",
       "GM-0052"
     ],
@@ -2058,6 +2053,7 @@
     ],
     "depends_on": [
       "GM-0051",
+      "GM-0052",
       "GM-0053"
     ],
     "adr_refs": [
@@ -2106,10 +2102,8 @@
       "pve"
     ],
     "depends_on": [
-      "GM-0050",
       "GM-0052",
-      "GM-0053",
-      "GM-0056"
+      "GM-0055"
     ],
     "adr_refs": [
       "ADR-0004",
@@ -2159,7 +2153,8 @@
       "summary"
     ],
     "depends_on": [
-      "GM-0052"
+      "GM-0052",
+      "GM-0059"
     ],
     "adr_refs": [
       "ADR-0004",
@@ -2227,13 +2222,11 @@
     ],
     "depends_on": [
       "GM-0052",
-      "GM-0053",
-      "GM-0055",
       "GM-0056",
       "GM-0057",
       "GM-0058",
       "GM-0059",
-      "GM-0060"
+      "GM-0062"
     ],
     "labels": [
       "ai",
@@ -2282,8 +2275,8 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
     ],
     "depends_on": [
+      "GM-0051",
       "GM-0056",
-      "GM-0058",
       "GM-0059"
     ],
     "labels": [
@@ -2382,9 +2375,7 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t64-regions.md"
     ],
     "depends_on": [
-      "GM-0051",
-      "GM-0053",
-      "GM-0058"
+      "GM-0053"
     ],
     "labels": [
       "region",
@@ -2433,9 +2424,9 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t65-regions-mechanics.md"
     ],
     "depends_on": [
-      "GM-0064",
+      "GM-0051",
       "GM-0058",
-      "GM-0051"
+      "GM-0064"
     ],
     "labels": [
       "region",
