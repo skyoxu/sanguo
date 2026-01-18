@@ -1,7 +1,11 @@
 ---
 PRD-ID: PRD-SANGUO-T2
 Title: 08 章功能纵切索引（契约与测试对齐）
+Status: Accepted
 Updated: true
+ADR-Refs:
+  - ADR-0004
+  - ADR-0005
 Arch-Refs:
   - CH01
   - CH03
@@ -45,10 +49,3 @@ Arch-Refs:
 > 关联 PRD：`.taskmaster/docs/prd.txt` 中 T2 阶段「最小可玩闭环」描述  
 > 关联 ADR：ADR-0018、ADR-0005、ADR-0006、ADR-0015、ADR-0019、ADR-0020、ADR-0021、ADR-0024、ADR-0025  
 > 关联章节：CH01、CH02、CH04、CH05、CH06、CH07、CH09、CH10
-
-  - T61–T65 多页（按任务拆分）：
-  - T61 … 见 `08-t61-ai-minimal-deterministic.md`
-  - T62 … 见 `08-t62-relics.md`
-  - T63 … 见 `08-t63-global-events.md`
-  - T64 … 见 `08-t64-regions.md`
-  - T65 … 见 `08-t65-regions-mechanics.md`

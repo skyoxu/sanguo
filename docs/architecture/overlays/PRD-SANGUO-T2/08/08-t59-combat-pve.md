@@ -28,6 +28,8 @@ Arch-Refs:
 ## 契约（EventType + 触发点）
 - `core.sanguo.combat.started`：进入战斗场景时。
 - `core.sanguo.combat.ended`：战斗结束并回到主循环时。
+- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/SanguoCombatContracts.cs`、`Game.Core/Contracts/Sanguo/SanguoLootEvents.cs`
+- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T59.1 触发战斗时发布 `core.sanguo.combat.started`。
@@ -35,4 +37,3 @@ Arch-Refs:
 
 ## Test-Refs
 - `Tests.Godot/tests/E2E/test_task59_combat_enter_exit.gd`
-

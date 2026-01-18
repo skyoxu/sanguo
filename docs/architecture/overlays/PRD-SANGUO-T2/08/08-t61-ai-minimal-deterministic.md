@@ -26,6 +26,8 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.ai.decision.made`：当 AI 在当前情境做出一个会影响游戏状态推进的选择后。
+- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/PlayerAndAiEvents.cs`
+- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T61.1 同一输入下 AI 选择结果可复现。
@@ -33,4 +35,4 @@ Arch-Refs:
 - ACC:T61.3 AI 决策事件包含足够信息复盘选择过程。
 
 ## Test-Refs（占位）
-- TODO: `Game.Core.Tests/Tasks/Task61AiDeterminismTests.cs`
+- `Game.Core.Tests/Tasks/Task61AiDeterminismTests.cs`（占位，待实现）
