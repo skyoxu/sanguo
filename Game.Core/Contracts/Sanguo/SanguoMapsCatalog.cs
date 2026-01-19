@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Game.Core.Contracts.Sanguo;
 
@@ -34,6 +35,6 @@ public sealed record SanguoMapCatalogEntry(
     int RecommendedPlayersMin,
     int RecommendedPlayersMax,
     int ContentVersion,
-    string PreviewResPath
+    [property: JsonPropertyName("previewImagePath")] string PreviewResPath
 );
 
