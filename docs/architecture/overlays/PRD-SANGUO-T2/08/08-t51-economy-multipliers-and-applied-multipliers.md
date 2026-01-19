@@ -40,4 +40,4 @@ Arch-Refs:
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs`
 - `Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs`
-- `Tests.Godot/tests/UI/test_hud_event_log_applied_multipliers.gd`
+- `Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd`

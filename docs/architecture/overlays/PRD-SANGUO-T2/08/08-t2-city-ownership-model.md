@@ -85,6 +85,11 @@ Arch-Refs:
 
 > 可选加固（不属于本节验收的硬门禁）：审计追踪/事件溯源/最大拥有城池数上限等，见 Task 13 的 details/testStrategy 描述。
 
+## Contracts（SSoT）
+
+- `Game.Core/Contracts/Sanguo/EconomyEvents.cs`
+- `Game.Core/Contracts/Sanguo/GameEvents.cs`
+
 ## Test-Refs
 
 - `Game.Core.Tests/Domain/SanguoPlayerTests.cs`

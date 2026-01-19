@@ -1812,8 +1812,8 @@
       {
         "id": "60",
         "title": "模块: 每局胜利与结算界面",
-        "description": "引入胜利判定与结算 UI：Core 判定并发布 game.ended，UI 展示结果并支持返回主菜单/再来一局。",
-        "details": "胜负判定必须在 Core；UI 不得自判定；事件 payload 提供 winner/reason/stats_snapshot；结算界面只展示并提供按钮。",
+        "description": "引入胜利判定与结算 UI：Core 判定并发布 game.ended，UI 展示结果并支持返回主菜单（不提供再来一局）。",
+        "details": "胜负判定必须在 Core；UI 不得自判定；事件 payload 提供 winner/reason/stats_snapshot；结算界面只展示并提供返回主菜单按钮。",
         "testStrategy": "xUnit：事件契约；GdUnit4：结算 UI。",
         "priority": "medium",
         "dependencies": [

@@ -26,6 +26,7 @@ Arch-Refs:
 ## 契约（EventType + 触发点）
 - 当前阶段优先在加载校验失败时走错误上报/审计；显式事件待后续任务补充（以 Contracts 为准）。
 - 契约 SSoT（代码）：（本任务不新增领域事件；相关经济事件仍以 `Game.Core/Contracts/Sanguo/EconomyEvents.cs` 为准）
+- 数据契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/SanguoRegionsCatalog.cs`
 - 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）

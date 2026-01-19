@@ -30,3 +30,11 @@ Status: Accepted
 ## 验收要点（就地）
 
 - 工程启动/Autoload 自检可运行并产出日志：`py -3 scripts/python/godot_selfcheck.py run --godot-bin "$env:GODOT_BIN" --build-solutions`
+
+## Contracts（SSoT）
+
+- `Game.Core/Contracts/IEventData.cs`
+- `Game.Core/Contracts/JsonEventData.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapDefinition.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapDefinitionValidator.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`

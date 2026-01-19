@@ -15,6 +15,12 @@ Arch-Refs:
 
 本目录聚合 T2 功能纵切页面与对应测试引用（仅引用 01/02/03 章口径，不在此复制阈值/策略）。
 
+## Contracts（SSoT）
+
+- `Game.Core/Contracts/Sanguo/GameStartConfig.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapDefinition.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`
+
 - 资源加载与外链白名单（Whitelist）— 见 `08-Contracts-Preload-Whitelist.md`
 - DomainEvent（CloudEvents-like）— 见 `08-Contracts-CloudEvent.md`
 - CloudEvents Core（EventType/关联字段）— 见 `08-Contracts-CloudEvents-Core.md`

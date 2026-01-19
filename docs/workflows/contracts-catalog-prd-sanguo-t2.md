@@ -2,7 +2,7 @@
 
 本文件为脚本生成产物，用于在开始新任务前快速对齐“当前仓库已落盘的契约（Contracts）”与“任务视图声明的 contractRefs”。
 
-- 生成时间（UTC）: `2026-01-18T08:07:04Z`
+- 生成时间（UTC）: `2026-01-18T08:56:41Z`
 - 生成脚本: `scripts/python/generate_contracts_catalog_prd_sanguo_t2.py`
 - 事件过滤: 仅收录 `core.sanguo.*`（默认规则；可用脚本参数调整）
 

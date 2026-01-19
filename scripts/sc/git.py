@@ -28,6 +28,9 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--yes", action="store_true", help="confirm potentially destructive operations")
     ap.add_argument("--task-id", default=None, help="task id; defaults to first status=in-progress in tasks.json")
     ap.add_argument("--task-ref", default=None, help="commit Task ref (e.g. #2.1); defaults to #<task-id>")
+    ap.add_argument("--adr-refs", default=None, help="comma-separated ADR refs override (e.g. ADR-0005,ADR-0004)")
+    ap.add_argument("--overlay-file", default=None, help="overlay file override (path string; optional)")
+    ap.add_argument("--no-task", action="store_true", help="allow smart-commit without resolving a task triplet (requires --adr-refs)")
     return ap
 
 
@@ -86,6 +89,42 @@ def smart_commit_message() -> str:
         prefix = "feat"
 
     return f"{prefix}({scope}): update {scope}"
+
+
+def _precommit_text_gates() -> tuple[int, str]:
+    """
+    Defensive hard gate:
+      - Prevent non-UTF8 / UTF-16 PowerShell pipeline writes from landing in commits.
+      - Prevent semantic garbling patterns (three-plus question marks, U+FFFD) from landing in commits.
+      - Prefer no BOM for logic/config files.
+
+    Writes evidence under logs/ci/<date>/sc-git/.
+    """
+    root = repo_root()
+    out_dir = ci_dir("sc-git")
+
+    rc0, staged_out = run_cmd(["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"], cwd=root, timeout_sec=30)
+    (out_dir / "staged-files.txt").write_text(staged_out, encoding="utf-8")
+    files = [ln.strip() for ln in staged_out.splitlines() if ln.strip()]
+    if not files:
+        return 0, "no_staged_files"
+
+    # 1) UTF-8 decode + mojibake detection (deterministic)
+    rc1, out1 = run_cmd(["py", "-3", "scripts/python/check_encoding.py", "--files", *files], cwd=root, timeout_sec=120)
+    write_text(out_dir / "check-encoding.log", out1)
+
+    # 2) Semantic integrity (replacement char / three-plus question marks) + hard BOM for config/code files
+    rc2, out2 = run_cmd(
+        ["py", "-3", "scripts/python/check_text_integrity.py", "--staged", "--hard-bom", "--out-dir", str(out_dir / "text-integrity-staged")],
+        cwd=root,
+        timeout_sec=120,
+    )
+    write_text(out_dir / "check-text-integrity.log", out2)
+
+    if rc0 != 0 or rc1 != 0 or rc2 != 0:
+        summary = f"precommit_gates_failed rc_git={rc0} rc_encoding={rc1} rc_text_integrity={rc2} out={out_dir}"
+        return 2, summary
+    return 0, "ok"
 
 
 def load_commit_template() -> str:
@@ -149,6 +188,9 @@ def main() -> int:
     yes = bool(args.yes)
     task_id = args.task_id
     task_ref = args.task_ref
+    adr_refs_override = args.adr_refs
+    overlay_override = args.overlay_file
+    no_task = bool(args.no_task)
 
     def pop_flag(flag: str) -> bool:
         nonlocal extra
@@ -182,6 +224,14 @@ def main() -> int:
         v = pop_option("--task-ref")
         if v is not None:
             task_ref = v
+        v = pop_option("--adr-refs")
+        if v is not None:
+            adr_refs_override = v
+        v = pop_option("--overlay-file")
+        if v is not None:
+            overlay_override = v
+        if pop_flag("--no-task"):
+            no_task = True
 
     if requires_yes(op, extra) and not yes:
         print(f"[sc-git] ERROR: operation '{op}' requires --yes for confirmation.")
@@ -191,16 +241,36 @@ def main() -> int:
     notes = []
 
     if op == "commit" and smart_commit and not has_commit_message(extra):
-        triplet = resolve_triplet(task_id=task_id)
-        task_ref = task_ref or f"#{triplet.task_id}"
+        gate_rc, gate_msg = _precommit_text_gates()
+        if gate_rc != 0:
+            print(f"[sc-git] ERROR: {gate_msg}")
+            return gate_rc
+
+        triplet = None
+        if not no_task:
+            triplet = resolve_triplet(task_id=task_id)
+            task_ref = task_ref or f"#{triplet.task_id}"
+            adr_refs = triplet.adr_refs()
+            overlay_file = triplet.overlay()
+        else:
+            if not adr_refs_override:
+                print("[sc-git] ERROR: --no-task requires --adr-refs")
+                return 2
+            adr_refs = [x.strip() for x in str(adr_refs_override).split(",") if x.strip()]
+            if not adr_refs:
+                print("[sc-git] ERROR: --no-task requires non-empty --adr-refs")
+                return 2
+            task_ref = task_ref or "#N/A"
+            overlay_file = overlay_override or ""
+
         subject = smart_commit_message()
         body = build_commit_body()
         commit_msg = render_commit_message(
             subject=subject,
             body=body,
             task_ref=task_ref,
-            adr_refs=triplet.adr_refs(),
-            overlay_file=triplet.overlay(),
+            adr_refs=adr_refs,
+            overlay_file=overlay_file,
         )
 
         out_dir = ci_dir("sc-git")
@@ -211,13 +281,19 @@ def main() -> int:
         notes.append(
             {
                 "smart_commit_subject": subject,
-                "task_id": triplet.task_id,
+                "task_id": triplet.task_id if triplet else None,
                 "task_ref": task_ref,
-                "adr_refs": triplet.adr_refs(),
-                "overlay": triplet.overlay(),
+                "adr_refs": adr_refs,
+                "overlay": overlay_file,
                 "message_file": str(msg_path),
             }
         )
+
+    if op == "commit" and not smart_commit:
+        gate_rc, gate_msg = _precommit_text_gates()
+        if gate_rc != 0:
+            print(f"[sc-git] ERROR: {gate_msg}")
+            return gate_rc
 
     out_dir = ci_dir("sc-git")
     rc, out = run_cmd(git_args, cwd=repo_root(), timeout_sec=300)

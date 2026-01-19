@@ -29,3 +29,9 @@ Status: Accepted
 ## 验收要点（就地）
 
 - 上述命令可在本机 Windows 环境跑通，且关键输出落盘到 `logs/`（详见 AGENTS.md 6.3）。
+
+## Contracts（SSoT）
+
+- `Game.Core/Contracts/CoreGameEvents.cs`
+- `Game.Core/Contracts/Sanguo/SanguoGameEndStatsSnapshot.cs`
+- `Game.Core/Contracts/Sanguo/SanguoSaveSnapshot.cs`

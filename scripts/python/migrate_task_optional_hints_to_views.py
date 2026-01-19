@@ -276,9 +276,9 @@ def main() -> int:
                 moved_details.append(ln)
             else:
                 kept_details.append(ln)
-        details_after = _rejoin_lines(kept_details)
-        master_details_changed = details_after != details_before
+        master_details_changed = bool(moved_details)
         if master_details_changed:
+            details_after = _rejoin_lines(kept_details)
             t["details"] = details_after
 
         master_ts_before = str(t.get("testStrategy") or "")
@@ -289,9 +289,9 @@ def main() -> int:
                 moved_test_strategy.append(ln)
             else:
                 kept_ts.append(ln)
-        master_ts_after = _rejoin_lines(kept_ts)
-        master_ts_changed = master_ts_after != master_ts_before
+        master_ts_changed = bool(moved_test_strategy)
         if master_ts_changed:
+            master_ts_after = _rejoin_lines(kept_ts)
             t["testStrategy"] = master_ts_after
 
         moved_optional_raw = [*moved_details, *moved_test_strategy]
@@ -426,7 +426,7 @@ def main() -> int:
     write_json(out_dir / "summary.json", summary)
     write_text(out_dir / "report.md", "\n".join(report_lines).strip() + "\n")
 
-    if args.write:
+    if args.write and changes:
         write_json(master_p, master)
         write_json(back_p, back)
         write_json(gameplay_p, gameplay)

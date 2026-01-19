@@ -37,6 +37,11 @@ Arch-Refs:
 - 本任务不新增领域事件；地图数据仅作为 `core.sanguo.game.started` 等事件 payload 中的 `map_id` 与 UI 投影输入。
 - 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/GameEvents.cs`
 - 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
+- DTO/Validator（数据载体与硬校验）：
+  - `Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`
+  - `Game.Core/Contracts/Sanguo/SanguoMapDefinition.cs`
+  - `Game.Core/Contracts/Sanguo/SanguoMapDefinitionValidator.cs`
+  - `Game.Core/Contracts/Sanguo/SanguoFacilitiesCatalog.cs`
 
 ## 验收条款（ACC）
 - ACC:T53.1 `_index.json` 可列出可用地图（map_id/name_key/path/version/recommended_players_min/max/description_key/preview_image_res_path）。

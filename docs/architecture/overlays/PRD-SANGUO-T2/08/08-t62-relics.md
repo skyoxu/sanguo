@@ -33,6 +33,7 @@ Arch-Refs:
 - `core.sanguo.relic.applied`：宝物生效并应用到玩家状态后。
 - 经济侧影响仍通过经济事件的 `applied_multipliers` 快照对外暴露（UI 只展示）。
 - 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/SanguoLootEvents.cs`、`Game.Core/Contracts/Sanguo/EconomyEvents.cs`
+- 数据契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/SanguoRelicsCatalog.cs`
 - 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）

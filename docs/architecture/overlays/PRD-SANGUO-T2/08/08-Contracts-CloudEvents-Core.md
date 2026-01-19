@@ -40,3 +40,15 @@ Status: Accepted
 ## 验收要点（就地）
 
 - `Game.Core.Tests/Domain/SanguoContractsTests.cs` 至少验证关键事件的 `EventType` 常量值不漂移。
+
+## Contracts（SSoT）
+
+- `Game.Core/Contracts/DomainEvent.cs`
+- `Game.Core/Contracts/CoreGameEvents.cs`
+- `Game.Core/Contracts/Guild/GuildMemberJoined.cs`
+- `Game.Core/Contracts/Sanguo/BoardEvents.cs`
+- `Game.Core/Contracts/Sanguo/GameEvents.cs`
+- `Game.Core/Contracts/Sanguo/EconomyEvents.cs`
+- `Game.Core/Contracts/Sanguo/PlayerAndAiEvents.cs`
+- `Game.Core/Contracts/Sanguo/SanguoEffectKinds.cs`
+- `Game.Core/Contracts/Sanguo/SanguoEventOrderingRules.cs`
