@@ -218,7 +218,10 @@ jobs:
           $rawSpec = [string]$spec
           if ($spec -match 'Task\s*\[([^\]]+)\]') { $spec = $Matches[1] }
           $spec = ($spec -replace '\s', '').Trim()
-          $isNonTaskPr = $rawSpec -match '(?i)^(workflow|docs|chore|ci|build|refactor|infra)\s*[:\\-]' -or $rawSpec -match '(?i)\\bno-task\\b'
+          # Non-task PR heuristics:
+          # - Conventional commit prefixes (with optional scope): chore(scope): / docs: / ci(scope): ...
+          # - Explicit "no-task" marker in title
+          $isNonTaskPr = $rawSpec -match '(?i)^(workflow|docs|chore|ci|build|refactor|infra)(\\([^\\)]+\\))?\\s*[:\\-]' -or $rawSpec -match '(?i)\\bno-task\\b'
 
           if ([string]::IsNullOrWhiteSpace($spec)) {
             if ("${{ github.event_name }}" -eq "pull_request") {
