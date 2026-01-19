@@ -77,6 +77,7 @@ public static class SanguoMapDefinitionV2Validator
         }
 
         var seenTileIds = new HashSet<string>(StringComparer.Ordinal);
+        var firstTileId = map.Tiles.Count > 0 ? map.Tiles[0]?.TileId : null;
         foreach (var tile in map.Tiles)
         {
             if (tile is null)
@@ -182,8 +183,23 @@ public static class SanguoMapDefinitionV2Validator
             }
         }
 
+        if (map.Track is not null)
+        {
+            if (!string.IsNullOrWhiteSpace(map.Track.StartTileId) && !seenTileIds.Contains(map.Track.StartTileId))
+            {
+                list.Add($"Track.StartTileId must exist in Tiles (startTileId={map.Track.StartTileId}).");
+            }
+
+            // Current runtime uses legacy PositionIndex derived from Tiles[] order.
+            // Freeze the contract to avoid implicit mismatches until the full V2 runtime is adopted.
+            if (!string.IsNullOrWhiteSpace(firstTileId) && !string.IsNullOrWhiteSpace(map.Track.StartTileId)
+                && !string.Equals(firstTileId, map.Track.StartTileId, StringComparison.Ordinal))
+            {
+                list.Add($"Track.StartTileId must match the first tile's TileId (firstTileId={firstTileId}, startTileId={map.Track.StartTileId}).");
+            }
+        }
+
         errors = list;
         return list.Count == 0;
     }
 }
-
