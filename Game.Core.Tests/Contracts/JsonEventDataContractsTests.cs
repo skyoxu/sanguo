@@ -1,0 +1,28 @@
+using System.Text.Json;
+using FluentAssertions;
+using Game.Core.Contracts;
+using Xunit;
+
+namespace Game.Core.Tests.Contracts;
+
+public sealed class JsonEventDataContractsTests
+{
+    [Fact]
+    public void RawJsonEventData_ShouldCarryJsonString()
+    {
+        var payload = new RawJsonEventData("{\"a\":1}");
+        payload.Json.Should().Be("{\"a\":1}");
+        payload.Should().BeAssignableTo<IEventData>();
+    }
+
+    [Fact]
+    public void JsonElementEventData_FromObject_ShouldProduceJsonElement()
+    {
+        var payload = JsonElementEventData.FromObject(new { a = 1 });
+        payload.Should().BeAssignableTo<IEventData>();
+
+        payload.Value.ValueKind.Should().Be(JsonValueKind.Object);
+        payload.Value.GetProperty("a").GetInt32().Should().Be(1);
+    }
+}
+

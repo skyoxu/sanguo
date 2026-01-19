@@ -202,10 +202,45 @@ def main():
     if not sc_ok:
         hard_fail = True
 
-    # 3) Encoding scan (soft gate)
-    rc3, out3 = run_cmd(['py', '-3', 'scripts/python/check_encoding.py', '--since-today'], cwd=root)
+    # 3) Text integrity + encoding scan (hard gate)
+    # Prefer PR-friendly compare against origin/main...HEAD instead of time-based scans.
+    changed_files = []
+    try:
+        rc_cf, out_cf = run_cmd(['git', 'diff', '--name-only', 'origin/main...HEAD'], cwd=root)
+        if rc_cf == 0:
+            changed_files = [ln.strip() for ln in out_cf.splitlines() if ln.strip()]
+    except Exception:
+        changed_files = []
+
+    if changed_files:
+        rc3, out3 = run_cmd(['py', '-3', 'scripts/python/check_encoding.py', '--files', *changed_files], cwd=root)
+    else:
+        # fallback: still better than nothing in shallow/offline envs
+        rc3, out3 = run_cmd(['py', '-3', 'scripts/python/check_encoding.py', '--since-today'], cwd=root)
+
     enc_sum = read_json(os.path.join('logs', 'ci', date, 'encoding', 'session-summary.json')) or {}
     summary['encoding'] = enc_sum
+    if rc3 != 0 or int(enc_sum.get('bad') or 0) > 0:
+        hard_fail = True
+
+    # Complement: semantic garble patterns + BOM (config/code) hard gate
+    try:
+        if changed_files:
+            rc4, out4 = run_cmd(
+                ['py', '-3', 'scripts/python/check_text_integrity.py', '--files', *changed_files, '--hard-bom', '--out-dir', os.path.join('logs', 'ci', date, 'text-integrity-changed')],
+                cwd=root,
+            )
+        else:
+            rc4, out4 = run_cmd(
+                ['py', '-3', 'scripts/python/check_text_integrity.py', '--hard-bom', '--out-dir', os.path.join('logs', 'ci', date, 'text-integrity-changed')],
+                cwd=root,
+            )
+        summary['text_integrity'] = {'rc': rc4, 'note': 'see logs/ci/<date>/text-integrity-changed/summary.json'}
+        if rc4 != 0:
+            hard_fail = True
+    except Exception as exc:
+        summary['text_integrity'] = {'rc': 1, 'error': str(exc)}
+        hard_fail = True
 
     summary['status'] = 'ok' if not hard_fail else 'fail'
     with io.open(os.path.join(ci_dir, 'ci-pipeline-summary.json'), 'w', encoding='utf-8') as f:

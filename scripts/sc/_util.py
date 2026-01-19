@@ -30,10 +30,8 @@ def ci_dir(name: str) -> Path:
 
 def write_text(path: Path, content: str) -> None:
     ensure_dir(path.parent)
-    # Use UTF-8 BOM for Markdown files to avoid mojibake in Windows tools that
-    # default to ANSI when no BOM is present (e.g., Windows PowerShell 5.1).
-    encoding = "utf-8-sig" if path.suffix.lower() == ".md" else "utf-8"
-    with path.open("w", encoding=encoding, newline="\r\n") as f:
+    # Project rule: always write UTF-8 without BOM. Avoid PowerShell pipeline writes.
+    with path.open("w", encoding="utf-8", newline="\r\n") as f:
         f.write(content)
 
 

@@ -1,7 +1,11 @@
 ---
 PRD-ID: PRD-SANGUO-T2
 Title: 08 章功能纵切索引（契约与测试对齐）
+Status: Accepted
 Updated: true
+ADR-Refs:
+  - ADR-0004
+  - ADR-0005
 Arch-Refs:
   - CH01
   - CH03
@@ -10,6 +14,12 @@ Arch-Refs:
 # PRD-SANGUO-T2 功能纵切索引
 
 本目录聚合 T2 功能纵切页面与对应测试引用（仅引用 01/02/03 章口径，不在此复制阈值/策略）。
+
+## Contracts（SSoT）
+
+- `Game.Core/Contracts/Sanguo/GameStartConfig.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapDefinition.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`
 
 - 资源加载与外链白名单（Whitelist）— 见 `08-Contracts-Preload-Whitelist.md`
 - DomainEvent（CloudEvents-like）— 见 `08-Contracts-CloudEvent.md`

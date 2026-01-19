@@ -2181,7 +2181,7 @@
     ],
     "acceptance": [
       "胜负判定在 Core；发布 core.sanguo.game.ended（或等价），payload 含 winner/reason/stats_snapshot；UI 不得自判定。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "结算界面展示胜者与关键统计，并提供“返回主菜单/再来一局”。 Refs: Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd"
+      "结算界面展示胜者与关键统计，并提供“返回主菜单”；不得提供“再来一局”。 Refs: Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",

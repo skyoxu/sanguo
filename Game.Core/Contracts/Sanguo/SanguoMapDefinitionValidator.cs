@@ -2,8 +2,22 @@ using System.Collections.Generic;
 
 namespace Game.Core.Contracts.Sanguo;
 
+/// <summary>
+/// Validator: SanguoMapDefinition
+/// Description: Minimal, deterministic validation for Sanguo map contracts.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0019 (security baseline), ADR-0005 (quality gates).
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md.
+/// </remarks>
 public static class SanguoMapDefinitionValidator
 {
+    /// <summary>
+    /// Validate a <see cref="SanguoMapDefinition"/> instance.
+    /// </summary>
+    /// <remarks>
+    /// This method is contract-level validation (not gameplay logic). It must stay deterministic and unit-testable.
+    /// </remarks>
     public static bool TryValidate(SanguoMapDefinition? map, out IReadOnlyList<string> errors)
     {
         var list = new List<string>();

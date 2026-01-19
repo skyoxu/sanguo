@@ -33,3 +33,9 @@ Status: Accepted
 ## 文档与工作流护栏
 
 - 文档必须 UTF-8 编码且禁止 Emoji（fixture 文件除外）：`py -3 scripts/ci/check_encoding_issues.py`
+
+## Contracts（SSoT）
+
+- `Game.Core/Contracts/IEventData.cs`
+- `Game.Core/Contracts/JsonEventData.cs`
+- `Game.Core/Contracts/Sanguo/SanguoSaveSnapshot.cs`
