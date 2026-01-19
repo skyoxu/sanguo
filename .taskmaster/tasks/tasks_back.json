@@ -3107,7 +3107,7 @@
     "taskmaster_exported": true,
     "story_id": "PRD-SANGUO-T2-SKEL-53",
     "title": "模块: 地图配置（多文件）与 Tile 语义",
-    "description": "引入地图配置多文件格式，并定义 city/pass/event/empty 等 tile 语义与基础数值来源。",
+    "description": "引入地图配置多文件格式（index + definition），定义 city/facility/event/empty tile 语义、track 口径、layout 坐标与 actions 结构，以 Data/Contracts V2 为准。",
     "status": "deferred",
     "priority": "P1",
     "layer": "core",
@@ -3137,9 +3137,9 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
     ],
     "acceptance": [
-      "提供地图索引：res://Data/maps/_index.json（包含 map_id/name/description/preview_path）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
-      "提供地图定义：res://Data/maps/<map_id>.json（tile 至少包含 index/type/name；type 覆盖 city/pass/event/empty）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
-      "地图格 UI 显示 name 字段，避免黑底不可读。 Refs: Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd"
+      "提供地图索引：res://Data/maps/_index.json（包含 schemaVersion/version/maps[]；maps[] 至少含 mapId/nameKey/descriptionKey/path/previewImagePath/recommendedPlayersMin/recommendedPlayersMax）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
+      "提供地图定义：res://Data/maps/<map_id>.json（包含 schemaVersion/version/mapId/track(length,startTileId)/tiles[]；tileKind 覆盖 city/facility/event/empty；tile 必含 tileId/tileKind/nameKey/layout{x,y}/actions[]；并冻结口径：track.startTileId == tiles[0].tileId）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "地图格 UI 展示可读名称：优先 i18n(nameKey)，缺失时降级显示 nameKey（不允许空/黑底不可读）。 Refs: Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
@@ -3261,7 +3261,7 @@
     "taskmaster_exported": true,
     "story_id": "PRD-SANGUO-T2-SKEL-56",
     "title": "模块: 随机事件池（事件格 + 每N回合全局事件）",
-    "description": "引入随机事件池并统一两类触发：事件格触发与每N回合全局触发；要求可复现。",
+    "description": "引入随机事件目录（events+pools）并统一两类触发：事件格触发与每N回合全局触发；抽样与应用需可复现并可复盘。",
     "status": "deferred",
     "priority": "P1",
     "layer": "core",
@@ -3291,8 +3291,8 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
     ],
     "acceptance": [
-      "事件池统一两类触发：事件格触发 + 每N回合全局触发（N∈{5,10,20}），且 random_seed 可复现。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
-      "事件效果仅允许 multiplier_step_delta（+1=+0.5），进入 applied_multipliers.event 并走合成与 clamp。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
+      "事件池统一两类触发：事件格触发 + 每N回合全局触发（N∈{5,10,20}）；random_seed + rng_context_id 确保可复现（记录 candidates hash + picked index/id）。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
+      "事件效果按 effectKind 白名单：moneyDelta / economyStepDelta；economyStepDelta 通过 stepDelta(steps) 进入 applied_multipliers.event 并走合成与 clamp；moneyDelta 为直接加减（UI 不得参与计算）。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
       "踩事件格后 UI 可见事件提示（展示来自事件 payload）。 Refs: Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd"
     ],
     "test_refs": [
@@ -3313,7 +3313,7 @@
     "taskmaster_exported": true,
     "story_id": "PRD-SANGUO-T2-SKEL-57",
     "title": "模块: 行动卡（BeforeRoll）止损版",
-    "description": "引入行动卡卡池：掷骰前可出 0/1 张行动卡影响本回合倍率输入。",
+    "description": "引入行动卡目录：BeforeRoll 窗口可出 0/1 张行动卡影响本回合倍率快照；卡牌效果只允许 steps 经济倍率（economyStepDelta）并携带 durationRounds。",
     "status": "deferred",
     "priority": "P2",
     "layer": "core",
@@ -3342,8 +3342,8 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
     ],
     "acceptance": [
-      "行动卡定义仅允许 multiplier_step_delta，不允许直接改钱/改所有权。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
-      "BeforeRoll 每回合最多 1 张，出牌发布 action_card.played，并影响 applied_multipliers.action_card。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
+      "行动卡配置来自 res://Data/action_cards.json（schemaVersion/version/cards[]；card 含 cardId/nameKey/descriptionKey/effectKind/stepDelta/durationRounds）；effectKind 仅允许 economyStepDelta（不允许 moneyDelta/改所有权）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "BeforeRoll 每回合最多 1 张，出牌发布 core.sanguo.action_card.played，并将 stepDelta 计入 applied_multipliers.action_card（仅 Core 计算）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
       "UI 提供“出牌/跳过”，出牌后进入掷骰。 Refs: Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd"
     ],
     "test_refs": [
