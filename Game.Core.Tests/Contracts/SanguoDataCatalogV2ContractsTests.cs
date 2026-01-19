@@ -29,6 +29,17 @@ public sealed class SanguoDataCatalogV2ContractsTests
     }
 
     [Fact]
+    public void MapsCatalog_ShouldDeserialize_FromDataMapsIndexJson()
+    {
+        var repoRoot = FindRepoRoot();
+        var json = File.ReadAllText(Path.Combine(repoRoot, "Data", "maps", "_index.json"));
+        var catalog = JsonSerializer.Deserialize<SanguoMapsCatalog>(json, JsonOptions);
+        catalog.Should().NotBeNull();
+        catalog!.Maps.Should().NotBeEmpty();
+        catalog.Maps[0].PreviewResPath.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
     public void RandomEventsCatalog_ShouldDeserialize_FromDataRandomEventsJson()
     {
         var repoRoot = FindRepoRoot();
