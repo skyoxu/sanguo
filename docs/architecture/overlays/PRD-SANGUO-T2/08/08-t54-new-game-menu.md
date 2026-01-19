@@ -33,5 +33,7 @@ Arch-Refs:
 - ACC:T54.2 AI 补位：角色全局唯一，不与玩家重复。
 
 ## Test-Refs
-- `Tests.Godot/tests/UI/test_task54_new_game_menu_flow.gd`
+- `Tests.Godot/tests/UI/test_task54_new_game_setup_ui.gd`
+- `Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs`
+- `Tests.Godot/tests/UI/test_task54_hud_shows_name_money_portrait_only.gd`
 

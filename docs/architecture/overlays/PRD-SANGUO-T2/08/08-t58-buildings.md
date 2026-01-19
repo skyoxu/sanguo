@@ -33,4 +33,6 @@ Arch-Refs:
 - ACC:T58.2 建造效果只通过倍率快照进入经济计算（UI 不计算）。
 
 ## Test-Refs
-- `Game.Core.Tests/Tasks/Task58BuildingsTests.cs`
+- `Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs`
+- `Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs`
+- `Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd`

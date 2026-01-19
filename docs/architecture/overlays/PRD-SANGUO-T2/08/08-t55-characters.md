@@ -29,6 +29,7 @@ Arch-Refs:
 - ACC:T55.2 初始资金 = StartingMoneyPreset * starting_money_multiplier。
 
 ## Test-Refs
-- `Game.Core.Tests/Tasks/Task55CharacterConfigTests.cs`
-- `Tests.Godot/tests/UI/test_task55_character_select_ui.gd`
+- `Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs`
+- `Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs`
+- `Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs`
 

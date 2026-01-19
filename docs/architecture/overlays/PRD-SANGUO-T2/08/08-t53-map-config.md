@@ -35,5 +35,7 @@ Arch-Refs:
 - ACC:T53.2 `<map_id>.json` 中每个 tile 有确定的 type 与 name；UI 能显示 name。
 
 ## Test-Refs
-- `Game.Core.Tests/Tasks/Task53MapConfigTests.cs`
+- `Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs`
+- `Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs`
+- `Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd`
 

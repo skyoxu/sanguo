@@ -28,4 +28,6 @@ Arch-Refs:
 - ACC:T57.2 使用行动卡后发布 `core.sanguo.action_card.played`，并影响本回合经济倍率快照。
 
 ## Test-Refs
-- `Game.Core.Tests/Tasks/Task57ActionCardTests.cs`
+- `Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs`
+- `Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs`
+- `Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd`

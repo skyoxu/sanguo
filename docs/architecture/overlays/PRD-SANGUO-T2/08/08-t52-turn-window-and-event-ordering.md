@@ -31,5 +31,7 @@ Arch-Refs:
 - ACC:T52.3 任意顺序相关行为可从事件日志复盘（以事件序列为准）。
 
 ## Test-Refs
-- `Game.Core.Tests/Tasks/Task52TurnWindowOrderingTests.cs`
+- `Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs`
+- `Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs`
+- `Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs`
 
