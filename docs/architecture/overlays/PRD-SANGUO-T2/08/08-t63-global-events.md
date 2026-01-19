@@ -27,8 +27,6 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.random_event.applied`：当全局事件被选中并成功应用后（source=global）。
-- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
-- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T63.1 每轮最多触发一次全局事件检查与应用（同轮内不重复触发）。
@@ -36,4 +34,4 @@ Arch-Refs:
 - ACC:T63.3 触发后发布事件供 UI 展示与复盘（以 `core.sanguo.random_event.applied` 为准）。
 
 ## Test-Refs（占位）
-- `Game.Core.Tests/Tasks/Task63GlobalEventTests.cs`（占位，待实现）
+- TODO: `Game.Core.Tests/Tasks/Task63GlobalEventTests.cs`

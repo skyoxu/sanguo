@@ -40,8 +40,6 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.game.started`：新游戏配置完成、GameStartConfig 被固化并进入主循环时。
-- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/GameEvents.cs`
-- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T50.1 `GameStartConfig` 字段/范围/唯一性校验通过（至少含：map_id、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、random_seed、character_assignments(全局唯一)）。

@@ -28,8 +28,6 @@ Arch-Refs:
 - `core.sanguo.game.ended`：满足胜利/失败条件并进入结算前。
 - `core.sanguo.player.eliminated`：玩家/AI 出局并进入释放资产流程时（审计）。
 - `core.sanguo.city.owner.changed`：城池归属变化时（买下/释放/夺取）。
-- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/GameEvents.cs`、`Game.Core/Contracts/Sanguo/EconomyEvents.cs`
-- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T60.1 满足条件时发布 `core.sanguo.game.ended` 并进入结算界面。

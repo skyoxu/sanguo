@@ -29,8 +29,6 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - 任何“影响金钱数值”的域事件在发布时必须携带 `applied_multipliers`（买地/收租/月末结算/建造收益/事件效果等）。
-- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/EconomyEvents.cs`
-- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T51.1 任意组合输入下 `effective_steps` 必须 clamp 到 [1, 6]（对应 `0.5x..3.0x`），且只允许 0.5 步进。
@@ -40,4 +38,5 @@ Arch-Refs:
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs`
 - `Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs`
-- `Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd`
+- `Tests.Godot/tests/UI/test_hud_event_log_applied_multipliers.gd`
+

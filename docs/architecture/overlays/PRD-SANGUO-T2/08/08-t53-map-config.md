@@ -21,10 +21,7 @@ Arch-Refs:
 - 口径冻结：`layout:{x,y}` 必须在 `[0,1]`（归一化坐标、原点左上）；越界视为数据无效，禁止开始（硬失败）。
 - 口径冻结：资源路径必须位于 `res://Assets/...` 子树内，扩展名白名单（.png/.webp/.svg）+ 大小上限（1MB）。
 - 口径冻结：`action_id` 在同一 tile 内唯一；事件/日志引用使用 `(map_id, tile_id, action_id)` 组合。
-- 口径冻结：地图索引与 tile 文本均使用 i18n（只存 key，不存展示文案）。
-  - `_index.json`：`name_key` / `description_key` / `preview_image_res_path`
-  - `<map_id>.json`：tile `name_key`（hover/选中时展示）、tile action `label_key`（如需）
-  - i18n 文件：`res://Data/i18n/zh_cn.json`（缺 key 时允许降级显示 key，但需审计）
+- UI 必须显示 tile 的 `name`（来自 JSON 配置）。
 
 ## 非目标
 - 不定义复杂地图编辑器与热更新。
@@ -33,19 +30,10 @@ Arch-Refs:
 - `res://Data/maps/_index.json`
 - `res://Data/maps/<map_id>.json`
 
-## 契约（EventType + 触发点）
-- 本任务不新增领域事件；地图数据仅作为 `core.sanguo.game.started` 等事件 payload 中的 `map_id` 与 UI 投影输入。
-- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/GameEvents.cs`
-- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
-- DTO/Validator（数据载体与硬校验）：
-  - `Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`
-  - `Game.Core/Contracts/Sanguo/SanguoMapDefinition.cs`
-  - `Game.Core/Contracts/Sanguo/SanguoMapDefinitionValidator.cs`
-  - `Game.Core/Contracts/Sanguo/SanguoFacilitiesCatalog.cs`
-
 ## 验收条款（ACC）
-- ACC:T53.1 `_index.json` 可列出可用地图（map_id/name_key/path/version/recommended_players_min/max/description_key/preview_image_res_path）。
-- ACC:T53.2 `<map_id>.json` 中每个 tile 有确定的 `tile_kind` 与 `name_key`；UI 能在 hover/选中时展示 name（缺 key 可降级显示 key 并审计）。
+- ACC:T53.1 `_index.json` 可列出可用地图（id/name/path）。
+- ACC:T53.2 `<map_id>.json` 中每个 tile 有确定的 type 与 name；UI 能显示 name。
 
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task53MapConfigTests.cs`
+

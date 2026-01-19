@@ -66,7 +66,7 @@ T51 Spine: 倍率合成规则与 applied_multipliers 事件快照
 - Test-Refs（占位）：
   - `Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs`
   - `Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs`
-  - `Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd`
+  - `Tests.Godot/tests/UI/test_hud_event_log_applied_multipliers.gd`
 
 T52 Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序
 - 范围：锁死回合阶段（至少含 BeforeRoll），止损版每回合最多使用 1 张行动卡（0/1）；并锁死“行动卡/事件触发/掷骰/移动/落点效果”的顺序。

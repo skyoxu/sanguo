@@ -28,8 +28,6 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - 连协收费与全占增益对经济的影响必须通过“经济事件倍率快照（applied_multipliers）”体现；如需显式审计事件，后续补充 Contracts（最终以 Contracts 为准）。
-- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/EconomyEvents.cs`
-- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T65.1 全占增益生效/失效时点正确，且只影响本州郡城市的经济点（buy/toll/settlement）。
@@ -37,4 +35,4 @@ Arch-Refs:
 - ACC:T65.3 连协收费可被卡牌/宝物机制规避（规避作为机制能力，不是规则例外）。
 
 ## Test-Refs（占位）
-- `Game.Core.Tests/Tasks/Task65RegionsMechanicsTests.cs`（占位，待实现）
+- TODO: `Game.Core.Tests/Tasks/Task65RegionsMechanicsTests.cs`

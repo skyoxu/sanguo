@@ -27,8 +27,6 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.building.built`：建造完成并对经济/状态产生影响后。
-- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
-- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T58.1 建造触发后发布 `core.sanguo.building.built`。

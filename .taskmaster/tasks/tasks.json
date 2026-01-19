@@ -8,10 +8,7 @@
         "details": "在 Godot 4.x 中创建项目并启用 C# 支持；以 headless 冒烟验证 Main.tscn 可加载且至少一个 C# ScriptClass 可实例化/运行。",
         "testStrategy": "运行 headless 冒烟测试验证主场景可加载，并在运行期成功实例化至少一个 C# ScriptClass 以证明 C# 链路可用。",
         "priority": "high",
-        "dependencies": [
-          "53",
-          "55"
-        ],
+        "dependencies": [],
         "status": "done",
         "subtasks": [],
         "adrRefs": [
@@ -1585,10 +1582,7 @@
         "details": "要求：GameStartConfig 必须可序列化为 JSON 审计快照；地图列表来自 res://Data/maps/_index.json；角色全局唯一分配；全局事件间隔仅允许 5/10/20；初始资金档仅允许 5000/10000/20000。",
         "testStrategy": "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。；GdUnit4：走一遍新游戏配置界面并断言 started 事件被发布。",
         "priority": "high",
-        "dependencies": [
-          "53",
-          "55"
-        ],
+        "dependencies": [],
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
@@ -1612,7 +1606,9 @@
         "details": "规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)；所有 multiplier 只能取 0.5 步进（建议用 step int 表达）；UI 不参与金额计算，只展示事件快照。",
         "testStrategy": "xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。；GdUnit4：UI 仅展示，不做计算回归。",
         "priority": "high",
-        "dependencies": [],
+        "dependencies": [
+          "50"
+        ],
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
@@ -1633,7 +1629,8 @@
         "testStrategy": "xUnit：状态机窗口与乱序事件回归。",
         "priority": "high",
         "dependencies": [
-          "50"
+          "50",
+          "51"
         ],
         "status": "deferred",
         "subtasks": [],
@@ -1654,7 +1651,9 @@
         "details": "格式：res://Data/maps/_index.json + res://Data/maps/<map_id>.json；每个 tile 至少包含 index/type/name，城市/关隘/事件格需有稳定字段用于触发与经济 base 值。",
         "testStrategy": "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。",
         "priority": "high",
-        "dependencies": [],
+        "dependencies": [
+          "50"
+        ],
         "status": "deferred",
         "subtasks": [],
         "adrRefs": [
@@ -1678,7 +1677,9 @@
         "testStrategy": "GdUnit4：走 UI 配置→开始游戏；xUnit：角色分配唯一性。",
         "priority": "high",
         "dependencies": [
-          "50"
+          "50",
+          "53",
+          "55"
         ],
         "status": "deferred",
         "subtasks": [],
@@ -1702,6 +1703,7 @@
         "testStrategy": "xUnit：解析/口径/事件快照测试。",
         "priority": "high",
         "dependencies": [
+          "50",
           "51"
         ],
         "status": "deferred",
@@ -1724,8 +1726,10 @@
         "testStrategy": "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。",
         "priority": "high",
         "dependencies": [
+          "50",
           "51",
-          "52"
+          "52",
+          "53"
         ],
         "status": "deferred",
         "subtasks": [],
@@ -1747,6 +1751,7 @@
         "testStrategy": "xUnit：策略与窗口；GdUnit4：最小 UI 流程。",
         "priority": "medium",
         "dependencies": [
+          "50",
           "51",
           "52"
         ],
@@ -1771,7 +1776,6 @@
         "priority": "medium",
         "dependencies": [
           "51",
-          "52",
           "53"
         ],
         "status": "deferred",
@@ -1794,8 +1798,10 @@
         "testStrategy": "xUnit：触发/回归/确定性；GdUnit4：场景往返。",
         "priority": "medium",
         "dependencies": [
+          "50",
           "52",
-          "55"
+          "53",
+          "56"
         ],
         "status": "deferred",
         "subtasks": [],
@@ -1812,13 +1818,12 @@
       {
         "id": "60",
         "title": "模块: 每局胜利与结算界面",
-        "description": "引入胜利判定与结算 UI：Core 判定并发布 game.ended，UI 展示结果并支持返回主菜单（不提供再来一局）。",
-        "details": "胜负判定必须在 Core；UI 不得自判定；事件 payload 提供 winner/reason/stats_snapshot；结算界面只展示并提供返回主菜单按钮。",
+        "description": "引入胜利判定与结算 UI：Core 判定并发布 game.ended，UI 展示结果并支持返回主菜单/再来一局。",
+        "details": "胜负判定必须在 Core；UI 不得自判定；事件 payload 提供 winner/reason/stats_snapshot；结算界面只展示并提供按钮。",
         "testStrategy": "xUnit：事件契约；GdUnit4：结算 UI。",
         "priority": "medium",
         "dependencies": [
-          "52",
-          "59"
+          "52"
         ],
         "status": "deferred",
         "subtasks": [],
@@ -1843,11 +1848,13 @@
         "priority": "medium",
         "dependencies": [
           "52",
+          "53",
+          "55",
           "56",
           "57",
           "58",
           "59",
-          "62"
+          "60"
         ],
         "status": "deferred",
         "subtasks": [],
@@ -1871,8 +1878,8 @@
         "testStrategy": "xUnit：覆盖 relicId 唯一性、重抽/耗尽分支、以及按 relicId 升序应用的确定性。",
         "priority": "medium",
         "dependencies": [
-          "51",
           "56",
+          "58",
           "59"
         ],
         "status": "deferred",
@@ -1924,7 +1931,9 @@
         "testStrategy": "xUnit：覆盖 regionId 交叉引用、全占判定、生效/失效时机与经济型增益的应用口径。",
         "priority": "medium",
         "dependencies": [
-          "53"
+          "51",
+          "53",
+          "58"
         ],
         "status": "deferred",
         "subtasks": [],
@@ -1950,9 +1959,9 @@
         "testStrategy": "xUnit：覆盖连协收费的汇总逻辑（breakdown+total）、边界条件（无主/自身/缺数据）与 fail-fast 行为。",
         "priority": "medium",
         "dependencies": [
-          "51",
+          "64",
           "58",
-          "64"
+          "51"
         ],
         "status": "deferred",
         "subtasks": [],

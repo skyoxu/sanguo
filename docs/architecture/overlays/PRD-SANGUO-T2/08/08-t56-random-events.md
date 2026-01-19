@@ -23,8 +23,6 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.random_event.applied`：事件效果应用后（无论来源是 tile 还是全局事件）。
-- 契约 SSoT（代码）：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
-- 对齐页：`docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md`
 
 ## 验收条款（ACC）
 - ACC:T56.1 事件格触发能从池中取出事件并应用。
