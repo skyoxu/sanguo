@@ -34,5 +34,5 @@ Arch-Refs:
 - ACC:T65.2 连协收费按 owner 在 region 内的占有城市集合求和；缺失 region 数据 fail-fast。
 - ACC:T65.3 连协收费可被卡牌/宝物机制规避（规避作为机制能力，不是规则例外）。
 
-## Test-Refs（占位）
-- TODO: `Game.Core.Tests/Tasks/Task65RegionsMechanicsTests.cs`
+## Test-Refs
+- `Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs`
