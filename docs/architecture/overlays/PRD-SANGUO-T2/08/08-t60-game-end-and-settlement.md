@@ -34,4 +34,5 @@ Arch-Refs:
 - ACC:T60.2 结算界面展示 winner/原因/统计快照（来自事件或投影）。
 
 ## Test-Refs
-- `Tests.Godot/tests/UI/test_task60_game_end_screen.gd`
+- `Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs`
+- `Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd`

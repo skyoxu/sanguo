@@ -29,4 +29,6 @@ Arch-Refs:
 - ACC:T56.2 每 N 回合全局事件触发稳定可复现（由 seed 驱动）。
 
 ## Test-Refs
-- `Game.Core.Tests/Tasks/Task56RandomEventPoolTests.cs`
+- `Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs`
+- `Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs`
+- `Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd`
