@@ -24,6 +24,18 @@ Arch-Refs:
 ## 口径冻结
 - 角色头像资源路径必须位于 `res://Assets/...`，扩展名白名单（.png/.webp/.svg），大小上限 1MB；越界/非法则禁止开始。
 
+## 契约定义
+
+### DTO
+- **SanguoCharactersCatalog**
+  - 用途：角色定义目录（只读）
+  - 字段：`SchemaVersion`, `Version`, `Characters[]`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoCharactersCatalog.cs`
+- **SanguoCharacterDefinition**
+  - 用途：单个角色定义（供新游戏选角与初始状态生成）
+  - 字段：`CharacterId`, `NameKey`, `DescriptionKey`, `CombatRating`, `PortraitPath`, `StartingMoneyStepDelta`, `EconomyStepDeltas`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs`
+
 ## 验收条款（ACC）
 - ACC:T55.1 角色配置可加载且 ≥8 角色可展示（name/description/portrait_path/经济系数）。
 - ACC:T55.2 初始资金 = StartingMoneyPreset * starting_money_multiplier。

@@ -18,8 +18,13 @@ Arch-Refs:
 ## Contracts（SSoT）
 
 - `Game.Core/Contracts/Sanguo/GameStartConfig.cs`
-- `Game.Core/Contracts/Sanguo/SanguoMapDefinition.cs`
 - `Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapDefinitionV2.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapDefinitionV2Validator.cs`
+- `Game.Core/Contracts/Sanguo/SanguoRandomEventsCatalog.cs`
+- `Game.Core/Contracts/Sanguo/SanguoActionCardsCatalog.cs`
+- `Game.Core/Contracts/Sanguo/SanguoCharactersCatalog.cs`
+- `Game.Core/Contracts/Sanguo/SanguoBuildingsCatalog.cs`
 
 - 资源加载与外链白名单（Whitelist）— 见 `08-Contracts-Preload-Whitelist.md`
 - DomainEvent（CloudEvents-like）— 见 `08-Contracts-CloudEvent.md`

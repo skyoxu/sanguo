@@ -28,6 +28,23 @@ Arch-Refs:
 ## 契约（EventType + 触发点）
 - `core.sanguo.building.built`：建造完成并对经济/状态产生影响后。
 
+## 契约定义
+
+### 事件
+- **SanguoBuildingBuilt** (`core.sanguo.building.built`)
+  - 触发时机：建造/升级完成并影响经济快照后
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+
+### DTO
+- **SanguoBuildingsCatalog**
+  - 用途：建筑定义目录（只读）
+  - 字段：`SchemaVersion`, `Version`, `Buildings[]`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoBuildingsCatalog.cs`
+- **SanguoBuildingDefinition**
+  - 用途：单个建筑定义（成本/收益/倍率步进分项）
+  - 字段：`BuildingId`, `NameKey`, `DescriptionKey`, `MaxLevel`, `BuildCostBase`, `UpgradeCostBase`, `SettlementIncomeBase`, `EconomyStepDeltas`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoBuildingDefinition.cs`
+
 ## 验收条款（ACC）
 - ACC:T58.1 建造触发后发布 `core.sanguo.building.built`。
 - ACC:T58.2 建造效果只通过倍率快照进入经济计算（UI 不计算）。

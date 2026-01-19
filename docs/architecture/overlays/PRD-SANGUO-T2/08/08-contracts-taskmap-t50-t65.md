@@ -38,6 +38,12 @@ Arch-Refs:
 
 - `GameStartConfig`（唯一开局输入快照）：`Game.Core/Contracts/Sanguo/GameStartConfig.cs`
 - `AppliedMultipliers`（steps 经济倍率快照）：`Game.Core/Contracts/Sanguo/AppliedMultipliers.cs`
+- `SanguoMapsCatalog`（地图索引）：`Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`
+- `SanguoMapDefinitionV2`（地图定义 V2）：`Game.Core/Contracts/Sanguo/SanguoMapDefinitionV2.cs`
+- `SanguoRandomEventsCatalog`（随机事件目录）：`Game.Core/Contracts/Sanguo/SanguoRandomEventsCatalog.cs`
+- `SanguoActionCardsCatalog`（行动卡目录）：`Game.Core/Contracts/Sanguo/SanguoActionCardsCatalog.cs`
+- `SanguoCharactersCatalog`（角色目录）：`Game.Core/Contracts/Sanguo/SanguoCharactersCatalog.cs`
+- `SanguoBuildingsCatalog`（建筑目录）：`Game.Core/Contracts/Sanguo/SanguoBuildingsCatalog.cs`
 - `SanguoEconomyStepDeltas`（steps 分项）：`Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs`
 - `SanguoBuildingDefinition`：`Game.Core/Contracts/Sanguo/SanguoBuildingDefinition.cs`
 
