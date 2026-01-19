@@ -32,5 +32,5 @@ Arch-Refs:
 - ACC:T61.2 关键决策点均走统一策略与统一审计事件。
 - ACC:T61.3 AI 决策事件包含足够信息复盘选择过程。
 
-## Test-Refs（占位）
-- TODO: `Game.Core.Tests/Tasks/Task61AiDeterminismTests.cs`
+## Test-Refs
+- `Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs`

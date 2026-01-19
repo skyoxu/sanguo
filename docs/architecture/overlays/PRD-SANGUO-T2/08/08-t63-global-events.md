@@ -33,5 +33,5 @@ Arch-Refs:
 - ACC:T63.2 选择与效果应用在同一 random_seed 下可复现。
 - ACC:T63.3 触发后发布事件供 UI 展示与复盘（以 `core.sanguo.random_event.applied` 为准）。
 
-## Test-Refs（占位）
-- TODO: `Game.Core.Tests/Tasks/Task63GlobalEventTests.cs`
+## Test-Refs
+- `Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs`

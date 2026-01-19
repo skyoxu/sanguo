@@ -30,5 +30,5 @@ Arch-Refs:
 - ACC:T64.1 地图加载时校验 region 定义与引用完整性；缺失/越界 fail-fast。
 - ACC:T64.2 name/description 走 i18n key（地图索引与 region 均用 key）。
 
-## Test-Refs（占位）
-- TODO: `Game.Core.Tests/Tasks/Task64RegionsConfigTests.cs`
+## Test-Refs
+- `Game.Core.Tests/Tasks/Task64RegionsTests.cs`
