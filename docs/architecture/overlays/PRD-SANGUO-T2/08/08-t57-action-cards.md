@@ -23,6 +23,19 @@ Arch-Refs:
 ## 契约（EventType + 触发点）
 - `core.sanguo.action_card.played`：行动卡被使用后发布。
 
+## 契约定义
+
+### 事件
+- **SanguoActionCardPlayed** (`core.sanguo.action_card.played`)
+  - 触发时机：行动卡在 BeforeRoll 窗口被使用后
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+
+### DTO
+- **SanguoActionCardsCatalog**
+  - 用途：行动卡定义目录（只读）
+  - 字段：`SchemaVersion`, `Version`, `Cards[]`（`CardId`, `NameKey`, `DescriptionKey`, `EffectKind`, `StepDelta`, `DurationRounds`）
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoActionCardsCatalog.cs`
+
 ## 验收条款（ACC）
 - ACC:T57.1 行动卡只允许 BeforeRoll 使用，且 0/1。
 - ACC:T57.2 使用行动卡后发布 `core.sanguo.action_card.played`，并影响本回合经济倍率快照。

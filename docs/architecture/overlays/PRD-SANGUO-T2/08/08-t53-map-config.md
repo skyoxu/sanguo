@@ -30,6 +30,25 @@ Arch-Refs:
 - `res://Data/maps/_index.json`
 - `res://Data/maps/<map_id>.json`
 
+## 契约定义
+
+### DTO
+- **SanguoMapsCatalog**
+  - 用途：新游戏地图列表索引（只读；不扫描目录）
+  - 字段：`SchemaVersion`, `Version`, `Maps[]`（`MapId`, `NameKey`, `DescriptionKey`, `Path`, `RecommendedPlayersMin/Max`, `ContentVersion`, `PreviewResPath`）
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`
+- **SanguoMapDefinitionV2**
+  - 用途：单张地图定义（多文件；只读）
+  - 字段：`SchemaVersion`, `Version`, `MapId`, `Track(Length, StartTileId)`, `Tiles[]`
+    - Tile 字段：`TileId`, `TileKind`, `NameKey`, `Layout(X,Y)`, `Actions[]({ActionId, IconResPath})`
+    - kind=city：额外字段 `RegionId`, `City(BasePrice, BaseToll, AllowedBuildingIds[])`
+    - kind=facility：额外字段 `FacilityId`
+    - kind=event：额外字段 `EventPoolId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoMapDefinitionV2.cs`
+- **SanguoMapDefinitionV2Validator**
+  - 用途：地图契约级校验（确定性；不依赖引擎）
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoMapDefinitionV2Validator.cs`
+
 ## 验收条款（ACC）
 - ACC:T53.1 `_index.json` 可列出可用地图（id/name/path）。
 - ACC:T53.2 `<map_id>.json` 中每个 tile 有确定的 type 与 name；UI 能显示 name。

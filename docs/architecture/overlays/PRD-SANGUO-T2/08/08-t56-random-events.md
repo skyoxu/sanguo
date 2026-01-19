@@ -24,6 +24,19 @@ Arch-Refs:
 ## 契约（EventType + 触发点）
 - `core.sanguo.random_event.applied`：事件效果应用后（无论来源是 tile 还是全局事件）。
 
+## 契约定义
+
+### 事件
+- **SanguoRandomEventApplied** (`core.sanguo.random_event.applied`)
+  - 触发时机：随机事件生效后（事件格/全局事件统一）
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+
+### DTO
+- **SanguoRandomEventsCatalog**
+  - 用途：随机事件目录（events + pools；只读）
+  - 字段：`SchemaVersion`, `Version`, `Events[]`, `EventPools[]`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoRandomEventsCatalog.cs`
+
 ## 验收条款（ACC）
 - ACC:T56.1 事件格触发能从池中取出事件并应用。
 - ACC:T56.2 每 N 回合全局事件触发稳定可复现（由 seed 驱动）。

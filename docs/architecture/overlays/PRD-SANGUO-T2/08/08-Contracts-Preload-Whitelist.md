@@ -38,3 +38,5 @@ Status: Accepted
 - `Game.Core/Contracts/Sanguo/SanguoMapDefinition.cs`
 - `Game.Core/Contracts/Sanguo/SanguoMapDefinitionValidator.cs`
 - `Game.Core/Contracts/Sanguo/SanguoMapsCatalog.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapDefinitionV2.cs`
+- `Game.Core/Contracts/Sanguo/SanguoMapDefinitionV2Validator.cs`
