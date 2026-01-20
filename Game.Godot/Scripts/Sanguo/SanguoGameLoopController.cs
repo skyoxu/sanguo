@@ -398,7 +398,7 @@ public partial class SanguoGameLoopController : Node
         TryQueueAiAutoAdvanceIfNeeded();
     }
 
-    private void StartGameDeferred(string correlationId)
+    private async void StartGameDeferred(string correlationId)
     {
         if (_started)
         {
@@ -413,7 +413,7 @@ public partial class SanguoGameLoopController : Node
         _advanceQueued = true;
         try
         {
-            var (ok, reason) = TryStartNewGame(correlationId: correlationId, causationId: UiMenuStart);
+            var (ok, reason) = await TryStartNewGameAsync(correlationId: correlationId, causationId: UiMenuStart);
             if (!ok)
             {
                 PublishMenuStartFailed(correlationId, reason);
@@ -425,7 +425,7 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
-    private (bool ok, string reason) TryStartNewGame(string correlationId, string causationId)
+    private async Task<(bool ok, string reason)> TryStartNewGameAsync(string correlationId, string causationId)
     {
         if (_started)
         {
@@ -468,14 +468,14 @@ public partial class SanguoGameLoopController : Node
 
         try
         {
-            _turnManager.StartNewGameAsync(
+            await _turnManager.StartNewGameAsync(
                 gameId: "g1",
                 playerOrder: BuildDefaultPlayerOrder(startConfig.PlayersCount),
                 year: 3,
                 month: 2,
                 day: 1,
                 correlationId: correlationId,
-                causationId: causationId).GetAwaiter().GetResult();
+                causationId: causationId);
             _started = true;
 
             PublishGameStarted(startConfig);
@@ -625,7 +625,7 @@ public partial class SanguoGameLoopController : Node
     {
         try
         {
-            var (started, _) = TryStartNewGame(correlationId: correlationId, causationId: "e2e.saveload.save");
+            var (started, _) = await TryStartNewGameAsync(correlationId: correlationId, causationId: "e2e.saveload.save");
             if (!started)
             {
                 GD.Print("[E2E_SAVELOAD] failed mode=save reason=start_failed");

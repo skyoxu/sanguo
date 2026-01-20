@@ -1583,7 +1583,7 @@
         "testStrategy": "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。；GdUnit4：走一遍新游戏配置界面并断言 started 事件被发布。",
         "priority": "high",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",

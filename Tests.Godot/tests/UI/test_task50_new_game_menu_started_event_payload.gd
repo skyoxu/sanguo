@@ -4,6 +4,11 @@ const EVENT_TYPE_GAME_STARTED := "core.sanguo.game.started"
 const EVENT_TYPE_TURN_STARTED := "core.sanguo.game.turn.started"
 const KEY_GAME_START_CONFIG := "game_start_config"
 const KEY_RANDOM_SEED := "random_seed"
+const KEY_MAP_ID := "map_id"
+const KEY_PLAYERS_COUNT := "players_count"
+const KEY_STARTING_MONEY_PRESET := "starting_money_preset"
+const KEY_GLOBAL_EVENT_INTERVAL_TURNS := "global_event_interval_turns"
+const KEY_CHARACTER_ASSIGNMENTS := "character_assignments"
 
 var _bus: Node
 var _seen_game_started := false
@@ -57,8 +62,37 @@ func _assert_started_payload_shape(payload: Dictionary) -> void:
 	var seed_value: Variant = payload.get(KEY_RANDOM_SEED)
 	assert_bool(typeof(seed_value) == TYPE_INT or typeof(seed_value) == TYPE_FLOAT).is_true()
 	var cfg: Dictionary = payload.get(KEY_GAME_START_CONFIG, {})
-	if cfg.has(KEY_RANDOM_SEED):
-		assert_int(int(seed_value)).is_equal(int(cfg.get(KEY_RANDOM_SEED)))
+	assert_bool(cfg.has(KEY_MAP_ID)).is_true()
+	assert_bool(cfg.has(KEY_PLAYERS_COUNT)).is_true()
+	assert_bool(cfg.has(KEY_STARTING_MONEY_PRESET)).is_true()
+	assert_bool(cfg.has(KEY_GLOBAL_EVENT_INTERVAL_TURNS)).is_true()
+	assert_bool(cfg.has(KEY_RANDOM_SEED)).is_true()
+	assert_bool(cfg.has(KEY_CHARACTER_ASSIGNMENTS)).is_true()
+
+	assert_str(str(cfg.get(KEY_MAP_ID, ""))).is_not_empty()
+
+	var players_count := int(cfg.get(KEY_PLAYERS_COUNT, 0))
+	assert_int(players_count).is_between(4, 8)
+
+	var preset := int(cfg.get(KEY_STARTING_MONEY_PRESET, 0))
+	assert_bool(preset == 5000 or preset == 10000 or preset == 20000).is_true()
+
+	var interval := int(cfg.get(KEY_GLOBAL_EVENT_INTERVAL_TURNS, 0))
+	assert_bool(interval == 5 or interval == 10 or interval == 20).is_true()
+
+	assert_int(int(seed_value)).is_equal(int(cfg.get(KEY_RANDOM_SEED)))
+
+	var assigns_v: Variant = cfg.get(KEY_CHARACTER_ASSIGNMENTS)
+	assert_bool(assigns_v is Dictionary).is_true()
+	var assigns: Dictionary = assigns_v as Dictionary
+	assert_int(assigns.size()).is_equal(players_count)
+
+	var seen_chars: Dictionary = {}
+	for k in assigns.keys():
+		var cid := str(assigns.get(k))
+		assert_str(cid).is_not_empty()
+		assert_bool(seen_chars.has(cid)).is_false()
+		seen_chars[cid] = true
 
 # ACC:T50.3
 func test_new_game_flow_publishes_game_started_with_reproducible_payload() -> void:

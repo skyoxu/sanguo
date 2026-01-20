@@ -204,13 +204,16 @@ def _prompt_for_ref(
             "- Must extend a GdUnit4 suite (res://addons/gdUnit4/src/GdUnitTestSuite.gd).",
             "- Do not rely on external assets; keep it minimal.",
             "- For each required ACC anchor, place it within 5 lines ABOVE a `func test_...` definition (as a comment).",
+            f"- For stability, test function names MUST start with: func test_task{task_id}_...()",
         ]
     else:
         base_rules = [
             "Target file type: C# xUnit test file.",
             "- Must be valid C# code, English only (no Chinese in code/comments/strings).",
             "- Use xUnit + FluentAssertions only.",
-            "- Use Should_ naming style.",
+            "- Test method naming MUST be one of:",
+            "  * ShouldX_WhenY",
+            "  * GivenX_WhenY_ThenZ",
             "- For each required ACC anchor, place it within 5 lines ABOVE a [Fact]/[Theory] attribute (as a comment).",
         ]
 
@@ -494,6 +497,8 @@ def main() -> int:
     results: list[GenResult] = []
 
     any_gd = False
+    created_cs: list[str] = []
+    created_gd: list[str] = []
     created = 0
 
     primary_ref = None
@@ -566,6 +571,10 @@ def main() -> int:
             disk.parent.mkdir(parents=True, exist_ok=True)
             disk.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\r\n")
             created += 1
+            if disk.suffix.lower() == ".cs":
+                created_cs.append(ref_norm)
+            if disk.suffix.lower() == ".gd":
+                created_gd.append(ref_norm)
             results.append(
                 GenResult(
                     ref=ref_norm,
@@ -603,6 +612,78 @@ def main() -> int:
     sync_rc, sync_out = run_cmd(sync_cmd, cwd=repo_root(), timeout_sec=60)
     write_text(out_dir / f"sync-test-refs-{task_id}.log", sync_out)
 
+    # Post-gates: keep dual-track policy (only new files must meet strict naming),
+    # while also validating task-level ref stability and (T50+) anchor binding.
+    post_gates: dict[str, Any] = {}
+    tid_int: int | None = None
+    try:
+        tid_int = int(str(task_id))
+    except Exception:
+        tid_int = None
+
+    # 1) Validate task test_refs exist and follow naming conventions (task-scoped deterministic gate).
+    vtr_out = out_dir / f"validate-task-test-refs.{task_id}.json"
+    vtr_cmd = [
+        "py",
+        "-3",
+        "scripts/python/validate_task_test_refs.py",
+        "--task-id",
+        task_id,
+        "--require-non-empty",
+        "--out",
+        str(vtr_out),
+    ]
+    vtr_rc, vtr_log = run_cmd(vtr_cmd, cwd=repo_root(), timeout_sec=60)
+    write_text(out_dir / f"validate-task-test-refs.{task_id}.log", vtr_log)
+    post_gates["validate_task_test_refs"] = {"rc": vtr_rc, "out": str(vtr_out), "cmd": vtr_cmd}
+
+    # 2) Enforce strict naming only for newly created C# test files (do NOT force rename legacy files).
+    ctn_rc = 0
+    ctn_out_path = out_dir / f"check-test-naming.{task_id}.json"
+    if created_cs:
+        ctn_cmd = [
+            "py",
+            "-3",
+            "scripts/python/check_test_naming.py",
+            "--style",
+            "strict",
+            "--out",
+            str(ctn_out_path),
+            "--files",
+            *created_cs,
+        ]
+        ctn_rc, ctn_log = run_cmd(ctn_cmd, cwd=repo_root(), timeout_sec=60)
+        write_text(out_dir / f"check-test-naming.{task_id}.log", ctn_log)
+        post_gates["check_test_naming"] = {"rc": ctn_rc, "out": str(ctn_out_path), "cmd": ctn_cmd}
+    else:
+        post_gates["check_test_naming"] = {"rc": 0, "out": str(ctn_out_path), "skipped": True, "reason": "no_created_cs"}
+
+    # 3) Enforce acceptance anchor binding for task batches that must carry ACC anchors (T50+).
+    anchors_rc = 0
+    anchors_out = out_dir / f"acceptance-anchors.red.{task_id}.json"
+    if tid_int is not None and tid_int >= 50:
+        anchors_cmd = [
+            "py",
+            "-3",
+            "scripts/python/validate_acceptance_anchors.py",
+            "--task-id",
+            task_id,
+            "--stage",
+            "red",
+            "--out",
+            str(anchors_out),
+        ]
+        anchors_rc, anchors_log = run_cmd(anchors_cmd, cwd=repo_root(), timeout_sec=60)
+        write_text(out_dir / f"acceptance-anchors.red.{task_id}.log", anchors_log)
+        post_gates["validate_acceptance_anchors_red"] = {"rc": anchors_rc, "out": str(anchors_out), "cmd": anchors_cmd}
+    else:
+        post_gates["validate_acceptance_anchors_red"] = {
+            "rc": 0,
+            "out": str(anchors_out),
+            "skipped": True,
+            "reason": "task_id_lt_50",
+        }
+
     # Decide verification mode.
     verify = args.verify
     if verify == "auto":
@@ -634,7 +715,10 @@ def main() -> int:
         "primary_ref": primary_ref,
         "refs_total": len(refs),
         "created": created,
+        "created_cs": created_cs,
+        "created_gd": created_gd,
         "sync_test_refs_rc": sync_rc,
+        "post_gates": post_gates,
         "verify_mode": verify,
         "test_step": test_step,
         "results": [r.__dict__ for r in results],
@@ -652,7 +736,17 @@ def main() -> int:
         print(f"SC_LLM_ACCEPTANCE_TESTS status={'fail' if hard_fail else 'ok'} created={created} out={out_dir}")
         return 1 if hard_fail else 0
 
-    hard_fail = any(r.status == "fail" for r in results) or sync_rc != 0 or (test_step and test_step.get("rc") not in (None, 0))
+    post_gate_failed = any(
+        int(v.get("rc") or 0) != 0
+        for v in post_gates.values()
+        if isinstance(v, dict) and not v.get("skipped")
+    )
+    hard_fail = (
+        any(r.status == "fail" for r in results)
+        or sync_rc != 0
+        or post_gate_failed
+        or (test_step and test_step.get("rc") not in (None, 0))
+    )
     print(f"SC_LLM_ACCEPTANCE_TESTS status={'fail' if hard_fail else 'ok'} created={created} out={out_dir}")
     return 1 if hard_fail else 0
 

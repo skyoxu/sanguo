@@ -1,7 +1,9 @@
 {
   "character_assignments": {
-    "ai-01": "character_zhangfei",
-    "p1": "character_liubei"
+    "p1": "c_liu_bei",
+    "ai-1": "c_cao_cao",
+    "ai-2": "c_sun_quan",
+    "ai-3": "c_yuan_shao"
   },
   "global_event_interval_turns": 10,
   "map_id": "map001",

@@ -1,5 +1,6 @@
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Ports;
+using Game.Core.Services.Sanguo;
 using Game.Godot.Scripts.Security;
 using System;
 using System.Linq;
@@ -9,10 +10,12 @@ namespace Game.Godot.Scripts.Sanguo;
 
 internal static class SanguoMapConfigLoader
 {
-    internal const string MapsIndexPath = "res://Data/maps/_index.json";
+    internal const string MapsIndexPath = SanguoMapsCatalogLoader.MapsIndexResPath;
     internal const string MapsDirPrefix = "res://Data/maps/";
     internal const string MapsFileSuffix = ".json";
 
+    // Maps index parsing is handled in Game.Core.Services.Sanguo.SanguoMapsCatalogLoader (pure C#).
+    // Map V2 parsing remains here because it is a runtime loader concern.
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -142,34 +145,7 @@ internal static class SanguoMapConfigLoader
         out SanguoMapsCatalog catalog,
         out string error)
     {
-        catalog = new SanguoMapsCatalog(SchemaVersion: 0, Version: 0, Maps: Array.Empty<SanguoMapCatalogEntry>());
-        error = string.Empty;
-
-        var json = loader.LoadText(MapsIndexPath);
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            error = "maps_index_missing";
-            return false;
-        }
-
-        try
-        {
-            catalog = JsonSerializer.Deserialize<SanguoMapsCatalog>(json, JsonOptions)
-                ?? new SanguoMapsCatalog(SchemaVersion: 0, Version: 0, Maps: Array.Empty<SanguoMapCatalogEntry>());
-        }
-        catch (Exception ex)
-        {
-            error = $"json_parse_failed:{ex.GetType().Name}";
-            return false;
-        }
-
-        if (catalog.SchemaVersion <= 0 || catalog.Version <= 0)
-        {
-            error = "invalid_maps_index:bad_versions";
-            return false;
-        }
-
-        return true;
+        return SanguoMapsCatalogLoader.TryLoadMapsCatalog(loader, out catalog, out error);
     }
 
     private static bool TryLoadMapV2FromMapId(
