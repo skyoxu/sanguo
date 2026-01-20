@@ -1661,13 +1661,17 @@
       "core.sanguo.game.started"
     ],
     "acceptance": [
-      "提供唯一开局配置 GameStartConfig：map_id、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、random_seed、character_assignments(全局唯一)。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
-      "地图列表只允许从 res://Data/maps/_index.json 加载，不扫描目录。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
-      "新游戏入口完成后发布 core.sanguo.game.started（或等价事件），payload 含 game_start_config 与 random_seed。 Refs: Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd"
+      "xUnit: 存在可复现的开局输入/配置生成行为：在相同输入（含 random_seed）下生成的 GameStartConfig 在字段值层面一致，且 character_assignments 在该配置内保持角色全局唯一（不重复）。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "存在可生成/校验的唯一开局配置 GameStartConfig，且字段齐全：map_id、players_count（仅允许 4–8）、starting_money_preset（仅允许 5000/10000/20000）、global_event_interval_turns（仅允许 5/10/20）、random_seed、character_assignments（在该配置内角色分配不重复，且与 players_count 对应）。对任一非法取值必须被拒绝（不得生成可用配置）。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "xUnit: 地图列表的来源仅允许读取 res://Data/maps/_index.json；不得通过扫描目录、枚举文件或其他来源构建地图列表。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "完成“新游戏”入口流程后，必须发布 core.sanguo.game.started（或语义等价事件），且事件 payload 明确包含 game_start_config 与 random_seed（可据此还原本次开局输入）。 Refs: Tests.Godot/tests/UI/test_new_game_menu_started_event_payload.gd",
+      "xUnit: GameStartConfig 必须可序列化为 JSON 审计快照，且该快照可被反序列化回等价的 GameStartConfig（字段值层面一致，包含 random_seed 与 character_assignments），用于复现同一开局输入。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
-      "Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd"
+      "Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd",
+      "Tests.Godot/tests/UI/test_task50_new_game_menu_publishes_game_started_event.gd",
+      "Tests.Godot/tests/UI/test_new_game_menu_started_event_payload.gd"
     ],
     "test_strategy": [
       "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。",
@@ -1715,14 +1719,17 @@
       "core.sanguo.economy.year.price.adjusted"
     ],
     "acceptance": [
-      "锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)，所有 multiplier 仅允许 0.5 步进。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
-      "所有经济相关域事件 payload 必须包含 applied_multipliers（含各因子与最终值）。 Refs: Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
-      "UI 不参与金额计算：展示值必须来自事件 payload/投影。 Refs: Tests.Godot/tests/Integration/test_task51_ui_does_not_compute_money.gd"
+      "gameplay 侧的倍率合成行为必须与 back 侧一致：effective_multiplier 由 character/building/event/action_card 的乘法链计算并 clamp 到 [0.5, 3.0]，且非 0.5 步进输入必须被拒绝而非静默修正。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
+      "锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)，各 multiplier 输入仅允许 0.5 步进，非步进输入必须可被用例观测为失败而非被容忍。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
+      "所有经济相关域事件 payload 必须包含 applied_multipliers（含 character/building/event/action_card 四因子与最终 effective_multiplier），并作为 gameplay 展示/回放的唯一数据来源之一。 Refs: Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
+      "UI 不参与金额计算：gameplay UI 展示必须来自事件 payload/投影的快照数据（applied_multipliers），不得在 UI 层自行合成倍率或重算金额。 Refs: Tests.Godot/tests/UI/test_hud_event_log_applied_multipliers.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
       "Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
-      "Tests.Godot/tests/Integration/test_task51_ui_does_not_compute_money.gd"
+      "Tests.Godot/tests/Integration/test_task51_ui_does_not_compute_money.gd",
+      "Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd",
+      "Tests.Godot/tests/UI/test_hud_event_log_applied_multipliers.gd"
     ],
     "test_strategy": [
       "xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。",
@@ -1771,9 +1778,11 @@
       "core.sanguo.game.turn.advanced"
     ],
     "acceptance": [
+      "在 gameplay 流程中，玩家于 TurnPhase.BeforeRoll 阶段每回合最多只能成功打出 1 张行动卡；同回合第二次尝试必须被拒绝且不产生任何 multiplier_step_delta/效果输出，并与 back 视图的窗口锁死语义一致。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
       "回合状态机包含 TurnPhase.BeforeRoll，且每回合 BeforeRoll 最多允许 1 张行动卡；超出必须拒绝并可审计。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
       "事件触发统一：事件格触发 OnTileEvent；每N回合触发 OnGlobalTurnEvent（N∈{5,10,20}）；两者走同一 RandomEventPool。 Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs",
-      "构造同回合双触发场景，顺序固定且 applied_multipliers 记录一致。 Refs: Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs"
+      "构造同回合双触发场景，顺序固定且 applied_multipliers 记录一致。 Refs: Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs",
+      "同回合双触发时，OnTileEvent 与 OnGlobalTurnEvent 的效果必须按固定顺序进入 multiplier_step_delta → T51 合成链路；最终对玩家可观察到的结果（例如结算后的倍率/状态变化）必须与该顺序一致且可测试复现。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
@@ -1819,16 +1828,26 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.started",
+      "core.sanguo.game.loaded",
+      "core.sanguo.board.token.moved"
+    ],
     "acceptance": [
-      "提供地图索引：res://Data/maps/_index.json（包含 schemaVersion/version/maps[]；maps[] 至少含 mapId/nameKey/descriptionKey/path/previewImagePath/recommendedPlayersMin/recommendedPlayersMax）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
-      "提供地图定义：res://Data/maps/<map_id>.json（包含 schemaVersion/version/mapId/track(length,startTileId)/tiles[]；tileKind 覆盖 city/facility/event/empty；tile 必含 tileId/tileKind/nameKey/layout{x,y}/actions[]；并冻结口径：track.startTileId == tiles[0].tileId）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
-      "地图格 UI 展示可读名称：优先 i18n(nameKey)，缺失时降级显示 nameKey（不允许空/黑底不可读）。 Refs: Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd"
+      "多文件地图配置在运行路径下可被加载：先解析 `res://Data/maps/_index.json`，再按 `maps[].path` 加载对应地图定义文件；任一文件缺失/JSON 无效/字段缺失时应产生可诊断的失败结果（而非静默成功）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
+      "存在且可解析 `res://Data/maps/_index.json`；包含 `schemaVersion`、`version`、`maps[]`，且 `maps[]` 中每个元素至少包含 `mapId`、`nameKey`、`descriptionKey`、`path`、`previewImagePath`、`recommendedPlayersMin`、`recommendedPlayersMax`。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
+      "存在且可解析 `res://Data/maps/<map_id>.json`；包含 `schemaVersion`、`version`、`mapId`、`track.length`、`track.startTileId`、`tiles[]`；`tiles[]` 中每个 tile 至少包含 `tileId`、`tileKind`（仅 city/facility/event/empty）、`nameKey`、`layout.x`、`layout.y`、`actions[]`；并满足冻结口径 `track.startTileId == tiles[0].tileId`，否则判定为无效。 Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "地图格 UI 渲染时，每个 tile 均显示非空、可读的名称文本：当 i18n 对应 `nameKey` 存在时显示本地化文本，否则显示 `nameKey`；不允许显示为空或不可见。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_map_tile_name_fallback.gd",
+      "xUnit: Provide and run unit tests that parse and validate the map index and map definition schemas (including startTileId freeze). Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "GdUnit4: Provide and run a scene/UI test that verifies tile name is visible and falls back to nameKey when i18n is missing. Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_map_tile_name_fallback.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
       "Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
-      "Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd"
+      "Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd",
+      "Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_text_fallback.gd",
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_map_tile_name_fallback.gd"
     ],
     "test_strategy": [
       "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。"
@@ -1874,14 +1893,28 @@
       "core.sanguo.game.started"
     ],
     "acceptance": [
-      "新游戏配置界面提供：选地图、人数(4-8)、初始资金档(5000/10000/20000)、全局事件间隔(5/10/20)、玩家选角。 Refs: Tests.Godot/tests/UI/test_task54_new_game_setup_ui.gd",
-      "AI 自动补位并随机选角，角色全局唯一且不可与玩家重复。 Refs: Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs",
-      "进入游戏后 HUD 只显示头像/名字/资金（不展示系数）。 Refs: Tests.Godot/tests/UI/test_task54_hud_shows_name_money_portrait_only.gd"
+      "游戏流程中的“开始新游戏/开始对局”必须进入新游戏配置界面继续配置并开始；不得出现“tasks_back.json”等占位/乱码内容作为可通过的流程步骤。 Refs: Tests.Godot/tests/Integration/test_flow_requires_new_game_setup_before_game_start.gd",
+      "新游戏配置界面允许玩家完成全部开局配置：可选地图；总人数可设置为 4–8（含边界值）；初始资金档仅可选 5000/10000/20000；全局事件间隔仅可选 5/10/20；且玩家必须先完成选角后才允许执行开始对局操作。 Refs: Tests.Godot/tests/UI/test_new_game_setup_constraints_and_start.gd",
+      "当设定总人数大于玩家人数时，AI 必须自动补足到设定人数并为每个 AI 随机分配角色；对局开始时所有参战角色在全局范围内唯一，且不得与玩家所选角色重复。 Refs: Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs",
+      "进入对局后，HUD 仅显示头像、名字、资金三项信息；不得展示任何系数/倍率等其它字段。 Refs: Tests.Godot/tests/UI/test_hud_shows_avatar_name_money_only.gd",
+      "该新游戏配置界面是唯一开局入口：从主菜单/启动流程触发“开始新游戏/开始对局”时必须先进入该配置界面，且不存在可用路径能绕过配置直接进入对局。 Refs: Tests.Godot/tests/Integration/test_flow_requires_new_game_setup_before_game_start.gd",
+      "触发开始对局操作后必须进入对局可运行状态，且初始化结果与所选配置一致：实际参战总人数等于设定值（4–8），每名玩家/AI 初始资金等于所选资金档（5000/10000/20000）。 Refs: Tests.Godot/tests/Integration/test_new_game_setup_starts_game_with_selected_players_and_money.gd",
+      "对局运行时全局事件调度间隔必须使用所选值（5/10/20）：连续全局事件的触发间隔可被观测并验证与所选值一致；若无法观测/验证或不一致则视为不通过。 Refs: Tests.Godot/tests/Integration/test_global_event_interval_observable_matches_config.gd"
     ],
     "test_refs": [
       "Tests.Godot/tests/UI/test_task54_new_game_setup_ui.gd",
       "Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs",
-      "Tests.Godot/tests/UI/test_task54_hud_shows_name_money_portrait_only.gd"
+      "Tests.Godot/tests/UI/test_task54_hud_shows_name_money_portrait_only.gd",
+      "Tests.Godot/tests/Integration/test_task54_main_menu_requires_new_game_setup.gd",
+      "Tests.Godot/tests/UI/test_task54_new_game_setup_constraints_and_start.gd",
+      "Tests.Godot/tests/UI/test_task54_hud_displays_identity_and_money_only.gd",
+      "Tests.Godot/tests/Integration/test_task54_new_game_start_applies_selected_config.gd",
+      "Tests.Godot/tests/Integration/test_task54_global_event_interval_matches_config.gd",
+      "Tests.Godot/tests/Integration/test_flow_requires_new_game_setup_before_game_start.gd",
+      "Tests.Godot/tests/UI/test_new_game_setup_constraints_and_start.gd",
+      "Tests.Godot/tests/UI/test_hud_shows_avatar_name_money_only.gd",
+      "Tests.Godot/tests/Integration/test_new_game_setup_starts_game_with_selected_players_and_money.gd",
+      "Tests.Godot/tests/Integration/test_global_event_interval_observable_matches_config.gd"
     ],
     "test_strategy": [
       "GdUnit4：走 UI 配置→开始游戏；xUnit：角色分配唯一性。"
@@ -1925,14 +1958,19 @@
       "core.sanguo.city.toll.paid"
     ],
     "acceptance": [
-      "角色配置来自 res://Data/characters.json，包含 6 角色与 portrait_path(res://)。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
-      "初始资金口径：money0 = StartingMoneyPreset * starting_money_multiplier。 Refs: Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs",
-      "过路费系数仅影响地主收租侧，并写入 applied_multipliers。 Refs: Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs"
+      "xUnit: 角色配置必须从 res://Data/characters.json 解析得到：每个角色必须包含 starting_money_multiplier 以及 buy_multiplier/toll_multiplier/income_multiplier（或语义等价字段）；解析出的数值必须与 JSON 中对应字段一致（可被逐字段断言）。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "xUnit: 角色配置必须以 res://Data/characters.json 作为数据来源进行解析；解析结果必须包含 6 个角色；且每个角色的 portrait_path 必须以 \"res://\" 开头（可被断言为资源路径而非绝对路径/空值）。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "xUnit: 初始资金口径必须满足 money0 = StartingMoneyPreset * starting_money_multiplier；在同一 StartingMoneyPreset 与同一角色配置输入下，money0 输出必须确定且可复现（无随机/时间依赖）。 Refs: Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs",
+      "xUnit: 过路费系数（toll_multiplier）仅允许在“地主收租/收取过路费”计算路径生效：同一结算中 toll_multiplier 只能影响地主侧结算金额，不得改变非地主侧结算金额；且在可观测输出 applied_multipliers 中能断言 toll_multiplier 被应用（并且在非该路径时不出现/不生效）。 Refs: Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs",
+      "xUnit: 买入/购买相关成本计算必须使用 buy_multiplier；收入/入账计算必须使用 income_multiplier；并且不得与 starting_money_multiplier 或 toll_multiplier 发生语义混用（可通过构造输入使仅目标 multiplier 变化并断言仅对应路径结果变化来验证）。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "xUnit: 角色配置必须作为只读配置使用：对外暴露的配置集合与条目必须不可被外部调用方通过公开 API 修改；并且尝试修改（若可编译/可调用）不得影响后续任何计算输出（可通过“修改尝试前后同输入计算结果一致”来否证可变性）。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "xUnit: Provide an event snapshot test for character multipliers: with fixed input, the emitted economy event payload (including applied_multipliers) is stable and reproducible. Refs: Game.Core.Tests/Tasks/Task55CharacterEventSnapshotTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
       "Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs",
-      "Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs"
+      "Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs",
+      "Game.Core.Tests/Tasks/Task55CharacterEventSnapshotTests.cs"
     ],
     "test_strategy": [
       "xUnit：解析/口径/事件快照测试。"
@@ -1977,14 +2015,17 @@
       "core.sanguo.random_event.applied"
     ],
     "acceptance": [
-      "事件池统一两类触发：事件格触发 + 每N回合全局触发（N∈{5,10,20}）；random_seed + rng_context_id 确保可复现（记录 candidates hash + picked index/id）。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
-      "事件效果按 effectKind 白名单：moneyDelta / economyStepDelta；economyStepDelta 通过 stepDelta(steps) 进入 applied_multipliers.event 并走合成与 clamp；moneyDelta 为直接加减（UI 不得参与计算）。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
-      "踩事件格后 UI 可见事件提示（展示来自事件 payload）。 Refs: Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd"
+      "每次随机事件触发后必须产出可复盘的抽样记录：至少包含 candidates hash 与最终 picked index/id；在 random_seed 与 rng_context_id 相同且回合推进/触发序列一致时，基于该记录进行复盘必须得到完全一致的选中结果（picked index/id 完全一致）。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
+      "事件池必须统一两类触发入口：事件格触发 + 每N回合全局触发（N∈{5,10,20}），且两类入口必须使用同一套抽样与记录规则；在 random_seed 与 rng_context_id 相同且触发/回合推进序列一致时，结果必须可复现，并记录 candidates hash + picked index/id。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
+      "事件效果必须受 effectKind 白名单约束：仅允许 moneyDelta / economyStepDelta；economyStepDelta 必须通过 stepDelta(steps) 进入 applied_multipliers.event 并经过合成与 clamp 后再生效；moneyDelta 必须直接按数值加减，且 UI 不得参与数值计算路径。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
+      "踩事件格触发事件后，UI 必须可见事件提示，且提示内容展示来自事件 payload（不是空白或与 payload 无关）。 Refs: Tests.Godot/tests/UI/test_hud_event_prompt_uses_payload.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
       "Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
-      "Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd"
+      "Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd",
+      "Tests.Godot/tests/UI/test_task56_hud_event_prompt_shows_payload.gd",
+      "Tests.Godot/tests/UI/test_hud_event_prompt_uses_payload.gd"
     ],
     "test_strategy": [
       "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。"
@@ -2028,14 +2069,19 @@
       "core.sanguo.action_card.played"
     ],
     "acceptance": [
-      "行动卡配置来自 res://Data/action_cards.json（schemaVersion/version/cards[]；card 含 cardId/nameKey/descriptionKey/effectKind/stepDelta/durationRounds）；effectKind 仅允许 economyStepDelta（不允许 moneyDelta/改所有权）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "Gameplay 验收口径与本任务描述一致：行动卡规则与加载来源以 res://Data/action_cards.json 为准，不依赖 tasks_back.json 等占位输入来改变行动卡策略或效果边界。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "从 res://Data/action_cards.json 读取并按 schemaVersion/version/cards[] 解析；每张 card 必含 cardId/nameKey/descriptionKey/effectKind/stepDelta/durationRounds；仅允许 effectKind=economyStepDelta（不允许 moneyDelta/改所有权）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
       "BeforeRoll 每回合最多 1 张，出牌发布 core.sanguo.action_card.played，并将 stepDelta 计入 applied_multipliers.action_card（仅 Core 计算）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
-      "UI 提供“出牌/跳过”，出牌后进入掷骰。 Refs: Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd"
+      "GdUnit4: UI 提供“出牌/跳过”，出牌后进入掷骰。 Refs: Tests.Godot/tests/UI/test_before_roll_action_card_play_or_skip_flow.gd",
+      "选择跳过时不发布 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应因行动卡产生变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "xUnit: In the same turn, attempting to play a second action card must NOT change applied_multipliers.action_card (no stepDelta stacking), even if no extra action_card.played event is emitted. Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
       "Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
-      "Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd"
+      "Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd",
+      "Tests.Godot/tests/UI/test_task57_before_roll_play_or_skip.gd",
+      "Tests.Godot/tests/UI/test_before_roll_action_card_play_or_skip_flow.gd"
     ],
     "test_strategy": [
       "xUnit：策略与窗口；GdUnit4：最小 UI 流程。"
@@ -2077,14 +2123,17 @@
       "core.sanguo.building.built"
     ],
     "acceptance": [
-      "建筑定义仅允许 multiplier_step_delta，并与合成规则一致。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
-      "建造入口限定“停留在自有城市”，并发布 building.built/upgraded，影响 applied_multipliers.building。 Refs: Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
-      "城市格 UI 显示拥有者名字，并提供 actions（建造/跳过）。 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd"
+      "建筑配置必须从 res://Data/buildings.json 加载；收益/收租等经济结算必须读取并应用建筑相关倍率（来自 applied_multipliers.building 或其等价的对外可观测状态）：未建造时不应产生建筑倍率影响；建造/升级后在相同输入下结算结果必须按倍率变化。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
+      "建筑定义仅允许 multiplier_step_delta；配置内容与 multiplier_step_delta 的合成/叠加规则一致且可验证。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
+      "建造入口仅在“停留在自有城市”时可用；成功建造/升级分别发布 building.built 或 building.upgraded，并使影响体现在 applied_multipliers.building（可观测到倍率已生效）。 Refs: Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
+      "城市格 UI 显示拥有者名字，并提供 actions（建造/跳过），且 action 可被实际执行并产生可观测结果。 Refs: Tests.Godot/tests/UI/test_city_tile_owner_label_and_actions.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
       "Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
-      "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd"
+      "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd",
+      "Tests.Godot/tests/UI/test_task58_city_tile_owner_label_and_actions.gd",
+      "Tests.Godot/tests/UI/test_city_tile_owner_label_and_actions.gd"
     ],
     "test_strategy": [
       "xUnit：配置/窗口；GdUnit4：actions 与 owner label。"
@@ -2129,14 +2178,19 @@
       "core.sanguo.combat.ended"
     ],
     "acceptance": [
-      "PVE 可从地图关隘或事件触发进入战斗，结束后回主循环推进。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
-      "本阶段不引入战斗卡池；战斗结果在 random_seed 控制下可复现。 Refs: Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
-      "UI 可完成战斗场景往返（进入→展示结果→回到地图）。 Refs: Tests.Godot/tests/Scenes/test_task59_pve_combat_scene_roundtrip.gd"
+      "PVE 战斗主流程（触发进入战斗分支→结束→回到主循环）具备可验证行为，并通过对应的回归测试覆盖。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
+      "从地图关隘或地图事件触发 PVE 时，游戏进入战斗分支；战斗结束后返回主循环（地图）并可继续推进后续流程。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
+      "本阶段不引入任何“战斗卡池”机制；在相同 random_seed 且相同输入条件下，战斗结果（含结果判定与派生效果）可复现。 Refs: Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
+      "UI 支持完整场景往返：从地图进入战斗场景，展示战斗结果，然后返回地图场景且用户可继续操作。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_battle_roundtrip_returns_to_map.gd",
+      "战斗开始与结束分别记录一次事件，事件类型精确为 combat.started 与 combat.ended，且事件记录可被回放/查询用于追踪本次战斗（至少包含可关联同一场战斗的标识与 random_seed）。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
+      "战斗结束后，奖励/惩罚会写回到主循环可观测状态（例如资源/进度/角色状态之一），并在返回地图后可读取到写回结果以影响后续推进。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
       "Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
-      "Tests.Godot/tests/Scenes/test_task59_pve_combat_scene_roundtrip.gd"
+      "Tests.Godot/tests/Scenes/test_task59_pve_combat_scene_roundtrip.gd",
+      "Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_map_battle_roundtrip.gd",
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_battle_roundtrip_returns_to_map.gd"
     ],
     "test_strategy": [
       "xUnit：触发/回归/确定性；GdUnit4：场景往返。"
@@ -2180,12 +2234,16 @@
       "core.sanguo.game.ended"
     ],
     "acceptance": [
-      "胜负判定在 Core；发布 core.sanguo.game.ended（或等价），payload 含 winner/reason/stats_snapshot；UI 不得自判定。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "结算界面展示胜者与关键统计，并提供“返回主菜单”；不得提供“再来一局”。 Refs: Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd"
+      "从对局流程可观测：当 Core 触发结束条件时，会发布结束事件并驱动结算界面出现；结算界面展示内容严格来自结束事件 payload；在未收到结束事件时结算界面不会自行出现（即使 UI 处于可交互状态）。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
+      "胜负判定发生在 Core：发布 core.sanguo.game.ended（或语义等价事件）时，payload 必须包含 winner、reason、stats_snapshot；UI 不得自行判定胜负或以本地规则覆盖/替换 payload。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
+      "结算界面提供“返回主菜单”“再来一局”两个按钮；点击“返回主菜单”会离开本局并进入主菜单；点击“再来一局”会开始一局新的对局且不复用上一局的结算结果（新的结束事件到来前不显示上一局 winner/stats_snapshot）。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
+      "GdUnit4: Settlement screen UI is driven by the game.ended event: it remains hidden before event, becomes visible after event, renders winner/stats_snapshot from payload, and buttons navigate (main menu / new game). Refs: Tests.Godot/tests/UI/test_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd"
+      "Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd",
+      "Tests.Godot/tests/UI/test_task60_game_end_screen_flow.gd",
+      "Tests.Godot/tests/UI/test_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "test_strategy": [
       "xUnit：事件契约；GdUnit4：结算 UI。"
@@ -2199,9 +2257,10 @@
     "title": "模块: AI 最小确定性策略（止损版）",
     "description": "AI 与玩家行为一致：总是选第一个合法选项，并提供可复盘取证字段。",
     "acceptance": [
-      "AI 在相同输入下可复盘（RngContextId + CandidatesSortedIdsHash + PickedIndex/PickedId），并发布 core.sanguo.ai.decision.made（或等价事件）。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs",
-      "AI 总是选择第一个合法选项（买地/建造/用卡/弃牌），并且与玩家同一套合法性校验。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs",
-      "玩家出局立刻 game over；AI 出局在 turn.advanced 后统一终局检查。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs"
+      "xUnit: AI 的行动流程与玩家一致：在 BeforeRoll/ResolveLanding/Discard 等关键决策点进入与玩家相同的步骤/分支并做出选择，不能跳过必经步骤或插入玩家流程中不存在的额外决策。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs",
+      "xUnit: 在每个 AI 决策点（至少覆盖 BeforeRoll/ResolveLanding/Discard 等关键点）都会发布 `core.sanguo.ai.decision.made`（或等价事件）；事件包含可复盘取证字段 `RngContextId`、`CandidatesSortedIdsHash`、`PickedIndex`、`PickedId`，且在“相同输入（同局面/同候选/同上下文）”下产出相同的取证与选择结果。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs",
+      "xUnit: 当存在 >=1 个合法选项时，AI 按与玩家完全一致的合法性校验得到候选集，并在确定性的候选顺序下始终选择“第一个合法选项”；覆盖买地/建造/用卡/弃牌等动作（并落到 BeforeRoll/ResolveLanding/Discard 等关键决策点的对应选择上），不可因并发/调度/随机导致同输入不同输出。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs",
+      "xUnit: 玩家出局时立即触发 game over（不等待 `turn.advanced`）；AI 出局时不立刻终局，而是在 `turn.advanced` 之后执行统一的终局检查并再决定是否 game over。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs"
@@ -2209,7 +2268,13 @@
     "test_strategy": [
       "xUnit：覆盖 AI 决策一致性与可复盘取证（同输入同输出）。"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.ai.decision.made",
+      "core.sanguo.game.turn.advanced",
+      "core.sanguo.player.eliminated",
+      "core.sanguo.game.ended"
+    ],
     "adr_refs": [
       "ADR-0004",
       "ADR-0005",
@@ -2253,9 +2318,14 @@
     "title": "模块: 宝物系统（relics）止损版",
     "description": "宝物掉落与永久效果（经济型止损版）：唯一性、重抽策略、稳定应用顺序。",
     "acceptance": [
-      "掉落来源：战斗/事件/设施；relicId 全局唯一，重复掉落重抽耗尽→空并审计。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
-      "宝物效果先仅支持 moneyDelta/economyStepDelta；应用顺序按 relicId 升序（稳定性优先）。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
-      "Data/relics.json 的 schemaVersion/version/id/字段类型校验失败时禁止开始。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs"
+      "在 Gameplay 侧，对于宝物掉落/重抽/耗尽为空/效果应用顺序的可观测结果必须与本任务定义一致：在相同输入状态（含相同随机性输入/种子，若适用）下不得出现仅在某一视图生效的分叉规则或不一致输出。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "宝物掉落来源仅允许为战斗/事件/设施三类之一；掉落候选池以 relicId 全局唯一为前提进行抽取；若抽到已拥有的 relicId 必须继续重抽，直到抽到未拥有 relicId 或候选池耗尽；若候选池耗尽则本次掉落结果必须为空，并写入一条可检索的审计记录。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "宝物效果类型仅允许 moneyDelta 与 economyStepDelta；当同时拥有多个宝物时，效果应用必须按 relicId 升序执行，且在相同输入状态下多次运行结果一致（顺序不受获得先后影响）。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "当 res://Data/relics.json 无法加载/解析，或因字段缺失/类型不匹配导致无法构建掉落池时，系统必须以“无可用宝物配置”的可观测行为运行：不产生任何宝物掉落结果、也不应用任何宝物效果，并记录可检索的错误/审计信息。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "在同一局运行周期内，每个 relicId 至多获得一次；一旦获得该 relicId，其对应效果必须在后续经济结算/推进中持续生效，并且后续触发掉落时不得生成第二份相同 relicId。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "当出现“候选耗尽→掉落为空”时，必须写入可检索且可复盘的审计记录：至少包含掉落来源与耗尽判定原因，使得仅依据该记录即可推导出“本次未产出宝物”的结论。 Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "xUnit: Tests cover relicId uniqueness validation, redraw-until-unique and exhausted->empty branch, and stable application order by relicId ascending (not acquisition order). Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs",
+      "xUnit: Provide a valid res://Data/relics.json (relicId global unique) that can be parsed to a usable relic catalog; in the valid case, the system can produce a non-empty candidate pool (before de-dup) and apply effects deterministically. Refs: Game.Core.Tests/Tasks/Task62RelicsTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task62RelicsTests.cs"
@@ -2263,7 +2333,12 @@
     "test_strategy": [
       "xUnit：覆盖重抽/耗尽与按 relicId 升序应用的确定性。"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.combat.ended",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.loot.granted",
+      "core.sanguo.relic.applied"
+    ],
     "adr_refs": [
       "ADR-0004",
       "ADR-0005",
@@ -2304,9 +2379,11 @@
     "title": "模块: 全局事件触发机制（RoundNumber）",
     "description": "每轮只检查一次全局事件（RoundNumber），通过 random_event.applied 对外发布并带确定性取证。",
     "acceptance": [
-      "周期逻辑统一使用 RoundNumber（每轮所有角色都行动完+1），每轮只检查一次全局事件。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs",
-      "全局事件仍通过 core.sanguo.random_event.applied 发布，EventId 使用 global:<id> 前缀区分来源。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs",
-      "全局事件抽样必须可复盘（RngContextId + CandidatesSortedIdsHash + PickedIndex/PickedId）。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs"
+      "在 turn.started 之前执行全局事件检查：若当前 RoundNumber 尚未检查过则执行一次；若已检查过则保持不变（不会在同一 RoundNumber 内再次触发检查或重复发布 random_event.applied）。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs",
+      "周期逻辑仅以 RoundNumber 作为“每轮一次”的判定单位（RoundNumber 在每轮所有角色都行动完后 +1）；同一 RoundNumber 内全局事件检查最多执行一次。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs",
+      "当全局事件被应用时，必须对外发布 core.sanguo.random_event.applied；其 EventId 必须使用 global:<id> 前缀以区分全局事件来源。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs",
+      "全局事件抽样过程必须可复盘：random_event.applied 的取证字段必须包含 RngContextId、CandidatesSortedIdsHash、PickedIndex 与 PickedId，并可据此验证候选集合与最终选择一致。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs",
+      "周期单位不得使用 UI 月/年等显示字段作为依据；在相同输入（RoundNumber、候选集合与 RNG 上下文）下，重复执行应产生一致的选择与一致的取证字段。 Refs: Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs"
@@ -2314,7 +2391,10 @@
     "test_strategy": [
       "xUnit：覆盖 RoundNumber 周期检查与事件取证字段一致性。"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.random_event.applied"
+    ],
     "adr_refs": [
       "ADR-0004",
       "ADR-0005",
@@ -2353,9 +2433,10 @@
     "title": "模块: 州郡（regions）配置与全占增益",
     "description": "州郡配置与全占增益（经济型止损版）：满足条件即时生效/失效。",
     "acceptance": [
-      "Data/regions.json 允许跨地图复用 regionId；map city 必须声明 regionId 且可解析，否则禁止开始。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
-      "买下最后一座 city 时立即激活全占增益；出局释放资产为无主时立即失效。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
-      "全占增益先仅经济型（economyStepDeltas），且增益范围限定本州郡城市。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs"
+      "xUnit: 州郡配置从 res://Data/regions.json 读取；每个 region 记录必须包含 regionId 且包含 economyStepDeltas；文件缺失/不可解析/字段缺失时，对局初始化失败并拒绝开始。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
+      "xUnit: 存在 res://Data/regions.json；其中的 regionId 允许被不同地图复用；加载任意地图时，每个 city 必须声明 regionId 且能在该 JSON 中解析，否则对局初始化失败并拒绝开始。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
+      "xUnit: 当某州郡内最后一座 city 的归属变更使该州郡所有城市归属同一角色时，立即激活该州郡全占增益；当该角色出局且其资产释放为无主导致不再满足全占条件时，立即失效。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
+      "xUnit: 全占增益当前仅包含经济型 economyStepDeltas；增益只作用于该州郡内城市的经济计算/步进口径，其他州郡城市不受影响；失效后不再应用该增益。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task64RegionsTests.cs"
@@ -2363,7 +2444,12 @@
     "test_strategy": [
       "xUnit：覆盖 region 交叉引用、全占判定与增益生效/失效时机。"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.city.owner.changed",
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.economy.month.settled",
+      "core.sanguo.player.eliminated"
+    ],
     "adr_refs": [
       "ADR-0004",
       "ADR-0005",
@@ -2404,9 +2490,10 @@
     "title": "模块: 州郡连协收费（经济型止损版）",
     "description": "州郡连协收费：按落点城 owner 的本州郡城市集合汇总路过费（先算每城再求和）。",
     "acceptance": [
-      "连协收费：先算每城最终过路费再求和，输出 total+breakdown；若缺数据/越界则 fail-fast。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
-      "仅对落点城 owner 的“本州郡已拥有城市集合”生效；无主/自身/无城集合时为 0 额外项。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
-      "连协收费仅做经济型止损路径，为后续规避机制扩展保留接口但不实现。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs"
+      "xUnit: 输入校验与止损：当落点城/州郡归属/owner/owner 在本州郡的已拥有城市集合/逐城过路费计算所需数据存在缺失、不一致或越界时，连协收费不得返回可用结果（不得静默降级为 0），而是禁止开始或立即 fail-fast。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
+      "xUnit: 连协收费计算：对 owner 在同一州郡内的“已拥有城市集合”逐城先计算该城的最终过路费，再将逐城结果求和得到 total；返回 breakdown（逐城金额明细）且 total 必须等于 breakdown 金额之和；任一必要数据缺失或越界时应拒绝开始或立即 fail-fast（不得静默返回 0 或部分结果）。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
+      "xUnit: 必须提供一个可扩展入口（例：策略注入或接口抽象），用于后续卡牌/宝物等机制对连协收费进行“规避扩展”；默认实现必须不规避。 xUnit: 适用范围：仅当落点城存在 owner，且 owner 不是路过方/自身，并且 owner 在该州郡存在“已拥有城市集合”时才产生连协收费；落点城无主/自身/无城集合时连协收费额外项为 0（breakdown 为空或不包含额外项）。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
+      "xUnit: 范围限制：本任务仅实现经济型止损路径，卡牌/宝物等“规避机制”在当前版本不得影响连协收费结果；可预留扩展入口/接口但默认不启用且不改变 total/breakdown 的可观测输出。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs"
@@ -2414,7 +2501,10 @@
     "test_strategy": [
       "xUnit：覆盖连协收费的汇总逻辑与边界条件。"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.city.owner.changed"
+    ],
     "adr_refs": [
       "ADR-0004",
       "ADR-0005",
