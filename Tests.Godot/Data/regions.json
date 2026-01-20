@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "regions": [
+    {
+      "regionId": "region_01",
+      "nameKey": "region.region_01.name",
+      "descriptionKey": "region.region_01.desc",
+      "effectKind": "economyStepDelta",
+      "economyStepDeltas": { "buyPrice": 0, "toll": 0, "incomeSettlement": 0, "buildCost": 0, "upgradeCost": 0 }
+    },
+    {
+      "regionId": "region_02",
+      "nameKey": "region.region_02.name",
+      "descriptionKey": "region.region_02.desc",
+      "effectKind": "economyStepDelta",
+      "economyStepDeltas": { "buyPrice": 0, "toll": 1, "incomeSettlement": 0, "buildCost": 0, "upgradeCost": 0 }
+    },
+    {
+      "regionId": "region_03",
+      "nameKey": "region.region_03.name",
+      "descriptionKey": "region.region_03.desc",
+      "effectKind": "economyStepDelta",
+      "economyStepDeltas": { "buyPrice": 0, "toll": 0, "incomeSettlement": 1, "buildCost": 0, "upgradeCost": 0 }
+    },
+    {
+      "regionId": "region_04",
+      "nameKey": "region.region_04.name",
+      "descriptionKey": "region.region_04.desc",
+      "effectKind": "economyStepDelta",
+      "economyStepDeltas": { "buyPrice": 0, "toll": 0, "incomeSettlement": 0, "buildCost": 0, "upgradeCost": 0 }
+    },
+    {
+      "regionId": "region_05",
+      "nameKey": "region.region_05.name",
+      "descriptionKey": "region.region_05.desc",
+      "effectKind": "economyStepDelta",
+      "economyStepDeltas": { "buyPrice": 0, "toll": 0, "incomeSettlement": 0, "buildCost": 0, "upgradeCost": 0 }
+    },
+    {
+      "regionId": "region_06",
+      "nameKey": "region.region_06.name",
+      "descriptionKey": "region.region_06.desc",
+      "effectKind": "economyStepDelta",
+      "economyStepDeltas": { "buyPrice": 0, "toll": 0, "incomeSettlement": 0, "buildCost": 0, "upgradeCost": 0 }
+    }
+  ]
+}

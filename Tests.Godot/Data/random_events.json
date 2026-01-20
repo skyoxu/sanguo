@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "eventPools": [
+    {
+      "poolId": "default",
+      "eventIds": [ "event_money_small", "event_economy_boost" ]
+    },
+    {
+      "poolId": "global",
+      "eventIds": [ "event_money_small" ]
+    }
+  ],
+  "events": [
+    {
+      "eventId": "event_money_small",
+      "nameKey": "event.event_money_small.name",
+      "descriptionKey": "event.event_money_small.desc",
+      "uniqueOnce": false,
+      "cooldownRounds": 0,
+      "effectKind": "moneyDelta",
+      "moneyDelta": 200
+    },
+    {
+      "eventId": "event_economy_boost",
+      "nameKey": "event.event_economy_boost.name",
+      "descriptionKey": "event.event_economy_boost.desc",
+      "uniqueOnce": false,
+      "cooldownRounds": 2,
+      "effectKind": "economyStepDelta",
+      "stepDelta": 1
+    }
+  ]
+}

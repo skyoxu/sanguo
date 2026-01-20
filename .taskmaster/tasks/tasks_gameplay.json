@@ -1661,17 +1661,14 @@
       "core.sanguo.game.started"
     ],
     "acceptance": [
-      "xUnit: 存在可复现的开局输入/配置生成行为：在相同输入（含 random_seed）下生成的 GameStartConfig 在字段值层面一致，且 character_assignments 在该配置内保持角色全局唯一（不重复）。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
-      "存在可生成/校验的唯一开局配置 GameStartConfig，且字段齐全：map_id、players_count（仅允许 4–8）、starting_money_preset（仅允许 5000/10000/20000）、global_event_interval_turns（仅允许 5/10/20）、random_seed、character_assignments（在该配置内角色分配不重复，且与 players_count 对应）。对任一非法取值必须被拒绝（不得生成可用配置）。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
-      "xUnit: 地图列表的来源仅允许读取 res://Data/maps/_index.json；不得通过扫描目录、枚举文件或其他来源构建地图列表。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
-      "完成“新游戏”入口流程后，必须发布 core.sanguo.game.started（或语义等价事件），且事件 payload 明确包含 game_start_config 与 random_seed（可据此还原本次开局输入）。 Refs: Tests.Godot/tests/UI/test_new_game_menu_started_event_payload.gd",
+      "xUnit: 存在可生成/校验的唯一开局配置 GameStartConfig，且字段齐全：map_id、players_count（仅允许 4–8）、starting_money_preset（仅允许 5000/10000/20000）、global_event_interval_turns（仅允许 5/10/20）、random_seed、character_assignments（在该配置内角色分配不重复，且与 players_count 对应）。对任一非法取值必须被拒绝（不得生成可用配置）。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "地图列表的来源仅允许读取 res://Data/maps/_index.json；不得通过扫描目录、枚举文件或其他来源构建地图列表。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "GdUnit4: 完成“新游戏”入口流程后，必须发布 core.sanguo.game.started（或语义等价事件），且事件 payload 明确包含 game_start_config 与 random_seed（可据此还原本次开局输入）。 Refs: Tests.Godot/tests/UI/test_task50_new_game_menu_started_event_payload.gd",
       "xUnit: GameStartConfig 必须可序列化为 JSON 审计快照，且该快照可被反序列化回等价的 GameStartConfig（字段值层面一致，包含 random_seed 与 character_assignments），用于复现同一开局输入。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
-      "Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd",
-      "Tests.Godot/tests/UI/test_task50_new_game_menu_publishes_game_started_event.gd",
-      "Tests.Godot/tests/UI/test_new_game_menu_started_event_payload.gd"
+      "Tests.Godot/tests/UI/test_task50_new_game_menu_started_event_payload.gd"
     ],
     "test_strategy": [
       "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。",
