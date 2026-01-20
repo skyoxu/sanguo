@@ -164,6 +164,20 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def resolve_repo_path(root: Path, raw: str) -> Path | None:
+    s = str(raw or "").strip()
+    if not s:
+        return None
+    p = Path(s)
+    if p.is_absolute():
+        try:
+            _ = p.resolve().relative_to(root.resolve())
+            return p.resolve()
+        except Exception:
+            return None
+    return (root / s).resolve()
+
+
 def load_task_test_refs(*, root: Path, task_id: str) -> List[Path]:
     """
     Resolve task's test_refs from the triplet task views (tasks_back/tasks_gameplay),
@@ -238,6 +252,8 @@ def main():
     ap = argparse.ArgumentParser(description="Validate test method naming conventions for Game.Core.Tests.")
     ap.add_argument("--style", choices=["legacy", "strict"], default="legacy", help="Naming style to enforce.")
     ap.add_argument("--task-id", default=None, help="If set, validate only the task's C# test_refs (.cs).")
+    ap.add_argument("--files", nargs="*", default=None, help="If set, validate only these repo-relative C# files.")
+    ap.add_argument("--out", default=None, help="Optional JSON output report path.")
     args = ap.parse_args()
 
     project_root = repo_root()
@@ -247,16 +263,34 @@ def main():
         print(f"Error: Test directory not found: {test_dir}", file=sys.stderr)
         return 1
 
+    if args.task_id and args.files is not None:
+        print("Error: --task-id and --files are mutually exclusive.", file=sys.stderr)
+        return 2
+
     scope = "all Game.Core.Tests"
     if args.task_id:
         scope = f"task-id={args.task_id} (test_refs .cs only)"
+    if args.files is not None:
+        scope = "explicit files"
 
     print("Scanning Game.Core.Tests for test method naming violations...")
     print(f"Scope: {scope}")
     print(f"Style: {args.style}")
     print()
 
-    if args.task_id:
+    files: List[Path] | None = None
+    if args.files is not None:
+        files = []
+        for raw in args.files:
+            p = resolve_repo_path(project_root, raw)
+            if p is None:
+                print(f"Error: invalid path outside repo: {raw}", file=sys.stderr)
+                return 2
+            if p.suffix.lower() != ".cs":
+                continue
+            files.append(p)
+        violations = scan_specific_files(files=files, style=args.style)
+    elif args.task_id:
         files = load_task_test_refs(root=project_root, task_id=str(args.task_id).split(".", 1)[0])
         violations = scan_specific_files(files=files, style=args.style)
     else:
@@ -265,6 +299,16 @@ def main():
     if not violations:
         print("[OK] All test methods follow approved naming conventions")
         print("[OK] No violations found")
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "status": "ok",
+                "style": args.style,
+                "task_id": str(args.task_id) if args.task_id else None,
+                "files": args.files if args.files is not None else None,
+                "violations": {},
+            }
+            Path(args.out).write_text(json.dumps(payload, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
         return 0
 
     # Report violations
@@ -284,11 +328,25 @@ def main():
     print()
     print("Fix these violations by renaming methods to an approved pattern:")
     if args.style == "strict":
-        print("  - Should_: ShouldReturnZero_WhenMultiplierIsZero")
+        print("  - Should_When: ShouldReturnZero_WhenMultiplierIsZero")
         print("  - Given_When_Then: GivenEnoughMoney_WhenBuyingCity_ThenCityOwned")
     else:
         print("  - PascalCase: GivenNoState_WhenSaveGame_ThenThrowsInvalidOperationException")
         print("  - PascalCase_With_Underscores: SaveGame_WhenStateMissing_ShouldThrowInvalidOperationException")
+
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "status": "fail",
+            "style": args.style,
+            "task_id": str(args.task_id) if args.task_id else None,
+            "files": args.files if args.files is not None else None,
+            "violations": {
+                str(p.relative_to(project_root)).replace("\\", "/"): [{"line": ln, "method": m} for (ln, m) in v]
+                for p, v in violations.items()
+            },
+        }
+        Path(args.out).write_text(json.dumps(payload, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
 
     return 1
 
