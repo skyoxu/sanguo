@@ -75,6 +75,12 @@ func _wait_for_turn_started(active_player_id: String, max_frames: int = 180) -> 
         if _has_turn_started_for(active_player_id):
             return
         await get_tree().process_frame
+    if not _has_turn_started_for(active_player_id):
+        var seen: Array = []
+        for e in _events_of_type("core.sanguo.game.turn.started"):
+            var payload: Dictionary = JSON.parse_string(str(e.get("data_json", "{}")))
+            seen.append(str(payload.get("ActivePlayerId", "")))
+        print("Missing turn.started for '%s'. Seen ActivePlayerId values: %s" % [active_player_id, str(seen)])
     assert_bool(_has_turn_started_for(active_player_id)).is_true()
 
 func _wait_for_event(type_name: String, max_frames: int = 120) -> void:
@@ -100,8 +106,8 @@ func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_id
 
     var controller := main.get_node_or_null("SanguoGameLoopController")
     if controller != null:
-        controller.set("AiAutoAdvanceDelaySeconds", 0.65)
-        controller.set("AiAutoAdvanceDelaySecondsWhenSkip", 0.10)
+        controller.set("AiAutoAdvanceDelaySeconds", 0.05)
+        controller.set("AiAutoAdvanceDelaySecondsWhenSkip", 0.05)
 
     _bus.PublishSimple("ui.menu.start", "ut", "{}")
     await _wait_for_event("core.sanguo.game.turn.started", 180)

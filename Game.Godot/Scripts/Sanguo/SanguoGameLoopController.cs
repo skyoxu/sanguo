@@ -8,7 +8,9 @@ using Game.Godot.Adapters;
 using Game.Godot.Autoloads;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Game.Godot.Scripts.Sanguo;
@@ -33,6 +35,10 @@ public partial class SanguoGameLoopController : Node
     private const string UiHudLoad = "ui.hud.load";
     private const string UiTileActionSelected = "ui.sanguo.tile.action.selected";
     private const string AiAutoAdvanceCausationId = "runtime.ai.auto.advance";
+
+    private const int DefaultPlayersCount = 4;
+    private const int DefaultStartingMoneyPreset = 10000;
+    private const int DefaultGlobalEventIntervalTurns = 10;
 
     private const string DefaultUiClickSfxId = "res://Game.Godot/Assets/Audio/ui_click.wav";
     private const string DefaultMusicLoopId = "res://Game.Godot/Assets/Audio/music_loop.wav";
@@ -62,6 +68,12 @@ public partial class SanguoGameLoopController : Node
     private string _lastHumanMoveCorrelationId = string.Empty;
     private int _lastHumanMoveToIndex;
     private string _lastSaveSlotId = "quick";
+    private GameStartConfig? _lastStartConfig;
+
+    private sealed record GameStartedPayload(
+        [property: JsonPropertyName("game_start_config")] GameStartConfig GameStartConfig,
+        [property: JsonPropertyName("random_seed")] int RandomSeed
+    );
 
     private static readonly JsonSerializerOptions UiJsonOptions = new()
     {
@@ -386,7 +398,7 @@ public partial class SanguoGameLoopController : Node
         TryQueueAiAutoAdvanceIfNeeded();
     }
 
-    private async void StartGameDeferred(string correlationId)
+    private void StartGameDeferred(string correlationId)
     {
         if (_started)
         {
@@ -401,7 +413,7 @@ public partial class SanguoGameLoopController : Node
         _advanceQueued = true;
         try
         {
-            var (ok, reason) = await TryStartNewGameAsync(correlationId: correlationId, causationId: UiMenuStart);
+            var (ok, reason) = TryStartNewGame(correlationId: correlationId, causationId: UiMenuStart);
             if (!ok)
             {
                 PublishMenuStartFailed(correlationId, reason);
@@ -413,7 +425,7 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
-    private async Task<(bool ok, string reason)> TryStartNewGameAsync(string correlationId, string causationId)
+    private (bool ok, string reason) TryStartNewGame(string correlationId, string causationId)
     {
         if (_started)
         {
@@ -444,19 +456,29 @@ public partial class SanguoGameLoopController : Node
         var boardView = GetNodeOrNull<SanguoBoardView>(BoardViewPath);
         boardView?.ApplyMapDefinition(map);
 
-        _turnManager = CreateNewTurnManager(map);
+        var startConfig = CreateDefaultGameStartConfig(map);
+        if (!GameStartConfigValidator.TryValidate(startConfig, out var startConfigErrors))
+        {
+            GD.PushWarning($"SanguoGameLoopController: start config invalid: {string.Join(" | ", startConfigErrors)}");
+            return (false, "invalid_start_config");
+        }
+
+        _lastStartConfig = startConfig;
+        _turnManager = CreateNewTurnManager(map, startConfig);
 
         try
         {
-            await _turnManager.StartNewGameAsync(
+            _turnManager.StartNewGameAsync(
                 gameId: "g1",
-                playerOrder: new[] { "p1", "ai-1" },
+                playerOrder: BuildDefaultPlayerOrder(startConfig.PlayersCount),
                 year: 3,
                 month: 2,
                 day: 1,
                 correlationId: correlationId,
-                causationId: causationId);
+                causationId: causationId).GetAwaiter().GetResult();
             _started = true;
+
+            PublishGameStarted(startConfig);
             TryQueueAiAutoAdvanceIfNeeded();
             return (true, string.Empty);
         }
@@ -467,6 +489,71 @@ public partial class SanguoGameLoopController : Node
             _started = false;
             return (false, "exception:" + ex.GetType().Name);
         }
+    }
+
+    private static string[] BuildDefaultPlayerOrder(int playersCount)
+    {
+        if (playersCount <= 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        var ids = new List<string>(capacity: playersCount)
+        {
+            "p1",
+        };
+
+        for (var i = 1; i < playersCount; i++)
+        {
+            ids.Add($"ai-{i}");
+        }
+
+        return ids.ToArray();
+    }
+
+    private static GameStartConfig CreateDefaultGameStartConfig(SanguoMapDefinition map)
+    {
+        var randomSeed = unchecked((int)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() & 0x7fffffff));
+        var playerOrder = BuildDefaultPlayerOrder(DefaultPlayersCount);
+
+        var characterPool = new[]
+        {
+            "c_liu_bei",
+            "c_cao_cao",
+            "c_sun_quan",
+            "c_yuan_shao",
+            "c_guan_yu",
+            "c_zhang_fei",
+            "c_zhao_yun",
+            "c_diao_chan",
+        };
+
+        var assignments = new Dictionary<string, string>(StringComparer.Ordinal);
+        for (var i = 0; i < playerOrder.Length; i++)
+        {
+            assignments[playerOrder[i]] = characterPool[i % characterPool.Length];
+        }
+
+        return new GameStartConfig(
+            MapId: map.MapId,
+            PlayersCount: DefaultPlayersCount,
+            StartingMoneyPreset: DefaultStartingMoneyPreset,
+            GlobalEventIntervalTurns: DefaultGlobalEventIntervalTurns,
+            RandomSeed: randomSeed,
+            CharacterAssignments: assignments
+        );
+    }
+
+    private void PublishGameStarted(GameStartConfig cfg)
+    {
+        if (_bus == null)
+        {
+            return;
+        }
+
+        var payload = new GameStartedPayload(cfg, cfg.RandomSeed);
+        var dataJson = JsonSerializer.Serialize(payload);
+        _bus.PublishSimple(SanguoGameStarted.EventType, nameof(SanguoGameLoopController), dataJson);
     }
 
     private void TryRunSaveLoadE2eFromCmdline()
@@ -538,7 +625,7 @@ public partial class SanguoGameLoopController : Node
     {
         try
         {
-            var (started, _) = await TryStartNewGameAsync(correlationId: correlationId, causationId: "e2e.saveload.save");
+            var (started, _) = TryStartNewGame(correlationId: correlationId, causationId: "e2e.saveload.save");
             if (!started)
             {
                 GD.Print("[E2E_SAVELOAD] failed mode=save reason=start_failed");
@@ -623,14 +710,16 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
-    private SanguoTurnManager CreateNewTurnManager(SanguoMapDefinition map)
+    private SanguoTurnManager CreateNewTurnManager(SanguoMapDefinition map, GameStartConfig? startConfig = null)
     {
         var economyRules = SanguoEconomyRules.Default;
-        var players = new[]
-        {
-            new SanguoPlayer(playerId: "p1", money: 300m, positionIndex: 0, economyRules: economyRules),
-            new SanguoPlayer(playerId: "ai-1", money: 300m, positionIndex: 0, economyRules: economyRules),
-        };
+        var playerOrder = startConfig != null
+            ? BuildDefaultPlayerOrder(startConfig.PlayersCount)
+            : new[] { "p1", "ai-1" };
+        var startingMoney = startConfig?.StartingMoneyPreset ?? 300;
+        var players = playerOrder
+            .Select(id => new SanguoPlayer(playerId: id, money: startingMoney, positionIndex: 0, economyRules: economyRules))
+            .ToArray();
 
         var citiesById = BuildCitiesByIdFromMap(map);
 
