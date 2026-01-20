@@ -3145,16 +3145,14 @@
       "存在且可解析 `res://Data/maps/_index.json`；包含 `schemaVersion`、`version`、`maps[]`，且 `maps[]` 中每个元素至少包含 `mapId`、`nameKey`、`descriptionKey`、`path`、`previewImagePath`、`recommendedPlayersMin`、`recommendedPlayersMax`。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
       "对任意 `maps[].mapId`，存在且可解析对应 `res://Data/maps/<map_id>.json`；包含 `schemaVersion`、`version`、`mapId`、`track.length`、`track.startTileId`、`tiles[]`；`tiles[]` 中每个 tile 至少包含 `tileId`、`tileKind`（仅 city/facility/event/empty）、`nameKey`、`layout.x`、`layout.y`、`actions[]`；并校验 `track.startTileId == tiles[0].tileId`，否则判定为无效。 Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
       "xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
-      "地图格 UI 渲染时，每个 tile 均显示非空、可读的名称文本：当 i18n 对应 `nameKey` 存在时显示本地化文本，否则显示 `nameKey`；不允许显示为空或不可见。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_map_tile_name_fallback.gd",
+      "地图格 UI 渲染时，每个 tile 均显示非空、可读的名称文本：当 i18n 对应 `nameKey` 存在时显示本地化文本，否则显示 `nameKey`；不允许显示为空或不可见。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd",
       "xUnit: Provide and run unit tests that parse and validate the map index and map definition schemas (including startTileId freeze). Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
-      "GdUnit4: Provide and run a scene/UI test that verifies tile name is visible and falls back to nameKey when i18n is missing. Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_map_tile_name_fallback.gd"
+      "GdUnit4: Provide and run a scene/UI test that verifies tile name is visible and falls back to nameKey when i18n is missing. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
       "Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
-      "Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_text_fallback.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_map_tile_name_fallback.gd"
+      "Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd"
     ],
     "test_strategy": [
       "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。"

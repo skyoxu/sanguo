@@ -1661,14 +1661,14 @@
           "ADR-0011",
           "ADR-0019"
         ],
-        "archRefs": [
-          "CH02",
-          "CH04",
-          "CH07",
-          "CH10"
-        ],
-        "overlay": null
-      },
+      "archRefs": [
+        "CH02",
+        "CH04",
+        "CH07",
+        "CH10"
+      ],
+      "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
+    },
       {
         "id": "54",
         "title": "模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/选角）",

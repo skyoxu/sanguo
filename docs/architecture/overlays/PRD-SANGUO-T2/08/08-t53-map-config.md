@@ -57,5 +57,5 @@ Arch-Refs:
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs`
 - `Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs`
-- `Tests.Godot/tests/Scenes/test_task53_map_renders_tile_names.gd`
+- `Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd`
 

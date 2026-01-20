@@ -9,7 +9,8 @@
       "path": "res://Data/maps/map001.json",
       "previewImagePath": "res://Assets/maps/map001_preview.svg",
       "recommendedPlayersMin": 4,
-      "recommendedPlayersMax": 8
+      "recommendedPlayersMax": 8,
+      "contentVersion": 1
     }
   ]
 }
