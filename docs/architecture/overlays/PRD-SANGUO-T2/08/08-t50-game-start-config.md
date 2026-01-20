@@ -4,48 +4,62 @@ Title: 08-T50 GameStartConfig（唯一开局输入）
 Status: Draft
 ADR-Refs:
   - ADR-0004
+  - ADR-0005
+  - ADR-0011
   - ADR-0019
 Arch-Refs:
-  - CH01
   - CH02
-  - CH06
+  - CH04
+  - CH07
+  - CH10
 ---
 
 # T50：GameStartConfig（唯一开局输入）
 
-本页为 T50 的功能纵切拆页，统一口径与契约清单见 `08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md`。
+本页描述 T50 的功能纵切口径与就地验收锚点（ACC）。契约命名与事件模型遵循 ADR-0004；安全与文件/资源基线遵循 ADR-0019；门禁与测试约束遵循 ADR-0005。
 
 ## 范围
-- 定义唯一开局配置对象（或等价结构）`GameStartConfig`，作为“新游戏”的唯一输入快照，可序列化为 JSON 用于审计/回放。
-- UI 新游戏配置界面完成配置后，进入主循环并发布 `core.sanguo.game.started`（或等价事件）。
 
-## 口径冻结
-- GameStartConfig 的审计快照必须使用“规范化 JSON”（UTF-8、LF、键排序、稳定字段名；不依赖对象枚举顺序）。
-- 所有域事件必须携带 `CorrelationId`/`CausationId`（ADR-0024）；它们仅用于链路追踪，不得影响任何玩法计算与确定性结果。
-- Data 校验失败必须审计记录（至少 path/sha256/version/reason），并阻止开始。
-- i18n 统一使用 `message_key + params`；params 必须是扁平键值（仅 string/int/decimal/bool），禁止嵌套对象/数组。
+- 定义 `GameStartConfig` 作为“新游戏”开局的唯一确定性输入，可用于审计与复盘。
+- 完成“新游戏”入口流程后，进入主循环并发布 `core.sanguo.game.started`。
 
-## 示例（规范化 JSON）
-- `docs/workflows/examples/gamestartconfig-canonical.example.json`
+## 冻结口径（本阶段）
 
-## 非目标
-- 不实现存档系统（写入/读回 `user://` 属于后续任务）。
-- 不做目录扫描与资源发现（只读取明确路径的 `res://Data/**`）。
+- `core.sanguo.game.started` 的事件 payload 顶层必须包含：`game_start_config` 与 `random_seed`。
+- `random_seed` 必须可复用（同一输入→同一输出）；并且顶层 `random_seed` 与 `game_start_config.random_seed` 必须一致。
+- `players_count` 仅允许 4–8；`starting_money_preset` 仅允许 5000/10000/20000；`global_event_interval_turns` 仅允许 5/10/20。
+- 地图列表仅允许来自 `res://Data/maps/_index.json`，禁止扫描目录/枚举文件。
 
-## 确定性输入
-- 地图索引：`res://Data/maps/_index.json`
-- 地图定义：`res://Data/maps/<map_id>.json`
-- 角色定义：`res://Data/characters.json`
-- `random_seed`：驱动 AI 补位、事件抽取、战斗随机等（同输入必须复现同输出）
+## 测试假设与默认值（冻结口径）
+
+- Headless 的 GdUnit4 不可靠输入事件，测试应使用 `emit_signal("pressed")` 等方式触发 UI 行为。
+- `Tests.Godot` 是独立 Godot 工程，`res://` 根指向 `Tests.Godot/`；因此若运行时逻辑读取 `res://Data/**`，测试工程必须提供对应数据镜像：`Tests.Godot/Data/**`。
+- 由于“新游戏配置界面（地图/角色/参数）”尚未落地，本阶段胶水层使用最小默认开局配置（用于可玩度与门禁稳定性）：
+  - `players_count = 4`
+  - `starting_money_preset = 10000`
+  - `global_event_interval_turns = 10`
+  - `player_order = [p1, ai-1, ai-2, ai-3]`
+  - 角色分配使用固定池并确保不重复（与 `players_count` 对齐）。
+- 为避免“AI 自动推进”导致测试等待窗口被跳过，相关 GdUnit4 用例会将 `AiAutoAdvanceDelaySeconds` 与 `AiAutoAdvanceDelaySecondsWhenSkip` 调小（例如 0.05s）以降低抖动。
 
 ## 契约（EventType + 触发点）
-- `core.sanguo.game.started`：新游戏配置完成、GameStartConfig 被固化并进入主循环时。
+
+- `core.sanguo.game.started`
+  - 触发点：新游戏已根据 `GameStartConfig` 创建并进入可玩主循环后。
+  - 事件 payload：顶层含 `game_start_config` 与 `random_seed`（用于复盘本次开局输入）。
 
 ## 验收条款（ACC）
-- ACC:T50.1 `GameStartConfig` 字段/范围/唯一性校验通过（至少含：map_id、players_count(4-8)、starting_money_preset(5000/10000/20000)、global_event_interval_turns(5/10/20)、random_seed、character_assignments(全局唯一)）。
+
+- ACC:T50.1 `GameStartConfig` 字段/范围/唯一性校验通过：`map_id`、`players_count(4–8)`、`starting_money_preset(5000/10000/20000)`、`global_event_interval_turns(5/10/20)`、`random_seed`、`character_assignments(不重复且与 players_count 对齐)`。
 - ACC:T50.2 地图列表仅从 `res://Data/maps/_index.json` 加载，不扫描目录。
-- ACC:T50.3 新游戏完成后发布 `core.sanguo.game.started`，payload 含 `game_start_config` 与 `random_seed`。
+- ACC:T50.3 完成“新游戏”入口流程后发布 `core.sanguo.game.started`，payload 顶层包含 `game_start_config` 与 `random_seed`。
+- ACC:T50.4 `GameStartConfig` 可序列化为 JSON 审计快照并可反序列化回等价对象（字段值层面一致）。
+
+## 示例（JSON）
+
+- `docs/workflows/examples/gamestartconfig-canonical.example.json`
 
 ## Test-Refs
+
 - `Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs`
-- `Tests.Godot/tests/UI/test_task50_new_game_setup_flow.gd`
+- `Tests.Godot/tests/UI/test_task50_new_game_menu_started_event_payload.gd`
