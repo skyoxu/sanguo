@@ -16,13 +16,14 @@ Arch-Refs:
 
 ## 范围
 - 角色配置：`res://Data/characters.json`（≥8 角色，全局唯一不可重复）。
-- 初始资金：`money0 = StartingMoneyPreset * starting_money_multiplier`。
+- 初始资金（steps 口径，0.5 步进）：`money0 = StartingMoneyPreset * (ClampSteps(BaseDefaultSteps + StartingMoneyStepDelta) * 0.5)`。
 
 ## 非目标
 - 不实现体力/技能池/装备/成长系统。
 
 ## 口径冻结
 - 角色头像资源路径必须位于 `res://Assets/...`，扩展名白名单（.png/.webp/.svg），大小上限 1MB；越界/非法则禁止开始。
+- 角色配置加载：`Game.Core.Services.Sanguo.SanguoCharactersCatalogLoader`。
 
 ## 契约定义
 
