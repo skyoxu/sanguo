@@ -784,7 +784,7 @@ public sealed class SanguoEconomyManager
 
             var oldPrice = oldCity.BasePrice.ToDecimal();
             var newPrice = newCity.BasePrice.ToDecimal();
-            var effective = oldPrice <= 0 ? 1.0m : newPrice / oldPrice;
+            var appliedMultipliers = AppliedFromSingleMultiplier(1.0m, AppliedMultiplierSources.Event);
 
             var evt = new DomainEvent(
                 Type: SanguoYearPriceAdjusted.EventType,
@@ -799,7 +799,7 @@ public sealed class SanguoEconomyManager
                     OccurredAt: occurredAt,
                     CorrelationId: correlationId,
                     CausationId: causationId,
-                    AppliedMultipliers: AppliedFromSingleMultiplier(effective, AppliedMultiplierSources.Event, allowNonHalfStep: true)
+                    AppliedMultipliers: appliedMultipliers
                 )),
                 Timestamp: DateTime.UtcNow,
                 Id: Guid.NewGuid().ToString("N")

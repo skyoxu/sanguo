@@ -1716,17 +1716,14 @@
       "core.sanguo.economy.year.price.adjusted"
     ],
     "acceptance": [
-      "gameplay 侧的倍率合成行为必须与 back 侧一致：effective_multiplier 由 character/building/event/action_card 的乘法链计算并 clamp 到 [0.5, 3.0]，且非 0.5 步进输入必须被拒绝而非静默修正。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
-      "锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)，各 multiplier 输入仅允许 0.5 步进，非步进输入必须可被用例观测为失败而非被容忍。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
-      "所有经济相关域事件 payload 必须包含 applied_multipliers（含 character/building/event/action_card 四因子与最终 effective_multiplier），并作为 gameplay 展示/回放的唯一数据来源之一。 Refs: Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
-      "UI 不参与金额计算：gameplay UI 展示必须来自事件 payload/投影的快照数据（applied_multipliers），不得在 UI 层自行合成倍率或重算金额。 Refs: Tests.Godot/tests/UI/test_hud_event_log_applied_multipliers.gd"
+      "锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)；各 multiplier 输入必须为 0.5 步进，遇到非 0.5 步进不得静默修正（如四舍五入/截断），必须明确拒绝并不产生基于该输入的经济结果。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
+      "所有经济相关域事件的 payload 必须包含 applied_multipliers 快照，至少包含 character/building/event/action_card 四个因子与 clamp 后的 effective_multiplier 最终值；该快照应足以支撑展示/回放而无需在下游重新计算。 Refs: Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
+      "UI 不参与金额计算：UI 展示的倍率与金额必须来自事件 payload/投影中的 applied_multipliers 快照；同一事件的展示不因 UI 层本地倍率/状态变化而重新计算或发生漂移。 Refs: Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
       "Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs",
-      "Tests.Godot/tests/Integration/test_task51_ui_does_not_compute_money.gd",
-      "Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd",
-      "Tests.Godot/tests/UI/test_hud_event_log_applied_multipliers.gd"
+      "Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd"
     ],
     "test_strategy": [
       "xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。",

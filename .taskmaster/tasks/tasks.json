@@ -1619,7 +1619,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md"
       },
       {
         "id": "52",
@@ -1642,7 +1642,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
       },
       {
         "id": "53",
@@ -1661,14 +1661,14 @@
           "ADR-0011",
           "ADR-0019"
         ],
-      "archRefs": [
-        "CH02",
-        "CH04",
-        "CH07",
-        "CH10"
-      ],
-      "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
-    },
+        "archRefs": [
+          "CH02",
+          "CH04",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
+      },
       {
         "id": "54",
         "title": "模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/选角）",
@@ -1693,7 +1693,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md"
       },
       {
         "id": "55",
@@ -1716,7 +1716,7 @@
           "CH02",
           "CH04"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
       },
       {
         "id": "56",
@@ -1741,7 +1741,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
       },
       {
         "id": "57",
@@ -1765,7 +1765,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
       },
       {
         "id": "58",
@@ -1788,7 +1788,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
       },
       {
         "id": "59",
@@ -1813,7 +1813,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md"
       },
       {
         "id": "60",
@@ -1837,7 +1837,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
       },
       {
         "id": "61",
@@ -1868,7 +1868,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md"
       },
       {
         "id": "62",
@@ -1896,7 +1896,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
       },
       {
         "id": "63",
@@ -1921,7 +1921,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
       },
       {
         "id": "64",
@@ -1949,7 +1949,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t64-regions.md"
       },
       {
         "id": "65",
@@ -1977,7 +1977,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": null
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t65-regions-mechanics.md"
       }
     ],
     "metadata": {

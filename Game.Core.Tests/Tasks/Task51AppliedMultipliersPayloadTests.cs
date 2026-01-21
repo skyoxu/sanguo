@@ -10,7 +10,7 @@ public sealed class Task51AppliedMultipliersPayloadTests
 {
     // ACC:T51.2
     [Fact]
-    public void EconomyEvents_ShouldExposeAppliedMultipliersField()
+    public void ShouldExposeAppliedMultipliersField_WhenUsingEconomyEventContracts()
     {
         var m = new AppliedMultipliers(
             BaseSteps: 2,
@@ -39,7 +39,7 @@ public sealed class Task51AppliedMultipliersPayloadTests
 
     // ACC:T51.4
     [Fact]
-    public void EconomyEvent_WithAppliedMultipliers_ShouldRoundTrip_WithSystemTextJson()
+    public void ShouldRoundTripAppliedMultipliers_WhenSerializedWithSystemTextJson()
     {
         var m = new AppliedMultipliers(
             BaseSteps: 2,
