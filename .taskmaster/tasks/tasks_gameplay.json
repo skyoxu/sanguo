@@ -1917,8 +1917,8 @@
     "taskmaster_id": 55,
     "taskmaster_exported": true,
     "story_id": "PRD-SANGUO-T2-SKEL-55",
-    "title": "模块: 角色配置（6角色）与初始资金口径",
-    "description": "完善角色数据为只读配置，并定义初始资金与三类经济系数口径。",
+    "title": "模块: 角色配置（≥8 角色）与初始资金口径",
+    "description": "完善角色数据为只读配置，并冻结初始资金与经济 steps 口径。",
     "status": "deferred",
     "priority": "P1",
     "layer": "core",
@@ -1950,12 +1950,12 @@
       "core.sanguo.city.toll.paid"
     ],
     "acceptance": [
-      "xUnit: 角色配置必须从 res://Data/characters.json 解析得到：每个角色必须包含 starting_money_multiplier 以及 buy_multiplier/toll_multiplier/income_multiplier（或语义等价字段）；解析出的数值必须与 JSON 中对应字段一致（可被逐字段断言）。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
-      "xUnit: 角色配置必须以 res://Data/characters.json 作为数据来源进行解析；解析结果必须包含 6 个角色；且每个角色的 portrait_path 必须以 \"res://\" 开头（可被断言为资源路径而非绝对路径/空值）。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
-      "xUnit: 初始资金口径必须满足 money0 = StartingMoneyPreset * starting_money_multiplier；在同一 StartingMoneyPreset 与同一角色配置输入下，money0 输出必须确定且可复现（无随机/时间依赖）。 Refs: Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs",
-      "xUnit: 过路费系数（toll_multiplier）仅允许在“地主收租/收取过路费”计算路径生效：同一结算中 toll_multiplier 只能影响地主侧结算金额，不得改变非地主侧结算金额；且在可观测输出 applied_multipliers 中能断言 toll_multiplier 被应用（并且在非该路径时不出现/不生效）。 Refs: Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs",
-      "xUnit: 买入/购买相关成本计算必须使用 buy_multiplier；收入/入账计算必须使用 income_multiplier；并且不得与 starting_money_multiplier 或 toll_multiplier 发生语义混用（可通过构造输入使仅目标 multiplier 变化并断言仅对应路径结果变化来验证）。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
-      "xUnit: 角色配置必须作为只读配置使用：对外暴露的配置集合与条目必须不可被外部调用方通过公开 API 修改；并且尝试修改（若可编译/可调用）不得影响后续任何计算输出（可通过“修改尝试前后同输入计算结果一致”来否证可变性）。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "xUnit: 角色配置必须从 res://Data/characters.json 加载为 SanguoCharactersCatalog；SchemaVersion/Version 必须 > 0；Characters.Count 必须 >= 8；CharacterId 必须全局唯一。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "xUnit: 初始资金口径必须确定且可复现：money0 = StartingMoneyPreset * (ClampSteps(BaseDefaultSteps + StartingMoneyStepDelta) * 0.5)；其中 ClampSteps 将步数 clamp 到 [1..6]。 Refs: Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs",
+      "xUnit: 经济倍率口径必须以 steps 为唯一语义：AppliedMultipliers.EffectiveMultiplier 必须等于 EffectiveSteps * 0.5；并且 steps 必须通过 ClampSteps 约束到 [1..6]。 Refs: Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs",
+      "xUnit: 角色 portrait_path 必须位于 res://Assets/...；扩展名白名单（.png/.webp/.svg）；并且 portrait 对应资源大小必须 <= 1MB；不满足则加载失败并给出可断言的错误码。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "xUnit: 角色 CharacterId 必须全局唯一；若出现重复 id，加载必须失败并给出可断言的错误码。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
+      "xUnit: 角色配置必须作为只读配置对外暴露：对外返回的 Characters 集合必须不可变（尝试通过 IList 修改应抛出异常），并且不可通过公开 API 修改影响后续输出。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
       "xUnit: Provide an event snapshot test for character multipliers: with fixed input, the emitted economy event payload (including applied_multipliers) is stable and reproducible. Refs: Game.Core.Tests/Tasks/Task55CharacterEventSnapshotTests.cs"
     ],
     "test_refs": [

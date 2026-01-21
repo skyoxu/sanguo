@@ -8,15 +8,20 @@ public sealed class Task55CharacterMultipliersAppliedTests
 {
     // ACC:T55.3
     [Fact]
-    public void CharacterEconomy_StepDeltas_ShouldBeConstructible()
+    public void ShouldComputeEffectiveMultiplier_WhenUsingAppliedMultipliersSteps()
     {
-        var deltas = new SanguoEconomyStepDeltas(
-            BuyPrice: 0,
-            Toll: 0,
-            IncomeSettlement: 0,
-            BuildCost: 0,
-            UpgradeCost: 0);
+        var multipliers = new AppliedMultipliers(
+            BaseSteps: AppliedMultipliers.BaseDefaultSteps,
+            CharacterStepDelta: 1,
+            BuildingStepDelta: 0,
+            EventStepDelta: 0,
+            ActionCardStepDelta: 0,
+            RelicStepDelta: 0,
+            RegionStepDelta: 0,
+            EffectiveSteps: AppliedMultipliers.ClampSteps(AppliedMultipliers.BaseDefaultSteps + 1),
+            Sources: AppliedMultiplierSources.Character);
 
-        deltas.Toll.Should().Be(0);
+        multipliers.EffectiveSteps.Should().Be(3);
+        multipliers.EffectiveMultiplier.Should().Be(1.5m);
     }
 }

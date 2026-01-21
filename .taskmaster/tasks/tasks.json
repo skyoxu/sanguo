@@ -1654,7 +1654,7 @@
         "dependencies": [
           "50"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1697,16 +1697,16 @@
       },
       {
         "id": "55",
-        "title": "模块: 角色配置（6角色）与初始资金口径",
-        "description": "完善角色数据为只读配置，并定义初始资金与三类经济系数口径。",
-        "details": "来源：res://Data/characters.json；字段包含 starting_money_multiplier 与 buy/toll/income multipliers；过路费系数仅影响地主收租侧；初始资金 money0 = preset * starting_money_multiplier。",
+        "title": "模块: 角色配置（≥8 角色）与初始资金口径",
+        "description": "完善角色数据为只读配置，并冻结初始资金与经济 steps 口径。",
+        "details": "来源：res://Data/characters.json（只读）；字段口径使用 steps（0.5 步进）：StartingMoneyStepDelta + EconomyStepDeltas（BuyPrice/Toll/IncomeSettlement/BuildCost/UpgradeCost）。初始资金：money0 = StartingMoneyPreset * (ClampSteps(BaseDefaultSteps + StartingMoneyStepDelta) * 0.5)。portrait_path 必须位于 res://Assets/... 且扩展名白名单（.png/.webp/.svg）且大小 <= 1MB；不满足则禁止开始。加载实现：Game.Core.Services.Sanguo.SanguoCharactersCatalogLoader。",
         "testStrategy": "xUnit：解析/口径/事件快照测试。",
         "priority": "high",
         "dependencies": [
           "50",
           "51"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
