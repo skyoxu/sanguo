@@ -1768,15 +1768,17 @@
     "contractRefs": [
       "core.sanguo.game.turn.started",
       "core.sanguo.action_card.played",
+      "core.sanguo.action_card.play.rejected",
       "core.sanguo.dice.rolled",
+      "core.sanguo.random_event.applied",
       "core.sanguo.game.turn.advanced"
     ],
     "acceptance": [
       "在 gameplay 流程中，玩家于 TurnPhase.BeforeRoll 阶段每回合最多只能成功打出 1 张行动卡；同回合第二次尝试必须被拒绝且不产生任何 multiplier_step_delta/效果输出，并与 back 视图的窗口锁死语义一致。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
-      "回合状态机包含 TurnPhase.BeforeRoll，且每回合 BeforeRoll 最多允许 1 张行动卡；超出必须拒绝并可审计。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
-      "事件触发统一：事件格触发 OnTileEvent；每N回合触发 OnGlobalTurnEvent（N∈{5,10,20}）；两者走同一 RandomEventPool。 Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs",
-      "构造同回合双触发场景，顺序固定且 applied_multipliers 记录一致。 Refs: Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs",
-      "同回合双触发时，OnTileEvent 与 OnGlobalTurnEvent 的效果必须按固定顺序进入 multiplier_step_delta → T51 合成链路；最终对玩家可观察到的结果（例如结算后的倍率/状态变化）必须与该顺序一致且可测试复现。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs"
+      "事件触发语义统一且可验证：落到事件格时触发 OnTileEvent；回合计数满足每 N 回合一次时触发 OnGlobalTurnEvent（N∈{5,10,20}）；两类触发都必须从同一 RandomEventPool 取事件（同一池/同一随机流的语义，不允许分裂为两个独立池导致抽取序列不一致）。 Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs",
+      "构造同一回合同时满足“落到事件格”与“全局回合事件触发”的场景：触发顺序固定为先 OnTileEvent 后 OnGlobalTurnEvent；并且 applied_multipliers（或等价对外可观察的累积记录）按该顺序追加，结果在重复运行中保持一致。 Refs: Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs",
+      "OnTileEvent 与 OnGlobalTurnEvent 的所有效果必须仅通过 multiplier_step_delta 形式输入，并按 T51 的合成规则计算最终结果；不得绕过 T51 直接修改最终倍率/数值，且该输入序列对测试可观测/可断言。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
+      "在固定随机种子与固定回合输入下，重复运行多次必须得到相同的事件选择、触发顺序与合成结果；若任一环节出现非确定性（顺序/抽取/合成结果漂移）则判为不通过。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",

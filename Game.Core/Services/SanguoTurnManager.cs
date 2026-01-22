@@ -20,6 +20,9 @@ public sealed class SanguoTurnManager
     private readonly int _totalPositionsHint;
     private readonly double _quarterEnvironmentEventTriggerChance;
     private readonly decimal _quarterEnvironmentEventYieldMultiplier;
+    private readonly SanguoRandomEventsCatalog? _randomEventsCatalog;
+    private readonly int _globalEventIntervalTurns;
+    private readonly string _randomEventPoolId;
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -29,6 +32,7 @@ public sealed class SanguoTurnManager
     private SanguoCalendarDate _currentDate;
     private bool _started;
     private string? _gameOverEndReason;
+    private int? _actionCardPlayedTurnNumber;
 
     public SanguoTurnManager(
         IEventBus bus,
@@ -39,7 +43,10 @@ public sealed class SanguoTurnManager
         IRandomNumberGenerator? rng = null,
         int totalPositionsHint = 0,
         double quarterEnvironmentEventTriggerChance = 0.5,
-        decimal quarterEnvironmentEventYieldMultiplier = 0.5m)
+        decimal quarterEnvironmentEventYieldMultiplier = 0.5m,
+        SanguoRandomEventsCatalog? randomEventsCatalog = null,
+        int globalEventIntervalTurns = 5,
+        string randomEventPoolId = "default")
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
@@ -50,6 +57,12 @@ public sealed class SanguoTurnManager
         _totalPositionsHint = totalPositionsHint;
         _quarterEnvironmentEventTriggerChance = quarterEnvironmentEventTriggerChance;
         _quarterEnvironmentEventYieldMultiplier = quarterEnvironmentEventYieldMultiplier;
+        _randomEventsCatalog = randomEventsCatalog;
+        _globalEventIntervalTurns = globalEventIntervalTurns;
+        _randomEventPoolId = randomEventPoolId ?? throw new ArgumentNullException(nameof(randomEventPoolId));
+
+        if (_globalEventIntervalTurns != 5 && _globalEventIntervalTurns != 10 && _globalEventIntervalTurns != 20)
+            throw new ArgumentOutOfRangeException(nameof(globalEventIntervalTurns), "GlobalEventIntervalTurns must be one of: 5, 10, 20.");
     }
 
     [MemberNotNull(nameof(_gameId), nameof(_playerOrder))]
@@ -108,6 +121,7 @@ public sealed class SanguoTurnManager
         _currentDate = date;
         _started = true;
         _gameOverEndReason = null;
+        _actionCardPlayedTurnNumber = null;
 
         var occurredAt = DateTimeOffset.UtcNow;
 
@@ -181,6 +195,74 @@ public sealed class SanguoTurnManager
         await TryEndGameIfHumanEliminatedAsync(correlationId: correlationId, causationId: causationId);
     }
 
+    public async Task<bool> TryPlayHumanActionCardAsync(
+        string cardId,
+        int stepDelta,
+        int durationRounds,
+        string correlationId,
+        string? causationId)
+    {
+        EnsureStarted();
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+            throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
+
+        if (string.IsNullOrWhiteSpace(cardId))
+            throw new ArgumentException("CardId must be non-empty.", nameof(cardId));
+
+        var activePlayerId = _playerOrder[_activePlayerIndex];
+        if (IsAiPlayerId(activePlayerId))
+        {
+            return false;
+        }
+
+        var occurredAt = DateTimeOffset.UtcNow;
+
+        if (_actionCardPlayedTurnNumber == _turnNumber)
+        {
+            var rejected = new DomainEvent(
+                Type: SanguoActionCardPlayRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                    GameId: _gameId,
+                    TurnNumber: _turnNumber,
+                    RoundNumber: ComputeRoundNumber(_turnNumber),
+                    PlayerId: activePlayerId,
+                    Phase: SanguoTurnPhase.BeforeRoll.ToString(),
+                    CardId: cardId,
+                    ReasonCode: SanguoActionCardPlayRejected.ReasonAlreadyPlayedThisTurn,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejected);
+            return false;
+        }
+
+        var played = new DomainEvent(
+            Type: SanguoActionCardPlayed.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoActionCardPlayed(
+                GameId: _gameId,
+                PlayerId: activePlayerId,
+                CardId: cardId,
+                EffectKind: "economyStepDelta",
+                StepDelta: stepDelta,
+                DurationRounds: durationRounds,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId
+            )),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(played);
+
+        _actionCardPlayedTurnNumber = _turnNumber;
+        return true;
+    }
+
     public async Task AdvanceTurnAsync(string correlationId, string? causationId)
     {
         EnsureStarted();
@@ -196,6 +278,13 @@ public sealed class SanguoTurnManager
         var occurredAt = DateTimeOffset.UtcNow;
         var previousDate = _currentDate;
         var activePlayerId = _playerOrder[_activePlayerIndex];
+
+        await TryTriggerGlobalTurnRandomEventIfBoundaryAsync(
+            gameId: _gameId,
+            activePlayerId: activePlayerId,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
 
         var ended = new DomainEvent(
             Type: SanguoGameTurnEnded.EventType,
@@ -553,6 +642,15 @@ public sealed class SanguoTurnManager
                 }
             }
         }
+        else
+        {
+            await TryTriggerTileRandomEventAsync(
+                gameId: gameId,
+                activePlayerId: playerId,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+        }
 
         foreach (var pid in affectedPlayerIds)
         {
@@ -803,6 +901,153 @@ public sealed class SanguoTurnManager
         var bytes = Encoding.UTF8.GetBytes(value);
         var hash = SHA256.HashData(bytes);
         return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private async Task TryTriggerTileRandomEventAsync(
+        string gameId,
+        string activePlayerId,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (_randomEventsCatalog is null)
+            return;
+
+        if (!TryPickRandomEvent(out var picked, out var candidatesSortedIdsHash, out var pickedIndex, out var pickedId))
+            return;
+
+        var rngContextId = BuildRngContextId(
+            stream: "rng.random_events",
+            turnNumber: _turnNumber,
+            roundNumber: ComputeRoundNumber(_turnNumber),
+            sourceId: "tile");
+
+        var evt = new DomainEvent(
+            Type: SanguoRandomEventApplied.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
+                GameId: gameId,
+                PlayerId: activePlayerId,
+                EventId: picked.EventId,
+                EffectKind: picked.EffectKind,
+                MoneyDelta: picked.MoneyDelta,
+                StepDelta: picked.StepDelta,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId,
+                RngContextId: rngContextId,
+                CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                PickedIndex: pickedIndex,
+                PickedId: pickedId
+            )),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(evt);
+    }
+
+    private async Task TryTriggerGlobalTurnRandomEventIfBoundaryAsync(
+        string gameId,
+        string activePlayerId,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (_randomEventsCatalog is null)
+            return;
+
+        if (_globalEventIntervalTurns <= 0)
+            return;
+
+        if (_turnNumber % _globalEventIntervalTurns != 0)
+            return;
+
+        if (!TryPickRandomEvent(out var picked, out var candidatesSortedIdsHash, out var pickedIndex, out var pickedId))
+            return;
+
+        var rngContextId = BuildRngContextId(
+            stream: "rng.random_events",
+            turnNumber: _turnNumber,
+            roundNumber: ComputeRoundNumber(_turnNumber),
+            sourceId: "global");
+
+        var evt = new DomainEvent(
+            Type: SanguoRandomEventApplied.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
+                GameId: gameId,
+                PlayerId: activePlayerId,
+                EventId: picked.EventId,
+                EffectKind: picked.EffectKind,
+                MoneyDelta: picked.MoneyDelta,
+                StepDelta: picked.StepDelta,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId,
+                RngContextId: rngContextId,
+                CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                PickedIndex: pickedIndex,
+                PickedId: pickedId
+            )),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(evt);
+    }
+
+    private bool TryPickRandomEvent(
+        out SanguoRandomEventCatalogEntry picked,
+        out string candidatesSortedIdsHash,
+        out int pickedIndex,
+        out string pickedId)
+    {
+        picked = default!;
+        candidatesSortedIdsHash = string.Empty;
+        pickedIndex = -1;
+        pickedId = string.Empty;
+
+        if (_randomEventsCatalog is null)
+            return false;
+
+        var pool = _randomEventsCatalog.EventPools
+            .FirstOrDefault(p => string.Equals(p.PoolId, _randomEventPoolId, StringComparison.Ordinal));
+
+        if (pool is null)
+            return false;
+
+        var eventsById = new Dictionary<string, SanguoRandomEventCatalogEntry>(StringComparer.Ordinal);
+        foreach (var e in _randomEventsCatalog.Events)
+        {
+            if (!string.IsNullOrWhiteSpace(e.EventId))
+                eventsById[e.EventId] = e;
+        }
+
+        var candidateEntries = new List<SanguoRandomEventCatalogEntry>();
+        foreach (var eventId in pool.EventIds
+                     .Where(x => !string.IsNullOrWhiteSpace(x))
+                     .Distinct(StringComparer.Ordinal)
+                     .OrderBy(x => x, StringComparer.Ordinal))
+        {
+            if (!eventsById.TryGetValue(eventId, out var e))
+                continue;
+
+            if (!string.Equals(e.EffectKind, "economyStepDelta", StringComparison.Ordinal))
+                continue;
+
+            if (e.StepDelta is null)
+                continue;
+
+            candidateEntries.Add(e);
+        }
+
+        if (candidateEntries.Count == 0)
+            return false;
+
+        var candidateIds = candidateEntries.Select(x => x.EventId).ToArray();
+        candidatesSortedIdsHash = ComputeSha256Hex(string.Join("\n", candidateIds));
+
+        pickedIndex = _rng.NextInt(minInclusive: 0, maxExclusive: candidateEntries.Count);
+        picked = candidateEntries[pickedIndex];
+        pickedId = picked.EventId;
+        return true;
     }
 
     private static int GetSeasonFromMonth(int month)

@@ -29,6 +29,35 @@ public sealed record SanguoActionCardPlayed(
 }
 
 /// <summary>
+/// Domain event: core.sanguo.action_card.play.rejected
+/// Description: Emitted when an action card play is rejected by core rules (auditable, no state change).
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004, ADR-0005.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md.
+/// </remarks>
+public sealed record SanguoActionCardPlayRejected(
+    string GameId,
+    int TurnNumber,
+    int RoundNumber,
+    string PlayerId,
+    string Phase,
+    string CardId,
+    string ReasonCode,
+    DateTimeOffset OccurredAt,
+    string CorrelationId,
+    string? CausationId
+)
+{
+    public const string ReasonAlreadyPlayedThisTurn = "already_played_this_turn";
+
+    /// <summary>
+    /// CloudEvents type for this domain event.
+    /// </summary>
+    public const string EventType = "core.sanguo.action_card.play.rejected";
+}
+
+/// <summary>
 /// Domain event: core.sanguo.random_event.applied
 /// Description: Emitted when a random event is applied (tile event or global event).
 /// </summary>

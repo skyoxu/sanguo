@@ -3100,7 +3100,9 @@
     "contractRefs": [
       "core.sanguo.game.turn.started",
       "core.sanguo.action_card.played",
+      "core.sanguo.action_card.play.rejected",
       "core.sanguo.dice.rolled",
+      "core.sanguo.random_event.applied",
       "core.sanguo.game.turn.advanced"
     ]
   },
