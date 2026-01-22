@@ -2,9 +2,11 @@
 
 本仓库是 Windows only 项目。为避免“测试跑的是旧副本/假绿”的风险，测试工程不再维护 `Tests.Godot/Game.Godot/**` 的镜像拷贝。
 
-取而代之，要求在 Windows 上使用 **目录 Junction**：
+取而代之，要求在 Windows 上使用 **目录 Junction**（单一事实源）：
 
 - `Tests.Godot/Game.Godot` → `<repo>/Game.Godot`
+- `Tests.Godot/Data` → `<repo>/Data`
+- `Tests.Godot/Assets` → `<repo>/Assets`
 
 ## 一次性准备（本地）
 
@@ -22,5 +24,6 @@
 ## 重要约束
 
 - 不要把 `Tests.Godot/Game.Godot/**` 加入 git（已在 `.gitignore` 中忽略）。
+- 不要把 `Tests.Godot/Data/**` 与 `Tests.Godot/Assets/**` 加入 git（已在 `.gitignore` 中忽略）。
 - 如果你直接用 Godot 打开 `Tests.Godot` 工程，先运行一次上述脚本，确保 junction 存在。
 

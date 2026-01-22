@@ -33,7 +33,8 @@ Arch-Refs:
 ## 测试假设与默认值（冻结口径）
 
 - Headless 的 GdUnit4 不可靠输入事件，测试应使用 `emit_signal("pressed")` 等方式触发 UI 行为。
-- `Tests.Godot` 是独立 Godot 工程，`res://` 根指向 `Tests.Godot/`；因此若运行时逻辑读取 `res://Data/**`，测试工程必须提供对应数据镜像：`Tests.Godot/Data/**`。
+- `Tests.Godot` 是独立 Godot 工程，`res://` 根指向 `Tests.Godot/`；因此若运行时逻辑读取 `res://Data/**`，测试工程必须提供对应数据入口 `Tests.Godot/Data/**`。
+  - 约束：`Tests.Godot/Data` 必须通过 Junction 指向仓库根的 `Data`（由 `scripts/python/ensure_tests_project_junction.py` 保障），避免出现两套同名数据导致漂移与门禁误判。
 - 由于“新游戏配置界面（地图/角色/参数）”尚未落地，本阶段胶水层使用最小默认开局配置（用于可玩度与门禁稳定性）：
   - `players_count = 4`
   - `starting_money_preset = 10000`
