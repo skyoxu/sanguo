@@ -34,11 +34,17 @@ offset_top = 0.0
 offset_right = 400.0
 offset_bottom = 32.0
 
+[node name="Avatar" type="TextureRect" parent="TopBar/HBox"]
+custom_minimum_size = Vector2(28, 28)
+expand_mode = 1
+stretch_mode = 5
+
 [node name="ActivePlayerLabel" type="Label" parent="TopBar/HBox"]
 layout_mode = 2
 text = "Player: -"
 
 [node name="DateLabel" type="Label" parent="TopBar/HBox"]
+visible = true
 layout_mode = 2
 text = "Date: -"
 
@@ -47,10 +53,12 @@ layout_mode = 2
 text = "Money: -"
 
 [node name="ScoreLabel" type="Label" parent="TopBar/HBox"]
+visible = false
 layout_mode = 2
 text = "Score: 0"
 
 [node name="HealthLabel" type="Label" parent="TopBar/HBox"]
+visible = false
 layout_mode = 2
 text = "HP: 100"
 

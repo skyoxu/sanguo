@@ -1,6 +1,8 @@
 using Godot;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
+using Game.Core.Ports;
+using Game.Core.Services.Sanguo;
 using Game.Godot.Adapters;
 using Game.Godot.Scripts.Config;
 using Game.Godot.Scripts.Sanguo;
@@ -29,6 +31,7 @@ public partial class HUD : Control
     private Label _activePlayer = default!;
     private Label _date = default!;
     private Label _money = default!;
+    private TextureRect? _avatar;
     private Button _diceButton = default!;
     private Button _saveButton = default!;
     private Button _loadButton = default!;
@@ -52,6 +55,11 @@ public partial class HUD : Control
     private string _awaitingCorrelationId = string.Empty;
     private int _awaitingToIndex;
 
+    private readonly Dictionary<string, string> _characterIdByPlayerId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _characterNameKeyById = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _portraitPathByCharacterId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Texture2D> _portraitCache = new(StringComparer.Ordinal);
+
     public override void _Ready()
     {
         _lastDateKey = -1;
@@ -61,6 +69,7 @@ public partial class HUD : Control
         _activePlayer = GetNode<Label>("TopBar/HBox/ActivePlayerLabel");
         _date = GetNode<Label>("TopBar/HBox/DateLabel");
         _money = GetNode<Label>("TopBar/HBox/MoneyLabel");
+        _avatar = GetNodeOrNull<TextureRect>("TopBar/HBox/Avatar");
         _diceButton = GetNode<Button>("TopBar/HBox/DiceButton");
         _diceButton.Pressed += OnDicePressed;
         _diceButton.Disabled = true;
@@ -95,6 +104,11 @@ public partial class HUD : Control
 
         RegisterHandlers();
         TryLoadMapTilesForUi();
+        UpdateActivePlayerIdentityDisplay();
+
+        _score.Visible = false;
+        _health.Visible = false;
+        _date.Visible = true;
 
         _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
         if (_bus == null)
@@ -438,6 +452,7 @@ public partial class HUD : Control
             return;
         }
 
+        _handlers[SanguoGameStarted.EventType] = HandleGameStartedEvent;
         _handlers[CoreGameEvents.ScoreUpdated] = HandleScoreEvent;
         _handlers[CoreGameEvents.ScoreChanged] = HandleScoreEvent;
 
@@ -470,7 +485,11 @@ public partial class HUD : Control
         _activePlayerId = null;
         _diceButton.Disabled = true;
         _diceButton.Text = "Game Over";
-        _activePlayer.Text = "Player: -";
+        _activePlayer.Text = "Name: -";
+        if (_avatar != null)
+        {
+            _avatar.Texture = null;
+        }
 
         var reason = root.TryGetProperty("EndReason", out var r) && r.ValueKind == JsonValueKind.String
             ? (r.GetString() ?? "")
@@ -568,7 +587,7 @@ public partial class HUD : Control
         _diceButton.Disabled = string.IsNullOrWhiteSpace(active) || IsAiPlayerId(active);
         _diceButton.Text = string.IsNullOrWhiteSpace(active) ? "Roll Dice" : (IsAiPlayerId(active) ? "AI Turn" : "Roll Dice");
         _saveButton.Disabled = string.IsNullOrWhiteSpace(active);
-        _activePlayer.Text = $"Player: {active}";
+        UpdateActivePlayerIdentityDisplay();
         _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
 
         if (_awaitingTileAction && previousActive != null && !string.Equals(previousActive, _activePlayerId, StringComparison.Ordinal))
@@ -644,6 +663,132 @@ public partial class HUD : Control
         }
 
         _diceButton.Text = $"Dice: {value}";
+    }
+
+    private void HandleGameStartedEvent(JsonElement root)
+    {
+        if (!root.TryGetProperty("game_start_config", out var cfg) || cfg.ValueKind != JsonValueKind.Object)
+        {
+            return;
+        }
+
+        if (!cfg.TryGetProperty("character_assignments", out var assigns) || assigns.ValueKind != JsonValueKind.Object)
+        {
+            return;
+        }
+
+        _characterIdByPlayerId.Clear();
+        foreach (var prop in assigns.EnumerateObject())
+        {
+            var playerId = prop.Name ?? string.Empty;
+            var characterId = prop.Value.ValueKind == JsonValueKind.String ? (prop.Value.GetString() ?? string.Empty) : string.Empty;
+            if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(characterId))
+            {
+                continue;
+            }
+
+            _characterIdByPlayerId[playerId] = characterId;
+        }
+
+        TryLoadCharacterCatalog();
+        UpdateActivePlayerIdentityDisplay();
+    }
+
+    private void TryLoadCharacterCatalog()
+    {
+        _characterNameKeyById.Clear();
+        _portraitPathByCharacterId.Clear();
+
+        var loader = ResolveResourceLoader();
+        if (!SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, out var catalog, out _))
+        {
+            return;
+        }
+
+        foreach (var c in catalog.Characters)
+        {
+            if (string.IsNullOrWhiteSpace(c.CharacterId))
+            {
+                continue;
+            }
+
+            _characterNameKeyById[c.CharacterId] = c.NameKey ?? c.CharacterId;
+            _portraitPathByCharacterId[c.CharacterId] = c.PortraitPath ?? string.Empty;
+        }
+    }
+
+    private void UpdateActivePlayerIdentityDisplay()
+    {
+        var pid = _activePlayerId;
+        if (string.IsNullOrWhiteSpace(pid))
+        {
+            _activePlayer.Text = "Player: -";
+            if (_avatar != null)
+            {
+                _avatar.Texture = null;
+            }
+            return;
+        }
+
+        if (!_characterIdByPlayerId.TryGetValue(pid, out var characterId) || string.IsNullOrWhiteSpace(characterId))
+        {
+            _activePlayer.Text = $"Player: {pid}";
+            if (_avatar != null)
+            {
+                _avatar.Texture = null;
+            }
+            return;
+        }
+
+        _activePlayer.Text = $"Player: {pid}";
+
+        if (_avatar == null)
+        {
+            return;
+        }
+
+        if (_portraitCache.TryGetValue(characterId, out var cached))
+        {
+            _avatar.Texture = cached;
+            return;
+        }
+
+        if (!_portraitPathByCharacterId.TryGetValue(characterId, out var path) || string.IsNullOrWhiteSpace(path))
+        {
+            _avatar.Texture = null;
+            return;
+        }
+
+        if (!ResourceLoader.Exists(path))
+        {
+            _avatar.Texture = null;
+            return;
+        }
+
+        try
+        {
+            var tex = GD.Load<Texture2D>(path);
+            if (tex != null)
+            {
+                _portraitCache[characterId] = tex;
+            }
+            _avatar.Texture = tex;
+        }
+        catch
+        {
+            _avatar.Texture = null;
+        }
+    }
+
+    private IResourceLoader ResolveResourceLoader()
+    {
+        var portNode = GetNodeOrNull<Node>("/root/CompositionRoot/ResourceLoaderPort");
+        if (portNode is IResourceLoader port)
+        {
+            return port;
+        }
+
+        return new ResourceLoaderAdapter();
     }
 
     private void HandleTokenMovedEvent(JsonElement root)

@@ -140,6 +140,103 @@ internal static class SanguoMapConfigLoader
         return true;
     }
 
+    internal static bool TryLoadMapById(
+        IResourceLoader loader,
+        string mapId,
+        string correlationId,
+        out SanguoMapDefinition map,
+        out string sourcePath,
+        out string error
+    )
+    {
+        ArgumentNullException.ThrowIfNull(loader);
+
+        map = new SanguoMapDefinition(MapId: "invalid", TileCount: 0, Tiles: Array.Empty<SanguoTileDefinition>());
+        sourcePath = MapsIndexPath;
+        error = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(mapId))
+        {
+            error = "map_id_empty";
+            return false;
+        }
+
+        if (!TryLoadMapsCatalog(loader, out var catalog, out var catalogError))
+        {
+            SecurityAuditWriter.TryAppendSecurityAudit(
+                action: "SANGUO_MAP_CATALOG_LOAD_FAILED",
+                reason: "maps_index_invalid",
+                target: $"path={MapsIndexPath} error={catalogError}",
+                caller: "SanguoMapConfigLoader.TryLoadMapById",
+                eventType: "runtime.map.config.load.failed",
+                eventSource: nameof(SanguoMapConfigLoader),
+                eventId: correlationId);
+            error = catalogError;
+            return false;
+        }
+
+        if (catalog.Maps is null || catalog.Maps.Count == 0)
+        {
+            error = "maps_index_empty";
+            return false;
+        }
+
+        var exists = catalog.Maps.Any(m => m != null && string.Equals(m.MapId, mapId, StringComparison.Ordinal));
+        if (!exists)
+        {
+            error = "map_id_not_in_catalog";
+            SecurityAuditWriter.TryAppendSecurityAudit(
+                action: "SANGUO_MAP_CONFIG_LOAD_FAILED",
+                reason: "map_id_not_in_catalog",
+                target: $"mapId={mapId} path={MapsIndexPath}",
+                caller: "SanguoMapConfigLoader.TryLoadMapById",
+                eventType: "runtime.map.config.load.failed",
+                eventSource: nameof(SanguoMapConfigLoader),
+                eventId: correlationId);
+            return false;
+        }
+
+        if (!TryLoadMapV2FromMapId(loader, mapId, out var mapV2, out var mapV2Path, out var mapV2Error))
+        {
+            sourcePath = mapV2Path;
+            error = mapV2Error;
+            return false;
+        }
+
+        var legacy = ConvertV2ToLegacy(mapV2);
+        if (!SanguoMapDefinitionValidator.TryValidate(legacy, out var legacyErrors))
+        {
+            sourcePath = mapV2Path;
+            error = "invalid_legacy_map:" + string.Join(" | ", legacyErrors);
+            if (error.Length > 512)
+            {
+                error = error.Substring(0, 512);
+            }
+
+            SecurityAuditWriter.TryAppendSecurityAudit(
+                action: "SANGUO_MAP_CONFIG_LOAD_FAILED",
+                reason: "legacy_contract_validation_failed",
+                target: $"mapId={mapId} path={mapV2Path} error={error}",
+                caller: "SanguoMapConfigLoader.TryLoadMapById",
+                eventType: "runtime.map.config.load.failed",
+                eventSource: nameof(SanguoMapConfigLoader),
+                eventId: correlationId);
+            return false;
+        }
+
+        map = legacy;
+        sourcePath = mapV2Path;
+        SecurityAuditWriter.TryAppendSecurityAudit(
+            action: "SANGUO_MAP_CONFIG_LOADED",
+            reason: "maps_index_selected",
+            target: $"mapId={mapId} path={mapV2Path}",
+            caller: "SanguoMapConfigLoader.TryLoadMapById",
+            eventType: "runtime.map.config.loaded",
+            eventSource: nameof(SanguoMapConfigLoader),
+            eventId: correlationId);
+        return true;
+    }
+
     private static bool TryLoadMapsCatalog(
         IResourceLoader loader,
         out SanguoMapsCatalog catalog,
