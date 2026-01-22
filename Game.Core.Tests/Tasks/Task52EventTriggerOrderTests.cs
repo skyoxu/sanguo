@@ -181,6 +181,13 @@ public sealed class Task52EventTriggerOrderTests
 
             data.Value.TryGetProperty("CandidatesSortedIdsHash", out var hash).Should().BeTrue();
             hash.GetString().Should().Be(DefaultPoolCandidatesSortedIdsHash);
+
+            data.Value.TryGetProperty("AppliedMultipliersAfter", out var after).Should().BeTrue();
+            after.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Null);
+            after.TryGetProperty("EventStepDelta", out var eventDelta).Should().BeTrue();
+            after.TryGetProperty("EffectiveSteps", out var effectiveSteps).Should().BeTrue();
+            eventDelta.GetInt32().Should().Be(1, "economyStepDelta must be committed before emitting random_event.applied");
+            effectiveSteps.GetInt32().Should().Be(3);
         }
     }
 
@@ -227,6 +234,13 @@ public sealed class Task52EventTriggerOrderTests
         {
             globalData.Value.TryGetProperty("CandidatesSortedIdsHash", out var hash).Should().BeTrue();
             hash.GetString().Should().Be(DefaultPoolCandidatesSortedIdsHash);
+
+            globalData.Value.TryGetProperty("AppliedMultipliersAfter", out var after).Should().BeTrue();
+            after.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Null);
+            after.TryGetProperty("EventStepDelta", out var eventDelta).Should().BeTrue();
+            after.TryGetProperty("EffectiveSteps", out var effectiveSteps).Should().BeTrue();
+            eventDelta.GetInt32().Should().Be(1, "economyStepDelta must be committed before emitting random_event.applied");
+            effectiveSteps.GetInt32().Should().Be(3);
         }
     }
 }

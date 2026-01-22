@@ -180,6 +180,21 @@ public sealed class Task52OutOfOrderEventRegressionTests
             secondData.Value.TryGetProperty("PickedIndex", out var i1).Should().BeTrue();
             i0.GetInt32().Should().Be(0);
             i1.GetInt32().Should().Be(1, "global draw should consume the next RNG value after tile draw");
+
+            firstData.Value.TryGetProperty("AppliedMultipliersAfter", out var after0).Should().BeTrue();
+            secondData.Value.TryGetProperty("AppliedMultipliersAfter", out var after1).Should().BeTrue();
+            after0.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Null);
+            after1.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Null);
+
+            after0.TryGetProperty("EventStepDelta", out var d0).Should().BeTrue();
+            after0.TryGetProperty("EffectiveSteps", out var s0).Should().BeTrue();
+            after1.TryGetProperty("EventStepDelta", out var d1).Should().BeTrue();
+            after1.TryGetProperty("EffectiveSteps", out var s1).Should().BeTrue();
+
+            d0.GetInt32().Should().Be(1, "tile economyStepDelta should be committed before emitting random_event.applied");
+            s0.GetInt32().Should().Be(3);
+            d1.GetInt32().Should().Be(2, "global economyStepDelta should be committed after tile delta within the same turn");
+            s1.GetInt32().Should().Be(4);
         }
     }
 }

@@ -1632,7 +1632,7 @@
           "50",
           "51"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1681,7 +1681,7 @@
           "53",
           "55"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",

@@ -23,6 +23,7 @@ public sealed class SanguoTurnManager
     private readonly SanguoRandomEventsCatalog? _randomEventsCatalog;
     private readonly int _globalEventIntervalTurns;
     private readonly string _randomEventPoolId;
+    private readonly Dictionary<string, int> _turnEventStepDeltasByPlayerId = new(StringComparer.Ordinal);
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -122,6 +123,7 @@ public sealed class SanguoTurnManager
         _started = true;
         _gameOverEndReason = null;
         _actionCardPlayedTurnNumber = null;
+        ResetTurnScopedEventStepDeltas();
 
         var occurredAt = DateTimeOffset.UtcNow;
 
@@ -301,6 +303,8 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N")
         );
         await _bus.PublishAsync(ended);
+
+        ResetTurnScopedEventStepDeltas();
 
         PruneEliminatedAiPlayers(activePlayerId);
         if (_playerOrder.Length == 0)
@@ -903,6 +907,35 @@ public sealed class SanguoTurnManager
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
+    private void ResetTurnScopedEventStepDeltas()
+    {
+        _turnEventStepDeltasByPlayerId.Clear();
+    }
+
+    private AppliedMultipliers CommitTurnEventEconomyStepDeltaAndGetSnapshot(string playerId, int stepDelta)
+    {
+        if (string.IsNullOrWhiteSpace(playerId))
+            throw new ArgumentException("PlayerId must be non-empty.", nameof(playerId));
+
+        var current = _turnEventStepDeltasByPlayerId.TryGetValue(playerId, out var v) ? v : 0;
+        var next = checked(current + stepDelta);
+        _turnEventStepDeltasByPlayerId[playerId] = next;
+
+        var baseSteps = AppliedMultipliers.BaseDefaultSteps;
+        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + next);
+
+        return new AppliedMultipliers(
+            BaseSteps: baseSteps,
+            CharacterStepDelta: 0,
+            BuildingStepDelta: 0,
+            EventStepDelta: next,
+            ActionCardStepDelta: 0,
+            RelicStepDelta: 0,
+            RegionStepDelta: 0,
+            EffectiveSteps: effectiveSteps,
+            Sources: AppliedMultiplierSources.Event);
+    }
+
     private async Task TryTriggerTileRandomEventAsync(
         string gameId,
         string activePlayerId,
@@ -922,6 +955,12 @@ public sealed class SanguoTurnManager
             roundNumber: ComputeRoundNumber(_turnNumber),
             sourceId: "tile");
 
+        AppliedMultipliers? appliedAfter = null;
+        if (string.Equals(picked.EffectKind, "economyStepDelta", StringComparison.Ordinal) && picked.StepDelta.HasValue)
+        {
+            appliedAfter = CommitTurnEventEconomyStepDeltaAndGetSnapshot(activePlayerId, picked.StepDelta.Value);
+        }
+
         var evt = new DomainEvent(
             Type: SanguoRandomEventApplied.EventType,
             Source: nameof(SanguoTurnManager),
@@ -938,7 +977,8 @@ public sealed class SanguoTurnManager
                 RngContextId: rngContextId,
                 CandidatesSortedIdsHash: candidatesSortedIdsHash,
                 PickedIndex: pickedIndex,
-                PickedId: pickedId
+                PickedId: pickedId,
+                AppliedMultipliersAfter: appliedAfter
             )),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N"));
@@ -970,6 +1010,12 @@ public sealed class SanguoTurnManager
             roundNumber: ComputeRoundNumber(_turnNumber),
             sourceId: "global");
 
+        AppliedMultipliers? appliedAfter = null;
+        if (string.Equals(picked.EffectKind, "economyStepDelta", StringComparison.Ordinal) && picked.StepDelta.HasValue)
+        {
+            appliedAfter = CommitTurnEventEconomyStepDeltaAndGetSnapshot(activePlayerId, picked.StepDelta.Value);
+        }
+
         var evt = new DomainEvent(
             Type: SanguoRandomEventApplied.EventType,
             Source: nameof(SanguoTurnManager),
@@ -986,7 +1032,8 @@ public sealed class SanguoTurnManager
                 RngContextId: rngContextId,
                 CandidatesSortedIdsHash: candidatesSortedIdsHash,
                 PickedIndex: pickedIndex,
-                PickedId: pickedId
+                PickedId: pickedId,
+                AppliedMultipliersAfter: appliedAfter
             )),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N"));
@@ -1421,6 +1468,8 @@ public sealed class SanguoTurnManager
         _turnNumber = snapshot.TurnNumber;
         _currentDate = new SanguoCalendarDate(snapshot.Year, snapshot.Month, snapshot.Day);
         _started = true;
+        _actionCardPlayedTurnNumber = null;
+        ResetTurnScopedEventStepDeltas();
     }
 
     public async Task PublishStateSnapshotAsync(string correlationId, string? causationId)

@@ -78,7 +78,8 @@ public sealed record SanguoRandomEventApplied(
     string? RngContextId = null,
     string? CandidatesSortedIdsHash = null,
     int? PickedIndex = null,
-    string? PickedId = null
+    string? PickedId = null,
+    AppliedMultipliers? AppliedMultipliersAfter = null
 )
 {
     /// <summary>
