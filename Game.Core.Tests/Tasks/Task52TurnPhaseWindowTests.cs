@@ -231,6 +231,13 @@ public sealed class Task52TurnPhaseWindowTests
                 root.TryGetProperty("MoneyDelta", out var moneyDelta).Should().BeTrue();
                 moneyDelta.ValueKind.Should().Be(System.Text.Json.JsonValueKind.Null);
                 stepDelta.ValueKind.Should().Be(System.Text.Json.JsonValueKind.Number);
+
+                root.TryGetProperty("AppliedMultipliersAfter", out var after).Should().BeTrue();
+                after.ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Null);
+                after.TryGetProperty("EventStepDelta", out var eventDelta).Should().BeTrue();
+                after.TryGetProperty("EffectiveSteps", out var effectiveSteps).Should().BeTrue();
+                eventDelta.GetInt32().Should().Be(stepDelta.GetInt32(), "random_event.applied must include a post-commit AppliedMultipliers snapshot for economyStepDelta");
+                effectiveSteps.GetInt32().Should().Be(3);
             }
         }
     }
@@ -279,8 +286,16 @@ public sealed class Task52TurnPhaseWindowTests
                     return null;
                 if (!data.Value.TryGetProperty("PickedId", out var pickedId))
                     return null;
+                if (!data.Value.TryGetProperty("AppliedMultipliersAfter", out var after))
+                    return null;
+                if (after.ValueKind == System.Text.Json.JsonValueKind.Null)
+                    return null;
+                if (!after.TryGetProperty("EventStepDelta", out var eventDelta))
+                    return null;
+                if (!after.TryGetProperty("EffectiveSteps", out var effectiveSteps))
+                    return null;
 
-                return $"{rngContextId.GetString()}|{hash.GetString()}|{pickedIndex.GetInt32()}|{pickedId.GetString()}";
+                return $"{rngContextId.GetString()}|{hash.GetString()}|{pickedIndex.GetInt32()}|{pickedId.GetString()}|{eventDelta.GetInt32()}|{effectiveSteps.GetInt32()}";
             }
 
             var first = ToSig(applied[0]);

@@ -24,6 +24,8 @@ Arch-Refs:
 ## 契约（EventType + 触发点）
 - `core.sanguo.action_card.played`：BeforeRoll 使用行动卡后。
 - `core.sanguo.random_event.applied`：随机事件效果应用后（含事件格与全局事件两类来源）。
+  - 口径止损：`applied` 必须表示“效果已提交到 Core 的可复盘状态”，而不是“已抽取/已选择”。
+  - 对 `economyStepDelta`：事件 payload 必须包含 `AppliedMultipliersAfter`（提交后快照；含 clamp 后的 EffectiveSteps 与可审计的分解来源）。
 
 ## 验收条款（ACC）
 - ACC:T52.1 BeforeRoll 窗口每回合只允许 0/1 张行动卡。
