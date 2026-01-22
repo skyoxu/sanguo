@@ -46,6 +46,7 @@ TestResults/
 !Tests.Godot/addons/gdUnit4/bin/**
 # Godot/VS misc metadata not for VCS
 *.uid
+Assets/**/*.import
 tmp_patch.txt
 
 # Tests project single-source-of-truth (junction target; do not version mirror copies)

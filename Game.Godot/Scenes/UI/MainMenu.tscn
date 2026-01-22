@@ -18,6 +18,64 @@ offset_top = 40.0
 offset_right = 300.0
 offset_bottom = 240.0
 
+[node name="NewGameConfig" type="PanelContainer" parent="."]
+layout_mode = 2
+offset_left = 340.0
+offset_top = 40.0
+offset_right = 820.0
+offset_bottom = 360.0
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="NewGameConfig"]
+layout_mode = 2
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 472.0
+offset_bottom = 312.0
+
+[node name="Title" type="Label" parent="NewGameConfig/VBox"]
+layout_mode = 2
+text = "New Game"
+
+[node name="MapLabel" type="Label" parent="NewGameConfig/VBox"]
+layout_mode = 2
+text = "Map"
+
+[node name="MapOption" type="OptionButton" parent="NewGameConfig/VBox"]
+layout_mode = 2
+
+[node name="PlayersLabel" type="Label" parent="NewGameConfig/VBox"]
+layout_mode = 2
+text = "Players"
+
+[node name="PlayersOption" type="OptionButton" parent="NewGameConfig/VBox"]
+layout_mode = 2
+
+[node name="CharacterLabel" type="Label" parent="NewGameConfig/VBox"]
+layout_mode = 2
+text = "Player Character"
+
+[node name="CharacterOption" type="OptionButton" parent="NewGameConfig/VBox"]
+layout_mode = 2
+
+[node name="MoneyLabel" type="Label" parent="NewGameConfig/VBox"]
+layout_mode = 2
+text = "Starting Money"
+
+[node name="StartingMoneyOption" type="OptionButton" parent="NewGameConfig/VBox"]
+layout_mode = 2
+
+[node name="GlobalEventLabel" type="Label" parent="NewGameConfig/VBox"]
+layout_mode = 2
+text = "Global Event Interval"
+
+[node name="GlobalEventIntervalOption" type="OptionButton" parent="NewGameConfig/VBox"]
+layout_mode = 2
+
+[node name="AiFillLabel" type="Label" parent="NewGameConfig/VBox"]
+layout_mode = 2
+text = "AI slots: -"
+
 [node name="LoadPanel" type="Panel" parent="."]
 visible = false
 layout_mode = 2

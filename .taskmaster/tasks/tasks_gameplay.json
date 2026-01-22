@@ -1885,28 +1885,21 @@
       "core.sanguo.game.started"
     ],
     "acceptance": [
-      "游戏流程中的“开始新游戏/开始对局”必须进入新游戏配置界面继续配置并开始；不得出现“tasks_back.json”等占位/乱码内容作为可通过的流程步骤。 Refs: Tests.Godot/tests/Integration/test_flow_requires_new_game_setup_before_game_start.gd",
-      "新游戏配置界面允许玩家完成全部开局配置：可选地图；总人数可设置为 4–8（含边界值）；初始资金档仅可选 5000/10000/20000；全局事件间隔仅可选 5/10/20；且玩家必须先完成选角后才允许执行开始对局操作。 Refs: Tests.Godot/tests/UI/test_new_game_setup_constraints_and_start.gd",
+      "游戏流程中的“开始新游戏/开始对局”必须进入新游戏配置界面继续配置并开始；不得出现“tasks_back.json”等占位/乱码内容作为可通过的流程步骤。 Refs: Tests.Godot/tests/UI/Task54/test_task54_flow_requires_new_game_setup_before_game_start.gd",
+      "新游戏配置界面允许玩家完成全部开局配置：可选地图；总人数可设置为 4–8（含边界值）；初始资金档仅可选 5000/10000/20000；全局事件间隔仅可选 5/10/20；且玩家必须先完成选角后才允许执行开始对局操作。 Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd",
       "当设定总人数大于玩家人数时，AI 必须自动补足到设定人数并为每个 AI 随机分配角色；对局开始时所有参战角色在全局范围内唯一，且不得与玩家所选角色重复。 Refs: Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs",
-      "进入对局后，HUD 仅显示头像、名字、资金三项信息；不得展示任何系数/倍率等其它字段。 Refs: Tests.Godot/tests/UI/test_hud_shows_avatar_name_money_only.gd",
-      "该新游戏配置界面是唯一开局入口：从主菜单/启动流程触发“开始新游戏/开始对局”时必须先进入该配置界面，且不存在可用路径能绕过配置直接进入对局。 Refs: Tests.Godot/tests/Integration/test_flow_requires_new_game_setup_before_game_start.gd",
-      "触发开始对局操作后必须进入对局可运行状态，且初始化结果与所选配置一致：实际参战总人数等于设定值（4–8），每名玩家/AI 初始资金等于所选资金档（5000/10000/20000）。 Refs: Tests.Godot/tests/Integration/test_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "对局运行时全局事件调度间隔必须使用所选值（5/10/20）：连续全局事件的触发间隔可被观测并验证与所选值一致；若无法观测/验证或不一致则视为不通过。 Refs: Tests.Godot/tests/Integration/test_global_event_interval_observable_matches_config.gd"
+      "进入对局后，HUD 显示玩家身份（头像/PlayerId）、日期、资金；不得展示任何系数/倍率等其它字段；Score/HP 等默认隐藏。 Refs: Tests.Godot/tests/UI/Task54/test_task54_hud_shows_avatar_name_money_only.gd",
+      "该新游戏配置界面是唯一开局入口：从主菜单/启动流程触发“开始新游戏/开始对局”时必须先进入该配置界面，且不存在可用路径能绕过配置直接进入对局。 Refs: Tests.Godot/tests/UI/Task54/test_task54_flow_requires_new_game_setup_before_game_start.gd",
+      "触发开始对局操作后必须进入对局可运行状态，且初始化结果与所选配置一致：实际参战总人数等于设定值（4–8），每名玩家/AI 初始资金等于所选资金档（5000/10000/20000）。 Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd",
+      "对局运行时全局事件调度间隔必须使用所选值（5/10/20）：连续全局事件的触发间隔可被观测并验证与所选值一致；若无法观测/验证或不一致则视为不通过。 Refs: Tests.Godot/tests/UI/Task54/test_task54_global_event_interval_observable_matches_config.gd"
     ],
     "test_refs": [
-      "Tests.Godot/tests/UI/test_task54_new_game_setup_ui.gd",
+      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd",
       "Game.Core.Tests/Tasks/Task54RoleAssignmentUniquenessTests.cs",
-      "Tests.Godot/tests/UI/test_task54_hud_shows_name_money_portrait_only.gd",
-      "Tests.Godot/tests/Integration/test_task54_main_menu_requires_new_game_setup.gd",
-      "Tests.Godot/tests/UI/test_task54_new_game_setup_constraints_and_start.gd",
-      "Tests.Godot/tests/UI/test_task54_hud_displays_identity_and_money_only.gd",
-      "Tests.Godot/tests/Integration/test_task54_new_game_start_applies_selected_config.gd",
-      "Tests.Godot/tests/Integration/test_task54_global_event_interval_matches_config.gd",
-      "Tests.Godot/tests/Integration/test_flow_requires_new_game_setup_before_game_start.gd",
-      "Tests.Godot/tests/UI/test_new_game_setup_constraints_and_start.gd",
-      "Tests.Godot/tests/UI/test_hud_shows_avatar_name_money_only.gd",
-      "Tests.Godot/tests/Integration/test_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Tests.Godot/tests/Integration/test_global_event_interval_observable_matches_config.gd"
+      "Tests.Godot/tests/UI/Task54/test_task54_hud_shows_avatar_name_money_only.gd",
+      "Tests.Godot/tests/UI/Task54/test_task54_flow_requires_new_game_setup_before_game_start.gd",
+      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd",
+      "Tests.Godot/tests/UI/Task54/test_task54_global_event_interval_observable_matches_config.gd"
     ],
     "test_strategy": [
       "GdUnit4：走 UI 配置→开始游戏；xUnit：角色分配唯一性。"

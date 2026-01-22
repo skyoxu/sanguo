@@ -81,6 +81,14 @@ public partial class SanguoGameLoopController : Node
         WriteIndented = false,
     };
 
+    private static readonly JsonSerializerOptions StartConfigJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+        MaxDepth = 32,
+    };
+
     private static bool IsQuitSuppressed()
         => string.Equals(System.Environment.GetEnvironmentVariable("GD_DISABLE_QUIT"), "1", StringComparison.Ordinal);
 
@@ -261,7 +269,7 @@ public partial class SanguoGameLoopController : Node
             _audio?.PlayMusic(DefaultMusicLoopId, 0.6f, true);
 
             var correlationId = Guid.NewGuid().ToString("N");
-            CallDeferred(nameof(StartGameDeferred), correlationId);
+            CallDeferred(nameof(StartGameDeferred), correlationId, string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson);
             return;
         }
 
@@ -398,7 +406,7 @@ public partial class SanguoGameLoopController : Node
         TryQueueAiAutoAdvanceIfNeeded();
     }
 
-    private async void StartGameDeferred(string correlationId)
+    private async void StartGameDeferred(string correlationId, string startConfigJson)
     {
         if (_started)
         {
@@ -413,7 +421,7 @@ public partial class SanguoGameLoopController : Node
         _advanceQueued = true;
         try
         {
-            var (ok, reason) = await TryStartNewGameAsync(correlationId: correlationId, causationId: UiMenuStart);
+            var (ok, reason) = await TryStartNewGameAsync(correlationId: correlationId, causationId: UiMenuStart, startConfigJson: startConfigJson);
             if (!ok)
             {
                 PublishMenuStartFailed(correlationId, reason);
@@ -425,7 +433,7 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
-    private async Task<(bool ok, string reason)> TryStartNewGameAsync(string correlationId, string causationId)
+    private async Task<(bool ok, string reason)> TryStartNewGameAsync(string correlationId, string causationId, string? startConfigJson = null)
     {
         if (_started)
         {
@@ -444,10 +452,42 @@ public partial class SanguoGameLoopController : Node
             return (false, "resource_loader_missing");
         }
 
-        if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out var mapSourcePath, out var mapError))
+        GameStartConfig? startConfigOverride = null;
+        if (!string.IsNullOrWhiteSpace(startConfigJson) && !string.Equals(startConfigJson.Trim(), "{}", StringComparison.Ordinal))
         {
-            GD.PushWarning($"SanguoGameLoopController: map config load failed (source='{mapSourcePath}', error='{mapError}').");
-            return (false, "map_config_load_failed");
+            if (!TryDeserializeStartConfig(startConfigJson, out var parsed, out var parseError))
+            {
+                GD.PushWarning($"SanguoGameLoopController: invalid ui.menu.start payload: {parseError}");
+                return (false, "invalid_start_config_json");
+            }
+            startConfigOverride = parsed;
+        }
+
+        SanguoMapDefinition map;
+        string mapSourcePath;
+        string mapError;
+
+        if (startConfigOverride != null)
+        {
+            if (!SanguoMapConfigLoader.TryLoadMapById(
+                loader,
+                mapId: startConfigOverride.MapId,
+                correlationId: correlationId,
+                out map,
+                out mapSourcePath,
+                out mapError))
+            {
+                GD.PushWarning($"SanguoGameLoopController: selected map load failed (mapId='{startConfigOverride.MapId}', source='{mapSourcePath}', error='{mapError}').");
+                return (false, "map_config_load_failed");
+            }
+        }
+        else
+        {
+            if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out map, out mapSourcePath, out mapError))
+            {
+                GD.PushWarning($"SanguoGameLoopController: map config load failed (source='{mapSourcePath}', error='{mapError}').");
+                return (false, "map_config_load_failed");
+            }
         }
 
         _map = map;
@@ -456,7 +496,7 @@ public partial class SanguoGameLoopController : Node
         var boardView = GetNodeOrNull<SanguoBoardView>(BoardViewPath);
         boardView?.ApplyMapDefinition(map);
 
-        var startConfig = CreateDefaultGameStartConfig(map);
+        var startConfig = startConfigOverride ?? CreateDefaultGameStartConfig(map);
         if (!GameStartConfigValidator.TryValidate(startConfig, out var startConfigErrors))
         {
             GD.PushWarning($"SanguoGameLoopController: start config invalid: {string.Join(" | ", startConfigErrors)}");
@@ -488,6 +528,42 @@ public partial class SanguoGameLoopController : Node
             _turnManager = null;
             _started = false;
             return (false, "exception:" + ex.GetType().Name);
+        }
+    }
+
+    private static bool TryDeserializeStartConfig(string json, out GameStartConfig cfg, out string error)
+    {
+        cfg = new GameStartConfig(
+            MapId: string.Empty,
+            PlayersCount: 0,
+            StartingMoneyPreset: 0,
+            GlobalEventIntervalTurns: 0,
+            RandomSeed: 0,
+            CharacterAssignments: new Dictionary<string, string>());
+        error = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            error = "empty_json";
+            return false;
+        }
+
+        try
+        {
+            var parsed = JsonSerializer.Deserialize<GameStartConfig>(json, StartConfigJsonOptions);
+            if (parsed == null)
+            {
+                error = "json_deserialize_null";
+                return false;
+            }
+
+            cfg = parsed;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = "json_parse_failed:" + ex.GetType().Name;
+            return false;
         }
     }
 

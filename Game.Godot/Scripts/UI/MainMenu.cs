@@ -1,6 +1,11 @@
 using Godot;
+using Game.Core.Contracts.Sanguo;
+using Game.Core.Ports;
+using Game.Core.Services.Sanguo;
 using Game.Godot.Adapters;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace Game.Godot.Scripts.UI;
@@ -18,6 +23,10 @@ public partial class MainMenu : Control
     private const string HelpTutorialGroup = "help_tutorial";
     private const string HelpTutorialScenePath = "res://Game.Godot/Scenes/UI/HelpTutorial.tscn";
 
+    private static readonly int[] AllowedPlayersCounts = { 4, 5, 6, 7, 8 };
+    private static readonly int[] AllowedStartingMoneyPresets = { 5000, 10000, 20000 };
+    private static readonly int[] AllowedGlobalEventIntervals = { 5, 10, 20 };
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -34,8 +43,16 @@ public partial class MainMenu : Control
     private Control _loadPanel = default!;
     private Label _statusLabel = default!;
 
+    private OptionButton _mapOption = default!;
+    private OptionButton _playersOption = default!;
+    private OptionButton _characterOption = default!;
+    private OptionButton _startingMoneyOption = default!;
+    private OptionButton _globalEventIntervalOption = default!;
+    private Label _aiFillLabel = default!;
+
     private EventBusAdapter? _bus;
     private bool _startPending;
+    private bool _newGameConfigReady;
 
     public override void _Ready()
     {
@@ -46,6 +63,13 @@ public partial class MainMenu : Control
         _btnQuit = GetNode<Button>("VBox/BtnQuit");
         _loadPanel = GetNode<Control>("LoadPanel");
         _statusLabel = GetNode<Label>("StatusLabel");
+
+        _mapOption = GetNode<OptionButton>("NewGameConfig/VBox/MapOption");
+        _playersOption = GetNode<OptionButton>("NewGameConfig/VBox/PlayersOption");
+        _characterOption = GetNode<OptionButton>("NewGameConfig/VBox/CharacterOption");
+        _startingMoneyOption = GetNode<OptionButton>("NewGameConfig/VBox/StartingMoneyOption");
+        _globalEventIntervalOption = GetNode<OptionButton>("NewGameConfig/VBox/GlobalEventIntervalOption");
+        _aiFillLabel = GetNode<Label>("NewGameConfig/VBox/AiFillLabel");
 
         _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
         if (_bus != null)
@@ -70,6 +94,10 @@ public partial class MainMenu : Control
         _statusLabel.Visible = false;
         _statusLabel.Text = string.Empty;
         _startPending = false;
+
+        WireNewGameConfigControls();
+        PopulateNewGameConfigControls();
+        RefreshStartAvailability();
     }
 
     public override void _ExitTree()
@@ -120,11 +148,40 @@ public partial class MainMenu : Control
 
     private void OnPlayPressed()
     {
+        if (_startPending)
+        {
+            return;
+        }
+
+        string? startConfigJson = null;
+        if (_newGameConfigReady)
+        {
+            if (!TryBuildStartConfigJson(out startConfigJson, out var error))
+            {
+                // Do not block the start event on data/resource issues. The runtime glue publishes
+                // ui.menu.start.failed with a deterministic reason when it cannot start.
+                //
+                // We still block for clearly user-driven missing selections to avoid starting with defaults silently.
+                if (string.Equals(error, "map_missing", StringComparison.Ordinal) ||
+                    string.Equals(error, "character_missing", StringComparison.Ordinal) ||
+                    string.Equals(error, "players_count_invalid", StringComparison.Ordinal))
+                {
+                    _startPending = false;
+                    SetButtonsEnabled(true);
+                    ShowMenu();
+                    ShowStatus("Invalid setup: " + error);
+                    return;
+                }
+
+                startConfigJson = "{}";
+            }
+        }
+
         _startPending = true;
         ClearStatus();
         ShowStatus("Starting...");
         SetButtonsEnabled(false);
-        Publish(UiMenuStart, "ui");
+        Publish(UiMenuStart, "ui", startConfigJson ?? "{}");
     }
 
     private void OnSettingsPressed()
@@ -213,6 +270,251 @@ public partial class MainMenu : Control
             ShowMenu();
             ShowStatus("Start failed: " + (TryExtractStartFailedReason(dataJson) ?? "unknown"));
         }
+    }
+
+    private void WireNewGameConfigControls()
+    {
+        _playersOption.ItemSelected += _ => RefreshStartAvailability();
+        _characterOption.ItemSelected += _ => RefreshStartAvailability();
+        _startingMoneyOption.ItemSelected += _ => RefreshStartAvailability();
+        _globalEventIntervalOption.ItemSelected += _ => RefreshStartAvailability();
+        _mapOption.ItemSelected += _ => RefreshStartAvailability();
+    }
+
+    private void PopulateNewGameConfigControls()
+    {
+        _newGameConfigReady = false;
+
+        try
+        {
+            _playersOption.Clear();
+            foreach (var n in AllowedPlayersCounts)
+            {
+                _playersOption.AddItem(n.ToString(), n);
+            }
+
+            _startingMoneyOption.Clear();
+            foreach (var n in AllowedStartingMoneyPresets)
+            {
+                _startingMoneyOption.AddItem(n.ToString(), n);
+            }
+
+            _globalEventIntervalOption.Clear();
+            foreach (var n in AllowedGlobalEventIntervals)
+            {
+                _globalEventIntervalOption.AddItem(n.ToString(), n);
+            }
+
+            _mapOption.Clear();
+            var loader = ResolveResourceLoader();
+            if (SanguoMapsCatalogLoader.TryLoadMapsCatalog(loader, out var maps, out _))
+            {
+                foreach (var entry in maps.Maps.OrderBy(m => m.NameKey, StringComparer.Ordinal))
+                {
+                    var label = string.IsNullOrWhiteSpace(entry.NameKey) ? entry.MapId : entry.NameKey;
+                    var idx = _mapOption.ItemCount;
+                    _mapOption.AddItem(label);
+                    _mapOption.SetItemMetadata(idx, entry.MapId);
+                }
+            }
+
+            if (_mapOption.ItemCount == 0)
+            {
+                var idx = _mapOption.ItemCount;
+                _mapOption.AddItem("map001");
+                _mapOption.SetItemMetadata(idx, "map001");
+            }
+
+            _characterOption.Clear();
+            if (SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, out var chars, out _))
+            {
+                foreach (var c in chars.Characters.OrderBy(x => x.NameKey, StringComparer.Ordinal))
+                {
+                    var label = string.IsNullOrWhiteSpace(c.NameKey) ? c.CharacterId : c.NameKey;
+                    var idx = _characterOption.ItemCount;
+                    _characterOption.AddItem(label);
+                    _characterOption.SetItemMetadata(idx, c.CharacterId);
+                }
+            }
+
+            if (_characterOption.ItemCount == 0)
+            {
+                var idx = _characterOption.ItemCount;
+                _characterOption.AddItem("c1");
+                _characterOption.SetItemMetadata(idx, "c1");
+            }
+
+            _playersOption.Select(0);
+            _startingMoneyOption.Select(1);
+            _globalEventIntervalOption.Select(1);
+            _mapOption.Select(0);
+            _characterOption.Select(0);
+
+            _newGameConfigReady = true;
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"MainMenu: failed to initialize new-game config controls: {ex.Message}");
+            _newGameConfigReady = false;
+        }
+    }
+
+    private void RefreshStartAvailability()
+    {
+        var playersCount = GetSelectedPlayersCount();
+        _aiFillLabel.Text = playersCount > 0 ? $"AI slots: {Math.Max(0, playersCount - 1)}" : "AI slots: -";
+
+        if (_startPending)
+        {
+            return;
+        }
+
+        if (!_newGameConfigReady)
+        {
+            _btnPlay.Disabled = false;
+            return;
+        }
+
+        _btnPlay.Disabled = !TryBuildStartConfigJson(out _, out _);
+    }
+
+    private bool TryBuildStartConfigJson(out string? json, out string error)
+    {
+        json = null;
+        error = string.Empty;
+
+        var mapId = GetSelectedMapId();
+        if (string.IsNullOrWhiteSpace(mapId))
+        {
+            error = "map_missing";
+            return false;
+        }
+
+        var playersCount = GetSelectedPlayersCount();
+        var startingMoney = GetSelectedStartingMoneyPreset();
+        var interval = GetSelectedGlobalEventIntervalTurns();
+        var playerCharacterId = GetSelectedCharacterId();
+        if (string.IsNullOrWhiteSpace(playerCharacterId))
+        {
+            error = "character_missing";
+            return false;
+        }
+
+        var seed = unchecked((int)(Time.GetTicksMsec() % int.MaxValue));
+
+        var assigns = BuildCharacterAssignments(ResolveResourceLoader(), playersCount, playerCharacterId, seed, out var assignsError);
+        if (assigns == null)
+        {
+            error = assignsError;
+            return false;
+        }
+
+        var cfg = new GameStartConfig(
+            MapId: mapId,
+            PlayersCount: playersCount,
+            StartingMoneyPreset: startingMoney,
+            GlobalEventIntervalTurns: interval,
+            RandomSeed: seed,
+            CharacterAssignments: assigns);
+
+        if (!GameStartConfigValidator.TryValidate(cfg, out var errors))
+        {
+            error = string.Join(" | ", errors.Take(3));
+            return false;
+        }
+
+        json = JsonSerializer.Serialize(cfg);
+        return true;
+    }
+
+    private static IReadOnlyDictionary<string, string>? BuildCharacterAssignments(
+        IResourceLoader loader,
+        int playersCount,
+        string playerCharacterId,
+        int seed,
+        out string error)
+    {
+        error = string.Empty;
+
+        if (!SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, out var catalog, out var loadError))
+        {
+            error = loadError;
+            return null;
+        }
+
+        var ids = catalog.Characters.Select(c => c.CharacterId).ToArray();
+        if (!SanguoCharacterAssignmentsGenerator.TryBuildAssignments(ids, playersCount, playerCharacterId, seed, out var assigns, out error))
+        {
+            return null;
+        }
+
+        return assigns;
+    }
+
+    private IResourceLoader ResolveResourceLoader()
+    {
+        var portNode = GetNodeOrNull<Node>("/root/CompositionRoot/ResourceLoaderPort");
+        if (portNode is IResourceLoader port)
+        {
+            return port;
+        }
+
+        return new ResourceLoaderAdapter();
+    }
+
+    private string GetSelectedMapId()
+    {
+        if (_mapOption.ItemCount == 0)
+        {
+            return string.Empty;
+        }
+
+        var meta = _mapOption.GetItemMetadata(_mapOption.Selected);
+        return meta.VariantType == Variant.Type.String ? meta.AsString() : string.Empty;
+    }
+
+    private string GetSelectedCharacterId()
+    {
+        if (_characterOption.ItemCount == 0)
+        {
+            return string.Empty;
+        }
+
+        var meta = _characterOption.GetItemMetadata(_characterOption.Selected);
+        return meta.VariantType == Variant.Type.String ? meta.AsString() : string.Empty;
+    }
+
+    private int GetSelectedPlayersCount()
+    {
+        if (_playersOption.ItemCount == 0)
+        {
+            return 0;
+        }
+
+        var value = _playersOption.GetItemId(_playersOption.Selected);
+        return value > 0 ? value : 0;
+    }
+
+    private int GetSelectedStartingMoneyPreset()
+    {
+        if (_startingMoneyOption.ItemCount == 0)
+        {
+            return 0;
+        }
+
+        var value = _startingMoneyOption.GetItemId(_startingMoneyOption.Selected);
+        return value > 0 ? value : 0;
+    }
+
+    private int GetSelectedGlobalEventIntervalTurns()
+    {
+        if (_globalEventIntervalOption.ItemCount == 0)
+        {
+            return 0;
+        }
+
+        var value = _globalEventIntervalOption.GetItemId(_globalEventIntervalOption.Selected);
+        return value > 0 ? value : 0;
     }
 
     private static string? TryExtractStartFailedReason(string dataJson)
