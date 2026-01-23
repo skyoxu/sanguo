@@ -23,12 +23,16 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.random_event.applied`：事件效果应用后（无论来源是 tile 还是全局事件）。
+- `core.sanguo.random_event.rejected`：事件被选中但因白名单/数据缺失等原因被拒绝（不得产生数值变化）。
 
 ## 契约定义
 
 ### 事件
 - **SanguoRandomEventApplied** (`core.sanguo.random_event.applied`)
   - 触发时机：随机事件生效后（事件格/全局事件统一）
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+- **SanguoRandomEventRejected** (`core.sanguo.random_event.rejected`)
+  - 触发时机：随机事件被选中但因 effectKind 非白名单/缺失必要字段而被拒绝
   - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
 
 ### DTO
@@ -44,4 +48,4 @@ Arch-Refs:
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs`
 - `Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs`
-- `Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd`
+- `Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd`

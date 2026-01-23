@@ -3316,20 +3316,19 @@
     "acceptance": [
       "随机事件池必须覆盖两类触发来源：踩事件格触发与每N回合全局触发（N∈{5,10,20}）；当 random_seed 与 rng_context_id 相同且触发/回合推进序列一致时，多次运行必须产生相同的候选集（candidates hash 一致）与相同的选中结果（picked index/id 一致），并且每次触发都必须记录 candidates hash 与 picked index/id 以便复盘。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
       "事件效果必须严格受 effectKind 白名单约束：仅允许 moneyDelta 与 economyStepDelta 生效；任何非白名单 effectKind 必须被拒绝且不产生数值变化。economyStepDelta 必须以 stepDelta(steps) 形式进入 applied_multipliers.event，并在合成与 clamp 之后再影响结果；moneyDelta 必须按数值直接加减，且其计算路径不得依赖 UI（UI 不参与数值计算）。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
-      "角色踩到事件格并触发事件后，UI 必须出现可见的事件提示，且提示展示的内容必须来自该事件 payload（不得为空/硬编码为与 payload 无关的内容）。 Refs: Tests.Godot/tests/UI/test_hud_event_prompt_uses_payload.gd"
+      "角色踩到事件格并触发事件后，UI 必须出现可见的事件提示，且提示展示的内容必须来自该事件 payload（不得为空/硬编码为与 payload 无关的内容）。 Refs: Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
       "Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
-      "Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd",
-      "Tests.Godot/tests/UI/test_task56_hud_event_prompt_shows_payload.gd",
-      "Tests.Godot/tests/UI/test_hud_event_prompt_uses_payload.gd"
+      "Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd"
     ],
     "test_strategy": [
       "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。"
     ],
     "contractRefs": [
-      "core.sanguo.random_event.applied"
+      "core.sanguo.random_event.applied",
+      "core.sanguo.random_event.rejected"
     ]
   },
   {

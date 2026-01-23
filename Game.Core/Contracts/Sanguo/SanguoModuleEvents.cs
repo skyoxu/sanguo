@@ -68,7 +68,7 @@ public sealed record SanguoActionCardPlayRejected(
 /// </summary>
 /// <remarks>
 /// Related ADRs: ADR-0004, ADR-0005.
-/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md.
 /// </remarks>
 public sealed record SanguoRandomEventApplied(
     string GameId,
@@ -91,6 +91,37 @@ public sealed record SanguoRandomEventApplied(
     /// CloudEvents type for this domain event.
     /// </summary>
     public const string EventType = "core.sanguo.random_event.applied";
+}
+
+/// <summary>
+/// Domain event: core.sanguo.random_event.rejected
+/// Description: Emitted when a random event is selected but rejected by allow-list or validation rules.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004, ADR-0005.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md.
+/// </remarks>
+public sealed record SanguoRandomEventRejected(
+    string GameId,
+    string PlayerId,
+    string EventId,
+    string EffectKind,
+    string RejectReason,
+    int? MoneyDelta,
+    int? StepDelta,
+    DateTimeOffset OccurredAt,
+    string CorrelationId,
+    string? CausationId,
+    string? RngContextId = null,
+    string? CandidatesSortedIdsHash = null,
+    int? PickedIndex = null,
+    string? PickedId = null
+)
+{
+    /// <summary>
+    /// CloudEvents type for this domain event.
+    /// </summary>
+    public const string EventType = "core.sanguo.random_event.rejected";
 }
 
 /// <summary>

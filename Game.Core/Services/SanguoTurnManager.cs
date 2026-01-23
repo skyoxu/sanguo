@@ -23,6 +23,7 @@ public sealed class SanguoTurnManager
     private readonly SanguoRandomEventsCatalog? _randomEventsCatalog;
     private readonly int _globalEventIntervalTurns;
     private readonly string _randomEventPoolId;
+    private readonly IReadOnlyDictionary<int, string>? _tileTypesByPositionIndex;
     private readonly Dictionary<string, int> _turnEventStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly SanguoActionCardsCatalog? _actionCardsCatalog;
@@ -51,7 +52,8 @@ public sealed class SanguoTurnManager
         SanguoRandomEventsCatalog? randomEventsCatalog = null,
         int globalEventIntervalTurns = 5,
         string randomEventPoolId = "default",
-        SanguoActionCardsCatalog? actionCardsCatalog = null)
+        SanguoActionCardsCatalog? actionCardsCatalog = null,
+        IReadOnlyDictionary<int, string>? tileTypesByPositionIndex = null)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
@@ -66,6 +68,7 @@ public sealed class SanguoTurnManager
         _globalEventIntervalTurns = globalEventIntervalTurns;
         _randomEventPoolId = randomEventPoolId ?? throw new ArgumentNullException(nameof(randomEventPoolId));
         _actionCardsCatalog = actionCardsCatalog;
+        _tileTypesByPositionIndex = tileTypesByPositionIndex;
 
         if (_globalEventIntervalTurns != 5 && _globalEventIntervalTurns != 10 && _globalEventIntervalTurns != 20)
             throw new ArgumentOutOfRangeException(nameof(globalEventIntervalTurns), "GlobalEventIntervalTurns must be one of: 5, 10, 20.");
@@ -752,6 +755,7 @@ public sealed class SanguoTurnManager
             await TryTriggerTileRandomEventAsync(
                 gameId: gameId,
                 activePlayerId: playerId,
+                positionIndex: toIndex,
                 correlationId: correlationId,
                 causationId: causationId,
                 occurredAt: occurredAt);
@@ -1095,11 +1099,15 @@ public sealed class SanguoTurnManager
     private async Task TryTriggerTileRandomEventAsync(
         string gameId,
         string activePlayerId,
+        int positionIndex,
         string correlationId,
         string? causationId,
         DateTimeOffset occurredAt)
     {
         if (_randomEventsCatalog is null)
+            return;
+
+        if (!IsEventTilePosition(positionIndex))
             return;
 
         if (!TryPickRandomEvent(out var picked, out var candidatesSortedIdsHash, out var pickedIndex, out var pickedId))
@@ -1111,34 +1119,71 @@ public sealed class SanguoTurnManager
             roundNumber: ComputeRoundNumber(_turnNumber),
             sourceId: "tile");
 
-        AppliedMultipliers? appliedAfter = null;
-        if (string.Equals(picked.EffectKind, "economyStepDelta", StringComparison.Ordinal) && picked.StepDelta.HasValue)
+        var effectResult = ApplyRandomEventEffect(
+            playerId: activePlayerId,
+            effectKind: picked.EffectKind,
+            moneyDelta: picked.MoneyDelta,
+            stepDelta: picked.StepDelta);
+
+        if (effectResult.Applied)
         {
-            appliedAfter = CommitTurnEventEconomyStepDeltaAndGetSnapshot(activePlayerId, picked.StepDelta.Value);
+            var evt = new DomainEvent(
+                Type: SanguoRandomEventApplied.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: picked.EventId,
+                    EffectKind: picked.EffectKind,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId,
+                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
+        }
+        else
+        {
+            var evt = new DomainEvent(
+                Type: SanguoRandomEventRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: picked.EventId,
+                    EffectKind: picked.EffectKind,
+                    RejectReason: effectResult.RejectReason,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
         }
 
-        var evt = new DomainEvent(
-            Type: SanguoRandomEventApplied.EventType,
-            Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
-                GameId: gameId,
-                PlayerId: activePlayerId,
-                EventId: picked.EventId,
-                EffectKind: picked.EffectKind,
-                MoneyDelta: picked.MoneyDelta,
-                StepDelta: picked.StepDelta,
-                OccurredAt: occurredAt,
-                CorrelationId: correlationId,
-                CausationId: causationId,
-                RngContextId: rngContextId,
-                CandidatesSortedIdsHash: candidatesSortedIdsHash,
-                PickedIndex: pickedIndex,
-                PickedId: pickedId,
-                AppliedMultipliersAfter: appliedAfter
-            )),
-            Timestamp: occurredAt.UtcDateTime,
-            Id: Guid.NewGuid().ToString("N"));
-        await _bus.PublishAsync(evt);
+        if (effectResult.MoneyChanged)
+        {
+            await PublishPlayerStateChangedAsync(
+                playerId: activePlayerId,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+        }
     }
 
     private async Task TryTriggerGlobalTurnRandomEventIfBoundaryAsync(
@@ -1166,34 +1211,198 @@ public sealed class SanguoTurnManager
             roundNumber: ComputeRoundNumber(_turnNumber),
             sourceId: "global");
 
-        AppliedMultipliers? appliedAfter = null;
-        if (string.Equals(picked.EffectKind, "economyStepDelta", StringComparison.Ordinal) && picked.StepDelta.HasValue)
+        var effectResult = ApplyRandomEventEffect(
+            playerId: activePlayerId,
+            effectKind: picked.EffectKind,
+            moneyDelta: picked.MoneyDelta,
+            stepDelta: picked.StepDelta);
+
+        if (effectResult.Applied)
         {
-            appliedAfter = CommitTurnEventEconomyStepDeltaAndGetSnapshot(activePlayerId, picked.StepDelta.Value);
+            var evt = new DomainEvent(
+                Type: SanguoRandomEventApplied.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: picked.EventId,
+                    EffectKind: picked.EffectKind,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId,
+                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
+        }
+        else
+        {
+            var evt = new DomainEvent(
+                Type: SanguoRandomEventRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: picked.EventId,
+                    EffectKind: picked.EffectKind,
+                    RejectReason: effectResult.RejectReason,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
         }
 
-        var evt = new DomainEvent(
-            Type: SanguoRandomEventApplied.EventType,
-            Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
-                GameId: gameId,
-                PlayerId: activePlayerId,
-                EventId: picked.EventId,
-                EffectKind: picked.EffectKind,
-                MoneyDelta: picked.MoneyDelta,
-                StepDelta: picked.StepDelta,
-                OccurredAt: occurredAt,
-                CorrelationId: correlationId,
-                CausationId: causationId,
-                RngContextId: rngContextId,
-                CandidatesSortedIdsHash: candidatesSortedIdsHash,
-                PickedIndex: pickedIndex,
-                PickedId: pickedId,
-                AppliedMultipliersAfter: appliedAfter
-            )),
-            Timestamp: occurredAt.UtcDateTime,
-            Id: Guid.NewGuid().ToString("N"));
-        await _bus.PublishAsync(evt);
+        if (effectResult.MoneyChanged)
+        {
+            await PublishPlayerStateChangedAsync(
+                playerId: activePlayerId,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+        }
+    }
+
+    private bool IsEventTilePosition(int positionIndex)
+    {
+        if (_tileTypesByPositionIndex is null)
+            return true;
+
+        if (!_tileTypesByPositionIndex.TryGetValue(positionIndex, out var tileType))
+            return false;
+
+        return string.Equals(tileType, SanguoTileDefinition.TileTypeEvent, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private readonly record struct RandomEventEffectResult(
+        bool Applied,
+        bool MoneyChanged,
+        AppliedMultipliers? AppliedMultipliersAfter,
+        string RejectReason
+    );
+
+    private RandomEventEffectResult ApplyRandomEventEffect(
+        string playerId,
+        string effectKind,
+        int? moneyDelta,
+        int? stepDelta)
+    {
+        if (string.Equals(effectKind, "economyStepDelta", StringComparison.Ordinal))
+        {
+            if (!stepDelta.HasValue)
+            {
+                return new RandomEventEffectResult(
+                    Applied: false,
+                    MoneyChanged: false,
+                    AppliedMultipliersAfter: null,
+                    RejectReason: "missing_step_delta");
+            }
+
+            var applied = CommitTurnEventEconomyStepDeltaAndGetSnapshot(playerId, stepDelta.Value);
+            return new RandomEventEffectResult(
+                Applied: true,
+                MoneyChanged: false,
+                AppliedMultipliersAfter: applied,
+                RejectReason: string.Empty);
+        }
+
+        if (string.Equals(effectKind, "moneyDelta", StringComparison.Ordinal))
+        {
+            if (!moneyDelta.HasValue)
+            {
+                return new RandomEventEffectResult(
+                    Applied: false,
+                    MoneyChanged: false,
+                    AppliedMultipliersAfter: null,
+                    RejectReason: "missing_money_delta");
+            }
+
+            if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+            {
+                return new RandomEventEffectResult(
+                    Applied: false,
+                    MoneyChanged: false,
+                    AppliedMultipliersAfter: null,
+                    RejectReason: "player_not_found");
+            }
+
+            var snapshot = player.CaptureRollbackSnapshot();
+            var currentMoney = snapshot.Money;
+            var delta = moneyDelta.Value;
+
+            if (delta == 0)
+            {
+                return new RandomEventEffectResult(
+                    Applied: true,
+                    MoneyChanged: false,
+                    AppliedMultipliersAfter: null,
+                    RejectReason: string.Empty);
+            }
+
+            if (delta > 0)
+            {
+                var add = Money.FromMajorUnits((long)delta);
+                var newMoney = currentMoney.AddCapped(add, out var overflow);
+                if (overflow > Money.Zero)
+                {
+                    _treasury.Deposit(overflow);
+                }
+
+                player.RestoreRollbackSnapshot(snapshot with { Money = newMoney });
+                return new RandomEventEffectResult(
+                    Applied: true,
+                    MoneyChanged: true,
+                    AppliedMultipliersAfter: null,
+                    RejectReason: string.Empty);
+            }
+
+            var debit = Money.FromMajorUnits((long)-delta);
+            if (currentMoney >= debit)
+            {
+                var newMoney = currentMoney - debit;
+                player.RestoreRollbackSnapshot(snapshot with { Money = newMoney });
+                return new RandomEventEffectResult(
+                    Applied: true,
+                    MoneyChanged: true,
+                    AppliedMultipliersAfter: null,
+                    RejectReason: string.Empty);
+            }
+
+            player.RestoreRollbackSnapshot(snapshot with
+            {
+                Money = Money.Zero,
+                IsEliminated = true,
+                OwnedCityIds = Array.Empty<string>()
+            });
+
+            return new RandomEventEffectResult(
+                Applied: true,
+                MoneyChanged: true,
+                AppliedMultipliersAfter: null,
+                RejectReason: string.Empty);
+        }
+
+        // Reject: non-allowlist effect kind must not produce any numerical changes.
+        return new RandomEventEffectResult(
+            Applied: false,
+            MoneyChanged: false,
+            AppliedMultipliersAfter: null,
+            RejectReason: "invalid_effect_kind");
     }
 
     private bool TryPickRandomEvent(
@@ -1230,12 +1439,6 @@ public sealed class SanguoTurnManager
                      .OrderBy(x => x, StringComparer.Ordinal))
         {
             if (!eventsById.TryGetValue(eventId, out var e))
-                continue;
-
-            if (!string.Equals(e.EffectKind, "economyStepDelta", StringComparison.Ordinal))
-                continue;
-
-            if (e.StepDelta is null)
                 continue;
 
             candidateEntries.Add(e);
