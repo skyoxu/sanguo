@@ -972,6 +972,7 @@ public partial class SanguoGameLoopController : Node
             boardState: boardState,
             treasury: treasury,
             rng: rng,
+            randomSeed: startConfig?.RandomSeed ?? 0,
             totalPositionsHint: map.TileCount,
             actionCardsCatalog: actionCardsCatalog,
             randomEventsCatalog: randomEventsCatalog,

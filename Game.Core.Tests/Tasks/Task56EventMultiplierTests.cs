@@ -27,16 +27,37 @@ public sealed class Task56EventMultiplierTests
         var p1 = new SanguoPlayer(playerId: "p1", money: 1000m, positionIndex: 0, economyRules: rules);
         var boardState = new SanguoBoardState(players: new[] { p1 }, citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
 
-        var rng = new QueueRng(nextInts: new[] { 0 }, fixedNextDouble: 1.0);
+        var catalog = new SanguoRandomEventsCatalog(
+            SchemaVersion: 1,
+            Version: 1,
+            Events: new[]
+            {
+                new SanguoRandomEventCatalogEntry(
+                    EventId: "bad_global",
+                    NameKey: "event.bad.name",
+                    DescriptionKey: "event.bad.desc",
+                    EffectKind: "teleport",
+                    MoneyDelta: 999,
+                    StepDelta: null,
+                    CooldownRounds: 0,
+                    UniqueOnce: false),
+            },
+            EventPools: new[]
+            {
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "bad_global" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "bad_global" }),
+            });
+
         var mgr = new SanguoTurnManager(
             bus: bus,
             economy: economy,
             boardState: boardState,
             treasury: new SanguoTreasury(),
-            rng: rng,
+            rng: new FixedRng(fixedNextInt: 1, fixedNextDouble: 1.0),
+            randomSeed: 123,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: 0.0,
-            randomEventsCatalog: BuildCatalogWithInvalidFirst(),
+            randomEventsCatalog: catalog,
             globalEventIntervalTurns: 5,
             tileTypesByPositionIndex: new Dictionary<int, string> { [0] = SanguoTileDefinition.TileTypeEvent });
 
@@ -107,7 +128,8 @@ public sealed class Task56EventMultiplierTests
             economy: economy,
             boardState: boardState,
             treasury: new SanguoTreasury(),
-            rng: new DeterministicRandomNumberGenerator(seed: 1),
+            rng: new FixedRng(fixedNextInt: 1, fixedNextDouble: 1.0),
+            randomSeed: 123,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: 0.0,
             randomEventsCatalog: catalog,
@@ -150,17 +172,37 @@ public sealed class Task56EventMultiplierTests
         var p1 = new SanguoPlayer(playerId: "p1", money: 1000m, positionIndex: 0, economyRules: rules);
         var boardState = new SanguoBoardState(players: new[] { p1 }, citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
 
-        // Pick index=1 => b_money in sorted candidates: a_bad, b_money, c_step
-        var rng = new QueueRng(nextInts: new[] { 1 }, fixedNextDouble: 1.0);
+        var catalog = new SanguoRandomEventsCatalog(
+            SchemaVersion: 1,
+            Version: 1,
+            Events: new[]
+            {
+                new SanguoRandomEventCatalogEntry(
+                    EventId: "money_gain",
+                    NameKey: "event.money.name",
+                    DescriptionKey: "event.money.desc",
+                    EffectKind: "moneyDelta",
+                    MoneyDelta: 200,
+                    StepDelta: null,
+                    CooldownRounds: 0,
+                    UniqueOnce: false),
+            },
+            EventPools: new[]
+            {
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "money_gain" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "money_gain" }),
+            });
+
         var mgr = new SanguoTurnManager(
             bus: bus,
             economy: economy,
             boardState: boardState,
             treasury: new SanguoTreasury(),
-            rng: rng,
+            rng: new FixedRng(fixedNextInt: 1, fixedNextDouble: 1.0),
+            randomSeed: 456,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: 0.0,
-            randomEventsCatalog: BuildCatalogWithInvalidFirst(),
+            randomEventsCatalog: catalog,
             globalEventIntervalTurns: 5,
             tileTypesByPositionIndex: new Dictionary<int, string> { [0] = SanguoTileDefinition.TileTypeEvent });
 
@@ -199,17 +241,37 @@ public sealed class Task56EventMultiplierTests
         var p1 = new SanguoPlayer(playerId: "p1", money: 1000m, positionIndex: 0, economyRules: rules);
         var boardState = new SanguoBoardState(players: new[] { p1 }, citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
 
-        // Pick index=2 => c_step in sorted candidates: a_bad, b_money, c_step
-        var rng = new QueueRng(nextInts: new[] { 2 }, fixedNextDouble: 1.0);
+        var catalog = new SanguoRandomEventsCatalog(
+            SchemaVersion: 1,
+            Version: 1,
+            Events: new[]
+            {
+                new SanguoRandomEventCatalogEntry(
+                    EventId: "step_boost",
+                    NameKey: "event.step.name",
+                    DescriptionKey: "event.step.desc",
+                    EffectKind: "economyStepDelta",
+                    MoneyDelta: null,
+                    StepDelta: 1,
+                    CooldownRounds: 0,
+                    UniqueOnce: false),
+            },
+            EventPools: new[]
+            {
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "step_boost" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "step_boost" }),
+            });
+
         var mgr = new SanguoTurnManager(
             bus: bus,
             economy: economy,
             boardState: boardState,
             treasury: new SanguoTreasury(),
-            rng: rng,
+            rng: new FixedRng(fixedNextInt: 1, fixedNextDouble: 1.0),
+            randomSeed: 789,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: 0.0,
-            randomEventsCatalog: BuildCatalogWithInvalidFirst(),
+            randomEventsCatalog: catalog,
             globalEventIntervalTurns: 5,
             tileTypesByPositionIndex: new Dictionary<int, string> { [0] = SanguoTileDefinition.TileTypeEvent });
 
@@ -285,7 +347,8 @@ public sealed class Task56EventMultiplierTests
             economy: economy,
             boardState: boardState,
             treasury: new SanguoTreasury(),
-            rng: new QueueRng(nextInts: new[] { 0 }, fixedNextDouble: 1.0),
+            rng: new FixedRng(fixedNextInt: 1, fixedNextDouble: 1.0),
+            randomSeed: 999,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: 0.0,
             randomEventsCatalog: catalog,
@@ -321,52 +384,6 @@ public sealed class Task56EventMultiplierTests
         return ((JsonElementEventData)evt.Data!).Value;
     }
 
-    private static SanguoRandomEventsCatalog BuildCatalogWithInvalidFirst()
-    {
-        return new SanguoRandomEventsCatalog(
-            SchemaVersion: 1,
-            Version: 1,
-            Events: new[]
-            {
-                new SanguoRandomEventCatalogEntry(
-                    EventId: "a_bad",
-                    NameKey: "event.bad.name",
-                    DescriptionKey: "event.bad.desc",
-                    EffectKind: "teleport",
-                    MoneyDelta: 999,
-                    StepDelta: null,
-                    CooldownRounds: 0,
-                    UniqueOnce: false),
-                new SanguoRandomEventCatalogEntry(
-                    EventId: "b_money",
-                    NameKey: "event.money.name",
-                    DescriptionKey: "event.money.desc",
-                    EffectKind: "moneyDelta",
-                    MoneyDelta: 200,
-                    StepDelta: null,
-                    CooldownRounds: 0,
-                    UniqueOnce: false),
-                new SanguoRandomEventCatalogEntry(
-                    EventId: "c_step",
-                    NameKey: "event.step.name",
-                    DescriptionKey: "event.step.desc",
-                    EffectKind: "economyStepDelta",
-                    MoneyDelta: null,
-                    StepDelta: 1,
-                    CooldownRounds: 0,
-                    UniqueOnce: false),
-            },
-            EventPools: new[]
-            {
-                new SanguoRandomEventPoolCatalogEntry(
-                    PoolId: "default",
-                    EventIds: new[] { "c_step", "b_money", "a_bad" }),
-                new SanguoRandomEventPoolCatalogEntry(
-                    PoolId: "global",
-                    EventIds: new[] { "c_step", "b_money", "a_bad" }),
-            });
-    }
-
     private sealed class RecordingEventBus : IEventBus
     {
         public List<DomainEvent> Published { get; } = new();
@@ -385,34 +402,18 @@ public sealed class Task56EventMultiplierTests
         }
     }
 
-    private sealed class QueueRng : IRandomNumberGenerator
+    private sealed class FixedRng : IRandomNumberGenerator
     {
-        private readonly Queue<int> _nextInts;
+        private readonly int _fixedNextInt;
         private readonly double _fixedNextDouble;
 
-        public QueueRng(IEnumerable<int> nextInts, double fixedNextDouble)
+        public FixedRng(int fixedNextInt, double fixedNextDouble)
         {
-            _nextInts = new Queue<int>(nextInts ?? Array.Empty<int>());
+            _fixedNextInt = fixedNextInt;
             _fixedNextDouble = fixedNextDouble;
         }
 
-        public int NextInt(int minInclusive, int maxExclusive)
-        {
-            if (_nextInts.Count == 0)
-            {
-                return minInclusive;
-            }
-
-            var requested = _nextInts.Dequeue();
-            var range = maxExclusive - minInclusive;
-            if (range <= 0)
-            {
-                return minInclusive;
-            }
-
-            var normalized = Math.Abs(requested) % range;
-            return minInclusive + normalized;
-        }
+        public int NextInt(int minInclusive, int maxExclusive) => _fixedNextInt;
 
         public double NextDouble() => _fixedNextDouble;
     }
