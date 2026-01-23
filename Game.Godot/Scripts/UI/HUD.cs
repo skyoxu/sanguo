@@ -342,6 +342,35 @@ public partial class HUD : Control
 
         var multiplierSuffix = BuildAppliedMultipliersSuffix(root);
 
+        if (string.Equals(type, SanguoRandomEventApplied.EventType, StringComparison.Ordinal))
+        {
+            var pickedId = TryGetPropertyLoose(root, "PickedId", out var picked) && picked.ValueKind == JsonValueKind.String
+                ? (picked.GetString() ?? string.Empty)
+                : string.Empty;
+
+            if (string.IsNullOrWhiteSpace(pickedId)
+                && TryGetPropertyLoose(root, "EventId", out var eventId)
+                && eventId.ValueKind == JsonValueKind.String)
+            {
+                pickedId = eventId.GetString() ?? string.Empty;
+            }
+
+            var effectKind = TryGetPropertyLoose(root, "EffectKind", out var k) && k.ValueKind == JsonValueKind.String
+                ? (k.GetString() ?? string.Empty)
+                : string.Empty;
+
+            var summary = string.IsNullOrWhiteSpace(playerId)
+                ? $"{type} picked={pickedId}"
+                : $"{type} player={playerId} picked={pickedId}";
+
+            if (!string.IsNullOrWhiteSpace(effectKind))
+            {
+                summary += $" kind={effectKind}";
+            }
+
+            return summary + multiplierSuffix;
+        }
+
         if (root.TryGetProperty("Value", out var value) && value.ValueKind == JsonValueKind.Number)
         {
             return string.IsNullOrWhiteSpace(playerId)
@@ -475,6 +504,7 @@ public partial class HUD : Control
         _handlers[SanguoTokenMoved.EventType] = HandleTokenMovedEvent;
         _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoRandomEventApplied.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoGameEnded.EventType] = HandleGameEndedEvent;
     }
 

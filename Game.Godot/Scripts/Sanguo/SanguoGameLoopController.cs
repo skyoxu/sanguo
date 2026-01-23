@@ -5,6 +5,7 @@ using Game.Core.Ports;
 using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 using Game.Core.Services;
 using Game.Core.Services.Sanguo;
+using Game.Core.Utilities;
 using Game.Godot.Adapters;
 using Game.Godot.Autoloads;
 using System;
@@ -467,7 +468,24 @@ public partial class SanguoGameLoopController : Node
 
             if (_turnManager == null)
             {
-                _turnManager = CreateNewTurnManager(_map);
+                var loader = ResolveResourceLoader();
+                SanguoActionCardsCatalog? actionCardsCatalog = null;
+                SanguoRandomEventsCatalog? randomEventsCatalog = null;
+
+                if (loader != null)
+                {
+                    if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var loadedCards, out _))
+                    {
+                        actionCardsCatalog = loadedCards;
+                    }
+
+                    if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var loadedEvents, out _))
+                    {
+                        randomEventsCatalog = loadedEvents;
+                    }
+                }
+
+                _turnManager = CreateNewTurnManager(_map, startConfig: null, actionCardsCatalog: actionCardsCatalog, randomEventsCatalog: randomEventsCatalog);
             }
 
             var service = new SanguoSaveLoadService(_bus, store);
@@ -603,7 +621,13 @@ public partial class SanguoGameLoopController : Node
             GD.PushWarning($"SanguoGameLoopController: action cards catalog load failed (error='{cardsError}').");
         }
 
-        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog);
+        if (!SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var randomEventsCatalog, out var randomEventsError))
+        {
+            GD.PushWarning($"SanguoGameLoopController: random events catalog load failed (error='{randomEventsError}').");
+            return (false, "random_events_catalog_load_failed");
+        }
+
+        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog, randomEventsCatalog);
 
         try
         {
@@ -872,7 +896,27 @@ public partial class SanguoGameLoopController : Node
                 LoadMapActions(map);
             }
 
-            _turnManager ??= CreateNewTurnManager(_map!);
+            if (_turnManager == null)
+            {
+                var loader = ResolveResourceLoader();
+                SanguoActionCardsCatalog? actionCardsCatalog = null;
+                SanguoRandomEventsCatalog? randomEventsCatalog = null;
+
+                if (loader != null)
+                {
+                    if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var loadedCards, out _))
+                    {
+                        actionCardsCatalog = loadedCards;
+                    }
+
+                    if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var loadedEvents, out _))
+                    {
+                        randomEventsCatalog = loadedEvents;
+                    }
+                }
+
+                _turnManager = CreateNewTurnManager(_map!, startConfig: null, actionCardsCatalog: actionCardsCatalog, randomEventsCatalog: randomEventsCatalog);
+            }
 
             var service = new SanguoSaveLoadService(_bus, store);
             var snapshot = await service.LoadGameAsync(saveSlotId: saveSlotId, correlationId: correlationId, causationId: "e2e.saveload.load");
@@ -894,7 +938,8 @@ public partial class SanguoGameLoopController : Node
     private SanguoTurnManager CreateNewTurnManager(
         SanguoMapDefinition map,
         GameStartConfig? startConfig = null,
-        SanguoActionCardsCatalog? actionCardsCatalog = null)
+        SanguoActionCardsCatalog? actionCardsCatalog = null,
+        SanguoRandomEventsCatalog? randomEventsCatalog = null)
     {
         var economyRules = SanguoEconomyRules.Default;
         var playerOrder = startConfig != null
@@ -911,13 +956,27 @@ public partial class SanguoGameLoopController : Node
         var treasury = new SanguoTreasury();
         var economy = new SanguoEconomyManager(_bus!);
 
+        var tileTypesByIndex = new Dictionary<int, string>();
+        foreach (var tile in map.Tiles)
+        {
+            tileTypesByIndex[tile.PositionIndex] = tile.TileType ?? string.Empty;
+        }
+
+        var rng = startConfig != null
+            ? new DeterministicRandomNumberGenerator(startConfig.RandomSeed)
+            : null;
+
         return new SanguoTurnManager(
             bus: _bus!,
             economy: economy,
             boardState: boardState,
             treasury: treasury,
+            rng: rng,
             totalPositionsHint: map.TileCount,
-            actionCardsCatalog: actionCardsCatalog);
+            actionCardsCatalog: actionCardsCatalog,
+            randomEventsCatalog: randomEventsCatalog,
+            globalEventIntervalTurns: startConfig?.GlobalEventIntervalTurns ?? DefaultGlobalEventIntervalTurns,
+            tileTypesByPositionIndex: tileTypesByIndex);
     }
 
     private IResourceLoader? ResolveResourceLoader()

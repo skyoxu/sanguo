@@ -1999,20 +1999,19 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
     ],
     "contractRefs": [
-      "core.sanguo.random_event.applied"
+      "core.sanguo.random_event.applied",
+      "core.sanguo.random_event.rejected"
     ],
     "acceptance": [
       "每次随机事件触发后必须产出可复盘的抽样记录：至少包含 candidates hash 与最终 picked index/id；在 random_seed 与 rng_context_id 相同且回合推进/触发序列一致时，基于该记录进行复盘必须得到完全一致的选中结果（picked index/id 完全一致）。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
       "事件池必须统一两类触发入口：事件格触发 + 每N回合全局触发（N∈{5,10,20}），且两类入口必须使用同一套抽样与记录规则；在 random_seed 与 rng_context_id 相同且触发/回合推进序列一致时，结果必须可复现，并记录 candidates hash + picked index/id。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
       "事件效果必须受 effectKind 白名单约束：仅允许 moneyDelta / economyStepDelta；economyStepDelta 必须通过 stepDelta(steps) 进入 applied_multipliers.event 并经过合成与 clamp 后再生效；moneyDelta 必须直接按数值加减，且 UI 不得参与数值计算路径。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
-      "踩事件格触发事件后，UI 必须可见事件提示，且提示内容展示来自事件 payload（不是空白或与 payload 无关）。 Refs: Tests.Godot/tests/UI/test_hud_event_prompt_uses_payload.gd"
+      "踩事件格触发事件后，UI 必须可见事件提示，且提示内容展示来自事件 payload（不是空白或与 payload 无关）。 Refs: Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
       "Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs",
-      "Tests.Godot/tests/Integration/test_task56_event_tile_triggers_ui_notification.gd",
-      "Tests.Godot/tests/UI/test_task56_hud_event_prompt_shows_payload.gd",
-      "Tests.Godot/tests/UI/test_hud_event_prompt_uses_payload.gd"
+      "Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd"
     ],
     "test_strategy": [
       "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。"
