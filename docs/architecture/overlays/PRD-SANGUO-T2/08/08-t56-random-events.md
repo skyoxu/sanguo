@@ -20,6 +20,11 @@ Arch-Refs:
   - 事件池拆分：
     - tile 触发使用 poolId=`default`
     - 全局触发使用 poolId=`global`
+  - 冷却与唯一（per player）：
+    - `cooldownRounds`：在冷却期内不得再次生效；当 pool 中无任何可选事件时发布 `core.sanguo.random_event.rejected`（`rejectReason=no_eligible_candidates`），不得产生数值变化。
+    - `uniqueOnce=true`：同一玩家最多生效一次；再次触发同样走 rejected（`no_eligible_candidates`）。
+  - RNG 子流隔离：
+    - Random events 的抽样索引使用 `random_seed + rng_context_id + candidates hash` 派生种子（不消耗主 RNG），避免骰子/其他随机调用扰动事件选择。
 
 ## 非目标
 - 不引入复杂事件树与文本脚本系统。

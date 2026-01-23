@@ -85,6 +85,13 @@ public static class SanguoRandomEventsCatalogLoader
                 return false;
             }
 
+            var poolIds = new HashSet<string>(pools.Select(p => p.PoolId), StringComparer.Ordinal);
+            if (!poolIds.Contains("default") || !poolIds.Contains("global"))
+            {
+                error = "invalid_random_events_catalog:missing_required_pools";
+                return false;
+            }
+
             var events = new List<SanguoRandomEventCatalogEntry>();
             if (!TryParseEvents(doc.RootElement, events, out error))
             {
@@ -318,4 +325,3 @@ public static class SanguoRandomEventsCatalogLoader
         return true;
     }
 }
-

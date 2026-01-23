@@ -54,6 +54,7 @@ public sealed class Task56RandomEventDeterminismTests
             boardState: boardState,
             treasury: new SanguoTreasury(),
             rng: new DeterministicRandomNumberGenerator(seed: 1),
+            randomSeed: 1,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: 0.0,
             randomEventsCatalog: BuildCatalog(),
@@ -98,6 +99,142 @@ public sealed class Task56RandomEventDeterminismTests
         second.RngContextId.Should().Be(first.RngContextId);
     }
 
+    [Fact]
+    public async Task ShouldPublishRejected_WhenUniqueOnceEventAlreadyApplied()
+    {
+        var bus = new RecordingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var rules = SanguoEconomyRules.Default;
+        var p1 = new SanguoPlayer(playerId: "p1", money: 500m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(players: new[] { p1 }, citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var catalog = new SanguoRandomEventsCatalog(
+            SchemaVersion: 1,
+            Version: 1,
+            Events: new[]
+            {
+                new SanguoRandomEventCatalogEntry(
+                    EventId: "unique_once",
+                    NameKey: "event.unique.name",
+                    DescriptionKey: "event.unique.desc",
+                    EffectKind: "economyStepDelta",
+                    MoneyDelta: null,
+                    StepDelta: 1,
+                    CooldownRounds: 0,
+                    UniqueOnce: true),
+            },
+            EventPools: new[]
+            {
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "unique_once" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "unique_once" }),
+            });
+
+        var mgr = new SanguoTurnManager(
+            bus: bus,
+            economy: economy,
+            boardState: boardState,
+            treasury: new SanguoTreasury(),
+            rng: new DeterministicRandomNumberGenerator(seed: 1),
+            randomSeed: 1,
+            totalPositionsHint: 1,
+            quarterEnvironmentEventTriggerChance: 0.0,
+            randomEventsCatalog: catalog,
+            globalEventIntervalTurns: 5,
+            tileTypesByPositionIndex: new Dictionary<int, string> { [0] = SanguoTileDefinition.TileTypeEvent });
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p1" },
+            year: 3,
+            month: 2,
+            day: 1,
+            correlationId: "corr-start",
+            causationId: "ui.menu.start");
+
+        for (var i = 0; i < 10; i++)
+        {
+            await mgr.AdvanceTurnAsync(correlationId: $"c-adv-{i}", causationId: null);
+        }
+
+        bus.Published.Should().Contain(e => e.Type == SanguoRandomEventApplied.EventType);
+        bus.Published.Should().Contain(e => e.Type == SanguoRandomEventRejected.EventType);
+
+        var rejected = bus.Published.First(e => e.Type == SanguoRandomEventRejected.EventType);
+        rejected.Data.Should().BeOfType<JsonElementEventData>();
+        var root = ((JsonElementEventData)rejected.Data!).Value;
+        root.GetProperty("RejectReason").GetString().Should().Be("no_eligible_candidates");
+        root.GetProperty("PickedId").GetString().Should().Be("unique_once");
+    }
+
+    [Fact]
+    public async Task ShouldPublishRejected_WhenEventInCooldownAndNoEligibleCandidates()
+    {
+        var bus = new RecordingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var rules = SanguoEconomyRules.Default;
+        var p1 = new SanguoPlayer(playerId: "p1", money: 500m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(players: new[] { p1 }, citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var catalog = new SanguoRandomEventsCatalog(
+            SchemaVersion: 1,
+            Version: 1,
+            Events: new[]
+            {
+                new SanguoRandomEventCatalogEntry(
+                    EventId: "cooldown_event",
+                    NameKey: "event.cooldown.name",
+                    DescriptionKey: "event.cooldown.desc",
+                    EffectKind: "economyStepDelta",
+                    MoneyDelta: null,
+                    StepDelta: 1,
+                    CooldownRounds: 10,
+                    UniqueOnce: false),
+            },
+            EventPools: new[]
+            {
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "cooldown_event" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "cooldown_event" }),
+            });
+
+        var mgr = new SanguoTurnManager(
+            bus: bus,
+            economy: economy,
+            boardState: boardState,
+            treasury: new SanguoTreasury(),
+            rng: new DeterministicRandomNumberGenerator(seed: 2),
+            randomSeed: 2,
+            totalPositionsHint: 1,
+            quarterEnvironmentEventTriggerChance: 0.0,
+            randomEventsCatalog: catalog,
+            globalEventIntervalTurns: 5,
+            tileTypesByPositionIndex: new Dictionary<int, string> { [0] = SanguoTileDefinition.TileTypeEvent });
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p1" },
+            year: 3,
+            month: 2,
+            day: 1,
+            correlationId: "corr-start",
+            causationId: "ui.menu.start");
+
+        for (var i = 0; i < 10; i++)
+        {
+            await mgr.AdvanceTurnAsync(correlationId: $"c-adv-{i}", causationId: null);
+        }
+
+        bus.Published.Should().Contain(e => e.Type == SanguoRandomEventApplied.EventType);
+        bus.Published.Should().Contain(e => e.Type == SanguoRandomEventRejected.EventType);
+
+        var rejected = bus.Published.First(e => e.Type == SanguoRandomEventRejected.EventType);
+        rejected.Data.Should().BeOfType<JsonElementEventData>();
+        var root = ((JsonElementEventData)rejected.Data!).Value;
+        root.GetProperty("RejectReason").GetString().Should().Be("no_eligible_candidates");
+        root.GetProperty("PickedId").GetString().Should().Be("cooldown_event");
+    }
+
     private static async Task<(string? CandidatesSortedIdsHash, int? PickedIndex, string? PickedId, string? RngContextId)> RunOneTileTriggerAsync(int seed)
     {
         var bus = new RecordingEventBus();
@@ -114,6 +251,7 @@ public sealed class Task56RandomEventDeterminismTests
             boardState: boardState,
             treasury: new SanguoTreasury(),
             rng: rng,
+            randomSeed: seed,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: 0.0,
             randomEventsCatalog: BuildCatalog(),
@@ -158,6 +296,7 @@ public sealed class Task56RandomEventDeterminismTests
             boardState: boardState,
             treasury: new SanguoTreasury(),
             rng: rng,
+            randomSeed: seed,
             totalPositionsHint: 1,
             quarterEnvironmentEventTriggerChance: 0.0,
             randomEventsCatalog: BuildCatalog(),

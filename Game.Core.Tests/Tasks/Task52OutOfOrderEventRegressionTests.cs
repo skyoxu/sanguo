@@ -131,8 +131,8 @@ public sealed class Task52OutOfOrderEventRegressionTests
     [Fact]
     public async Task ShouldBeOrderedAndReplayable_WhenTileAndGlobalEventsTriggeredSameTurn()
     {
-        // ints are consumed in order: dice roll, tile pick, global pick.
-        var (manager, bus) = CreateTurnManager(rng: new FixedRng(ints: new[] { 1, 0, 1 }));
+        // ints are consumed in order: dice roll only (random_events selection must be on a dedicated deterministic sub-stream).
+        var (manager, bus) = CreateTurnManager(rng: new FixedRng(ints: new[] { 1 }));
         await manager.StartNewGameAsync(
             gameId: "g1",
             playerOrder: new[] { "p1" },
@@ -182,8 +182,20 @@ public sealed class Task52OutOfOrderEventRegressionTests
 
             firstData.Value.TryGetProperty("PickedIndex", out var i0).Should().BeTrue();
             secondData.Value.TryGetProperty("PickedIndex", out var i1).Should().BeTrue();
-            i0.GetInt32().Should().Be(0);
-            i1.GetInt32().Should().Be(1, "global draw should consume the next RNG value after tile draw");
+
+            var expectedTileIndex = ComputeExpectedPickIndex(
+                randomSeed: 0,
+                rngContextId: firstCtx!,
+                candidatesSortedIdsHash: h0.GetString()!,
+                candidatesCount: 2);
+            var expectedGlobalIndex = ComputeExpectedPickIndex(
+                randomSeed: 0,
+                rngContextId: secondCtx!,
+                candidatesSortedIdsHash: h1.GetString()!,
+                candidatesCount: 2);
+
+            i0.GetInt32().Should().Be(expectedTileIndex);
+            i1.GetInt32().Should().Be(expectedGlobalIndex);
 
             firstData.Value.TryGetProperty("AppliedMultipliersAfter", out var after0).Should().BeTrue();
             secondData.Value.TryGetProperty("AppliedMultipliersAfter", out var after1).Should().BeTrue();
@@ -200,5 +212,29 @@ public sealed class Task52OutOfOrderEventRegressionTests
             d1.GetInt32().Should().Be(2, "global economyStepDelta should be committed after tile delta within the same turn");
             s1.GetInt32().Should().Be(4);
         }
+    }
+
+    private static int ComputeExpectedPickIndex(
+        int randomSeed,
+        string rngContextId,
+        string candidatesSortedIdsHash,
+        int candidatesCount)
+    {
+        var seed = ComputeDeterministicSeed(randomSeed, rngContextId, candidatesSortedIdsHash);
+        var rng = new DeterministicRandomNumberGenerator(seed);
+        return rng.NextInt(minInclusive: 0, maxExclusive: candidatesCount);
+    }
+
+    private static int ComputeDeterministicSeed(int baseSeed, string rngContextId, string candidatesSortedIdsHash)
+    {
+        var material = $"{baseSeed}|{rngContextId}|{candidatesSortedIdsHash}";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(material);
+        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
+        var seed = BitConverter.ToInt32(hash, 0) & 0x7fffffff;
+        if (seed == 0)
+        {
+            seed = 1;
+        }
+        return seed;
     }
 }

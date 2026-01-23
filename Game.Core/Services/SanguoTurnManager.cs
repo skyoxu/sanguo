@@ -16,6 +16,7 @@ public sealed class SanguoTurnManager
     private readonly SanguoBoardState _boardState;
     private readonly SanguoTreasury _treasury;
     private readonly IRandomNumberGenerator _rng;
+    private readonly int _randomSeed;
     private readonly ISanguoAiDecisionPolicy _aiDecisionPolicy;
     private readonly int _totalPositionsHint;
     private readonly double _quarterEnvironmentEventTriggerChance;
@@ -28,6 +29,7 @@ public sealed class SanguoTurnManager
     private readonly Dictionary<string, int> _turnEventStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly SanguoActionCardsCatalog? _actionCardsCatalog;
+    private readonly Dictionary<string, Dictionary<string, int>> _randomEventLastAppliedRoundByPlayerId = new(StringComparer.Ordinal);
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -47,6 +49,7 @@ public sealed class SanguoTurnManager
         SanguoTreasury treasury,
         ISanguoAiDecisionPolicy? aiDecisionPolicy = null,
         IRandomNumberGenerator? rng = null,
+        int randomSeed = 0,
         int totalPositionsHint = 0,
         double quarterEnvironmentEventTriggerChance = 0.5,
         decimal quarterEnvironmentEventYieldMultiplier = 0.5m,
@@ -63,6 +66,7 @@ public sealed class SanguoTurnManager
         _treasury = treasury ?? throw new ArgumentNullException(nameof(treasury));
         _aiDecisionPolicy = aiDecisionPolicy ?? new DefaultSanguoAiDecisionPolicy();
         _rng = rng ?? ThreadLocalRandomNumberGenerator.Instance;
+        _randomSeed = randomSeed;
         _totalPositionsHint = totalPositionsHint;
         _quarterEnvironmentEventTriggerChance = quarterEnvironmentEventTriggerChance;
         _quarterEnvironmentEventYieldMultiplier = quarterEnvironmentEventYieldMultiplier;
@@ -135,6 +139,7 @@ public sealed class SanguoTurnManager
         _gameOverEndReason = null;
         _actionCardPlayedTurnNumber = null;
         _diceRolledTurnNumber = null;
+        _randomEventLastAppliedRoundByPlayerId.Clear();
         ResetTurnScopedEventStepDeltas();
 
         var occurredAt = DateTimeOffset.UtcNow;
@@ -1015,6 +1020,19 @@ public sealed class SanguoTurnManager
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
+    private static int ComputeDeterministicSeed(int baseSeed, string rngContextId, string candidatesSortedIdsHash)
+    {
+        var material = $"{baseSeed}|{rngContextId}|{candidatesSortedIdsHash}";
+        var bytes = Encoding.UTF8.GetBytes(material);
+        var hash = SHA256.HashData(bytes);
+        var seed = BitConverter.ToInt32(hash, 0) & 0x7fffffff;
+        if (seed == 0)
+        {
+            seed = 1;
+        }
+        return seed;
+    }
+
     private void ResetTurnScopedEventStepDeltas()
     {
         _turnEventStepDeltasByPlayerId.Clear();
@@ -1113,19 +1131,51 @@ public sealed class SanguoTurnManager
         if (!IsEventTilePosition(positionIndex))
             return;
 
-        if (!TryPickRandomEvent(
-                poolId: _tileRandomEventPoolId,
-                out var picked,
-                out var candidatesSortedIdsHash,
-                out var pickedIndex,
-                out var pickedId))
-            return;
-
+        var roundNumber = ComputeRoundNumber(_turnNumber);
         var rngContextId = BuildRngContextId(
             stream: "rng.random_events",
             turnNumber: _turnNumber,
-            roundNumber: ComputeRoundNumber(_turnNumber),
+            roundNumber: roundNumber,
             sourceId: "tile");
+
+        if (!TryPickRandomEvent(
+                poolId: _tileRandomEventPoolId,
+                playerId: activePlayerId,
+                roundNumber: roundNumber,
+                rngContextId: rngContextId,
+                out var picked,
+                out var candidatesSortedIdsHash,
+                out var pickedIndex,
+                out var pickedId,
+                out var pickRejectReason))
+            return;
+
+        if (!string.IsNullOrWhiteSpace(pickRejectReason))
+        {
+            var rejectedEvt = new DomainEvent(
+                Type: SanguoRandomEventRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: picked.EventId,
+                    EffectKind: picked.EffectKind,
+                    RejectReason: pickRejectReason,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejectedEvt);
+            return;
+        }
 
         var effectResult = ApplyRandomEventEffect(
             playerId: activePlayerId,
@@ -1135,6 +1185,7 @@ public sealed class SanguoTurnManager
 
         if (effectResult.Applied)
         {
+            RecordRandomEventApplied(activePlayerId, picked.EventId, roundNumber);
             var evt = new DomainEvent(
                 Type: SanguoRandomEventApplied.EventType,
                 Source: nameof(SanguoTurnManager),
@@ -1210,19 +1261,51 @@ public sealed class SanguoTurnManager
         if (_turnNumber % _globalEventIntervalTurns != 0)
             return;
 
-        if (!TryPickRandomEvent(
-                poolId: _globalRandomEventPoolId,
-                out var picked,
-                out var candidatesSortedIdsHash,
-                out var pickedIndex,
-                out var pickedId))
-            return;
-
+        var roundNumber = ComputeRoundNumber(_turnNumber);
         var rngContextId = BuildRngContextId(
             stream: "rng.random_events",
             turnNumber: _turnNumber,
-            roundNumber: ComputeRoundNumber(_turnNumber),
+            roundNumber: roundNumber,
             sourceId: "global");
+
+        if (!TryPickRandomEvent(
+                poolId: _globalRandomEventPoolId,
+                playerId: activePlayerId,
+                roundNumber: roundNumber,
+                rngContextId: rngContextId,
+                out var picked,
+                out var candidatesSortedIdsHash,
+                out var pickedIndex,
+                out var pickedId,
+                out var pickRejectReason))
+            return;
+
+        if (!string.IsNullOrWhiteSpace(pickRejectReason))
+        {
+            var rejectedEvt = new DomainEvent(
+                Type: SanguoRandomEventRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: picked.EventId,
+                    EffectKind: picked.EffectKind,
+                    RejectReason: pickRejectReason,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejectedEvt);
+            return;
+        }
 
         var effectResult = ApplyRandomEventEffect(
             playerId: activePlayerId,
@@ -1232,6 +1315,7 @@ public sealed class SanguoTurnManager
 
         if (effectResult.Applied)
         {
+            RecordRandomEventApplied(activePlayerId, picked.EventId, roundNumber);
             var evt = new DomainEvent(
                 Type: SanguoRandomEventApplied.EventType,
                 Source: nameof(SanguoTurnManager),
@@ -1418,17 +1502,56 @@ public sealed class SanguoTurnManager
             RejectReason: "invalid_effect_kind");
     }
 
+    private void RecordRandomEventApplied(string playerId, string eventId, int roundNumber)
+    {
+        if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(eventId))
+            return;
+
+        if (!_randomEventLastAppliedRoundByPlayerId.TryGetValue(playerId, out var byEventId))
+        {
+            byEventId = new Dictionary<string, int>(StringComparer.Ordinal);
+            _randomEventLastAppliedRoundByPlayerId[playerId] = byEventId;
+        }
+
+        byEventId[eventId] = roundNumber;
+    }
+
+    private bool IsRandomEventEligibleForPlayer(string playerId, SanguoRandomEventCatalogEntry entry, int currentRoundNumber)
+    {
+        if (string.IsNullOrWhiteSpace(playerId))
+            return true;
+
+        if (!_randomEventLastAppliedRoundByPlayerId.TryGetValue(playerId, out var byEventId))
+            return true;
+
+        if (!byEventId.TryGetValue(entry.EventId, out var lastAppliedRound))
+            return true;
+
+        if (entry.UniqueOnce)
+            return false;
+
+        if (entry.CooldownRounds <= 0)
+            return true;
+
+        return (currentRoundNumber - lastAppliedRound) > entry.CooldownRounds;
+    }
+
     private bool TryPickRandomEvent(
         string poolId,
+        string playerId,
+        int roundNumber,
+        string rngContextId,
         out SanguoRandomEventCatalogEntry picked,
         out string candidatesSortedIdsHash,
         out int pickedIndex,
-        out string pickedId)
+        out string pickedId,
+        out string? rejectReason)
     {
         picked = default!;
         candidatesSortedIdsHash = string.Empty;
         pickedIndex = -1;
         pickedId = string.Empty;
+        rejectReason = null;
 
         if (_randomEventsCatalog is null)
             return false;
@@ -1449,7 +1572,8 @@ public sealed class SanguoTurnManager
                 eventsById[e.EventId] = e;
         }
 
-        var candidateEntries = new List<SanguoRandomEventCatalogEntry>();
+        var allCandidates = new List<SanguoRandomEventCatalogEntry>();
+        var eligibleCandidates = new List<SanguoRandomEventCatalogEntry>();
         foreach (var eventId in pool.EventIds
                      .Where(x => !string.IsNullOrWhiteSpace(x))
                      .Distinct(StringComparer.Ordinal)
@@ -1458,17 +1582,29 @@ public sealed class SanguoTurnManager
             if (!eventsById.TryGetValue(eventId, out var e))
                 continue;
 
-            candidateEntries.Add(e);
+            allCandidates.Add(e);
+            if (IsRandomEventEligibleForPlayer(playerId, e, roundNumber))
+            {
+                eligibleCandidates.Add(e);
+            }
         }
 
-        if (candidateEntries.Count == 0)
+        if (allCandidates.Count == 0)
             return false;
 
-        var candidateIds = candidateEntries.Select(x => x.EventId).ToArray();
+        var list = eligibleCandidates.Count > 0 ? eligibleCandidates : allCandidates;
+        var candidateIds = list.Select(x => x.EventId).ToArray();
         candidatesSortedIdsHash = ComputeSha256Hex(string.Join("\n", candidateIds));
 
-        pickedIndex = _rng.NextInt(minInclusive: 0, maxExclusive: candidateEntries.Count);
-        picked = candidateEntries[pickedIndex];
+        if (eligibleCandidates.Count == 0)
+        {
+            rejectReason = "no_eligible_candidates";
+        }
+
+        var seed = ComputeDeterministicSeed(_randomSeed, rngContextId, candidatesSortedIdsHash);
+        var picker = new DeterministicRandomNumberGenerator(seed);
+        pickedIndex = picker.NextInt(minInclusive: 0, maxExclusive: list.Count);
+        picked = list[pickedIndex];
         pickedId = picked.EventId;
         return true;
     }
