@@ -21,6 +21,25 @@ public sealed class Task57ActionCardWindowTests
         SanguoActionCardPlayed.EventType.Should().Be("core.sanguo.action_card.played");
     }
 
+    // ACC:T57.4
+    // ACC:T57.5
+    [Fact]
+    public async Task GivenNoActionCardPlayed_WhenRollingDice_ThenNoActionCardEventsAndActionCardDeltaIsZero()
+    {
+        var cards = BuildDefaultCardsCatalog();
+        var (manager, bus) = await CreateStartedTurnManagerAsync(actionCardsCatalog: cards);
+        bus.Published.Clear();
+
+        manager.GetTurnAppliedMultipliersSnapshot("p1").ActionCardStepDelta.Should().Be(0);
+
+        await manager.ExecuteHumanRollDiceAndResolveAsync(correlationId: "c-skip-roll", causationId: "test");
+
+        bus.Published.Should().NotContain(e => e.Type == SanguoActionCardPlayed.EventType);
+        bus.Published.Should().NotContain(e => e.Type == SanguoActionCardPlayRejected.EventType);
+
+        manager.GetTurnAppliedMultipliersSnapshot("p1").ActionCardStepDelta.Should().Be(0);
+    }
+
     // ACC:T57.2
     // ACC:T57.3
     // ACC:T57.5
@@ -62,25 +81,6 @@ public sealed class Task57ActionCardWindowTests
 
         // Explicitly verify that the second attempt did not mutate the turn-scoped step delta state.
         manager.GetTurnAppliedMultipliersSnapshot("p1").ActionCardStepDelta.Should().Be(-1);
-    }
-
-    // ACC:T57.4
-    // ACC:T57.5
-    [Fact]
-    public async Task GivenNoActionCardPlayed_WhenRollingDice_ThenNoActionCardEventsAndActionCardDeltaIsZero()
-    {
-        var cards = BuildDefaultCardsCatalog();
-        var (manager, bus) = await CreateStartedTurnManagerAsync(actionCardsCatalog: cards);
-        bus.Published.Clear();
-
-        manager.GetTurnAppliedMultipliersSnapshot("p1").ActionCardStepDelta.Should().Be(0);
-
-        await manager.ExecuteHumanRollDiceAndResolveAsync(correlationId: "c-skip-roll", causationId: "test");
-
-        bus.Published.Should().NotContain(e => e.Type == SanguoActionCardPlayed.EventType);
-        bus.Published.Should().NotContain(e => e.Type == SanguoActionCardPlayRejected.EventType);
-
-        manager.GetTurnAppliedMultipliersSnapshot("p1").ActionCardStepDelta.Should().Be(0);
     }
 
     [Fact]
