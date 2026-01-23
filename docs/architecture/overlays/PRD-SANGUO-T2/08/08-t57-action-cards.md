@@ -5,7 +5,9 @@ Status: Draft
 ADR-Refs:
   - ADR-0004
 Arch-Refs:
+  - CH04
   - CH06
+  - CH07
 ---
 
 # T57：行动卡（BeforeRoll，止损版）
@@ -22,12 +24,16 @@ Arch-Refs:
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.action_card.played`：行动卡被使用后发布。
+- `core.sanguo.action_card.play.rejected`：同回合重复出牌/不满足规则时发布（可审计，无状态变更）。
 
 ## 契约定义
 
 ### 事件
 - **SanguoActionCardPlayed** (`core.sanguo.action_card.played`)
   - 触发时机：行动卡在 BeforeRoll 窗口被使用后
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+- **SanguoActionCardPlayRejected** (`core.sanguo.action_card.play.rejected`)
+  - 触发时机：行动卡出牌被 Core 规则拒绝（例如同回合第二次出牌）
   - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
 
 ### DTO
@@ -44,3 +50,5 @@ Arch-Refs:
 - `Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs`
 - `Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs`
 - `Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd`
+- `Tests.Godot/tests/UI/test_task57_before_roll_play_or_skip.gd`
+- `Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd`

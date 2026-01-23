@@ -10,7 +10,6 @@ namespace Game.Godot.Scripts.Sanguo;
 
 public partial class SanguoBoardView : Node2D
 {
-    private const int MaxEventJsonChars = 64 * 1024;
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
 
     private static readonly Color HumanColor = new(0.9f, 0.2f, 0.2f, 1f);
@@ -145,7 +144,7 @@ public partial class SanguoBoardView : Node2D
         }
 
         var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (json.Length > MaxEventJsonChars)
+        if (json.Length > 65536)
         {
             GD.PushWarning($"SanguoBoardView ignored over-sized event payload (type='{type}', length={json.Length}).");
             return;

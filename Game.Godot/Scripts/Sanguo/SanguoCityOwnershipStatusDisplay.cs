@@ -7,7 +7,6 @@ namespace Game.Godot.Scripts.Sanguo;
 
 public partial class SanguoCityOwnershipStatusDisplay : Control
 {
-    private const int MaxEventJsonChars = 64 * 1024;
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
 
     private EventBusAdapter? _bus;
@@ -87,7 +86,7 @@ public partial class SanguoCityOwnershipStatusDisplay : Control
         }
 
         var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (json.Length > MaxEventJsonChars)
+        if (json.Length > 65536)
         {
             return;
         }

@@ -4,6 +4,7 @@ using Game.Core.Domain;
 using Game.Core.Ports;
 using MoneyValue = Game.Core.Domain.ValueObjects.Money;
 using Game.Core.Services;
+using Game.Core.Services.Sanguo;
 using Game.Godot.Adapters;
 using Game.Godot.Autoloads;
 using System;
@@ -34,6 +35,8 @@ public partial class SanguoGameLoopController : Node
     private const string UiHudSave = "ui.hud.save";
     private const string UiHudLoad = "ui.hud.load";
     private const string UiTileActionSelected = "ui.sanguo.tile.action.selected";
+    private const string UiActionCardPlay = "ui.sanguo.action_card.play";
+    private const string UiActionCardSkip = "ui.sanguo.action_card.skip";
     private const string AiAutoAdvanceCausationId = "runtime.ai.auto.advance";
 
     private const int DefaultPlayersCount = 4;
@@ -141,6 +144,20 @@ public partial class SanguoGameLoopController : Node
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
+        var isUiInput =
+            type == UiHudSave ||
+            type == UiHudLoad ||
+            type == UiMenuStart ||
+            type == UiMenuQuit ||
+            type == UiHudDiceRoll ||
+            type == UiTileActionSelected ||
+            type == UiActionCardPlay ||
+            type == UiActionCardSkip;
+        if (isUiInput && (string.IsNullOrWhiteSpace(source) || source.Length > 64))
+        {
+            return;
+        }
+
         if (type == SanguoGameEnded.EventType)
         {
             _started = false;
@@ -197,6 +214,7 @@ public partial class SanguoGameLoopController : Node
         if (type == SanguoGameTurnStarted.EventType)
         {
             _activePlayerId = SanguoGlueJson.TryExtractActivePlayerId(dataJson);
+            _advanceQueued = false;
             return;
         }
 
@@ -270,6 +288,76 @@ public partial class SanguoGameLoopController : Node
 
             var correlationId = Guid.NewGuid().ToString("N");
             CallDeferred(nameof(StartGameDeferred), correlationId, string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson);
+            return;
+        }
+
+        if (type == UiActionCardSkip)
+        {
+            _audio?.PlaySfx(DefaultUiClickSfxId, 1f);
+
+            if (!_started || _turnManager == null)
+            {
+                return;
+            }
+
+            if (_advanceQueued)
+            {
+                return;
+            }
+
+            var playerId = SanguoGlueJson.TryExtractPlayerId(dataJson);
+            if (!string.IsNullOrWhiteSpace(_activePlayerId) && !string.IsNullOrWhiteSpace(playerId) &&
+                !string.Equals(_activePlayerId, playerId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (SanguoGlueJson.IsAiPlayerId(_activePlayerId) || SanguoGlueJson.IsAiPlayerId(playerId))
+            {
+                return;
+            }
+
+            var correlationId = SanguoGlueJson.TryExtractCorrelationId(dataJson) ?? Guid.NewGuid().ToString("N");
+            _advanceQueued = true;
+            CallDeferred(nameof(AdvanceTurnDeferred), correlationId);
+            return;
+        }
+
+        if (type == UiActionCardPlay)
+        {
+            _audio?.PlaySfx(DefaultUiClickSfxId, 1f);
+
+            if (!_started || _turnManager == null)
+            {
+                return;
+            }
+
+            if (_advanceQueued)
+            {
+                return;
+            }
+
+            var playerId = SanguoGlueJson.TryExtractPlayerId(dataJson);
+            if (!string.IsNullOrWhiteSpace(_activePlayerId) && !string.IsNullOrWhiteSpace(playerId) &&
+                !string.Equals(_activePlayerId, playerId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (SanguoGlueJson.IsAiPlayerId(_activePlayerId) || SanguoGlueJson.IsAiPlayerId(playerId))
+            {
+                return;
+            }
+
+            var cardId = SanguoGlueJson.TryExtractCardId(dataJson) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(cardId))
+            {
+                return;
+            }
+
+            var correlationId = SanguoGlueJson.TryExtractCorrelationId(dataJson) ?? Guid.NewGuid().ToString("N");
+            _advanceQueued = true;
+            CallDeferred(nameof(PlayActionCardAndAdvanceTurnDeferred), correlationId, cardId);
             return;
         }
 
@@ -504,7 +592,18 @@ public partial class SanguoGameLoopController : Node
         }
 
         _lastStartConfig = startConfig;
-        _turnManager = CreateNewTurnManager(map, startConfig);
+
+        SanguoActionCardsCatalog? actionCardsCatalog = null;
+        if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var loadedCards, out var cardsError))
+        {
+            actionCardsCatalog = loadedCards;
+        }
+        else
+        {
+            GD.PushWarning($"SanguoGameLoopController: action cards catalog load failed (error='{cardsError}').");
+        }
+
+        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog);
 
         try
         {
@@ -545,6 +644,12 @@ public partial class SanguoGameLoopController : Node
         if (string.IsNullOrWhiteSpace(json))
         {
             error = "empty_json";
+            return false;
+        }
+
+        if (json.Length > 32768)
+        {
+            error = "start_config_json_too_large";
             return false;
         }
 
@@ -786,7 +891,10 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
-    private SanguoTurnManager CreateNewTurnManager(SanguoMapDefinition map, GameStartConfig? startConfig = null)
+    private SanguoTurnManager CreateNewTurnManager(
+        SanguoMapDefinition map,
+        GameStartConfig? startConfig = null,
+        SanguoActionCardsCatalog? actionCardsCatalog = null)
     {
         var economyRules = SanguoEconomyRules.Default;
         var playerOrder = startConfig != null
@@ -808,7 +916,8 @@ public partial class SanguoGameLoopController : Node
             economy: economy,
             boardState: boardState,
             treasury: treasury,
-            totalPositionsHint: map.TileCount);
+            totalPositionsHint: map.TileCount,
+            actionCardsCatalog: actionCardsCatalog);
     }
 
     private IResourceLoader? ResolveResourceLoader()
@@ -919,6 +1028,42 @@ public partial class SanguoGameLoopController : Node
         catch (Exception ex)
         {
             GD.PushWarning($"SanguoGameLoopController: failed to advance turn: {ex.Message}");
+        }
+        finally
+        {
+            if (!_awaitingHumanTileAction)
+            {
+                _advanceQueued = false;
+            }
+        }
+
+        TryQueueAiAutoAdvanceIfNeeded();
+    }
+
+    private async void PlayActionCardAndAdvanceTurnDeferred(string correlationId, string cardId)
+    {
+        try
+        {
+            if (_turnManager == null)
+            {
+                return;
+            }
+
+            await _turnManager.TryPlayHumanActionCardAsync(cardId: cardId, correlationId: correlationId, causationId: UiActionCardPlay);
+
+            await _turnManager.ExecuteHumanRollDiceAndResolveAsync(correlationId: correlationId, causationId: UiActionCardPlay);
+            if (ShouldWaitForHumanTileAction(correlationId))
+            {
+                _awaitingHumanTileAction = true;
+                _awaitingHumanActionCorrelationId = correlationId;
+                return;
+            }
+
+            await _turnManager.AdvanceTurnAsync(correlationId: correlationId, causationId: UiActionCardPlay);
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"SanguoGameLoopController: failed to play action card and advance turn: {ex.Message}");
         }
         finally
         {

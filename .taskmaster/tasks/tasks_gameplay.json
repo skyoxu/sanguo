@@ -2053,14 +2053,15 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
     ],
     "contractRefs": [
-      "core.sanguo.action_card.played"
+      "core.sanguo.action_card.played",
+      "core.sanguo.action_card.play.rejected"
     ],
     "acceptance": [
       "Gameplay 验收口径与本任务描述一致：行动卡规则与加载来源以 res://Data/action_cards.json 为准，不依赖 tasks_back.json 等占位输入来改变行动卡策略或效果边界。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
       "从 res://Data/action_cards.json 读取并按 schemaVersion/version/cards[] 解析；每张 card 必含 cardId/nameKey/descriptionKey/effectKind/stepDelta/durationRounds；仅允许 effectKind=economyStepDelta（不允许 moneyDelta/改所有权）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
       "BeforeRoll 每回合最多 1 张，出牌发布 core.sanguo.action_card.played，并将 stepDelta 计入 applied_multipliers.action_card（仅 Core 计算）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
-      "GdUnit4: UI 提供“出牌/跳过”，出牌后进入掷骰。 Refs: Tests.Godot/tests/UI/test_before_roll_action_card_play_or_skip_flow.gd",
-      "选择跳过时不发布 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应因行动卡产生变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "GdUnit4: UI 提供“出牌/跳过”，出牌后进入掷骰。 Refs: Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd",
+      "选择跳过时不发布 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应因行动卡产生变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
       "xUnit: In the same turn, attempting to play a second action card must NOT change applied_multipliers.action_card (no stepDelta stacking), even if no extra action_card.played event is emitted. Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs"
     ],
     "test_refs": [
@@ -2068,7 +2069,7 @@
       "Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
       "Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd",
       "Tests.Godot/tests/UI/test_task57_before_roll_play_or_skip.gd",
-      "Tests.Godot/tests/UI/test_before_roll_action_card_play_or_skip_flow.gd"
+      "Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd"
     ],
     "test_strategy": [
       "xUnit：策略与窗口；GdUnit4：最小 UI 流程。"

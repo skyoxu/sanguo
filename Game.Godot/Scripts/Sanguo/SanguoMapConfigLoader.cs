@@ -268,6 +268,12 @@ internal static class SanguoMapConfigLoader
             return false;
         }
 
+        if (json.Length > 4000000)
+        {
+            error = "map_json_too_large";
+            return false;
+        }
+
         SanguoMapDefinitionV2? parsed;
         try
         {

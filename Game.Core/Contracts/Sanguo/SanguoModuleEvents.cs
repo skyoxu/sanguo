@@ -19,7 +19,8 @@ public sealed record SanguoActionCardPlayed(
     int DurationRounds,
     DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    AppliedMultipliers? AppliedMultipliersAfter = null
 )
 {
     /// <summary>
@@ -50,6 +51,10 @@ public sealed record SanguoActionCardPlayRejected(
 )
 {
     public const string ReasonAlreadyPlayedThisTurn = "already_played_this_turn";
+    public const string ReasonNotBeforeRoll = "not_before_roll";
+    public const string ReasonCatalogMissing = "catalog_missing";
+    public const string ReasonUnknownCardId = "unknown_card_id";
+    public const string ReasonInvalidCardEffectKind = "invalid_card_effect_kind";
 
     /// <summary>
     /// CloudEvents type for this domain event.

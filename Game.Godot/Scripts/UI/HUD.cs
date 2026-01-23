@@ -15,7 +15,6 @@ namespace Game.Godot.Scripts.UI;
 
 public partial class HUD : Control
 {
-    private const int MaxEventJsonChars = 64 * 1024;
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
     private const string UiHudDiceRollEventType = "ui.hud.dice.roll";
     private const string UiHudSaveEventType = "ui.hud.save";
@@ -248,15 +247,20 @@ public partial class HUD : Control
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
-        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (json.Length > MaxEventJsonChars)
+        if (string.IsNullOrWhiteSpace(source) || source.Length > 64)
         {
-            GD.PushWarning($"HUD ignored over-sized event payload (type='{type}', length={json.Length}).");
             return;
         }
 
+        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
         if (!_handlers.TryGetValue(type, out var handler))
         {
+            return;
+        }
+
+        if (json.Length > 65536)
+        {
+            GD.PushWarning($"HUD ignored over-sized event payload (type='{type}', length={json.Length}).");
             return;
         }
 

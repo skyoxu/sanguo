@@ -24,6 +24,8 @@ public sealed class SanguoTurnManager
     private readonly int _globalEventIntervalTurns;
     private readonly string _randomEventPoolId;
     private readonly Dictionary<string, int> _turnEventStepDeltasByPlayerId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
+    private readonly SanguoActionCardsCatalog? _actionCardsCatalog;
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -34,6 +36,7 @@ public sealed class SanguoTurnManager
     private bool _started;
     private string? _gameOverEndReason;
     private int? _actionCardPlayedTurnNumber;
+    private int? _diceRolledTurnNumber;
 
     public SanguoTurnManager(
         IEventBus bus,
@@ -47,7 +50,8 @@ public sealed class SanguoTurnManager
         decimal quarterEnvironmentEventYieldMultiplier = 0.5m,
         SanguoRandomEventsCatalog? randomEventsCatalog = null,
         int globalEventIntervalTurns = 5,
-        string randomEventPoolId = "default")
+        string randomEventPoolId = "default",
+        SanguoActionCardsCatalog? actionCardsCatalog = null)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
@@ -61,6 +65,7 @@ public sealed class SanguoTurnManager
         _randomEventsCatalog = randomEventsCatalog;
         _globalEventIntervalTurns = globalEventIntervalTurns;
         _randomEventPoolId = randomEventPoolId ?? throw new ArgumentNullException(nameof(randomEventPoolId));
+        _actionCardsCatalog = actionCardsCatalog;
 
         if (_globalEventIntervalTurns != 5 && _globalEventIntervalTurns != 10 && _globalEventIntervalTurns != 20)
             throw new ArgumentOutOfRangeException(nameof(globalEventIntervalTurns), "GlobalEventIntervalTurns must be one of: 5, 10, 20.");
@@ -123,6 +128,7 @@ public sealed class SanguoTurnManager
         _started = true;
         _gameOverEndReason = null;
         _actionCardPlayedTurnNumber = null;
+        _diceRolledTurnNumber = null;
         ResetTurnScopedEventStepDeltas();
 
         var occurredAt = DateTimeOffset.UtcNow;
@@ -182,6 +188,7 @@ public sealed class SanguoTurnManager
 
         var totalPositions = ResolveTotalPositions();
         var occurredAt = DateTimeOffset.UtcNow;
+        _diceRolledTurnNumber = _turnNumber;
         var diceValue = _rng.NextInt(1, 7);
 
         await ExecuteRollDiceMoveAndResolveCityAsync(
@@ -199,8 +206,6 @@ public sealed class SanguoTurnManager
 
     public async Task<bool> TryPlayHumanActionCardAsync(
         string cardId,
-        int stepDelta,
-        int durationRounds,
         string correlationId,
         string? causationId)
     {
@@ -219,6 +224,29 @@ public sealed class SanguoTurnManager
         }
 
         var occurredAt = DateTimeOffset.UtcNow;
+
+        if (_diceRolledTurnNumber == _turnNumber)
+        {
+            var rejected = new DomainEvent(
+                Type: SanguoActionCardPlayRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                    GameId: _gameId,
+                    TurnNumber: _turnNumber,
+                    RoundNumber: ComputeRoundNumber(_turnNumber),
+                    PlayerId: activePlayerId,
+                    Phase: SanguoTurnPhase.BeforeRoll.ToString(),
+                    CardId: cardId,
+                    ReasonCode: SanguoActionCardPlayRejected.ReasonNotBeforeRoll,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejected);
+            return false;
+        }
 
         if (_actionCardPlayedTurnNumber == _turnNumber)
         {
@@ -243,6 +271,78 @@ public sealed class SanguoTurnManager
             return false;
         }
 
+        if (_actionCardsCatalog is null)
+        {
+            var rejected = new DomainEvent(
+                Type: SanguoActionCardPlayRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                    GameId: _gameId,
+                    TurnNumber: _turnNumber,
+                    RoundNumber: ComputeRoundNumber(_turnNumber),
+                    PlayerId: activePlayerId,
+                    Phase: SanguoTurnPhase.BeforeRoll.ToString(),
+                    CardId: cardId,
+                    ReasonCode: SanguoActionCardPlayRejected.ReasonCatalogMissing,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejected);
+            return false;
+        }
+
+        var card = _actionCardsCatalog.Cards.FirstOrDefault(c => string.Equals(c.CardId, cardId, StringComparison.Ordinal));
+        if (card is null)
+        {
+            var rejected = new DomainEvent(
+                Type: SanguoActionCardPlayRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                    GameId: _gameId,
+                    TurnNumber: _turnNumber,
+                    RoundNumber: ComputeRoundNumber(_turnNumber),
+                    PlayerId: activePlayerId,
+                    Phase: SanguoTurnPhase.BeforeRoll.ToString(),
+                    CardId: cardId,
+                    ReasonCode: SanguoActionCardPlayRejected.ReasonUnknownCardId,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejected);
+            return false;
+        }
+
+        if (!string.Equals(card.EffectKind, "economyStepDelta", StringComparison.Ordinal))
+        {
+            var rejected = new DomainEvent(
+                Type: SanguoActionCardPlayRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                    GameId: _gameId,
+                    TurnNumber: _turnNumber,
+                    RoundNumber: ComputeRoundNumber(_turnNumber),
+                    PlayerId: activePlayerId,
+                    Phase: SanguoTurnPhase.BeforeRoll.ToString(),
+                    CardId: cardId,
+                    ReasonCode: SanguoActionCardPlayRejected.ReasonInvalidCardEffectKind,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejected);
+            return false;
+        }
+
+        var appliedAfter = CommitTurnActionCardEconomyStepDeltaAndGetSnapshot(activePlayerId, card.StepDelta);
+
         var played = new DomainEvent(
             Type: SanguoActionCardPlayed.EventType,
             Source: nameof(SanguoTurnManager),
@@ -251,11 +351,12 @@ public sealed class SanguoTurnManager
                 PlayerId: activePlayerId,
                 CardId: cardId,
                 EffectKind: "economyStepDelta",
-                StepDelta: stepDelta,
-                DurationRounds: durationRounds,
+                StepDelta: card.StepDelta,
+                DurationRounds: card.DurationRounds,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
-                CausationId: causationId
+                CausationId: causationId,
+                AppliedMultipliersAfter: appliedAfter
             )),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N"));
@@ -910,6 +1011,35 @@ public sealed class SanguoTurnManager
     private void ResetTurnScopedEventStepDeltas()
     {
         _turnEventStepDeltasByPlayerId.Clear();
+        _turnActionCardStepDeltasByPlayerId.Clear();
+    }
+
+    internal AppliedMultipliers GetTurnAppliedMultipliersSnapshot(string playerId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId))
+            throw new ArgumentException("PlayerId must be non-empty.", nameof(playerId));
+
+        var baseSteps = AppliedMultipliers.BaseDefaultSteps;
+        var eventDelta = _turnEventStepDeltasByPlayerId.TryGetValue(playerId, out var e) ? e : 0;
+        var actionCardDelta = _turnActionCardStepDeltasByPlayerId.TryGetValue(playerId, out var a) ? a : 0;
+        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + eventDelta + actionCardDelta);
+
+        var sources = AppliedMultiplierSources.None;
+        if (eventDelta != 0)
+            sources |= AppliedMultiplierSources.Event;
+        if (actionCardDelta != 0)
+            sources |= AppliedMultiplierSources.ActionCard;
+
+        return new AppliedMultipliers(
+            BaseSteps: baseSteps,
+            CharacterStepDelta: 0,
+            BuildingStepDelta: 0,
+            EventStepDelta: eventDelta,
+            ActionCardStepDelta: actionCardDelta,
+            RelicStepDelta: 0,
+            RegionStepDelta: 0,
+            EffectiveSteps: effectiveSteps,
+            Sources: sources);
     }
 
     private AppliedMultipliers CommitTurnEventEconomyStepDeltaAndGetSnapshot(string playerId, int stepDelta)
@@ -922,18 +1052,44 @@ public sealed class SanguoTurnManager
         _turnEventStepDeltasByPlayerId[playerId] = next;
 
         var baseSteps = AppliedMultipliers.BaseDefaultSteps;
-        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + next);
+        var actionCardDelta = _turnActionCardStepDeltasByPlayerId.TryGetValue(playerId, out var a) ? a : 0;
+        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + next + actionCardDelta);
 
         return new AppliedMultipliers(
             BaseSteps: baseSteps,
             CharacterStepDelta: 0,
             BuildingStepDelta: 0,
             EventStepDelta: next,
-            ActionCardStepDelta: 0,
+            ActionCardStepDelta: actionCardDelta,
             RelicStepDelta: 0,
             RegionStepDelta: 0,
             EffectiveSteps: effectiveSteps,
             Sources: AppliedMultiplierSources.Event);
+    }
+
+    private AppliedMultipliers CommitTurnActionCardEconomyStepDeltaAndGetSnapshot(string playerId, int stepDelta)
+    {
+        if (string.IsNullOrWhiteSpace(playerId))
+            throw new ArgumentException("PlayerId must be non-empty.", nameof(playerId));
+
+        var current = _turnActionCardStepDeltasByPlayerId.TryGetValue(playerId, out var v) ? v : 0;
+        var next = checked(current + stepDelta);
+        _turnActionCardStepDeltasByPlayerId[playerId] = next;
+
+        var baseSteps = AppliedMultipliers.BaseDefaultSteps;
+        var eventDelta = _turnEventStepDeltasByPlayerId.TryGetValue(playerId, out var e) ? e : 0;
+        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + next + eventDelta);
+
+        return new AppliedMultipliers(
+            BaseSteps: baseSteps,
+            CharacterStepDelta: 0,
+            BuildingStepDelta: 0,
+            EventStepDelta: eventDelta,
+            ActionCardStepDelta: next,
+            RelicStepDelta: 0,
+            RegionStepDelta: 0,
+            EffectiveSteps: effectiveSteps,
+            Sources: AppliedMultiplierSources.ActionCard);
     }
 
     private async Task TryTriggerTileRandomEventAsync(
@@ -1207,6 +1363,7 @@ public sealed class SanguoTurnManager
         if (totalPositions <= 0)
             return;
 
+        _diceRolledTurnNumber = _turnNumber;
         var value = _rng.NextInt(1, 7);
         var dice = new DomainEvent(
             Type: SanguoDiceRolled.EventType,
@@ -1469,6 +1626,7 @@ public sealed class SanguoTurnManager
         _currentDate = new SanguoCalendarDate(snapshot.Year, snapshot.Month, snapshot.Day);
         _started = true;
         _actionCardPlayedTurnNumber = null;
+        _diceRolledTurnNumber = null;
         ResetTurnScopedEventStepDeltas();
     }
 

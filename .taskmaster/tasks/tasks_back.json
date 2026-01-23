@@ -3369,8 +3369,8 @@
     "acceptance": [
       "从 res://Data/action_cards.json 读取并按 schemaVersion/version/cards[] 解析；每张 card 必含 cardId/nameKey/descriptionKey/effectKind/stepDelta/durationRounds；仅允许 effectKind=economyStepDelta，出现其他 effectKind（含 moneyDelta/所有权变更相关）时该卡不得被加载为可用行动卡。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
       "BeforeRoll 每回合最多出 1 张：同一回合内尝试出第 2 张不应产生额外的 core.sanguo.action_card.played；当出牌成功时发布 core.sanguo.action_card.played，并将该卡 stepDelta 计入本回合 applied_multipliers.action_card（由 Core 侧计算与产出）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
-      "GdUnit4: BeforeRoll UI 提供“出牌/跳过”两条路径：选择出牌并确认 1 张行动卡后进入掷骰；选择跳过则不出牌并直接进入掷骰。 Refs: Tests.Godot/tests/UI/test_before_roll_action_card_play_or_skip_flow.gd",
-      "选择跳过时不发布 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应因行动卡产生变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "GdUnit4: BeforeRoll UI 提供“出牌/跳过”两条路径：选择出牌并确认 1 张行动卡后进入掷骰；选择跳过则不出牌并直接进入掷骰。 Refs: Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd",
+      "选择跳过时不发布 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应因行动卡产生变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
       "xUnit: In the same turn, attempting to play a second action card must NOT change applied_multipliers.action_card (no stepDelta stacking), even if no extra action_card.played event is emitted. Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs"
     ],
     "test_refs": [
@@ -3378,13 +3378,14 @@
       "Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
       "Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd",
       "Tests.Godot/tests/UI/test_task57_before_roll_play_or_skip.gd",
-      "Tests.Godot/tests/UI/test_before_roll_action_card_play_or_skip_flow.gd"
+      "Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd"
     ],
     "test_strategy": [
       "xUnit：策略与窗口；GdUnit4：最小 UI 流程。"
     ],
     "contractRefs": [
-      "core.sanguo.action_card.played"
+      "core.sanguo.action_card.played",
+      "core.sanguo.action_card.play.rejected"
     ]
   },
   {

@@ -226,6 +226,9 @@ def main():
     # Archive reports
     reports_dir = os.path.join(proj, 'reports')
     dest = args.report_dir if args.report_dir else os.path.join(out_dir, 'gdunit-reports')
+    # Guard against destructive configuration: if dest == out_dir, we'd delete the folder that also holds console_path.
+    if os.path.abspath(dest) == os.path.abspath(out_dir):
+        dest = os.path.join(out_dir, 'gdunit-reports')
     # Always create a destination folder with at least the console log and a summary
     if os.path.isdir(dest):
         shutil.rmtree(dest, ignore_errors=True)
