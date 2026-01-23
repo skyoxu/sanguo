@@ -49,6 +49,27 @@ public sealed class Task52TurnPhaseWindowTests
                 EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
         });
 
+    private static readonly SanguoActionCardsCatalog ActionCardsCatalog = new(
+        SchemaVersion: 1,
+        Version: 1,
+        Cards: new[]
+        {
+            new SanguoActionCardCatalogEntry(
+                CardId: "card_1",
+                NameKey: "card.card_1.name",
+                DescriptionKey: "card.card_1.desc",
+                EffectKind: "economyStepDelta",
+                StepDelta: 1,
+                DurationRounds: 3),
+            new SanguoActionCardCatalogEntry(
+                CardId: "card_2",
+                NameKey: "card.card_2.name",
+                DescriptionKey: "card.card_2.desc",
+                EffectKind: "economyStepDelta",
+                StepDelta: 1,
+                DurationRounds: 3),
+        });
+
     private sealed class CapturingEventBus : IEventBus
     {
         public List<DomainEvent> Published { get; } = new();
@@ -121,7 +142,8 @@ public sealed class Task52TurnPhaseWindowTests
             quarterEnvironmentEventYieldMultiplier: 1.0m,
             randomEventsCatalog: RandomEventsCatalog,
             globalEventIntervalTurns: 5,
-            randomEventPoolId: "default");
+            randomEventPoolId: "default",
+            actionCardsCatalog: ActionCardsCatalog);
 
         return (manager, bus);
     }
@@ -144,16 +166,12 @@ public sealed class Task52TurnPhaseWindowTests
 
         var first = await manager.TryPlayHumanActionCardAsync(
             cardId: "card_1",
-            stepDelta: 1,
-            durationRounds: 3,
             correlationId: "c-card-1",
             causationId: null);
         first.Should().BeTrue();
 
         var second = await manager.TryPlayHumanActionCardAsync(
             cardId: "card_2",
-            stepDelta: 1,
-            durationRounds: 3,
             correlationId: "c-card-2",
             causationId: null);
         second.Should().BeFalse("only one action card is allowed per turn in TurnPhase.BeforeRoll");

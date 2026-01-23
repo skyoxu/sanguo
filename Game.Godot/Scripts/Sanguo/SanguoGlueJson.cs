@@ -5,7 +5,6 @@ namespace Game.Godot.Scripts.Sanguo;
 
 internal static class SanguoGlueJson
 {
-    private const int MaxEventJsonChars = 64 * 1024;
     private static readonly JsonDocumentOptions Options = new() { MaxDepth = 32 };
 
     internal static string? TryExtractAiDecisionType(string dataJson)
@@ -28,6 +27,11 @@ internal static class SanguoGlueJson
         return TryExtractStringProperty(dataJson, "PlayerId");
     }
 
+    internal static string? TryExtractCardId(string dataJson)
+    {
+        return TryExtractStringProperty(dataJson, "CardId");
+    }
+
     internal static string? TryExtractAction(string dataJson)
     {
         return TryExtractStringProperty(dataJson, "Action");
@@ -41,7 +45,7 @@ internal static class SanguoGlueJson
     internal static int? TryExtractIntProperty(string dataJson, string propertyName)
     {
         var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (json.Length > MaxEventJsonChars)
+        if (json.Length > 65536)
         {
             return null;
         }
@@ -75,7 +79,7 @@ internal static class SanguoGlueJson
     private static string? TryExtractStringProperty(string dataJson, string propertyName)
     {
         var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (json.Length > MaxEventJsonChars)
+        if (json.Length > 65536)
         {
             return null;
         }

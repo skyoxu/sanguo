@@ -12,6 +12,7 @@ namespace Game.Godot.Scripts.UI;
 
 public partial class MainMenu : Control
 {
+    private const string EmptyJsonObject = "{}";
     private const string UiMenuStart = "ui.menu.start";
     private const string UiMenuSettings = "ui.menu.settings";
     private const string UiMenuQuit = "ui.menu.quit";
@@ -141,7 +142,7 @@ public partial class MainMenu : Control
         _statusLabel.Visible = false;
     }
 
-    private void Publish(string type, string source, string dataJson = "{}")
+    private void Publish(string type, string source, string dataJson = EmptyJsonObject)
     {
         _bus?.PublishSimple(type, source, dataJson);
     }
@@ -520,6 +521,11 @@ public partial class MainMenu : Control
     private static string? TryExtractStartFailedReason(string dataJson)
     {
         if (string.IsNullOrWhiteSpace(dataJson))
+        {
+            return null;
+        }
+
+        if (dataJson.Length > 65536)
         {
             return null;
         }
