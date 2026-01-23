@@ -11,6 +11,11 @@ public static class SanguoActionCardsCatalogLoader
 {
     public const string ActionCardsResPath = "res://Data/action_cards.json";
 
+    public const int MinStepDelta = -6;
+    public const int MaxStepDelta = 6;
+
+    public const int MaxDurationRounds = 1000;
+
     private static readonly JsonDocumentOptions DocOptions = new()
     {
         CommentHandling = JsonCommentHandling.Skip,
@@ -149,6 +154,9 @@ public static class SanguoActionCardsCatalogLoader
                         continue;
                     }
 
+                    if (stepDelta < MinStepDelta || stepDelta > MaxStepDelta)
+                        continue;
+
                     if (!TryGetInt32OptionalOrFatal(cardEl, "durationRounds", out var durationRounds, out fatalError))
                     {
                         if (!string.IsNullOrWhiteSpace(fatalError))
@@ -161,6 +169,9 @@ public static class SanguoActionCardsCatalogLoader
                     }
 
                     if (durationRounds <= 0)
+                        continue;
+
+                    if (durationRounds > MaxDurationRounds)
                         continue;
 
                     valid.Add(new SanguoActionCardCatalogEntry(

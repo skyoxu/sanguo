@@ -21,6 +21,7 @@ Arch-Refs:
 
 ## 非目标
 - 不做多卡连锁与复杂卡牌规则。
+- 不实现跨回合持续效果：`durationRounds` 仅作为前向兼容字段保留并随事件/目录输出，本任务止损版只对当前回合生效。
 
 ## 契约（EventType + 触发点）
 - `core.sanguo.action_card.played`：行动卡被使用后发布。

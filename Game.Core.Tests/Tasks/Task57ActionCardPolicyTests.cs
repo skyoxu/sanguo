@@ -171,6 +171,40 @@ public sealed class Task57ActionCardPolicyTests
         error.Should().Be("invalid_action_cards_catalog:card_field_type:stepDelta");
     }
 
+    [Theory]
+    [InlineData(7)]
+    [InlineData(-7)]
+    public void ShouldFilterCard_WhenStepDeltaIsOutOfBounds(int stepDelta)
+    {
+        var loader = new TestResourceLoader
+        {
+            OnLoadText = path => path == SanguoActionCardsCatalogLoader.ActionCardsResPath
+                ? BuildCatalogJsonWithSingleCardOverrides(stepDelta: stepDelta, durationRounds: 3)
+                : null,
+        };
+
+        var ok = SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var catalog, out var error);
+
+        ok.Should().BeTrue(error);
+        catalog.Cards.Should().BeEmpty("stepDelta outside the allow-list range must be filtered out");
+    }
+
+    [Fact]
+    public void ShouldFilterCard_WhenDurationRoundsIsTooLarge()
+    {
+        var loader = new TestResourceLoader
+        {
+            OnLoadText = path => path == SanguoActionCardsCatalogLoader.ActionCardsResPath
+                ? BuildCatalogJsonWithSingleCardOverrides(stepDelta: 1, durationRounds: 1001)
+                : null,
+        };
+
+        var ok = SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var catalog, out var error);
+
+        ok.Should().BeTrue(error);
+        catalog.Cards.Should().BeEmpty("durationRounds above the hard cap must be filtered out");
+    }
+
     [Fact]
     public void ShouldRejectCatalog_WhenSchemaOrContentVersionIsInvalid()
     {
@@ -238,6 +272,28 @@ public sealed class Task57ActionCardPolicyTests
         };
 
         card.Remove(missingKey);
+
+        var root = new Dictionary<string, object?>
+        {
+            ["schemaVersion"] = 1,
+            ["version"] = 1,
+            ["cards"] = new List<Dictionary<string, object?>> { card },
+        };
+
+        return JsonSerializer.Serialize(root);
+    }
+
+    private static string BuildCatalogJsonWithSingleCardOverrides(int stepDelta, int durationRounds)
+    {
+        var card = new Dictionary<string, object?>
+        {
+            ["cardId"] = "ac_valid",
+            ["nameKey"] = "card.ac_valid.name",
+            ["descriptionKey"] = "card.ac_valid.desc",
+            ["effectKind"] = "economyStepDelta",
+            ["stepDelta"] = stepDelta,
+            ["durationRounds"] = durationRounds,
+        };
 
         var root = new Dictionary<string, object?>
         {
