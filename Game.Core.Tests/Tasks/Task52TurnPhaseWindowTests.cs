@@ -47,6 +47,9 @@ public sealed class Task52TurnPhaseWindowTests
             new SanguoRandomEventPoolCatalogEntry(
                 PoolId: "default",
                 EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
+            new SanguoRandomEventPoolCatalogEntry(
+                PoolId: "global",
+                EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
         });
 
     private static readonly SanguoActionCardsCatalog ActionCardsCatalog = new(
@@ -142,7 +145,8 @@ public sealed class Task52TurnPhaseWindowTests
             quarterEnvironmentEventYieldMultiplier: 1.0m,
             randomEventsCatalog: RandomEventsCatalog,
             globalEventIntervalTurns: 5,
-            randomEventPoolId: "default",
+            tileRandomEventPoolId: "default",
+            globalRandomEventPoolId: "global",
             actionCardsCatalog: ActionCardsCatalog);
 
         return (manager, bus);

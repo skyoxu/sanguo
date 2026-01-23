@@ -47,6 +47,9 @@ public sealed class Task52OutOfOrderEventRegressionTests
             new SanguoRandomEventPoolCatalogEntry(
                 PoolId: "default",
                 EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
+            new SanguoRandomEventPoolCatalogEntry(
+                PoolId: "global",
+                EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
         });
 
     private sealed class CapturingEventBus : IEventBus
@@ -117,7 +120,8 @@ public sealed class Task52OutOfOrderEventRegressionTests
             quarterEnvironmentEventYieldMultiplier: 1.0m,
             randomEventsCatalog: RandomEventsCatalog,
             globalEventIntervalTurns: 5,
-            randomEventPoolId: "default");
+            tileRandomEventPoolId: "default",
+            globalRandomEventPoolId: "global");
 
         return (manager, bus);
     }
