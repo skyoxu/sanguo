@@ -99,6 +99,7 @@ public sealed class Task56EventMultiplierTests
             EventPools: new[]
             {
                 new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "bad_tile" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "bad_tile" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -276,6 +277,7 @@ public sealed class Task56EventMultiplierTests
             EventPools: new[]
             {
                 new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "money_penalty" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "money_penalty" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -358,6 +360,9 @@ public sealed class Task56EventMultiplierTests
             {
                 new SanguoRandomEventPoolCatalogEntry(
                     PoolId: "default",
+                    EventIds: new[] { "c_step", "b_money", "a_bad" }),
+                new SanguoRandomEventPoolCatalogEntry(
+                    PoolId: "global",
                     EventIds: new[] { "c_step", "b_money", "a_bad" }),
             });
     }

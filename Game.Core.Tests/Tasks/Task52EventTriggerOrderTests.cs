@@ -49,6 +49,9 @@ public sealed class Task52EventTriggerOrderTests
             new SanguoRandomEventPoolCatalogEntry(
                 PoolId: "default",
                 EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
+            new SanguoRandomEventPoolCatalogEntry(
+                PoolId: "global",
+                EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
         });
 
     private static string ComputeSha256Hex(string value)
@@ -144,7 +147,8 @@ public sealed class Task52EventTriggerOrderTests
             quarterEnvironmentEventYieldMultiplier: 1.0m,
             randomEventsCatalog: RandomEventsCatalog,
             globalEventIntervalTurns: globalEventIntervalTurns,
-            randomEventPoolId: "default");
+            tileRandomEventPoolId: "default",
+            globalRandomEventPoolId: "global");
 
         return (manager, bus);
     }

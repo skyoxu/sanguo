@@ -17,6 +17,9 @@ Arch-Refs:
 - 每 N 回合触发全局事件（N 为 5/10/20）。
 - 两类触发统一进入 RandomEventPool，按固定顺序执行（与 T52 对齐）。
   - effectKind 白名单：`moneyDelta` / `economyStepDelta`（steps 为整型步进，1=+0.5；最终仍按 T51 口径 clamp）。
+  - 事件池拆分：
+    - tile 触发使用 poolId=`default`
+    - 全局触发使用 poolId=`global`
 
 ## 非目标
 - 不引入复杂事件树与文本脚本系统。

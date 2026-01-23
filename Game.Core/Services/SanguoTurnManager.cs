@@ -22,7 +22,8 @@ public sealed class SanguoTurnManager
     private readonly decimal _quarterEnvironmentEventYieldMultiplier;
     private readonly SanguoRandomEventsCatalog? _randomEventsCatalog;
     private readonly int _globalEventIntervalTurns;
-    private readonly string _randomEventPoolId;
+    private readonly string _tileRandomEventPoolId;
+    private readonly string _globalRandomEventPoolId;
     private readonly IReadOnlyDictionary<int, string>? _tileTypesByPositionIndex;
     private readonly Dictionary<string, int> _turnEventStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
@@ -51,7 +52,8 @@ public sealed class SanguoTurnManager
         decimal quarterEnvironmentEventYieldMultiplier = 0.5m,
         SanguoRandomEventsCatalog? randomEventsCatalog = null,
         int globalEventIntervalTurns = 5,
-        string randomEventPoolId = "default",
+        string tileRandomEventPoolId = "default",
+        string globalRandomEventPoolId = "global",
         SanguoActionCardsCatalog? actionCardsCatalog = null,
         IReadOnlyDictionary<int, string>? tileTypesByPositionIndex = null)
     {
@@ -66,7 +68,8 @@ public sealed class SanguoTurnManager
         _quarterEnvironmentEventYieldMultiplier = quarterEnvironmentEventYieldMultiplier;
         _randomEventsCatalog = randomEventsCatalog;
         _globalEventIntervalTurns = globalEventIntervalTurns;
-        _randomEventPoolId = randomEventPoolId ?? throw new ArgumentNullException(nameof(randomEventPoolId));
+        _tileRandomEventPoolId = tileRandomEventPoolId ?? throw new ArgumentNullException(nameof(tileRandomEventPoolId));
+        _globalRandomEventPoolId = globalRandomEventPoolId ?? throw new ArgumentNullException(nameof(globalRandomEventPoolId));
         _actionCardsCatalog = actionCardsCatalog;
         _tileTypesByPositionIndex = tileTypesByPositionIndex;
 
@@ -1110,7 +1113,12 @@ public sealed class SanguoTurnManager
         if (!IsEventTilePosition(positionIndex))
             return;
 
-        if (!TryPickRandomEvent(out var picked, out var candidatesSortedIdsHash, out var pickedIndex, out var pickedId))
+        if (!TryPickRandomEvent(
+                poolId: _tileRandomEventPoolId,
+                out var picked,
+                out var candidatesSortedIdsHash,
+                out var pickedIndex,
+                out var pickedId))
             return;
 
         var rngContextId = BuildRngContextId(
@@ -1202,7 +1210,12 @@ public sealed class SanguoTurnManager
         if (_turnNumber % _globalEventIntervalTurns != 0)
             return;
 
-        if (!TryPickRandomEvent(out var picked, out var candidatesSortedIdsHash, out var pickedIndex, out var pickedId))
+        if (!TryPickRandomEvent(
+                poolId: _globalRandomEventPoolId,
+                out var picked,
+                out var candidatesSortedIdsHash,
+                out var pickedIndex,
+                out var pickedId))
             return;
 
         var rngContextId = BuildRngContextId(
@@ -1406,6 +1419,7 @@ public sealed class SanguoTurnManager
     }
 
     private bool TryPickRandomEvent(
+        string poolId,
         out SanguoRandomEventCatalogEntry picked,
         out string candidatesSortedIdsHash,
         out int pickedIndex,
@@ -1419,8 +1433,11 @@ public sealed class SanguoTurnManager
         if (_randomEventsCatalog is null)
             return false;
 
+        if (string.IsNullOrWhiteSpace(poolId))
+            return false;
+
         var pool = _randomEventsCatalog.EventPools
-            .FirstOrDefault(p => string.Equals(p.PoolId, _randomEventPoolId, StringComparison.Ordinal));
+            .FirstOrDefault(p => string.Equals(p.PoolId, poolId, StringComparison.Ordinal));
 
         if (pool is null)
             return false;

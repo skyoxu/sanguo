@@ -976,6 +976,8 @@ public partial class SanguoGameLoopController : Node
             actionCardsCatalog: actionCardsCatalog,
             randomEventsCatalog: randomEventsCatalog,
             globalEventIntervalTurns: startConfig?.GlobalEventIntervalTurns ?? DefaultGlobalEventIntervalTurns,
+            tileRandomEventPoolId: "default",
+            globalRandomEventPoolId: "global",
             tileTypesByPositionIndex: tileTypesByIndex);
     }
 

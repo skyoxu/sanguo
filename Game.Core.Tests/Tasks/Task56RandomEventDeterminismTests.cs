@@ -250,6 +250,9 @@ public sealed class Task56RandomEventDeterminismTests
                 new SanguoRandomEventPoolCatalogEntry(
                     PoolId: "default",
                     EventIds: new[] { "event_money_small", "event_economy_boost" }),
+                new SanguoRandomEventPoolCatalogEntry(
+                    PoolId: "global",
+                    EventIds: new[] { "event_money_small", "event_economy_boost" }),
             });
     }
 
