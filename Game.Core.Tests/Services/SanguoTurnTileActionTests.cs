@@ -15,6 +15,38 @@ namespace Game.Core.Tests.Services;
 public sealed class SanguoTurnTileActionTests
 {
     [Fact]
+    public async Task GivenUnownedCity_WhenExecuteHumanTileActionBuyLand_ThenPublishesCityBoughtAndStateChanged()
+    {
+        var bus = new RecordingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var rules = SanguoEconomyRules.Default;
+
+        var city = new City(id: "c1", name: "City1", regionId: "r1", basePrice: Money.FromDecimal(50m), baseToll: Money.FromDecimal(20m), positionIndex: 0);
+        var cities = new Dictionary<string, City>(StringComparer.Ordinal) { ["c1"] = city };
+
+        var p1 = new SanguoPlayer(playerId: "p1", money: 300m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(players: new[] { p1 }, citiesById: cities);
+        var mgr = new SanguoTurnManager(bus, economy, boardState, new SanguoTreasury(), totalPositionsHint: 10);
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-start",
+            causationId: "ui.menu.start");
+
+        var beforeCount = bus.Published.Count;
+
+        await mgr.ExecuteHumanTileActionAsync(action: "buy_land", correlationId: "corr-action", causationId: "ui.sanguo.tile.action.selected");
+
+        var published = bus.Published.Skip(beforeCount).ToList();
+        published.Should().Contain(e => e.Type == SanguoCityBought.EventType);
+        published.Should().Contain(e => e.Type == SanguoPlayerStateChanged.EventType);
+    }
+
+    [Fact]
     public async Task GivenUnownedCity_WhenExecuteHumanTileActionHouseBuild_ThenPublishesCityBoughtAndStateChanged()
     {
         var bus = new RecordingEventBus();

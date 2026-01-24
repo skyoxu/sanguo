@@ -9,7 +9,7 @@ const EVT_QUIT := "ui.menu.quit"
 const EVT_LOAD := "ui.menu.load"
 
 var _bus: Node
-var _events := []
+var _events: Array[Dictionary] = []
 
 func before() -> void:
     # Install a temporary EventBus under /root to mimic Autoload.
@@ -40,7 +40,7 @@ func _create_menu() -> Node:
     return menu
 
 func _event_types() -> Array:
-    var types := []
+    var types: Array[String] = []
     for e in _events:
         types.append(str(e.get("type", "")))
     return types

@@ -51,6 +51,7 @@ public partial class HUD : Control
     private bool _logVisible;
 
     private readonly Dictionary<int, TileInfo> _tilesByIndex = new();
+    private readonly Dictionary<string, string> _cityOwnersByCityId = new(StringComparer.Ordinal);
     private bool _awaitingTileAction;
     private string _awaitingCorrelationId = string.Empty;
     private int _awaitingToIndex;
@@ -499,7 +500,7 @@ public partial class HUD : Control
         _handlers[SanguoPlayerStateChanged.EventType] = HandlePlayerStateChangedEvent;
         _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
         _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
-        _handlers[SanguoCityBought.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoCityBought.EventType] = HandleCityBoughtEvent;
         _handlers[SanguoGameSaved.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoGameLoaded.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoTokenMoved.EventType] = HandleTokenMovedEvent;
@@ -513,6 +514,28 @@ public partial class HUD : Control
     {
         // Intentionally empty: the UI feedback is recorded via RecordEventForUi(...)
         // before the per-type handler is invoked.
+    }
+
+    private void HandleCityBoughtEvent(JsonElement root)
+    {
+        if (!root.TryGetProperty("BuyerId", out var buyerProp) || buyerProp.ValueKind != JsonValueKind.String)
+        {
+            return;
+        }
+
+        if (!root.TryGetProperty("CityId", out var cityProp) || cityProp.ValueKind != JsonValueKind.String)
+        {
+            return;
+        }
+
+        var buyerId = buyerProp.GetString() ?? string.Empty;
+        var cityId = cityProp.GetString() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(buyerId) || string.IsNullOrWhiteSpace(cityId))
+        {
+            return;
+        }
+
+        _cityOwnersByCityId[cityId] = buyerId;
     }
 
     private void HandleGameEndedEvent(JsonElement root)
@@ -873,7 +896,8 @@ public partial class HUD : Control
             return;
         }
 
-        if (tile.Actions.Length == 0)
+        var actions = FilterTileActionsForUi(playerId, tile);
+        if (actions.Length == 0)
         {
             return;
         }
@@ -897,7 +921,7 @@ public partial class HUD : Control
             }
         }
 
-        foreach (var action in tile.Actions)
+        foreach (var action in actions)
         {
             var a = action ?? string.Empty;
             if (string.IsNullOrWhiteSpace(a))
@@ -966,6 +990,7 @@ public partial class HUD : Control
     private void TryLoadMapTilesForUi()
     {
         _tilesByIndex.Clear();
+        _cityOwnersByCityId.Clear();
 
         try
         {
@@ -980,6 +1005,8 @@ public partial class HUD : Control
             {
                 var actions = tile.Actions is null ? Array.Empty<string>() : new List<string>(tile.Actions).ToArray();
                 _tilesByIndex[tile.PositionIndex] = new TileInfo(
+                    TileId: tile.TileId ?? string.Empty,
+                    TileType: tile.TileType ?? string.Empty,
                     Name: tile.Name ?? string.Empty,
                     Actions: actions);
             }
@@ -989,7 +1016,61 @@ public partial class HUD : Control
         }
     }
 
-    private readonly record struct TileInfo(string Name, string[] Actions);
+    private static bool IsCityTile(TileInfo tile) =>
+        string.Equals((tile.TileType ?? string.Empty).Trim(), "city", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsBuildAction(string actionId) =>
+        string.Equals((actionId ?? string.Empty).Trim(), ActionBuild, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsBuyLandAction(string actionId) =>
+        string.Equals((actionId ?? string.Empty).Trim(), "buy_land", StringComparison.OrdinalIgnoreCase);
+
+    private string[] FilterTileActionsForUi(string playerId, TileInfo tile)
+    {
+        if (tile.Actions.Length == 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        var isCity = IsCityTile(tile);
+        var cityId = (tile.TileId ?? string.Empty).Trim();
+        var ownerId = string.Empty;
+        var hasOwner = isCity
+            && !string.IsNullOrWhiteSpace(cityId)
+            && _cityOwnersByCityId.TryGetValue(cityId, out ownerId);
+        var isOwnedByActive = hasOwner && string.Equals(ownerId, playerId, StringComparison.Ordinal);
+
+        var filtered = new List<string>(tile.Actions.Length);
+        foreach (var raw in tile.Actions)
+        {
+            var a = (raw ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(a))
+            {
+                continue;
+            }
+
+            if (IsBuildAction(a))
+            {
+                if (!isOwnedByActive)
+                {
+                    continue;
+                }
+            }
+            else if (IsBuyLandAction(a))
+            {
+                if (!isCity || hasOwner)
+                {
+                    continue;
+                }
+            }
+
+            filtered.Add(a);
+        }
+
+        return filtered.ToArray();
+    }
+
+    private readonly record struct TileInfo(string TileId, string TileType, string Name, string[] Actions);
 
     public void SetScore(int v) => _score.Text = $"Score: {v}";
     public void SetHealth(int v) => _health.Text = $"HP: {v}";

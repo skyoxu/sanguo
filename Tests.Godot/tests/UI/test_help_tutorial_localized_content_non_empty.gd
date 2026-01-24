@@ -63,7 +63,7 @@ func test_help_tutorial_localized_content_entries_are_present_and_non_empty() ->
 	if TranslationServer.has_method("set_locale"):
 		TranslationServer.set_locale(target_locale)
 
-	var step_texts := {}
+	var step_texts: Dictionary = {}
 	for key in _REQUIRED_STEP_KEYS:
 		step_texts[String(key)] = _translate_non_empty_or_fail(String(key))
 

@@ -627,7 +627,13 @@ public partial class SanguoGameLoopController : Node
             return (false, "random_events_catalog_load_failed");
         }
 
-        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog, randomEventsCatalog);
+        if (!SanguoBuildingsCatalogLoader.TryLoadBuildingsCatalog(loader, out var buildingsCatalog, out var buildingsError))
+        {
+            GD.PushWarning($"SanguoGameLoopController: buildings catalog load failed (error='{buildingsError}').");
+            return (false, "buildings_catalog_load_failed");
+        }
+
+        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog, randomEventsCatalog, buildingsCatalog);
 
         try
         {
@@ -939,7 +945,8 @@ public partial class SanguoGameLoopController : Node
         SanguoMapDefinition map,
         GameStartConfig? startConfig = null,
         SanguoActionCardsCatalog? actionCardsCatalog = null,
-        SanguoRandomEventsCatalog? randomEventsCatalog = null)
+        SanguoRandomEventsCatalog? randomEventsCatalog = null,
+        SanguoBuildingsCatalog? buildingsCatalog = null)
     {
         var economyRules = SanguoEconomyRules.Default;
         var playerOrder = startConfig != null
@@ -979,6 +986,7 @@ public partial class SanguoGameLoopController : Node
             globalEventIntervalTurns: startConfig?.GlobalEventIntervalTurns ?? DefaultGlobalEventIntervalTurns,
             tileRandomEventPoolId: "default",
             globalRandomEventPoolId: "global",
+            buildingsCatalog: buildingsCatalog,
             tileTypesByPositionIndex: tileTypesByIndex);
     }
 

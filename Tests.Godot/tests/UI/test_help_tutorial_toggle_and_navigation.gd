@@ -307,7 +307,7 @@ func test_help_tutorial_toggle_and_navigation_does_not_pause_tree_and_shows_non_
 		current_text = t
 		texts.append(t)
 
-	var uniq := {}
+	var uniq: Dictionary = {}
 	for t in texts:
 		uniq[String(t)] = true
 	assert_int(uniq.size()).is_equal(texts.size())

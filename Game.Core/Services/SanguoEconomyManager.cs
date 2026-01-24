@@ -164,7 +164,8 @@ public sealed class SanguoEconomyManager
     /// </remarks>
     public IReadOnlyList<PlayerSettlement> CalculateMonthSettlements(
         IReadOnlyList<ISanguoPlayerView> players,
-        IReadOnlyDictionary<string, City> citiesById
+        IReadOnlyDictionary<string, City> citiesById,
+        Func<string, int>? buildingIncomeSettlementStepDeltaProvider = null
     )
     {
         ArgumentNullException.ThrowIfNull(players, nameof(players));
@@ -176,7 +177,7 @@ public sealed class SanguoEconomyManager
             if (player.IsEliminated)
                 continue;
 
-            var income = CalculateMonthlyIncome(player, citiesById);
+            var income = CalculateMonthlyIncome(player, citiesById, buildingIncomeSettlementStepDeltaProvider);
             settlements.Add(new PlayerSettlement(player.PlayerId, income.ToDecimal()));
         }
 
@@ -186,7 +187,8 @@ public sealed class SanguoEconomyManager
     public IReadOnlyList<PlayerSettlement> SettleMonth(
         SanguoBoardState boardState,
         IReadOnlyList<string> playerOrder,
-        SanguoTreasury treasury
+        SanguoTreasury treasury,
+        Func<string, int>? buildingIncomeSettlementStepDeltaProvider = null
     )
     {
         ArgumentNullException.ThrowIfNull(boardState, nameof(boardState));
@@ -207,7 +209,7 @@ public sealed class SanguoEconomyManager
             orderedPlayerViews.Add(player!);
         }
 
-        var computed = CalculateMonthSettlements(orderedPlayerViews, citiesById);
+        var computed = CalculateMonthSettlements(orderedPlayerViews, citiesById, buildingIncomeSettlementStepDeltaProvider);
         var computedById = new Dictionary<string, decimal>(StringComparer.Ordinal);
         foreach (var settlement in computed)
             computedById[settlement.PlayerId] = settlement.AmountDelta;
@@ -255,7 +257,8 @@ public sealed class SanguoEconomyManager
         decimal priceMultiplier,
         string correlationId,
         string? causationId,
-        DateTimeOffset occurredAt
+        DateTimeOffset occurredAt,
+        AppliedMultipliers? appliedMultipliersOverride = null
     )
     {
         if (string.IsNullOrWhiteSpace(gameId))
@@ -290,7 +293,8 @@ public sealed class SanguoEconomyManager
 
         var price = (moneyBefore - buyer.Money).ToDecimal();
 
-        var appliedMultipliers = AppliedFromSingleMultiplier(priceMultiplier, AppliedMultiplierSources.Character);
+        var appliedMultipliers = appliedMultipliersOverride
+            ?? AppliedFromSingleMultiplier(priceMultiplier, AppliedMultiplierSources.Character);
 
         var evt = new DomainEvent(
             Type: SanguoCityBought.EventType,
@@ -352,7 +356,8 @@ public sealed class SanguoEconomyManager
         SanguoTreasury treasury,
         string correlationId,
         string? causationId,
-        DateTimeOffset occurredAt
+        DateTimeOffset occurredAt,
+        AppliedMultipliers? appliedMultipliersOverride = null
     )
     {
         if (string.IsNullOrWhiteSpace(gameId))
@@ -439,7 +444,8 @@ public sealed class SanguoEconomyManager
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
                 CausationId: causationId,
-                AppliedMultipliers: AppliedFromSingleMultiplier(tollMultiplier, AppliedMultiplierSources.Character)
+                AppliedMultipliers: appliedMultipliersOverride
+                    ?? AppliedFromSingleMultiplier(tollMultiplier, AppliedMultiplierSources.Character)
             )),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N")
@@ -918,7 +924,10 @@ public sealed class SanguoEconomyManager
         return ((month - 1) / 3) + 1;
     }
 
-    private MoneyValue CalculateMonthlyIncome(ISanguoPlayerView player, IReadOnlyDictionary<string, City> citiesById)
+    private MoneyValue CalculateMonthlyIncome(
+        ISanguoPlayerView player,
+        IReadOnlyDictionary<string, City> citiesById,
+        Func<string, int>? buildingIncomeSettlementStepDeltaProvider)
     {
         ArgumentNullException.ThrowIfNull(player, nameof(player));
 
@@ -929,11 +938,27 @@ public sealed class SanguoEconomyManager
             if (!citiesById.TryGetValue(cityId, out var city))
                 throw new InvalidOperationException($"Owned city id not found: {cityId}");
 
-            var toll = city.BaseToll;
+            var baseSteps = AppliedMultipliers.BaseDefaultSteps;
+
+            var eventStepDelta = 0;
             if (adjustment is not null && adjustment.AffectedRegionIds.Contains(city.RegionId))
             {
-                toll = city.GetToll(multiplier: adjustment.YieldMultiplier, rules: SanguoEconomyRules.Default);
+                var evt = AppliedFromSingleMultiplier(
+                    multiplier: adjustment.YieldMultiplier,
+                    source: AppliedMultiplierSources.Event,
+                    allowNonHalfStep: true);
+                eventStepDelta = evt.EventStepDelta;
             }
+
+            var buildingStepDelta = 0;
+            if (buildingIncomeSettlementStepDeltaProvider is not null)
+            {
+                buildingStepDelta = buildingIncomeSettlementStepDeltaProvider(city.Id);
+            }
+
+            var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + eventStepDelta + buildingStepDelta);
+            var multiplier = effectiveSteps * AppliedMultipliers.Step;
+            var toll = city.GetToll(multiplier: multiplier, rules: SanguoEconomyRules.Default);
 
             totalMinorUnits = checked(totalMinorUnits + toll.MinorUnits);
         }

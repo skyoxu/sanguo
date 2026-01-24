@@ -55,7 +55,7 @@ func _parse_json_dict(json_text: String) -> Dictionary:
 	return v as Dictionary
 
 func _has_unique_non_empty_assignments(assignments: Dictionary) -> bool:
-	var seen_character_ids := {}
+	var seen_character_ids: Dictionary = {}
 	for player_id in assignments.keys():
 		var player_id_str := str(player_id).strip_edges()
 		var character_id_str := str(assignments[player_id]).strip_edges()
