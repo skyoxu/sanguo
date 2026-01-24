@@ -1,6 +1,6 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
-var _events := []
+var _events: Array[String] = []
 
 func before() -> void:
     var __bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()

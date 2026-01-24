@@ -1,55 +1,34 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
-const HUD_CANDIDATE_PATHS: Array[String] = [
-	"res://Game.Godot/Scripts/UI/HUD.cs",
-	"res://Game.Godot/Scripts/UI/Hud.cs",
-	"res://Scripts/UI/HUD.cs",
-	"res://Scripts/UI/Hud.cs",
-]
+const EVENT_TYPE_CITY_BOUGHT := "core.sanguo.city.bought"
 
-const CORE_EVENTS_CANDIDATE_PATHS: Array[String] = [
-	"res://Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs",
-	"res://Contracts/Sanguo/SanguoModuleEvents.cs",
-]
+var _bus: Node
 
-func _first_existing_path(paths: Array[String]) -> String:
-	for path in paths:
-		if FileAccess.file_exists(path):
-			return path
-	return ""
+func before() -> void:
+	var existing := get_node_or_null("/root/EventBus")
+	if existing != null:
+		existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
+		existing.queue_free()
 
-func _read_text_or_empty(path: String) -> String:
-	if path.is_empty():
-		return ""
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		return ""
-	var text := file.get_as_text()
-	file.close()
-	return text
+	_bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
+	_bus.name = "EventBus"
+	get_tree().get_root().add_child(auto_free(_bus))
 
-func _contains_all(haystack: String, needles: Array[String]) -> bool:
-	for needle in needles:
-		if haystack.find(needle) == -1:
-			return false
-	return true
+func _main() -> Node:
+	var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
+	add_child(auto_free(main))
+	await get_tree().process_frame
+	return main
 
 # ACC:T58.3
-# UI contract smoke: HUD has owner/actions entry points discoverable in source.
-func test_task58_owner_label_and_actions_contract_smoke() -> void:
-	var hud_path := _first_existing_path(HUD_CANDIDATE_PATHS)
-	assert_bool(not hud_path.is_empty()).is_true()
+func test_task58_city_owner_label_updates_on_city_bought() -> void:
+	var main := await _main()
 
-	var hud_source := _read_text_or_empty(hud_path)
-	assert_bool(hud_source.length() > 0).is_true()
-	assert_bool(_contains_all(hud_source, ["ShowTileActionPanel", "PublishTileActionSelected"])).is_true()
+	var label: Label = main.get_node("Overlays/CityOwnershipStatus/OwnershipStatusLabel")
+	assert_str(label.text).is_equal("Unowned")
 
-# ACC:T58.4
-# Observable result smoke: building built event contract type string exists.
-func test_task58_action_observable_result_contract_smoke() -> void:
-	var events_path := _first_existing_path(CORE_EVENTS_CANDIDATE_PATHS)
-	assert_bool(not events_path.is_empty()).is_true()
+	_bus.PublishSimple(EVENT_TYPE_CITY_BOUGHT, "ut", "{\"GameId\":\"g1\",\"TurnNumber\":1,\"BuyerId\":\"p1\",\"CityId\":\"c1\",\"Price\":0,\"OccurredAt\":\"2026-01-01T00:00:00Z\",\"CorrelationId\":\"corr\",\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":2}}")
+	await get_tree().process_frame
 
-	var events_source := _read_text_or_empty(events_path)
-	assert_bool(events_source.length() > 0).is_true()
-	assert_bool(events_source.find("core.sanguo.building.built") != -1).is_true()
+	assert_str(label.text).is_equal("Owner: p1")
+

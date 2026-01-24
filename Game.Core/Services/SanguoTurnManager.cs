@@ -29,6 +29,9 @@ public sealed class SanguoTurnManager
     private readonly Dictionary<string, int> _turnEventStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly SanguoActionCardsCatalog? _actionCardsCatalog;
+    private readonly SanguoBuildingsCatalog? _buildingsCatalog;
+    private readonly IReadOnlyDictionary<string, SanguoBuildingDefinition> _buildingsById;
+    private readonly Dictionary<string, Dictionary<string, int>> _buildingLevelsByCityId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Dictionary<string, int>> _randomEventLastAppliedRoundByPlayerId = new(StringComparer.Ordinal);
     private SanguoGlobalEventRoundGate _globalRoundGate = new();
 
@@ -59,6 +62,7 @@ public sealed class SanguoTurnManager
         string tileRandomEventPoolId = "default",
         string globalRandomEventPoolId = "global",
         SanguoActionCardsCatalog? actionCardsCatalog = null,
+        SanguoBuildingsCatalog? buildingsCatalog = null,
         IReadOnlyDictionary<int, string>? tileTypesByPositionIndex = null)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
@@ -76,6 +80,8 @@ public sealed class SanguoTurnManager
         _tileRandomEventPoolId = tileRandomEventPoolId ?? throw new ArgumentNullException(nameof(tileRandomEventPoolId));
         _globalRandomEventPoolId = globalRandomEventPoolId ?? throw new ArgumentNullException(nameof(globalRandomEventPoolId));
         _actionCardsCatalog = actionCardsCatalog;
+        _buildingsCatalog = buildingsCatalog;
+        _buildingsById = CreateBuildingsById(buildingsCatalog);
         _tileTypesByPositionIndex = tileTypesByPositionIndex;
 
         if (_globalEventIntervalTurns != 5 && _globalEventIntervalTurns != 10 && _globalEventIntervalTurns != 20)
@@ -136,6 +142,7 @@ public sealed class SanguoTurnManager
         _activePlayerIndex = 0;
         _turnNumber = 1;
         _currentDate = date;
+        _buildingLevelsByCityId.Clear();
         _started = true;
         _gameOverEndReason = null;
         _actionCardPlayedTurnNumber = null;
@@ -492,14 +499,18 @@ public sealed class SanguoTurnManager
 
             var treasurySnapshot = _treasury.CaptureRollbackSnapshot();
 
-            try
-            {
-                settlements = _economy.SettleMonth(_boardState, _playerOrder, _treasury);
-                await _economy.PublishMonthSettlementIfBoundaryAsync(
-                    gameId: _gameId,
-                    turnNumber: _turnNumber,
-                    previousDate: previousDate,
-                    currentDate: _currentDate,
+                try
+                {
+                    settlements = _economy.SettleMonth(
+                        boardState: _boardState,
+                        playerOrder: _playerOrder,
+                        treasury: _treasury,
+                        buildingIncomeSettlementStepDeltaProvider: ComputeCityBuildingIncomeSettlementStepDelta);
+                    await _economy.PublishMonthSettlementIfBoundaryAsync(
+                        gameId: _gameId,
+                        turnNumber: _turnNumber,
+                        previousDate: previousDate,
+                        currentDate: _currentDate,
                     settlements: settlements,
                     correlationId: correlationId,
                     causationId: causationId,
@@ -733,18 +744,29 @@ public sealed class SanguoTurnManager
             {
                 if (!StringComparer.Ordinal.Equals(owner.PlayerId, playerId))
                 {
+                    var buildingTollStepDelta = ComputeCityBuildingTollStepDelta(city.Id);
+                    var applied = CreateAppliedMultipliers(
+                        characterStepDelta: 0,
+                        buildingStepDelta: buildingTollStepDelta,
+                        eventStepDelta: 0,
+                        actionCardStepDelta: 0,
+                        relicStepDelta: 0,
+                        regionStepDelta: 0,
+                        sources: buildingTollStepDelta == 0 ? AppliedMultiplierSources.None : AppliedMultiplierSources.Building);
+
                     var paid = await _economy.TryPayTollAndPublishEventAsync(
                         gameId: gameId,
                         turnNumber: _turnNumber,
                         players: players,
                         citiesById: citiesById,
-                        treasury: _treasury,
                         payerId: playerId,
                         cityId: city.Id,
-                        tollMultiplier: 1.0m,
+                        tollMultiplier: applied.EffectiveMultiplier,
+                        treasury: _treasury,
                         correlationId: correlationId,
                         causationId: causationId,
-                        occurredAt: occurredAt);
+                        occurredAt: occurredAt,
+                        appliedMultipliersOverride: applied);
 
                     if (paid)
                         affectedPlayerIds.Add(owner.PlayerId);
@@ -811,12 +833,14 @@ public sealed class SanguoTurnManager
             return;
         }
 
-        // Currently supported: house_build => buy city.
         var shouldBuy = string.Equals(normalized, "house_build", StringComparison.OrdinalIgnoreCase)
             || string.Equals(normalized, "buy", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(normalized, "purchase", StringComparison.OrdinalIgnoreCase);
+            || string.Equals(normalized, "purchase", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "buy_land", StringComparison.OrdinalIgnoreCase);
 
-        if (!shouldBuy)
+        var shouldBuild = string.Equals(normalized, "build", StringComparison.OrdinalIgnoreCase);
+
+        if (!shouldBuy && !shouldBuild)
         {
             return;
         }
@@ -826,6 +850,17 @@ public sealed class SanguoTurnManager
         var city = TryGetCityAtPositionIndex(citiesById, activePlayer.PositionIndex);
         if (city is null)
         {
+            return;
+        }
+
+        if (shouldBuild)
+        {
+            await TryBuildOrUpgradeCityAsync(
+                playerId: activePlayerId,
+                city: city,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
             return;
         }
 
@@ -862,6 +897,117 @@ public sealed class SanguoTurnManager
 
         await PublishPlayerStateChangedAsync(
             playerId: activePlayerId,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+    }
+
+    private async Task TryBuildOrUpgradeCityAsync(
+        string playerId,
+        City city,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (_gameId is null)
+        {
+            return;
+        }
+
+        if (_buildingsCatalog is null || _buildingsCatalog.Buildings is null || _buildingsCatalog.Buildings.Count == 0)
+        {
+            return;
+        }
+
+        if (!_boardState.TryGetOwnerOfCity(city.Id, out var owner) || owner is null)
+        {
+            return;
+        }
+
+        if (!string.Equals(owner.PlayerId, playerId, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+        {
+            return;
+        }
+
+        if (!_buildingLevelsByCityId.TryGetValue(city.Id, out var buildingLevels))
+        {
+            buildingLevels = new Dictionary<string, int>(StringComparer.Ordinal);
+            _buildingLevelsByCityId[city.Id] = buildingLevels;
+        }
+
+        var candidates = _buildingsCatalog.Buildings
+            .OrderBy(x => x.BuildingId, StringComparer.Ordinal)
+            .ToArray();
+
+        SanguoBuildingDefinition? picked = null;
+        var currentLevel = 0;
+        foreach (var def in candidates)
+        {
+            var level = buildingLevels.TryGetValue(def.BuildingId, out var v) ? v : 0;
+            if (level < def.MaxLevel)
+            {
+                picked = def;
+                currentLevel = level;
+                break;
+            }
+        }
+
+        if (picked is null)
+        {
+            return;
+        }
+
+        var newLevel = currentLevel + 1;
+        if (newLevel < 1 || newLevel > picked.MaxLevel)
+        {
+            return;
+        }
+
+        var costBase = currentLevel == 0 ? picked.BuildCostBase : picked.UpgradeCostBase;
+        var costDelta = currentLevel == 0 ? picked.EconomyStepDeltas.BuildCost : picked.EconomyStepDeltas.UpgradeCost;
+        var costApplied = CreateAppliedMultipliers(
+            characterStepDelta: 0,
+            buildingStepDelta: costDelta,
+            eventStepDelta: 0,
+            actionCardStepDelta: 0,
+            relicStepDelta: 0,
+            regionStepDelta: 0,
+            sources: AppliedMultiplierSources.Building);
+        var costMultiplier = costApplied.EffectiveMultiplier;
+        var cost = Money.FromDecimal(costBase * costMultiplier);
+
+        if (!player.TrySpend(cost))
+        {
+            return;
+        }
+
+        buildingLevels[picked.BuildingId] = newLevel;
+
+        var evt = new DomainEvent(
+            Type: SanguoBuildingBuilt.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoBuildingBuilt(
+                GameId: _gameId,
+                PlayerId: playerId,
+                CityId: city.Id,
+                BuildingId: picked.BuildingId,
+                NewLevel: newLevel,
+                EconomyStepDeltas: picked.EconomyStepDeltas,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+
+        await _bus.PublishAsync(evt);
+
+        await PublishPlayerStateChangedAsync(
+            playerId: playerId,
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
@@ -1785,6 +1931,99 @@ public sealed class SanguoTurnManager
         return null;
     }
 
+    private static IReadOnlyDictionary<string, SanguoBuildingDefinition> CreateBuildingsById(SanguoBuildingsCatalog? catalog)
+    {
+        if (catalog is null || catalog.Buildings is null || catalog.Buildings.Count == 0)
+        {
+            return new Dictionary<string, SanguoBuildingDefinition>(StringComparer.Ordinal);
+        }
+
+        var dict = new Dictionary<string, SanguoBuildingDefinition>(StringComparer.Ordinal);
+        foreach (var def in catalog.Buildings)
+        {
+            if (!dict.TryAdd(def.BuildingId, def))
+            {
+                throw new ArgumentException($"Duplicate BuildingId in buildings catalog: {def.BuildingId}", nameof(catalog));
+            }
+        }
+
+        return dict;
+    }
+
+    private int ComputeCityBuildingTollStepDelta(string cityId) =>
+        ComputeCityBuildingStepDelta(cityId, d => d.Toll);
+
+    private int ComputeCityBuildingIncomeSettlementStepDelta(string cityId) =>
+        ComputeCityBuildingStepDelta(cityId, d => d.IncomeSettlement);
+
+    private int ComputeCityBuildingStepDelta(string cityId, Func<SanguoEconomyStepDeltas, int> selector)
+    {
+        if (string.IsNullOrWhiteSpace(cityId))
+        {
+            return 0;
+        }
+
+        if (_buildingsCatalog is null || _buildingsCatalog.Buildings is null || _buildingsCatalog.Buildings.Count == 0)
+        {
+            return 0;
+        }
+
+        if (!_buildingLevelsByCityId.TryGetValue(cityId, out var levels) || levels.Count == 0)
+        {
+            return 0;
+        }
+
+        var sum = 0;
+        foreach (var (buildingId, level) in levels)
+        {
+            if (level <= 0)
+            {
+                continue;
+            }
+
+            if (!_buildingsById.TryGetValue(buildingId, out var def))
+            {
+                continue;
+            }
+
+            var delta = selector(def.EconomyStepDeltas);
+            sum = checked(sum + (delta * level));
+        }
+
+        return sum;
+    }
+
+    private static AppliedMultipliers CreateAppliedMultipliers(
+        int characterStepDelta,
+        int buildingStepDelta,
+        int eventStepDelta,
+        int actionCardStepDelta,
+        int relicStepDelta,
+        int regionStepDelta,
+        AppliedMultiplierSources sources)
+    {
+        var baseSteps = AppliedMultipliers.BaseDefaultSteps;
+        var effectiveSteps = AppliedMultipliers.ClampSteps(
+            baseSteps
+            + characterStepDelta
+            + buildingStepDelta
+            + eventStepDelta
+            + actionCardStepDelta
+            + relicStepDelta
+            + regionStepDelta);
+
+        return new AppliedMultipliers(
+            BaseSteps: baseSteps,
+            CharacterStepDelta: characterStepDelta,
+            BuildingStepDelta: buildingStepDelta,
+            EventStepDelta: eventStepDelta,
+            ActionCardStepDelta: actionCardStepDelta,
+            RelicStepDelta: relicStepDelta,
+            RegionStepDelta: regionStepDelta,
+            EffectiveSteps: effectiveSteps,
+            Sources: sources);
+    }
+
     private async Task PublishAiDecisionIfNeededAsync(
         string activePlayerId,
         string correlationId,
@@ -1918,6 +2157,16 @@ public sealed class SanguoTurnManager
         {
             if (!StringComparer.Ordinal.Equals(owner.PlayerId, aiPlayerId))
             {
+                var buildingTollStepDelta = ComputeCityBuildingTollStepDelta(city.Id);
+                var applied = CreateAppliedMultipliers(
+                    characterStepDelta: 0,
+                    buildingStepDelta: buildingTollStepDelta,
+                    eventStepDelta: 0,
+                    actionCardStepDelta: 0,
+                    relicStepDelta: 0,
+                    regionStepDelta: 0,
+                    sources: buildingTollStepDelta == 0 ? AppliedMultiplierSources.None : AppliedMultiplierSources.Building);
+
                 _ = await _economy.TryPayTollAndPublishEventAsync(
                     gameId: _gameId,
                     turnNumber: _turnNumber,
@@ -1926,10 +2175,11 @@ public sealed class SanguoTurnManager
                     treasury: _treasury,
                     payerId: aiPlayerId,
                     cityId: city.Id,
-                    tollMultiplier: 1.0m,
+                    tollMultiplier: applied.EffectiveMultiplier,
                     correlationId: correlationId,
                     causationId: causationId,
-                    occurredAt: occurredAt);
+                    occurredAt: occurredAt,
+                    appliedMultipliersOverride: applied);
             }
             return;
         }

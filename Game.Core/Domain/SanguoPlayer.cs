@@ -280,6 +280,26 @@ public sealed class SanguoPlayer : ISanguoPlayerView
             treasury.Deposit(overflow);
     }
 
+    internal bool TrySpend(MoneyValue amount)
+    {
+        AssertThread();
+
+        if (IsEliminated)
+            return false;
+
+        if (amount.MinorUnits < 0)
+            throw new ArgumentOutOfRangeException(nameof(amount), "Spend amount must be non-negative.");
+
+        if (amount == MoneyValue.Zero)
+            return true;
+
+        if (Money < amount)
+            return false;
+
+        Money -= amount;
+        return true;
+    }
+
     internal void MoveToPosition(int positionIndex)
     {
         AssertThread();

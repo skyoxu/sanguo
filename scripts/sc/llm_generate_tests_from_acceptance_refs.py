@@ -186,6 +186,57 @@ def _extract_json_object(text: str) -> dict[str, Any]:
     return obj
 
 
+_GD_FORBIDDEN_VARIANT_INFERENCE_RE = re.compile(r":=\s*(\[\s*\]|\{\s*\})")
+_GD_VAR_EMPTY_ARRAY_RE = re.compile(
+    r"^(?P<indent>\s*)var\s+(?P<name>[A-Za-z_]\w*)\s*:=\s*\[\s*\]\s*(?P<trail>#.*)?$"
+)
+_GD_VAR_EMPTY_DICT_RE = re.compile(
+    r"^(?P<indent>\s*)var\s+(?P<name>[A-Za-z_]\w*)\s*:=\s*\{\s*\}\s*(?P<trail>#.*)?$"
+)
+
+
+def _normalize_gd_no_variant_inference(content: str) -> tuple[str, list[str]]:
+    # Avoid generating GDScript that triggers "Variant inference" warnings which are treated as errors in GdUnit4.
+    # This normalizer only covers the known problematic patterns.
+    fixes: list[str] = []
+    out_lines: list[str] = []
+    for i, raw in enumerate(content.splitlines(), start=1):
+        line = raw.rstrip("\r\n")
+
+        m = _GD_VAR_EMPTY_ARRAY_RE.match(line)
+        if m:
+            indent = m.group("indent")
+            name = m.group("name")
+            trail = m.group("trail")
+            out_lines.append(f"{indent}var {name}: Array = []{(' ' + trail) if trail else ''}".rstrip())
+            fixes.append(f"line {i}: normalize ':= []' to typed Array")
+            continue
+
+        m = _GD_VAR_EMPTY_DICT_RE.match(line)
+        if m:
+            indent = m.group("indent")
+            name = m.group("name")
+            trail = m.group("trail")
+            out_lines.append(f"{indent}var {name}: Dictionary = {{}}{(' ' + trail) if trail else ''}".rstrip())
+            fixes.append(f"line {i}: normalize ':= {{}}' to typed Dictionary")
+            continue
+
+        out_lines.append(line)
+
+    normalized = "\n".join(out_lines)
+    if content.endswith("\n"):
+        normalized += "\n"
+    return normalized, fixes
+
+
+def _find_gd_forbidden_variant_inference(content: str) -> list[str]:
+    hits: list[str] = []
+    for i, line in enumerate(content.splitlines(), start=1):
+        if _GD_FORBIDDEN_VARIANT_INFERENCE_RE.search(line):
+            hits.append(f"line {i}: {line.strip()}")
+    return hits
+
+
 def _prompt_for_ref(
     *,
     task_id: str,
@@ -203,6 +254,9 @@ def _prompt_for_ref(
             "- Must be valid .gd, English only.",
             "- Must extend a GdUnit4 suite (res://addons/gdUnit4/src/GdUnitTestSuite.gd).",
             "- Do not rely on external assets; keep it minimal.",
+            "- Do NOT write `:= []` or `:= {}` (Variant inference warnings are treated as errors in GdUnit).",
+            "  Use explicit types instead, e.g. `var events: Array = []`, `var seen: Dictionary = {}`.",
+            "- If you parse JSON, avoid `var parsed := JSON.parse_string(...)`; use `var parsed: Variant = JSON.parse_string(...)`.",
             "- For each required ACC anchor, place it within 5 lines ABOVE a `func test_...` definition (as a comment).",
             f"- For stability, test function names MUST start with: func test_task{task_id}_...()",
         ]
@@ -568,6 +622,13 @@ def main() -> int:
                 raise ValueError(f"unexpected file_path: {fp}")
             if not content.strip():
                 raise ValueError("empty content")
+
+            if disk.suffix.lower() == ".gd":
+                content, _fixes = _normalize_gd_no_variant_inference(content)
+                forbidden = _find_gd_forbidden_variant_inference(content)
+                if forbidden:
+                    raise ValueError("gd_forbidden_variant_inference: " + " | ".join(forbidden[:10]))
+
             disk.parent.mkdir(parents=True, exist_ok=True)
             disk.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\r\n")
             created += 1
