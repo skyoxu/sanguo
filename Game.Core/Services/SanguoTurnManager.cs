@@ -30,6 +30,7 @@ public sealed class SanguoTurnManager
     private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly SanguoActionCardsCatalog? _actionCardsCatalog;
     private readonly Dictionary<string, Dictionary<string, int>> _randomEventLastAppliedRoundByPlayerId = new(StringComparer.Ordinal);
+    private SanguoGlobalEventRoundGate _globalRoundGate = new();
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -141,8 +142,17 @@ public sealed class SanguoTurnManager
         _diceRolledTurnNumber = null;
         _randomEventLastAppliedRoundByPlayerId.Clear();
         ResetTurnScopedEventStepDeltas();
+        _globalRoundGate = new SanguoGlobalEventRoundGate();
 
         var occurredAt = DateTimeOffset.UtcNow;
+        var activePlayerId = _playerOrder[_activePlayerIndex];
+
+        await TryTriggerGlobalRoundRandomEventBeforeTurnStartedAsync(
+            gameId: _gameId,
+            activePlayerId: activePlayerId,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
 
         var evt = new DomainEvent(
             Type: SanguoGameTurnStarted.EventType,
@@ -150,7 +160,7 @@ public sealed class SanguoTurnManager
             Data: JsonElementEventData.FromObject(new SanguoGameTurnStarted(
                 GameId: _gameId,
                 TurnNumber: _turnNumber,
-                ActivePlayerId: _playerOrder[_activePlayerIndex],
+                ActivePlayerId: activePlayerId,
                 Year: _currentDate.Year,
                 Month: _currentDate.Month,
                 Day: _currentDate.Day,
@@ -1245,6 +1255,129 @@ public sealed class SanguoTurnManager
         }
     }
 
+    private async Task TryTriggerGlobalRoundRandomEventBeforeTurnStartedAsync(
+        string gameId,
+        string activePlayerId,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (_randomEventsCatalog is null)
+            return;
+
+        if (_startingPlayersCount is < 4 or > 8)
+            return;
+
+        var roundNumber = ComputeRoundNumber(_turnNumber);
+        if (!_globalRoundGate.TryMarkChecked(roundNumber))
+            return;
+
+        var rngContextId = BuildRngContextId(
+            stream: "rng.global_round_events",
+            turnNumber: _turnNumber,
+            roundNumber: roundNumber,
+            sourceId: "global_round");
+
+        if (!TryPickRandomEvent(
+                poolId: _globalRandomEventPoolId,
+                playerId: activePlayerId,
+                roundNumber: roundNumber,
+                rngContextId: rngContextId,
+                out var picked,
+                out var candidatesSortedIdsHash,
+                out var pickedIndex,
+                out var pickedId,
+                out var pickRejectReason))
+            return;
+
+        var publishedEventId = SanguoGlobalEventId.WithGlobalPrefix(picked.EventId);
+
+        if (!string.IsNullOrWhiteSpace(pickRejectReason))
+        {
+            var rejectedEvt = new DomainEvent(
+                Type: SanguoRandomEventRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: publishedEventId,
+                    EffectKind: picked.EffectKind,
+                    RejectReason: pickRejectReason,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejectedEvt);
+            return;
+        }
+
+        var effectResult = ApplyRandomEventEffect(
+            playerId: activePlayerId,
+            effectKind: picked.EffectKind,
+            moneyDelta: picked.MoneyDelta,
+            stepDelta: picked.StepDelta);
+
+        if (effectResult.Applied)
+        {
+            RecordRandomEventApplied(activePlayerId, picked.EventId, roundNumber);
+            var evt = new DomainEvent(
+                Type: SanguoRandomEventApplied.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: publishedEventId,
+                    EffectKind: picked.EffectKind,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId,
+                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
+        }
+        else
+        {
+            var evt = new DomainEvent(
+                Type: SanguoRandomEventRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: publishedEventId,
+                    EffectKind: picked.EffectKind,
+                    RejectReason: effectResult.RejectReason,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
+        }
+    }
+
     private async Task TryTriggerGlobalTurnRandomEventIfBoundaryAsync(
         string gameId,
         string activePlayerId,
@@ -1280,6 +1413,8 @@ public sealed class SanguoTurnManager
                 out var pickRejectReason))
             return;
 
+        var publishedEventId = SanguoGlobalEventId.WithGlobalPrefix(picked.EventId);
+
         if (!string.IsNullOrWhiteSpace(pickRejectReason))
         {
             var rejectedEvt = new DomainEvent(
@@ -1288,7 +1423,7 @@ public sealed class SanguoTurnManager
                 Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
                     GameId: gameId,
                     PlayerId: activePlayerId,
-                    EventId: picked.EventId,
+                    EventId: publishedEventId,
                     EffectKind: picked.EffectKind,
                     RejectReason: pickRejectReason,
                     MoneyDelta: picked.MoneyDelta,
@@ -1322,7 +1457,7 @@ public sealed class SanguoTurnManager
                 Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
                     GameId: gameId,
                     PlayerId: activePlayerId,
-                    EventId: picked.EventId,
+                    EventId: publishedEventId,
                     EffectKind: picked.EffectKind,
                     MoneyDelta: picked.MoneyDelta,
                     StepDelta: picked.StepDelta,
@@ -1347,7 +1482,7 @@ public sealed class SanguoTurnManager
                 Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
                     GameId: gameId,
                     PlayerId: activePlayerId,
-                    EventId: picked.EventId,
+                    EventId: publishedEventId,
                     EffectKind: picked.EffectKind,
                     RejectReason: effectResult.RejectReason,
                     MoneyDelta: picked.MoneyDelta,
@@ -1984,6 +2119,7 @@ public sealed class SanguoTurnManager
         _actionCardPlayedTurnNumber = null;
         _diceRolledTurnNumber = null;
         ResetTurnScopedEventStepDeltas();
+        _globalRoundGate = new SanguoGlobalEventRoundGate();
     }
 
     public async Task PublishStateSnapshotAsync(string correlationId, string? causationId)
@@ -1995,6 +2131,13 @@ public sealed class SanguoTurnManager
 
         var occurredAt = DateTimeOffset.UtcNow;
         var activePlayerId = _playerOrder[_activePlayerIndex];
+
+        await TryTriggerGlobalRoundRandomEventBeforeTurnStartedAsync(
+            gameId: _gameId,
+            activePlayerId: activePlayerId,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
 
         await _bus.PublishAsync(new DomainEvent(
             Type: SanguoGameTurnStarted.EventType,
