@@ -7,8 +7,10 @@ namespace Game.Core.Tests.Tasks;
 public sealed class Task58BuildingConfigAndEffectsTests
 {
     // ACC:T58.1
+    // ACC:T58.2
+    // ACC:T58.4
     [Fact]
-    public void BuildingDefinition_ShouldExposeEconomyStepDeltas()
+    public void ShouldExposeEconomyStepDeltas_WhenCreatingBuildingDefinition()
     {
         var b = new SanguoBuildingDefinition(
             BuildingId: "building_house",

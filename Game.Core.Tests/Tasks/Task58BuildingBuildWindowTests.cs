@@ -7,8 +7,9 @@ namespace Game.Core.Tests.Tasks;
 public sealed class Task58BuildingBuildWindowTests
 {
     // ACC:T58.2
+    // ACC:T58.3
     [Fact]
-    public void BuildingBuilt_EventType_ShouldBeStable()
+    public void ShouldExposeStableEventType_WhenBuildingBuilt()
     {
         SanguoBuildingBuilt.EventType.Should().Be("core.sanguo.building.built");
     }

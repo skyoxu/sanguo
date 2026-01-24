@@ -4,6 +4,7 @@ Ensure Tests.Godot uses a single source of truth for runtime assets/scripts.
 
 This script enforces the following invariant on Windows:
   Tests.Godot/Game.Godot  is a junction ->  <repo>/Game.Godot
+  Tests.Godot/Game.Core   is a junction ->  <repo>/Game.Core
   Tests.Godot/Data       is a junction ->  <repo>/Data
   Tests.Godot/Assets     is a junction ->  <repo>/Assets
 
@@ -12,6 +13,8 @@ Why:
   creates "double-source" drift where tests can pass against stale code.
   The test project must also see the same Data/Assets as the main project,
   otherwise runtime validators (e.g. portrait path existence) can fail only in CI.
+  For contract-smoke tests, the test project must also be able to read Game.Core sources
+  (e.g. event type constants) without duplicating code under Tests.Godot.
 
 Artifacts:
   logs/ci/<YYYY-MM-DD>/ensure-tests-project-junction/summary.json
@@ -182,6 +185,8 @@ def main() -> int:
     proj = os.path.abspath(args.project)
     src_game = os.path.abspath(os.path.join(repo_root, args.source))
     dst_game = os.path.abspath(os.path.join(proj, "Game.Godot"))
+    src_core = os.path.abspath(os.path.join(repo_root, "Game.Core"))
+    dst_core = os.path.abspath(os.path.join(proj, "Game.Core"))
     src_data = os.path.abspath(os.path.join(repo_root, "Data"))
     dst_data = os.path.abspath(os.path.join(proj, "Data"))
     src_assets = os.path.abspath(os.path.join(repo_root, "Assets"))
@@ -225,6 +230,13 @@ def main() -> int:
         migrate=args.migrate,
         details=details,
     )
+    ok_core, reason_core = _ensure_one_junction(
+        name="Game.Core",
+        src=src_core,
+        dst=dst_core,
+        migrate=args.migrate,
+        details=details,
+    )
     ok_data, reason_data = _ensure_one_junction(
         name="Data",
         src=src_data,
@@ -240,9 +252,9 @@ def main() -> int:
         details=details,
     )
 
-    all_ok = ok_game and ok_data and ok_assets
+    all_ok = ok_game and ok_core and ok_data and ok_assets
     details["status"] = "ok" if all_ok else "fail"
-    details["reason"] = [reason_game, reason_data, reason_assets]
+    details["reason"] = [reason_game, reason_core, reason_data, reason_assets]
     _write_json(os.path.join(out_dir, "details.json"), details)
     _write_json(
         os.path.join(out_dir, "summary.json"),

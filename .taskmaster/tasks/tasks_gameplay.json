@@ -2113,14 +2113,13 @@
       "建筑配置必须从 res://Data/buildings.json 加载；收益/收租等经济结算必须读取并应用建筑相关倍率（来自 applied_multipliers.building 或其等价的对外可观测状态）：未建造时不应产生建筑倍率影响；建造/升级后在相同输入下结算结果必须按倍率变化。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
       "建筑定义仅允许 multiplier_step_delta；配置内容与 multiplier_step_delta 的合成/叠加规则一致且可验证。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
       "建造入口仅在“停留在自有城市”时可用；成功建造/升级分别发布 building.built 或 building.upgraded，并使影响体现在 applied_multipliers.building（可观测到倍率已生效）。 Refs: Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
-      "城市格 UI 显示拥有者名字，并提供 actions（建造/跳过），且 action 可被实际执行并产生可观测结果。 Refs: Tests.Godot/tests/UI/test_city_tile_owner_label_and_actions.gd"
+      "城市格 UI 显示拥有者名字，并提供 actions（建造/跳过），且 action 可被实际执行并产生可观测结果。 Refs: Tests.Godot/tests/UI/test_task58_city_tile_owner_label_and_actions.gd, Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
       "Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
-      "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd",
       "Tests.Godot/tests/UI/test_task58_city_tile_owner_label_and_actions.gd",
-      "Tests.Godot/tests/UI/test_city_tile_owner_label_and_actions.gd"
+      "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd"
     ],
     "test_strategy": [
       "xUnit：配置/窗口；GdUnit4：actions 与 owner label。"

@@ -16,6 +16,7 @@ namespace Game.Godot.Scripts.UI;
 public partial class HUD : Control
 {
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
+    private const string ActionBuild = "build";
     private const string UiHudDiceRollEventType = "ui.hud.dice.roll";
     private const string UiHudSaveEventType = "ui.hud.save";
     private const string UiHudLoadEventType = "ui.hud.load";
