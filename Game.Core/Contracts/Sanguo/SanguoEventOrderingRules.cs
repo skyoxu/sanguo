@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace Game.Core.Contracts.Sanguo;
 
 /// <summary>
@@ -32,5 +36,54 @@ public static class SanguoEventOrderingRules
     /// The primary ordering scope key used by this project for turn progression.
     /// </summary>
     public const string TurnScopeKey = "CorrelationId";
+
+    public static IReadOnlyDictionary<string, int> EventTypeOrderIndex { get; } = BuildEventTypeOrderIndex();
+
+    public static void Validate(IEnumerable<string> eventTypes)
+    {
+        if (eventTypes is null)
+            throw new ArgumentNullException(nameof(eventTypes));
+
+        var list = eventTypes.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+        if (list.Length == 0)
+            return;
+
+        var iTurnStarted = IndexOfFirst(list, SanguoGameTurnStarted.EventType);
+        var iPlayerStateChanged = IndexOfFirst(list, SanguoPlayerStateChanged.EventType);
+        if (iPlayerStateChanged >= 0 && iTurnStarted >= 0 && iPlayerStateChanged < iTurnStarted)
+            throw new InvalidOperationException($"{SanguoPlayerStateChanged.EventType} must not precede {SanguoGameTurnStarted.EventType} within the same turn scope.");
+
+        var iTurnEnded = IndexOfFirst(list, SanguoGameTurnEnded.EventType);
+        if (iTurnEnded >= 0 && iTurnEnded != list.Length - 1)
+            throw new InvalidOperationException($"{SanguoGameTurnEnded.EventType} must be the last event within the same turn scope.");
+    }
+
+    private static int IndexOfFirst(string[] list, string eventType)
+    {
+        for (var i = 0; i < list.Length; i++)
+        {
+            if (StringComparer.Ordinal.Equals(list[i], eventType))
+                return i;
+        }
+
+        return -1;
+    }
+
+    private static IReadOnlyDictionary<string, int> BuildEventTypeOrderIndex()
+    {
+        var ordered = new[]
+        {
+            SanguoRandomEventApplied.EventType,
+            SanguoGameTurnStarted.EventType,
+            SanguoPlayerStateChanged.EventType,
+            SanguoGameTurnEnded.EventType,
+        };
+
+        var dict = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (var i = 0; i < ordered.Length; i++)
+            dict[ordered[i]] = i;
+
+        return dict;
+    }
 }
 
