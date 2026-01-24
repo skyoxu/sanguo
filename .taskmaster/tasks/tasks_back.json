@@ -3422,15 +3422,14 @@
     "acceptance": [
       "建筑配置必须从 res://Data/buildings.json 加载；建筑配置加载后仅允许出现 multiplier_step_delta；出现未允许字段或非法取值时必须可观测地失败（拒绝/报错）且不会悄悄按默认值通过；multiplier_step_delta 的合成/叠加结果与既定倍率合成规则一致。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
       "只有在玩家“停留在自有城市”时才允许进入建造/升级入口；不满足条件时建造/升级动作被拒绝且不会发布任何 building.built/upgraded；满足条件并成功建造/升级时必须发布对应 building.built 或 building.upgraded，并使其效果进入 applied_multipliers.building（可通过后续状态/结算结果观测）。 Refs: Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
-      "城市格 UI 必须显示当前拥有者名字（无拥有者时显示明确的空/默认状态），并提供可执行 actions（建造/跳过）；用户触发 action 后有可观测结果（建造进入建造流程；跳过不改变建造相关状态与结算）。 Refs: Tests.Godot/tests/UI/test_city_tile_owner_label_and_actions.gd",
+      "城市格 UI 必须显示当前拥有者名字（无拥有者时显示明确的空/默认状态），并提供可执行 actions（建造/跳过）；用户触发 action 后有可观测结果（建造进入建造流程；跳过不改变建造相关状态与结算）。 Refs: Tests.Godot/tests/UI/test_task58_city_tile_owner_label_and_actions.gd, Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd",
       "收益/收租等经济结算必须使用 applied_multipliers.building 作为乘数来源并影响最终结算结果：未建造/未升级时结算结果与未引入建筑倍率前一致；建造/升级导致倍率变化时，在相同输入条件下结算结果必须随倍率变化而变化。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
       "Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs",
-      "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd",
       "Tests.Godot/tests/UI/test_task58_city_tile_owner_label_and_actions.gd",
-      "Tests.Godot/tests/UI/test_city_tile_owner_label_and_actions.gd"
+      "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd"
     ],
     "test_strategy": [
       "xUnit：配置/窗口；GdUnit4：actions 与 owner label。"

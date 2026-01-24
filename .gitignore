@@ -52,6 +52,8 @@ tmp_patch.txt
 # Tests project single-source-of-truth (junction target; do not version mirror copies)
 Tests.Godot/Game.Godot/
 Tests.Godot/Game.Godot/**
+Tests.Godot/Game.Core/
+Tests.Godot/Game.Core/**
 Tests.Godot/Data/
 Tests.Godot/Data/**
 Tests.Godot/Assets/
@@ -117,6 +119,7 @@ __pycache__/
 
 # Project-level MCP configs are forbidden in this repo (use user-level config instead)
 .claude/mcp.json
+.claude/settings.local.json
 .cursor/mcp.json
 .codex/
 
