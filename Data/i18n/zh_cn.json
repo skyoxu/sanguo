@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 3,
+  "version": 4,
   "locale": "zh-CN",
   "strings": {
     "building.building_barracks.desc": "提升过路费，适合军事风格的城池。",
@@ -79,6 +79,8 @@
     "ui.common.cancel": "取消",
     "ui.common.errorTitle": "错误",
     "ui.common.ok": "确定",
-    "ui.common.start": "开始"
+    "ui.common.start": "开始",
+    "event.event_combat_small.name": "小规模遭遇战",
+    "event.event_combat_small.desc": "触发一场小规模遭遇战，胜利获得奖励。"
   }
 }

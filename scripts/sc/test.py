@@ -197,6 +197,8 @@ def main() -> int:
     write_text(out_dir / "run_id.txt", run_id + "\n")
 
     godot_bin = args.godot_bin or os.environ.get("GODOT_BIN")
+    if godot_bin:
+        godot_bin = os.path.expandvars(godot_bin).strip().strip('"')
 
     summary: dict[str, Any] = {
         "cmd": "sc-test",

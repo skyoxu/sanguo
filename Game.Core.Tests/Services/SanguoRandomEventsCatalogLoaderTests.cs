@@ -26,6 +26,52 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     }
 
     [Fact]
+    public void TryLoadRandomEventsCatalog_ShouldLoadStartCombat_WhenEncounterFieldsPresent()
+    {
+        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, StartCombatJson);
+
+        var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var catalog, out var error);
+
+        ok.Should().BeTrue();
+        error.Should().BeEmpty();
+
+        var combat = catalog.Events.Single(e => e.EventId == "event_combat_small");
+        combat.EffectKind.Should().Be("startCombat");
+        combat.EncounterId.Should().Be("enc_event_combat_small");
+        combat.EncounterTarget.Should().Be(10);
+        combat.MoneyDelta.Should().BeNull();
+        combat.StepDelta.Should().BeNull();
+    }
+
+    [Fact]
+    public void TryLoadRandomEventsCatalog_ShouldFail_WhenStartCombatMissingEncounterId()
+    {
+        var json = "{\"schemaVersion\":1,\"version\":1,"
+                   + "\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"event_combat_small\"]},{\"poolId\":\"global\",\"eventIds\":[]}],"
+                   + "\"events\":[{\"eventId\":\"event_combat_small\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"startCombat\",\"encounterTarget\":10}]}";
+        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
+
+        var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
+
+        ok.Should().BeFalse();
+        error.Should().Be("invalid_random_events_catalog:event_missing_encounterId");
+    }
+
+    [Fact]
+    public void TryLoadRandomEventsCatalog_ShouldFail_WhenStartCombatEncounterTargetInvalid()
+    {
+        var json = "{\"schemaVersion\":1,\"version\":1,"
+                   + "\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"event_combat_small\"]},{\"poolId\":\"global\",\"eventIds\":[]}],"
+                   + "\"events\":[{\"eventId\":\"event_combat_small\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"startCombat\",\"encounterId\":\"enc_event_combat_small\",\"encounterTarget\":-1}]}";
+        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
+
+        var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
+
+        ok.Should().BeFalse();
+        error.Should().Be("invalid_random_events_catalog:event_invalid_encounterTarget");
+    }
+
+    [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenJsonMissing()
     {
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, null);
@@ -279,6 +325,36 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
       ""cooldownRounds"": 2,
       ""effectKind"": ""economyStepDelta"",
       ""stepDelta"": 1
+    }
+  ]
+}";
+
+    private const string StartCombatJson = @"{
+  ""schemaVersion"": 1,
+  ""version"": 1,
+  ""eventPools"": [
+    { ""poolId"": ""default"", ""eventIds"": [ ""event_combat_small"" ] },
+    { ""poolId"": ""global"", ""eventIds"": [ ""event_money_small"" ] }
+  ],
+  ""events"": [
+    {
+      ""eventId"": ""event_combat_small"",
+      ""nameKey"": ""event.event_combat_small.name"",
+      ""descriptionKey"": ""event.event_combat_small.desc"",
+      ""uniqueOnce"": false,
+      ""cooldownRounds"": 0,
+      ""effectKind"": ""startCombat"",
+      ""encounterId"": ""enc_event_combat_small"",
+      ""encounterTarget"": 10
+    },
+    {
+      ""eventId"": ""event_money_small"",
+      ""nameKey"": ""event.event_money_small.name"",
+      ""descriptionKey"": ""event.event_money_small.desc"",
+      ""uniqueOnce"": false,
+      ""cooldownRounds"": 0,
+      ""effectKind"": ""moneyDelta"",
+      ""moneyDelta"": 200
     }
   ]
 }";

@@ -126,7 +126,7 @@ public class SanguoDiceServiceTests
 
         var threadLocalRng = rngField!.GetValue(null).Should().BeAssignableTo<ThreadLocal<Random>>().Subject;
 
-        var originalRandom = threadLocalRng.Value;
+        var originalRandom = threadLocalRng.Value ?? new Random();
         try
         {
             var fixedRandom = new FixedRandom(nextValueInclusive: 6);

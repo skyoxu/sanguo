@@ -969,6 +969,45 @@ public partial class SanguoGameLoopController : Node
             tileTypesByIndex[tile.PositionIndex] = tile.TileType ?? string.Empty;
         }
 
+        var combatRatingByPlayerId = new Dictionary<string, int>(StringComparer.Ordinal);
+        try
+        {
+            if (startConfig != null)
+            {
+                var loader = ResolveResourceLoader();
+                if (loader != null && Game.Core.Services.Sanguo.SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, out var characters, out _))
+                {
+                    var byId = characters.Characters.ToDictionary(x => x.CharacterId, StringComparer.Ordinal);
+                    foreach (var pid in playerOrder)
+                    {
+                        var characterId = startConfig.CharacterAssignments.TryGetValue(pid, out var cid) ? cid : string.Empty;
+                        if (!string.IsNullOrWhiteSpace(characterId) && byId.TryGetValue(characterId, out var def))
+                        {
+                            combatRatingByPlayerId[pid] = def.CombatRating;
+                        }
+                        else
+                        {
+                            combatRatingByPlayerId[pid] = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var pid in playerOrder)
+                    {
+                        combatRatingByPlayerId[pid] = 0;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            foreach (var pid in playerOrder)
+            {
+                combatRatingByPlayerId[pid] = 0;
+            }
+        }
+
         var rng = startConfig != null
             ? new DeterministicRandomNumberGenerator(startConfig.RandomSeed)
             : null;
@@ -987,7 +1026,8 @@ public partial class SanguoGameLoopController : Node
             tileRandomEventPoolId: "default",
             globalRandomEventPoolId: "global",
             buildingsCatalog: buildingsCatalog,
-            tileTypesByPositionIndex: tileTypesByIndex);
+            tileTypesByPositionIndex: tileTypesByIndex,
+            combatRatingByPlayerId: combatRatingByPlayerId);
     }
 
     private IResourceLoader? ResolveResourceLoader()

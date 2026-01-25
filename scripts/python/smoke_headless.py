@@ -325,7 +325,8 @@ def main() -> int:
     parser.add_argument("--mode", choices=["loose", "strict"], default="loose", help="Gate mode")
 
     args = parser.parse_args()
-    return _run_smoke(args.godot_bin, args.project_path, args.scene, args.timeout_sec, args.mode)
+    godot_bin = os.path.expandvars(args.godot_bin).strip().strip('"')
+    return _run_smoke(godot_bin, args.project_path, args.scene, args.timeout_sec, args.mode)
 
 
 if __name__ == "__main__":

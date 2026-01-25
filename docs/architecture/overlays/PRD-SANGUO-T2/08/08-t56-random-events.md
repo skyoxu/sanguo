@@ -10,13 +10,14 @@ Arch-Refs:
 
 # T56：随机事件池（事件格 + 每N回合全局事件）
 
-本页为 T56 的功能纵切拆页。止损版事件效果统一走 `effectKind`（`moneyDelta` / `economyStepDelta`），并由 `random_seed` 保证可复现。
+本页为 T56 的功能纵切拆页。止损版事件效果统一走 `effectKind`（`moneyDelta` / `economyStepDelta` / `startCombat`），并由 `random_seed` 保证可复现。
 
 ## 范围
 - 落到 `event` tile 触发事件。
 - 每 N 回合触发全局事件（N 为 5/10/20）。
 - 两类触发统一进入 RandomEventPool，按固定顺序执行（与 T52 对齐）。
-  - effectKind 白名单：`moneyDelta` / `economyStepDelta`（steps 为整型步进，1=+0.5；最终仍按 T51 口径 clamp）。
+  - effectKind 白名单：`moneyDelta` / `economyStepDelta` / `startCombat`（steps 为整型步进，1=+0.5；最终仍按 T51 口径 clamp）。
+    - 约束：`startCombat` 仅允许用于 tile 事件；全局事件若抽到 `startCombat` 必须发布 `core.sanguo.random_event.rejected`（`rejectReason=effect_kind_not_allowed_for_global_events`）并不得产生数值变化。
   - 事件池拆分：
     - tile 触发使用 poolId=`default`
     - 全局触发使用 poolId=`global`

@@ -36,5 +36,5 @@ Arch-Refs:
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs`
 - `Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs`
-- `Tests.Godot/tests/Scenes/test_task59_pve_combat_scene_roundtrip.gd`
+- `Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd`
 

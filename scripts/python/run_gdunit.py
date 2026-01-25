@@ -144,6 +144,7 @@ def main():
     ap.add_argument('--prewarm', action='store_true', help='Prewarm: build solutions before running tests')
     ap.add_argument('--rd', dest='report_dir', default=None, help='Custom destination to copy reports into (defaults to logs/e2e/<date>/gdunit-reports)')
     args = ap.parse_args()
+    godot_bin = os.path.expandvars(args.godot_bin).strip().strip('"')
 
     root = os.getcwd()
     proj = os.path.abspath(args.project)
@@ -165,7 +166,7 @@ def main():
     prewarm_rc = None
     prewarm_note = None
     if args.prewarm:
-        pre_cmd = [args.godot_bin, '--headless', '--path', proj, '--build-solutions', '--quit']
+        pre_cmd = [godot_bin, '--headless', '--path', proj, '--build-solutions', '--quit']
         _rcp, _outp = run_cmd(pre_cmd, cwd=proj, timeout=300_000)
         prewarm_attempts = 1
         prewarm_rc = _rcp
@@ -207,8 +208,14 @@ def main():
                 prewarm_note = 'fallback-dotnet'
 
     # Run tests (Debugger break, fail-fast).
+    # Important: remove stale reports before running, otherwise a failing run
+    # may leave old results.xml in place and incorrectly normalize rc to 0.
+    reports_dir = os.path.join(proj, 'reports')
+    if os.path.isdir(reports_dir):
+        shutil.rmtree(reports_dir, ignore_errors=True)
+
     # Build command with optional -a filters
-    cmd = [args.godot_bin, '--headless', '--path', proj, '-s', '-d', 'res://addons/gdUnit4/bin/GdUnitCmdTool.gd', '--ignoreHeadlessMode']
+    cmd = [godot_bin, '--headless', '--path', proj, '-s', '-d', 'res://addons/gdUnit4/bin/GdUnitCmdTool.gd', '--ignoreHeadlessMode']
     for a in args.add:
         apath = a
         if not apath.startswith('res://'):
@@ -221,10 +228,9 @@ def main():
         f.write(out)
 
     # Generate HTML log frame (optional)
-    _rc2, _out2 = run_cmd([args.godot_bin, '--headless', '--path', proj, '--quiet', '-s', 'res://addons/gdUnit4/bin/GdUnitCopyLog.gd'], cwd=proj)
+    _rc2, _out2 = run_cmd([godot_bin, '--headless', '--path', proj, '--quiet', '-s', 'res://addons/gdUnit4/bin/GdUnitCopyLog.gd'], cwd=proj)
 
     # Archive reports
-    reports_dir = os.path.join(proj, 'reports')
     dest = args.report_dir if args.report_dir else os.path.join(out_dir, 'gdunit-reports')
     # Guard against destructive configuration: if dest == out_dir, we'd delete the folder that also holds console_path.
     if os.path.abspath(dest) == os.path.abspath(out_dir):

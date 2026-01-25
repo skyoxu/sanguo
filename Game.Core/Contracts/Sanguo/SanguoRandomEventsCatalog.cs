@@ -34,7 +34,9 @@ public sealed record SanguoRandomEventCatalogEntry(
     int? MoneyDelta,
     int? StepDelta,
     int CooldownRounds,
-    bool UniqueOnce
+    bool UniqueOnce,
+    string? EncounterId = null,
+    int? EncounterTarget = null
 );
 
 /// <summary>

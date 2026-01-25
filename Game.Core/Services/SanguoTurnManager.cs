@@ -26,6 +26,7 @@ public sealed class SanguoTurnManager
     private readonly string _tileRandomEventPoolId;
     private readonly string _globalRandomEventPoolId;
     private readonly IReadOnlyDictionary<int, string>? _tileTypesByPositionIndex;
+    private readonly IReadOnlyDictionary<string, int> _combatRatingByPlayerId;
     private readonly Dictionary<string, int> _turnEventStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly SanguoActionCardsCatalog? _actionCardsCatalog;
@@ -63,7 +64,8 @@ public sealed class SanguoTurnManager
         string globalRandomEventPoolId = "global",
         SanguoActionCardsCatalog? actionCardsCatalog = null,
         SanguoBuildingsCatalog? buildingsCatalog = null,
-        IReadOnlyDictionary<int, string>? tileTypesByPositionIndex = null)
+        IReadOnlyDictionary<int, string>? tileTypesByPositionIndex = null,
+        IReadOnlyDictionary<string, int>? combatRatingByPlayerId = null)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
@@ -83,6 +85,7 @@ public sealed class SanguoTurnManager
         _buildingsCatalog = buildingsCatalog;
         _buildingsById = CreateBuildingsById(buildingsCatalog);
         _tileTypesByPositionIndex = tileTypesByPositionIndex;
+        _combatRatingByPlayerId = combatRatingByPlayerId ?? new Dictionary<string, int>(StringComparer.Ordinal);
 
         if (_globalEventIntervalTurns != 5 && _globalEventIntervalTurns != 10 && _globalEventIntervalTurns != 20)
             throw new ArgumentOutOfRangeException(nameof(globalEventIntervalTurns), "GlobalEventIntervalTurns must be one of: 5, 10, 20.");
@@ -833,6 +836,17 @@ public sealed class SanguoTurnManager
             return;
         }
 
+        if (string.Equals(normalized, "start_combat", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, "startCombat", StringComparison.OrdinalIgnoreCase))
+        {
+            await StartCombatAndReturnToMainLoopAsync(
+                activePlayerId: activePlayerId,
+                activePlayer: activePlayer,
+                correlationId: correlationId,
+                causationId: causationId);
+            return;
+        }
+
         var shouldBuy = string.Equals(normalized, "house_build", StringComparison.OrdinalIgnoreCase)
             || string.Equals(normalized, "buy", StringComparison.OrdinalIgnoreCase)
             || string.Equals(normalized, "purchase", StringComparison.OrdinalIgnoreCase)
@@ -900,6 +914,127 @@ public sealed class SanguoTurnManager
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
+    }
+
+    private async Task StartCombatAndReturnToMainLoopAsync(
+        string activePlayerId,
+        SanguoPlayer activePlayer,
+        string correlationId,
+        string? causationId)
+    {
+        var positionIndex = activePlayer.PositionIndex;
+        if (_tileTypesByPositionIndex is null)
+            return;
+
+        if (!_tileTypesByPositionIndex.TryGetValue(positionIndex, out var type))
+            return;
+
+        if (!string.Equals(type, SanguoTileDefinition.TileTypePass, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var occurredAt = DateTimeOffset.UtcNow;
+        var roundNumber = ComputeRoundNumber(_turnNumber);
+        var rngContextId = BuildRngContextId(
+            stream: "rng.combat",
+            turnNumber: _turnNumber,
+            roundNumber: roundNumber,
+            sourceId: $"tile:{positionIndex}");
+
+        var candidatesSortedIdsHash = ComputeSha256Hex("combat:encounter:default");
+        var seed = ComputeDeterministicSeed(_randomSeed, rngContextId, candidatesSortedIdsHash);
+        var encounterId = $"enc_battlefield_{_turnNumber}_{positionIndex}";
+        var encounterTarget = 10 + (seed % 11); // 10..20 deterministic
+
+        await StartPveCombatAsync(
+            gameId: _gameId!,
+            playerId: activePlayerId,
+            player: activePlayer,
+            encounterId: encounterId,
+            encounterTarget: encounterTarget,
+            seed: seed,
+            occurredAt: occurredAt,
+            correlationId: correlationId,
+            causationId: causationId);
+    }
+
+    private async Task StartPveCombatAsync(
+        string gameId,
+        string playerId,
+        SanguoPlayer player,
+        string encounterId,
+        int encounterTarget,
+        int seed,
+        DateTimeOffset occurredAt,
+        string correlationId,
+        string? causationId)
+    {
+        var started = new DomainEvent(
+            Type: SanguoCombatStarted.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoCombatStarted(
+                GameId: gameId,
+                PlayerId: playerId,
+                EncounterId: encounterId,
+                RandomSeed: seed,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(started);
+
+        var combatRating = _combatRatingByPlayerId.TryGetValue(playerId, out var cr) ? cr : 0;
+        var result = Game.Core.Services.Sanguo.SanguoCombatResolver.ResolvePveCombat(
+            combatRating: combatRating,
+            encounterTarget: encounterTarget,
+            seed: seed);
+
+        var moneyChanged = ApplyMoneyDeltaToPlayer(player, result.MoneyDelta);
+        if (moneyChanged)
+        {
+            await PublishPlayerStateChangedAsync(
+                playerId: playerId,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+        }
+
+        var ended = new DomainEvent(
+            Type: SanguoCombatEnded.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoCombatEnded(
+                GameId: gameId,
+                PlayerId: playerId,
+                EncounterId: encounterId,
+                Result: result,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(ended);
+    }
+
+    private bool ApplyMoneyDeltaToPlayer(SanguoPlayer player, decimal moneyDelta)
+    {
+        if (player is null)
+            return false;
+
+        // Combat (Task59) does not apply any negative penalty in this stop-loss phase.
+        if (moneyDelta <= 0m)
+            return false;
+
+        var snapshot = player.CaptureRollbackSnapshot();
+        var currentMoney = snapshot.Money;
+
+        var add = Money.FromMajorUnits((long)moneyDelta);
+        var newMoney = currentMoney.AddCapped(add, out var overflow);
+        if (overflow > Money.Zero)
+        {
+            _treasury.Deposit(overflow);
+        }
+        player.RestoreRollbackSnapshot(snapshot with { Money = newMoney });
+        return true;
     }
 
     private async Task TryBuildOrUpgradeCityAsync(
@@ -1325,11 +1460,122 @@ public sealed class SanguoTurnManager
                     RngContextId: rngContextId,
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
-                    PickedId: pickedId
+                    PickedId: pickedId,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
             await _bus.PublishAsync(rejectedEvt);
+            return;
+        }
+
+        if (string.Equals(picked.EffectKind, SanguoEffectKinds.StartCombat, StringComparison.Ordinal))
+        {
+            if (!_boardState.TryGetPlayer(activePlayerId, out var activePlayer) || activePlayer is null)
+            {
+                var rejectedEvt = new DomainEvent(
+                    Type: SanguoRandomEventRejected.EventType,
+                    Source: nameof(SanguoTurnManager),
+                    Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                        GameId: gameId,
+                        PlayerId: activePlayerId,
+                        EventId: picked.EventId,
+                        EffectKind: picked.EffectKind,
+                        RejectReason: "player_not_found",
+                        MoneyDelta: picked.MoneyDelta,
+                        StepDelta: picked.StepDelta,
+                        OccurredAt: occurredAt,
+                        CorrelationId: correlationId,
+                        CausationId: causationId,
+                        RngContextId: rngContextId,
+                        CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                        PickedIndex: pickedIndex,
+                        PickedId: pickedId,
+                        EncounterId: picked.EncounterId,
+                        EncounterTarget: picked.EncounterTarget
+                    )),
+                    Timestamp: occurredAt.UtcDateTime,
+                    Id: Guid.NewGuid().ToString("N"));
+                await _bus.PublishAsync(rejectedEvt);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(picked.EncounterId) || !picked.EncounterTarget.HasValue)
+            {
+                var rejectedEvt = new DomainEvent(
+                    Type: SanguoRandomEventRejected.EventType,
+                    Source: nameof(SanguoTurnManager),
+                    Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                        GameId: gameId,
+                        PlayerId: activePlayerId,
+                        EventId: picked.EventId,
+                        EffectKind: picked.EffectKind,
+                        RejectReason: "missing_encounter_fields",
+                        MoneyDelta: picked.MoneyDelta,
+                        StepDelta: picked.StepDelta,
+                        OccurredAt: occurredAt,
+                        CorrelationId: correlationId,
+                        CausationId: causationId,
+                        RngContextId: rngContextId,
+                        CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                        PickedIndex: pickedIndex,
+                        PickedId: pickedId,
+                        EncounterId: picked.EncounterId,
+                        EncounterTarget: picked.EncounterTarget
+                    )),
+                    Timestamp: occurredAt.UtcDateTime,
+                    Id: Guid.NewGuid().ToString("N"));
+                await _bus.PublishAsync(rejectedEvt);
+                return;
+            }
+
+            RecordRandomEventApplied(activePlayerId, picked.EventId, roundNumber);
+            var appliedEvtId = Guid.NewGuid().ToString("N");
+            var appliedEvt = new DomainEvent(
+                Type: SanguoRandomEventApplied.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: picked.EventId,
+                    EffectKind: picked.EffectKind,
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId,
+                    AppliedMultipliersAfter: null,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: appliedEvtId);
+            await _bus.PublishAsync(appliedEvt);
+
+            var combatRngContextId = BuildRngContextId(
+                stream: "rng.combat",
+                turnNumber: _turnNumber,
+                roundNumber: roundNumber,
+                sourceId: $"random_event:{picked.EventId}");
+            var combatCandidatesSortedIdsHash = ComputeSha256Hex($"combat:random_event:{picked.EncounterId}:{picked.EncounterTarget.Value}");
+            var seed = ComputeDeterministicSeed(_randomSeed, combatRngContextId, combatCandidatesSortedIdsHash);
+            var encounterInstanceId = $"{picked.EncounterId}:{_turnNumber}:{positionIndex}:{activePlayerId}";
+
+            await StartPveCombatAsync(
+                gameId: gameId,
+                playerId: activePlayerId,
+                player: activePlayer,
+                encounterId: encounterInstanceId,
+                encounterTarget: picked.EncounterTarget.Value,
+                seed: seed,
+                occurredAt: occurredAt,
+                correlationId: correlationId,
+                causationId: appliedEvtId);
             return;
         }
 
@@ -1359,7 +1605,9 @@ public sealed class SanguoTurnManager
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
-                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter
+                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1384,7 +1632,9 @@ public sealed class SanguoTurnManager
                     RngContextId: rngContextId,
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
-                    PickedId: pickedId
+                    PickedId: pickedId,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1457,7 +1707,38 @@ public sealed class SanguoTurnManager
                     RngContextId: rngContextId,
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
-                    PickedId: pickedId
+                    PickedId: pickedId,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejectedEvt);
+            return;
+        }
+
+        if (string.Equals(picked.EffectKind, SanguoEffectKinds.StartCombat, StringComparison.Ordinal))
+        {
+            var rejectedEvt = new DomainEvent(
+                Type: SanguoRandomEventRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: publishedEventId,
+                    EffectKind: picked.EffectKind,
+                    RejectReason: "effect_kind_not_allowed_for_global_events",
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1491,7 +1772,9 @@ public sealed class SanguoTurnManager
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
-                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter
+                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1516,7 +1799,9 @@ public sealed class SanguoTurnManager
                     RngContextId: rngContextId,
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
-                    PickedId: pickedId
+                    PickedId: pickedId,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1580,7 +1865,38 @@ public sealed class SanguoTurnManager
                     RngContextId: rngContextId,
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
-                    PickedId: pickedId
+                    PickedId: pickedId,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejectedEvt);
+            return;
+        }
+
+        if (string.Equals(picked.EffectKind, SanguoEffectKinds.StartCombat, StringComparison.Ordinal))
+        {
+            var rejectedEvt = new DomainEvent(
+                Type: SanguoRandomEventRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRandomEventRejected(
+                    GameId: gameId,
+                    PlayerId: activePlayerId,
+                    EventId: publishedEventId,
+                    EffectKind: picked.EffectKind,
+                    RejectReason: "effect_kind_not_allowed_for_global_events",
+                    MoneyDelta: picked.MoneyDelta,
+                    StepDelta: picked.StepDelta,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    RngContextId: rngContextId,
+                    CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                    PickedIndex: pickedIndex,
+                    PickedId: pickedId,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1614,7 +1930,9 @@ public sealed class SanguoTurnManager
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
-                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter
+                    AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1639,7 +1957,9 @@ public sealed class SanguoTurnManager
                     RngContextId: rngContextId,
                     CandidatesSortedIdsHash: candidatesSortedIdsHash,
                     PickedIndex: pickedIndex,
-                    PickedId: pickedId
+                    PickedId: pickedId,
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));

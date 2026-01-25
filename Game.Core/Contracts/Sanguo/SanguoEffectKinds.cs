@@ -11,4 +11,9 @@ public static class SanguoEffectKinds
 {
     public const string MoneyDelta = "moneyDelta";
     public const string EconomyStepDelta = "economyStepDelta";
+    public const string FixedDice = "fixedDice";
+    public const string SkipNextTurn = "skipNextTurn";
+    public const string Teleport = "teleport";
+    public const string PendingSteal = "pendingSteal";
+    public const string StartCombat = "startCombat";
 }

@@ -1794,7 +1794,7 @@
         "id": "59",
         "title": "模块: 战斗（PVE）触发与回主循环",
         "description": "引入 PVE 战斗分支循环：从地图/事件触发进入战斗，结束后回到主循环。",
-        "details": "本阶段不引入战斗卡池；战斗结果需在 random_seed 控制下可复现；通过事件记录 combat.started/ended 与奖励/惩罚写回。",
+        "details": "本阶段不引入战斗卡池；战斗结果需在 random_seed 控制下可复现；通过事件记录 core.sanguo.combat.started/core.sanguo.combat.ended 与奖励/惩罚写回。",
         "testStrategy": "xUnit：触发/回归/确定性；GdUnit4：场景往返。",
         "priority": "medium",
         "dependencies": [
@@ -1803,7 +1803,7 @@
           "53",
           "56"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
