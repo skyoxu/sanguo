@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Game.Core.Contracts.Sanguo;
 
@@ -13,9 +14,9 @@ namespace Game.Core.Contracts.Sanguo;
 /// Data source (SSoT): res://Data/relics.json.
 /// </remarks>
 public sealed record SanguoRelicsCatalog(
-    int SchemaVersion,
-    int Version,
-    IReadOnlyList<SanguoRelicDefinition> Relics
+    [property: JsonPropertyName("schemaVersion")] int SchemaVersion,
+    [property: JsonPropertyName("version")] int Version,
+    [property: JsonPropertyName("relics")] IReadOnlyList<SanguoRelicDefinition> Relics
 );
 
 /// <summary>
@@ -26,11 +27,11 @@ public sealed record SanguoRelicsCatalog(
 /// EffectKind is restricted by an allow-list in quality gates. This contract stays pure C# (no Godot types).
 /// </remarks>
 public sealed record SanguoRelicDefinition(
-    string RelicId,
-    string NameKey,
-    string DescriptionKey,
-    string EffectKind,
-    int? MoneyDelta,
-    int? EconomyStepDelta
+    [property: JsonPropertyName("relicId")] string RelicId,
+    [property: JsonPropertyName("nameKey")] string NameKey,
+    [property: JsonPropertyName("descriptionKey")] string DescriptionKey,
+    [property: JsonPropertyName("effectKind")] string EffectKind,
+    [property: JsonPropertyName("moneyDelta")] int? MoneyDelta,
+    [property: JsonPropertyName("stepDelta")] int? EconomyStepDelta
 );
 
