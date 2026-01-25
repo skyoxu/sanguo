@@ -2168,7 +2168,7 @@
       "从地图关隘或地图事件触发 PVE 时，游戏进入战斗分支；战斗结束后返回主循环（地图）并可继续推进后续流程。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
       "本阶段不引入任何“战斗卡池”机制；在相同 random_seed 且相同输入条件下，战斗结果（含结果判定与派生效果）可复现。 Refs: Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
       "UI 支持完整场景往返：从地图进入战斗场景，展示战斗结果，然后返回地图场景且用户可继续操作。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
-    "战斗开始与结束分别记录一次事件，事件类型精确为 core.sanguo.combat.started 与 core.sanguo.combat.ended，且事件记录可被回放/查询用于追踪本次战斗（至少包含可关联同一场战斗的标识与 random_seed）。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
+      "战斗开始与结束分别记录一次事件，事件类型精确为 core.sanguo.combat.started 与 core.sanguo.combat.ended，且事件记录可被回放/查询用于追踪本次战斗（至少包含可关联同一场战斗的标识与 random_seed）。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
       "战斗结束后，奖励/惩罚会写回到主循环可观测状态（例如资源/进度/角色状态之一），并在返回地图后可读取到写回结果以影响后续推进。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
     ],
     "test_refs": [

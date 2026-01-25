@@ -621,6 +621,12 @@ public partial class SanguoGameLoopController : Node
             GD.PushWarning($"SanguoGameLoopController: action cards catalog load failed (error='{cardsError}').");
         }
 
+        if (!Game.Core.Services.Sanguo.SanguoRelicsCatalogLoader.TryLoadRelicsCatalog(loader, out var relicsCatalog, out var relicsError))
+        {
+            GD.PushWarning($"SanguoGameLoopController: relics catalog load failed (error='{relicsError}').");
+            return (false, "relics_catalog_load_failed");
+        }
+
         if (!SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var randomEventsCatalog, out var randomEventsError))
         {
             GD.PushWarning($"SanguoGameLoopController: random events catalog load failed (error='{randomEventsError}').");
@@ -633,7 +639,7 @@ public partial class SanguoGameLoopController : Node
             return (false, "buildings_catalog_load_failed");
         }
 
-        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog, randomEventsCatalog, buildingsCatalog);
+        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog, randomEventsCatalog, buildingsCatalog, relicsCatalog);
 
         try
         {
@@ -946,7 +952,8 @@ public partial class SanguoGameLoopController : Node
         GameStartConfig? startConfig = null,
         SanguoActionCardsCatalog? actionCardsCatalog = null,
         SanguoRandomEventsCatalog? randomEventsCatalog = null,
-        SanguoBuildingsCatalog? buildingsCatalog = null)
+        SanguoBuildingsCatalog? buildingsCatalog = null,
+        SanguoRelicsCatalog? relicsCatalog = null)
     {
         var economyRules = SanguoEconomyRules.Default;
         var playerOrder = startConfig != null
@@ -1026,6 +1033,7 @@ public partial class SanguoGameLoopController : Node
             tileRandomEventPoolId: "default",
             globalRandomEventPoolId: "global",
             buildingsCatalog: buildingsCatalog,
+            relicsCatalog: relicsCatalog,
             tileTypesByPositionIndex: tileTypesByIndex,
             combatRatingByPlayerId: combatRatingByPlayerId);
     }

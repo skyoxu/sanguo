@@ -31,10 +31,14 @@ public sealed class SanguoTurnManager
     private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly SanguoActionCardsCatalog? _actionCardsCatalog;
     private readonly SanguoBuildingsCatalog? _buildingsCatalog;
+    private readonly SanguoRelicsCatalog? _relicsCatalog;
     private readonly IReadOnlyDictionary<string, SanguoBuildingDefinition> _buildingsById;
     private readonly Dictionary<string, Dictionary<string, int>> _buildingLevelsByCityId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Dictionary<string, int>> _randomEventLastAppliedRoundByPlayerId = new(StringComparer.Ordinal);
     private SanguoGlobalEventRoundGate _globalRoundGate = new();
+    private readonly Dictionary<string, int> _relicStepDeltaByPlayerId = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, HashSet<string>> _relicIdsByPlayerId = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _grantedRelicIds = new(StringComparer.Ordinal);
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -64,6 +68,7 @@ public sealed class SanguoTurnManager
         string globalRandomEventPoolId = "global",
         SanguoActionCardsCatalog? actionCardsCatalog = null,
         SanguoBuildingsCatalog? buildingsCatalog = null,
+        SanguoRelicsCatalog? relicsCatalog = null,
         IReadOnlyDictionary<int, string>? tileTypesByPositionIndex = null,
         IReadOnlyDictionary<string, int>? combatRatingByPlayerId = null)
     {
@@ -83,6 +88,7 @@ public sealed class SanguoTurnManager
         _globalRandomEventPoolId = globalRandomEventPoolId ?? throw new ArgumentNullException(nameof(globalRandomEventPoolId));
         _actionCardsCatalog = actionCardsCatalog;
         _buildingsCatalog = buildingsCatalog;
+        _relicsCatalog = relicsCatalog;
         _buildingsById = CreateBuildingsById(buildingsCatalog);
         _tileTypesByPositionIndex = tileTypesByPositionIndex;
         _combatRatingByPlayerId = combatRatingByPlayerId ?? new Dictionary<string, int>(StringComparer.Ordinal);
@@ -152,6 +158,9 @@ public sealed class SanguoTurnManager
         _diceRolledTurnNumber = null;
         _randomEventLastAppliedRoundByPlayerId.Clear();
         ResetTurnScopedEventStepDeltas();
+        _relicStepDeltaByPlayerId.Clear();
+        _relicIdsByPlayerId.Clear();
+        _grantedRelicIds.Clear();
         _globalRoundGate = new SanguoGlobalEventRoundGate();
 
         var occurredAt = DateTimeOffset.UtcNow;
@@ -748,14 +757,20 @@ public sealed class SanguoTurnManager
                 if (!StringComparer.Ordinal.Equals(owner.PlayerId, playerId))
                 {
                     var buildingTollStepDelta = ComputeCityBuildingTollStepDelta(city.Id);
+                    var ownerRelicStepDelta = GetPersistentRelicStepDelta(owner.PlayerId);
+                    var tollSources = AppliedMultiplierSources.None;
+                    if (buildingTollStepDelta != 0)
+                        tollSources |= AppliedMultiplierSources.Building;
+                    if (ownerRelicStepDelta != 0)
+                        tollSources |= AppliedMultiplierSources.Relic;
                     var applied = CreateAppliedMultipliers(
                         characterStepDelta: 0,
                         buildingStepDelta: buildingTollStepDelta,
                         eventStepDelta: 0,
                         actionCardStepDelta: 0,
-                        relicStepDelta: 0,
+                        relicStepDelta: ownerRelicStepDelta,
                         regionStepDelta: 0,
-                        sources: buildingTollStepDelta == 0 ? AppliedMultiplierSources.None : AppliedMultiplierSources.Building);
+                        sources: tollSources);
 
                     var paid = await _economy.TryPayTollAndPublishEventAsync(
                         gameId: gameId,
@@ -795,13 +810,26 @@ public sealed class SanguoTurnManager
         }
         else
         {
-            await TryTriggerTileRandomEventAsync(
-                gameId: gameId,
-                activePlayerId: playerId,
-                positionIndex: toIndex,
-                correlationId: correlationId,
-                causationId: causationId,
-                occurredAt: occurredAt);
+            if (IsFacilityTilePosition(toIndex))
+            {
+                await TryResolveFacilityTileAsync(
+                    gameId: gameId,
+                    playerId: playerId,
+                    positionIndex: toIndex,
+                    correlationId: correlationId,
+                    causationId: causationId,
+                    occurredAt: occurredAt);
+            }
+            else
+            {
+                await TryTriggerTileRandomEventAsync(
+                    gameId: gameId,
+                    activePlayerId: playerId,
+                    positionIndex: toIndex,
+                    correlationId: correlationId,
+                    causationId: causationId,
+                    occurredAt: occurredAt);
+            }
         }
 
         foreach (var pid in affectedPlayerIds)
@@ -999,6 +1027,7 @@ public sealed class SanguoTurnManager
                 occurredAt: occurredAt);
         }
 
+        var endedEvtId = Guid.NewGuid().ToString("N");
         var ended = new DomainEvent(
             Type: SanguoCombatEnded.EventType,
             Source: nameof(SanguoTurnManager),
@@ -1011,8 +1040,26 @@ public sealed class SanguoTurnManager
                 CorrelationId: correlationId,
                 CausationId: causationId)),
             Timestamp: occurredAt.UtcDateTime,
-            Id: Guid.NewGuid().ToString("N"));
+            Id: endedEvtId);
         await _bus.PublishAsync(ended);
+
+        var relicMoneyChanged = await TryGrantRelicLootAsync(
+            gameId: gameId,
+            playerId: playerId,
+            sourceKind: "combat",
+            sourceId: encounterId,
+            correlationId: correlationId,
+            causationId: endedEvtId,
+            occurredAt: occurredAt);
+
+        if (relicMoneyChanged)
+        {
+            await PublishPlayerStateChangedAsync(
+                playerId: playerId,
+                correlationId: correlationId,
+                causationId: endedEvtId,
+                occurredAt: occurredAt);
+        }
     }
 
     private bool ApplyMoneyDeltaToPlayer(SanguoPlayer player, decimal moneyDelta)
@@ -1020,7 +1067,7 @@ public sealed class SanguoTurnManager
         if (player is null)
             return false;
 
-        // Combat (Task59) does not apply any negative penalty in this stop-loss phase.
+        // Stop-loss: core only applies positive money deltas in this phase.
         if (moneyDelta <= 0m)
             return false;
 
@@ -1105,14 +1152,18 @@ public sealed class SanguoTurnManager
 
         var costBase = currentLevel == 0 ? picked.BuildCostBase : picked.UpgradeCostBase;
         var costDelta = currentLevel == 0 ? picked.EconomyStepDeltas.BuildCost : picked.EconomyStepDeltas.UpgradeCost;
+        var relicStepDelta = GetPersistentRelicStepDelta(playerId);
+        var costSources = AppliedMultiplierSources.Building;
+        if (relicStepDelta != 0)
+            costSources |= AppliedMultiplierSources.Relic;
         var costApplied = CreateAppliedMultipliers(
             characterStepDelta: 0,
             buildingStepDelta: costDelta,
             eventStepDelta: 0,
             actionCardStepDelta: 0,
-            relicStepDelta: 0,
+            relicStepDelta: relicStepDelta,
             regionStepDelta: 0,
-            sources: AppliedMultiplierSources.Building);
+            sources: costSources);
         var costMultiplier = costApplied.EffectiveMultiplier;
         var cost = Money.FromDecimal(costBase * costMultiplier);
 
@@ -1338,13 +1389,16 @@ public sealed class SanguoTurnManager
         var baseSteps = AppliedMultipliers.BaseDefaultSteps;
         var eventDelta = _turnEventStepDeltasByPlayerId.TryGetValue(playerId, out var e) ? e : 0;
         var actionCardDelta = _turnActionCardStepDeltasByPlayerId.TryGetValue(playerId, out var a) ? a : 0;
-        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + eventDelta + actionCardDelta);
+        var relicDelta = GetPersistentRelicStepDelta(playerId);
+        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + eventDelta + actionCardDelta + relicDelta);
 
         var sources = AppliedMultiplierSources.None;
         if (eventDelta != 0)
             sources |= AppliedMultiplierSources.Event;
         if (actionCardDelta != 0)
             sources |= AppliedMultiplierSources.ActionCard;
+        if (relicDelta != 0)
+            sources |= AppliedMultiplierSources.Relic;
 
         return new AppliedMultipliers(
             BaseSteps: baseSteps,
@@ -1352,7 +1406,7 @@ public sealed class SanguoTurnManager
             BuildingStepDelta: 0,
             EventStepDelta: eventDelta,
             ActionCardStepDelta: actionCardDelta,
-            RelicStepDelta: 0,
+            RelicStepDelta: relicDelta,
             RegionStepDelta: 0,
             EffectiveSteps: effectiveSteps,
             Sources: sources);
@@ -1369,7 +1423,8 @@ public sealed class SanguoTurnManager
 
         var baseSteps = AppliedMultipliers.BaseDefaultSteps;
         var actionCardDelta = _turnActionCardStepDeltasByPlayerId.TryGetValue(playerId, out var a) ? a : 0;
-        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + next + actionCardDelta);
+        var relicDelta = GetPersistentRelicStepDelta(playerId);
+        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + next + actionCardDelta + relicDelta);
 
         return new AppliedMultipliers(
             BaseSteps: baseSteps,
@@ -1377,10 +1432,10 @@ public sealed class SanguoTurnManager
             BuildingStepDelta: 0,
             EventStepDelta: next,
             ActionCardStepDelta: actionCardDelta,
-            RelicStepDelta: 0,
+            RelicStepDelta: relicDelta,
             RegionStepDelta: 0,
             EffectiveSteps: effectiveSteps,
-            Sources: AppliedMultiplierSources.Event);
+            Sources: relicDelta == 0 ? AppliedMultiplierSources.Event : (AppliedMultiplierSources.Event | AppliedMultiplierSources.Relic));
     }
 
     private AppliedMultipliers CommitTurnActionCardEconomyStepDeltaAndGetSnapshot(string playerId, int stepDelta)
@@ -1394,7 +1449,8 @@ public sealed class SanguoTurnManager
 
         var baseSteps = AppliedMultipliers.BaseDefaultSteps;
         var eventDelta = _turnEventStepDeltasByPlayerId.TryGetValue(playerId, out var e) ? e : 0;
-        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + next + eventDelta);
+        var relicDelta = GetPersistentRelicStepDelta(playerId);
+        var effectiveSteps = AppliedMultipliers.ClampSteps(baseSteps + next + eventDelta + relicDelta);
 
         return new AppliedMultipliers(
             BaseSteps: baseSteps,
@@ -1402,10 +1458,10 @@ public sealed class SanguoTurnManager
             BuildingStepDelta: 0,
             EventStepDelta: eventDelta,
             ActionCardStepDelta: next,
-            RelicStepDelta: 0,
+            RelicStepDelta: relicDelta,
             RegionStepDelta: 0,
             EffectiveSteps: effectiveSteps,
-            Sources: AppliedMultiplierSources.ActionCard);
+            Sources: relicDelta == 0 ? AppliedMultiplierSources.ActionCard : (AppliedMultiplierSources.ActionCard | AppliedMultiplierSources.Relic));
     }
 
     private async Task TryTriggerTileRandomEventAsync(
@@ -1535,10 +1591,10 @@ public sealed class SanguoTurnManager
             var appliedEvt = new DomainEvent(
                 Type: SanguoRandomEventApplied.EventType,
                 Source: nameof(SanguoTurnManager),
-                Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
-                    GameId: gameId,
-                    PlayerId: activePlayerId,
-                    EventId: picked.EventId,
+                 Data: JsonElementEventData.FromObject(new SanguoRandomEventApplied(
+                     GameId: gameId,
+                     PlayerId: activePlayerId,
+                     EventId: picked.EventId,
                     EffectKind: picked.EffectKind,
                     MoneyDelta: picked.MoneyDelta,
                     StepDelta: picked.StepDelta,
@@ -1550,12 +1606,30 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     AppliedMultipliersAfter: null,
-                    EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
-                )),
-                Timestamp: occurredAt.UtcDateTime,
-                Id: appliedEvtId);
+                     EncounterId: picked.EncounterId,
+                     EncounterTarget: picked.EncounterTarget
+                 )),
+                 Timestamp: occurredAt.UtcDateTime,
+                 Id: appliedEvtId);
             await _bus.PublishAsync(appliedEvt);
+
+            var relicMoneyChanged = await TryGrantRelicLootAsync(
+                gameId: gameId,
+                playerId: activePlayerId,
+                sourceKind: "event_tile",
+                sourceId: picked.EventId,
+                correlationId: correlationId,
+                causationId: appliedEvtId,
+                occurredAt: occurredAt);
+
+            if (relicMoneyChanged)
+            {
+                await PublishPlayerStateChangedAsync(
+                    playerId: activePlayerId,
+                    correlationId: correlationId,
+                    causationId: appliedEvtId,
+                    occurredAt: occurredAt);
+            }
 
             var combatRngContextId = BuildRngContextId(
                 stream: "rng.combat",
@@ -1588,6 +1662,7 @@ public sealed class SanguoTurnManager
         if (effectResult.Applied)
         {
             RecordRandomEventApplied(activePlayerId, picked.EventId, roundNumber);
+            var evtId = Guid.NewGuid().ToString("N");
             var evt = new DomainEvent(
                 Type: SanguoRandomEventApplied.EventType,
                 Source: nameof(SanguoTurnManager),
@@ -1610,8 +1685,26 @@ public sealed class SanguoTurnManager
                     EncounterTarget: picked.EncounterTarget
                 )),
                 Timestamp: occurredAt.UtcDateTime,
-                Id: Guid.NewGuid().ToString("N"));
+                Id: evtId);
             await _bus.PublishAsync(evt);
+
+            var relicMoneyChanged = await TryGrantRelicLootAsync(
+                gameId: gameId,
+                playerId: activePlayerId,
+                sourceKind: "event_tile",
+                sourceId: picked.EventId,
+                correlationId: correlationId,
+                causationId: evtId,
+                occurredAt: occurredAt);
+
+            if (relicMoneyChanged)
+            {
+                await PublishPlayerStateChangedAsync(
+                    playerId: activePlayerId,
+                    correlationId: correlationId,
+                    causationId: evtId,
+                    occurredAt: occurredAt);
+            }
         }
         else
         {
@@ -1985,6 +2078,191 @@ public sealed class SanguoTurnManager
             return false;
 
         return string.Equals(tileType, SanguoTileDefinition.TileTypeEvent, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool IsFacilityTilePosition(int positionIndex)
+    {
+        if (_tileTypesByPositionIndex is null)
+            return false;
+
+        if (!_tileTypesByPositionIndex.TryGetValue(positionIndex, out var tileType))
+            return false;
+
+        return string.Equals(tileType, SanguoMapTileDefinitionV2.TileKindFacility, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task TryResolveFacilityTileAsync(
+        string gameId,
+        string playerId,
+        int positionIndex,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        // Stop-loss: facility interaction UI is handled by later tasks. Here we only support auditable loot drops.
+        _ = await TryGrantRelicLootAsync(
+            gameId: gameId,
+            playerId: playerId,
+            sourceKind: "facility_tile",
+            sourceId: $"tile:{positionIndex}",
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt);
+    }
+
+    private int GetPersistentRelicStepDelta(string playerId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId))
+            return 0;
+
+        return _relicStepDeltaByPlayerId.TryGetValue(playerId, out var v) ? v : 0;
+    }
+
+    private async Task<bool> TryGrantRelicLootAsync(
+        string gameId,
+        string playerId,
+        string sourceKind,
+        string sourceId,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        if (_relicsCatalog is null || _relicsCatalog.Relics is null || _relicsCatalog.Relics.Count == 0)
+            return false;
+
+        if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+            return false;
+
+        if (player.IsEliminated)
+            return false;
+
+        var roundNumber = ComputeRoundNumber(_turnNumber);
+        var rngContextId = BuildRngContextId(
+            stream: "rng.loot.relic",
+            turnNumber: _turnNumber,
+            roundNumber: roundNumber,
+            sourceId: $"{sourceKind}:{sourceId}");
+
+        var candidateIds = _relicsCatalog.Relics
+            .Select(r => r.RelicId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .OrderBy(id => id, StringComparer.Ordinal)
+            .ToArray();
+
+        if (candidateIds.Length == 0)
+            return false;
+
+        var candidatesSortedIdsHash = ComputeSha256Hex("relics:" + string.Join(",", candidateIds));
+        var seed = ComputeDeterministicSeed(_randomSeed, rngContextId, candidatesSortedIdsHash);
+
+        string? pickedId = null;
+        int? pickedIndex = null;
+
+        for (var attempt = 0; attempt < candidateIds.Length; attempt++)
+        {
+            var idx = (seed + attempt) % candidateIds.Length;
+            var id = candidateIds[idx];
+            if (_grantedRelicIds.Contains(id))
+                continue;
+
+            pickedId = id;
+            pickedIndex = idx;
+            break;
+        }
+
+        SanguoRelicDefinition? picked = null;
+        if (!string.IsNullOrWhiteSpace(pickedId))
+        {
+            picked = _relicsCatalog.Relics.FirstOrDefault(r => StringComparer.Ordinal.Equals(r.RelicId, pickedId));
+        }
+
+        int? validatedMoneyDelta = null;
+        int? validatedStepDelta = null;
+        var validPicked = false;
+
+        if (picked is not null)
+        {
+            if (string.Equals(picked.EffectKind, SanguoEffectKinds.EconomyStepDelta, StringComparison.Ordinal)
+                && picked.EconomyStepDelta.HasValue)
+            {
+                validatedStepDelta = picked.EconomyStepDelta.Value;
+                validPicked = true;
+            }
+            else if (string.Equals(picked.EffectKind, SanguoEffectKinds.MoneyDelta, StringComparison.Ordinal)
+                && picked.MoneyDelta.HasValue)
+            {
+                validatedMoneyDelta = picked.MoneyDelta.Value;
+                validPicked = true;
+            }
+        }
+
+        var lootEvtId = Guid.NewGuid().ToString("N");
+        var loot = new DomainEvent(
+            Type: SanguoLootGranted.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoLootGranted(
+                GameId: gameId,
+                PlayerId: playerId,
+                LootKind: "relic",
+                MoneyDelta: validPicked ? validatedMoneyDelta : null,
+                CardId: null,
+                RelicId: validPicked ? picked!.RelicId : null,
+                SourceKind: sourceKind,
+                SourceId: sourceId,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationId,
+                RngContextId: rngContextId,
+                CandidatesSortedIdsHash: candidatesSortedIdsHash,
+                PickedIndex: pickedIndex,
+                PickedId: pickedId
+            )),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: lootEvtId);
+        await _bus.PublishAsync(loot);
+
+        if (!validPicked || picked is null)
+            return false;
+
+        _grantedRelicIds.Add(picked.RelicId);
+        if (!_relicIdsByPlayerId.TryGetValue(playerId, out var owned))
+        {
+            owned = new HashSet<string>(StringComparer.Ordinal);
+            _relicIdsByPlayerId[playerId] = owned;
+        }
+        owned.Add(picked.RelicId);
+
+        var moneyChanged = false;
+        if (validatedStepDelta.HasValue)
+        {
+            var current = _relicStepDeltaByPlayerId.TryGetValue(playerId, out var v) ? v : 0;
+            var next = checked(current + validatedStepDelta.Value);
+            _relicStepDeltaByPlayerId[playerId] = next;
+        }
+        else if (validatedMoneyDelta.HasValue)
+        {
+            moneyChanged = ApplyMoneyDeltaToPlayer(player, validatedMoneyDelta.Value);
+        }
+
+        var applied = new DomainEvent(
+            Type: SanguoRelicApplied.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoRelicApplied(
+                GameId: gameId,
+                PlayerId: playerId,
+                RelicId: picked.RelicId,
+                EffectKind: picked.EffectKind,
+                MoneyDelta: validatedMoneyDelta,
+                StepDelta: validatedStepDelta,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: lootEvtId
+            )),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+        await _bus.PublishAsync(applied);
+
+        return moneyChanged;
     }
 
     private readonly record struct RandomEventEffectResult(
@@ -2478,14 +2756,20 @@ public sealed class SanguoTurnManager
             if (!StringComparer.Ordinal.Equals(owner.PlayerId, aiPlayerId))
             {
                 var buildingTollStepDelta = ComputeCityBuildingTollStepDelta(city.Id);
+                var ownerRelicStepDelta = GetPersistentRelicStepDelta(owner.PlayerId);
+                var tollSources = AppliedMultiplierSources.None;
+                if (buildingTollStepDelta != 0)
+                    tollSources |= AppliedMultiplierSources.Building;
+                if (ownerRelicStepDelta != 0)
+                    tollSources |= AppliedMultiplierSources.Relic;
                 var applied = CreateAppliedMultipliers(
                     characterStepDelta: 0,
                     buildingStepDelta: buildingTollStepDelta,
                     eventStepDelta: 0,
                     actionCardStepDelta: 0,
-                    relicStepDelta: 0,
+                    relicStepDelta: ownerRelicStepDelta,
                     regionStepDelta: 0,
-                    sources: buildingTollStepDelta == 0 ? AppliedMultiplierSources.None : AppliedMultiplierSources.Building);
+                    sources: tollSources);
 
                 _ = await _economy.TryPayTollAndPublishEventAsync(
                     gameId: _gameId,

@@ -294,6 +294,8 @@ def _prompt_for_ref(
             "- JSON schema: {\"file_path\": \"<repo-relative>\", \"content\": \"<file content>\"}.",
             f"- file_path MUST be exactly: {ref}",
             "- Do NOT create any other files.",
+            "- Do NOT attempt to run any shell commands or tools. You cannot execute commands in this environment.",
+            "- Do NOT request additional context. Use only the context embedded below.",
             "- The generated file MUST include the required ACC anchors listed below.",
             *base_rules,
             *intent_rules,
