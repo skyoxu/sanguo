@@ -34,6 +34,7 @@ EFFECT_KIND_WHITELIST = {
     "skipNextTurn",
     "teleport",
     "pendingSteal",
+    "startCombat",
 }
 
 I18N_NAMESPACE_PREFIXES = (

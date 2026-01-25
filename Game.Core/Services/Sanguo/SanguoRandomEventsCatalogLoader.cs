@@ -13,8 +13,9 @@ public static class SanguoRandomEventsCatalogLoader
 
     private static readonly HashSet<string> AllowedEffectKinds = new(StringComparer.Ordinal)
     {
-        "moneyDelta",
-        "economyStepDelta",
+        SanguoEffectKinds.MoneyDelta,
+        SanguoEffectKinds.EconomyStepDelta,
+        SanguoEffectKinds.StartCombat,
     };
 
     private static readonly JsonDocumentOptions DocOptions = new()
@@ -252,8 +253,10 @@ public static class SanguoRandomEventsCatalogLoader
 
             int? moneyDelta = null;
             int? stepDelta = null;
+            string? encounterId = null;
+            int? encounterTarget = null;
 
-            if (string.Equals(effectKind, "moneyDelta", StringComparison.Ordinal))
+            if (string.Equals(effectKind, SanguoEffectKinds.MoneyDelta, StringComparison.Ordinal))
             {
                 if (!TryGetInt32Required(evEl, "moneyDelta", out var md))
                 {
@@ -263,7 +266,7 @@ public static class SanguoRandomEventsCatalogLoader
                 moneyDelta = md;
             }
 
-            if (string.Equals(effectKind, "economyStepDelta", StringComparison.Ordinal))
+            if (string.Equals(effectKind, SanguoEffectKinds.EconomyStepDelta, StringComparison.Ordinal))
             {
                 if (!TryGetInt32Required(evEl, "stepDelta", out var sd) || sd is < -6 or > 6)
                 {
@@ -271,6 +274,24 @@ public static class SanguoRandomEventsCatalogLoader
                     return false;
                 }
                 stepDelta = sd;
+            }
+
+            if (string.Equals(effectKind, SanguoEffectKinds.StartCombat, StringComparison.Ordinal))
+            {
+                if (!TryGetStringRequired(evEl, "encounterId", out var encId))
+                {
+                    error = "invalid_random_events_catalog:event_missing_encounterId";
+                    return false;
+                }
+
+                if (!TryGetInt32Required(evEl, "encounterTarget", out var encTarget) || encTarget < 0 || encTarget > 1000)
+                {
+                    error = "invalid_random_events_catalog:event_invalid_encounterTarget";
+                    return false;
+                }
+
+                encounterId = encId;
+                encounterTarget = encTarget;
             }
 
             events.Add(new SanguoRandomEventCatalogEntry(
@@ -281,7 +302,9 @@ public static class SanguoRandomEventsCatalogLoader
                 MoneyDelta: moneyDelta,
                 StepDelta: stepDelta,
                 CooldownRounds: cooldownRounds,
-                UniqueOnce: uniqueOnce));
+                UniqueOnce: uniqueOnce,
+                EncounterId: encounterId,
+                EncounterTarget: encounterTarget));
         }
 
         if (events.Count == 0)

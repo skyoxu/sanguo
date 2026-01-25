@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://Game.Godot/Adapters/AudioPlayerAdapter.cs" id="17_audio"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn" id="15"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoCityOwnershipStatusDisplay.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoBattleView.tscn" id="18_battle"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -85,6 +86,13 @@ offset_left = 8.0
 offset_top = 56.0
 offset_right = 360.0
 offset_bottom = 96.0
+mouse_filter = 2
+
+[node name="SanguoBattleView" parent="Overlays" instance=ExtResource("18_battle")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 mouse_filter = 2
 
 

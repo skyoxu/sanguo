@@ -148,6 +148,7 @@ def validate_random_events(path: Path, i18n: dict[str, str], findings: list[core
         findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", path.as_posix(), '"eventPools" must be non-empty array.'))
         return set()
     pool_ids: set[str] = set()
+    global_pool_event_ids: set[str] = set()
     for idx, p in enumerate(pools):
         loc = f"{path.as_posix()}:eventPools[{idx}]"
         if not isinstance(p, dict):
@@ -161,11 +162,15 @@ def validate_random_events(path: Path, i18n: dict[str, str], findings: list[core
         ids = p.get("eventIds")
         if not isinstance(ids, list) or not all(isinstance(x, str) for x in ids):
             findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.eventIds", "eventIds must be array of strings."))
+        else:
+            if pid == "global":
+                global_pool_event_ids.update(x for x in ids if isinstance(x, str) and x)
     events = obj.get("events")
     if not isinstance(events, list) or not events:
         findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", path.as_posix(), '"events" must be non-empty array.'))
         return pool_ids
     seen_events: set[str] = set()
+    event_effect_kinds: dict[str, str] = {}
     for idx, e in enumerate(events):
         loc = f"{path.as_posix()}:events[{idx}]"
         if not isinstance(e, dict):
@@ -184,14 +189,34 @@ def validate_random_events(path: Path, i18n: dict[str, str], findings: list[core
         if not isinstance(cooldown, int) or cooldown < 0:
             findings.append(core.Finding("fail", "DATA_VALUE_OUT_OF_RANGE", f"{loc}.cooldownRounds", "cooldownRounds must be int >= 0."))
         ek = e.get("effectKind")
+        if isinstance(eid, str) and isinstance(ek, str):
+            event_effect_kinds[eid] = ek
         if ek == "moneyDelta":
             if not isinstance(e.get("moneyDelta"), int):
                 findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.moneyDelta", "moneyDelta must be int."))
         elif ek == "economyStepDelta":
             if not isinstance(e.get("stepDelta"), int):
                 findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.stepDelta", "stepDelta must be int."))
+        elif ek == "startCombat":
+            enc_id = e.get("encounterId")
+            if not isinstance(enc_id, str) or not enc_id.strip():
+                findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.encounterId", "encounterId must be non-empty string."))
+            enc_target = e.get("encounterTarget")
+            if not isinstance(enc_target, int) or enc_target < 0 or enc_target > 1000:
+                findings.append(core.Finding("fail", "DATA_VALUE_OUT_OF_RANGE", f"{loc}.encounterTarget", "encounterTarget must be int in [0,1000]."))
         else:
             findings.append(core.Finding("fail", "EFFECT_KIND_NOT_ALLOWED", f"{loc}.effectKind", "event effectKind not supported by minimal gate."))
+
+    for eid in sorted(global_pool_event_ids, key=str):
+        if event_effect_kinds.get(eid) == "startCombat":
+            findings.append(
+                core.Finding(
+                    "fail",
+                    "DATA_INVARIANT_VIOLATION",
+                    f"{path.as_posix()}:eventPools[poolId=global].eventIds",
+                    "startCombat is only allowed for tile random events (poolId=default).",
+                )
+            )
     return pool_ids
 
 
