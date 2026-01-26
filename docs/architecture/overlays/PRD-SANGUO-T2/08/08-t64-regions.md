@@ -27,8 +27,10 @@ Arch-Refs:
 - 当前阶段优先在加载校验失败时走错误上报/审计；显式事件待后续任务补充（以 Contracts 为准）。
 
 ## 验收条款（ACC）
-- ACC:T64.1 地图加载时校验 region 定义与引用完整性；缺失/越界 fail-fast。
-- ACC:T64.2 name/description 走 i18n key（地图索引与 region 均用 key）。
+- ACC:T64.1 Regions catalog loads from res://Data/regions.json; missing/unparseable/missing required fields => initialization fails and refuses to start.
+- ACC:T64.2 regionId is reusable across maps; when loading/validating a map, every city tile must provide regionId and it must exist in the regions catalog; missing/unknown => initialization fails and refuses to start.
+- ACC:T64.3 Region bonus activates immediately when a region becomes fully owned by one actor; it deactivates immediately when any ownership change breaks the condition (taken over or becomes unowned).
+- ACC:T64.4 Region bonus uses economyStepDeltas step deltas at this stage; it applies only to cities in that region; other regions remain unchanged; once deactivated it no longer applies.
 
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task64RegionsTests.cs`

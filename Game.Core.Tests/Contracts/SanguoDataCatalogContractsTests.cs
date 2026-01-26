@@ -69,13 +69,14 @@ public sealed class SanguoDataCatalogContractsTests
                 new SanguoRegionDefinition(
                     RegionId: "region_001",
                     NameKey: "regions.region_001.name",
-                    BonusKind: "economy_step_deltas",
-                    BonusParams: new Dictionary<string, string> { { "scope", "owned_cities" } },
+                    DescriptionKey: "regions.region_001.description",
+                    EffectKind: SanguoEffectKinds.EconomyStepDelta,
+                    EffectParams: new Dictionary<string, string>(),
                     EconomyStepDeltas: new SanguoEconomyStepDeltas(0, 0, 0, 0, 0)),
             });
 
         catalog.Regions.Should().HaveCount(1);
-        catalog.Regions[0].BonusKind.Should().Be("economy_step_deltas");
+        catalog.Regions[0].EffectKind.Should().Be(SanguoEffectKinds.EconomyStepDelta);
     }
 
     [Fact]

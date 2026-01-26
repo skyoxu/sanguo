@@ -3,6 +3,7 @@ using Game.Core.Ports;
 using Game.Core.Services.Sanguo;
 using Game.Godot.Scripts.Security;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
@@ -91,7 +92,13 @@ internal static class SanguoMapConfigLoader
         }
 
         var mapId = defaultEntry.MapId;
-        if (!TryLoadMapV2FromMapId(loader, mapId, out var mapV2, out var mapV2Path, out var mapV2Error))
+        if (!TryLoadRegionsKnownIds(loader, correlationId, out var knownRegionIds, out var regionsError))
+        {
+            error = regionsError;
+            return false;
+        }
+
+        if (!TryLoadMapV2FromMapId(loader, mapId, knownRegionIds, out var mapV2, out var mapV2Path, out var mapV2Error))
         {
             sourcePath = mapV2Path;
             SecurityAuditWriter.TryAppendSecurityAudit(
@@ -196,7 +203,13 @@ internal static class SanguoMapConfigLoader
             return false;
         }
 
-        if (!TryLoadMapV2FromMapId(loader, mapId, out var mapV2, out var mapV2Path, out var mapV2Error))
+        if (!TryLoadRegionsKnownIds(loader, correlationId, out var knownRegionIds, out var regionsError))
+        {
+            error = regionsError;
+            return false;
+        }
+
+        if (!TryLoadMapV2FromMapId(loader, mapId, knownRegionIds, out var mapV2, out var mapV2Path, out var mapV2Error))
         {
             sourcePath = mapV2Path;
             error = mapV2Error;
@@ -245,9 +258,71 @@ internal static class SanguoMapConfigLoader
         return SanguoMapsCatalogLoader.TryLoadMapsCatalog(loader, out catalog, out error);
     }
 
+    private static bool TryLoadRegionsKnownIds(
+        IResourceLoader loader,
+        string correlationId,
+        out IReadOnlySet<string> knownRegionIds,
+        out string error)
+    {
+        knownRegionIds = new HashSet<string>(StringComparer.Ordinal);
+        error = string.Empty;
+
+        if (!SanguoRegionsCatalogLoader.TryLoadRegionsCatalog(loader, out var catalog, out var catalogError))
+        {
+            SecurityAuditWriter.TryAppendSecurityAudit(
+                action: "SANGUO_REGIONS_CATALOG_LOAD_FAILED",
+                reason: "regions_catalog_invalid",
+                target: $"path={SanguoRegionsCatalogLoader.RegionsResPath} error={catalogError}",
+                caller: "SanguoMapConfigLoader.TryLoadRegionsKnownIds",
+                eventType: "runtime.regions.catalog.load.failed",
+                eventSource: nameof(SanguoMapConfigLoader),
+                eventId: correlationId);
+            error = catalogError;
+            return false;
+        }
+
+        if (catalog.Regions is null || catalog.Regions.Count == 0)
+        {
+            SecurityAuditWriter.TryAppendSecurityAudit(
+                action: "SANGUO_REGIONS_CATALOG_LOAD_FAILED",
+                reason: "regions_catalog_empty",
+                target: $"path={SanguoRegionsCatalogLoader.RegionsResPath}",
+                caller: "SanguoMapConfigLoader.TryLoadRegionsKnownIds",
+                eventType: "runtime.regions.catalog.load.failed",
+                eventSource: nameof(SanguoMapConfigLoader),
+                eventId: correlationId);
+            error = "regions_catalog_empty";
+            return false;
+        }
+
+        var set = (HashSet<string>)knownRegionIds;
+        foreach (var region in catalog.Regions)
+        {
+            if (!string.IsNullOrWhiteSpace(region.RegionId))
+                set.Add(region.RegionId);
+        }
+
+        if (set.Count == 0)
+        {
+            SecurityAuditWriter.TryAppendSecurityAudit(
+                action: "SANGUO_REGIONS_CATALOG_LOAD_FAILED",
+                reason: "regions_catalog_empty",
+                target: $"path={SanguoRegionsCatalogLoader.RegionsResPath}",
+                caller: "SanguoMapConfigLoader.TryLoadRegionsKnownIds",
+                eventType: "runtime.regions.catalog.load.failed",
+                eventSource: nameof(SanguoMapConfigLoader),
+                eventId: correlationId);
+            error = "regions_catalog_empty";
+            return false;
+        }
+
+        return true;
+    }
+
     private static bool TryLoadMapV2FromMapId(
         IResourceLoader loader,
         string mapId,
+        IReadOnlySet<string>? knownRegionIds,
         out SanguoMapDefinitionV2 map,
         out string sourcePath,
         out string error)
@@ -285,7 +360,7 @@ internal static class SanguoMapConfigLoader
             return false;
         }
 
-        if (!SanguoMapDefinitionV2Validator.TryValidate(parsed, out var errors))
+        if (!SanguoMapDefinitionV2Validator.TryValidate(parsed, knownRegionIds, out var errors))
         {
             error = "invalid_map_v2:" + string.Join(" | ", errors);
             if (error.Length > 512)

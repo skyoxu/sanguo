@@ -3726,9 +3726,10 @@
     "title": "模块: 州郡（regions）配置与全占增益",
     "description": "州郡配置与全占增益（经济型止损版）：满足条件即时生效/失效。",
     "acceptance": [
-      "xUnit: 存在 res://Data/regions.json；其中的 regionId 允许被不同地图复用；加载任意地图时，每个 city 必须声明 regionId 且能在该 JSON 中解析，否则对局初始化失败并拒绝开始。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
-      "xUnit: 当某州郡内最后一座 city 的归属变更使该州郡所有城市归属同一角色时，立即激活该州郡全占增益；当该角色出局且其资产释放为无主导致不再满足全占条件时，立即失效。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
-      "xUnit: 全占增益当前仅包含经济型 economyStepDeltas；增益只作用于该州郡内城市的经济计算/步进口径，其他州郡城市不受影响；失效后不再应用该增益。 Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs"
+      "ACC:T64.1 xUnit: Regions catalog loads from res://Data/regions.json; missing/unparseable/missing required fields => initialization fails and refuses to start. Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
+      "ACC:T64.2 xUnit: regionId is reusable across maps; when loading/validating a map, every city tile must provide regionId and it must exist in the regions catalog; missing/unknown => initialization fails and refuses to start. Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
+      "ACC:T64.3 xUnit: When the last city ownership change makes all cities in a region owned by the same actor, the region bonus activates immediately; when any ownership change breaks the condition (taken over by another actor or becomes unowned), the bonus deactivates immediately. Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs",
+      "ACC:T64.4 xUnit: Region bonus uses economyStepDeltas step deltas at this stage; it applies only to cities in that region; other regions remain unchanged; once deactivated it no longer applies. Refs: Game.Core.Tests/Tasks/Task64RegionsTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task64RegionsTests.cs"

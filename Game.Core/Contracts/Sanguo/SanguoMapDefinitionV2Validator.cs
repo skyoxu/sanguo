@@ -34,6 +34,17 @@ public static class SanguoMapDefinitionV2Validator
     /// </summary>
     public static bool TryValidate(SanguoMapDefinitionV2? map, out IReadOnlyList<string> errors)
     {
+        return TryValidate(map, knownRegionIds: null, out errors);
+    }
+
+    /// <summary>
+    /// Validate a <see cref="SanguoMapDefinitionV2"/> instance with optional regionId existence checking.
+    /// </summary>
+    /// <remarks>
+    /// If <paramref name="knownRegionIds"/> is provided, every city tile's RegionId must exist in the set.
+    /// </remarks>
+    public static bool TryValidate(SanguoMapDefinitionV2? map, IReadOnlySet<string>? knownRegionIds, out IReadOnlyList<string> errors)
+    {
         var list = new List<string>();
 
         if (map is null)
@@ -157,6 +168,8 @@ public static class SanguoMapDefinitionV2Validator
             {
                 if (string.IsNullOrWhiteSpace(tile.RegionId))
                     list.Add($"RegionId must be provided for city tiles (tileId={tile.TileId}).");
+                if (knownRegionIds is not null && !string.IsNullOrWhiteSpace(tile.RegionId) && !knownRegionIds.Contains(tile.RegionId))
+                    list.Add($"RegionId must exist in regions catalog (tileId={tile.TileId}, regionId={tile.RegionId}).");
                 if (tile.City is null)
                 {
                     list.Add($"City payload must be provided for city tiles (tileId={tile.TileId}).");

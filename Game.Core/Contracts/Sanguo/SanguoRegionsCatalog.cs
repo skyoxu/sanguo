@@ -23,14 +23,14 @@ public sealed record SanguoRegionsCatalog(
 /// Description: Region metadata and region-wide bonus definition.
 /// </summary>
 /// <remarks>
-/// BonusKind and BonusParams are stable identifiers used by Core logic. This stage only needs economic bonuses,
-/// but the contract keeps BonusKind extensible.
+/// EffectKind is restricted by an allow-list in quality gates.
 /// </remarks>
 public sealed record SanguoRegionDefinition(
     string RegionId,
     string NameKey,
-    string BonusKind,
-    IReadOnlyDictionary<string, string> BonusParams,
+    string DescriptionKey,
+    string EffectKind,
+    IReadOnlyDictionary<string, string> EffectParams,
     SanguoEconomyStepDeltas EconomyStepDeltas
 );
 
