@@ -3781,21 +3781,25 @@
     "taskmaster_exported": true,
     "story_id": "PRD-SANGUO-T2-SKEL-65",
     "title": "模块: 州郡连协收费（经济型止损版）",
-    "description": "州郡连协收费：按落点城 owner 的本州郡城市集合汇总路过费（先算每城再求和）。",
+    "description": "州郡连协收费：按落点城 owner 的本州郡城市集合汇总路过费（逐城先算最终过路费再求和）；为UI/复盘分组发布汇总域事件 core.sanguo.city.toll.synergy.paid。",
     "acceptance": [
-      "xUnit: 连协收费计算：对 owner 在同一州郡内的“已拥有城市集合”逐城先计算该城的最终过路费，再将逐城结果求和得到 total；返回 breakdown（逐城金额明细）且 total 必须等于 breakdown 金额之和；任一必要数据缺失或越界时应拒绝开始或立即 fail-fast（不得静默返回 0 或部分结果）。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
-      "xUnit: 适用范围：仅当落点城存在 owner，且 owner 不是路过方/自身，并且 owner 在该州郡存在“已拥有城市集合”时才产生连协收费；落点城无主/自身/无城集合时连协收费额外项为 0（breakdown 为空或不包含额外项）。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
-      "xUnit: 必须提供一个可扩展入口（例：策略注入或接口抽象），用于后续卡牌/宝物等机制对连协收费进行“规避扩展”；默认实现必须不规避。 xUnit: 范围限制：本任务仅实现经济型止损路径，卡牌/宝物等“规避机制”在当前版本不得影响连协收费结果；可预留扩展入口/接口但默认不启用且不改变 total/breakdown 的可观测输出。 Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs"
+      "xUnit: 连协收费计算：对 owner 在同一州郡内的 owned city set 逐城先计算该城的最终过路费，再将逐城结果求和得到 total；返回 breakdown（逐城金额明细），且 total 必须等于 breakdown 金额之和；逐城明细必须与逐城计算结果逐项一致（不得仅靠求和凑对）。 Breakdown order must be stable (sorted by CityId ordinal) for replay. Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
+      "xUnit: 适用范围：仅当落点城存在 owner，且 owner 不是路过方/自身，并且 owner 在该州郡存在 owned city set 时才产生连协收费；落点城无主/自身/无城集合时连协收费额外项为 0（breakdown 为空或不包含额外项）；ownerOwnedCityIds 若混入其他州郡城市，必须按落点州郡过滤，过滤后为空则视为无城集合。 ownerOwnedCityIds must be treated as a set (deduplicate CityId; no double-charge). Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
+      "xUnit: Must provide an extensible bypass policy hook; default policy must not bypass; when bypassed the result must be 0 and must not compute per-city tolls, and must not publish the summary event core.sanguo.city.toll.synergy.paid. Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs, Game.Core.Tests/Tasks/Task65SynergyTollDomainEventTests.cs",
+      "xUnit: Input validation & loss prevention: if landing city / region assignment (e.g. RegionId missing or blank) / owner / ownerOwnedCityIds / per-city toll inputs are missing, inconsistent, or out-of-range, it must fail fast (throw) and must not silently downgrade to 0 or partial results; it must not publish core.sanguo.city.toll.synergy.paid. Refs: Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs, Game.Core.Tests/Tasks/Task65SynergyTollDomainEventTests.cs",
+      "xUnit: When synergy toll triggers and owner has >=2 cities in landing region, publish summary event core.sanguo.city.toll.synergy.paid with at least PayerId, OwnerId, LandingCityId, RegionId, ExpectedTotalAmount, PaidTotalAmount, ExpectedCitiesCount, PaidCitiesCount and Breakdown[{CityId,Amount,AppliedMultipliers}]; ensure PaidTotalAmount == sum(Breakdown.Amount). When not triggered or only 1 city, do not publish it. Refs: Game.Core.Tests/Tasks/Task65SynergyTollDomainEventTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs"
+      "Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs",
+      "Game.Core.Tests/Tasks/Task65SynergyTollDomainEventTests.cs"
     ],
     "test_strategy": [
       "xUnit：覆盖连协收费的汇总逻辑与边界条件。"
     ],
     "contractRefs": [
       "core.sanguo.city.toll.paid",
-      "core.sanguo.city.owner.changed"
+      "core.sanguo.city.owner.changed",
+      "core.sanguo.city.toll.synergy.paid"
     ],
     "adr_refs": [
       "ADR-0004",

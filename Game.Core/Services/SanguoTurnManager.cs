@@ -18,6 +18,7 @@ public sealed class SanguoTurnManager
     private readonly IRandomNumberGenerator _rng;
     private readonly int _randomSeed;
     private readonly ISanguoAiDecisionPolicy _aiDecisionPolicy;
+    private readonly ISanguoRegionSynergyTollBypassPolicy _regionSynergyTollBypassPolicy;
     private readonly int _totalPositionsHint;
     private readonly double _quarterEnvironmentEventTriggerChance;
     private readonly decimal _quarterEnvironmentEventYieldMultiplier;
@@ -57,6 +58,7 @@ public sealed class SanguoTurnManager
         SanguoBoardState boardState,
         SanguoTreasury treasury,
         ISanguoAiDecisionPolicy? aiDecisionPolicy = null,
+        ISanguoRegionSynergyTollBypassPolicy? regionSynergyTollBypassPolicy = null,
         IRandomNumberGenerator? rng = null,
         int randomSeed = 0,
         int totalPositionsHint = 0,
@@ -77,6 +79,7 @@ public sealed class SanguoTurnManager
         _boardState = boardState ?? throw new ArgumentNullException(nameof(boardState));
         _treasury = treasury ?? throw new ArgumentNullException(nameof(treasury));
         _aiDecisionPolicy = aiDecisionPolicy ?? new DefaultSanguoAiDecisionPolicy();
+        _regionSynergyTollBypassPolicy = regionSynergyTollBypassPolicy ?? new DefaultSanguoRegionSynergyTollBypassPolicy();
         _rng = rng ?? ThreadLocalRandomNumberGenerator.Instance;
         _randomSeed = randomSeed;
         _totalPositionsHint = totalPositionsHint;
@@ -756,37 +759,103 @@ public sealed class SanguoTurnManager
             {
                 if (!StringComparer.Ordinal.Equals(owner.PlayerId, playerId))
                 {
-                    var buildingTollStepDelta = ComputeCityBuildingTollStepDelta(city.Id);
                     var ownerRelicStepDelta = GetPersistentRelicStepDelta(owner.PlayerId);
-                    var tollSources = AppliedMultiplierSources.None;
-                    if (buildingTollStepDelta != 0)
-                        tollSources |= AppliedMultiplierSources.Building;
-                    if (ownerRelicStepDelta != 0)
-                        tollSources |= AppliedMultiplierSources.Relic;
-                    var applied = CreateAppliedMultipliers(
-                        characterStepDelta: 0,
-                        buildingStepDelta: buildingTollStepDelta,
-                        eventStepDelta: 0,
-                        actionCardStepDelta: 0,
-                        relicStepDelta: ownerRelicStepDelta,
-                        regionStepDelta: 0,
-                        sources: tollSources);
+                    var appliedByCityId = new Dictionary<string, AppliedMultipliers>(StringComparer.Ordinal);
 
-                    var paid = await _economy.TryPayTollAndPublishEventAsync(
-                        gameId: gameId,
-                        turnNumber: _turnNumber,
-                        players: players,
-                        citiesById: citiesById,
+                    decimal ComputeCityFinalToll(string cityId)
+                    {
+                        if (!citiesById.TryGetValue(cityId, out var ownedCity))
+                            throw new InvalidOperationException($"City not found while computing region synergy toll (cityId={cityId}).");
+
+                        var buildingTollStepDelta = ComputeCityBuildingTollStepDelta(cityId);
+                        var tollSources = AppliedMultiplierSources.None;
+                        if (buildingTollStepDelta != 0)
+                            tollSources |= AppliedMultiplierSources.Building;
+                        if (ownerRelicStepDelta != 0)
+                            tollSources |= AppliedMultiplierSources.Relic;
+
+                        var applied = CreateAppliedMultipliers(
+                            characterStepDelta: 0,
+                            buildingStepDelta: buildingTollStepDelta,
+                            eventStepDelta: 0,
+                            actionCardStepDelta: 0,
+                            relicStepDelta: ownerRelicStepDelta,
+                            regionStepDelta: 0,
+                            sources: tollSources);
+
+                        appliedByCityId[cityId] = applied;
+                        return Money.FromDecimal(ownedCity.BaseToll.ToDecimal() * applied.EffectiveMultiplier).ToDecimal();
+                    }
+
+                    var synergy = SanguoRegionSynergyTollCalculator.Compute(
                         payerId: playerId,
-                        cityId: city.Id,
-                        tollMultiplier: applied.EffectiveMultiplier,
-                        treasury: _treasury,
-                        correlationId: correlationId,
-                        causationId: causationId,
-                        occurredAt: occurredAt,
-                        appliedMultipliersOverride: applied);
+                        ownerId: owner.PlayerId,
+                        landingCityId: city.Id,
+                        citiesById: citiesById,
+                        ownerOwnedCityIds: owner.OwnedCityIds,
+                        computeCityFinalToll: ComputeCityFinalToll,
+                        bypassPolicy: _regionSynergyTollBypassPolicy);
 
-                    if (paid)
+                    var anyPaid = false;
+                    var paidBreakdown = new List<SanguoCityTollSynergyPaidBreakdownItem>(capacity: synergy.Breakdown.Count);
+                    decimal paidTotal = 0m;
+                    foreach (var item in synergy.Breakdown)
+                    {
+                        if (!appliedByCityId.TryGetValue(item.CityId, out var applied))
+                            throw new InvalidOperationException($"Missing applied multipliers for synergy toll city (cityId={item.CityId}).");
+
+                        var paid = await _economy.TryPayTollAndPublishEventAsync(
+                            gameId: gameId,
+                            turnNumber: _turnNumber,
+                            players: players,
+                            citiesById: citiesById,
+                            payerId: playerId,
+                            cityId: item.CityId,
+                            tollMultiplier: applied.EffectiveMultiplier,
+                            treasury: _treasury,
+                            correlationId: correlationId,
+                            causationId: causationId,
+                            occurredAt: occurredAt,
+                            appliedMultipliersOverride: applied,
+                            ignorePayerPositionCheck: true);
+
+                        if (!paid)
+                            break;
+                        anyPaid = true;
+                        paidTotal += item.Amount;
+                        paidBreakdown.Add(new SanguoCityTollSynergyPaidBreakdownItem(
+                            CityId: item.CityId,
+                            Amount: item.Amount,
+                            AppliedMultipliers: applied));
+                    }
+
+                    if (anyPaid && synergy.Breakdown.Count > 1)
+                    {
+                        var synergyPaid = new DomainEvent(
+                            Type: SanguoCityTollSynergyPaid.EventType,
+                            Source: nameof(SanguoTurnManager),
+                            Data: JsonElementEventData.FromObject(new SanguoCityTollSynergyPaid(
+                                GameId: gameId,
+                                TurnNumber: _turnNumber,
+                                PayerId: playerId,
+                                OwnerId: owner.PlayerId,
+                                LandingCityId: city.Id,
+                                RegionId: city.RegionId,
+                                ExpectedTotalAmount: synergy.Total,
+                                PaidTotalAmount: paidTotal,
+                                ExpectedCitiesCount: synergy.Breakdown.Count,
+                                PaidCitiesCount: paidBreakdown.Count,
+                                Breakdown: paidBreakdown,
+                                OccurredAt: occurredAt,
+                                CorrelationId: correlationId,
+                                CausationId: causationId
+                            )),
+                            Timestamp: occurredAt.UtcDateTime,
+                            Id: Guid.NewGuid().ToString("N"));
+                        await _bus.PublishAsync(synergyPaid);
+                    }
+
+                    if (anyPaid)
                         affectedPlayerIds.Add(owner.PlayerId);
                 }
             }

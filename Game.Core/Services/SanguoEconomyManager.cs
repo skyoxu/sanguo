@@ -357,7 +357,8 @@ public sealed class SanguoEconomyManager
         string correlationId,
         string? causationId,
         DateTimeOffset occurredAt,
-        AppliedMultipliers? appliedMultipliersOverride = null
+        AppliedMultipliers? appliedMultipliersOverride = null,
+        bool ignorePayerPositionCheck = false
     )
     {
         if (string.IsNullOrWhiteSpace(gameId))
@@ -386,7 +387,7 @@ public sealed class SanguoEconomyManager
         if (!citiesById.TryGetValue(cityId, out var city))
             return false;
 
-        if (payer.PositionIndex != city.PositionIndex)
+        if (!ignorePayerPositionCheck && payer.PositionIndex != city.PositionIndex)
             return false;
 
         SanguoPlayer? owner;
