@@ -54,7 +54,7 @@ Arch-Refs:
   - T62 宝物系统（Relics）— 见 `08-t62-relics.md`
   - T63 全局事件触发机制（RoundNumber）— 见 `08-t63-global-events.md`
   - T64 州郡数据模型（Regions）— 见 `08-t64-regions.md`
-  - T65 州郡机制（全占增益 + 连协收费）— 见 `08-t65-regions-mechanics.md`
+  - T65 州郡连协收费（经济型止损版） — 见 `08-t65-regions-mechanics.md`
 - 城池所有权模型（功能纵切）— 见 `08-t2-city-ownership-model.md`
 
 > 关联 PRD：`.taskmaster/docs/prd.txt` 中 T2 阶段「最小可玩闭环」描述  

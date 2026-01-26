@@ -14,6 +14,7 @@ public sealed class SanguoEconomyAppliedMultipliersContractsTests
     {
         "core.sanguo.city.bought",
         "core.sanguo.city.toll.paid",
+        "core.sanguo.city.toll.synergy.paid",
     };
 
     private static bool RequiresAppliedMultipliers(string eventType)
@@ -54,16 +55,39 @@ public sealed class SanguoEconomyAppliedMultipliersContractsTests
         foreach (var dtoType in moneyRelated)
         {
             var appliedProp = dtoType.GetProperty("AppliedMultipliers", BindingFlags.Public | BindingFlags.Instance);
-            appliedProp.Should().NotBeNull($"{dtoType.Name} must expose AppliedMultipliers for replayable UI snapshots");
-            appliedProp!.PropertyType.Should().Be(typeof(AppliedMultipliers), $"{dtoType.Name}.AppliedMultipliers must be a pure contract type");
+            if (appliedProp is not null)
+            {
+                appliedProp.Should().NotBeNull($"{dtoType.Name} must expose AppliedMultipliers for replayable UI snapshots");
+                appliedProp.PropertyType.Should().Be(typeof(AppliedMultipliers), $"{dtoType.Name}.AppliedMultipliers must be a pure contract type");
+
+                dtoType
+                    .GetConstructors()
+                    .SelectMany(c => c.GetParameters())
+                    .Any(p => string.Equals(p.Name, "AppliedMultipliers", StringComparison.Ordinal)
+                              || string.Equals(p.Name, "appliedMultipliers", StringComparison.Ordinal))
+                    .Should()
+                    .BeTrue($"{dtoType.Name} must include appliedMultipliers in its public constructor parameters");
+                continue;
+            }
+
+            var breakdownProp = dtoType.GetProperty("Breakdown", BindingFlags.Public | BindingFlags.Instance);
+            breakdownProp.Should().NotBeNull(
+                $"{dtoType.Name} must expose AppliedMultipliers or Breakdown items with AppliedMultipliers for replayable UI snapshots");
+
+            var breakdownItemType = breakdownProp!.PropertyType.GenericTypeArguments.FirstOrDefault();
+            breakdownItemType.Should().NotBeNull($"{dtoType.Name}.Breakdown must be a generic list of contract items");
+
+            var itemAppliedProp = breakdownItemType!.GetProperty("AppliedMultipliers", BindingFlags.Public | BindingFlags.Instance);
+            itemAppliedProp.Should().NotBeNull(
+                $"{dtoType.Name}.Breakdown items must expose AppliedMultipliers for replayable UI snapshots");
 
             dtoType
                 .GetConstructors()
                 .SelectMany(c => c.GetParameters())
-                .Any(p => string.Equals(p.Name, "AppliedMultipliers", StringComparison.Ordinal)
-                          || string.Equals(p.Name, "appliedMultipliers", StringComparison.Ordinal))
+                .Any(p => string.Equals(p.Name, "Breakdown", StringComparison.Ordinal)
+                          || string.Equals(p.Name, "breakdown", StringComparison.Ordinal))
                 .Should()
-                .BeTrue($"{dtoType.Name} must include appliedMultipliers in its public constructor parameters");
+                .BeTrue($"{dtoType.Name} must include breakdown in its public constructor parameters");
         }
     }
 }

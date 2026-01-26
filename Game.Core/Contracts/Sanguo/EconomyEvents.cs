@@ -159,6 +159,35 @@ public sealed record SanguoCityTollPaid(
     public const string EventType = "core.sanguo.city.toll.paid";
 }
 
+public sealed record SanguoCityTollSynergyPaidBreakdownItem(
+    string CityId,
+    decimal Amount,
+    AppliedMultipliers AppliedMultipliers
+);
+
+public sealed record SanguoCityTollSynergyPaid(
+    string GameId,
+    int TurnNumber,
+    string PayerId,
+    string OwnerId,
+    string LandingCityId,
+    string RegionId,
+    decimal ExpectedTotalAmount,
+    decimal PaidTotalAmount,
+    int ExpectedCitiesCount,
+    int PaidCitiesCount,
+    IReadOnlyList<SanguoCityTollSynergyPaidBreakdownItem> Breakdown,
+    DateTimeOffset OccurredAt,
+    string CorrelationId,
+    string? CausationId
+)
+{
+    /// <summary>
+    /// CloudEvents type for this domain event.
+    /// </summary>
+    public const string EventType = "core.sanguo.city.toll.synergy.paid";
+}
+
 /// <summary>
 /// Domain event: core.sanguo.city.owner.changed
 /// Description: Emitted when a city's owner changes (buy, release on elimination, or steal).

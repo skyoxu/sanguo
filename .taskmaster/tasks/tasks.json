@@ -1954,8 +1954,8 @@
       {
         "id": "65",
         "title": "模块: 州郡连协收费（经济型止损版）",
-        "description": "实现州郡内“连协收费”规则（经济型止损版）：按 owner 城市集合汇总路过费，并 fail-fast。",
-        "details": "规则：在同一州郡内，针对落点城 owner 的“本州郡已拥有城市集合”进行连协收费；先算每城最终过路费再求和；若数据缺失/越界则禁止开始或 fail-fast。支持通过后续机制（卡牌/宝物）进行规避扩展，但本任务先只做经济型路径。",
+        "description": "州郡连协收费：按落点城 owner 的本州郡城市集合汇总路过费（逐城先算最终过路费再求和）；为UI/复盘分组发布汇总域事件 core.sanguo.city.toll.synergy.paid。",
+        "details": "规则：在同一州郡内，针对落点城 owner 的“本州郡已拥有城市集合”进行连协收费；先算每城最终过路费再求和；若数据缺失/越界则禁止开始或 fail-fast。支持通过后续机制（卡牌/宝物）进行规避扩展，但本任务先只做经济型路径。 Fail-fast must not publish core.sanguo.city.toll.synergy.paid. Breakdown order is stable (sorted by CityId). ownerOwnedCityIds are treated as a set (deduplicated).",
         "testStrategy": "xUnit：覆盖连协收费的汇总逻辑（breakdown+total）、边界条件（无主/自身/缺数据）与 fail-fast 行为。",
         "priority": "medium",
         "dependencies": [
