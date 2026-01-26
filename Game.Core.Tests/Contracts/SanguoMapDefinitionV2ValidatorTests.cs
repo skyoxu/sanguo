@@ -196,4 +196,33 @@ public sealed class SanguoMapDefinitionV2ValidatorTests
         errors.Should().Contain(e => e.Contains("Tiles.Count must match Track.Length"));
         errors.Should().Contain(e => e.Contains("Track.StartTileId must exist in Tiles"));
     }
+
+    [Fact]
+    public void ShouldFail_WhenKnownRegionIdsProvided_AndCityRegionIdUnknown()
+    {
+        var map = new SanguoMapDefinitionV2(
+            SchemaVersion: 1,
+            Version: 1,
+            MapId: "map001",
+            Track: new SanguoMapTrackDefinitionV2(Length: 1, StartTileId: "t0"),
+            Tiles: new List<SanguoMapTileDefinitionV2>
+            {
+                new(
+                    TileId: "t0",
+                    TileKind: SanguoMapTileDefinitionV2.TileKindCity,
+                    NameKey: "tile.city.start",
+                    Layout: new SanguoMapTileLayoutV2(X: 0.0, Y: 0.0),
+                    Actions: new List<SanguoMapTileActionV2>(),
+                    RegionId: "region-unknown",
+                    City: new SanguoMapCityTileV2(BasePrice: 100, BaseToll: 10, AllowedBuildingIds: new[] { "b_house" })
+                ),
+            });
+
+        var knownRegionIds = new HashSet<string>(System.StringComparer.Ordinal) { "region-1" };
+
+        var ok = SanguoMapDefinitionV2Validator.TryValidate(map, knownRegionIds, out var errors);
+
+        ok.Should().BeFalse();
+        errors.Should().Contain(e => e.Contains("RegionId must exist in regions catalog", System.StringComparison.Ordinal));
+    }
 }
