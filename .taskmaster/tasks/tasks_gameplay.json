@@ -2218,16 +2218,14 @@
       "core.sanguo.game.ended"
     ],
     "acceptance": [
-      "从对局流程可观测：当 Core 触发结束条件时，会发布结束事件并驱动结算界面出现；结算界面展示内容严格来自结束事件 payload；在未收到结束事件时结算界面不会自行出现（即使 UI 处于可交互状态）。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
+      "从对局流程可观测：当 Core 触发结束条件时，会发布结束事件并驱动结算界面出现；结算界面展示内容严格来自结束事件 payload；在未收到结束事件时结算界面不会自行出现（即使 UI 处于可交互状态）。 Refs: Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd",
       "胜负判定发生在 Core：发布 core.sanguo.game.ended（或语义等价事件）时，payload 必须包含 winner、reason、stats_snapshot；UI 不得自行判定胜负或以本地规则覆盖/替换 payload。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "结算界面提供“返回主菜单”“再来一局”两个按钮；点击“返回主菜单”会离开本局并进入主菜单；点击“再来一局”会开始一局新的对局且不复用上一局的结算结果（新的结束事件到来前不显示上一局 winner/stats_snapshot）。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "GdUnit4: Settlement screen UI is driven by the game.ended event: it remains hidden before event, becomes visible after event, renders winner/stats_snapshot from payload, and buttons navigate (main menu / new game). Refs: Tests.Godot/tests/UI/test_settlement_screen_driven_by_game_ended_event.gd"
+      "结算界面提供“返回主菜单”“再来一局”两个按钮；点击“返回主菜单”会离开本局并进入主菜单；点击“再来一局”会开始一局新的对局且不复用上一局的结算结果（新的结束事件到来前不显示上一局 winner/stats_snapshot）。 Refs: Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd",
+      "GdUnit4: Settlement screen UI is driven by the game.ended event: it remains hidden before event, becomes visible after event, renders winner/stats_snapshot from payload, and buttons navigate (main menu / new game). Refs: Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd",
-      "Tests.Godot/tests/UI/test_task60_game_end_screen_flow.gd",
-      "Tests.Godot/tests/UI/test_settlement_screen_driven_by_game_ended_event.gd"
+      "Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "test_strategy": [
       "xUnit：事件契约；GdUnit4：结算 UI。"

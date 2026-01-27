@@ -1,0 +1,62 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game.Godot/Scripts/UI/SettlementScreen.cs" id="1"]
+
+[node name="SettlementScreen" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+layout_mode = 2
+custom_minimum_size = Vector2(640, 360)
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+layout_mode = 2
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 632.0
+offset_bottom = 352.0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "Game Ended"
+
+[node name="WinnerLabel" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = ""
+
+[node name="StatsSnapshotLabel" type="RichTextLabel" parent="Center/Panel/VBox"]
+layout_mode = 2
+bbcode_enabled = false
+fit_content = true
+text = ""
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Panel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="MainMenuButton" type="Button" parent="Center/Panel/VBox/Buttons"]
+layout_mode = 2
+text = "Main Menu"
+
+[node name="NewGameButton" type="Button" parent="Center/Panel/VBox/Buttons"]
+layout_mode = 2
+text = "New Game"
+
