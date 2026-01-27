@@ -1856,7 +1856,7 @@
           "59",
           "60"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
