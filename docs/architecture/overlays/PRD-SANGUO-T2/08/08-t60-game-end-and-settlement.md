@@ -35,4 +35,4 @@ Arch-Refs:
 
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs`
-- `Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd`
+- `Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd`

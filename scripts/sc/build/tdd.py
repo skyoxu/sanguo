@@ -345,6 +345,21 @@ def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
     )
     candidates = [
         ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py", "--task-id", str(task_id), "--style", "strict"], "scripts/python/check_test_naming.py"),
+        (
+            "check_gd_test_naming_and_encoding",
+            [
+                "py",
+                "-3",
+                "scripts/python/check_gd_test_naming_and_encoding.py",
+                "--task-id",
+                str(task_id),
+                "--style",
+                "strict",
+                "--out",
+                str(out_dir / "gd-test-naming-and-encoding.json"),
+            ],
+            "scripts/python/check_gd_test_naming_and_encoding.py",
+        ),
         ("check_tasks_all_refs", ["py", "-3", "scripts/python/check_tasks_all_refs.py"], "scripts/python/check_tasks_all_refs.py"),
         ("validate_contracts", ["py", "-3", "scripts/python/validate_contracts.py"], "scripts/python/validate_contracts.py"),
     ]

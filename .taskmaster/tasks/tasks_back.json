@@ -3528,14 +3528,12 @@
     ],
     "acceptance": [
       "xUnit: 胜负结算仅由 Core 计算；当且仅当 Core 判定对局结束时，发布 core.sanguo.game.ended（或语义等价事件）。事件 payload 必须包含 winner、reason、stats_snapshot，且 UI 展示的数据与 payload 一致；UI 不得在未收到该结束事件时自行判定胜负或生成/篡改结算结果。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "结算界面在收到结束事件后出现，并展示 payload 中的 winner 与关键统计（来自 stats_snapshot）；界面提供“返回主菜单”和“再来一局”两个按钮，分别触发回到主菜单/开始新一局的可观测状态变化（例如场景切换或对局重置开始）。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "GdUnit4: Settlement screen UI is driven by the game.ended event: it remains hidden before event, becomes visible after event, renders winner/stats_snapshot from payload, and buttons navigate (main menu / new game). Refs: Tests.Godot/tests/UI/test_settlement_screen_driven_by_game_ended_event.gd"
+      "结算界面在收到结束事件后出现，并展示 payload 中的 winner 与关键统计（来自 stats_snapshot）；界面提供“返回主菜单”和“再来一局”两个按钮，分别触发回到主菜单/开始新一局的可观测状态变化（例如场景切换或对局重置开始）。 Refs: Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd",
+      "GdUnit4: Settlement screen UI is driven by the game.ended event: it remains hidden before event, becomes visible after event, renders winner/stats_snapshot from payload, and buttons navigate (main menu / new game). Refs: Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs",
-      "Tests.Godot/tests/UI/test_task60_game_end_summary_ui.gd",
-      "Tests.Godot/tests/UI/test_task60_game_end_screen_flow.gd",
-      "Tests.Godot/tests/UI/test_settlement_screen_driven_by_game_ended_event.gd"
+      "Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "test_strategy": [
       "xUnit：事件契约；GdUnit4：结算 UI。"

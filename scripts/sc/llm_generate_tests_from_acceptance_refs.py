@@ -393,9 +393,17 @@ def _select_primary_ref_with_llm(
 ) -> tuple[str | None, dict[str, Any]]:
     cs = [r for r in sorted(by_ref.keys()) if r.endswith(".cs") and _is_allowed_test_path(r)]
     gd = [r for r in sorted(by_ref.keys()) if r.endswith(".gd") and _is_allowed_test_path(r)]
-    candidates = cs if cs else gd
+    candidates = sorted(dict.fromkeys([*cs, *gd]))
     if not candidates:
         return None, {"status": "skipped", "reason": "no_candidates"}
+
+    # In red-first mode, we must pick a ref that actually needs generation; otherwise we risk selecting an existing
+    # file, skipping it, and producing no failing (red) test at all.
+    missing_candidates = [r for r in candidates if not (repo_root() / r).exists()]
+    if missing_candidates:
+        candidates = missing_candidates
+    else:
+        return None, {"status": "skipped", "reason": "no_missing_candidates"}
 
     payload = [{"ref": r, "acceptance_texts": by_ref.get(r, [])[:8]} for r in candidates[:20]]
     prompt = _select_primary_ref_prompt(task_id=task_id, title=title, candidates=payload)
@@ -602,7 +610,7 @@ def main() -> int:
         rc, trace_out, _cmd = _run_codex_exec(prompt=prompt, out_last_message=output_path, timeout_sec=int(args.timeout_sec))
         write_text(trace_path, trace_out)
         last_msg = _read_text(output_path) if output_path.exists() else ""
-        if rc != 0 or not last_msg.strip():
+        if not last_msg.strip():
             results.append(
                 GenResult(
                     ref=ref_norm,
@@ -617,6 +625,8 @@ def main() -> int:
             continue
 
         try:
+            # Codex can occasionally hang after writing the last-message file. If the file contains a valid JSON
+            # payload, salvage it instead of treating a timeout/non-zero return code as a hard generation failure.
             obj = _extract_json_object(last_msg)
             fp = str(obj.get("file_path") or "").replace("\\", "/")
             content = str(obj.get("content") or "")
@@ -642,7 +652,7 @@ def main() -> int:
                 GenResult(
                     ref=ref_norm,
                     status="ok",
-                    rc=0,
+                    rc=rc,
                     prompt_path=str(prompt_path),
                     trace_path=str(trace_path),
                     output_path=str(output_path),

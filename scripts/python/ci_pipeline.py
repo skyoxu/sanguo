@@ -114,6 +114,7 @@ def main():
         'dotnet': {},
         'selfcheck': {},
         'encoding': {},
+        'gd_tests': {},
         'status': 'ok'
     }
     hard_fail = False
@@ -240,6 +241,28 @@ def main():
             hard_fail = True
     except Exception as exc:
         summary['text_integrity'] = {'rc': 1, 'error': str(exc)}
+        hard_fail = True
+
+    # 5) GdUnit test naming/encoding (hard gate, changed files only)
+    try:
+        gd_changed = [
+            p for p in changed_files
+            if p.lower().endswith(".gd")
+            and p.replace("\\", "/").startswith("Tests.Godot/tests/")
+        ]
+        if gd_changed:
+            gd_out = os.path.join('logs', 'ci', date, 'gd-tests-changed.json')
+            rc5, out5 = run_cmd(
+                ['py', '-3', 'scripts/python/check_gd_test_naming_and_encoding.py', '--files', *gd_changed, '--style', 'strict', '--out', gd_out],
+                cwd=root,
+            )
+            summary['gd_tests'] = {'rc': rc5, 'checked': len(gd_changed), 'out': gd_out}
+            if rc5 != 0:
+                hard_fail = True
+        else:
+            summary['gd_tests'] = {'rc': 0, 'checked': 0, 'note': 'no changed Tests.Godot/tests/*.gd files'}
+    except Exception as exc:
+        summary['gd_tests'] = {'rc': 1, 'error': str(exc)}
         hard_fail = True
 
     summary['status'] = 'ok' if not hard_fail else 'fail'

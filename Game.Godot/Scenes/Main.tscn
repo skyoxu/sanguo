@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn" id="15"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoCityOwnershipStatusDisplay.tscn" id="16"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoBattleView.tscn" id="18_battle"]
+[ext_resource type="PackedScene" path="res://Game.Godot/Scenes/UI/SettlementScreen.tscn" id="19_settlement"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -93,6 +94,16 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="SettlementScreen" parent="Overlays" instance=ExtResource("19_settlement")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+z_index = 200
 mouse_filter = 2
 
 
