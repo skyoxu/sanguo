@@ -1,5 +1,6 @@
 using Game.Core.Contracts.Sanguo;
 using Godot;
+using Game.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -113,12 +114,165 @@ public static class EventExplainService
                 pickedId = TryGetStringLoose(root, "EventId");
             }
             var effectKind = TryGetStringLoose(root, "EffectKind");
+            var uiMessage = TryGetStringLoose(root, "UiMessage");
+            var sourceLabel = ResolveRandomEventSourceLabel(type, root, pickedId);
+            var roundNumber = TryGetRoundNumber(root);
+            var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
+            var stepDelta = TryGetIntLoose(root, "StepDelta");
+            var nextStep = ResolveRandomEventNextStepLabel(type, effectKind, root);
 
-            var parts = new List<string>(8) { prefix };
+            var parts = new List<string>(10) { prefix };
+            if (!string.IsNullOrWhiteSpace(uiMessage))
+            {
+                var label = TranslateField(type, "detail", "prompt_message", "message");
+                parts.Add($"{label}={uiMessage}");
+            }
             if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
             if (!string.IsNullOrWhiteSpace(pickedId)) parts.Add($"picked={pickedId}");
             if (!string.IsNullOrWhiteSpace(effectKind)) parts.Add($"kind={effectKind}");
+
+            var meta = new List<string>(8);
+            if (!string.IsNullOrWhiteSpace(sourceLabel))
+            {
+                var label = TranslateField(type, "detail", "trigger_source", "source");
+                meta.Add($"{label}={sourceLabel}");
+            }
+            if (roundNumber.HasValue)
+            {
+                var label = TranslateField(type, "detail", "trigger_round", "round");
+                meta.Add($"{label}={roundNumber.Value}");
+            }
+            if (moneyDelta.HasValue && moneyDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "money_delta", "money_delta");
+                meta.Add($"{label}={FormatSignedInt(moneyDelta.Value)}");
+            }
+            if (stepDelta.HasValue && stepDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "step_delta", "step_delta");
+                meta.Add($"{label}={FormatSignedInt(stepDelta.Value)}");
+            }
+            if (!string.IsNullOrWhiteSpace(nextStep))
+            {
+                var label = TranslateField(type, "detail", "next_step", "next_step");
+                meta.Add($"{label}={nextStep}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoLootGranted.EventType, StringComparison.Ordinal))
+        {
+            var playerId = TryGetStringLoose(root, "PlayerId");
+            var lootKind = TryGetStringLoose(root, "LootKind");
+            var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
+            var cardId = TryGetStringLoose(root, "CardId");
+            var relicId = TryGetStringLoose(root, "RelicId");
+            var sourceKind = TryGetStringLoose(root, "SourceKind");
+            var sourceId = TryGetStringLoose(root, "SourceId");
+
+            var parts = new List<string>(10) { prefix };
+            if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
+            if (!string.IsNullOrWhiteSpace(lootKind)) parts.Add($"loot_kind={lootKind}");
+            if (!string.IsNullOrWhiteSpace(cardId)) parts.Add($"card={cardId}");
+            if (!string.IsNullOrWhiteSpace(relicId)) parts.Add($"relic={relicId}");
+
+            var meta = new List<string>(6);
+            if (moneyDelta.HasValue && moneyDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "money_delta", "money_delta");
+                meta.Add($"{label}={FormatSignedInt(moneyDelta.Value)}");
+            }
+            if (!string.IsNullOrWhiteSpace(sourceKind))
+            {
+                var label = TranslateField(type, "detail", "source_kind", "source_kind");
+                meta.Add($"{label}={sourceKind}");
+            }
+            if (!string.IsNullOrWhiteSpace(sourceId))
+            {
+                var label = TranslateField(type, "detail", "source_id", "source_id");
+                meta.Add($"{label}={sourceId}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoRelicApplied.EventType, StringComparison.Ordinal))
+        {
+            var playerId = TryGetStringLoose(root, "PlayerId");
+            var relicId = TryGetStringLoose(root, "RelicId");
+            var effectKind = TryGetStringLoose(root, "EffectKind");
+            var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
+            var stepDelta = TryGetIntLoose(root, "StepDelta");
+
+            var parts = new List<string>(8) { prefix };
+            if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
+            if (!string.IsNullOrWhiteSpace(relicId)) parts.Add($"relic={relicId}");
+            if (!string.IsNullOrWhiteSpace(effectKind)) parts.Add($"kind={effectKind}");
+
+            var meta = new List<string>(4);
+            if (moneyDelta.HasValue && moneyDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "money_delta", "money_delta");
+                meta.Add($"{label}={FormatSignedInt(moneyDelta.Value)}");
+            }
+            if (stepDelta.HasValue && stepDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "step_delta", "step_delta");
+                meta.Add($"{label}={FormatSignedInt(stepDelta.Value)}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoSeasonEventApplied.EventType, StringComparison.Ordinal))
+        {
+            var year = TryGetIntLoose(root, "Year");
+            var season = TryGetIntLoose(root, "Season");
+            var yieldMultiplier = TryGetDecimalLoose(root, "YieldMultiplier");
+
+            var parts = new List<string>(6) { prefix };
+            if (year.HasValue) parts.Add($"year={year.Value}");
+            if (season.HasValue) parts.Add($"season={season.Value}");
+            if (yieldMultiplier.HasValue) parts.Add($"yield_multiplier={FormatDecimal(yieldMultiplier.Value)}");
             return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoYearPriceAdjusted.EventType, StringComparison.Ordinal))
+        {
+            var cityId = TryGetStringLoose(root, "CityId");
+            var year = TryGetIntLoose(root, "Year");
+            var oldPrice = TryGetDecimalLoose(root, "OldPrice");
+            var newPrice = TryGetDecimalLoose(root, "NewPrice");
+
+            var parts = new List<string>(8) { prefix };
+            if (!string.IsNullOrWhiteSpace(cityId)) parts.Add($"city={cityId}");
+            if (year.HasValue) parts.Add($"year={year.Value}");
+            if (oldPrice.HasValue) parts.Add($"old_price={FormatDecimal(oldPrice.Value)}");
+            if (newPrice.HasValue) parts.Add($"new_price={FormatDecimal(newPrice.Value)}");
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoCityTollSynergyPaid.EventType, StringComparison.Ordinal))
+        {
+            var payerId = TryGetStringLoose(root, "PayerId");
+            var ownerId = TryGetStringLoose(root, "OwnerId");
+            var landingCityId = TryGetStringLoose(root, "LandingCityId");
+            var regionId = TryGetStringLoose(root, "RegionId");
+            var paidTotal = TryGetDecimalLoose(root, "PaidTotalAmount");
+            var paidCities = TryGetIntLoose(root, "PaidCitiesCount");
+
+            var parts = new List<string>(10) { prefix };
+            if (!string.IsNullOrWhiteSpace(payerId)) parts.Add($"payer={payerId}");
+            if (!string.IsNullOrWhiteSpace(ownerId)) parts.Add($"owner={ownerId}");
+            if (!string.IsNullOrWhiteSpace(landingCityId)) parts.Add($"landing_city={landingCityId}");
+            if (!string.IsNullOrWhiteSpace(regionId)) parts.Add($"region={regionId}");
+            if (paidTotal.HasValue) parts.Add($"paid_total={FormatDecimal(paidTotal.Value)}");
+            if (paidCities.HasValue) parts.Add($"cities={paidCities.Value}");
+            return string.Join(' ', parts);
         }
 
         // Generic fallbacks used by existing tests:
@@ -183,19 +337,19 @@ public static class EventExplainService
             if (amount.HasValue)
             {
                 var payerId = TryGetStringLoose(root, "PayerId") ?? "payer";
-                var label = TranslateField(type, "delta", "money_delta", "money_delta");
-                deltas.Add($"{label}[{payerId}]: -{FormatDecimal(amount.Value)}");
+                var moneyLabel = TranslateField(type, "delta", "money_delta", "money_delta");
+                deltas.Add($"{moneyLabel}[{payerId}]: -{FormatDecimal(amount.Value)}");
             }
             if (ownerAmount.HasValue)
             {
                 var ownerId = TryGetStringLoose(root, "OwnerId") ?? "owner";
-                var label = TranslateField(type, "delta", "money_delta", "money_delta");
-                deltas.Add($"{label}[{ownerId}]: +{FormatDecimal(ownerAmount.Value)}");
+                var ownerMoneyLabel = TranslateField(type, "delta", "money_delta", "money_delta");
+                deltas.Add($"{ownerMoneyLabel}[{ownerId}]: +{FormatDecimal(ownerAmount.Value)}");
             }
             if (overflow.HasValue && overflow.Value != 0m)
             {
-                var label = TranslateField(type, "delta", "treasury_delta", "treasury_delta");
-                deltas.Add($"{label}: +{FormatDecimal(overflow.Value)}");
+                var treasuryLabel = TranslateField(type, "delta", "treasury_delta", "treasury_delta");
+                deltas.Add($"{treasuryLabel}: +{FormatDecimal(overflow.Value)}");
             }
 
             AddAppliedMultipliersFacts(additive, multiplicative, type, root);
@@ -216,19 +370,19 @@ public static class EventExplainService
                     var delta = TryGetDecimalLoose(item, "AmountDelta");
                     if (delta.HasValue)
                     {
-                        var label = TranslateField(type, "delta", "money_delta", "money_delta");
-                        deltas.Add($"{label}[{pid}]: {FormatSignedDecimal(delta.Value)}");
+                        var moneyDeltaLabel = TranslateField(type, "delta", "money_delta", "money_delta");
+                        deltas.Add($"{moneyDeltaLabel}[{pid}]: {FormatSignedDecimal(delta.Value)}");
                         count++;
                         if (count >= 12)
                         {
-                            var label = TranslateField(type, "delta", "money_delta", "money_delta");
-                            deltas.Add($"{label}[...]: (truncated)");
+                            var moneyDeltaTruncLabel = TranslateField(type, "delta", "money_delta", "money_delta");
+                            deltas.Add($"{moneyDeltaTruncLabel}[...]: (truncated)");
                             break;
                         }
                     }
                 }
-                var label = TranslateField(type, "detail", "player_settlements_count", "player_settlements_count");
-                facts.Add($"{label}: {settlements.GetArrayLength()}");
+                var settlementsCountLabel = TranslateField(type, "detail", "player_settlements_count", "player_settlements_count");
+                facts.Add($"{settlementsCountLabel}: {settlements.GetArrayLength()}");
             }
 
             AddAppliedMultipliersFacts(additive, multiplicative, type, root);
@@ -290,6 +444,21 @@ public static class EventExplainService
             AddFact(facts, type, root, "EffectKind", "effect_kind");
             AddFact(facts, type, root, "EncounterId", "encounter_id");
             AddFact(facts, type, root, "EncounterTarget", "encounter_target");
+            AddFact(facts, type, root, "UiMessage", "prompt_message");
+
+            var sourceLabel = ResolveRandomEventSourceLabel(type, root, TryGetStringLoose(root, "PickedId") ?? TryGetStringLoose(root, "EventId"));
+            if (!string.IsNullOrWhiteSpace(sourceLabel))
+            {
+                var label = TranslateField(type, "detail", "trigger_source", "source");
+                facts.Add($"{label}: {sourceLabel}");
+            }
+
+            var roundNumber = TryGetRoundNumber(root);
+            if (roundNumber.HasValue)
+            {
+                var label = TranslateField(type, "detail", "trigger_round", "round");
+                facts.Add($"{label}: {roundNumber.Value}");
+            }
 
             var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
             if (moneyDelta.HasValue && moneyDelta.Value != 0)
@@ -303,6 +472,77 @@ public static class EventExplainService
                 var label = TranslateField(type, "delta", "step_delta", "step_delta");
                 deltas.Add($"{label}: {stepDelta.Value}");
             }
+
+            var nextStep = ResolveRandomEventNextStepLabel(type, TryGetStringLoose(root, "EffectKind"), root);
+            if (!string.IsNullOrWhiteSpace(nextStep))
+            {
+                var label = TranslateField(type, "detail", "next_step", "next_step");
+                facts.Add($"{label}: {nextStep}");
+            }
+
+            AddAppliedMultipliersFacts(additive, multiplicative, type, root);
+        }
+        else if (string.Equals(type, SanguoLootGranted.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "PlayerId", "player_id");
+            AddFact(facts, type, root, "LootKind", "loot_kind");
+            AddFact(facts, type, root, "CardId", "card_id");
+            AddFact(facts, type, root, "RelicId", "relic_id");
+            AddFact(facts, type, root, "SourceKind", "source_kind");
+            AddFact(facts, type, root, "SourceId", "source_id");
+
+            var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
+            if (moneyDelta.HasValue && moneyDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "money_delta", "money_delta");
+                deltas.Add($"{label}: {FormatSignedInt(moneyDelta.Value)}");
+            }
+        }
+        else if (string.Equals(type, SanguoRelicApplied.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "PlayerId", "player_id");
+            AddFact(facts, type, root, "RelicId", "relic_id");
+            AddFact(facts, type, root, "EffectKind", "effect_kind");
+
+            var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
+            if (moneyDelta.HasValue && moneyDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "money_delta", "money_delta");
+                deltas.Add($"{label}: {FormatSignedInt(moneyDelta.Value)}");
+            }
+            var stepDelta = TryGetIntLoose(root, "StepDelta");
+            if (stepDelta.HasValue && stepDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "step_delta", "step_delta");
+                deltas.Add($"{label}: {FormatSignedInt(stepDelta.Value)}");
+            }
+        }
+        else if (string.Equals(type, SanguoSeasonEventApplied.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "TurnNumber", "turn");
+            AddFact(facts, type, root, "Year", "year");
+            AddFact(facts, type, root, "Season", "season");
+            AddFact(facts, type, root, "YieldMultiplier", "yield_multiplier");
+
+            if (TryGetPropertyLoose(root, "AffectedRegionIds", out var regions) && regions.ValueKind == JsonValueKind.Array)
+            {
+                var label = TranslateField(type, "detail", "affected_regions_count", "affected_regions_count");
+                facts.Add($"{label}: {regions.GetArrayLength()}");
+            }
+
+            AddAppliedMultipliersFacts(additive, multiplicative, type, root);
+        }
+        else if (string.Equals(type, SanguoYearPriceAdjusted.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "TurnNumber", "turn");
+            AddFact(facts, type, root, "Year", "year");
+            AddFact(facts, type, root, "CityId", "city_id");
+            AddFact(facts, type, root, "OldPrice", "old_price");
+            AddFact(facts, type, root, "NewPrice", "new_price");
 
             AddAppliedMultipliersFacts(additive, multiplicative, type, root);
         }
@@ -436,6 +676,117 @@ public static class EventExplainService
         }
 
         return fallback;
+    }
+
+    private static string? ResolveRandomEventSourceLabel(string eventType, JsonElement root, string? eventId)
+    {
+        var token = ResolveRandomEventSourceToken(root, eventId);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return null;
+        }
+
+        var key = token == "global" ? "trigger_source.global" : "trigger_source.tile";
+        return TranslateField(eventType, "detail", key, token);
+    }
+
+    private static string? ResolveRandomEventSourceToken(JsonElement root, string? eventId)
+    {
+        var triggerSource = TryGetStringLoose(root, "TriggerSource");
+        if (!string.IsNullOrWhiteSpace(triggerSource))
+        {
+            var normalized = triggerSource.Trim().ToLowerInvariant();
+            if (string.Equals(normalized, "global", StringComparison.Ordinal))
+            {
+                return "global";
+            }
+            if (string.Equals(normalized, "tile", StringComparison.Ordinal))
+            {
+                return "tile";
+            }
+        }
+
+        var rngContextId = TryGetStringLoose(root, "RngContextId");
+        if (!string.IsNullOrWhiteSpace(rngContextId))
+        {
+            var parts = rngContextId.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (parts.Length > 0)
+            {
+                var last = parts[^1];
+                if (string.Equals(last, "global", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "global";
+                }
+                if (string.Equals(last, "tile", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "tile";
+                }
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(eventId) && eventId.StartsWith(SanguoGlobalEventId.PrefixToken, StringComparison.Ordinal))
+        {
+            return "global";
+        }
+
+        return "tile";
+    }
+
+    private static int? TryGetRoundNumber(JsonElement root)
+    {
+        var round = TryGetIntLoose(root, "RoundNumber");
+        if (round.HasValue)
+        {
+            return round;
+        }
+
+        var rngContextId = TryGetStringLoose(root, "RngContextId");
+        if (string.IsNullOrWhiteSpace(rngContextId))
+        {
+            return null;
+        }
+
+        return TryParseRoundNumberFromRngContext(rngContextId);
+    }
+
+    private static int? TryParseRoundNumberFromRngContext(string rngContextId)
+    {
+        var parts = rngContextId.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        for (var i = 0; i < parts.Length - 1; i++)
+        {
+            if (string.Equals(parts[i], "round", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(parts[i + 1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var round))
+            {
+                return round;
+            }
+        }
+
+        if (parts.Length >= 3 && int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private static string? ResolveRandomEventNextStepLabel(string eventType, string? effectKind, JsonElement root)
+    {
+        if (string.Equals(effectKind, SanguoEffectKinds.StartCombat, StringComparison.Ordinal))
+        {
+            return TranslateField(eventType, "detail", "next_step.resolve_combat", "resolve_combat");
+        }
+
+        if (TryGetPropertyLoose(root, "EncounterId", out var encounter) && encounter.ValueKind == JsonValueKind.String)
+        {
+            return TranslateField(eventType, "detail", "next_step.resolve_combat", "resolve_combat");
+        }
+
+        if (!string.IsNullOrWhiteSpace(effectKind))
+        {
+            return TranslateField(eventType, "detail", "next_step.continue", "continue");
+        }
+
+        return null;
     }
 
     private static string TranslateOrFallback(string key, string fallback)

@@ -26,7 +26,7 @@ Arch-Refs:
 - 兜底：如因冷却/唯一性过滤导致候选为空，则使用兜底事件（冷却为 0 的小收益事件）保证流程可继续。
 
 ## 契约（EventType + 触发点）
-- `core.sanguo.random_event.applied`：当全局事件被选中并成功应用后（source=global）。
+- `core.sanguo.random_event.applied`：当全局事件被选中并成功应用后（TriggerSource=global）。
 
 ## 验收条款（ACC）
 - ACC:T63.1 每轮最多触发一次全局事件检查与应用（同轮内不重复触发）。
