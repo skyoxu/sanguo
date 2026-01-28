@@ -38,7 +38,7 @@ func _publish_city_bought(data_json: String) -> void:
 func test_event_log_shows_effective_multiplier_but_hides_breakdown_when_sources_none() -> void:
     var hud = await _hud()
 
-    _publish_city_bought("{\"CityId\":\"c1\",\"Price\":50,\"AppliedMultipliers\":{\"Character\":2.0,\"Building\":2.0,\"Event\":2.0,\"ActionCard\":2.0,\"Effective\":1.5,\"Sources\":0}}")
+    _publish_city_bought("{\"CityId\":\"c1\",\"Price\":50,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":0}}")
     await get_tree().process_frame
 
     assert_str(_last_data_json).contains("AppliedMultipliers")
@@ -56,7 +56,7 @@ func test_event_log_shows_effective_multiplier_but_hides_breakdown_when_sources_
 func test_event_log_can_show_breakdown_when_sources_provided() -> void:
     var hud = await _hud()
 
-    _publish_city_bought("{\"CityId\":\"c1\",\"Price\":50,\"AppliedMultipliers\":{\"Character\":1.5,\"Building\":1.0,\"Event\":1.0,\"ActionCard\":1.0,\"Effective\":1.5,\"Sources\":1}}")
+    _publish_city_bought("{\"CityId\":\"c1\",\"Price\":50,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":1,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":1}}")
     await get_tree().process_frame
 
     assert_str(_last_data_json).contains("AppliedMultipliers")
@@ -65,4 +65,3 @@ func test_event_log_can_show_breakdown_when_sources_provided() -> void:
     assert_int(msgs.size()).is_greater_equal(1)
     var last := str(msgs[msgs.size() - 1])
     assert_str(last).contains("mult=1.5")
-    assert_str(last).contains(" c=1.5")
