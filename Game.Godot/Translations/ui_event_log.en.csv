@@ -1,0 +1,47 @@
+key,text
+ui.hud.event.core.sanguo.city.toll.paid.title,City toll paid
+ui.hud.event.core.sanguo.city.toll.paid.summary,Toll paid at city
+ui.hud.event.core.sanguo.city.toll.paid.detail.game_id,Game
+ui.hud.event.core.sanguo.city.toll.paid.detail.turn,Turn
+ui.hud.event.core.sanguo.city.toll.paid.detail.city_id,City
+ui.hud.event.core.sanguo.city.toll.paid.detail.payer_id,Payer
+ui.hud.event.core.sanguo.city.toll.paid.detail.owner_id,Owner
+ui.hud.event.core.sanguo.city.toll.paid.detail.applied_multipliers,Applied multipliers
+ui.hud.event.core.sanguo.city.toll.paid.delta.money_delta,Money delta
+ui.hud.event.core.sanguo.city.toll.paid.delta.treasury_delta,Treasury delta
+ui.hud.event.core.sanguo.economy.month.settled.title,Month settled
+ui.hud.event.core.sanguo.economy.month.settled.summary,Month settlement complete
+ui.hud.event.core.sanguo.economy.month.settled.detail.game_id,Game
+ui.hud.event.core.sanguo.economy.month.settled.detail.turn,Turn
+ui.hud.event.core.sanguo.economy.month.settled.detail.year,Year
+ui.hud.event.core.sanguo.economy.month.settled.detail.month,Month
+ui.hud.event.core.sanguo.economy.month.settled.detail.player_settlements_count,Player settlements count
+ui.hud.event.core.sanguo.economy.month.settled.detail.applied_multipliers,Applied multipliers
+ui.hud.event.core.sanguo.economy.month.settled.delta.money_delta,Money delta
+ui.hud.event.core.sanguo.board.token.moved.title,Token moved
+ui.hud.event.core.sanguo.board.token.moved.summary,Token moved
+ui.hud.event.core.sanguo.board.token.moved.detail.game_id,Game
+ui.hud.event.core.sanguo.board.token.moved.detail.player_id,Player
+ui.hud.event.core.sanguo.board.token.moved.detail.steps,Steps
+ui.hud.event.core.sanguo.board.token.moved.detail.passed_start,Passed start
+ui.hud.event.core.sanguo.board.token.moved.detail.from_index,From index
+ui.hud.event.core.sanguo.board.token.moved.detail.to_index,To index
+ui.hud.event.core.sanguo.board.token.moved.detail.from_tile,From tile
+ui.hud.event.core.sanguo.board.token.moved.detail.to_tile,To tile
+ui.hud.event.core.sanguo.random_event.applied.title,Random event applied
+ui.hud.event.core.sanguo.random_event.applied.summary,Random event applied
+ui.hud.event.core.sanguo.random_event.applied.detail.game_id,Game
+ui.hud.event.core.sanguo.random_event.applied.detail.player_id,Player
+ui.hud.event.core.sanguo.random_event.applied.detail.event_id,Event id
+ui.hud.event.core.sanguo.random_event.applied.detail.picked_id,Picked id
+ui.hud.event.core.sanguo.random_event.applied.detail.effect_kind,Effect kind
+ui.hud.event.core.sanguo.random_event.applied.detail.encounter_id,Encounter id
+ui.hud.event.core.sanguo.random_event.applied.detail.encounter_target,Encounter target
+ui.hud.event.core.sanguo.random_event.applied.detail.applied_multipliers,Applied multipliers
+ui.hud.event.core.sanguo.random_event.applied.delta.money_delta,Money delta
+ui.hud.event.core.sanguo.random_event.applied.delta.step_delta,Step delta
+ui.hud.event.core.sanguo.game.ended.title,Game ended
+ui.hud.event.core.sanguo.game.ended.summary,Game ended
+ui.hud.event.core.sanguo.game.ended.detail.game_id,Game
+ui.hud.event.core.sanguo.game.ended.detail.end_reason,End reason
+ui.hud.event.core.sanguo.game.ended.detail.winner_player_id,Winner player

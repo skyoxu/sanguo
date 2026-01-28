@@ -269,7 +269,7 @@ public partial class HUD : Control
         try
         {
             using var doc = JsonDocument.Parse(json, JsonOptions);
-            RecordEventForUi(type, doc.RootElement);
+            RecordEventForUi(type, source, id, timestampIso, doc.RootElement);
             handler(doc.RootElement);
         }
         catch (System.Exception ex)
@@ -278,11 +278,15 @@ public partial class HUD : Control
         }
     }
 
-    private void RecordEventForUi(string type, JsonElement root)
+    private void RecordEventForUi(string type, string source, string id, string timestampIso, JsonElement root)
     {
-        var message = BuildEventSummary(type, root);
-        _toast?.ShowMessage(message);
-        _logPanel?.Append(message);
+        var tileLabelByIndex = _tilesByIndex.Count == 0
+            ? null
+            : new Func<int, string?>(idx => _tilesByIndex.TryGetValue(idx, out var tile) ? tile.Name : null);
+
+        var explanation = EventExplainService.Explain(type, source, id, timestampIso, root, tileLabelByIndex);
+        _toast?.ShowMessage(explanation.SummaryText);
+        _logPanel?.Append(explanation);
     }
 
     private void TryConnectBus(Callable callable)
@@ -328,156 +332,6 @@ public partial class HUD : Control
             }
         }
         catch { }
-    }
-
-    private static string BuildEventSummary(string type, JsonElement root)
-    {
-        string? playerId = null;
-        if (root.TryGetProperty("PlayerId", out var pid))
-        {
-            playerId = pid.GetString();
-        }
-        else if (root.TryGetProperty("ActivePlayerId", out var ap))
-        {
-            playerId = ap.GetString();
-        }
-
-        var multiplierSuffix = BuildAppliedMultipliersSuffix(root);
-
-        if (string.Equals(type, SanguoRandomEventApplied.EventType, StringComparison.Ordinal))
-        {
-            var pickedId = TryGetPropertyLoose(root, "PickedId", out var picked) && picked.ValueKind == JsonValueKind.String
-                ? (picked.GetString() ?? string.Empty)
-                : string.Empty;
-
-            if (string.IsNullOrWhiteSpace(pickedId)
-                && TryGetPropertyLoose(root, "EventId", out var eventId)
-                && eventId.ValueKind == JsonValueKind.String)
-            {
-                pickedId = eventId.GetString() ?? string.Empty;
-            }
-
-            var effectKind = TryGetPropertyLoose(root, "EffectKind", out var k) && k.ValueKind == JsonValueKind.String
-                ? (k.GetString() ?? string.Empty)
-                : string.Empty;
-
-            var summary = string.IsNullOrWhiteSpace(playerId)
-                ? $"{type} picked={pickedId}"
-                : $"{type} player={playerId} picked={pickedId}";
-
-            if (!string.IsNullOrWhiteSpace(effectKind))
-            {
-                summary += $" kind={effectKind}";
-            }
-
-            return summary + multiplierSuffix;
-        }
-
-        if (root.TryGetProperty("Value", out var value) && value.ValueKind == JsonValueKind.Number)
-        {
-            return string.IsNullOrWhiteSpace(playerId)
-                ? $"{type} value={value}{multiplierSuffix}"
-                : $"{type} player={playerId} value={value}{multiplierSuffix}";
-        }
-
-        if (root.TryGetProperty("CityId", out var cityId))
-        {
-            var city = cityId.GetString();
-            var summary = string.IsNullOrWhiteSpace(playerId) ? $"{type} city={city}" : $"{type} player={playerId} city={city}";
-            if (root.TryGetProperty("Price", out var price) && price.ValueKind == JsonValueKind.Number)
-            {
-                summary += $" price={price}";
-            }
-
-            return summary + multiplierSuffix;
-        }
-
-        return string.IsNullOrWhiteSpace(playerId) ? type + multiplierSuffix : $"{type} player={playerId}{multiplierSuffix}";
-    }
-
-    private static string BuildAppliedMultipliersSuffix(JsonElement root)
-    {
-        if (!TryGetPropertyLoose(root, "AppliedMultipliers", out var m) || m.ValueKind != JsonValueKind.Object)
-        {
-            return string.Empty;
-        }
-
-        if (!TryGetPropertyLoose(m, "Effective", out var effective) || effective.ValueKind != JsonValueKind.Number)
-        {
-            return string.Empty;
-        }
-
-        var suffix = $" mult={effective}";
-
-        var sources = 0;
-        if (TryGetPropertyLoose(m, "Sources", out var src))
-        {
-            if (src.ValueKind == JsonValueKind.Number && src.TryGetInt32(out var n))
-            {
-                sources = n;
-            }
-            else if (src.ValueKind == JsonValueKind.String && int.TryParse(src.GetString(), out var parsed))
-            {
-                sources = parsed;
-            }
-        }
-
-        if (sources == 0)
-        {
-            return suffix;
-        }
-
-        // Only display breakdown factors when Sources indicates they are trustworthy.
-        // UI must not compute money; it only echoes the event payload values.
-        if ((sources & 1) != 0 && TryGetPropertyLoose(m, "Character", out var c) && c.ValueKind == JsonValueKind.Number)
-        {
-            suffix += $" c={c}";
-        }
-
-        if ((sources & 2) != 0 && TryGetPropertyLoose(m, "Building", out var b) && b.ValueKind == JsonValueKind.Number)
-        {
-            suffix += $" b={b}";
-        }
-
-        if ((sources & 4) != 0 && TryGetPropertyLoose(m, "Event", out var e) && e.ValueKind == JsonValueKind.Number)
-        {
-            suffix += $" e={e}";
-        }
-
-        if ((sources & 8) != 0 && TryGetPropertyLoose(m, "ActionCard", out var a) && a.ValueKind == JsonValueKind.Number)
-        {
-            suffix += $" a={a}";
-        }
-
-        return suffix;
-    }
-
-    private static bool TryGetPropertyLoose(JsonElement obj, string expectedName, out JsonElement value)
-    {
-        if (obj.ValueKind != JsonValueKind.Object)
-        {
-            value = default;
-            return false;
-        }
-
-        foreach (var p in obj.EnumerateObject())
-        {
-            var name = p.Name;
-            if (string.Equals(name, expectedName, StringComparison.OrdinalIgnoreCase))
-            {
-                value = p.Value;
-                return true;
-            }
-
-            if (string.Equals(name.Trim(), expectedName, StringComparison.OrdinalIgnoreCase))
-            {
-                value = p.Value;
-                return true;
-            }
-        }
-
-        value = default;
-        return false;
     }
 
     private void RegisterHandlers()
@@ -548,18 +402,6 @@ public partial class HUD : Control
         {
             _avatar.Texture = null;
         }
-
-        var reason = root.TryGetProperty("EndReason", out var r) && r.ValueKind == JsonValueKind.String
-            ? (r.GetString() ?? "")
-            : "";
-
-        if (string.IsNullOrWhiteSpace(reason))
-        {
-            _toast?.ShowMessage(SanguoGameEnded.EventType);
-            return;
-        }
-
-        _toast?.ShowMessage($"{SanguoGameEnded.EventType} reason={reason}");
     }
 
     private void HandleCityTollPaidEvent(JsonElement root)

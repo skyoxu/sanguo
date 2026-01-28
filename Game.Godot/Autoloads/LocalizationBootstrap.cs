@@ -9,6 +9,8 @@ public partial class LocalizationBootstrap : Node
 {
     private const string HelpTutorialEnPath = "res://Game.Godot/Translations/help_tutorial.en.csv";
     private const string HelpTutorialZhPath = "res://Game.Godot/Translations/help_tutorial.zh.csv";
+    private const string UiEventLogEnPath = "res://Game.Godot/Translations/ui_event_log.en.csv";
+    private const string UiEventLogZhPath = "res://Game.Godot/Translations/ui_event_log.zh.csv";
 
     private static bool _initialized;
 
@@ -20,19 +22,21 @@ public partial class LocalizationBootstrap : Node
         }
 
         _initialized = true;
-        EnsureTutorialTranslationsLoadedFromRes();
+        EnsureTranslationsLoadedFromRes();
     }
 
-    private static void EnsureTutorialTranslationsLoadedFromRes()
+    private static void EnsureTranslationsLoadedFromRes()
     {
         try
         {
             TryLoadCsvAndRegister(locale: "en", csvPath: HelpTutorialEnPath);
             TryLoadCsvAndRegister(locale: "zh", csvPath: HelpTutorialZhPath);
+            TryLoadCsvAndRegister(locale: "en", csvPath: UiEventLogEnPath);
+            TryLoadCsvAndRegister(locale: "zh", csvPath: UiEventLogZhPath);
         }
         catch (Exception ex)
         {
-            GD.PushWarning($"LocalizationBootstrap: failed to register tutorial translations: {ex.Message}");
+            GD.PushWarning($"LocalizationBootstrap: failed to register translations: {ex.Message}");
         }
     }
 
@@ -46,7 +50,7 @@ public partial class LocalizationBootstrap : Node
         var pairs = LoadKeyTextPairsFromCsv(csvPath);
         if (pairs.Count == 0)
         {
-            GD.PushWarning($"LocalizationBootstrap: no tutorial translations loaded from {csvPath}");
+            GD.PushWarning($"LocalizationBootstrap: no translations loaded from {csvPath}");
             return;
         }
 
