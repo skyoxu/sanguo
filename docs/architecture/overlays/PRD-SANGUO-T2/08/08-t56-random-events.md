@@ -39,9 +39,13 @@ Arch-Refs:
 ### 事件
 - **SanguoRandomEventApplied** (`core.sanguo.random_event.applied`)
   - 触发时机：随机事件生效后（事件格/全局事件统一）
+  - 字段：GameId, PlayerId, EventId, EffectKind, MoneyDelta, StepDelta, OccurredAt, CorrelationId, CausationId, RngContextId, CandidatesSortedIdsHash, PickedIndex, PickedId, AppliedMultipliersAfter, EncounterId, EncounterTarget, TriggerSource
+  - 触发来源：TriggerSource = tile / global
   - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
 - **SanguoRandomEventRejected** (`core.sanguo.random_event.rejected`)
   - 触发时机：随机事件被选中但因 effectKind 非白名单/缺失必要字段而被拒绝
+  - 字段：GameId, PlayerId, EventId, EffectKind, RejectReason, MoneyDelta, StepDelta, OccurredAt, CorrelationId, CausationId, RngContextId, CandidatesSortedIdsHash, PickedIndex, PickedId, EncounterId, EncounterTarget, TriggerSource
+  - 触发来源：TriggerSource = tile / global
   - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
 
 ### DTO

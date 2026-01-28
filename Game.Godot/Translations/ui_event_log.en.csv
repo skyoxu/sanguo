@@ -78,3 +78,29 @@ ui.hud.event.shared.detail.expected_total_amount,expected total
 ui.hud.event.shared.detail.paid_total_amount,paid total
 ui.hud.event.shared.detail.expected_cities_count,expected cities count
 ui.hud.event.shared.detail.paid_cities_count,paid cities count
+ui.hud.event.shared.detail.trigger_source,source
+ui.hud.event.shared.detail.trigger_source.tile,tile pool
+ui.hud.event.shared.detail.trigger_source.global,global pool
+ui.hud.event.shared.detail.trigger_round,round
+ui.hud.event.shared.detail.next_step,next
+ui.hud.event.shared.detail.next_step.continue,continue
+ui.hud.event.shared.detail.next_step.resolve_combat,resolve combat
+ui.hud.event.shared.detail.prompt_message,message
+ui.hud.event.core.sanguo.loot.granted.title,Loot granted
+ui.hud.event.core.sanguo.loot.granted.summary,Loot granted
+ui.hud.event.core.sanguo.loot.granted.detail.game_id,Game
+ui.hud.event.core.sanguo.loot.granted.detail.player_id,Player
+ui.hud.event.core.sanguo.loot.granted.detail.loot_kind,Loot kind
+ui.hud.event.core.sanguo.loot.granted.detail.card_id,Card
+ui.hud.event.core.sanguo.loot.granted.detail.relic_id,Relic
+ui.hud.event.core.sanguo.loot.granted.detail.source_kind,Source kind
+ui.hud.event.core.sanguo.loot.granted.detail.source_id,Source id
+ui.hud.event.core.sanguo.loot.granted.delta.money_delta,Money delta
+ui.hud.event.core.sanguo.relic.applied.title,Relic applied
+ui.hud.event.core.sanguo.relic.applied.summary,Relic applied
+ui.hud.event.core.sanguo.relic.applied.detail.game_id,Game
+ui.hud.event.core.sanguo.relic.applied.detail.player_id,Player
+ui.hud.event.core.sanguo.relic.applied.detail.relic_id,Relic
+ui.hud.event.core.sanguo.relic.applied.detail.effect_kind,Effect kind
+ui.hud.event.core.sanguo.relic.applied.delta.money_delta,Money delta
+ui.hud.event.core.sanguo.relic.applied.delta.step_delta,Step delta

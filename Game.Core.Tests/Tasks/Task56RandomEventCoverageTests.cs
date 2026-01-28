@@ -249,6 +249,13 @@ public sealed class Task56RandomEventCoverageTests
         var evts = bus.Published.GetRange(before, bus.Published.Count - before);
         evts.Should().Contain(e => e.Type == SanguoRandomEventApplied.EventType);
         evts.Should().Contain(e => e.Type == SanguoPlayerStateChanged.EventType);
+
+        var applied = evts.Find(e => e.Type == SanguoRandomEventApplied.EventType);
+        applied.Should().NotBeNull();
+        applied!.Data.Should().BeOfType<JsonElementEventData>();
+        var root = ((JsonElementEventData)applied.Data!).Value;
+        root.TryGetProperty("TriggerSource", out var triggerSource).Should().BeTrue();
+        triggerSource.GetString().Should().Be("tile");
     }
 
     // ACC:T56.1

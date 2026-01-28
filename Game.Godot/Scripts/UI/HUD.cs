@@ -360,7 +360,11 @@ public partial class HUD : Control
         _handlers[SanguoTokenMoved.EventType] = HandleTokenMovedEvent;
         _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoYearPriceAdjusted.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoLootGranted.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoRelicApplied.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoRandomEventApplied.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoCityTollSynergyPaid.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoGameEnded.EventType] = HandleGameEndedEvent;
     }
 

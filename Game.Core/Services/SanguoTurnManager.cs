@@ -1587,7 +1587,8 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "tile"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1618,7 +1619,8 @@ public sealed class SanguoTurnManager
                         PickedIndex: pickedIndex,
                         PickedId: pickedId,
                         EncounterId: picked.EncounterId,
-                        EncounterTarget: picked.EncounterTarget
+                        EncounterTarget: picked.EncounterTarget,
+                        TriggerSource: "tile"
                     )),
                     Timestamp: occurredAt.UtcDateTime,
                     Id: Guid.NewGuid().ToString("N"));
@@ -1647,7 +1649,8 @@ public sealed class SanguoTurnManager
                         PickedIndex: pickedIndex,
                         PickedId: pickedId,
                         EncounterId: picked.EncounterId,
-                        EncounterTarget: picked.EncounterTarget
+                        EncounterTarget: picked.EncounterTarget,
+                        TriggerSource: "tile"
                     )),
                     Timestamp: occurredAt.UtcDateTime,
                     Id: Guid.NewGuid().ToString("N"));
@@ -1675,9 +1678,10 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     AppliedMultipliersAfter: null,
-                     EncounterId: picked.EncounterId,
-                     EncounterTarget: picked.EncounterTarget
-                 )),
+                    EncounterId: picked.EncounterId,
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "tile"
+                )),
                  Timestamp: occurredAt.UtcDateTime,
                  Id: appliedEvtId);
             await _bus.PublishAsync(appliedEvt);
@@ -1751,7 +1755,8 @@ public sealed class SanguoTurnManager
                     PickedId: pickedId,
                     AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "tile"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: evtId);
@@ -1796,7 +1801,8 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "tile"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1871,7 +1877,8 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "global"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1900,7 +1907,8 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "global"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1936,7 +1944,8 @@ public sealed class SanguoTurnManager
                     PickedId: pickedId,
                     AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "global"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -1963,7 +1972,8 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "global"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -2029,7 +2039,8 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "global"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -2058,7 +2069,8 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "global"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -2094,7 +2106,8 @@ public sealed class SanguoTurnManager
                     PickedId: pickedId,
                     AppliedMultipliersAfter: effectResult.AppliedMultipliersAfter,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "global"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
@@ -2121,7 +2134,8 @@ public sealed class SanguoTurnManager
                     PickedIndex: pickedIndex,
                     PickedId: pickedId,
                     EncounterId: picked.EncounterId,
-                    EncounterTarget: picked.EncounterTarget
+                    EncounterTarget: picked.EncounterTarget,
+                    TriggerSource: "global"
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));

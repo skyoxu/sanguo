@@ -317,6 +317,9 @@ public sealed class Task63GlobalEventsTests
             data.Value.TryGetProperty("RngContextId", out var rngContextId).Should().BeTrue();
             rngContextId.GetString().Should().NotBeNullOrWhiteSpace();
 
+            data.Value.TryGetProperty("TriggerSource", out var triggerSource).Should().BeTrue();
+            triggerSource.GetString().Should().Be("global");
+
             data.Value.TryGetProperty("CandidatesSortedIdsHash", out var h).Should().BeTrue();
             h.GetString().Should().Be(ComputeSha256Hex("drought"));
 

@@ -33,6 +33,19 @@ Arch-Refs:
 - `core.sanguo.relic.applied`：宝物生效并应用到玩家状态后。
 - 经济侧影响仍通过经济事件的 `applied_multipliers` 快照对外暴露（UI 只展示）。
 
+
+## 契约定义
+
+### 事件
+- **SanguoLootGranted** (`core.sanguo.loot.granted`)
+  - 触发时机：掉落已发放后（战斗/事件/设施来源统一）
+  - 字段：GameId, PlayerId, LootKind, MoneyDelta, CardId, RelicId, SourceKind, SourceId, OccurredAt, CorrelationId, CausationId, RngContextId, CandidatesSortedIdsHash, PickedIndex, PickedId
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoLootEvents.cs`
+- **SanguoRelicApplied** (`core.sanguo.relic.applied`)
+  - 触发时机：宝物生效并应用到玩家状态后
+  - 字段：GameId, PlayerId, RelicId, EffectKind, MoneyDelta, StepDelta, OccurredAt, CorrelationId, CausationId
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoLootEvents.cs`
+
 ## 验收条款（ACC）
 - ACC:T62.1 宝物掉落能被记录并立刻生效，且同局内不重复。
 - ACC:T62.2 同一输入下宝物应用顺序与最终效果可复现。
@@ -40,3 +53,4 @@ Arch-Refs:
 
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task62RelicsTests.cs`
+- `Tests.Godot/tests/UI/test_task62_relics_event_log.gd`

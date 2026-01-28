@@ -86,7 +86,8 @@ public sealed record SanguoRandomEventApplied(
     string? PickedId = null,
     AppliedMultipliers? AppliedMultipliersAfter = null,
     string? EncounterId = null,
-    int? EncounterTarget = null
+    int? EncounterTarget = null,
+    string? TriggerSource = null
 )
 {
     /// <summary>
@@ -119,7 +120,8 @@ public sealed record SanguoRandomEventRejected(
     int? PickedIndex = null,
     string? PickedId = null,
     string? EncounterId = null,
-    int? EncounterTarget = null
+    int? EncounterTarget = null,
+    string? TriggerSource = null
 )
 {
     /// <summary>
