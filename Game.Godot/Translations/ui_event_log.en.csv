@@ -45,3 +45,36 @@ ui.hud.event.core.sanguo.game.ended.summary,Game ended
 ui.hud.event.core.sanguo.game.ended.detail.game_id,Game
 ui.hud.event.core.sanguo.game.ended.detail.end_reason,End reason
 ui.hud.event.core.sanguo.game.ended.detail.winner_player_id,Winner player
+ui.hud.event.shared.detail.mult.additive,additive
+ui.hud.event.shared.detail.mult.multiplicative,multiplicative
+ui.hud.event.shared.detail.mult.base_steps,base steps
+ui.hud.event.shared.detail.mult.character_step_delta,character step delta
+ui.hud.event.shared.detail.mult.building_step_delta,building step delta
+ui.hud.event.shared.detail.mult.event_step_delta,event step delta
+ui.hud.event.shared.detail.mult.action_card_step_delta,action card step delta
+ui.hud.event.shared.detail.mult.relic_step_delta,relic step delta
+ui.hud.event.shared.detail.mult.region_step_delta,region step delta
+ui.hud.event.shared.detail.mult.effective_steps,effective steps
+ui.hud.event.shared.detail.mult.step,step
+ui.hud.event.shared.detail.mult.effective_multiplier,effective multiplier
+ui.hud.event.shared.detail.mult.character_multiplier,character multiplier
+ui.hud.event.shared.detail.mult.building_multiplier,building multiplier
+ui.hud.event.shared.detail.mult.event_multiplier,event multiplier
+ui.hud.event.shared.detail.mult.action_card_multiplier,action card multiplier
+ui.hud.event.shared.detail.mult.relic_multiplier,relic multiplier
+ui.hud.event.shared.detail.mult.region_multiplier,region multiplier
+ui.hud.event.shared.detail.mult.sources,sources
+ui.hud.event.shared.detail.mult.source.none,none
+ui.hud.event.shared.detail.mult.source.character,character
+ui.hud.event.shared.detail.mult.source.building,building
+ui.hud.event.shared.detail.mult.source.event,event
+ui.hud.event.shared.detail.mult.source.action_card,action card
+ui.hud.event.shared.detail.mult.source.relic,relic
+ui.hud.event.shared.detail.mult.source.region,region
+ui.hud.event.shared.detail.breakdown_amount,breakdown amount
+ui.hud.event.shared.detail.landing_city_id,landing city
+ui.hud.event.shared.detail.region_id,region
+ui.hud.event.shared.detail.expected_total_amount,expected total
+ui.hud.event.shared.detail.paid_total_amount,paid total
+ui.hud.event.shared.detail.expected_cities_count,expected cities count
+ui.hud.event.shared.detail.paid_cities_count,paid cities count

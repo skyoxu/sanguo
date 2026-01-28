@@ -165,6 +165,8 @@ public static class EventExplainService
 
         var deltas = new List<string>(8);
         var facts = new List<string>(32);
+        var additive = new List<string>(16);
+        var multiplicative = new List<string>(16);
 
         if (string.Equals(type, SanguoCityTollPaid.EventType, StringComparison.Ordinal))
         {
@@ -196,7 +198,7 @@ public static class EventExplainService
                 deltas.Add($"{label}: +{FormatDecimal(overflow.Value)}");
             }
 
-            AddAppliedMultipliersFacts(facts, type, root);
+            AddAppliedMultipliersFacts(additive, multiplicative, type, root);
         }
         else if (string.Equals(type, SanguoMonthSettled.EventType, StringComparison.Ordinal))
         {
@@ -229,7 +231,7 @@ public static class EventExplainService
                 facts.Add($"{label}: {settlements.GetArrayLength()}");
             }
 
-            AddAppliedMultipliersFacts(facts, type, root);
+            AddAppliedMultipliersFacts(additive, multiplicative, type, root);
         }
         else if (string.Equals(type, SanguoTokenMoved.EventType, StringComparison.Ordinal))
         {
@@ -302,7 +304,38 @@ public static class EventExplainService
                 deltas.Add($"{label}: {stepDelta.Value}");
             }
 
-            AddAppliedMultipliersFacts(facts, type, root);
+            AddAppliedMultipliersFacts(additive, multiplicative, type, root);
+        }
+        else if (string.Equals(type, SanguoCityTollSynergyPaid.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "TurnNumber", "turn");
+            AddFact(facts, type, root, "PayerId", "payer_id");
+            AddFact(facts, type, root, "OwnerId", "owner_id");
+            AddFact(facts, type, root, "LandingCityId", "landing_city_id");
+            AddFact(facts, type, root, "RegionId", "region_id");
+            AddFact(facts, type, root, "ExpectedTotalAmount", "expected_total_amount");
+            AddFact(facts, type, root, "PaidTotalAmount", "paid_total_amount");
+            AddFact(facts, type, root, "ExpectedCitiesCount", "expected_cities_count");
+            AddFact(facts, type, root, "PaidCitiesCount", "paid_cities_count");
+
+            if (TryGetPropertyLoose(root, "Breakdown", out var breakdown) && breakdown.ValueKind == JsonValueKind.Array)
+            {
+                var idx = 0;
+                foreach (var item in breakdown.EnumerateArray())
+                {
+                    idx++;
+                    var cityId = TryGetStringLoose(item, "CityId") ?? $"item_{idx}";
+                    var amount = TryGetDecimalLoose(item, "Amount");
+                    if (amount.HasValue)
+                    {
+                        var label = TranslateField(type, "detail", "breakdown_amount", "breakdown_amount");
+                        facts.Add($"{label}[{cityId}]: {FormatDecimal(amount.Value)}");
+                    }
+
+                    AddAppliedMultipliersFacts(additive, multiplicative, type, item, $"breakdown[{cityId}]");
+                }
+            }
         }
         else
         {
@@ -312,29 +345,13 @@ public static class EventExplainService
             AddFact(facts, type, root, "RoundNumber", "round");
             AddFact(facts, type, root, "PlayerId", "player_id");
             AddFact(facts, type, root, "ActivePlayerId", "active_player_id");
-            AddAppliedMultipliersFacts(facts, type, root);
+            AddAppliedMultipliersFacts(additive, multiplicative, type, root);
         }
 
-        sb.AppendLine();
-
-        if (deltas.Count != 0)
-        {
-            sb.AppendLine("deltas:");
-            foreach (var d in deltas)
-            {
-                sb.AppendLine($"- {d}");
-            }
-            sb.AppendLine();
-        }
-
-        if (facts.Count != 0)
-        {
-            sb.AppendLine("facts:");
-            foreach (var f in facts)
-            {
-                sb.AppendLine($"- {f}");
-            }
-        }
+        AppendSection(sb, "deltas", deltas);
+        AppendSection(sb, "facts", facts);
+        AppendSection(sb, TranslateField(type, "detail", "mult.additive", "additive"), additive);
+        AppendSection(sb, TranslateField(type, "detail", "mult.multiplicative", "multiplicative"), multiplicative);
 
         return sb.ToString().TrimEnd();
     }
@@ -363,101 +380,29 @@ public static class EventExplainService
         }
     }
 
-    private static void AddAppliedMultipliersFacts(List<string> facts, string eventType, JsonElement root)
+    private static void AddAppliedMultipliersFacts(
+        List<string> additive,
+        List<string> multiplicative,
+        string eventType,
+        JsonElement root,
+        string? prefix = null)
     {
-        if (!TryGetPropertyLoose(root, "AppliedMultipliers", out var m) || m.ValueKind != JsonValueKind.Object)
+        if (!TryGetAppliedMultipliersElement(root, out var m))
         {
             return;
         }
 
-        var effective = TryGetDecimalLoose(m, "Effective");
-        if (effective.HasValue)
-        {
-            var label = TranslateField(eventType, "detail", "mult.effective", "mult.effective");
-            facts.Add($"{label}: {FormatDecimal(effective.Value)}");
-        }
-
-        var sources = TryGetIntLoose(m, "Sources");
-        if (sources.HasValue)
-        {
-            var label = TranslateField(eventType, "detail", "mult.sources", "mult.sources");
-            facts.Add($"{label}: {sources.Value}");
-        }
-
-        var character = TryGetDecimalLoose(m, "Character");
-        if (character.HasValue)
-        {
-            var label = TranslateField(eventType, "detail", "mult.character", "mult.character");
-            facts.Add($"{label}: {FormatDecimal(character.Value)}");
-        }
-
-        var building = TryGetDecimalLoose(m, "Building");
-        if (building.HasValue)
-        {
-            var label = TranslateField(eventType, "detail", "mult.building", "mult.building");
-            facts.Add($"{label}: {FormatDecimal(building.Value)}");
-        }
-
-        var ev = TryGetDecimalLoose(m, "Event");
-        if (ev.HasValue)
-        {
-            var label = TranslateField(eventType, "detail", "mult.event", "mult.event");
-            facts.Add($"{label}: {FormatDecimal(ev.Value)}");
-        }
-
-        var card = TryGetDecimalLoose(m, "ActionCard");
-        if (card.HasValue)
-        {
-            var label = TranslateField(eventType, "detail", "mult.action_card", "mult.action_card");
-            facts.Add($"{label}: {FormatDecimal(card.Value)}");
-        }
+        AddAppliedMultipliersFactsFromElement(additive, multiplicative, eventType, m, prefix);
     }
 
     private static string BuildAppliedMultipliersSuffix(JsonElement root)
     {
-        if (!TryGetPropertyLoose(root, "AppliedMultipliers", out var m) || m.ValueKind != JsonValueKind.Object)
+        if (!TryGetAppliedMultipliersElement(root, out var m))
         {
             return string.Empty;
         }
 
-        var effective = TryGetDecimalLoose(m, "Effective");
-        if (!effective.HasValue)
-        {
-            return string.Empty;
-        }
-
-        var suffix = $" mult={FormatDecimal(effective.Value)}";
-
-        var sources = TryGetIntLoose(m, "Sources") ?? 0;
-        if (sources == 0)
-        {
-            return suffix;
-        }
-
-        // Only display breakdown factors when Sources indicates they are trustworthy.
-        // UI must not compute money; it only echoes the event payload values.
-        if ((sources & 1) != 0)
-        {
-            var c = TryGetDecimalLoose(m, "Character");
-            if (c.HasValue) suffix += $" c={FormatDecimal(c.Value)}";
-        }
-        if ((sources & 2) != 0)
-        {
-            var b = TryGetDecimalLoose(m, "Building");
-            if (b.HasValue) suffix += $" b={FormatDecimal(b.Value)}";
-        }
-        if ((sources & 4) != 0)
-        {
-            var e = TryGetDecimalLoose(m, "Event");
-            if (e.HasValue) suffix += $" e={FormatDecimal(e.Value)}";
-        }
-        if ((sources & 8) != 0)
-        {
-            var a = TryGetDecimalLoose(m, "ActionCard");
-            if (a.HasValue) suffix += $" a={FormatDecimal(a.Value)}";
-        }
-
-        return suffix;
+        return BuildAppliedMultipliersInline(m);
     }
 
     private static string BuildSummaryPrefix(string type)
@@ -477,7 +422,20 @@ public static class EventExplainService
     private static string TranslateField(string eventType, string section, string fieldKey, string fallback)
     {
         var key = $"ui.hud.event.{eventType}.{section}.{fieldKey}";
-        return TranslateOrFallback(key, fallback);
+        var text = TryTranslate(key);
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            return text!;
+        }
+
+        var sharedKey = $"ui.hud.event.shared.{section}.{fieldKey}";
+        var shared = TryTranslate(sharedKey);
+        if (!string.IsNullOrWhiteSpace(shared))
+        {
+            return shared!;
+        }
+
+        return fallback;
     }
 
     private static string TranslateOrFallback(string key, string fallback)
@@ -488,6 +446,225 @@ public static class EventExplainService
             return fallback;
         }
         return text;
+    }
+
+    private static string? TryTranslate(string key)
+    {
+        var text = TranslationServer.Translate(key);
+        if (string.IsNullOrWhiteSpace(text) || string.Equals(text, key, StringComparison.Ordinal))
+        {
+            return null;
+        }
+        return text;
+    }
+
+    private static void AddAppliedMultipliersFactsFromElement(
+        List<string> additive,
+        List<string> multiplicative,
+        string eventType,
+        JsonElement applied,
+        string? prefix = null)
+    {
+        var sources = TryGetIntLoose(applied, "Sources");
+        var prefixLabel = string.IsNullOrWhiteSpace(prefix) ? string.Empty : $"{prefix} ";
+
+        var baseSteps = TryGetIntLoose(applied, "BaseSteps");
+        if (baseSteps.HasValue)
+        {
+            AddLabeledValue(additive, prefixLabel, TranslateField(eventType, "detail", "mult.base_steps", "base_steps"), baseSteps.Value.ToString(CultureInfo.InvariantCulture));
+        }
+
+        AddStepDelta(additive, prefixLabel, eventType, applied, "CharacterStepDelta", AppliedMultiplierSources.Character, sources, "mult.character_step_delta", "character_step_delta");
+        AddStepDelta(additive, prefixLabel, eventType, applied, "BuildingStepDelta", AppliedMultiplierSources.Building, sources, "mult.building_step_delta", "building_step_delta");
+        AddStepDelta(additive, prefixLabel, eventType, applied, "EventStepDelta", AppliedMultiplierSources.Event, sources, "mult.event_step_delta", "event_step_delta");
+        AddStepDelta(additive, prefixLabel, eventType, applied, "ActionCardStepDelta", AppliedMultiplierSources.ActionCard, sources, "mult.action_card_step_delta", "action_card_step_delta");
+        AddStepDelta(additive, prefixLabel, eventType, applied, "RelicStepDelta", AppliedMultiplierSources.Relic, sources, "mult.relic_step_delta", "relic_step_delta");
+        AddStepDelta(additive, prefixLabel, eventType, applied, "RegionStepDelta", AppliedMultiplierSources.Region, sources, "mult.region_step_delta", "region_step_delta");
+
+        var effectiveSteps = TryGetIntLoose(applied, "EffectiveSteps");
+        if (effectiveSteps.HasValue)
+        {
+            AddLabeledValue(multiplicative, prefixLabel, TranslateField(eventType, "detail", "mult.effective_steps", "effective_steps"), effectiveSteps.Value.ToString(CultureInfo.InvariantCulture));
+            AddLabeledValue(multiplicative, prefixLabel, TranslateField(eventType, "detail", "mult.step", "step"), AppliedMultipliers.Step.ToString(CultureInfo.InvariantCulture));
+        }
+
+        var effectiveMultiplier = TryGetDecimalLoose(applied, "Effective");
+        if (!effectiveMultiplier.HasValue && effectiveSteps.HasValue)
+        {
+            effectiveMultiplier = effectiveSteps.Value * AppliedMultipliers.Step;
+        }
+        if (effectiveMultiplier.HasValue)
+        {
+            AddLabeledValue(multiplicative, prefixLabel, TranslateField(eventType, "detail", "mult.effective_multiplier", "effective_multiplier"), FormatDecimal(effectiveMultiplier.Value));
+        }
+
+        AddMultiplier(multiplicative, prefixLabel, eventType, applied, "Character", AppliedMultiplierSources.Character, sources, "mult.character_multiplier", "character_multiplier");
+        AddMultiplier(multiplicative, prefixLabel, eventType, applied, "Building", AppliedMultiplierSources.Building, sources, "mult.building_multiplier", "building_multiplier");
+        AddMultiplier(multiplicative, prefixLabel, eventType, applied, "Event", AppliedMultiplierSources.Event, sources, "mult.event_multiplier", "event_multiplier");
+        AddMultiplier(multiplicative, prefixLabel, eventType, applied, "ActionCard", AppliedMultiplierSources.ActionCard, sources, "mult.action_card_multiplier", "action_card_multiplier");
+        AddMultiplier(multiplicative, prefixLabel, eventType, applied, "Relic", AppliedMultiplierSources.Relic, sources, "mult.relic_multiplier", "relic_multiplier");
+        AddMultiplier(multiplicative, prefixLabel, eventType, applied, "Region", AppliedMultiplierSources.Region, sources, "mult.region_multiplier", "region_multiplier");
+
+        if (sources.HasValue)
+        {
+            var label = TranslateField(eventType, "detail", "mult.sources", "sources");
+            AddLabeledValue(multiplicative, prefixLabel, label, FormatSourcesList(eventType, sources.Value));
+        }
+    }
+
+    private static void AddStepDelta(
+        List<string> additive,
+        string prefixLabel,
+        string eventType,
+        JsonElement applied,
+        string propertyName,
+        AppliedMultiplierSources sourceFlag,
+        int? sourcesMask,
+        string labelKey,
+        string fallback)
+    {
+        var value = TryGetIntLoose(applied, propertyName);
+        if (!value.HasValue)
+        {
+            return;
+        }
+
+        if (sourcesMask.HasValue)
+        {
+            if (sourcesMask.Value == 0)
+            {
+                return;
+            }
+            if ((sourcesMask.Value & (int)sourceFlag) == 0)
+            {
+                return;
+            }
+        }
+
+        if (value.Value == 0)
+        {
+            return;
+        }
+
+        var label = TranslateField(eventType, "detail", labelKey, fallback);
+        AddLabeledValue(additive, prefixLabel, label, FormatSignedInt(value.Value));
+    }
+
+    private static void AddMultiplier(
+        List<string> multiplicative,
+        string prefixLabel,
+        string eventType,
+        JsonElement applied,
+        string propertyName,
+        AppliedMultiplierSources sourceFlag,
+        int? sourcesMask,
+        string labelKey,
+        string fallback)
+    {
+        var value = TryGetDecimalLoose(applied, propertyName);
+        if (!value.HasValue)
+        {
+            return;
+        }
+
+        if (sourcesMask.HasValue)
+        {
+            if (sourcesMask.Value == 0)
+            {
+                return;
+            }
+            if ((sourcesMask.Value & (int)sourceFlag) == 0)
+            {
+                return;
+            }
+        }
+
+        var label = TranslateField(eventType, "detail", labelKey, fallback);
+        AddLabeledValue(multiplicative, prefixLabel, label, FormatDecimal(value.Value));
+    }
+
+    private static string FormatSourcesList(string eventType, int sources)
+    {
+        if (sources == 0)
+        {
+            return TranslateField(eventType, "detail", "mult.source.none", "none");
+        }
+
+        var parts = new List<string>(6);
+        if ((sources & (int)AppliedMultiplierSources.Character) != 0)
+            parts.Add(TranslateField(eventType, "detail", "mult.source.character", "character"));
+        if ((sources & (int)AppliedMultiplierSources.Building) != 0)
+            parts.Add(TranslateField(eventType, "detail", "mult.source.building", "building"));
+        if ((sources & (int)AppliedMultiplierSources.Event) != 0)
+            parts.Add(TranslateField(eventType, "detail", "mult.source.event", "event"));
+        if ((sources & (int)AppliedMultiplierSources.ActionCard) != 0)
+            parts.Add(TranslateField(eventType, "detail", "mult.source.action_card", "action_card"));
+        if ((sources & (int)AppliedMultiplierSources.Relic) != 0)
+            parts.Add(TranslateField(eventType, "detail", "mult.source.relic", "relic"));
+        if ((sources & (int)AppliedMultiplierSources.Region) != 0)
+            parts.Add(TranslateField(eventType, "detail", "mult.source.region", "region"));
+
+        return string.Join(", ", parts);
+    }
+
+    private static string BuildAppliedMultipliersInline(JsonElement applied)
+    {
+        var effectiveMultiplier = TryGetDecimalLoose(applied, "Effective");
+        var effectiveSteps = TryGetIntLoose(applied, "EffectiveSteps");
+        if (!effectiveMultiplier.HasValue && effectiveSteps.HasValue)
+        {
+            effectiveMultiplier = effectiveSteps.Value * AppliedMultipliers.Step;
+        }
+
+        if (!effectiveMultiplier.HasValue)
+        {
+            return string.Empty;
+        }
+
+        return $" mult={FormatDecimal(effectiveMultiplier.Value)}";
+    }
+
+    private static bool TryGetAppliedMultipliersElement(JsonElement root, out JsonElement applied)
+    {
+        if (TryGetPropertyLoose(root, "AppliedMultipliers", out applied) && applied.ValueKind == JsonValueKind.Object)
+        {
+            return true;
+        }
+
+        if (TryGetPropertyLoose(root, "AppliedMultipliersAfter", out applied) && applied.ValueKind == JsonValueKind.Object)
+        {
+            return true;
+        }
+
+        applied = default;
+        return false;
+    }
+
+    private static void AddLabeledValue(List<string> lines, string prefixLabel, string label, string value)
+    {
+        if (string.IsNullOrWhiteSpace(prefixLabel))
+        {
+            lines.Add($"{label}: {value}");
+        }
+        else
+        {
+            lines.Add($"{prefixLabel}{label}: {value}");
+        }
+    }
+
+    private static void AppendSection(StringBuilder sb, string label, List<string> lines)
+    {
+        if (lines.Count == 0)
+        {
+            return;
+        }
+
+        sb.AppendLine();
+        sb.AppendLine($"{label}:");
+        foreach (var line in lines)
+        {
+            sb.AppendLine($"- {line}");
+        }
     }
 
     private static bool TryGetPropertyLoose(JsonElement obj, string expectedName, out JsonElement value)
@@ -604,5 +781,11 @@ public static class EventExplainService
     {
         if (value == 0m) return "0";
         return value > 0m ? $"+{FormatDecimal(value)}" : FormatDecimal(value);
+    }
+
+    private static string FormatSignedInt(int value)
+    {
+        if (value == 0) return "0";
+        return value > 0 ? $"+{value}" : value.ToString(CultureInfo.InvariantCulture);
     }
 }
