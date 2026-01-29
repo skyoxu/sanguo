@@ -7,6 +7,7 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 # Contract context: core.sanguo.random_event.applied (SanguoRandomEventApplied).
 
 const EVENT_TYPE_RANDOM_EVENT_APPLIED := "core.sanguo.random_event.applied"
+const LOCALE_ZH := "zh"
 
 var _bus: Node
 
@@ -43,6 +44,23 @@ func _try_translate(key: String) -> String:
 			return t
 	return ""
 
+func _require_translation(key: String) -> String:
+	var translated := _try_translate(key)
+	assert_bool(translated.strip_edges().length() > 0).is_true()
+	return translated
+
+func _set_locale(locale: String) -> String:
+	var original := ""
+	if TranslationServer.has_method("get_locale"):
+		original = String(TranslationServer.get_locale())
+	if TranslationServer.has_method("set_locale") and locale.strip_edges().length() > 0:
+		TranslationServer.set_locale(locale)
+	return original
+
+func _restore_locale(original: String) -> void:
+	if TranslationServer.has_method("set_locale") and original.strip_edges().length() > 0:
+		TranslationServer.set_locale(original)
+
 func _translate_field(event_type: String, section: String, field_key: String, fallback: String) -> String:
 	var event_key := "ui.hud.event.%s.%s.%s" % [event_type, section, field_key]
 	var text := _try_translate(event_key)
@@ -64,11 +82,12 @@ func _publish_random_event_applied(picked_id: String, event_id: String, message:
 # ACC:T56.3
 # After a random event is applied, the UI must show a visible prompt, and the prompt content must be derived from the payload.
 func test_task56_hud_event_prompt_is_visible_and_uses_payload_text() -> void:
+	var original_locale := _set_locale(LOCALE_ZH)
 	var hud := await _hud()
 
 	_publish_random_event_applied(
-		"ev_lucky_gold",
-		"ev_lucky_gold",
+		"event_money_small",
+		"event_money_small",
 		"A lucky find increases your funds.",
 		"rng.random_events:1:2:tile",
 		"moneyDelta",
@@ -83,7 +102,8 @@ func test_task56_hud_event_prompt_is_visible_and_uses_payload_text() -> void:
 	assert_bool(_toast_visible(hud)).is_true()
 	var text := _toast_label_text(hud)
 	assert_str(text).is_not_empty()
-	assert_str(text).contains("ev_lucky_gold")
+	var event_name := _require_translation("event.event_money_small.name")
+	assert_str(text).contains(event_name)
 	var source_label := _translate_field(EVENT_TYPE_RANDOM_EVENT_APPLIED, "detail", "trigger_source", "source")
 	var source_tile := _translate_field(EVENT_TYPE_RANDOM_EVENT_APPLIED, "detail", "trigger_source.tile", "tile")
 	var round_label := _translate_field(EVENT_TYPE_RANDOM_EVENT_APPLIED, "detail", "trigger_round", "round")
@@ -94,16 +114,20 @@ func test_task56_hud_event_prompt_is_visible_and_uses_payload_text() -> void:
 	assert_str(text).contains(round_label + "=2")
 	assert_str(text).contains(money_label + "=+5")
 	assert_str(text).contains(next_label + "=" + next_continue)
+	assert_str(text).not_contains("event_money_small")
+
+	_restore_locale(original_locale)
 
 
 # ACC:T56.4
 # Prompt content must change when payload changes (guards against hardcoded/unrelated content).
 func test_task56_hud_event_prompt_updates_when_payload_changes() -> void:
+	var original_locale := _set_locale(LOCALE_ZH)
 	var hud := await _hud()
 
 	_publish_random_event_applied(
-		"ev_a",
-		"ev_a",
+		"event_money_small",
+		"event_money_small",
 		"Payload A",
 		"rng.random_events:1:1:tile",
 		"moneyDelta",
@@ -117,8 +141,8 @@ func test_task56_hud_event_prompt_updates_when_payload_changes() -> void:
 	var text_a := _toast_label_text(hud)
 
 	_publish_random_event_applied(
-		"ev_b",
-		"global:ev_b",
+		"event_economy_boost",
+		"global:event_economy_boost",
 		"Payload B",
 		"rng.random_events:5:3:global",
 		"moneyDelta",
@@ -134,8 +158,10 @@ func test_task56_hud_event_prompt_updates_when_payload_changes() -> void:
 
 	assert_str(text_a).is_not_empty()
 	assert_str(text_b).is_not_empty()
-	assert_str(text_a).contains("ev_a")
-	assert_str(text_b).contains("ev_b")
+	var event_a_name := _require_translation("event.event_money_small.name")
+	var event_b_name := _require_translation("event.event_economy_boost.name")
+	assert_str(text_a).contains(event_a_name)
+	assert_str(text_b).contains(event_b_name)
 	assert_bool(text_a != text_b).is_true()
 	var source_label := _translate_field(EVENT_TYPE_RANDOM_EVENT_APPLIED, "detail", "trigger_source", "source")
 	var source_global := _translate_field(EVENT_TYPE_RANDOM_EVENT_APPLIED, "detail", "trigger_source.global", "global")
@@ -143,16 +169,21 @@ func test_task56_hud_event_prompt_updates_when_payload_changes() -> void:
 	var next_continue := _translate_field(EVENT_TYPE_RANDOM_EVENT_APPLIED, "detail", "next_step.continue", "continue")
 	assert_str(text_b).contains(source_label + "=" + source_global)
 	assert_str(text_b).contains(next_label + "=" + next_continue)
+	assert_str(text_a).not_contains("event_money_small")
+	assert_str(text_b).not_contains("event_economy_boost")
+
+	_restore_locale(original_locale)
 
 
 # ACC:T56.5
 # TriggerSource must be honored when present, even if RNG context implies a different source.
 func test_task56_hud_event_prompt_prefers_explicit_trigger_source() -> void:
+	var original_locale := _set_locale(LOCALE_ZH)
 	var hud = await _hud()
 
 	_publish_random_event_applied(
-		"ev_tile",
-		"ev_tile",
+		"event_money_small",
+		"event_money_small",
 		"Payload C",
 		"rng.random_events:2:2:tile",
 		"moneyDelta",
@@ -169,3 +200,5 @@ func test_task56_hud_event_prompt_prefers_explicit_trigger_source() -> void:
 	var source_label = _translate_field(EVENT_TYPE_RANDOM_EVENT_APPLIED, "detail", "trigger_source", "source")
 	var source_global = _translate_field(EVENT_TYPE_RANDOM_EVENT_APPLIED, "detail", "trigger_source.global", "global")
 	assert_str(text).contains(source_label + "=" + source_global)
+
+	_restore_locale(original_locale)

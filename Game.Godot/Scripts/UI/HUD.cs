@@ -51,10 +51,16 @@ public partial class HUD : Control
     private bool _logVisible;
 
     private readonly Dictionary<int, TileInfo> _tilesByIndex = new();
+    private readonly Dictionary<string, string> _tileNameKeyById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _cityOwnersByCityId = new(StringComparer.Ordinal);
     private bool _awaitingTileAction;
     private string _awaitingCorrelationId = string.Empty;
     private int _awaitingToIndex;
+
+    private readonly Dictionary<string, string> _regionNameKeyById = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _cardNameKeyById = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _relicNameKeyById = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _randomEventNameKeyById = new(StringComparer.Ordinal);
 
     private readonly Dictionary<string, string> _characterIdByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _characterNameKeyById = new(StringComparer.Ordinal);
@@ -106,6 +112,7 @@ public partial class HUD : Control
 
         RegisterHandlers();
         TryLoadMapTilesForUi();
+        TryLoadUiCatalogLabels();
         UpdateActivePlayerIdentityDisplay();
 
         _score.Visible = false;
@@ -285,8 +292,34 @@ public partial class HUD : Control
         var tileLabelByIndex = _tilesByIndex.Count == 0
             ? null
             : new Func<int, string?>(idx => _tilesByIndex.TryGetValue(idx, out var tile) ? tile.Name : null);
+        var tileLabelById = _tileNameKeyById.Count == 0
+            ? null
+            : new Func<string, string?>(tileId => _tileNameKeyById.TryGetValue(tileId ?? string.Empty, out var nameKey) ? nameKey : null);
+        var regionLabelById = _regionNameKeyById.Count == 0
+            ? null
+            : new Func<string, string?>(regionId => _regionNameKeyById.TryGetValue(regionId ?? string.Empty, out var nameKey) ? nameKey : null);
+        var cardLabelById = _cardNameKeyById.Count == 0
+            ? null
+            : new Func<string, string?>(cardId => _cardNameKeyById.TryGetValue(cardId ?? string.Empty, out var nameKey) ? nameKey : null);
+        var relicLabelById = _relicNameKeyById.Count == 0
+            ? null
+            : new Func<string, string?>(relicId => _relicNameKeyById.TryGetValue(relicId ?? string.Empty, out var nameKey) ? nameKey : null);
+        var eventLabelById = _randomEventNameKeyById.Count == 0
+            ? null
+            : new Func<string, string?>(eventId => _randomEventNameKeyById.TryGetValue(eventId ?? string.Empty, out var nameKey) ? nameKey : null);
 
-        var explanation = EventExplainService.Explain(type, source, id, timestampIso, root, tileLabelByIndex);
+        var explanation = EventExplainService.Explain(
+            type,
+            source,
+            id,
+            timestampIso,
+            root,
+            tileLabelByIndex,
+            tileLabelById,
+            regionLabelById,
+            cardLabelById,
+            relicLabelById,
+            eventLabelById);
         _toast?.ShowMessage(explanation.SummaryText);
         _logPanel?.Append(explanation);
     }
@@ -352,11 +385,17 @@ public partial class HUD : Control
 
         _handlers[SanguoGameTurnStarted.EventType] = HandleTurnEvent;
         _handlers[SanguoGameTurnAdvanced.EventType] = HandleTurnEvent;
+        _handlers[SanguoGameTurnEnded.EventType] = HandleUiOnlyEvent;
 
         _handlers[SanguoPlayerStateChanged.EventType] = HandlePlayerStateChangedEvent;
         _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
         _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
         _handlers[SanguoCityBought.EventType] = HandleCityBoughtEvent;
+        _handlers[SanguoCityOwnerChanged.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoActionCardPlayed.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoCombatStarted.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoCombatEnded.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoPlayerEliminated.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoGameSaved.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoGameLoaded.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoTokenMoved.EventType] = HandleTokenMovedEvent;
@@ -849,6 +888,7 @@ public partial class HUD : Control
     {
         _tilesByIndex.Clear();
         _cityOwnersByCityId.Clear();
+        _tileNameKeyById.Clear();
 
         try
         {
@@ -867,6 +907,69 @@ public partial class HUD : Control
                     TileType: tile.TileType ?? string.Empty,
                     Name: tile.Name ?? string.Empty,
                     Actions: actions);
+                if (!string.IsNullOrWhiteSpace(tile.TileId))
+                {
+                    _tileNameKeyById[tile.TileId] = tile.Name ?? string.Empty;
+                }
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private void TryLoadUiCatalogLabels()
+    {
+        _regionNameKeyById.Clear();
+        _cardNameKeyById.Clear();
+        _relicNameKeyById.Clear();
+        _randomEventNameKeyById.Clear();
+
+        try
+        {
+            var loader = ResolveResourceLoader();
+            if (SanguoRegionsCatalogLoader.TryLoadRegionsCatalog(loader, out var regions, out _))
+            {
+                foreach (var region in regions.Regions)
+                {
+                    if (!string.IsNullOrWhiteSpace(region.RegionId))
+                    {
+                        _regionNameKeyById[region.RegionId] = region.NameKey ?? string.Empty;
+                    }
+                }
+            }
+
+            if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var cards, out _))
+            {
+                foreach (var card in cards.Cards)
+                {
+                    if (!string.IsNullOrWhiteSpace(card.CardId))
+                    {
+                        _cardNameKeyById[card.CardId] = card.NameKey ?? string.Empty;
+                    }
+                }
+            }
+
+            if (SanguoRelicsCatalogLoader.TryLoadRelicsCatalog(loader, out var relics, out _))
+            {
+                foreach (var relic in relics.Relics)
+                {
+                    if (!string.IsNullOrWhiteSpace(relic.RelicId))
+                    {
+                        _relicNameKeyById[relic.RelicId] = relic.NameKey ?? string.Empty;
+                    }
+                }
+            }
+
+            if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var eventsCatalog, out _))
+            {
+                foreach (var evt in eventsCatalog.Events)
+                {
+                    if (!string.IsNullOrWhiteSpace(evt.EventId))
+                    {
+                        _randomEventNameKeyById[evt.EventId] = evt.NameKey ?? string.Empty;
+                    }
+                }
             }
         }
         catch

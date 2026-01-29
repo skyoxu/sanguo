@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Game.Godot.Scripts.Security;
 
 namespace Game.Godot.Autoloads;
@@ -11,6 +12,8 @@ public partial class LocalizationBootstrap : Node
     private const string HelpTutorialZhPath = "res://Game.Godot/Translations/help_tutorial.zh.csv";
     private const string UiEventLogEnPath = "res://Game.Godot/Translations/ui_event_log.en.csv";
     private const string UiEventLogZhPath = "res://Game.Godot/Translations/ui_event_log.zh.csv";
+    private const string CoreStringsEnPath = "res://Data/i18n/en_us.json";
+    private const string CoreStringsZhPath = "res://Data/i18n/zh_cn.json";
 
     private static bool _initialized;
 
@@ -33,11 +36,43 @@ public partial class LocalizationBootstrap : Node
             TryLoadCsvAndRegister(locale: "zh", csvPath: HelpTutorialZhPath);
             TryLoadCsvAndRegister(locale: "en", csvPath: UiEventLogEnPath);
             TryLoadCsvAndRegister(locale: "zh", csvPath: UiEventLogZhPath);
+            TryLoadJsonAndRegister(locale: "en", jsonPath: CoreStringsEnPath);
+            TryLoadJsonAndRegister(locale: "zh", jsonPath: CoreStringsZhPath);
         }
         catch (Exception ex)
         {
             GD.PushWarning($"LocalizationBootstrap: failed to register translations: {ex.Message}");
         }
+    }
+
+    private static void TryLoadJsonAndRegister(string locale, string jsonPath)
+    {
+        if (string.IsNullOrWhiteSpace(locale) || string.IsNullOrWhiteSpace(jsonPath))
+        {
+            return;
+        }
+
+        var pairs = LoadKeyTextPairsFromJson(jsonPath);
+        if (pairs.Count == 0)
+        {
+            GD.PushWarning($"LocalizationBootstrap: no translations loaded from {jsonPath}");
+            return;
+        }
+
+        var translation = new Translation
+        {
+            Locale = locale
+        };
+
+        foreach (var (key, text) in pairs)
+        {
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                translation.AddMessage(key, text ?? string.Empty);
+            }
+        }
+
+        TranslationServer.AddTranslation(translation);
     }
 
     private static void TryLoadCsvAndRegister(string locale, string csvPath)
@@ -68,6 +103,46 @@ public partial class LocalizationBootstrap : Node
         }
 
         TranslationServer.AddTranslation(translation);
+    }
+
+    private static List<(string Key, string Text)> LoadKeyTextPairsFromJson(string resPath)
+    {
+        var outList = new List<(string Key, string Text)>();
+
+        try
+        {
+            if (!SecurityFileAdapter.TryReadText(resPath, caller: nameof(LocalizationBootstrap), out var raw, out _))
+            {
+                return outList;
+            }
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return outList;
+            }
+
+            using var doc = JsonDocument.Parse(raw);
+            if (!doc.RootElement.TryGetProperty("strings", out var stringsEl) || stringsEl.ValueKind != JsonValueKind.Object)
+            {
+                return outList;
+            }
+
+            foreach (var prop in stringsEl.EnumerateObject())
+            {
+                var key = prop.Name ?? string.Empty;
+                var text = prop.Value.ValueKind == JsonValueKind.String ? (prop.Value.GetString() ?? string.Empty) : prop.Value.ToString();
+                if (!string.IsNullOrWhiteSpace(key))
+                {
+                    outList.Add((key, text));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"LocalizationBootstrap: failed to load translations from {resPath}: {ex.Message}");
+        }
+
+        return outList;
     }
 
     private static List<(string Key, string Text)> LoadKeyTextPairsFromCsv(string resPath)

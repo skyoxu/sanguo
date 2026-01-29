@@ -28,6 +28,11 @@ func _try_translate(key: String) -> String:
 			return t
 	return ""
 
+func _require_translation(key: String) -> String:
+	var t := _try_translate(key)
+	assert_bool(t.strip_edges().length() > 0).is_true()
+	return t
+
 func _translate_field(event_type: String, section: String, field_key: String, fallback: String) -> String:
 	var event_key = "ui.hud.event.%s.%s.%s" % [event_type, section, field_key]
 	var text = _try_translate(event_key)
@@ -61,9 +66,10 @@ func _publish_synergy_toll(data_json: String) -> void:
 # ACC:T65.6
 # Synergy toll summary event must be visible in the HUD log with breakdown and multiplier snapshots.
 func test_task65_event_log_shows_synergy_toll_breakdown_and_multipliers() -> void:
+	var original_locale := _set_locale("zh")
 	var hud = await _hud()
 
-	_publish_synergy_toll("{\"GameId\":\"g1\",\"TurnNumber\":12,\"PayerId\":\"p1\",\"OwnerId\":\"o1\",\"LandingCityId\":\"c1\",\"RegionId\":\"r1\",\"ExpectedTotalAmount\":8,\"PaidTotalAmount\":8,\"ExpectedCitiesCount\":2,\"PaidCitiesCount\":2,\"Breakdown\":[{\"CityId\":\"c1\",\"Amount\":3,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":1,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":2}},{\"CityId\":\"c2\",\"Amount\":5,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":1,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":2}}]}")
+	_publish_synergy_toll("{\"GameId\":\"g1\",\"TurnNumber\":12,\"PayerId\":\"p1\",\"OwnerId\":\"o1\",\"LandingCityId\":\"tile_01\",\"RegionId\":\"region_01\",\"ExpectedTotalAmount\":8,\"PaidTotalAmount\":8,\"ExpectedCitiesCount\":2,\"PaidCitiesCount\":2,\"Breakdown\":[{\"CityId\":\"tile_01\",\"Amount\":3,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":1,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":2}},{\"CityId\":\"tile_02\",\"Amount\":5,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":1,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":2}}]}")
 	await get_tree().process_frame
 
 	var msgs = _event_log_messages(hud)
@@ -81,12 +87,18 @@ func test_task65_event_log_shows_synergy_toll_breakdown_and_multipliers() -> voi
 	var additive_label = _translate_field(EVENT_TYPE_SYNERGY_TOLL, "detail", "mult.additive", "additive")
 	var multiplicative_label = _translate_field(EVENT_TYPE_SYNERGY_TOLL, "detail", "mult.multiplicative", "multiplicative")
 	var base_steps_label = _translate_field(EVENT_TYPE_SYNERGY_TOLL, "detail", "mult.base_steps", "base_steps")
+	var landing_city_name = _require_translation("tile.map001.tile_01.name")
+	var region_name = _require_translation("region.region_01.name")
+	var breakdown_city_1 = _require_translation("tile.map001.tile_01.name")
+	var breakdown_city_2 = _require_translation("tile.map001.tile_02.name")
 
-	assert_str(details).contains(landing_city_label + ": c1")
-	assert_str(details).contains(region_label + ": r1")
+	assert_str(details).contains(landing_city_label + ": " + landing_city_name)
+	assert_str(details).contains(region_label + ": " + region_name)
 	assert_str(details).contains(paid_total_label + ": 8")
-	assert_str(details).contains(breakdown_label + "[c1]: 3")
-	assert_str(details).contains(breakdown_label + "[c2]: 5")
+	assert_str(details).contains(breakdown_label + "[" + breakdown_city_1 + "]: 3")
+	assert_str(details).contains(breakdown_label + "[" + breakdown_city_2 + "]: 5")
 	assert_str(details).contains(additive_label + ":")
 	assert_str(details).contains(multiplicative_label + ":")
-	assert_str(details).contains("breakdown[c1] " + base_steps_label + ": 2")
+	assert_str(details).contains("breakdown[" + breakdown_city_1 + "] " + base_steps_label + ": 2")
+
+	_restore_locale(original_locale)

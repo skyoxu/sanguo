@@ -257,6 +257,7 @@ func test_hud_dice_roll_emits_ui_event_with_trace_ids() -> void:
 # ACC:T17.4
 # ACC:T17.15
 func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_seconds() -> void:
+    var original_locale := _set_locale("zh")
     var hud = await _hud()
     var toast: Control = hud.get_node("EventToast")
     var toast_label: Label = hud.get_node("EventToast/Panel/Label")
@@ -268,7 +269,7 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
     _bus.PublishSimple(
         "core.sanguo.city.toll.paid",
         "ut",
-        "{\"GameId\":\"g1\",\"PayerId\":\"p1\",\"OwnerId\":\"o1\",\"CityId\":\"c1\",\"Amount\":10,\"OwnerAmount\":1,\"TreasuryOverflow\":9}"
+        "{\"GameId\":\"g1\",\"PayerId\":\"p1\",\"OwnerId\":\"o1\",\"CityId\":\"tile_01\",\"Amount\":10,\"OwnerAmount\":1,\"TreasuryOverflow\":9}"
     )
     await get_tree().process_frame
 
@@ -279,8 +280,10 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
     assert_bool(toast.visible).is_true()
     var summary_label := _translate_summary("core.sanguo.city.toll.paid")
     var city_label := _translate_field("core.sanguo.city.toll.paid", "detail", "city_id", "city")
+    var city_name := _try_translate("tile.map001.tile_01.name")
+    assert_bool(city_name.strip_edges().length() > 0).is_true()
     assert_str(toast_label.text).contains(summary_label)
-    assert_str(toast_label.text).contains(city_label + "=c1")
+    assert_str(toast_label.text).contains(city_label + "=" + city_name)
     assert_str(toast_label.text).not_contains("core.sanguo.city.toll.paid")
     var shown_ms: int = Time.get_ticks_msec()
 
@@ -334,6 +337,8 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
     assert_bool(toast.visible).is_false()
     var elapsed_ms: int = int(Time.get_ticks_msec() - shown_ms)
     assert_int(elapsed_ms).is_less_equal(3000)
+
+    _restore_locale(original_locale)
 
 # ACC:T22.3
 func test_hud_updates_on_sanguo_dice_rolled_event() -> void:
@@ -518,6 +523,7 @@ func test_event_log_entry_order_matches_event_emission_order() -> void:
 
 func test_event_log_entries_contain_player_facing_summary_fields() -> void:
 
+    var original_locale := _set_locale("zh")
     var hud = await _hud()
 
     var log_panel: Control = hud.get_node("EventLogPanel")
@@ -530,7 +536,7 @@ func test_event_log_entries_contain_player_facing_summary_fields() -> void:
 
     _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
 
-    _bus.PublishSimple("core.sanguo.city.bought", "ut", "{\"GameId\":\"g1\",\"BuyerId\":\"p1\",\"CityId\":\"c1\",\"Price\":100}")
+    _bus.PublishSimple("core.sanguo.city.bought", "ut", "{\"GameId\":\"g1\",\"BuyerId\":\"p1\",\"CityId\":\"tile_01\",\"Price\":100}")
 
     for _i in range(10):
 
@@ -559,8 +565,10 @@ func test_event_log_entries_contain_player_facing_summary_fields() -> void:
     var city_summary_label := _translate_summary("core.sanguo.city.bought")
     var city_label := _translate_field("core.sanguo.city.bought", "detail", "city_id", "city")
     var price_label := _translate_field("core.sanguo.city.bought", "detail", "price", "price")
+    var city_name := _try_translate("tile.map001.tile_01.name")
+    assert_bool(city_name.strip_edges().length() > 0).is_true()
     assert_str(b).contains(city_summary_label)
-    assert_str(b).contains(city_label + "=c1")
+    assert_str(b).contains(city_label + "=" + city_name)
     assert_str(b).contains(price_label + "=100")
     assert_str(b).not_contains("core.sanguo.city.bought")
 
@@ -570,4 +578,6 @@ func test_event_log_entries_contain_player_facing_summary_fields() -> void:
     await get_tree().process_frame
     assert_bool(log_panel.is_visible_in_tree()).is_true()
     assert_bool(log_list.is_visible_in_tree()).is_true()
+
+    _restore_locale(original_locale)
 
