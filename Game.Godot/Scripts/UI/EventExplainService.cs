@@ -21,13 +21,31 @@ public static class EventExplainService
         string eventId,
         string timestampIso,
         JsonElement root,
-        Func<int, string?>? tileLabelByIndex = null)
+        Func<int, string?>? tileLabelByIndex = null,
+        Func<string, string?>? tileLabelById = null,
+        Func<string, string?>? regionLabelById = null,
+        Func<string, string?>? cardLabelById = null,
+        Func<string, string?>? relicLabelById = null,
+        Func<string, string?>? eventLabelById = null)
     {
         var correlationId = TryGetStringLoose(root, "CorrelationId");
         var causationId = TryGetStringLoose(root, "CausationId");
 
-        var summary = BuildSummary(type, root);
-        var details = BuildDetails(type, root, tileLabelByIndex, source, eventId, timestampIso, correlationId, causationId);
+        var summary = BuildSummary(type, root, tileLabelById, regionLabelById, cardLabelById, relicLabelById, eventLabelById);
+        var details = BuildDetails(
+            type,
+            root,
+            tileLabelByIndex,
+            tileLabelById,
+            regionLabelById,
+            cardLabelById,
+            relicLabelById,
+            eventLabelById,
+            source,
+            eventId,
+            timestampIso,
+            correlationId,
+            causationId);
 
         return new EventExplanation(
             EventType: type,
@@ -41,7 +59,14 @@ public static class EventExplainService
         );
     }
 
-    private static string BuildSummary(string type, JsonElement root)
+    private static string BuildSummary(
+        string type,
+        JsonElement root,
+        Func<string, string?>? tileLabelById,
+        Func<string, string?>? regionLabelById,
+        Func<string, string?>? cardLabelById,
+        Func<string, string?>? relicLabelById,
+        Func<string, string?>? eventLabelById)
     {
         var prefix = BuildSummaryPrefix(type);
         var multiplierSuffix = BuildAppliedMultipliersSuffix(type, root);
@@ -54,11 +79,12 @@ public static class EventExplainService
             var amount = TryGetDecimalLoose(root, "Amount");
             var ownerAmount = TryGetDecimalLoose(root, "OwnerAmount");
             var overflow = TryGetDecimalLoose(root, "TreasuryOverflow");
+            var cityLabel = ResolveNamedValue(tileLabelById, cityId);
 
             var parts = new List<string>(8) { prefix };
             AddSummaryPart(parts, type, "payer_id", "payer", payerId);
             AddSummaryPart(parts, type, "owner_id", "owner", ownerId);
-            AddSummaryPart(parts, type, "city_id", "city", cityId);
+            AddSummaryPart(parts, type, "city_id", "city", cityLabel);
             AddSummaryPart(parts, type, "amount", "amount", amount);
             AddSummaryPart(parts, type, "owner_amount", "owner_amount", ownerAmount);
             if (overflow.HasValue && overflow.Value != 0m)
@@ -103,7 +129,8 @@ public static class EventExplainService
             var reason = TryGetStringLoose(root, "EndReason");
             var winner = TryGetStringLoose(root, "WinnerPlayerId");
             var parts = new List<string>(6) { prefix };
-            AddSummaryPart(parts, type, "end_reason", "reason", reason);
+            var reasonLabel = TranslateTokenValue(type, "end_reason", reason);
+            AddSummaryPart(parts, type, "end_reason", "reason", reasonLabel);
             AddSummaryPart(parts, type, "winner_player_id", "winner", winner);
             return string.Join(' ', parts) + multiplierSuffix;
         }
@@ -117,11 +144,13 @@ public static class EventExplainService
             var uiMessage = TryGetStringLoose(root, "UiMessage");
             var resolvedPickedId = !string.IsNullOrWhiteSpace(pickedId) ? pickedId : eventId;
             var pickedLabelKey = !string.IsNullOrWhiteSpace(pickedId) ? "picked_id" : "event_id";
+            var pickedLabelValue = ResolveNamedValue(eventLabelById, resolvedPickedId);
             var sourceLabel = ResolveRandomEventSourceLabel(type, root, resolvedPickedId);
             var roundNumber = TryGetRoundNumber(root);
             var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
             var stepDelta = TryGetIntLoose(root, "StepDelta");
             var nextStep = ResolveRandomEventNextStepLabel(type, effectKind, root);
+            var effectKindLabel = TranslateTokenValue(type, "effect_kind", effectKind);
 
             var parts = new List<string>(10) { prefix };
             if (!string.IsNullOrWhiteSpace(uiMessage))
@@ -130,8 +159,8 @@ public static class EventExplainService
                 parts.Add($"{label}={uiMessage}");
             }
             AddSummaryPart(parts, type, "player_id", "player", playerId);
-            AddSummaryPart(parts, type, pickedLabelKey, pickedLabelKey, resolvedPickedId);
-            AddSummaryPart(parts, type, "effect_kind", "kind", effectKind);
+            AddSummaryPart(parts, type, pickedLabelKey, pickedLabelKey, pickedLabelValue);
+            AddSummaryPart(parts, type, "effect_kind", "kind", effectKindLabel);
 
             var meta = new List<string>(8);
             if (!string.IsNullOrWhiteSpace(sourceLabel))
@@ -173,12 +202,17 @@ public static class EventExplainService
             var relicId = TryGetStringLoose(root, "RelicId");
             var sourceKind = TryGetStringLoose(root, "SourceKind");
             var sourceId = TryGetStringLoose(root, "SourceId");
+            var lootKindLabel = TranslateTokenValue(type, "loot_kind", lootKind);
+            var cardLabel = ResolveNamedValue(cardLabelById, cardId);
+            var relicLabel = ResolveNamedValue(relicLabelById, relicId);
+            var sourceKindLabel = TranslateTokenValue(type, "source_kind", sourceKind);
+            var sourceIdLabel = ResolveSourceIdValue(sourceKind, sourceId, cardLabelById, relicLabelById, eventLabelById);
 
             var parts = new List<string>(10) { prefix };
             AddSummaryPart(parts, type, "player_id", "player", playerId);
-            AddSummaryPart(parts, type, "loot_kind", "loot_kind", lootKind);
-            AddSummaryPart(parts, type, "card_id", "card", cardId);
-            AddSummaryPart(parts, type, "relic_id", "relic", relicId);
+            AddSummaryPart(parts, type, "loot_kind", "loot_kind", lootKindLabel);
+            AddSummaryPart(parts, type, "card_id", "card", cardLabel);
+            AddSummaryPart(parts, type, "relic_id", "relic", relicLabel);
 
             var meta = new List<string>(6);
             if (moneyDelta.HasValue && moneyDelta.Value != 0)
@@ -189,12 +223,12 @@ public static class EventExplainService
             if (!string.IsNullOrWhiteSpace(sourceKind))
             {
                 var label = TranslateField(type, "detail", "source_kind", "source_kind");
-                meta.Add($"{label}={sourceKind}");
+                meta.Add($"{label}={sourceKindLabel}");
             }
-            if (!string.IsNullOrWhiteSpace(sourceId))
+            if (!string.IsNullOrWhiteSpace(sourceIdLabel))
             {
                 var label = TranslateField(type, "detail", "source_id", "source_id");
-                meta.Add($"{label}={sourceId}");
+                meta.Add($"{label}={sourceIdLabel}");
             }
 
             var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
@@ -208,11 +242,13 @@ public static class EventExplainService
             var effectKind = TryGetStringLoose(root, "EffectKind");
             var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
             var stepDelta = TryGetIntLoose(root, "StepDelta");
+            var relicLabel = ResolveNamedValue(relicLabelById, relicId);
+            var effectKindLabel = TranslateTokenValue(type, "effect_kind", effectKind);
 
             var parts = new List<string>(8) { prefix };
             AddSummaryPart(parts, type, "player_id", "player", playerId);
-            AddSummaryPart(parts, type, "relic_id", "relic", relicId);
-            AddSummaryPart(parts, type, "effect_kind", "kind", effectKind);
+            AddSummaryPart(parts, type, "relic_id", "relic", relicLabel);
+            AddSummaryPart(parts, type, "effect_kind", "kind", effectKindLabel);
 
             var meta = new List<string>(4);
             if (moneyDelta.HasValue && moneyDelta.Value != 0)
@@ -237,10 +273,13 @@ public static class EventExplainService
             var reason = TryGetStringLoose(root, "ReasonCode");
             var sourceKind = TryGetStringLoose(root, "SourceKind");
             var sourceId = TryGetStringLoose(root, "SourceId");
+            var cardLabel = ResolveNamedValue(cardLabelById, cardId);
+            var sourceKindLabel = TranslateTokenValue(type, "source_kind", sourceKind);
+            var sourceIdLabel = ResolveSourceIdValue(sourceKind, sourceId, cardLabelById, relicLabelById, eventLabelById);
 
             var parts = new List<string>(8) { prefix };
             AddSummaryPart(parts, type, "player_id", "player", playerId);
-            AddSummaryPart(parts, type, "card_id", "card", cardId);
+            AddSummaryPart(parts, type, "card_id", "card", cardLabel);
 
             var meta = new List<string>(4);
             if (!string.IsNullOrWhiteSpace(reason))
@@ -252,16 +291,195 @@ public static class EventExplainService
             if (!string.IsNullOrWhiteSpace(sourceKind))
             {
                 var label = TranslateField(type, "detail", "source_kind", "source_kind");
-                meta.Add($"{label}={sourceKind}");
+                meta.Add($"{label}={sourceKindLabel}");
             }
-            if (!string.IsNullOrWhiteSpace(sourceId))
+            if (!string.IsNullOrWhiteSpace(sourceIdLabel))
             {
                 var label = TranslateField(type, "detail", "source_id", "source_id");
-                meta.Add($"{label}={sourceId}");
+                meta.Add($"{label}={sourceIdLabel}");
             }
 
             var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
             return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoActionCardPlayed.EventType, StringComparison.Ordinal))
+        {
+            var cardId = TryGetStringLoose(root, "CardId");
+            var effectKind = TryGetStringLoose(root, "EffectKind");
+            var durationRounds = TryGetIntLoose(root, "DurationRounds");
+            var stepDelta = TryGetIntLoose(root, "StepDelta");
+            var cardLabel = ResolveNamedValue(cardLabelById, cardId);
+            var effectKindLabel = TranslateTokenValue(type, "effect_kind", effectKind);
+
+            var parts = new List<string>(6) { prefix };
+            AddSummaryPart(parts, type, "card_id", "card", cardLabel);
+            AddSummaryPart(parts, type, "effect_kind", "effect_kind", effectKindLabel);
+
+            var meta = new List<string>(4);
+            if (durationRounds.HasValue)
+            {
+                var label = TranslateField(type, "detail", "duration_rounds", "duration_rounds");
+                meta.Add($"{label}={durationRounds.Value}");
+            }
+            if (stepDelta.HasValue && stepDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "step_delta", "step_delta");
+                meta.Add($"{label}={FormatSignedInt(stepDelta.Value)}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoCityOwnerChanged.EventType, StringComparison.Ordinal))
+        {
+            var cityId = TryGetStringLoose(root, "CityId");
+            var reason = TryGetStringLoose(root, "ReasonCode");
+            var cityLabel = ResolveNamedValue(tileLabelById, cityId);
+
+            var parts = new List<string>(6) { prefix };
+            AddSummaryPart(parts, type, "city_id", "city", cityLabel);
+
+            var meta = new List<string>(4);
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                var label = TranslateField(type, "detail", "reason_code", "reason");
+                var translatedReason = TranslateReasonToken(type, reason);
+                meta.Add($"{label}={translatedReason}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoCombatStarted.EventType, StringComparison.Ordinal))
+        {
+            var encounterId = TryGetStringLoose(root, "EncounterId");
+            var randomSeed = TryGetIntLoose(root, "RandomSeed");
+
+            var parts = new List<string>(6) { prefix };
+            AddSummaryPart(parts, type, "encounter_id", "encounter", encounterId);
+
+            var meta = new List<string>(4);
+            if (randomSeed.HasValue)
+            {
+                var label = TranslateField(type, "detail", "random_seed", "random_seed");
+                meta.Add($"{label}={randomSeed.Value}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoCombatEnded.EventType, StringComparison.Ordinal))
+        {
+            string? outcome = null;
+            int? moneyDelta = null;
+            if (TryGetPropertyLoose(root, "Result", out var result) && result.ValueKind == JsonValueKind.Object)
+            {
+                outcome = TryGetStringLoose(result, "Outcome");
+                moneyDelta = TryGetIntLoose(result, "MoneyDelta");
+            }
+            var outcomeLabel = TranslateTokenValue(type, "outcome", outcome);
+
+            var parts = new List<string>(6) { prefix };
+            AddSummaryPart(parts, type, "outcome", "outcome", outcomeLabel);
+
+            var meta = new List<string>(4);
+            if (moneyDelta.HasValue && moneyDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "money_delta", "money_delta");
+                meta.Add($"{label}={FormatSignedInt(moneyDelta.Value)}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoGameStarted.EventType, StringComparison.Ordinal))
+        {
+            var mapId = TryGetStringLoose(root, "MapId");
+            var playersCount = TryGetIntLoose(root, "PlayersCount");
+            var mapLabel = ResolveNamedValue(id => $"map.{id}.name", mapId);
+
+            var parts = new List<string>(6) { prefix };
+            AddSummaryPart(parts, type, "map_id", "map", mapLabel);
+            AddSummaryPart(parts, type, "players_count", "players", playersCount);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoGameTurnStarted.EventType, StringComparison.Ordinal))
+        {
+            var turn = TryGetIntLoose(root, "TurnNumber");
+            var year = TryGetIntLoose(root, "Year");
+            var month = TryGetIntLoose(root, "Month");
+            var day = TryGetIntLoose(root, "Day");
+
+            var parts = new List<string>(8) { prefix };
+            AddSummaryPart(parts, type, "turn", "turn", turn);
+            AddSummaryPart(parts, type, "year", "year", year);
+            AddSummaryPart(parts, type, "month", "month", month);
+            AddSummaryPart(parts, type, "day", "day", day);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoGameTurnAdvanced.EventType, StringComparison.Ordinal))
+        {
+            var turn = TryGetIntLoose(root, "TurnNumber");
+            var year = TryGetIntLoose(root, "Year");
+            var month = TryGetIntLoose(root, "Month");
+            var day = TryGetIntLoose(root, "Day");
+
+            var parts = new List<string>(8) { prefix };
+            AddSummaryPart(parts, type, "turn", "turn", turn);
+            AddSummaryPart(parts, type, "year", "year", year);
+            AddSummaryPart(parts, type, "month", "month", month);
+            AddSummaryPart(parts, type, "day", "day", day);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoGameTurnEnded.EventType, StringComparison.Ordinal))
+        {
+            var turn = TryGetIntLoose(root, "TurnNumber");
+            var parts = new List<string>(6) { prefix };
+            AddSummaryPart(parts, type, "turn", "turn", turn);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoGameSaved.EventType, StringComparison.Ordinal))
+        {
+            var saveSlotId = TryGetStringLoose(root, "SaveSlotId");
+            var parts = new List<string>(4) { prefix };
+            AddSummaryPart(parts, type, "save_slot_id", "save_slot", saveSlotId);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoGameLoaded.EventType, StringComparison.Ordinal))
+        {
+            var saveSlotId = TryGetStringLoose(root, "SaveSlotId");
+            var parts = new List<string>(4) { prefix };
+            AddSummaryPart(parts, type, "save_slot_id", "save_slot", saveSlotId);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoPlayerEliminated.EventType, StringComparison.Ordinal))
+        {
+            var reason = TryGetStringLoose(root, "ReasonCode");
+            var moneyAfter = TryGetDecimalLoose(root, "MoneyAfter");
+            var parts = new List<string>(6) { prefix };
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                var label = TranslateField(type, "detail", "reason_code", "reason");
+                var translatedReason = TranslateReasonToken(type, reason);
+                parts.Add($"{label}={translatedReason}");
+            }
+            if (moneyAfter.HasValue)
+            {
+                var label = TranslateField(type, "detail", "money_after", "money_after");
+                parts.Add($"{label}={FormatDecimal(moneyAfter.Value)}");
+            }
+            return string.Join(' ', parts) + multiplierSuffix;
         }
 
         if (string.Equals(type, SanguoRegionCaptured.EventType, StringComparison.Ordinal))
@@ -269,9 +487,10 @@ public static class EventExplainService
             var regionId = TryGetStringLoose(root, "RegionId");
             var ownerId = TryGetStringLoose(root, "OwnerId");
             var reason = TryGetStringLoose(root, "ReasonCode");
+            var regionLabel = ResolveNamedValue(regionLabelById, regionId);
 
             var parts = new List<string>(8) { prefix };
-            AddSummaryPart(parts, type, "region_id", "region", regionId);
+            AddSummaryPart(parts, type, "region_id", "region", regionLabel);
             AddSummaryPart(parts, type, "owner_id", "owner", ownerId);
 
             var meta = new List<string>(4);
@@ -297,9 +516,10 @@ public static class EventExplainService
             var regionId = TryGetStringLoose(root, "RegionId");
             var ownerId = TryGetStringLoose(root, "OwnerId");
             var reason = TryGetStringLoose(root, "ReasonCode");
+            var regionLabel = ResolveNamedValue(regionLabelById, regionId);
 
             var parts = new List<string>(8) { prefix };
-            AddSummaryPart(parts, type, "region_id", "region", regionId);
+            AddSummaryPart(parts, type, "region_id", "region", regionLabel);
             AddSummaryPart(parts, type, "owner_id", "owner", ownerId);
 
             var meta = new List<string>(4);
@@ -310,10 +530,11 @@ public static class EventExplainService
                 meta.Add($"{label}={translatedReason}");
             }
             var triggerCityId = TryGetStringLoose(root, "TriggerCityId");
-            if (!string.IsNullOrWhiteSpace(triggerCityId))
+            var triggerCityLabel = ResolveNamedValue(tileLabelById, triggerCityId);
+            if (!string.IsNullOrWhiteSpace(triggerCityLabel))
             {
                 var label = TranslateField(type, "detail", "trigger_city_id", "trigger_city_id");
-                meta.Add($"{label}={triggerCityId}");
+                meta.Add($"{label}={triggerCityLabel}");
             }
 
             var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
@@ -339,9 +560,10 @@ public static class EventExplainService
             var year = TryGetIntLoose(root, "Year");
             var oldPrice = TryGetDecimalLoose(root, "OldPrice");
             var newPrice = TryGetDecimalLoose(root, "NewPrice");
+            var cityLabel = ResolveNamedValue(tileLabelById, cityId);
 
             var parts = new List<string>(8) { prefix };
-            AddSummaryPart(parts, type, "city_id", "city", cityId);
+            AddSummaryPart(parts, type, "city_id", "city", cityLabel);
             AddSummaryPart(parts, type, "year", "year", year);
             AddSummaryPart(parts, type, "old_price", "old_price", oldPrice);
             AddSummaryPart(parts, type, "new_price", "new_price", newPrice);
@@ -356,12 +578,14 @@ public static class EventExplainService
             var regionId = TryGetStringLoose(root, "RegionId");
             var paidTotal = TryGetDecimalLoose(root, "PaidTotalAmount");
             var paidCities = TryGetIntLoose(root, "PaidCitiesCount");
+            var landingCityLabel = ResolveNamedValue(tileLabelById, landingCityId);
+            var regionLabel = ResolveNamedValue(regionLabelById, regionId);
 
             var parts = new List<string>(10) { prefix };
             AddSummaryPart(parts, type, "payer_id", "payer", payerId);
             AddSummaryPart(parts, type, "owner_id", "owner", ownerId);
-            AddSummaryPart(parts, type, "landing_city_id", "landing_city", landingCityId);
-            AddSummaryPart(parts, type, "region_id", "region", regionId);
+            AddSummaryPart(parts, type, "landing_city_id", "landing_city", landingCityLabel);
+            AddSummaryPart(parts, type, "region_id", "region", regionLabel);
             AddSummaryPart(parts, type, "paid_total_amount", "paid_total", paidTotal);
             AddSummaryPart(parts, type, "paid_cities_count", "cities", paidCities);
             return string.Join(' ', parts);
@@ -380,9 +604,10 @@ public static class EventExplainService
         if (TryGetPropertyLoose(root, "CityId", out var cityIdProp))
         {
             var city = cityIdProp.ValueKind == JsonValueKind.String ? (cityIdProp.GetString() ?? string.Empty) : cityIdProp.ToString();
+            var cityLabel = ResolveNamedValue(tileLabelById, city);
             var parts = new List<string>(6) { prefix };
             AddSummaryPart(parts, type, "player_id", "player", playerIdFallback);
-            AddSummaryPart(parts, type, "city_id", "city", city);
+            AddSummaryPart(parts, type, "city_id", "city", cityLabel);
             if (TryGetPropertyLoose(root, "Price", out var price) && price.ValueKind == JsonValueKind.Number)
             {
                 AddSummaryPart(parts, type, "price", "price", price.ToString());
@@ -399,6 +624,11 @@ public static class EventExplainService
         string type,
         JsonElement root,
         Func<int, string?>? tileLabelByIndex,
+        Func<string, string?>? tileLabelById,
+        Func<string, string?>? regionLabelById,
+        Func<string, string?>? cardLabelById,
+        Func<string, string?>? relicLabelById,
+        Func<string, string?>? eventLabelById,
         string source,
         string eventId,
         string timestampIso,
@@ -406,13 +636,10 @@ public static class EventExplainService
         string? causationId)
     {
         var sb = new StringBuilder(512);
-        sb.AppendLine($"type: {type}");
-        sb.AppendLine($"source: {source}");
-        sb.AppendLine($"id: {eventId}");
-        sb.AppendLine($"ts: {timestampIso}");
-
-        if (!string.IsNullOrWhiteSpace(correlationId)) sb.AppendLine($"correlation_id: {correlationId}");
-        if (!string.IsNullOrWhiteSpace(causationId)) sb.AppendLine($"causation_id: {causationId}");
+        var typeLabel = TranslateMetaLabel("type", "type");
+        sb.AppendLine($"{typeLabel}: {BuildSummaryPrefix(type)}");
+        var tsLabel = TranslateMetaLabel("ts", "time");
+        sb.AppendLine($"{tsLabel}: {timestampIso}");
 
         var deltas = new List<string>(8);
         var facts = new List<string>(32);
@@ -423,7 +650,7 @@ public static class EventExplainService
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "TurnNumber", "turn");
-            AddFact(facts, type, root, "CityId", "city_id");
+            AddFact(facts, type, root, "CityId", "city_id", tileLabelById);
             AddFact(facts, type, root, "PayerId", "payer_id");
             AddFact(facts, type, root, "OwnerId", "owner_id");
 
@@ -508,7 +735,8 @@ public static class EventExplainService
             {
                 if (from.HasValue)
                 {
-                    var label = tileLabelByIndex(from.Value);
+                    var labelKey = tileLabelByIndex(from.Value);
+                    var label = ResolveNameKeyValue(labelKey);
                     if (!string.IsNullOrWhiteSpace(label))
                     {
                         var k = TranslateField(type, "detail", "from_tile", "from_tile");
@@ -517,7 +745,8 @@ public static class EventExplainService
                 }
                 if (to.HasValue)
                 {
-                    var label = tileLabelByIndex(to.Value);
+                    var labelKey = tileLabelByIndex(to.Value);
+                    var label = ResolveNameKeyValue(labelKey);
                     if (!string.IsNullOrWhiteSpace(label))
                     {
                         var k = TranslateField(type, "detail", "to_tile", "to_tile");
@@ -529,16 +758,16 @@ public static class EventExplainService
         else if (string.Equals(type, SanguoGameEnded.EventType, StringComparison.Ordinal))
         {
             AddFact(facts, type, root, "GameId", "game_id");
-            AddFact(facts, type, root, "EndReason", "end_reason");
+            AddFact(facts, type, root, "EndReason", "end_reason", tokenCategory: "end_reason");
             AddFact(facts, type, root, "WinnerPlayerId", "winner_player_id");
         }
         else if (string.Equals(type, SanguoRandomEventApplied.EventType, StringComparison.Ordinal))
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "PlayerId", "player_id");
-            AddFact(facts, type, root, "EventId", "event_id");
-            AddFact(facts, type, root, "PickedId", "picked_id");
-            AddFact(facts, type, root, "EffectKind", "effect_kind");
+            AddFact(facts, type, root, "EventId", "event_id", eventLabelById);
+            AddFact(facts, type, root, "PickedId", "picked_id", eventLabelById);
+            AddFact(facts, type, root, "EffectKind", "effect_kind", tokenCategory: "effect_kind");
             AddFact(facts, type, root, "EncounterId", "encounter_id");
             AddFact(facts, type, root, "EncounterTarget", "encounter_target");
             AddFact(facts, type, root, "UiMessage", "prompt_message");
@@ -583,11 +812,11 @@ public static class EventExplainService
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "PlayerId", "player_id");
-            AddFact(facts, type, root, "LootKind", "loot_kind");
-            AddFact(facts, type, root, "CardId", "card_id");
-            AddFact(facts, type, root, "RelicId", "relic_id");
-            AddFact(facts, type, root, "SourceKind", "source_kind");
-            AddFact(facts, type, root, "SourceId", "source_id");
+            AddFact(facts, type, root, "LootKind", "loot_kind", tokenCategory: "loot_kind");
+            AddFact(facts, type, root, "CardId", "card_id", cardLabelById);
+            AddFact(facts, type, root, "RelicId", "relic_id", relicLabelById);
+            AddFact(facts, type, root, "SourceKind", "source_kind", tokenCategory: "source_kind");
+            AddSourceIdFact(facts, type, root, "SourceId", "source_id", cardLabelById, relicLabelById, eventLabelById);
 
             var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
             if (moneyDelta.HasValue && moneyDelta.Value != 0)
@@ -600,8 +829,8 @@ public static class EventExplainService
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "PlayerId", "player_id");
-            AddFact(facts, type, root, "RelicId", "relic_id");
-            AddFact(facts, type, root, "EffectKind", "effect_kind");
+            AddFact(facts, type, root, "RelicId", "relic_id", relicLabelById);
+            AddFact(facts, type, root, "EffectKind", "effect_kind", tokenCategory: "effect_kind");
 
             var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
             if (moneyDelta.HasValue && moneyDelta.Value != 0)
@@ -620,15 +849,145 @@ public static class EventExplainService
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "PlayerId", "player_id");
-            AddFact(facts, type, root, "CardId", "card_id");
+            AddFact(facts, type, root, "CardId", "card_id", cardLabelById);
             AddFact(facts, type, root, "ReasonCode", "reason_code");
-            AddFact(facts, type, root, "SourceKind", "source_kind");
-            AddFact(facts, type, root, "SourceId", "source_id");
+            AddFact(facts, type, root, "SourceKind", "source_kind", tokenCategory: "source_kind");
+            AddSourceIdFact(facts, type, root, "SourceId", "source_id", cardLabelById, relicLabelById, eventLabelById);
+        }
+        else if (string.Equals(type, SanguoActionCardPlayed.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "PlayerId", "player_id");
+            AddFact(facts, type, root, "CardId", "card_id", cardLabelById);
+            AddFact(facts, type, root, "EffectKind", "effect_kind", tokenCategory: "effect_kind");
+            AddFact(facts, type, root, "DurationRounds", "duration_rounds");
+
+            var stepDelta = TryGetIntLoose(root, "StepDelta");
+            if (stepDelta.HasValue && stepDelta.Value != 0)
+            {
+                var label = TranslateField(type, "delta", "step_delta", "step_delta");
+                deltas.Add($"{label}: {FormatSignedInt(stepDelta.Value)}");
+            }
+
+            if (TryGetPropertyLoose(root, "AppliedMultipliersAfter", out var after) && after.ValueKind == JsonValueKind.Object)
+            {
+                var prefix = TranslateField(type, "detail", "applied_multipliers_after", "applied_multipliers_after");
+                AddAppliedMultipliersFactsFromElement(additive, multiplicative, type, after, prefix);
+            }
+        }
+        else if (string.Equals(type, SanguoCityOwnerChanged.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "TurnNumber", "turn");
+            AddFact(facts, type, root, "CityId", "city_id", tileLabelById);
+            AddFact(facts, type, root, "OldOwnerId", "old_owner_id");
+            AddFact(facts, type, root, "NewOwnerId", "new_owner_id");
+            AddFact(facts, type, root, "ReasonCode", "reason_code");
+        }
+        else if (string.Equals(type, SanguoCombatStarted.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "PlayerId", "player_id");
+            AddFact(facts, type, root, "EncounterId", "encounter_id");
+            AddFact(facts, type, root, "RandomSeed", "random_seed");
+        }
+        else if (string.Equals(type, SanguoCombatEnded.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "PlayerId", "player_id");
+            AddFact(facts, type, root, "EncounterId", "encounter_id");
+
+            if (TryGetPropertyLoose(root, "Result", out var result) && result.ValueKind == JsonValueKind.Object)
+            {
+                var outcome = TryGetStringLoose(result, "Outcome");
+                if (!string.IsNullOrWhiteSpace(outcome))
+                {
+                    var label = TranslateField(type, "detail", "outcome", "outcome");
+                    var translatedOutcome = TranslateTokenValue(type, "outcome", outcome);
+                    facts.Add($"{label}: {translatedOutcome}");
+                }
+
+                var moneyDelta = TryGetIntLoose(result, "MoneyDelta");
+                if (moneyDelta.HasValue && moneyDelta.Value != 0)
+                {
+                    var label = TranslateField(type, "delta", "money_delta", "money_delta");
+                    deltas.Add($"{label}: {FormatSignedInt(moneyDelta.Value)}");
+                }
+
+                var encounterTarget = TryGetIntLoose(result, "EncounterTarget");
+                if (encounterTarget.HasValue)
+                {
+                    var label = TranslateField(type, "detail", "encounter_target", "encounter_target");
+                    facts.Add($"{label}: {encounterTarget.Value}");
+                }
+
+                var effectiveCombatRating = TryGetIntLoose(result, "EffectiveCombatRating");
+                if (effectiveCombatRating.HasValue)
+                {
+                    var label = TranslateField(type, "detail", "effective_combat_rating", "effective_combat_rating");
+                    facts.Add($"{label}: {effectiveCombatRating.Value}");
+                }
+            }
+        }
+        else if (string.Equals(type, SanguoGameStarted.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "MapId", "map_id", id => $"map.{id}.name");
+            AddFact(facts, type, root, "PlayersCount", "players_count");
+            AddFact(facts, type, root, "StartingMoneyPreset", "starting_money_preset");
+            AddFact(facts, type, root, "GlobalEventIntervalTurns", "global_event_interval_turns");
+            AddFact(facts, type, root, "RandomSeed", "random_seed");
+        }
+        else if (string.Equals(type, SanguoGameTurnStarted.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "TurnNumber", "turn");
+            AddFact(facts, type, root, "ActivePlayerId", "active_player_id");
+            AddFact(facts, type, root, "Year", "year");
+            AddFact(facts, type, root, "Month", "month");
+            AddFact(facts, type, root, "Day", "day");
+        }
+        else if (string.Equals(type, SanguoGameTurnAdvanced.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "TurnNumber", "turn");
+            AddFact(facts, type, root, "ActivePlayerId", "active_player_id");
+            AddFact(facts, type, root, "Year", "year");
+            AddFact(facts, type, root, "Month", "month");
+            AddFact(facts, type, root, "Day", "day");
+        }
+        else if (string.Equals(type, SanguoGameTurnEnded.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "TurnNumber", "turn");
+            AddFact(facts, type, root, "ActivePlayerId", "active_player_id");
+            AddFact(facts, type, root, "Year", "year");
+            AddFact(facts, type, root, "Month", "month");
+            AddFact(facts, type, root, "Day", "day");
+        }
+        else if (string.Equals(type, SanguoGameSaved.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "SaveSlotId", "save_slot_id");
+        }
+        else if (string.Equals(type, SanguoGameLoaded.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "SaveSlotId", "save_slot_id");
+        }
+        else if (string.Equals(type, SanguoPlayerEliminated.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "TurnNumber", "turn");
+            AddFact(facts, type, root, "PlayerId", "player_id");
+            AddFact(facts, type, root, "ReasonCode", "reason_code");
+            AddFact(facts, type, root, "MoneyBefore", "money_before");
+            AddFact(facts, type, root, "MoneyAfter", "money_after");
         }
         else if (string.Equals(type, SanguoRegionCaptured.EventType, StringComparison.Ordinal))
         {
             AddFact(facts, type, root, "GameId", "game_id");
-            AddFact(facts, type, root, "RegionId", "region_id");
+            AddFact(facts, type, root, "RegionId", "region_id", regionLabelById);
             AddFact(facts, type, root, "OwnerId", "owner_id");
             AddFact(facts, type, root, "ReasonCode", "reason_code");
 
@@ -641,10 +1000,10 @@ public static class EventExplainService
         else if (string.Equals(type, SanguoRegionLost.EventType, StringComparison.Ordinal))
         {
             AddFact(facts, type, root, "GameId", "game_id");
-            AddFact(facts, type, root, "RegionId", "region_id");
+            AddFact(facts, type, root, "RegionId", "region_id", regionLabelById);
             AddFact(facts, type, root, "OwnerId", "owner_id");
             AddFact(facts, type, root, "ReasonCode", "reason_code");
-            AddFact(facts, type, root, "TriggerCityId", "trigger_city_id");
+            AddFact(facts, type, root, "TriggerCityId", "trigger_city_id", tileLabelById);
         }
         else if (string.Equals(type, SanguoSeasonEventApplied.EventType, StringComparison.Ordinal))
         {
@@ -667,7 +1026,7 @@ public static class EventExplainService
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "TurnNumber", "turn");
             AddFact(facts, type, root, "Year", "year");
-            AddFact(facts, type, root, "CityId", "city_id");
+            AddFact(facts, type, root, "CityId", "city_id", tileLabelById);
             AddFact(facts, type, root, "OldPrice", "old_price");
             AddFact(facts, type, root, "NewPrice", "new_price");
 
@@ -679,8 +1038,8 @@ public static class EventExplainService
             AddFact(facts, type, root, "TurnNumber", "turn");
             AddFact(facts, type, root, "PayerId", "payer_id");
             AddFact(facts, type, root, "OwnerId", "owner_id");
-            AddFact(facts, type, root, "LandingCityId", "landing_city_id");
-            AddFact(facts, type, root, "RegionId", "region_id");
+            AddFact(facts, type, root, "LandingCityId", "landing_city_id", tileLabelById);
+            AddFact(facts, type, root, "RegionId", "region_id", regionLabelById);
             AddFact(facts, type, root, "ExpectedTotalAmount", "expected_total_amount");
             AddFact(facts, type, root, "PaidTotalAmount", "paid_total_amount");
             AddFact(facts, type, root, "ExpectedCitiesCount", "expected_cities_count");
@@ -693,14 +1052,15 @@ public static class EventExplainService
                 {
                     idx++;
                     var cityId = TryGetStringLoose(item, "CityId") ?? $"item_{idx}";
+                    var cityLabel = ResolveNamedValue(tileLabelById, cityId);
                     var amount = TryGetDecimalLoose(item, "Amount");
                     if (amount.HasValue)
                     {
                         var label = TranslateField(type, "detail", "breakdown_amount", "breakdown_amount");
-                        facts.Add($"{label}[{cityId}]: {FormatDecimal(amount.Value)}");
+                        facts.Add($"{label}[{cityLabel}]: {FormatDecimal(amount.Value)}");
                     }
 
-                    AddAppliedMultipliersFacts(additive, multiplicative, type, item, $"breakdown[{cityId}]");
+                    AddAppliedMultipliersFacts(additive, multiplicative, type, item, $"breakdown[{cityLabel}]");
                 }
             }
         }
@@ -715,15 +1075,22 @@ public static class EventExplainService
             AddAppliedMultipliersFacts(additive, multiplicative, type, root);
         }
 
-        AppendSection(sb, "deltas", deltas);
-        AppendSection(sb, "facts", facts);
+        AppendSection(sb, TranslateField(type, "detail", "deltas", "deltas"), deltas);
+        AppendSection(sb, TranslateField(type, "detail", "facts", "facts"), facts);
         AppendSection(sb, TranslateField(type, "detail", "mult.additive", "additive"), additive);
         AppendSection(sb, TranslateField(type, "detail", "mult.multiplicative", "multiplicative"), multiplicative);
 
         return sb.ToString().TrimEnd();
     }
 
-    private static void AddFact(List<string> facts, string eventType, JsonElement root, string propertyName, string factKey)
+    private static void AddFact(
+        List<string> facts,
+        string eventType,
+        JsonElement root,
+        string propertyName,
+        string factKey,
+        Func<string, string?>? nameKeyResolver = null,
+        string? tokenCategory = null)
     {
         if (!TryGetPropertyLoose(root, propertyName, out var el))
         {
@@ -741,6 +1108,16 @@ public static class EventExplainService
                     {
                         var reason = TranslateReasonToken(eventType, s);
                         facts.Add($"{label}: {reason}");
+                    }
+                    else if (!string.IsNullOrWhiteSpace(tokenCategory))
+                    {
+                        var token = TranslateTokenValue(eventType, tokenCategory, s);
+                        facts.Add($"{label}: {token}");
+                    }
+                    else if (nameKeyResolver != null)
+                    {
+                        var namedValue = ResolveNamedValue(nameKeyResolver, s);
+                        facts.Add($"{label}: {namedValue}");
                     }
                     else
                     {
@@ -842,6 +1219,171 @@ public static class EventExplainService
         }
 
         return fallback;
+    }
+
+    private static string TranslateMetaLabel(string key, string fallback)
+    {
+        var text = TryTranslate($"ui.hud.event.shared.detail.meta.{key}");
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            return text!;
+        }
+
+        return fallback;
+    }
+
+    private static string ResolveNameKeyValue(string? nameKey)
+    {
+        if (string.IsNullOrWhiteSpace(nameKey))
+        {
+            return string.Empty;
+        }
+
+        var translated = TryTranslate(nameKey);
+        if (!string.IsNullOrWhiteSpace(translated))
+        {
+            return translated!;
+        }
+
+        return TranslateOrFallback("ui.hud.event.shared.detail.unknown", "unknown");
+    }
+
+    private static string ResolveNamedValue(Func<string, string?>? resolver, string? id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return string.Empty;
+        }
+
+        if (resolver != null)
+        {
+            var key = resolver(id);
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                var translated = TryTranslate(key);
+                if (!string.IsNullOrWhiteSpace(translated))
+                {
+                    return translated!;
+                }
+            }
+        }
+
+        return TranslateOrFallback("ui.hud.event.shared.detail.unknown", "unknown");
+    }
+
+    private static string TranslateTokenValue(string eventType, string category, string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return string.Empty;
+        }
+
+        var normalized = NormalizeTokenKey(token);
+        var specificKey = $"ui.hud.event.{eventType}.detail.{category}.{normalized}";
+        var specific = TryTranslate(specificKey);
+        if (!string.IsNullOrWhiteSpace(specific))
+        {
+            return specific!;
+        }
+
+        var sharedKey = $"ui.hud.event.shared.detail.{category}.{normalized}";
+        var shared = TryTranslate(sharedKey);
+        if (!string.IsNullOrWhiteSpace(shared))
+        {
+            return shared!;
+        }
+
+        return TranslateOrFallback("ui.hud.event.shared.detail.unknown", "unknown");
+    }
+
+    private static string NormalizeTokenKey(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return string.Empty;
+        }
+
+        var sb = new StringBuilder(token.Length * 2);
+        foreach (var ch in token.Trim())
+        {
+            if (ch == '-' || ch == ' ')
+            {
+                if (sb.Length > 0 && sb[^1] != '_')
+                {
+                    sb.Append('_');
+                }
+                continue;
+            }
+
+            if (char.IsUpper(ch))
+            {
+                if (sb.Length > 0 && sb[^1] != '_')
+                {
+                    sb.Append('_');
+                }
+                sb.Append(char.ToLowerInvariant(ch));
+                continue;
+            }
+
+            sb.Append(char.ToLowerInvariant(ch));
+        }
+
+        return sb.ToString();
+    }
+
+    private static string ResolveSourceIdValue(
+        string? sourceKind,
+        string? sourceId,
+        Func<string, string?>? cardLabelById,
+        Func<string, string?>? relicLabelById,
+        Func<string, string?>? eventLabelById)
+    {
+        if (string.IsNullOrWhiteSpace(sourceId))
+        {
+            return string.Empty;
+        }
+
+        var normalized = NormalizeTokenKey(sourceKind ?? string.Empty);
+        return normalized switch
+        {
+            "action_card" => ResolveNamedValue(cardLabelById, sourceId),
+            "relic" => ResolveNamedValue(relicLabelById, sourceId),
+            "event" => ResolveNamedValue(eventLabelById, sourceId),
+            "event_tile" => ResolveNamedValue(eventLabelById, sourceId),
+            _ => TranslateOrFallback("ui.hud.event.shared.detail.unknown", "unknown"),
+        };
+    }
+
+    private static void AddSourceIdFact(
+        List<string> facts,
+        string eventType,
+        JsonElement root,
+        string propertyName,
+        string factKey,
+        Func<string, string?>? cardLabelById,
+        Func<string, string?>? relicLabelById,
+        Func<string, string?>? eventLabelById)
+    {
+        if (!TryGetPropertyLoose(root, propertyName, out var el) || el.ValueKind != JsonValueKind.String)
+        {
+            return;
+        }
+
+        var sourceId = el.GetString();
+        if (string.IsNullOrWhiteSpace(sourceId))
+        {
+            return;
+        }
+
+        var sourceKind = TryGetStringLoose(root, "SourceKind");
+        var resolved = ResolveSourceIdValue(sourceKind, sourceId, cardLabelById, relicLabelById, eventLabelById);
+        if (string.IsNullOrWhiteSpace(resolved))
+        {
+            return;
+        }
+
+        var label = TranslateField(eventType, "detail", factKey, factKey);
+        facts.Add($"{label}: {resolved}");
     }
 
     private static void AddSummaryPart(List<string> parts, string eventType, string fieldKey, string fallback, string? value)

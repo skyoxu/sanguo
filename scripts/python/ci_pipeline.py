@@ -114,6 +114,7 @@ def main():
         'dotnet': {},
         'selfcheck': {},
         'encoding': {},
+        'i18n_keys': {},
         'gd_tests': {},
         'status': 'ok'
     }
@@ -241,6 +242,24 @@ def main():
             hard_fail = True
     except Exception as exc:
         summary['text_integrity'] = {'rc': 1, 'error': str(exc)}
+        hard_fail = True
+
+    # 4) i18n keys alignment (hard gate)
+    try:
+        rc_i18n, out_i18n = run_cmd(
+            ['py', '-3', 'scripts/python/validate_i18n_keys.py'],
+            cwd=root,
+        )
+        summary['i18n_keys'] = {
+            'rc': rc_i18n,
+            'note': 'see logs/ci/<date>/i18n-keys-validate.json',
+        }
+        with io.open(os.path.join('logs', 'ci', date, 'i18n-keys-stdout.txt'), 'w', encoding='utf-8') as f:
+            f.write(out_i18n)
+        if rc_i18n != 0:
+            hard_fail = True
+    except Exception as exc:
+        summary['i18n_keys'] = {'rc': 1, 'error': str(exc)}
         hard_fail = True
 
     # 5) GdUnit test naming/encoding (hard gate, changed files only)

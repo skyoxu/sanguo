@@ -35,3 +35,15 @@ func _hud() -> Node:
 	_tracked_nodes.append(hud)
 	await get_tree().process_frame
 	return hud
+
+func _set_locale(locale: String) -> String:
+	var original := ""
+	if TranslationServer.has_method("get_locale"):
+		original = String(TranslationServer.get_locale())
+	if TranslationServer.has_method("set_locale") and locale.strip_edges().length() > 0:
+		TranslationServer.set_locale(locale)
+	return original
+
+func _restore_locale(original: String) -> void:
+	if TranslationServer.has_method("set_locale") and original.strip_edges().length() > 0:
+		TranslationServer.set_locale(original)

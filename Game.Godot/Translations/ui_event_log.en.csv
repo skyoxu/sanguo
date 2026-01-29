@@ -171,3 +171,168 @@ ui.hud.event.shared.detail.reason_code.replaced,Replaced
 ui.hud.event.shared.detail.reason_code.captured,Captured
 ui.hud.event.shared.detail.reason_code.lost_last_city,Lost last city
 ui.hud.event.shared.detail.reason_code.owner_changed,Owner changed
+ui.hud.event.shared.detail.meta.type,Type
+ui.hud.event.shared.detail.meta.ts,Time
+ui.hud.event.shared.detail.unknown,Unknown
+ui.hud.event.shared.detail.deltas,Deltas
+ui.hud.event.shared.detail.facts,Facts
+ui.hud.event.shared.delta.money_delta,Money delta
+ui.hud.event.shared.delta.step_delta,Step delta
+ui.hud.event.shared.delta.treasury_delta,Treasury delta
+ui.hud.event.shared.detail.game_id,Game
+ui.hud.event.shared.detail.turn,Turn
+ui.hud.event.shared.detail.round,Round
+ui.hud.event.shared.detail.active_player_id,Active player
+ui.hud.event.shared.detail.owner_id,Owner
+ui.hud.event.shared.detail.payer_id,Payer
+ui.hud.event.shared.detail.winner_player_id,Winner player
+ui.hud.event.shared.detail.source_kind,Source kind
+ui.hud.event.shared.detail.source_id,Source id
+ui.hud.event.shared.detail.loot_kind,Loot kind
+ui.hud.event.shared.detail.effect_kind,Effect kind
+ui.hud.event.shared.detail.end_reason,End reason
+ui.hud.event.shared.detail.reason_code,Reason
+ui.hud.event.shared.detail.effect_kind.money_delta,Money delta
+ui.hud.event.shared.detail.effect_kind.economy_step_delta,Economy step delta
+ui.hud.event.shared.detail.effect_kind.transfer_ownership,Transfer ownership
+ui.hud.event.shared.detail.effect_kind.fixed_dice,Fixed dice
+ui.hud.event.shared.detail.effect_kind.skip_next_turn,Skip next turn
+ui.hud.event.shared.detail.effect_kind.teleport,Teleport
+ui.hud.event.shared.detail.effect_kind.pending_steal,Pending steal
+ui.hud.event.shared.detail.effect_kind.start_combat,Start combat
+ui.hud.event.shared.detail.loot_kind.money,Money
+ui.hud.event.shared.detail.loot_kind.card,Card
+ui.hud.event.shared.detail.loot_kind.relic,Relic
+ui.hud.event.shared.detail.source_kind.action_card,Action card
+ui.hud.event.shared.detail.source_kind.event,Event
+ui.hud.event.shared.detail.source_kind.event_tile,Tile event
+ui.hud.event.shared.detail.source_kind.facility_tile,Facility tile
+ui.hud.event.shared.detail.source_kind.combat,Combat
+ui.hud.event.shared.detail.source_kind.tile,Tile
+ui.hud.event.shared.detail.end_reason.no_players,No players
+ui.hud.event.shared.detail.end_reason.player_bankrupt,Player bankrupt
+ui.hud.event.shared.detail.end_reason.last_actor_standing,Last actor standing
+ui.hud.event.shared.detail.reason_code.bought,Bought
+ui.hud.event.shared.detail.reason_code.released,Released
+ui.hud.event.shared.detail.reason_code.already_played_this_turn,Already played this turn
+ui.hud.event.shared.detail.reason_code.not_before_roll,Not before roll
+ui.hud.event.shared.detail.reason_code.catalog_missing,Catalog missing
+ui.hud.event.shared.detail.reason_code.unknown_card_id,Unknown card id
+ui.hud.event.shared.detail.reason_code.invalid_card_effect_kind,Invalid card effect kind
+ui.hud.event.shared.detail.reason_code.invalid_target,Invalid target
+ui.hud.event.shared.detail.reason_code.bankrupt,Bankrupt
+ui.hud.event.core.sanguo.action_card.played.title,Action Card Played
+ui.hud.event.core.sanguo.action_card.played.summary,Action Card Played
+ui.hud.event.core.sanguo.city.owner.changed.title,City Ownership Changed
+ui.hud.event.core.sanguo.city.owner.changed.summary,City Ownership Changed
+ui.hud.event.core.sanguo.combat.started.title,Combat Started
+ui.hud.event.core.sanguo.combat.started.summary,Combat Started
+ui.hud.event.core.sanguo.combat.ended.title,Combat Ended
+ui.hud.event.core.sanguo.combat.ended.summary,Combat Ended
+ui.hud.event.core.sanguo.game.loaded.title,Game Loaded
+ui.hud.event.core.sanguo.game.loaded.summary,Game Loaded
+ui.hud.event.core.sanguo.game.saved.title,Game Saved
+ui.hud.event.core.sanguo.game.saved.summary,Game Saved
+ui.hud.event.core.sanguo.game.started.title,Game Started
+ui.hud.event.core.sanguo.game.started.summary,Game Started
+ui.hud.event.core.sanguo.game.turn.advanced.title,Turn Advanced
+ui.hud.event.core.sanguo.game.turn.advanced.summary,Turn Advanced
+ui.hud.event.core.sanguo.game.turn.ended.title,Turn Ended
+ui.hud.event.core.sanguo.game.turn.ended.summary,Turn Ended
+ui.hud.event.core.sanguo.game.turn.started.title,Turn Started
+ui.hud.event.core.sanguo.game.turn.started.summary,Turn Started
+ui.hud.event.core.sanguo.player.eliminated.title,Player Eliminated
+ui.hud.event.core.sanguo.player.eliminated.summary,Player Eliminated
+ui.hud.event.core.sanguo.action_card.played.detail.game_id,Game
+ui.hud.event.core.sanguo.action_card.played.detail.turn,Turn
+ui.hud.event.core.sanguo.action_card.played.detail.round,Round
+ui.hud.event.core.sanguo.action_card.played.detail.player_id,Player
+ui.hud.event.core.sanguo.action_card.played.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.city.owner.changed.detail.game_id,Game
+ui.hud.event.core.sanguo.city.owner.changed.detail.turn,Turn
+ui.hud.event.core.sanguo.city.owner.changed.detail.round,Round
+ui.hud.event.core.sanguo.city.owner.changed.detail.player_id,Player
+ui.hud.event.core.sanguo.city.owner.changed.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.combat.started.detail.game_id,Game
+ui.hud.event.core.sanguo.combat.started.detail.turn,Turn
+ui.hud.event.core.sanguo.combat.started.detail.round,Round
+ui.hud.event.core.sanguo.combat.started.detail.player_id,Player
+ui.hud.event.core.sanguo.combat.started.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.combat.ended.detail.game_id,Game
+ui.hud.event.core.sanguo.combat.ended.detail.turn,Turn
+ui.hud.event.core.sanguo.combat.ended.detail.round,Round
+ui.hud.event.core.sanguo.combat.ended.detail.player_id,Player
+ui.hud.event.core.sanguo.combat.ended.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.game.started.detail.game_id,Game
+ui.hud.event.core.sanguo.game.started.detail.turn,Turn
+ui.hud.event.core.sanguo.game.started.detail.round,Round
+ui.hud.event.core.sanguo.game.started.detail.player_id,Player
+ui.hud.event.core.sanguo.game.started.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.game.turn.started.detail.game_id,Game
+ui.hud.event.core.sanguo.game.turn.started.detail.turn,Turn
+ui.hud.event.core.sanguo.game.turn.started.detail.round,Round
+ui.hud.event.core.sanguo.game.turn.started.detail.player_id,Player
+ui.hud.event.core.sanguo.game.turn.started.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.game.turn.advanced.detail.game_id,Game
+ui.hud.event.core.sanguo.game.turn.advanced.detail.turn,Turn
+ui.hud.event.core.sanguo.game.turn.advanced.detail.round,Round
+ui.hud.event.core.sanguo.game.turn.advanced.detail.player_id,Player
+ui.hud.event.core.sanguo.game.turn.advanced.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.game.turn.ended.detail.game_id,Game
+ui.hud.event.core.sanguo.game.turn.ended.detail.turn,Turn
+ui.hud.event.core.sanguo.game.turn.ended.detail.round,Round
+ui.hud.event.core.sanguo.game.turn.ended.detail.player_id,Player
+ui.hud.event.core.sanguo.game.turn.ended.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.game.saved.detail.game_id,Game
+ui.hud.event.core.sanguo.game.saved.detail.turn,Turn
+ui.hud.event.core.sanguo.game.saved.detail.round,Round
+ui.hud.event.core.sanguo.game.saved.detail.player_id,Player
+ui.hud.event.core.sanguo.game.saved.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.game.loaded.detail.game_id,Game
+ui.hud.event.core.sanguo.game.loaded.detail.turn,Turn
+ui.hud.event.core.sanguo.game.loaded.detail.round,Round
+ui.hud.event.core.sanguo.game.loaded.detail.player_id,Player
+ui.hud.event.core.sanguo.game.loaded.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.player.eliminated.detail.game_id,Game
+ui.hud.event.core.sanguo.player.eliminated.detail.turn,Turn
+ui.hud.event.core.sanguo.player.eliminated.detail.round,Round
+ui.hud.event.core.sanguo.player.eliminated.detail.player_id,Player
+ui.hud.event.core.sanguo.player.eliminated.detail.active_player_id,Active Player
+ui.hud.event.core.sanguo.action_card.played.detail.card_id,Card
+ui.hud.event.core.sanguo.action_card.played.detail.effect_kind,Effect kind
+ui.hud.event.core.sanguo.action_card.played.detail.step_delta,Step delta
+ui.hud.event.core.sanguo.action_card.played.detail.duration_rounds,Duration rounds
+ui.hud.event.core.sanguo.action_card.played.detail.applied_multipliers_after,Applied multipliers
+ui.hud.event.core.sanguo.city.owner.changed.detail.city_id,City
+ui.hud.event.core.sanguo.city.owner.changed.detail.old_owner_id,Previous owner
+ui.hud.event.core.sanguo.city.owner.changed.detail.new_owner_id,New owner
+ui.hud.event.core.sanguo.city.owner.changed.detail.reason_code,Reason
+ui.hud.event.core.sanguo.combat.started.detail.encounter_id,Encounter
+ui.hud.event.core.sanguo.combat.started.detail.random_seed,Random seed
+ui.hud.event.core.sanguo.combat.ended.detail.encounter_id,Encounter
+ui.hud.event.core.sanguo.combat.ended.detail.outcome,Outcome
+ui.hud.event.core.sanguo.combat.ended.detail.money_delta,Money delta
+ui.hud.event.core.sanguo.combat.ended.detail.encounter_target,Encounter target
+ui.hud.event.core.sanguo.combat.ended.detail.effective_combat_rating,Effective combat rating
+ui.hud.event.core.sanguo.game.started.detail.map_id,Map
+ui.hud.event.core.sanguo.game.started.detail.players_count,Players
+ui.hud.event.core.sanguo.game.started.detail.starting_money_preset,Starting money preset
+ui.hud.event.core.sanguo.game.started.detail.global_event_interval_turns,Global event interval
+ui.hud.event.core.sanguo.game.started.detail.random_seed,Random seed
+ui.hud.event.core.sanguo.game.turn.started.detail.year,Year
+ui.hud.event.core.sanguo.game.turn.started.detail.month,Month
+ui.hud.event.core.sanguo.game.turn.started.detail.day,Day
+ui.hud.event.core.sanguo.game.turn.advanced.detail.year,Year
+ui.hud.event.core.sanguo.game.turn.advanced.detail.month,Month
+ui.hud.event.core.sanguo.game.turn.advanced.detail.day,Day
+ui.hud.event.core.sanguo.game.turn.ended.detail.year,Year
+ui.hud.event.core.sanguo.game.turn.ended.detail.month,Month
+ui.hud.event.core.sanguo.game.turn.ended.detail.day,Day
+ui.hud.event.core.sanguo.game.saved.detail.save_slot_id,Save slot
+ui.hud.event.core.sanguo.game.loaded.detail.save_slot_id,Save slot
+ui.hud.event.core.sanguo.player.eliminated.detail.reason_code,Reason
+ui.hud.event.core.sanguo.player.eliminated.detail.money_before,Money before
+ui.hud.event.core.sanguo.player.eliminated.detail.money_after,Money after
+ui.hud.event.shared.detail.outcome.win,Win
+ui.hud.event.shared.detail.outcome.lose,Lose
+ui.hud.event.shared.detail.outcome.draw,Draw

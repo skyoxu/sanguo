@@ -68,9 +68,10 @@ func _publish_year_price_adjusted(data_json: String) -> void:
 # ACC:T51.5
 # Money-related economy events must be visible in the HUD event log with applied multiplier context.
 func test_task51_event_log_includes_year_price_adjusted_details() -> void:
+	var original_locale := _set_locale("zh")
 	var hud = await _hud()
 
-	_publish_year_price_adjusted("{\"GameId\":\"g1\",\"TurnNumber\":10,\"Year\":3,\"CityId\":\"c9\",\"OldPrice\":100,\"NewPrice\":130,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":0}}")
+	_publish_year_price_adjusted("{\"GameId\":\"g1\",\"TurnNumber\":10,\"Year\":3,\"CityId\":\"tile_01\",\"OldPrice\":100,\"NewPrice\":130,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":0}}")
 	await get_tree().process_frame
 
 	assert_str(_last_data_json).contains("AppliedMultipliers")
@@ -91,11 +92,15 @@ func test_task51_event_log_includes_year_price_adjusted_details() -> void:
 	var additive_label = _translate_field(EVENT_TYPE_YEAR_PRICE_ADJUSTED, "detail", "mult.additive", "additive")
 	var multiplicative_label = _translate_field(EVENT_TYPE_YEAR_PRICE_ADJUSTED, "detail", "mult.multiplicative", "multiplicative")
 	var effective_multiplier_label = _translate_field(EVENT_TYPE_YEAR_PRICE_ADJUSTED, "detail", "mult.effective_multiplier", "effective_multiplier")
+	var city_name = _try_translate("tile.map001.tile_01.name")
+	assert_bool(city_name.strip_edges().length() > 0).is_true()
 
-	assert_str(details).contains(city_label + ": c9")
+	assert_str(details).contains(city_label + ": " + city_name)
 	assert_str(details).contains(year_label + ": 3")
 	assert_str(details).contains(old_price_label + ": 100")
 	assert_str(details).contains(new_price_label + ": 130")
 	assert_str(details).contains(additive_label + ":")
 	assert_str(details).contains(multiplicative_label + ":")
 	assert_str(details).contains(effective_multiplier_label + ": 1.5")
+
+	_restore_locale(original_locale)

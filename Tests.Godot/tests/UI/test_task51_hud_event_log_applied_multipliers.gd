@@ -51,7 +51,7 @@ func _translate_field(event_type: String, section: String, field_key: String, fa
 func test_task51_event_log_shows_effective_multiplier_but_hides_breakdown_when_sources_none() -> void:
 	var hud = await _hud()
 
-	_publish_city_bought("{\"CityId\":\"c1\",\"Price\":50,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":0}}")
+	_publish_city_bought("{\"CityId\":\"tile_01\",\"Price\":50,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":0}}")
 	await get_tree().process_frame
 
 	assert_str(_last_data_json).contains("AppliedMultipliers")
@@ -71,7 +71,7 @@ func test_task51_event_log_shows_effective_multiplier_but_hides_breakdown_when_s
 func test_task51_event_log_can_show_breakdown_when_sources_provided() -> void:
 	var hud = await _hud()
 
-	_publish_city_bought("{\"CityId\":\"c1\",\"Price\":50,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":1,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":1}}")
+	_publish_city_bought("{\"CityId\":\"tile_01\",\"Price\":50,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":1,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":3,\"Sources\":1}}")
 	await get_tree().process_frame
 
 	assert_str(_last_data_json).contains("AppliedMultipliers")

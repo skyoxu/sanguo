@@ -40,6 +40,7 @@ func _translate_summary(event_type: String) -> String:
     return "event"
 
 func test_event_log_details_panel_shows_toll_paid_facts_and_deltas() -> void:
+    var original_locale := _set_locale("zh")
     var hud = await _hud()
     var log_list: ItemList = hud.get_node("EventLogPanel/Margin/VBox/EventList")
     var details: Label = hud.get_node("EventLogPanel/Margin/VBox/Details/Scroll/DetailsText")
@@ -50,7 +51,7 @@ func test_event_log_details_panel_shows_toll_paid_facts_and_deltas() -> void:
     _bus.PublishSimple(
         "core.sanguo.city.toll.paid",
         "ut",
-        "{\"GameId\":\"g1\",\"TurnNumber\":1,\"PayerId\":\"p1\",\"OwnerId\":\"o1\",\"CityId\":\"c1\",\"Amount\":10,\"OwnerAmount\":1,\"TreasuryOverflow\":9,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":1,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":1,\"RegionStepDelta\":0,\"EffectiveSteps\":4,\"Sources\":18}}"
+        "{\"GameId\":\"g1\",\"TurnNumber\":1,\"PayerId\":\"p1\",\"OwnerId\":\"o1\",\"CityId\":\"tile_01\",\"Amount\":10,\"OwnerAmount\":1,\"TreasuryOverflow\":9,\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":1,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":1,\"RegionStepDelta\":0,\"EffectiveSteps\":4,\"Sources\":18}}"
     )
 
     for _i in range(10):
@@ -62,7 +63,8 @@ func test_event_log_details_panel_shows_toll_paid_facts_and_deltas() -> void:
     var summary_label := _translate_summary("core.sanguo.city.toll.paid")
     assert_str(log_list.get_item_text(0)).contains(summary_label)
     assert_str(log_list.get_item_text(0)).not_contains("core.sanguo.city.toll.paid")
-    assert_str(str(details.text)).contains("deltas:")
+    var deltas_label := _translate_field("core.sanguo.city.toll.paid", "detail", "deltas", "deltas")
+    assert_str(str(details.text)).contains(deltas_label + ":")
 
     var money_key := "ui.hud.event.core.sanguo.city.toll.paid.delta.money_delta"
     var treasury_key := "ui.hud.event.core.sanguo.city.toll.paid.delta.treasury_delta"
@@ -77,6 +79,10 @@ func test_event_log_details_panel_shows_toll_paid_facts_and_deltas() -> void:
         if t.strip_edges().length() > 0 and t != treasury_key:
             treasury_label = t
 
+    var city_label := _translate_field("core.sanguo.city.toll.paid", "detail", "city_id", "city_id")
+    var city_name := _try_translate("tile.map001.tile_01.name")
+    assert_bool(city_name.strip_edges().length() > 0).is_true()
+    assert_str(str(details.text)).contains(city_label + ": " + city_name)
     assert_str(str(details.text)).contains(money_label + "[p1]: -10")
     assert_str(str(details.text)).contains(money_label + "[o1]: +1")
     assert_str(str(details.text)).contains(treasury_label + ": +9")
@@ -97,3 +103,5 @@ func test_event_log_details_panel_shows_toll_paid_facts_and_deltas() -> void:
     assert_str(str(details.text)).contains(multiplicative_label + ":")
     assert_str(str(details.text)).contains(effective_steps_label + ": 4")
     assert_str(str(details.text)).contains(effective_multiplier_label + ": 2")
+
+    _restore_locale(original_locale)
