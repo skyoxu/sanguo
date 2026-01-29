@@ -40,6 +40,7 @@ public sealed class SanguoTurnManager
     private readonly Dictionary<string, int> _relicStepDeltaByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, HashSet<string>> _relicIdsByPlayerId = new(StringComparer.Ordinal);
     private readonly HashSet<string> _grantedRelicIds = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _capturedRegionOwnerByRegionId = new(StringComparer.Ordinal);
 
     private string? _gameId;
     private string[]? _playerOrder;
@@ -165,6 +166,7 @@ public sealed class SanguoTurnManager
         _relicIdsByPlayerId.Clear();
         _grantedRelicIds.Clear();
         _globalRoundGate = new SanguoGlobalEventRoundGate();
+        ResetRegionCaptureState();
 
         var occurredAt = DateTimeOffset.UtcNow;
         var activePlayerId = _playerOrder[_activePlayerIndex];
@@ -361,52 +363,176 @@ public sealed class SanguoTurnManager
             return false;
         }
 
-        if (!string.Equals(card.EffectKind, "economyStepDelta", StringComparison.Ordinal))
+        if (string.Equals(card.EffectKind, SanguoEffectKinds.EconomyStepDelta, StringComparison.Ordinal))
         {
-            var rejected = new DomainEvent(
-                Type: SanguoActionCardPlayRejected.EventType,
+            var appliedAfter = CommitTurnActionCardEconomyStepDeltaAndGetSnapshot(activePlayerId, card.StepDelta);
+
+            var played = new DomainEvent(
+                Type: SanguoActionCardPlayed.EventType,
                 Source: nameof(SanguoTurnManager),
-                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayed(
                     GameId: _gameId,
-                    TurnNumber: _turnNumber,
-                    RoundNumber: ComputeRoundNumber(_turnNumber),
                     PlayerId: activePlayerId,
-                    Phase: SanguoTurnPhase.BeforeRoll.ToString(),
                     CardId: cardId,
-                    ReasonCode: SanguoActionCardPlayRejected.ReasonInvalidCardEffectKind,
+                    EffectKind: SanguoEffectKinds.EconomyStepDelta,
+                    StepDelta: card.StepDelta,
+                    DurationRounds: card.DurationRounds,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    AppliedMultipliersAfter: appliedAfter
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(played);
+
+            var cardLost = new DomainEvent(
+                Type: SanguoCardLost.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoCardLost(
+                    GameId: _gameId,
+                    PlayerId: activePlayerId,
+                    CardId: cardId,
+                    ReasonCode: SanguoCardLost.ReasonConsumed,
+                    SourceKind: "action_card",
+                    SourceId: cardId,
                     OccurredAt: occurredAt,
                     CorrelationId: correlationId,
                     CausationId: causationId
                 )),
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
-            await _bus.PublishAsync(rejected);
-            return false;
+            await _bus.PublishAsync(cardLost);
+
+            _actionCardPlayedTurnNumber = _turnNumber;
+            return true;
         }
 
-        var appliedAfter = CommitTurnActionCardEconomyStepDeltaAndGetSnapshot(activePlayerId, card.StepDelta);
+        if (string.Equals(card.EffectKind, SanguoEffectKinds.TransferOwnership, StringComparison.Ordinal))
+        {
+            if (!_boardState.TryGetPlayer(activePlayerId, out var activePlayer) || activePlayer is null)
+                throw new InvalidOperationException($"Player not found in board state: {activePlayerId}");
 
-        var played = new DomainEvent(
-            Type: SanguoActionCardPlayed.EventType,
+            var citiesById = _boardState.GetCitiesSnapshot();
+            var city = TryGetCityAtPositionIndex(citiesById, activePlayer.PositionIndex);
+
+            if (city is null
+                || !_boardState.TryGetOwnerOfCity(city.Id, out var owner)
+                || owner is null
+                || string.Equals(owner.PlayerId, activePlayerId, StringComparison.Ordinal))
+            {
+                var rejected = new DomainEvent(
+                    Type: SanguoActionCardPlayRejected.EventType,
+                    Source: nameof(SanguoTurnManager),
+                    Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                        GameId: _gameId,
+                        TurnNumber: _turnNumber,
+                        RoundNumber: ComputeRoundNumber(_turnNumber),
+                        PlayerId: activePlayerId,
+                        Phase: SanguoTurnPhase.BeforeRoll.ToString(),
+                        CardId: cardId,
+                        ReasonCode: SanguoActionCardPlayRejected.ReasonInvalidTarget,
+                        OccurredAt: occurredAt,
+                        CorrelationId: correlationId,
+                        CausationId: causationId
+                    )),
+                    Timestamp: occurredAt.UtcDateTime,
+                    Id: Guid.NewGuid().ToString("N"));
+                await _bus.PublishAsync(rejected);
+                return false;
+            }
+
+            var transferred = await TransferCityOwnershipAsync(
+                cityId: city.Id,
+                newOwnerId: activePlayerId,
+                reasonCode: SanguoCityOwnerChanged.ReasonStolen,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt);
+
+            if (!transferred)
+            {
+                var rejected = new DomainEvent(
+                    Type: SanguoActionCardPlayRejected.EventType,
+                    Source: nameof(SanguoTurnManager),
+                    Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                        GameId: _gameId,
+                        TurnNumber: _turnNumber,
+                        RoundNumber: ComputeRoundNumber(_turnNumber),
+                        PlayerId: activePlayerId,
+                        Phase: SanguoTurnPhase.BeforeRoll.ToString(),
+                        CardId: cardId,
+                        ReasonCode: SanguoActionCardPlayRejected.ReasonInvalidTarget,
+                        OccurredAt: occurredAt,
+                        CorrelationId: correlationId,
+                        CausationId: causationId
+                    )),
+                    Timestamp: occurredAt.UtcDateTime,
+                    Id: Guid.NewGuid().ToString("N"));
+                await _bus.PublishAsync(rejected);
+                return false;
+            }
+
+            var played = new DomainEvent(
+                Type: SanguoActionCardPlayed.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayed(
+                    GameId: _gameId,
+                    PlayerId: activePlayerId,
+                    CardId: cardId,
+                    EffectKind: SanguoEffectKinds.TransferOwnership,
+                    StepDelta: card.StepDelta,
+                    DurationRounds: card.DurationRounds,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId,
+                    AppliedMultipliersAfter: null
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(played);
+
+            var cardLost = new DomainEvent(
+                Type: SanguoCardLost.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoCardLost(
+                    GameId: _gameId,
+                    PlayerId: activePlayerId,
+                    CardId: cardId,
+                    ReasonCode: SanguoCardLost.ReasonConsumed,
+                    SourceKind: "action_card",
+                    SourceId: cardId,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(cardLost);
+
+            _actionCardPlayedTurnNumber = _turnNumber;
+            return true;
+        }
+
+        var rejectedUnknown = new DomainEvent(
+            Type: SanguoActionCardPlayRejected.EventType,
             Source: nameof(SanguoTurnManager),
-            Data: JsonElementEventData.FromObject(new SanguoActionCardPlayed(
+            Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
                 GameId: _gameId,
+                TurnNumber: _turnNumber,
+                RoundNumber: ComputeRoundNumber(_turnNumber),
                 PlayerId: activePlayerId,
+                Phase: SanguoTurnPhase.BeforeRoll.ToString(),
                 CardId: cardId,
-                EffectKind: "economyStepDelta",
-                StepDelta: card.StepDelta,
-                DurationRounds: card.DurationRounds,
+                ReasonCode: SanguoActionCardPlayRejected.ReasonInvalidCardEffectKind,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
-                CausationId: causationId,
-                AppliedMultipliersAfter: appliedAfter
+                CausationId: causationId
             )),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N"));
-        await _bus.PublishAsync(played);
-
-        _actionCardPlayedTurnNumber = _turnNumber;
-        return true;
+        await _bus.PublishAsync(rejectedUnknown);
+        return false;
     }
 
     public async Task AdvanceTurnAsync(string correlationId, string? causationId)
@@ -450,7 +576,11 @@ public sealed class SanguoTurnManager
 
         ResetTurnScopedEventStepDeltas();
 
-        PruneEliminatedAiPlayers(activePlayerId);
+        await PruneEliminatedAiPlayersAsync(
+            activePlayerId: activePlayerId,
+            occurredAt: occurredAt,
+            correlationId: correlationId,
+            causationId: causationId);
         if (_playerOrder.Length == 0)
         {
             _started = false;
@@ -863,7 +993,7 @@ public sealed class SanguoTurnManager
             {
                 if (IsAiPlayerId(playerId))
                 {
-                    _ = await _economy.TryBuyCityAndPublishEventAsync(
+                    var bought = await _economy.TryBuyCityAndPublishEventAsync(
                         gameId: gameId,
                         turnNumber: _turnNumber,
                         players: players,
@@ -874,6 +1004,15 @@ public sealed class SanguoTurnManager
                         correlationId: correlationId,
                         causationId: causationId,
                         occurredAt: occurredAt);
+
+                    if (bought)
+                    {
+                        await PublishRegionCaptureChangesAsync(
+                            triggerCityId: city.Id,
+                            occurredAt: occurredAt,
+                            correlationId: correlationId,
+                            causationId: causationId);
+                    }
                 }
             }
         }
@@ -989,17 +1128,22 @@ public sealed class SanguoTurnManager
             players.Add(p);
         }
 
-        var bought = await _economy.TryBuyCityAndPublishEventAsync(
-            gameId: _gameId,
-            turnNumber: _turnNumber,
-            players: players,
-            citiesById: citiesById,
-            buyerId: activePlayerId,
-            cityId: city.Id,
-            priceMultiplier: 1.0m,
+        var bought = await ApplyOwnershipChangeAsync(
+            () => _economy.TryBuyCityAndPublishEventAsync(
+                gameId: _gameId,
+                turnNumber: _turnNumber,
+                players: players,
+                citiesById: citiesById,
+                buyerId: activePlayerId,
+                cityId: city.Id,
+                priceMultiplier: 1.0m,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt),
+            triggerCityId: city.Id,
+            occurredAt: occurredAt,
             correlationId: correlationId,
-            causationId: causationId,
-            occurredAt: occurredAt);
+            causationId: causationId);
 
         if (!bought)
         {
@@ -1340,7 +1484,11 @@ public sealed class SanguoTurnManager
         return false;
     }
 
-    private void PruneEliminatedAiPlayers(string activePlayerId)
+    private async Task PruneEliminatedAiPlayersAsync(
+        string activePlayerId,
+        DateTimeOffset occurredAt,
+        string correlationId,
+        string? causationId)
     {
         if (_playerOrder is null || _playerOrder.Length == 0)
         {
@@ -1351,26 +1499,39 @@ public sealed class SanguoTurnManager
         var previousActiveIndex = Array.FindIndex(previousOrder, x => string.Equals(x, activePlayerId, StringComparison.Ordinal));
 
         var kept = new List<string>(previousOrder.Length);
-        foreach (var playerId in previousOrder)
-        {
-            if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+        await ApplyOwnershipChangeAsync(
+            () =>
             {
-                kept.Add(playerId);
-                continue;
-            }
-
-            if (player.IsEliminated && IsAiPlayerId(playerId))
-            {
-                if (player.OwnedCityIds.Count > 0)
+                var changed = false;
+                foreach (var playerId in previousOrder)
                 {
-                    var snapshot = player.CaptureRollbackSnapshot();
-                    player.RestoreRollbackSnapshot(snapshot with { OwnedCityIds = Array.Empty<string>() });
-                }
-                continue;
-            }
+                    if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+                    {
+                        kept.Add(playerId);
+                        continue;
+                    }
 
-            kept.Add(playerId);
-        }
+                    if (player.IsEliminated && IsAiPlayerId(playerId))
+                    {
+                        if (player.OwnedCityIds.Count > 0)
+                        {
+                            var snapshot = player.CaptureRollbackSnapshot();
+                            player.RestoreRollbackSnapshot(snapshot with { OwnedCityIds = Array.Empty<string>() });
+                            changed = true;
+                        }
+                        _relicIdsByPlayerId.Remove(playerId);
+                        _relicStepDeltaByPlayerId.Remove(playerId);
+                        continue;
+                    }
+
+                    kept.Add(playerId);
+                }
+                return changed;
+            },
+            triggerCityId: null,
+            occurredAt: occurredAt,
+            correlationId: correlationId,
+            causationId: causationId);
 
         if (kept.Count == previousOrder.Length)
         {
@@ -1448,6 +1609,345 @@ public sealed class SanguoTurnManager
     {
         _turnEventStepDeltasByPlayerId.Clear();
         _turnActionCardStepDeltasByPlayerId.Clear();
+    }
+
+    private void ResetRegionCaptureState()
+    {
+        _capturedRegionOwnerByRegionId.Clear();
+        var captured = ComputeCapturedRegionOwners(out _);
+        foreach (var (regionId, ownerId) in captured)
+        {
+            _capturedRegionOwnerByRegionId[regionId] = ownerId;
+        }
+    }
+
+    private Dictionary<string, string> ComputeCapturedRegionOwners(out Dictionary<string, List<string>> cityIdsByRegion)
+    {
+        cityIdsByRegion = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+
+        var citiesById = _boardState.GetCitiesSnapshot();
+        foreach (var city in citiesById.Values)
+        {
+            var regionId = (city.RegionId ?? string.Empty).Trim();
+            if (regionId.Length == 0)
+            {
+                continue;
+            }
+
+            if (!cityIdsByRegion.TryGetValue(regionId, out var list))
+            {
+                list = new List<string>();
+                cityIdsByRegion[regionId] = list;
+            }
+            list.Add(city.Id);
+        }
+
+        foreach (var list in cityIdsByRegion.Values)
+        {
+            list.Sort(StringComparer.Ordinal);
+        }
+
+        var cityOwnerByCityId = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (_playerOrder is null)
+        {
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+
+        foreach (var playerId in _playerOrder)
+        {
+            if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+            {
+                continue;
+            }
+
+            foreach (var cityId in player.OwnedCityIds)
+            {
+                if (string.IsNullOrWhiteSpace(cityId))
+                {
+                    continue;
+                }
+
+                cityOwnerByCityId[cityId] = player.PlayerId;
+            }
+        }
+
+        var captured = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (regionId, cityIds) in cityIdsByRegion)
+        {
+            string? ownerId = null;
+            var allOwnedBySame = true;
+            foreach (var cityId in cityIds)
+            {
+                if (!cityOwnerByCityId.TryGetValue(cityId, out var owner))
+                {
+                    allOwnedBySame = false;
+                    break;
+                }
+
+                if (ownerId is null)
+                {
+                    ownerId = owner;
+                }
+                else if (!string.Equals(ownerId, owner, StringComparison.Ordinal))
+                {
+                    allOwnedBySame = false;
+                    break;
+                }
+            }
+
+            if (allOwnedBySame && !string.IsNullOrWhiteSpace(ownerId))
+            {
+                captured[regionId] = ownerId!;
+            }
+        }
+
+        return captured;
+    }
+
+    internal Task<bool> ApplyOwnershipChangeAsync(
+        Func<bool> mutateOwnership,
+        string? triggerCityId,
+        DateTimeOffset occurredAt,
+        string correlationId,
+        string? causationId)
+    {
+        ArgumentNullException.ThrowIfNull(mutateOwnership, nameof(mutateOwnership));
+        return ApplyOwnershipChangeAsync(
+            () => Task.FromResult(mutateOwnership()),
+            triggerCityId,
+            occurredAt,
+            correlationId,
+            causationId);
+    }
+
+    internal async Task<bool> ApplyOwnershipChangeAsync(
+        Func<Task<bool>> mutateOwnershipAsync,
+        string? triggerCityId,
+        DateTimeOffset occurredAt,
+        string correlationId,
+        string? causationId)
+    {
+        ArgumentNullException.ThrowIfNull(mutateOwnershipAsync, nameof(mutateOwnershipAsync));
+
+        var changed = await mutateOwnershipAsync();
+        if (!changed)
+        {
+            return false;
+        }
+
+        await PublishRegionCaptureChangesAsync(
+            triggerCityId: triggerCityId,
+            occurredAt: occurredAt,
+            correlationId: correlationId,
+            causationId: causationId);
+
+        return true;
+    }
+
+    internal Task<bool> TransferCityOwnershipAsync(
+        string cityId,
+        string? newOwnerId,
+        string reasonCode,
+        string correlationId,
+        string? causationId,
+        DateTimeOffset occurredAt)
+    {
+        EnsureStarted();
+
+        if (string.IsNullOrWhiteSpace(cityId))
+            throw new ArgumentException("CityId must be non-empty.", nameof(cityId));
+
+        if (string.IsNullOrWhiteSpace(reasonCode))
+            throw new ArgumentException("ReasonCode must be non-empty.", nameof(reasonCode));
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+            throw new ArgumentException("CorrelationId must be non-empty.", nameof(correlationId));
+
+        var normalizedNewOwnerId = string.IsNullOrWhiteSpace(newOwnerId) ? null : newOwnerId;
+
+        var cities = _boardState.CitiesById;
+        if (!cities.ContainsKey(cityId))
+            throw new InvalidOperationException($"City not found in board state: {cityId}");
+
+        SanguoPlayer? newOwner = null;
+        if (normalizedNewOwnerId is not null)
+        {
+            if (!_boardState.TryGetPlayer(normalizedNewOwnerId, out newOwner) || newOwner is null)
+                throw new InvalidOperationException($"NewOwnerId not found in board state: {normalizedNewOwnerId}");
+        }
+
+        SanguoPlayer? oldOwner = null;
+        if (_boardState.TryGetOwnerOfCity(cityId, out var resolved) && resolved is not null)
+        {
+            oldOwner = resolved;
+        }
+
+        var oldOwnerId = oldOwner?.PlayerId;
+        if (string.Equals(oldOwnerId, normalizedNewOwnerId, StringComparison.Ordinal))
+            return Task.FromResult(false);
+
+        if (oldOwnerId is null && normalizedNewOwnerId is null)
+            return Task.FromResult(false);
+
+        return ApplyOwnershipChangeAsync(
+            async () =>
+            {
+                SanguoPlayer.RollbackSnapshot? oldSnapshot = null;
+                SanguoPlayer.RollbackSnapshot? newSnapshot = null;
+
+                if (oldOwner is not null)
+                    oldSnapshot = oldOwner.CaptureRollbackSnapshot();
+                if (newOwner is not null)
+                    newSnapshot = newOwner.CaptureRollbackSnapshot();
+
+                var changed = false;
+
+                if (oldOwner is not null && oldSnapshot.HasValue)
+                {
+                    var remaining = oldSnapshot.Value.OwnedCityIds
+                        .Where(x => !string.Equals(x, cityId, StringComparison.Ordinal))
+                        .ToArray();
+                    if (remaining.Length != oldSnapshot.Value.OwnedCityIds.Count)
+                    {
+                        oldOwner.RestoreRollbackSnapshot(oldSnapshot.Value with { OwnedCityIds = remaining });
+                        changed = true;
+                    }
+                }
+
+                if (newOwner is not null && newSnapshot.HasValue)
+                {
+                    var nextOwned = newSnapshot.Value.OwnedCityIds.ToList();
+                    if (!nextOwned.Contains(cityId, StringComparer.Ordinal))
+                    {
+                        nextOwned.Add(cityId);
+                        changed = true;
+                    }
+
+                    if (changed)
+                        newOwner.RestoreRollbackSnapshot(newSnapshot.Value with { OwnedCityIds = nextOwned });
+                }
+
+                if (!changed)
+                    return false;
+
+                var evt = new DomainEvent(
+                    Type: SanguoCityOwnerChanged.EventType,
+                    Source: nameof(SanguoTurnManager),
+                    Data: JsonElementEventData.FromObject(new SanguoCityOwnerChanged(
+                        GameId: _gameId!,
+                        TurnNumber: _turnNumber,
+                        CityId: cityId,
+                        OldOwnerId: oldOwnerId,
+                        NewOwnerId: normalizedNewOwnerId,
+                        ReasonCode: reasonCode,
+                        OccurredAt: occurredAt,
+                        CorrelationId: correlationId,
+                        CausationId: causationId
+                    )),
+                    Timestamp: occurredAt.UtcDateTime,
+                    Id: Guid.NewGuid().ToString("N"));
+
+                try
+                {
+                    await _bus.PublishAsync(evt);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    if (oldOwner is not null && oldSnapshot.HasValue)
+                        oldOwner.RestoreRollbackSnapshot(oldSnapshot.Value);
+                    if (newOwner is not null && newSnapshot.HasValue)
+                        newOwner.RestoreRollbackSnapshot(newSnapshot.Value);
+
+                    throw new InvalidOperationException(
+                        $"Event publish failed after city ownership change. State has been rolled back (gameId={_gameId}, cityId={cityId}).",
+                        ex);
+                }
+            },
+            triggerCityId: cityId,
+            occurredAt: occurredAt,
+            correlationId: correlationId,
+            causationId: causationId);
+    }
+
+    private async Task PublishRegionCaptureChangesAsync(
+        string? triggerCityId,
+        DateTimeOffset occurredAt,
+        string correlationId,
+        string? causationId)
+    {
+        if (_gameId is null || _playerOrder is null)
+        {
+            return;
+        }
+
+        var captured = ComputeCapturedRegionOwners(out var cityIdsByRegion);
+
+        foreach (var (regionId, ownerId) in captured)
+        {
+            if (_capturedRegionOwnerByRegionId.TryGetValue(regionId, out var previousOwner)
+                && string.Equals(previousOwner, ownerId, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var cityIds = cityIdsByRegion.TryGetValue(regionId, out var list)
+                ? list
+                : new List<string>();
+
+            var evt = new DomainEvent(
+                Type: SanguoRegionCaptured.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRegionCaptured(
+                    GameId: _gameId,
+                    RegionId: regionId,
+                    OwnerId: ownerId,
+                    CityIds: cityIds,
+                    ReasonCode: SanguoRegionCaptured.ReasonCaptured,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
+        }
+
+        foreach (var (regionId, previousOwner) in _capturedRegionOwnerByRegionId.ToArray())
+        {
+            if (captured.TryGetValue(regionId, out var currentOwner)
+                && string.Equals(currentOwner, previousOwner, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var reason = captured.ContainsKey(regionId)
+                ? SanguoRegionLost.ReasonOwnerChanged
+                : SanguoRegionLost.ReasonLostLastCity;
+
+            var evt = new DomainEvent(
+                Type: SanguoRegionLost.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRegionLost(
+                    GameId: _gameId,
+                    RegionId: regionId,
+                    OwnerId: previousOwner,
+                    ReasonCode: reason,
+                    TriggerCityId: triggerCityId,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
+        }
+
+        _capturedRegionOwnerByRegionId.Clear();
+        foreach (var (regionId, ownerId) in captured)
+        {
+            _capturedRegionOwnerByRegionId[regionId] = ownerId;
+        }
     }
 
     internal AppliedMultipliers GetTurnAppliedMultipliersSnapshot(string playerId)
@@ -2871,17 +3371,22 @@ public sealed class SanguoTurnManager
             return;
         }
 
-        _ = await _economy.TryBuyCityAndPublishEventAsync(
-            gameId: _gameId,
-            turnNumber: _turnNumber,
-            players: players,
-            citiesById: citiesById,
-            buyerId: aiPlayerId,
-            cityId: city.Id,
-            priceMultiplier: 1.0m,
+        await ApplyOwnershipChangeAsync(
+            () => _economy.TryBuyCityAndPublishEventAsync(
+                gameId: _gameId,
+                turnNumber: _turnNumber,
+                players: players,
+                citiesById: citiesById,
+                buyerId: aiPlayerId,
+                cityId: city.Id,
+                priceMultiplier: 1.0m,
+                correlationId: correlationId,
+                causationId: causationId,
+                occurredAt: occurredAt),
+            triggerCityId: city.Id,
+            occurredAt: occurredAt,
             correlationId: correlationId,
-            causationId: causationId,
-            occurredAt: occurredAt);
+            causationId: causationId);
     }
 
     public SanguoSaveSnapshot ExportSaveSnapshot()
@@ -3057,6 +3562,7 @@ public sealed class SanguoTurnManager
         _diceRolledTurnNumber = null;
         ResetTurnScopedEventStepDeltas();
         _globalRoundGate = new SanguoGlobalEventRoundGate();
+        ResetRegionCaptureState();
     }
 
     public async Task PublishStateSnapshotAsync(string correlationId, string? causationId)

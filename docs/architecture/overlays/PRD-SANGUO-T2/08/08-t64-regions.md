@@ -26,6 +26,19 @@ Arch-Refs:
 ## 契约（EventType + 触发点）
 - 当前阶段优先在加载校验失败时走错误上报/审计；显式事件待后续任务补充（以 Contracts 为准）。
 
+
+## 契约定义
+
+### 事件
+- **SanguoRegionCaptured** (`core.sanguo.region.captured`)
+  - 触发时机：玩家达成州郡全占时
+  - 字段：GameId, RegionId, OwnerId, CityIds, ReasonCode, OccurredAt, CorrelationId, CausationId
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoRegionEvents.cs`
+- **SanguoRegionLost** (`core.sanguo.region.lost`)
+  - 触发时机：州郡全占状态失效时
+  - 字段：GameId, RegionId, OwnerId, ReasonCode, TriggerCityId, OccurredAt, CorrelationId, CausationId
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoRegionEvents.cs`
+
 ## 验收条款（ACC）
 - ACC:T64.1 Regions catalog loads from res://Data/regions.json; missing/unparseable/missing required fields => initialization fails and refuses to start.
 - ACC:T64.2 regionId is reusable across maps; when loading/validating a map, every city tile must provide regionId and it must exist in the regions catalog; missing/unknown => initialization fails and refuses to start.

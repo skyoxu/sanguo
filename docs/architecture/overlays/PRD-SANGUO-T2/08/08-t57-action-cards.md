@@ -17,7 +17,7 @@ Arch-Refs:
 ## 范围
 - 行动卡配置只读（`res://Data/**`）。
 - 使用窗口：TurnPhase.BeforeRoll。
-- 效果表达：`effectKind=economyStepDelta` + `stepDelta`（steps 为整型步进，1=+0.5；最终仍按 T51 口径 clamp），并携带 `durationRounds`。
+- 效果表达：`effectKind=economyStepDelta` + `stepDelta`（steps 为整型步进，1=+0.5；最终仍按 T51 口径 clamp）；或 `effectKind=transferOwnership`（对当前地块城市执行所有权变更），并携带 `durationRounds`。
 
 ## 非目标
 - 不做多卡连锁与复杂卡牌规则。
@@ -26,6 +26,7 @@ Arch-Refs:
 ## 契约（EventType + 触发点）
 - `core.sanguo.action_card.played`：行动卡被使用后发布。
 - `core.sanguo.action_card.play.rejected`：同回合重复出牌/不满足规则时发布（可审计，无状态变更）。
+- `core.sanguo.city.owner.changed`：transferOwnership 行动卡导致城市归属变更时发布。
 
 ## 契约定义
 
@@ -37,6 +38,15 @@ Arch-Refs:
   - 触发时机：行动卡出牌被 Core 规则拒绝（例如同回合第二次出牌）
   - 契约位置：`Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
 
+- **SanguoCityOwnerChanged** (`core.sanguo.city.owner.changed`)
+  - 触发时机：transferOwnership 行动卡导致城市归属变更
+  - 契约位置：`Game.Core/Contracts/Sanguo/EconomyEvents.cs`
+
+- **SanguoCardLost** (`core.sanguo.card.lost`)
+  - 触发时机：行动卡从玩家持有卡实例移除（消耗/弃置/偷取/过期/替换）
+  - 字段：GameId, PlayerId, CardId, ReasonCode, SourceKind, SourceId, OccurredAt, CorrelationId, CausationId
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoInventoryEvents.cs`
+
 ### DTO
 - **SanguoActionCardsCatalog**
   - 用途：行动卡定义目录（只读）
@@ -46,6 +56,7 @@ Arch-Refs:
 ## 验收条款（ACC）
 - ACC:T57.1 行动卡只允许 BeforeRoll 使用，且 0/1。
 - ACC:T57.2 使用行动卡后发布 `core.sanguo.action_card.played`，并影响本回合经济倍率快照。
+- ACC:T57.7 transferOwnership 行动卡触发城市归属变更并发布 `core.sanguo.city.owner.changed`。
 
 ## Test-Refs
 - `Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs`
@@ -53,3 +64,4 @@ Arch-Refs:
 - `Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd`
 - `Tests.Godot/tests/UI/test_task57_before_roll_play_or_skip.gd`
 - `Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd`
+- `Game.Core.Tests/Tasks/Task57ActionCardOwnershipTransferTests.cs`

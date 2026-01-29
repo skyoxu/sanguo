@@ -228,6 +228,93 @@ public static class EventExplainService
             return string.Join(' ', parts) + suffix + multiplierSuffix;
         }
 
+        if (string.Equals(type, SanguoCardLost.EventType, StringComparison.Ordinal))
+        {
+            var playerId = TryGetStringLoose(root, "PlayerId");
+            var cardId = TryGetStringLoose(root, "CardId");
+            var reason = TryGetStringLoose(root, "ReasonCode");
+            var sourceKind = TryGetStringLoose(root, "SourceKind");
+            var sourceId = TryGetStringLoose(root, "SourceId");
+
+            var parts = new List<string>(8) { prefix };
+            if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
+            if (!string.IsNullOrWhiteSpace(cardId)) parts.Add($"card={cardId}");
+
+            var meta = new List<string>(4);
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                var label = TranslateField(type, "detail", "reason_code", "reason");
+                meta.Add($"{label}={reason}");
+            }
+            if (!string.IsNullOrWhiteSpace(sourceKind))
+            {
+                var label = TranslateField(type, "detail", "source_kind", "source_kind");
+                meta.Add($"{label}={sourceKind}");
+            }
+            if (!string.IsNullOrWhiteSpace(sourceId))
+            {
+                var label = TranslateField(type, "detail", "source_id", "source_id");
+                meta.Add($"{label}={sourceId}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoRegionCaptured.EventType, StringComparison.Ordinal))
+        {
+            var regionId = TryGetStringLoose(root, "RegionId");
+            var ownerId = TryGetStringLoose(root, "OwnerId");
+            var reason = TryGetStringLoose(root, "ReasonCode");
+
+            var parts = new List<string>(8) { prefix };
+            if (!string.IsNullOrWhiteSpace(regionId)) parts.Add($"region={regionId}");
+            if (!string.IsNullOrWhiteSpace(ownerId)) parts.Add($"owner={ownerId}");
+
+            var meta = new List<string>(4);
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                var label = TranslateField(type, "detail", "reason_code", "reason");
+                meta.Add($"{label}={reason}");
+            }
+
+            if (TryGetPropertyLoose(root, "CityIds", out var cityIds) && cityIds.ValueKind == JsonValueKind.Array)
+            {
+                var label = TranslateField(type, "detail", "city_ids_count", "city_ids_count");
+                meta.Add($"{label}={cityIds.GetArrayLength()}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoRegionLost.EventType, StringComparison.Ordinal))
+        {
+            var regionId = TryGetStringLoose(root, "RegionId");
+            var ownerId = TryGetStringLoose(root, "OwnerId");
+            var reason = TryGetStringLoose(root, "ReasonCode");
+
+            var parts = new List<string>(8) { prefix };
+            if (!string.IsNullOrWhiteSpace(regionId)) parts.Add($"region={regionId}");
+            if (!string.IsNullOrWhiteSpace(ownerId)) parts.Add($"owner={ownerId}");
+
+            var meta = new List<string>(4);
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                var label = TranslateField(type, "detail", "reason_code", "reason");
+                meta.Add($"{label}={reason}");
+            }
+            var triggerCityId = TryGetStringLoose(root, "TriggerCityId");
+            if (!string.IsNullOrWhiteSpace(triggerCityId))
+            {
+                var label = TranslateField(type, "detail", "trigger_city_id", "trigger_city_id");
+                meta.Add($"{label}={triggerCityId}");
+            }
+
+            var suffix = meta.Count == 0 ? string.Empty : $" | {string.Join(" | ", meta)}";
+            return string.Join(' ', parts) + suffix + multiplierSuffix;
+        }
+
         if (string.Equals(type, SanguoSeasonEventApplied.EventType, StringComparison.Ordinal))
         {
             var year = TryGetIntLoose(root, "Year");
@@ -519,6 +606,36 @@ public static class EventExplainService
                 deltas.Add($"{label}: {FormatSignedInt(stepDelta.Value)}");
             }
         }
+        else if (string.Equals(type, SanguoCardLost.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "PlayerId", "player_id");
+            AddFact(facts, type, root, "CardId", "card_id");
+            AddFact(facts, type, root, "ReasonCode", "reason_code");
+            AddFact(facts, type, root, "SourceKind", "source_kind");
+            AddFact(facts, type, root, "SourceId", "source_id");
+        }
+        else if (string.Equals(type, SanguoRegionCaptured.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "RegionId", "region_id");
+            AddFact(facts, type, root, "OwnerId", "owner_id");
+            AddFact(facts, type, root, "ReasonCode", "reason_code");
+
+            if (TryGetPropertyLoose(root, "CityIds", out var cityIds) && cityIds.ValueKind == JsonValueKind.Array)
+            {
+                var label = TranslateField(type, "detail", "city_ids_count", "city_ids_count");
+                facts.Add($"{label}: {cityIds.GetArrayLength()}");
+            }
+        }
+        else if (string.Equals(type, SanguoRegionLost.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "RegionId", "region_id");
+            AddFact(facts, type, root, "OwnerId", "owner_id");
+            AddFact(facts, type, root, "ReasonCode", "reason_code");
+            AddFact(facts, type, root, "TriggerCityId", "trigger_city_id");
+        }
         else if (string.Equals(type, SanguoSeasonEventApplied.EventType, StringComparison.Ordinal))
         {
             AddFact(facts, type, root, "GameId", "game_id");
@@ -608,7 +725,18 @@ public static class EventExplainService
         {
             case JsonValueKind.String:
                 var s = el.GetString();
-                if (!string.IsNullOrWhiteSpace(s)) facts.Add($"{label}: {s}");
+                if (!string.IsNullOrWhiteSpace(s))
+                {
+                    if (string.Equals(propertyName, "ReasonCode", StringComparison.Ordinal))
+                    {
+                        var reason = TranslateReasonToken(eventType, s);
+                        facts.Add($"{label}: {reason}");
+                    }
+                    else
+                    {
+                        facts.Add($"{label}: {s}");
+                    }
+                }
                 break;
             case JsonValueKind.Number:
                 facts.Add($"{label}: {el}");
@@ -618,6 +746,31 @@ public static class EventExplainService
                 facts.Add($"{label}: {el.GetBoolean().ToString().ToLowerInvariant()}");
                 break;
         }
+    }
+
+    private static string TranslateReasonToken(string eventType, string reason)
+    {
+        var normalized = reason.Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return reason;
+        }
+
+        var specificKey = $"ui.hud.event.{eventType}.detail.reason_code.{normalized}";
+        var specific = TryTranslate(specificKey);
+        if (!string.IsNullOrWhiteSpace(specific))
+        {
+            return specific!;
+        }
+
+        var sharedKey = $"ui.hud.event.shared.detail.reason_code.{normalized}";
+        var shared = TryTranslate(sharedKey);
+        if (!string.IsNullOrWhiteSpace(shared))
+        {
+            return shared!;
+        }
+
+        return reason;
     }
 
     private static void AddAppliedMultipliersFacts(

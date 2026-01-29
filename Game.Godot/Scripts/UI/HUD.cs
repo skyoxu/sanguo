@@ -363,6 +363,9 @@ public partial class HUD : Control
         _handlers[SanguoYearPriceAdjusted.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoLootGranted.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoRelicApplied.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoCardLost.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoRegionCaptured.EventType] = HandleUiOnlyEvent;
+        _handlers[SanguoRegionLost.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoRandomEventApplied.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoCityTollSynergyPaid.EventType] = HandleUiOnlyEvent;
         _handlers[SanguoGameEnded.EventType] = HandleGameEndedEvent;

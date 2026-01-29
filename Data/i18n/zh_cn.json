@@ -81,6 +81,8 @@
     "ui.common.ok": "确定",
     "ui.common.start": "开始",
     "event.event_combat_small.name": "小规模遭遇战",
-    "event.event_combat_small.desc": "触发一场小规模遭遇战，胜利获得奖励。"
+    "event.event_combat_small.desc": "触发一场小规模遭遇战，胜利获得奖励。",
+    "card.card_city_takeover.name": "夺城令",
+    "card.card_city_takeover.desc": "本回合夺取当前地块城市的所有权。"
   }
 }

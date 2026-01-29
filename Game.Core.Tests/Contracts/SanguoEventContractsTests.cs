@@ -16,6 +16,9 @@ public sealed class SanguoEventContractsTests
         SanguoBuildingBuilt.EventType.Should().Be("core.sanguo.building.built");
         SanguoLootGranted.EventType.Should().Be("core.sanguo.loot.granted");
         SanguoRelicApplied.EventType.Should().Be("core.sanguo.relic.applied");
+        SanguoCardLost.EventType.Should().Be("core.sanguo.card.lost");
+        SanguoRegionCaptured.EventType.Should().Be("core.sanguo.region.captured");
+        SanguoRegionLost.EventType.Should().Be("core.sanguo.region.lost");
     }
 
     [Fact]
@@ -77,6 +80,7 @@ public sealed class SanguoEventContractsTests
     {
         SanguoEffectKinds.MoneyDelta.Should().Be("moneyDelta");
         SanguoEffectKinds.EconomyStepDelta.Should().Be("economyStepDelta");
+        SanguoEffectKinds.TransferOwnership.Should().Be("transferOwnership");
     }
 }
 
