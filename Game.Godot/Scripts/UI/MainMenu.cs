@@ -50,6 +50,7 @@ public partial class MainMenu : Control
     private OptionButton _startingMoneyOption = default!;
     private OptionButton _globalEventIntervalOption = default!;
     private Label _aiFillLabel = default!;
+    private ResourceLoaderAdapter? _fallbackResourceLoader;
 
     private EventBusAdapter? _bus;
     private bool _startPending;
@@ -113,6 +114,7 @@ public partial class MainMenu : Control
         }
 
         _bus = null;
+        _fallbackResourceLoader = null;
     }
 
     public void ShowMenu() => Visible = true;
@@ -460,7 +462,14 @@ public partial class MainMenu : Control
             return port;
         }
 
-        return new ResourceLoaderAdapter();
+        if (_fallbackResourceLoader != null && GodotObject.IsInstanceValid(_fallbackResourceLoader))
+        {
+            return _fallbackResourceLoader;
+        }
+
+        _fallbackResourceLoader = new ResourceLoaderAdapter { Name = "ResourceLoaderFallback" };
+        AddChild(_fallbackResourceLoader);
+        return _fallbackResourceLoader;
     }
 
     private string GetSelectedMapId()

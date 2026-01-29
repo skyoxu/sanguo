@@ -127,3 +127,47 @@ ui.hud.event.core.sanguo.region.lost.detail.owner_id,Owner
 ui.hud.event.core.sanguo.region.lost.detail.reason_code,Reason
 ui.hud.event.core.sanguo.region.lost.detail.trigger_city_id,Trigger city
 ui.hud.event.core.sanguo.action_card.play.rejected.detail.reason_code.invalid_target,invalid target
+ui.hud.event.core.sanguo.economy.season.event.applied.title,Season event applied
+ui.hud.event.core.sanguo.economy.season.event.applied.summary,Season event applied
+ui.hud.event.core.sanguo.economy.season.event.applied.detail.game_id,Game
+ui.hud.event.core.sanguo.economy.season.event.applied.detail.turn,Turn
+ui.hud.event.core.sanguo.economy.season.event.applied.detail.year,Year
+ui.hud.event.core.sanguo.economy.season.event.applied.detail.season,Season
+ui.hud.event.core.sanguo.economy.season.event.applied.detail.yield_multiplier,Yield multiplier
+ui.hud.event.core.sanguo.economy.season.event.applied.detail.affected_regions_count,Affected regions count
+ui.hud.event.core.sanguo.economy.year.price.adjusted.title,Year price adjusted
+ui.hud.event.core.sanguo.economy.year.price.adjusted.summary,Year price adjusted
+ui.hud.event.core.sanguo.economy.year.price.adjusted.detail.game_id,Game
+ui.hud.event.core.sanguo.economy.year.price.adjusted.detail.turn,Turn
+ui.hud.event.core.sanguo.economy.year.price.adjusted.detail.year,Year
+ui.hud.event.core.sanguo.economy.year.price.adjusted.detail.city_id,City
+ui.hud.event.core.sanguo.economy.year.price.adjusted.detail.old_price,Old price
+ui.hud.event.core.sanguo.economy.year.price.adjusted.detail.new_price,New price
+ui.hud.event.core.sanguo.city.toll.synergy.paid.title,Synergy toll paid
+ui.hud.event.core.sanguo.city.toll.synergy.paid.summary,Synergy toll paid
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.game_id,Game
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.turn,Turn
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.payer_id,Payer
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.owner_id,Owner
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.landing_city_id,Landing city
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.region_id,Region
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.expected_total_amount,Expected total
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.paid_total_amount,Paid total
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.expected_cities_count,Expected cities count
+ui.hud.event.core.sanguo.city.toll.synergy.paid.detail.paid_cities_count,Paid cities count
+ui.hud.event.shared.summary.unknown,Event
+ui.hud.event.shared.detail.player_id,Player
+ui.hud.event.shared.detail.value,Value
+ui.hud.event.shared.detail.city_id,City
+ui.hud.event.shared.detail.price,Price
+ui.hud.event.core.sanguo.city.toll.paid.detail.amount,Amount
+ui.hud.event.core.sanguo.city.toll.paid.detail.owner_amount,Owner amount
+ui.hud.event.core.sanguo.city.toll.paid.detail.treasury_overflow,Treasury overflow
+ui.hud.event.shared.detail.reason_code.consumed,Consumed
+ui.hud.event.shared.detail.reason_code.discarded,Discarded
+ui.hud.event.shared.detail.reason_code.stolen,Stolen
+ui.hud.event.shared.detail.reason_code.expired,Expired
+ui.hud.event.shared.detail.reason_code.replaced,Replaced
+ui.hud.event.shared.detail.reason_code.captured,Captured
+ui.hud.event.shared.detail.reason_code.lost_last_city,Lost last city
+ui.hud.event.shared.detail.reason_code.owner_changed,Owner changed

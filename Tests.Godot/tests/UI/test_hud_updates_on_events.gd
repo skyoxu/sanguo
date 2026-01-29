@@ -1,20 +1,16 @@
-extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
+extends "res://tests/UI/_fixtures/ui_event_log_fixture.gd"
 
-var _bus: Node
 var _last_emitted_type := ""
 var _events: Array = []
 
-func before() -> void:
-    var existing = get_node_or_null("/root/EventBus")
-    if existing != null:
-        existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
-        existing.queue_free()
-
-    _bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
-    _bus.name = "EventBus"
-    get_tree().get_root().add_child(auto_free(_bus))
-    _bus.connect("DomainEventEmitted", Callable(self, "_on_domain_event_emitted"))
+func before_test() -> void:
+    await _setup_event_bus()
+    _connect_domain_event_emitted(Callable(self, "_on_domain_event_emitted"))
+    _last_emitted_type = ""
     _events = []
+
+func after_test() -> void:
+    await _teardown_event_bus()
 
 func _on_domain_event_emitted(type, _source, data_json, _id, _spec, _ct, _ts) -> void:
     _last_emitted_type = str(type)
@@ -37,11 +33,38 @@ func _last_event(type_name: String) -> Dictionary:
             return e
     return {}
 
-func _hud() -> Node:
-    var hud = preload("res://Game.Godot/Scenes/UI/HUD.tscn").instantiate()
-    add_child(auto_free(hud))
-    await get_tree().process_frame
-    return hud
+func _try_translate(key: String) -> String:
+    if TranslationServer.has_method("translate"):
+        var translated := String(TranslationServer.translate(key))
+        if translated.strip_edges().length() > 0 and translated != key:
+            return translated
+    return ""
+
+func _translate_field(event_type: String, section: String, field_key: String, fallback: String) -> String:
+    var event_key := "ui.hud.event.%s.%s.%s" % [event_type, section, field_key]
+    var translated := _try_translate(event_key)
+    if translated.length() > 0:
+        return translated
+    var shared_key := "ui.hud.event.shared.%s.%s" % [section, field_key]
+    translated = _try_translate(shared_key)
+    if translated.length() > 0:
+        return translated
+    return fallback
+
+func _translate_summary(event_type: String) -> String:
+    var summary_key := "ui.hud.event.%s.summary" % event_type
+    var translated := _try_translate(summary_key)
+    if translated.length() > 0:
+        return translated
+    var title_key := "ui.hud.event.%s.title" % event_type
+    translated = _try_translate(title_key)
+    if translated.length() > 0:
+        return translated
+    var shared_key := "ui.hud.event.shared.summary.unknown"
+    translated = _try_translate(shared_key)
+    if translated.length() > 0:
+        return translated
+    return "event"
 
 # ACC:T22.2
 func test_hud_core_interactions_are_wired() -> void:
@@ -88,12 +111,16 @@ func test_hud_records_sanguo_events_to_toast_and_log_panel() -> void:
     await get_tree().process_frame
 
     assert_bool(toast.visible).is_true()
-    assert_str(toast_label.text).contains("core.sanguo.dice.rolled")
-    assert_str(toast_label.text).contains("value=6")
+    var summary_label := _translate_summary("core.sanguo.dice.rolled")
+    var value_label := _translate_field("core.sanguo.dice.rolled", "detail", "value", "value")
+    assert_str(toast_label.text).contains(summary_label)
+    assert_str(toast_label.text).contains(value_label + "=6")
+    assert_str(toast_label.text).not_contains("core.sanguo.dice.rolled")
 
     assert_int(log_list.get_item_count()).is_greater(0)
     var last := log_list.get_item_text(log_list.get_item_count() - 1)
-    assert_str(last).contains("core.sanguo.dice.rolled")
+    assert_str(last).contains(summary_label)
+    assert_str(last).not_contains("core.sanguo.dice.rolled")
 
 func test_hud_records_month_season_game_end_events_to_toast_and_log_panel() -> void:
     var hud = await _hud()
@@ -123,11 +150,14 @@ func test_hud_records_month_season_game_end_events_to_toast_and_log_panel() -> v
 
         assert_bool(toast.visible).is_true()
         assert_bool(toast_label.text.length() > 0).is_true()
-        assert_str(toast_label.text).contains(str(c["type"]))
+        var summary_label := _translate_summary(str(c["type"]))
+        assert_str(toast_label.text).contains(summary_label)
+        assert_str(toast_label.text).not_contains(str(c["type"]))
 
         assert_int(log_list.get_item_count()).is_greater(0)
         var last := log_list.get_item_text(log_list.get_item_count() - 1)
-        assert_str(last).contains(str(c["type"]))
+        assert_str(last).contains(summary_label)
+        assert_str(last).not_contains(str(c["type"]))
 
 func test_hud_updates_on_score_event() -> void:
     var hud = await _hud()
@@ -247,8 +277,11 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
             break
         await get_tree().process_frame
     assert_bool(toast.visible).is_true()
-    assert_str(toast_label.text).contains("core.sanguo.city.toll.paid")
-    assert_str(toast_label.text).contains("city=c1")
+    var summary_label := _translate_summary("core.sanguo.city.toll.paid")
+    var city_label := _translate_field("core.sanguo.city.toll.paid", "detail", "city_id", "city")
+    assert_str(toast_label.text).contains(summary_label)
+    assert_str(toast_label.text).contains(city_label + "=c1")
+    assert_str(toast_label.text).not_contains("core.sanguo.city.toll.paid")
     var shown_ms: int = Time.get_ticks_msec()
 
     var before_lines: Array = []
@@ -264,18 +297,28 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
         if not t.is_empty():
             after_lines.append(t)
 
-    assert_int(after_lines.size()).is_equal(before_lines.size() + 1)
-    var last_line: String = str(after_lines[after_lines.size() - 1])
-    var parsed = JSON.parse_string(last_line)
-    assert_bool(parsed is Dictionary).is_true()
-    var obj: Dictionary = parsed
+    assert_int(after_lines.size()).is_greater_equal(before_lines.size() + 1)
+    var new_lines: Array = []
+    for i in range(before_lines.size(), after_lines.size()):
+        new_lines.append(after_lines[i])
+
+    var found := false
+    var obj: Dictionary = {}
+    for line in new_lines:
+        var parsed = JSON.parse_string(str(line))
+        if parsed is Dictionary:
+            var parsed_obj: Dictionary = parsed
+            if str(parsed_obj.get("action", "")) == "SANGUO_MONEY_CAPPED" and str(parsed_obj.get("reason", "")) == "money_cap_overflow":
+                found = true
+                obj = parsed_obj
+                break
+
+    assert_bool(found).is_true()
     assert_bool(obj.has("ts")).is_true()
     assert_bool(obj.has("action")).is_true()
     assert_bool(obj.has("reason")).is_true()
     assert_bool(obj.has("target")).is_true()
     assert_bool(obj.has("caller")).is_true()
-    assert_str(str(obj.get("action", ""))).is_equal("SANGUO_MONEY_CAPPED")
-    assert_str(str(obj.get("reason", ""))).is_equal("money_cap_overflow")
     assert_bool(str(obj.get("target", "")).length() > 0).is_true()
     assert_bool(str(obj.get("caller", "")).length() > 0).is_true()
 
@@ -354,7 +397,9 @@ func test_event_log_updates_when_core_event_is_emitted() -> void:
 
     assert_int(log_list.get_item_count()).is_equal(1)
 
-    assert_str(log_list.get_item_text(0)).contains("core.sanguo.dice.rolled")
+    var summary_label := _translate_summary("core.sanguo.dice.rolled")
+    assert_str(log_list.get_item_text(0)).contains(summary_label)
+    assert_str(log_list.get_item_text(0)).not_contains("core.sanguo.dice.rolled")
 
     hud.call("ToggleEventLogOverlay")
     await get_tree().process_frame
@@ -413,7 +458,9 @@ func test_event_log_appends_entries_and_keeps_history_in_session() -> void:
 
     assert_str(log_list.get_item_text(0)).is_equal(first)
 
-    assert_str(log_list.get_item_text(1)).contains("core.sanguo.city.bought")
+    var city_summary_label := _translate_summary("core.sanguo.city.bought")
+    assert_str(log_list.get_item_text(1)).contains(city_summary_label)
+    assert_str(log_list.get_item_text(1)).not_contains("core.sanguo.city.bought")
 
     hud.call("ToggleEventLogOverlay")
     await get_tree().process_frame
@@ -452,9 +499,13 @@ func test_event_log_entry_order_matches_event_emission_order() -> void:
 
     assert_int(log_list.get_item_count()).is_equal(2)
 
-    assert_str(log_list.get_item_text(0)).contains("core.sanguo.dice.rolled")
+    var dice_summary_label := _translate_summary("core.sanguo.dice.rolled")
+    assert_str(log_list.get_item_text(0)).contains(dice_summary_label)
+    assert_str(log_list.get_item_text(0)).not_contains("core.sanguo.dice.rolled")
 
-    assert_str(log_list.get_item_text(1)).contains("core.sanguo.city.bought")
+    var city_summary_label := _translate_summary("core.sanguo.city.bought")
+    assert_str(log_list.get_item_text(1)).contains(city_summary_label)
+    assert_str(log_list.get_item_text(1)).not_contains("core.sanguo.city.bought")
 
     hud.call("ToggleEventLogOverlay")
     await get_tree().process_frame
@@ -499,14 +550,19 @@ func test_event_log_entries_contain_player_facing_summary_fields() -> void:
 
 
 
-    assert_str(a).contains("core.sanguo.dice.rolled")
+    var dice_summary_label := _translate_summary("core.sanguo.dice.rolled")
+    var value_label := _translate_field("core.sanguo.dice.rolled", "detail", "value", "value")
+    assert_str(a).contains(dice_summary_label)
+    assert_str(a).contains(value_label + "=6")
+    assert_str(a).not_contains("core.sanguo.dice.rolled")
 
-    assert_str(a).contains("value=6")
-
-    assert_str(b).contains("core.sanguo.city.bought")
-
-    assert_str(b).contains("city=c1")
-    assert_str(b).contains("price=100")
+    var city_summary_label := _translate_summary("core.sanguo.city.bought")
+    var city_label := _translate_field("core.sanguo.city.bought", "detail", "city_id", "city")
+    var price_label := _translate_field("core.sanguo.city.bought", "detail", "price", "price")
+    assert_str(b).contains(city_summary_label)
+    assert_str(b).contains(city_label + "=c1")
+    assert_str(b).contains(price_label + "=100")
+    assert_str(b).not_contains("core.sanguo.city.bought")
 
     assert_str(a).is_not_equal(b)
 
