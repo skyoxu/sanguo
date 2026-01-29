@@ -29,8 +29,10 @@ public sealed class Task57ActionCardPolicyTests
         loader.LoadTextCalls.Should().Equal(SanguoActionCardsCatalogLoader.ActionCardsResPath);
         catalog.SchemaVersion.Should().Be(1);
         catalog.Version.Should().Be(1);
-        catalog.Cards.Should().ContainSingle(c => c.CardId == "ac_valid");
+        catalog.Cards.Should().Contain(c => c.CardId == "ac_valid");
+        catalog.Cards.Should().Contain(c => c.CardId == "ac_transfer");
         catalog.Cards.Should().NotContain(c => c.CardId == "ac_invalid_kind");
+        catalog.Cards.Should().HaveCount(2);
     }
 
     // ACC:T57.1
@@ -233,6 +235,15 @@ public sealed class Task57ActionCardPolicyTests
                 ["effectKind"] = "economyStepDelta",
                 ["stepDelta"] = -1,
                 ["durationRounds"] = 3,
+            },
+            new()
+            {
+                ["cardId"] = "ac_transfer",
+                ["nameKey"] = "card.ac_transfer.name",
+                ["descriptionKey"] = "card.ac_transfer.desc",
+                ["effectKind"] = "transferOwnership",
+                ["stepDelta"] = 0,
+                ["durationRounds"] = 1,
             },
         };
 

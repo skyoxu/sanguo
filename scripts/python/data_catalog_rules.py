@@ -30,6 +30,7 @@ MAX_ASSET_BYTES = 1_048_576  # 1MB
 EFFECT_KIND_WHITELIST = {
     "economyStepDelta",
     "moneyDelta",
+    "transferOwnership",
     "fixedDice",
     "skipNextTurn",
     "teleport",

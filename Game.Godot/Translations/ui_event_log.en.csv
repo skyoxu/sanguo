@@ -104,3 +104,26 @@ ui.hud.event.core.sanguo.relic.applied.detail.relic_id,Relic
 ui.hud.event.core.sanguo.relic.applied.detail.effect_kind,Effect kind
 ui.hud.event.core.sanguo.relic.applied.delta.money_delta,Money delta
 ui.hud.event.core.sanguo.relic.applied.delta.step_delta,Step delta
+ui.hud.event.core.sanguo.card.lost.title,Card lost
+ui.hud.event.core.sanguo.card.lost.summary,Card lost
+ui.hud.event.core.sanguo.card.lost.detail.game_id,Game
+ui.hud.event.core.sanguo.card.lost.detail.player_id,Player
+ui.hud.event.core.sanguo.card.lost.detail.card_id,Card
+ui.hud.event.core.sanguo.card.lost.detail.reason_code,Reason
+ui.hud.event.core.sanguo.card.lost.detail.source_kind,Source kind
+ui.hud.event.core.sanguo.card.lost.detail.source_id,Source id
+ui.hud.event.core.sanguo.region.captured.title,Region captured
+ui.hud.event.core.sanguo.region.captured.summary,Region captured
+ui.hud.event.core.sanguo.region.captured.detail.game_id,Game
+ui.hud.event.core.sanguo.region.captured.detail.region_id,Region
+ui.hud.event.core.sanguo.region.captured.detail.owner_id,Owner
+ui.hud.event.core.sanguo.region.captured.detail.reason_code,Reason
+ui.hud.event.core.sanguo.region.captured.detail.city_ids_count,City count
+ui.hud.event.core.sanguo.region.lost.title,Region lost
+ui.hud.event.core.sanguo.region.lost.summary,Region lost
+ui.hud.event.core.sanguo.region.lost.detail.game_id,Game
+ui.hud.event.core.sanguo.region.lost.detail.region_id,Region
+ui.hud.event.core.sanguo.region.lost.detail.owner_id,Owner
+ui.hud.event.core.sanguo.region.lost.detail.reason_code,Reason
+ui.hud.event.core.sanguo.region.lost.detail.trigger_city_id,Trigger city
+ui.hud.event.core.sanguo.action_card.play.rejected.detail.reason_code.invalid_target,invalid target

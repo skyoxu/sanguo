@@ -11,6 +11,7 @@ public static class SanguoEffectKinds
 {
     public const string MoneyDelta = "moneyDelta";
     public const string EconomyStepDelta = "economyStepDelta";
+    public const string TransferOwnership = "transferOwnership";
     public const string FixedDice = "fixedDice";
     public const string SkipNextTurn = "skipNextTurn";
     public const string Teleport = "teleport";

@@ -239,6 +239,9 @@ def validate_cards_or_relics(path: Path, array_key: str, id_key: str, i18n: dict
         elif ek == "moneyDelta":
             if not isinstance(c.get("moneyDelta"), int):
                 findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.moneyDelta", "moneyDelta must be int."))
+        elif array_key == "cards" and ek == "transferOwnership":
+            if not isinstance(c.get("stepDelta"), int):
+                findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.stepDelta", "stepDelta must be int."))
         else:
             findings.append(core.Finding("fail", "EFFECT_KIND_NOT_ALLOWED", f"{loc}.effectKind", f"{array_key} effectKind not supported by minimal gate."))
         if array_key == "cards":

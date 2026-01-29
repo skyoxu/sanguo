@@ -46,6 +46,7 @@ Arch-Refs:
   - 字段：GameId, PlayerId, RelicId, EffectKind, MoneyDelta, StepDelta, OccurredAt, CorrelationId, CausationId
   - 契约位置：`Game.Core/Contracts/Sanguo/SanguoLootEvents.cs`
 
+
 ## 验收条款（ACC）
 - ACC:T62.1 宝物掉落能被记录并立刻生效，且同局内不重复。
 - ACC:T62.2 同一输入下宝物应用顺序与最终效果可复现。

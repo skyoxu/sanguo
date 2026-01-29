@@ -140,7 +140,9 @@ public static class SanguoActionCardsCatalogLoader
                         continue;
                     }
 
-                    if (!string.Equals(effectKind, "economyStepDelta", StringComparison.Ordinal))
+                    var isEconomyStepDelta = string.Equals(effectKind, SanguoEffectKinds.EconomyStepDelta, StringComparison.Ordinal);
+                    var isTransferOwnership = string.Equals(effectKind, SanguoEffectKinds.TransferOwnership, StringComparison.Ordinal);
+                    if (!isEconomyStepDelta && !isTransferOwnership)
                         continue;
 
                     if (!TryGetInt32OptionalOrFatal(cardEl, "stepDelta", out var stepDelta, out fatalError))

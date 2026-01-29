@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 1,
+  "version": 2,
   "cards": [
     {
       "cardId": "card_coupon",
@@ -17,6 +17,14 @@
       "durationRounds": 3,
       "effectKind": "economyStepDelta",
       "stepDelta": 1
+    },
+    {
+      "cardId": "card_city_takeover",
+      "nameKey": "card.card_city_takeover.name",
+      "descriptionKey": "card.card_city_takeover.desc",
+      "durationRounds": 1,
+      "effectKind": "transferOwnership",
+      "stepDelta": 0
     }
   ]
 }

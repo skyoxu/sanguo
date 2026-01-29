@@ -1709,11 +1709,12 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md"
     ],
     "contractRefs": [
-      "core.sanguo.city.bought",
       "core.sanguo.city.toll.paid",
       "core.sanguo.economy.month.settled",
-      "core.sanguo.economy.season.event.applied",
-      "core.sanguo.economy.year.price.adjusted"
+      "core.sanguo.random_event.applied",
+      "core.sanguo.action_card.played",
+      "core.sanguo.relic.applied",
+      "core.sanguo.city.toll.synergy.paid"
     ],
     "acceptance": [
       "锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)；各 multiplier 输入必须为 0.5 步进，遇到非 0.5 步进不得静默修正（如四舍五入/截断），必须明确拒绝并不产生基于该输入的经济结果。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs",
@@ -1766,12 +1767,7 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
     ],
     "contractRefs": [
-      "core.sanguo.game.turn.started",
-      "core.sanguo.action_card.played",
-      "core.sanguo.action_card.play.rejected",
-      "core.sanguo.dice.rolled",
-      "core.sanguo.random_event.applied",
-      "core.sanguo.game.turn.advanced"
+      "core.sanguo.random_event.applied"
     ],
     "acceptance": [
       "在 gameplay 流程中，玩家于 TurnPhase.BeforeRoll 阶段每回合最多只能成功打出 1 张行动卡；同回合第二次尝试必须被拒绝且不产生任何 multiplier_step_delta/效果输出，并与 back 视图的窗口锁死语义一致。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
@@ -1824,11 +1820,7 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
     ],
-    "contractRefs": [
-      "core.sanguo.game.started",
-      "core.sanguo.game.loaded",
-      "core.sanguo.board.token.moved"
-    ],
+    "contractRefs": [],
     "acceptance": [
       "多文件地图配置在运行路径下可被加载：先解析 `res://Data/maps/_index.json`，再按 `maps[].path` 加载对应地图定义文件；任一文件缺失/JSON 无效/字段缺失时应产生可诊断的失败结果（而非静默成功）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
       "存在且可解析 `res://Data/maps/_index.json`；包含 `schemaVersion`、`version`、`maps[]`，且 `maps[]` 中每个元素至少包含 `mapId`、`nameKey`、`descriptionKey`、`path`、`previewImagePath`、`recommendedPlayersMin`、`recommendedPlayersMax`。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
@@ -1941,8 +1933,7 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
     ],
     "contractRefs": [
-      "core.sanguo.game.started",
-      "core.sanguo.city.toll.paid"
+      "core.sanguo.game.started"
     ],
     "acceptance": [
       "xUnit: 角色配置必须从 res://Data/characters.json 加载为 SanguoCharactersCatalog；SchemaVersion/Version 必须 > 0；Characters.Count 必须 >= 8；CharacterId 必须全局唯一。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs",
@@ -1999,8 +1990,7 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
     ],
     "contractRefs": [
-      "core.sanguo.random_event.applied",
-      "core.sanguo.random_event.rejected"
+      "core.sanguo.random_event.applied"
     ],
     "acceptance": [
       "每次随机事件触发后必须产出可复盘的抽样记录：至少包含 candidates hash 与最终 picked index/id；在 random_seed 与 rng_context_id 相同且回合推进/触发序列一致时，基于该记录进行复盘必须得到完全一致的选中结果（picked index/id 完全一致）。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
@@ -2023,7 +2013,7 @@
     "taskmaster_exported": true,
     "story_id": "PRD-SANGUO-T2-SKEL-57",
     "title": "模块: 行动卡（BeforeRoll）止损版",
-    "description": "引入行动卡目录：BeforeRoll 窗口可出 0/1 张行动卡影响本回合倍率快照；卡牌效果只允许 steps 经济倍率（economyStepDelta）并携带 durationRounds。",
+    "description": "引入行动卡目录：BeforeRoll 窗口可出 0/1 张行动卡影响本回合倍率快照；卡牌效果允许 steps 经济倍率（economyStepDelta）与所有权变更（transferOwnership），并携带 durationRounds。",
     "status": "deferred",
     "priority": "P2",
     "layer": "core",
@@ -2053,15 +2043,18 @@
     ],
     "contractRefs": [
       "core.sanguo.action_card.played",
-      "core.sanguo.action_card.play.rejected"
+      "core.sanguo.action_card.play.rejected",
+      "core.sanguo.card.lost",
+      "core.sanguo.city.owner.changed"
     ],
     "acceptance": [
       "Gameplay 验收口径与本任务描述一致：行动卡规则与加载来源以 res://Data/action_cards.json 为准，不依赖 tasks_back.json 等占位输入来改变行动卡策略或效果边界。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
-      "从 res://Data/action_cards.json 读取并按 schemaVersion/version/cards[] 解析；每张 card 必含 cardId/nameKey/descriptionKey/effectKind/stepDelta/durationRounds；仅允许 effectKind=economyStepDelta（不允许 moneyDelta/改所有权）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
+      "从 res://Data/action_cards.json 读取并按 schemaVersion/version/cards[] 解析；每张 card 必含 cardId/nameKey/descriptionKey/effectKind/stepDelta/durationRounds；允许 effectKind=economyStepDelta / transferOwnership；其他 effectKind（含 moneyDelta 等）不得被加载为可用行动卡。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
       "BeforeRoll 每回合最多 1 张，出牌发布 core.sanguo.action_card.played，并将 stepDelta 计入 applied_multipliers.action_card（仅 Core 计算）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
       "GdUnit4: UI 提供“出牌/跳过”，出牌后进入掷骰。 Refs: Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd",
       "选择跳过时不发布 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应因行动卡产生变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
-      "xUnit: In the same turn, attempting to play a second action card must NOT change applied_multipliers.action_card (no stepDelta stacking), even if no extra action_card.played event is emitted. Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs"
+      "xUnit: In the same turn, attempting to play a second action card must NOT change applied_multipliers.action_card (no stepDelta stacking), even if no extra action_card.played event is emitted. Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs",
+      "transferOwnership 行动卡：当玩家位于他人城市上并出牌，必须发布 core.sanguo.city.owner.changed(ReasonStolen) 与 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardOwnershipTransferTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs",
@@ -2251,11 +2244,7 @@
       "xUnit：覆盖 AI 决策一致性与可复盘取证（同输入同输出）。"
     ],
     "contractRefs": [
-      "core.sanguo.game.turn.started",
-      "core.sanguo.ai.decision.made",
-      "core.sanguo.game.turn.advanced",
-      "core.sanguo.player.eliminated",
-      "core.sanguo.game.ended"
+      "core.sanguo.ai.decision.made"
     ],
     "adr_refs": [
       "ADR-0004",
@@ -2316,8 +2305,6 @@
       "xUnit：覆盖重抽/耗尽与按 relicId 升序应用的确定性。"
     ],
     "contractRefs": [
-      "core.sanguo.combat.ended",
-      "core.sanguo.random_event.applied",
       "core.sanguo.loot.granted",
       "core.sanguo.relic.applied"
     ],
@@ -2374,7 +2361,6 @@
       "xUnit：覆盖 RoundNumber 周期检查与事件取证字段一致性。"
     ],
     "contractRefs": [
-      "core.sanguo.game.turn.started",
       "core.sanguo.random_event.applied"
     ],
     "adr_refs": [
@@ -2427,10 +2413,9 @@
       "xUnit：覆盖 region 交叉引用、全占判定与增益生效/失效时机。"
     ],
     "contractRefs": [
-      "core.sanguo.city.owner.changed",
-      "core.sanguo.city.toll.paid",
-      "core.sanguo.economy.month.settled",
-      "core.sanguo.player.eliminated"
+      "core.sanguo.region.captured",
+      "core.sanguo.region.lost",
+      "core.sanguo.city.owner.changed"
     ],
     "adr_refs": [
       "ADR-0004",
@@ -2486,8 +2471,6 @@
       "xUnit：覆盖连协收费的汇总逻辑与边界条件。"
     ],
     "contractRefs": [
-      "core.sanguo.city.toll.paid",
-      "core.sanguo.city.owner.changed",
       "core.sanguo.city.toll.synergy.paid"
     ],
     "adr_refs": [

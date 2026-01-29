@@ -107,6 +107,7 @@ UI 仅展示事件 payload/投影字段，不得在 UI 侧自行计算金额。
 - 事件/行动卡/宝物等效果输入统一采用 `effectKind` 表达（白名单）：
   - `moneyDelta`：直接改变金钱（整型）
   - `economyStepDelta`：以 0.5 步进影响经济倍率（整型 steps）
+  - `transferOwnership`：城市所有权变更（行动卡专用，触发 `core.sanguo.city.owner.changed`）。
 - `economyStepDelta.stepDelta` 语义：
   - `+1` 表示 `+0.5x`
   - `-1` 表示 `-0.5x`
