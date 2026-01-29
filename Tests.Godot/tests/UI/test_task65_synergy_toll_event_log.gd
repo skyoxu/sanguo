@@ -1,24 +1,12 @@
-extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
+extends "res://tests/UI/_fixtures/ui_event_log_fixture.gd"
 
 const EVENT_TYPE_SYNERGY_TOLL = "core.sanguo.city.toll.synergy.paid"
 
-var _bus: Node
+func before_test() -> void:
+	await _setup_event_bus()
 
-func before() -> void:
-	var existing = get_node_or_null("/root/EventBus")
-	if existing != null:
-		existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
-		existing.queue_free()
-
-	_bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
-	_bus.name = "EventBus"
-	get_tree().get_root().add_child(auto_free(_bus))
-
-func _hud() -> Node:
-	var hud = preload("res://Game.Godot/Scenes/UI/HUD.tscn").instantiate()
-	add_child(auto_free(hud))
-	await get_tree().process_frame
-	return hud
+func after_test() -> void:
+	await _teardown_event_bus()
 
 func _event_log_messages(hud: Node) -> Array:
 	var panel: Control = hud.get_node("EventLogPanel")
@@ -51,6 +39,21 @@ func _translate_field(event_type: String, section: String, field_key: String, fa
 		return text
 	return fallback
 
+func _translate_summary(event_type: String) -> String:
+	var summary_key = "ui.hud.event.%s.summary" % event_type
+	var text = _try_translate(summary_key)
+	if text.length() > 0:
+		return text
+	var title_key = "ui.hud.event.%s.title" % event_type
+	text = _try_translate(title_key)
+	if text.length() > 0:
+		return text
+	var shared_key = "ui.hud.event.shared.summary.unknown"
+	text = _try_translate(shared_key)
+	if text.length() > 0:
+		return text
+	return "event"
+
 func _publish_synergy_toll(data_json: String) -> void:
 	_bus.PublishSimple(EVENT_TYPE_SYNERGY_TOLL, "ut", data_json)
 
@@ -66,7 +69,9 @@ func test_task65_event_log_shows_synergy_toll_breakdown_and_multipliers() -> voi
 	var msgs = _event_log_messages(hud)
 	assert_int(msgs.size()).is_greater_equal(1)
 	var last = str(msgs[msgs.size() - 1])
-	assert_str(last).contains(EVENT_TYPE_SYNERGY_TOLL)
+	var summary_label = _translate_summary(EVENT_TYPE_SYNERGY_TOLL)
+	assert_str(last).contains(summary_label)
+	assert_str(last).not_contains(EVENT_TYPE_SYNERGY_TOLL)
 
 	var details = _event_log_details(hud)
 	var landing_city_label = _translate_field(EVENT_TYPE_SYNERGY_TOLL, "detail", "landing_city_id", "landing_city_id")

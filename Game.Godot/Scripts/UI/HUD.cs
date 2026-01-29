@@ -60,6 +60,7 @@ public partial class HUD : Control
     private readonly Dictionary<string, string> _characterNameKeyById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _portraitPathByCharacterId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Texture2D> _portraitCache = new(StringComparer.Ordinal);
+    private ResourceLoaderAdapter? _fallbackResourceLoader;
 
     public override void _Ready()
     {
@@ -141,6 +142,7 @@ public partial class HUD : Control
         TryDisconnectBus(callable);
 
         _bus = null;
+        _fallbackResourceLoader = null;
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -695,7 +697,14 @@ public partial class HUD : Control
             return port;
         }
 
-        return new ResourceLoaderAdapter();
+        if (_fallbackResourceLoader != null && GodotObject.IsInstanceValid(_fallbackResourceLoader))
+        {
+            return _fallbackResourceLoader;
+        }
+
+        _fallbackResourceLoader = new ResourceLoaderAdapter { Name = "ResourceLoaderFallback" };
+        AddChild(_fallbackResourceLoader);
+        return _fallbackResourceLoader;
     }
 
     private void HandleTokenMovedEvent(JsonElement root)
@@ -843,7 +852,7 @@ public partial class HUD : Control
 
         try
         {
-            var loader = new ResourceLoaderAdapter();
+            var loader = ResolveResourceLoader();
             var correlationId = Guid.NewGuid().ToString("N");
             if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out _, out _))
             {

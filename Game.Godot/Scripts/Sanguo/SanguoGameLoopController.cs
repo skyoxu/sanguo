@@ -73,6 +73,7 @@ public partial class SanguoGameLoopController : Node
     private int _lastHumanMoveToIndex;
     private string _lastSaveSlotId = "quick";
     private GameStartConfig? _lastStartConfig;
+    private ResourceLoaderAdapter? _fallbackResourceLoader;
 
     private sealed record GameStartedPayload(
         [property: JsonPropertyName("game_start_config")] GameStartConfig GameStartConfig,
@@ -141,6 +142,7 @@ public partial class SanguoGameLoopController : Node
         _started = false;
         _advanceQueued = false;
         _activePlayerId = null;
+        _fallbackResourceLoader = null;
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
@@ -1059,7 +1061,14 @@ public partial class SanguoGameLoopController : Node
         }
 
         // Fallback for minimal scenes/tests where CompositionRoot is not available.
-        return new ResourceLoaderAdapter();
+        if (_fallbackResourceLoader != null && GodotObject.IsInstanceValid(_fallbackResourceLoader))
+        {
+            return _fallbackResourceLoader;
+        }
+
+        _fallbackResourceLoader = new ResourceLoaderAdapter { Name = "ResourceLoaderFallback" };
+        AddChild(_fallbackResourceLoader);
+        return _fallbackResourceLoader;
     }
 
     private void PublishMenuStartFailed(string correlationId, string reason)

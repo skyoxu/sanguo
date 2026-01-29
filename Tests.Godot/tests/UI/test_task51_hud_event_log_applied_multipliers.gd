@@ -1,28 +1,17 @@
-extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
+extends "res://tests/UI/_fixtures/ui_event_log_fixture.gd"
 
-var _bus: Node
 var _last_data_json := ""
 
-func before() -> void:
-	var existing = get_node_or_null("/root/EventBus")
-	if existing != null:
-		existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
-		existing.queue_free()
-
-	_bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
-	_bus.name = "EventBus"
-	get_tree().get_root().add_child(auto_free(_bus))
-	_bus.connect("DomainEventEmitted", Callable(self, "_on_domain_event_emitted"))
+func before_test() -> void:
+	await _setup_event_bus()
+	_connect_domain_event_emitted(Callable(self, "_on_domain_event_emitted"))
 	_last_data_json = ""
+
+func after_test() -> void:
+	await _teardown_event_bus()
 
 func _on_domain_event_emitted(_type, _source, data_json, _id, _spec, _ct, _ts) -> void:
 	_last_data_json = str(data_json)
-
-func _hud() -> Node:
-	var hud = preload("res://Game.Godot/Scenes/UI/HUD.tscn").instantiate()
-	add_child(auto_free(hud))
-	await get_tree().process_frame
-	return hud
 
 func _event_log_messages(hud: Node) -> Array:
 	var panel: Control = hud.get_node("EventLogPanel")
@@ -70,8 +59,9 @@ func test_task51_event_log_shows_effective_multiplier_but_hides_breakdown_when_s
 	var msgs := _event_log_messages(hud)
 	assert_int(msgs.size()).is_greater_equal(1)
 	var last := str(msgs[msgs.size() - 1])
-	assert_str(last).contains("core.sanguo.city.bought")
-	assert_str(last).contains("mult=1.5")
+	var multiplier_label := _translate_field("core.sanguo.city.bought", "detail", "mult.effective_multiplier", "effective_multiplier")
+	assert_str(last).contains(multiplier_label + "=1.5")
+	assert_str(last).not_contains("core.sanguo.city.bought")
 	assert_str(last).not_contains(" c=")
 	assert_str(last).not_contains(" b=")
 	assert_str(last).not_contains(" e=")
@@ -89,7 +79,8 @@ func test_task51_event_log_can_show_breakdown_when_sources_provided() -> void:
 	var msgs := _event_log_messages(hud)
 	assert_int(msgs.size()).is_greater_equal(1)
 	var last := str(msgs[msgs.size() - 1])
-	assert_str(last).contains("mult=1.5")
+	var multiplier_label := _translate_field("core.sanguo.city.bought", "detail", "mult.effective_multiplier", "effective_multiplier")
+	assert_str(last).contains(multiplier_label + "=1.5")
 
 	var details := _event_log_details(hud)
 	var additive_label := _translate_field("core.sanguo.city.bought", "detail", "mult.additive", "additive")

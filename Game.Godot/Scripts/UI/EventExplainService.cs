@@ -44,7 +44,7 @@ public static class EventExplainService
     private static string BuildSummary(string type, JsonElement root)
     {
         var prefix = BuildSummaryPrefix(type);
-        var multiplierSuffix = BuildAppliedMultipliersSuffix(root);
+        var multiplierSuffix = BuildAppliedMultipliersSuffix(type, root);
 
         if (string.Equals(type, SanguoCityTollPaid.EventType, StringComparison.Ordinal))
         {
@@ -56,12 +56,15 @@ public static class EventExplainService
             var overflow = TryGetDecimalLoose(root, "TreasuryOverflow");
 
             var parts = new List<string>(8) { prefix };
-            if (!string.IsNullOrWhiteSpace(payerId)) parts.Add($"payer={payerId}");
-            if (!string.IsNullOrWhiteSpace(ownerId)) parts.Add($"owner={ownerId}");
-            if (!string.IsNullOrWhiteSpace(cityId)) parts.Add($"city={cityId}");
-            if (amount.HasValue) parts.Add($"amount={FormatDecimal(amount.Value)}");
-            if (ownerAmount.HasValue) parts.Add($"owner_amount={FormatDecimal(ownerAmount.Value)}");
-            if (overflow.HasValue && overflow.Value != 0m) parts.Add($"overflow={FormatDecimal(overflow.Value)}");
+            AddSummaryPart(parts, type, "payer_id", "payer", payerId);
+            AddSummaryPart(parts, type, "owner_id", "owner", ownerId);
+            AddSummaryPart(parts, type, "city_id", "city", cityId);
+            AddSummaryPart(parts, type, "amount", "amount", amount);
+            AddSummaryPart(parts, type, "owner_amount", "owner_amount", ownerAmount);
+            if (overflow.HasValue && overflow.Value != 0m)
+            {
+                AddSummaryPart(parts, type, "treasury_overflow", "treasury_overflow", overflow);
+            }
 
             return string.Join(' ', parts) + multiplierSuffix;
         }
@@ -72,9 +75,9 @@ public static class EventExplainService
             var month = TryGetIntLoose(root, "Month");
             var turn = TryGetIntLoose(root, "TurnNumber");
             var parts = new List<string>(6) { prefix };
-            if (turn.HasValue) parts.Add($"turn={turn.Value}");
-            if (year.HasValue) parts.Add($"year={year.Value}");
-            if (month.HasValue) parts.Add($"month={month.Value}");
+            AddSummaryPart(parts, type, "turn", "turn", turn);
+            AddSummaryPart(parts, type, "year", "year", year);
+            AddSummaryPart(parts, type, "month", "month", month);
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
@@ -87,11 +90,11 @@ public static class EventExplainService
             var passedStart = TryGetBoolLoose(root, "PassedStart");
 
             var parts = new List<string>(8) { prefix };
-            if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
-            if (from.HasValue) parts.Add($"from={from.Value}");
-            if (to.HasValue) parts.Add($"to={to.Value}");
-            if (steps.HasValue) parts.Add($"steps={steps.Value}");
-            if (passedStart.HasValue) parts.Add($"passed_start={passedStart.Value.ToString().ToLowerInvariant()}");
+            AddSummaryPart(parts, type, "player_id", "player", playerId);
+            AddSummaryPart(parts, type, "from_index", "from", from);
+            AddSummaryPart(parts, type, "to_index", "to", to);
+            AddSummaryPart(parts, type, "steps", "steps", steps);
+            AddSummaryPart(parts, type, "passed_start", "passed_start", passedStart);
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
@@ -100,22 +103,21 @@ public static class EventExplainService
             var reason = TryGetStringLoose(root, "EndReason");
             var winner = TryGetStringLoose(root, "WinnerPlayerId");
             var parts = new List<string>(6) { prefix };
-            if (!string.IsNullOrWhiteSpace(reason)) parts.Add($"reason={reason}");
-            if (!string.IsNullOrWhiteSpace(winner)) parts.Add($"winner={winner}");
+            AddSummaryPart(parts, type, "end_reason", "reason", reason);
+            AddSummaryPart(parts, type, "winner_player_id", "winner", winner);
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
         if (string.Equals(type, SanguoRandomEventApplied.EventType, StringComparison.Ordinal))
         {
             var playerId = TryGetStringLoose(root, "PlayerId");
+            var eventId = TryGetStringLoose(root, "EventId");
             var pickedId = TryGetStringLoose(root, "PickedId");
-            if (string.IsNullOrWhiteSpace(pickedId))
-            {
-                pickedId = TryGetStringLoose(root, "EventId");
-            }
             var effectKind = TryGetStringLoose(root, "EffectKind");
             var uiMessage = TryGetStringLoose(root, "UiMessage");
-            var sourceLabel = ResolveRandomEventSourceLabel(type, root, pickedId);
+            var resolvedPickedId = !string.IsNullOrWhiteSpace(pickedId) ? pickedId : eventId;
+            var pickedLabelKey = !string.IsNullOrWhiteSpace(pickedId) ? "picked_id" : "event_id";
+            var sourceLabel = ResolveRandomEventSourceLabel(type, root, resolvedPickedId);
             var roundNumber = TryGetRoundNumber(root);
             var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
             var stepDelta = TryGetIntLoose(root, "StepDelta");
@@ -127,9 +129,9 @@ public static class EventExplainService
                 var label = TranslateField(type, "detail", "prompt_message", "message");
                 parts.Add($"{label}={uiMessage}");
             }
-            if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
-            if (!string.IsNullOrWhiteSpace(pickedId)) parts.Add($"picked={pickedId}");
-            if (!string.IsNullOrWhiteSpace(effectKind)) parts.Add($"kind={effectKind}");
+            AddSummaryPart(parts, type, "player_id", "player", playerId);
+            AddSummaryPart(parts, type, pickedLabelKey, pickedLabelKey, resolvedPickedId);
+            AddSummaryPart(parts, type, "effect_kind", "kind", effectKind);
 
             var meta = new List<string>(8);
             if (!string.IsNullOrWhiteSpace(sourceLabel))
@@ -173,10 +175,10 @@ public static class EventExplainService
             var sourceId = TryGetStringLoose(root, "SourceId");
 
             var parts = new List<string>(10) { prefix };
-            if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
-            if (!string.IsNullOrWhiteSpace(lootKind)) parts.Add($"loot_kind={lootKind}");
-            if (!string.IsNullOrWhiteSpace(cardId)) parts.Add($"card={cardId}");
-            if (!string.IsNullOrWhiteSpace(relicId)) parts.Add($"relic={relicId}");
+            AddSummaryPart(parts, type, "player_id", "player", playerId);
+            AddSummaryPart(parts, type, "loot_kind", "loot_kind", lootKind);
+            AddSummaryPart(parts, type, "card_id", "card", cardId);
+            AddSummaryPart(parts, type, "relic_id", "relic", relicId);
 
             var meta = new List<string>(6);
             if (moneyDelta.HasValue && moneyDelta.Value != 0)
@@ -208,9 +210,9 @@ public static class EventExplainService
             var stepDelta = TryGetIntLoose(root, "StepDelta");
 
             var parts = new List<string>(8) { prefix };
-            if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
-            if (!string.IsNullOrWhiteSpace(relicId)) parts.Add($"relic={relicId}");
-            if (!string.IsNullOrWhiteSpace(effectKind)) parts.Add($"kind={effectKind}");
+            AddSummaryPart(parts, type, "player_id", "player", playerId);
+            AddSummaryPart(parts, type, "relic_id", "relic", relicId);
+            AddSummaryPart(parts, type, "effect_kind", "kind", effectKind);
 
             var meta = new List<string>(4);
             if (moneyDelta.HasValue && moneyDelta.Value != 0)
@@ -237,14 +239,15 @@ public static class EventExplainService
             var sourceId = TryGetStringLoose(root, "SourceId");
 
             var parts = new List<string>(8) { prefix };
-            if (!string.IsNullOrWhiteSpace(playerId)) parts.Add($"player={playerId}");
-            if (!string.IsNullOrWhiteSpace(cardId)) parts.Add($"card={cardId}");
+            AddSummaryPart(parts, type, "player_id", "player", playerId);
+            AddSummaryPart(parts, type, "card_id", "card", cardId);
 
             var meta = new List<string>(4);
             if (!string.IsNullOrWhiteSpace(reason))
             {
                 var label = TranslateField(type, "detail", "reason_code", "reason");
-                meta.Add($"{label}={reason}");
+                var translatedReason = TranslateReasonToken(type, reason);
+                meta.Add($"{label}={translatedReason}");
             }
             if (!string.IsNullOrWhiteSpace(sourceKind))
             {
@@ -268,14 +271,15 @@ public static class EventExplainService
             var reason = TryGetStringLoose(root, "ReasonCode");
 
             var parts = new List<string>(8) { prefix };
-            if (!string.IsNullOrWhiteSpace(regionId)) parts.Add($"region={regionId}");
-            if (!string.IsNullOrWhiteSpace(ownerId)) parts.Add($"owner={ownerId}");
+            AddSummaryPart(parts, type, "region_id", "region", regionId);
+            AddSummaryPart(parts, type, "owner_id", "owner", ownerId);
 
             var meta = new List<string>(4);
             if (!string.IsNullOrWhiteSpace(reason))
             {
                 var label = TranslateField(type, "detail", "reason_code", "reason");
-                meta.Add($"{label}={reason}");
+                var translatedReason = TranslateReasonToken(type, reason);
+                meta.Add($"{label}={translatedReason}");
             }
 
             if (TryGetPropertyLoose(root, "CityIds", out var cityIds) && cityIds.ValueKind == JsonValueKind.Array)
@@ -295,14 +299,15 @@ public static class EventExplainService
             var reason = TryGetStringLoose(root, "ReasonCode");
 
             var parts = new List<string>(8) { prefix };
-            if (!string.IsNullOrWhiteSpace(regionId)) parts.Add($"region={regionId}");
-            if (!string.IsNullOrWhiteSpace(ownerId)) parts.Add($"owner={ownerId}");
+            AddSummaryPart(parts, type, "region_id", "region", regionId);
+            AddSummaryPart(parts, type, "owner_id", "owner", ownerId);
 
             var meta = new List<string>(4);
             if (!string.IsNullOrWhiteSpace(reason))
             {
                 var label = TranslateField(type, "detail", "reason_code", "reason");
-                meta.Add($"{label}={reason}");
+                var translatedReason = TranslateReasonToken(type, reason);
+                meta.Add($"{label}={translatedReason}");
             }
             var triggerCityId = TryGetStringLoose(root, "TriggerCityId");
             if (!string.IsNullOrWhiteSpace(triggerCityId))
@@ -322,9 +327,9 @@ public static class EventExplainService
             var yieldMultiplier = TryGetDecimalLoose(root, "YieldMultiplier");
 
             var parts = new List<string>(6) { prefix };
-            if (year.HasValue) parts.Add($"year={year.Value}");
-            if (season.HasValue) parts.Add($"season={season.Value}");
-            if (yieldMultiplier.HasValue) parts.Add($"yield_multiplier={FormatDecimal(yieldMultiplier.Value)}");
+            AddSummaryPart(parts, type, "year", "year", year);
+            AddSummaryPart(parts, type, "season", "season", season);
+            AddSummaryPart(parts, type, "yield_multiplier", "yield_multiplier", yieldMultiplier);
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
@@ -336,10 +341,10 @@ public static class EventExplainService
             var newPrice = TryGetDecimalLoose(root, "NewPrice");
 
             var parts = new List<string>(8) { prefix };
-            if (!string.IsNullOrWhiteSpace(cityId)) parts.Add($"city={cityId}");
-            if (year.HasValue) parts.Add($"year={year.Value}");
-            if (oldPrice.HasValue) parts.Add($"old_price={FormatDecimal(oldPrice.Value)}");
-            if (newPrice.HasValue) parts.Add($"new_price={FormatDecimal(newPrice.Value)}");
+            AddSummaryPart(parts, type, "city_id", "city", cityId);
+            AddSummaryPart(parts, type, "year", "year", year);
+            AddSummaryPart(parts, type, "old_price", "old_price", oldPrice);
+            AddSummaryPart(parts, type, "new_price", "new_price", newPrice);
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
@@ -353,36 +358,41 @@ public static class EventExplainService
             var paidCities = TryGetIntLoose(root, "PaidCitiesCount");
 
             var parts = new List<string>(10) { prefix };
-            if (!string.IsNullOrWhiteSpace(payerId)) parts.Add($"payer={payerId}");
-            if (!string.IsNullOrWhiteSpace(ownerId)) parts.Add($"owner={ownerId}");
-            if (!string.IsNullOrWhiteSpace(landingCityId)) parts.Add($"landing_city={landingCityId}");
-            if (!string.IsNullOrWhiteSpace(regionId)) parts.Add($"region={regionId}");
-            if (paidTotal.HasValue) parts.Add($"paid_total={FormatDecimal(paidTotal.Value)}");
-            if (paidCities.HasValue) parts.Add($"cities={paidCities.Value}");
+            AddSummaryPart(parts, type, "payer_id", "payer", payerId);
+            AddSummaryPart(parts, type, "owner_id", "owner", ownerId);
+            AddSummaryPart(parts, type, "landing_city_id", "landing_city", landingCityId);
+            AddSummaryPart(parts, type, "region_id", "region", regionId);
+            AddSummaryPart(parts, type, "paid_total_amount", "paid_total", paidTotal);
+            AddSummaryPart(parts, type, "paid_cities_count", "cities", paidCities);
             return string.Join(' ', parts);
         }
 
         // Generic fallbacks used by existing tests:
-        var player = TryGetStringLoose(root, "PlayerId") ?? TryGetStringLoose(root, "ActivePlayerId");
+        var playerIdFallback = TryGetStringLoose(root, "PlayerId") ?? TryGetStringLoose(root, "ActivePlayerId");
         if (TryGetPropertyLoose(root, "Value", out var value) && value.ValueKind == JsonValueKind.Number)
         {
-            return string.IsNullOrWhiteSpace(player)
-                ? $"{type} value={value}{multiplierSuffix}"
-                : $"{type} player={player} value={value}{multiplierSuffix}";
+            var parts = new List<string>(4) { prefix };
+            AddSummaryPart(parts, type, "player_id", "player", playerIdFallback);
+            AddSummaryPart(parts, type, "value", "value", value.ToString());
+            return string.Join(' ', parts) + multiplierSuffix;
         }
 
         if (TryGetPropertyLoose(root, "CityId", out var cityIdProp))
         {
             var city = cityIdProp.ValueKind == JsonValueKind.String ? (cityIdProp.GetString() ?? string.Empty) : cityIdProp.ToString();
-            var summary = string.IsNullOrWhiteSpace(player) ? $"{type} city={city}" : $"{type} player={player} city={city}";
+            var parts = new List<string>(6) { prefix };
+            AddSummaryPart(parts, type, "player_id", "player", playerIdFallback);
+            AddSummaryPart(parts, type, "city_id", "city", city);
             if (TryGetPropertyLoose(root, "Price", out var price) && price.ValueKind == JsonValueKind.Number)
             {
-                summary += $" price={price}";
+                AddSummaryPart(parts, type, "price", "price", price.ToString());
             }
-            return summary + multiplierSuffix;
+            return string.Join(' ', parts) + multiplierSuffix;
         }
 
-        return string.IsNullOrWhiteSpace(player) ? prefix + multiplierSuffix : $"{prefix} player={player}{multiplierSuffix}";
+        var fallbackParts = new List<string>(3) { prefix };
+        AddSummaryPart(fallbackParts, type, "player_id", "player", playerIdFallback);
+        return string.Join(' ', fallbackParts) + multiplierSuffix;
     }
 
     private static string BuildDetails(
@@ -788,28 +798,31 @@ public static class EventExplainService
         AddAppliedMultipliersFactsFromElement(additive, multiplicative, eventType, m, prefix);
     }
 
-    private static string BuildAppliedMultipliersSuffix(JsonElement root)
+    private static string BuildAppliedMultipliersSuffix(string eventType, JsonElement root)
     {
         if (!TryGetAppliedMultipliersElement(root, out var m))
         {
             return string.Empty;
         }
 
-        return BuildAppliedMultipliersInline(m);
+        return BuildAppliedMultipliersInline(eventType, m);
     }
 
     private static string BuildSummaryPrefix(string type)
     {
-        var prefix = $"ui.hud.event.{type}";
-        var title = TranslateOrFallback($"{prefix}.title", type);
-        var summary = TranslateOrFallback($"{prefix}.summary", title);
-
-        if (string.Equals(summary, type, StringComparison.Ordinal))
+        var summary = TryTranslate($"ui.hud.event.{type}.summary");
+        if (!string.IsNullOrWhiteSpace(summary))
         {
-            return type;
+            return summary!;
         }
 
-        return $"{summary} ({type})";
+        var title = TryTranslate($"ui.hud.event.{type}.title");
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            return title!;
+        }
+
+        return TranslateOrFallback("ui.hud.event.shared.summary.unknown", "event");
     }
 
     private static string TranslateField(string eventType, string section, string fieldKey, string fallback)
@@ -829,6 +842,47 @@ public static class EventExplainService
         }
 
         return fallback;
+    }
+
+    private static void AddSummaryPart(List<string> parts, string eventType, string fieldKey, string fallback, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        var label = TranslateField(eventType, "detail", fieldKey, fallback);
+        parts.Add($"{label}={value}");
+    }
+
+    private static void AddSummaryPart(List<string> parts, string eventType, string fieldKey, string fallback, int? value)
+    {
+        if (!value.HasValue)
+        {
+            return;
+        }
+
+        AddSummaryPart(parts, eventType, fieldKey, fallback, value.Value.ToString(CultureInfo.InvariantCulture));
+    }
+
+    private static void AddSummaryPart(List<string> parts, string eventType, string fieldKey, string fallback, bool? value)
+    {
+        if (!value.HasValue)
+        {
+            return;
+        }
+
+        AddSummaryPart(parts, eventType, fieldKey, fallback, value.Value.ToString().ToLowerInvariant());
+    }
+
+    private static void AddSummaryPart(List<string> parts, string eventType, string fieldKey, string fallback, decimal? value)
+    {
+        if (!value.HasValue)
+        {
+            return;
+        }
+
+        AddSummaryPart(parts, eventType, fieldKey, fallback, FormatDecimal(value.Value));
     }
 
     private static string? ResolveRandomEventSourceLabel(string eventType, JsonElement root, string? eventId)
@@ -1111,7 +1165,7 @@ public static class EventExplainService
         return string.Join(", ", parts);
     }
 
-    private static string BuildAppliedMultipliersInline(JsonElement applied)
+    private static string BuildAppliedMultipliersInline(string eventType, JsonElement applied)
     {
         var effectiveMultiplier = TryGetDecimalLoose(applied, "Effective");
         var effectiveSteps = TryGetIntLoose(applied, "EffectiveSteps");
@@ -1125,7 +1179,8 @@ public static class EventExplainService
             return string.Empty;
         }
 
-        return $" mult={FormatDecimal(effectiveMultiplier.Value)}";
+        var label = TranslateField(eventType, "detail", "mult.effective_multiplier", "multiplier");
+        return $" {label}={FormatDecimal(effectiveMultiplier.Value)}";
     }
 
     private static bool TryGetAppliedMultipliersElement(JsonElement root, out JsonElement applied)

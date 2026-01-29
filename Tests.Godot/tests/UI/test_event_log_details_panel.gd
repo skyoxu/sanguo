@@ -1,22 +1,10 @@
-extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
+extends "res://tests/UI/_fixtures/ui_event_log_fixture.gd"
 
-var _bus: Node
+func before_test() -> void:
+    await _setup_event_bus()
 
-func before() -> void:
-    var existing = get_node_or_null("/root/EventBus")
-    if existing != null:
-        existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
-        existing.queue_free()
-
-    _bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
-    _bus.name = "EventBus"
-    get_tree().get_root().add_child(auto_free(_bus))
-
-func _hud() -> Node:
-    var hud = preload("res://Game.Godot/Scenes/UI/HUD.tscn").instantiate()
-    add_child(auto_free(hud))
-    await get_tree().process_frame
-    return hud
+func after_test() -> void:
+    await _teardown_event_bus()
 
 func _try_translate(key: String) -> String:
     if TranslationServer.has_method("translate"):
@@ -35,6 +23,21 @@ func _translate_field(event_type: String, section: String, field_key: String, fa
     if text.length() > 0:
         return text
     return fallback
+
+func _translate_summary(event_type: String) -> String:
+    var summary_key := "ui.hud.event.%s.summary" % event_type
+    var text := _try_translate(summary_key)
+    if text.length() > 0:
+        return text
+    var title_key := "ui.hud.event.%s.title" % event_type
+    text = _try_translate(title_key)
+    if text.length() > 0:
+        return text
+    var shared_key := "ui.hud.event.shared.summary.unknown"
+    text = _try_translate(shared_key)
+    if text.length() > 0:
+        return text
+    return "event"
 
 func test_event_log_details_panel_shows_toll_paid_facts_and_deltas() -> void:
     var hud = await _hud()
@@ -56,7 +59,9 @@ func test_event_log_details_panel_shows_toll_paid_facts_and_deltas() -> void:
             break
 
     assert_int(log_list.get_item_count()).is_equal(1)
-    assert_str(log_list.get_item_text(0)).contains("core.sanguo.city.toll.paid")
+    var summary_label := _translate_summary("core.sanguo.city.toll.paid")
+    assert_str(log_list.get_item_text(0)).contains(summary_label)
+    assert_str(log_list.get_item_text(0)).not_contains("core.sanguo.city.toll.paid")
     assert_str(str(details.text)).contains("deltas:")
 
     var money_key := "ui.hud.event.core.sanguo.city.toll.paid.delta.money_delta"
