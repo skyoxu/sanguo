@@ -18,9 +18,11 @@ def _validate_map_file(
     *,
     building_ids: set[str],
     facility_ids: set[str],
+    facility_action_ids_by_facility: dict[str, set[str]],
     region_ids: set[str],
     event_pool_ids: set[str],
     i18n: dict[str, str],
+    expected_map_id: str | None,
     findings: list[core.Finding],
 ) -> None:
     try:
@@ -33,7 +35,16 @@ def _validate_map_file(
     if not isinstance(obj, dict):
         findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", path.as_posix(), "top-level must be an object."))
         return
-    core._check_id(obj.get("mapId"), f"{path.as_posix()}:mapId", findings)
+    map_id_value = core._check_id(obj.get("mapId"), f"{path.as_posix()}:mapId", findings)
+    if expected_map_id and map_id_value and map_id_value != expected_map_id:
+        findings.append(
+            core.Finding(
+                "fail",
+                "DATA_ID_MISMATCH",
+                f"{path.as_posix()}:mapId",
+                f"mapId {map_id_value!r} does not match index mapId {expected_map_id!r}.",
+            )
+        )
     track = obj.get("track")
     if not isinstance(track, dict):
         findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{path.as_posix()}:track", "track must be object."))
@@ -66,7 +77,7 @@ def _validate_map_file(
         if not isinstance(name_key, str) or not name_key:
             findings.append(core.Finding("fail", "I18N_KEY_MISSING", f"{loc}.nameKey", "tile must include nameKey."))
         else:
-            core._validate_i18n_key(name_key, f"{loc}.nameKey", i18n, findings, required=False)
+            core._validate_i18n_key(name_key, f"{loc}.nameKey", i18n, findings, required=True)
         layout = t.get("layout")
         if not isinstance(layout, dict):
             findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.layout", "layout must be object."))
@@ -115,16 +126,57 @@ def _validate_map_file(
                             findings.append(core.Finding("fail", "DATA_ID_NOT_FOUND", f"{loc}.city.allowedBuildingIds", f"buildingId not found: {bid}"))
             if "buy_land" not in action_ids:
                 findings.append(core.Finding("fail", "DATA_INVARIANT_VIOLATION", f"{loc}.actions", "city must include buy_land action."))
+            for action_id in sorted(action_ids):
+                if action_id not in ("buy_land", "build"):
+                    findings.append(core.Finding("fail", "DATA_VALUE_OUT_OF_RANGE", f"{loc}.actions", f"city actionId not allowed: {action_id}"))
         elif kind == "event":
             pool_id = t.get("eventPoolId")
             if not isinstance(pool_id, str) or pool_id not in event_pool_ids:
                 findings.append(core.Finding("fail", "DATA_ID_NOT_FOUND", f"{loc}.eventPoolId", f"eventPoolId not found: {pool_id!r}"))
             if "trigger_event" not in action_ids:
                 findings.append(core.Finding("fail", "DATA_INVARIANT_VIOLATION", f"{loc}.actions", "event tile must include trigger_event action."))
+            for action_id in sorted(action_ids):
+                if action_id != "trigger_event":
+                    findings.append(core.Finding("fail", "DATA_VALUE_OUT_OF_RANGE", f"{loc}.actions", f"event actionId not allowed: {action_id}"))
         elif kind == "facility":
             fid = t.get("facilityId")
             if not isinstance(fid, str) or fid not in facility_ids:
                 findings.append(core.Finding("fail", "DATA_ID_NOT_FOUND", f"{loc}.facilityId", f"facilityId not found: {fid!r}"))
+            else:
+                facility_action_ids = facility_action_ids_by_facility.get(fid)
+                if facility_action_ids is not None:
+                    if facility_action_ids and not action_ids:
+                        findings.append(
+                            core.Finding(
+                                "fail",
+                                "DATA_INVARIANT_VIOLATION",
+                                f"{loc}.actions",
+                                f"facility {fid} defines actions but tile has none.",
+                            )
+                        )
+                    elif not facility_action_ids and action_ids:
+                        findings.append(
+                            core.Finding(
+                                "fail",
+                                "DATA_INVARIANT_VIOLATION",
+                                f"{loc}.actions",
+                                f"facility {fid} defines no actions but tile includes {sorted(action_ids)}.",
+                            )
+                        )
+                    else:
+                        for action_id in sorted(action_ids):
+                            if action_id not in facility_action_ids:
+                                findings.append(
+                                    core.Finding(
+                                        "fail",
+                                        "DATA_ID_NOT_FOUND",
+                                        f"{loc}.actions",
+                                        f"actionId {action_id!r} not defined in facilities.{fid}.actions.",
+                                    )
+                                )
+        elif kind == "empty":
+            if action_ids:
+                findings.append(core.Finding("fail", "DATA_INVARIANT_VIOLATION", f"{loc}.actions", "empty tile must not define actions."))
     if start_tile_id and start_tile_id not in seen_tiles:
         findings.append(core.Finding("fail", "DATA_ID_NOT_FOUND", f"{path.as_posix()}:track.startTileId", f"startTileId not found: {start_tile_id}"))
 
@@ -136,6 +188,7 @@ def validate_maps_index(
     i18n: dict[str, str],
     building_ids: set[str],
     facility_ids: set[str],
+    facility_action_ids_by_facility: dict[str, set[str]],
     region_ids: set[str],
     event_pool_ids: set[str],
     findings: list[core.Finding],
@@ -165,12 +218,15 @@ def validate_maps_index(
             if mid in seen:
                 findings.append(core.Finding("fail", "DATA_ID_DUPLICATE", f"{loc}.mapId", f"duplicate mapId: {mid}"))
             seen.add(mid)
-        core._validate_i18n_key(m.get("nameKey"), f"{loc}.nameKey", i18n, findings, required=False)
-        core._validate_i18n_key(m.get("descriptionKey"), f"{loc}.descriptionKey", i18n, findings, required=False)
+        core._validate_i18n_key(m.get("nameKey"), f"{loc}.nameKey", i18n, findings, required=True)
+        core._validate_i18n_key(m.get("descriptionKey"), f"{loc}.descriptionKey", i18n, findings, required=True)
         p = m.get("path")
         if not isinstance(p, str) or not p.startswith("res://Data/maps/") or not p.endswith(".json"):
             findings.append(core.Finding("fail", "DATA_PATH_NOT_ALLOWED", f"{loc}.path", "path must be res://Data/maps/<file>.json"))
             continue
+        content_version = m.get("contentVersion")
+        if not isinstance(content_version, int) or content_version < 1:
+            findings.append(core.Finding("fail", "DATA_VALUE_OUT_OF_RANGE", f"{loc}.contentVersion", "contentVersion must be int >= 1."))
         map_abs = repo_root / Path(p.removeprefix("res://"))
         if not map_abs.exists():
             findings.append(core.Finding("fail", "DATA_MISSING_FILE", f"{loc}.path", f"map file missing: {map_abs.as_posix()}"))
@@ -182,9 +238,11 @@ def validate_maps_index(
             map_abs,
             building_ids=building_ids,
             facility_ids=facility_ids,
+            facility_action_ids_by_facility=facility_action_ids_by_facility,
             region_ids=region_ids,
             event_pool_ids=event_pool_ids,
             i18n=i18n,
+            expected_map_id=mid if isinstance(mid, str) else None,
             findings=findings,
         )
         core.validate_res_asset_path(repo_root, m.get("previewImagePath"), f"{loc}.previewImagePath", findings)

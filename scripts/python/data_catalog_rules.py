@@ -278,7 +278,7 @@ def validate_effect_kind_whitelist(data_dir: Path, findings: list[Finding]) -> N
                 )
 
 
-def validate_i18n_file(path: Path, findings: list[Finding]) -> dict[str, str]:
+def validate_i18n_file(path: Path, findings: list[Finding], *, expected_locale: str = "zh-CN") -> dict[str, str]:
     try:
         obj = _read_json(path)
     except Exception as e:
@@ -291,13 +291,13 @@ def validate_i18n_file(path: Path, findings: list[Finding]) -> dict[str, str]:
         return {}
 
     locale = obj.get("locale")
-    if locale != "zh-CN":
+    if locale != expected_locale:
         findings.append(
             Finding(
                 "warn",
                 "I18N_LOCALE_UNEXPECTED",
                 path.as_posix(),
-                f'locale is {locale!r}, expected "zh-CN".',
+                f'locale is {locale!r}, expected "{expected_locale}".',
             )
         )
 
@@ -370,7 +370,10 @@ def validate_characters(repo_root: Path, path: Path, i18n: dict[str, str], findi
 
         validate_res_asset_path(repo_root, c.get("portraitPath"), f"{loc}.portraitPath", findings)
 
-        if not isinstance(c.get("startingMoneyStepDelta"), int):
+        starting_delta = c.get("startingMoneyStepDelta")
+        if not isinstance(starting_delta, int):
             findings.append(Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.startingMoneyStepDelta", "startingMoneyStepDelta must be int."))
+        elif starting_delta < -6 or starting_delta > 6:
+            findings.append(Finding("fail", "DATA_VALUE_OUT_OF_RANGE", f"{loc}.startingMoneyStepDelta", "startingMoneyStepDelta must be in [-6,6]."))
 
         _validate_economy_steps(c.get("economyStepDeltas"), f"{loc}.economyStepDeltas", findings)
