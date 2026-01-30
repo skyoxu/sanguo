@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 2,
+  "version": 3,
   "cards": [
     {
       "cardId": "card_coupon",
@@ -25,6 +25,30 @@
       "durationRounds": 1,
       "effectKind": "transferOwnership",
       "stepDelta": 0
+    },
+    {
+      "cardId": "card_market_rebate",
+      "nameKey": "card.card_market_rebate.name",
+      "descriptionKey": "card.card_market_rebate.desc",
+      "durationRounds": 2,
+      "effectKind": "economyStepDelta",
+      "stepDelta": -1
+    },
+    {
+      "cardId": "card_toll_surge",
+      "nameKey": "card.card_toll_surge.name",
+      "descriptionKey": "card.card_toll_surge.desc",
+      "durationRounds": 2,
+      "effectKind": "economyStepDelta",
+      "stepDelta": 1
+    },
+    {
+      "cardId": "card_build_relief",
+      "nameKey": "card.card_build_relief.name",
+      "descriptionKey": "card.card_build_relief.desc",
+      "durationRounds": 1,
+      "effectKind": "economyStepDelta",
+      "stepDelta": -1
     }
   ]
 }

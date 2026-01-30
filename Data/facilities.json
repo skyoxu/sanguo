@@ -1,13 +1,19 @@
 {
   "schemaVersion": 1,
-  "version": 1,
+  "version": 2,
   "facilities": [
     {
       "facilityId": "facility_wilderness",
       "facilityKind": "wilderness",
       "nameKey": "facility.facility_wilderness.name",
       "descriptionKey": "facility.facility_wilderness.desc",
-      "actions": []
+      "actions": [
+        {
+          "actionId": "wilderness",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "wilderness"
+        }
+      ]
     },
     {
       "facilityId": "facility_shop",
@@ -40,21 +46,39 @@
       "facilityKind": "jail",
       "nameKey": "facility.facility_jail.name",
       "descriptionKey": "facility.facility_jail.desc",
-      "actions": []
+      "actions": [
+        {
+          "actionId": "jail",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "jail"
+        }
+      ]
     },
     {
       "facilityId": "facility_hospital",
       "facilityKind": "hospital",
       "nameKey": "facility.facility_hospital.name",
       "descriptionKey": "facility.facility_hospital.desc",
-      "actions": []
+      "actions": [
+        {
+          "actionId": "hospital",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "hospital"
+        }
+      ]
     },
     {
       "facilityId": "facility_job_center",
       "facilityKind": "jobCenter",
       "nameKey": "facility.facility_job_center.name",
       "descriptionKey": "facility.facility_job_center.desc",
-      "actions": []
+      "actions": [
+        {
+          "actionId": "job",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "job"
+        }
+      ]
     },
     {
       "facilityId": "facility_teleporter",

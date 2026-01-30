@@ -115,6 +115,7 @@ def main():
         'selfcheck': {},
         'encoding': {},
         'i18n_keys': {},
+        'workflows_index': {},
         'gd_tests': {},
         'status': 'ok'
     }
@@ -262,7 +263,43 @@ def main():
         summary['i18n_keys'] = {'rc': 1, 'error': str(exc)}
         hard_fail = True
 
-    # 5) GdUnit test naming/encoding (hard gate, changed files only)
+    # 5) Data catalog validation (hard gate)
+    try:
+        rc_data, out_data = run_cmd(
+            ['py', '-3', 'scripts/python/validate_data_catalog.py', '--strict'],
+            cwd=root,
+        )
+        summary['data_catalog'] = {
+            'rc': rc_data,
+            'note': 'see logs/ci/<date>/data-catalog-validate.json',
+        }
+        with io.open(os.path.join('logs', 'ci', date, 'data-catalog-stdout.txt'), 'w', encoding='utf-8') as f:
+            f.write(out_data)
+        if rc_data != 0:
+            hard_fail = True
+    except Exception as exc:
+        summary['data_catalog'] = {'rc': 1, 'error': str(exc)}
+        hard_fail = True
+
+    # 6) Data version bump gate (hard gate)
+    try:
+        rc_versions, out_versions = run_cmd(
+            ['py', '-3', 'scripts/python/check_data_versions_bumped.py', '--base', 'origin/main', '--head', 'HEAD'],
+            cwd=root,
+        )
+        summary['data_version_gate'] = {
+            'rc': rc_versions,
+            'note': 'see logs/ci/<date>/data-version-gate.json',
+        }
+        with io.open(os.path.join('logs', 'ci', date, 'data-version-gate-stdout.txt'), 'w', encoding='utf-8') as f:
+            f.write(out_versions)
+        if rc_versions != 0:
+            hard_fail = True
+    except Exception as exc:
+        summary['data_version_gate'] = {'rc': 1, 'error': str(exc)}
+        hard_fail = True
+
+    # 7) GdUnit test naming/encoding (hard gate, changed files only)
     try:
         gd_changed = [
             p for p in changed_files
@@ -282,6 +319,24 @@ def main():
             summary['gd_tests'] = {'rc': 0, 'checked': 0, 'note': 'no changed Tests.Godot/tests/*.gd files'}
     except Exception as exc:
         summary['gd_tests'] = {'rc': 1, 'error': str(exc)}
+        hard_fail = True
+
+    # 8) Workflows index validation (hard gate)
+    try:
+        rc_wf, out_wf = run_cmd(
+            ['py', '-3', 'scripts/python/validate_workflows_index.py'],
+            cwd=root,
+        )
+        summary['workflows_index'] = {
+            'rc': rc_wf,
+            'note': 'see logs/ci/<date>/workflows-index-validate.json',
+        }
+        with io.open(os.path.join('logs', 'ci', date, 'workflows-index-stdout.txt'), 'w', encoding='utf-8') as f:
+            f.write(out_wf)
+        if rc_wf != 0:
+            hard_fail = True
+    except Exception as exc:
+        summary['workflows_index'] = {'rc': 1, 'error': str(exc)}
         hard_fail = True
 
     summary['status'] = 'ok' if not hard_fail else 'fail'

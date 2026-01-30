@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 2,
+  "version": 3,
   "maps": [
     {
       "mapId": "map001",
@@ -10,7 +10,7 @@
       "previewImagePath": "res://Assets/maps/map001_preview.svg",
       "recommendedPlayersMin": 4,
       "recommendedPlayersMax": 8,
-      "contentVersion": 1
+      "contentVersion": 2
     }
   ]
 }

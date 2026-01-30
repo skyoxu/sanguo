@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 1,
+  "version": 2,
   "mapId": "map001",
   "track": {
     "length": 45,
@@ -12,7 +12,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_01.name",
       "regionId": "region_01",
-      "city": { "basePrice": 1000, "baseToll": 60, "allowedBuildingIds": [ "building_market", "building_farm" ] },
+      "city": { "basePrice": 1000, "baseToll": 60, "allowedBuildingIds": [ "building_market", "building_farm", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.50, "y": 0.12 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -47,7 +47,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_05.name",
       "regionId": "region_01",
-      "city": { "basePrice": 1200, "baseToll": 70, "allowedBuildingIds": [ "building_market", "building_barracks" ] },
+      "city": { "basePrice": 1200, "baseToll": 70, "allowedBuildingIds": [ "building_market", "building_barracks", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.78, "y": 0.22 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -74,7 +74,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_08.name",
       "regionId": "region_02",
-      "city": { "basePrice": 1400, "baseToll": 80, "allowedBuildingIds": [ "building_farm", "building_barracks" ] },
+      "city": { "basePrice": 1400, "baseToll": 80, "allowedBuildingIds": [ "building_farm", "building_barracks", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.90, "y": 0.40 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -101,7 +101,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_11.name",
       "regionId": "region_02",
-      "city": { "basePrice": 1600, "baseToll": 90, "allowedBuildingIds": [ "building_market", "building_farm" ] },
+      "city": { "basePrice": 1600, "baseToll": 90, "allowedBuildingIds": [ "building_market", "building_farm", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.92, "y": 0.62 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -128,7 +128,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_14.name",
       "regionId": "region_03",
-      "city": { "basePrice": 1800, "baseToll": 100, "allowedBuildingIds": [ "building_market", "building_barracks" ] },
+      "city": { "basePrice": 1800, "baseToll": 100, "allowedBuildingIds": [ "building_market", "building_barracks", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.83, "y": 0.80 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -163,7 +163,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_18.name",
       "regionId": "region_03",
-      "city": { "basePrice": 2000, "baseToll": 110, "allowedBuildingIds": [ "building_farm", "building_barracks" ] },
+      "city": { "basePrice": 2000, "baseToll": 110, "allowedBuildingIds": [ "building_farm", "building_barracks", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.58, "y": 0.90 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -190,7 +190,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_21.name",
       "regionId": "region_04",
-      "city": { "basePrice": 2200, "baseToll": 120, "allowedBuildingIds": [ "building_market", "building_farm" ] },
+      "city": { "basePrice": 2200, "baseToll": 120, "allowedBuildingIds": [ "building_market", "building_farm", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.35, "y": 0.89 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -225,7 +225,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_25.name",
       "regionId": "region_04",
-      "city": { "basePrice": 2400, "baseToll": 130, "allowedBuildingIds": [ "building_market", "building_barracks" ] },
+      "city": { "basePrice": 2400, "baseToll": 130, "allowedBuildingIds": [ "building_market", "building_barracks", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.13, "y": 0.75 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -252,7 +252,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_28.name",
       "regionId": "region_05",
-      "city": { "basePrice": 2600, "baseToll": 140, "allowedBuildingIds": [ "building_farm", "building_barracks" ] },
+      "city": { "basePrice": 2600, "baseToll": 140, "allowedBuildingIds": [ "building_farm", "building_barracks", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.07, "y": 0.55 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -279,7 +279,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_31.name",
       "regionId": "region_05",
-      "city": { "basePrice": 2800, "baseToll": 150, "allowedBuildingIds": [ "building_market", "building_farm" ] },
+      "city": { "basePrice": 2800, "baseToll": 150, "allowedBuildingIds": [ "building_market", "building_farm", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.13, "y": 0.33 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
@@ -314,7 +314,7 @@
       "tileKind": "city",
       "nameKey": "tile.map001.tile_35.name",
       "regionId": "region_06",
-      "city": { "basePrice": 3000, "baseToll": 160, "allowedBuildingIds": [ "building_market", "building_barracks" ] },
+      "city": { "basePrice": 3000, "baseToll": 160, "allowedBuildingIds": [ "building_market", "building_barracks", "building_inn", "building_watchtower" ] },
       "layout": { "x": 0.35, "y": 0.15 },
       "actions": [
         { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },

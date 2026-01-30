@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 1,
+  "version": 2,
   "buildings": [
     {
       "buildingId": "building_market",
@@ -30,6 +30,26 @@
       "buildCostBase": 400,
       "upgradeCostBase": 250,
       "settlementIncomeBase": 0,
+      "economyStepDeltas": { "buyPrice": 0, "toll": 1, "incomeSettlement": 0, "buildCost": 0, "upgradeCost": 0 }
+    },
+    {
+      "buildingId": "building_inn",
+      "nameKey": "building.building_inn.name",
+      "descriptionKey": "building.building_inn.desc",
+      "maxLevel": 3,
+      "buildCostBase": 250,
+      "upgradeCostBase": 180,
+      "settlementIncomeBase": 70,
+      "economyStepDeltas": { "buyPrice": 0, "toll": 0, "incomeSettlement": 1, "buildCost": 0, "upgradeCost": 0 }
+    },
+    {
+      "buildingId": "building_watchtower",
+      "nameKey": "building.building_watchtower.name",
+      "descriptionKey": "building.building_watchtower.desc",
+      "maxLevel": 3,
+      "buildCostBase": 350,
+      "upgradeCostBase": 220,
+      "settlementIncomeBase": 20,
       "economyStepDeltas": { "buyPrice": 0, "toll": 1, "incomeSettlement": 0, "buildCost": 0, "upgradeCost": 0 }
     }
   ]

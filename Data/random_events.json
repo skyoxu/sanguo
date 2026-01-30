@@ -1,19 +1,30 @@
 {
   "schemaVersion": 1,
-  "version": 2,
+  "version": 3,
   "eventPools": [
     {
       "poolId": "default",
       "eventIds": [
         "event_combat_small",
+        "event_combat_medium",
+        "event_combat_large",
         "event_economy_boost",
-        "event_money_small"
+        "event_economy_boost_large",
+        "event_economy_drop",
+        "event_money_small",
+        "event_money_medium",
+        "event_money_loss"
       ]
     },
     {
       "poolId": "global",
       "eventIds": [
-        "event_money_small"
+        "event_economy_boost",
+        "event_economy_boost_large",
+        "event_economy_drop",
+        "event_money_small",
+        "event_money_medium",
+        "event_money_loss"
       ]
     }
   ],
@@ -29,6 +40,26 @@
       "encounterTarget": 10
     },
     {
+      "eventId": "event_combat_medium",
+      "nameKey": "event.event_combat_medium.name",
+      "descriptionKey": "event.event_combat_medium.desc",
+      "uniqueOnce": false,
+      "cooldownRounds": 1,
+      "effectKind": "startCombat",
+      "encounterId": "enc_event_combat_medium",
+      "encounterTarget": 15
+    },
+    {
+      "eventId": "event_combat_large",
+      "nameKey": "event.event_combat_large.name",
+      "descriptionKey": "event.event_combat_large.desc",
+      "uniqueOnce": false,
+      "cooldownRounds": 2,
+      "effectKind": "startCombat",
+      "encounterId": "enc_event_combat_large",
+      "encounterTarget": 20
+    },
+    {
       "eventId": "event_economy_boost",
       "nameKey": "event.event_economy_boost.name",
       "descriptionKey": "event.event_economy_boost.desc",
@@ -38,6 +69,24 @@
       "stepDelta": 1
     },
     {
+      "eventId": "event_economy_boost_large",
+      "nameKey": "event.event_economy_boost_large.name",
+      "descriptionKey": "event.event_economy_boost_large.desc",
+      "uniqueOnce": false,
+      "cooldownRounds": 3,
+      "effectKind": "economyStepDelta",
+      "stepDelta": 2
+    },
+    {
+      "eventId": "event_economy_drop",
+      "nameKey": "event.event_economy_drop.name",
+      "descriptionKey": "event.event_economy_drop.desc",
+      "uniqueOnce": false,
+      "cooldownRounds": 2,
+      "effectKind": "economyStepDelta",
+      "stepDelta": -1
+    },
+    {
       "eventId": "event_money_small",
       "nameKey": "event.event_money_small.name",
       "descriptionKey": "event.event_money_small.desc",
@@ -45,6 +94,24 @@
       "cooldownRounds": 0,
       "effectKind": "moneyDelta",
       "moneyDelta": 200
+    },
+    {
+      "eventId": "event_money_medium",
+      "nameKey": "event.event_money_medium.name",
+      "descriptionKey": "event.event_money_medium.desc",
+      "uniqueOnce": false,
+      "cooldownRounds": 1,
+      "effectKind": "moneyDelta",
+      "moneyDelta": 400
+    },
+    {
+      "eventId": "event_money_loss",
+      "nameKey": "event.event_money_loss.name",
+      "descriptionKey": "event.event_money_loss.desc",
+      "uniqueOnce": false,
+      "cooldownRounds": 2,
+      "effectKind": "moneyDelta",
+      "moneyDelta": -300
     }
   ]
 }
