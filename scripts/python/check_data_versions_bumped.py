@@ -75,7 +75,15 @@ def _ensure_ref_exists(base_ref: str) -> None:
 
 def _list_changed_data_json(base_ref: str, head_ref: str) -> list[str]:
     # Use three-dot to compare to merge-base (PR-friendly).
-    out = _run_git(["diff", "--name-only", f"{base_ref}...{head_ref}"])
+    try:
+        out = _run_git(["diff", "--name-only", f"{base_ref}...{head_ref}"])
+    except RuntimeError as e:
+        msg = str(e).lower()
+        if "no merge base" in msg:
+            # Fallback: direct diff without merge-base.
+            out = _run_git(["diff", "--name-only", f"{base_ref}..{head_ref}"])
+        else:
+            raise
     paths = [p.strip().replace("\\", "/") for p in out.splitlines() if p.strip()]
     return [p for p in paths if p.lower().startswith("data/") and p.lower().endswith(".json")]
 
