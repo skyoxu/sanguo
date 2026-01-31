@@ -107,3 +107,10 @@
 - ADR-0004：事件命名与契约口径（CloudEvents-like type）。
 - ADR-0005：质量门禁与 CI 约束（硬门禁）。
 - ADR-0019：资源与路径安全基线。
+
+## 门禁命令（Windows）
+
+`
+py -3 scripts/python/validate_content_packs.py --strict
+`
+

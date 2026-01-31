@@ -154,4 +154,31 @@ public class EventBusTests
         ));
         logger.Entries.Should().Contain(e => e.Level == "error" && e.Message.Contains("Event handler failed"));
     }
+
+    [Fact]
+    public async Task ShouldSwallowSubscriberException_WhenNoLoggerOrReporter()
+    {
+        var bus = new InMemoryEventBus();
+        bus.Subscribe(_ => throw new InvalidOperationException("boom"));
+
+        Func<Task> act = () => bus.PublishAsync(new DomainEvent(
+            Type: "evt",
+            Source: nameof(EventBusTests),
+            Data: null,
+            Timestamp: DateTime.UtcNow,
+            Id: Guid.NewGuid().ToString()
+        ));
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public void Dispose_ShouldBeIdempotent()
+    {
+        var bus = new InMemoryEventBus();
+        var sub = bus.Subscribe(_ => Task.CompletedTask);
+
+        sub.Dispose();
+        sub.Dispose();
+    }
 }

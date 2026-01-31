@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "packId": "core_t2",
+  "nameKey": "pack.core_t2.name",
+  "descriptionKey": "pack.core_t2.desc",
+  "enabledByDefault": true,
+  "compatibility": {
+    "minGameVersion": "0.2.0",
+    "maxGameVersion": null
+  },
+  "dependencies": [],
+  "tags": [
+    "core",
+    "t2"
+  ],
+  "content": {
+    "maps": [
+      "res://Data/packs/core_t2/maps/_index.json"
+    ],
+    "characters": [
+      "res://Data/packs/core_t2/characters.json"
+    ],
+    "events": [
+      "res://Data/packs/core_t2/random_events.json"
+    ],
+    "cards": [
+      "res://Data/packs/core_t2/action_cards.json"
+    ],
+    "buildings": [
+      "res://Data/packs/core_t2/buildings.json"
+    ],
+    "relics": [
+      "res://Data/packs/core_t2/relics.json"
+    ],
+    "regions": [
+      "res://Data/packs/core_t2/regions.json"
+    ],
+    "facilities": [
+      "res://Data/packs/core_t2/facilities.json"
+    ],
+    "i18n": {
+      "zh-CN": "res://Data/packs/core_t2/i18n/zh_cn.json",
+      "en-US": "res://Data/packs/core_t2/i18n/en_us.json"
+    }
+  }
+}

@@ -181,8 +181,12 @@ public sealed class Task52TurnPhaseWindowTests
         second.Should().BeFalse("only one action card is allowed per turn in TurnPhase.BeforeRoll");
 
         bus.Published.Should().ContainSingle(e => e.Type == SanguoActionCardPlayed.EventType);
+        bus.Published.Should().ContainSingle(e => e.Type == SanguoCardLost.EventType);
         bus.Published.Should().ContainSingle(e => e.Type == SanguoActionCardPlayRejected.EventType);
-        bus.Published.Count.Should().Be(2, "a rejected action card play must not produce any additional side effects/events");
+        bus.Published
+            .Where(e => string.Equals(TryGetCorrelationId(e), "c-card-2", StringComparison.Ordinal))
+            .Should()
+            .ContainSingle(e => e.Type == SanguoActionCardPlayRejected.EventType);
 
         var played = bus.Published.Single(e => e.Type == SanguoActionCardPlayed.EventType);
         var playedData = (played.Data as JsonElementEventData)?.Value;
@@ -215,6 +219,22 @@ public sealed class Task52TurnPhaseWindowTests
             cardId.GetString().Should().Be("card_2");
             reason.GetString().Should().Be(SanguoActionCardPlayRejected.ReasonAlreadyPlayedThisTurn);
         }
+    }
+
+    private static string? TryGetCorrelationId(DomainEvent evt)
+    {
+        var data = (evt.Data as JsonElementEventData)?.Value;
+        if (!data.HasValue)
+        {
+            return null;
+        }
+
+        if (!data.Value.TryGetProperty("CorrelationId", out var correlation))
+        {
+            return null;
+        }
+
+        return correlation.GetString();
     }
 
     // acceptance: ACC:T52.4

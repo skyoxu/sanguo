@@ -310,7 +310,8 @@ public partial class MainMenu : Control
 
             _mapOption.Clear();
             var loader = ResolveResourceLoader();
-            if (SanguoMapsCatalogLoader.TryLoadMapsCatalog(loader, out var maps, out _))
+            var pack = ResolveContentPack(loader);
+            if (SanguoMapsCatalogLoader.TryLoadMapsCatalog(loader, pack, out var maps, out _))
             {
                 foreach (var entry in maps.Maps.OrderBy(m => m.NameKey, StringComparer.Ordinal))
                 {
@@ -329,7 +330,7 @@ public partial class MainMenu : Control
             }
 
             _characterOption.Clear();
-            if (SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, out var chars, out _))
+            if (SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, pack, out var chars, out _))
             {
                 foreach (var c in chars.Characters.OrderBy(x => x.NameKey, StringComparer.Ordinal))
                 {
@@ -405,7 +406,9 @@ public partial class MainMenu : Control
 
         var seed = unchecked((int)(Time.GetTicksMsec() % int.MaxValue));
 
-        var assigns = BuildCharacterAssignments(ResolveResourceLoader(), playersCount, playerCharacterId, seed, out var assignsError);
+        var loader = ResolveResourceLoader();
+        var pack = ResolveContentPack(loader);
+        var assigns = BuildCharacterAssignments(loader, pack, playersCount, playerCharacterId, seed, out var assignsError);
         if (assigns == null)
         {
             error = assignsError;
@@ -432,6 +435,7 @@ public partial class MainMenu : Control
 
     private static IReadOnlyDictionary<string, string>? BuildCharacterAssignments(
         IResourceLoader loader,
+        SanguoContentPackPaths? pack,
         int playersCount,
         string playerCharacterId,
         int seed,
@@ -439,7 +443,7 @@ public partial class MainMenu : Control
     {
         error = string.Empty;
 
-        if (!SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, out var catalog, out var loadError))
+        if (!SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, pack, out var catalog, out var loadError))
         {
             error = loadError;
             return null;
@@ -470,6 +474,13 @@ public partial class MainMenu : Control
         _fallbackResourceLoader = new ResourceLoaderAdapter { Name = "ResourceLoaderFallback" };
         AddChild(_fallbackResourceLoader);
         return _fallbackResourceLoader;
+    }
+
+    private static SanguoContentPackPaths? ResolveContentPack(IResourceLoader loader)
+    {
+        return SanguoContentPackResolver.TryResolveDefaultPack(loader, out var pack, out _)
+            ? pack
+            : null;
     }
 
     private string GetSelectedMapId()

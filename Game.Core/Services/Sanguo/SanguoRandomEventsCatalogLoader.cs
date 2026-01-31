@@ -26,6 +26,9 @@ public static class SanguoRandomEventsCatalogLoader
     };
 
     public static bool TryLoadRandomEventsCatalog(IResourceLoader loader, out SanguoRandomEventsCatalog catalog, out string error)
+        => TryLoadRandomEventsCatalog(loader, pack: null, out catalog, out error);
+
+    public static bool TryLoadRandomEventsCatalog(IResourceLoader loader, SanguoContentPackPaths? pack, out SanguoRandomEventsCatalog catalog, out string error)
     {
         ArgumentNullException.ThrowIfNull(loader);
 
@@ -36,7 +39,8 @@ public static class SanguoRandomEventsCatalogLoader
             EventPools: Array.Empty<SanguoRandomEventPoolCatalogEntry>());
         error = string.Empty;
 
-        var json = loader.LoadText(RandomEventsResPath);
+        var resPath = pack?.RandomEventsPath ?? RandomEventsResPath;
+        var json = loader.LoadText(resPath);
         if (string.IsNullOrWhiteSpace(json))
         {
             error = "random_events_catalog_missing";

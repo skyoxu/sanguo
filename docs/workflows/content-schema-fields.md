@@ -6,7 +6,7 @@
 ## 通用规范
 
 - schemaVersion：整数，固定为 1。
-- ersion：整数，必须 >= 1，内容变更必须递增。
+- ersion：整数，必须 >= 1，内容变更必须递增。
 - id：^[a-z0-9_]{1,32}$，禁止 Windows 保留名（例如 con）。
 - i18n：
 ameKey/descriptionKey 必须同时存在于 zh-CN 与 en-US。
@@ -56,8 +56,8 @@ egionId：必须存在于
 egions.json。
 - city.basePrice：int，>0。
 - city.baseToll：int，>=0。
-- city.allowedBuildingIds：非空数组，且每项存在于 uildings.json。
-- actions 必含 uy_land。
+- city.allowedBuildingIds：非空数组，且每项存在于 uildings.json。
+- actions 必含 uy_land。
 
 ### tileKind=event
 - eventPoolId：必须存在于 
@@ -65,8 +65,8 @@ andom_events.json 的 eventPools。
 - actions 必含 	rigger_event。
 
 ### tileKind=facility
-- acilityId：必须存在于 acilities.json。
-- tile actions 必须匹配 acilities.json 中的 actionId 列表。
+- acilityId：必须存在于 acilities.json。
+- tile actions 必须匹配 acilities.json 中的 actionId 列表。
 
 ## 角色（Data/characters.json）
 
@@ -81,7 +81,7 @@ andom_events.json 的 eventPools。
 | characters[].combatRating | int | 是 | [0,100] |
 | characters[].portraitPath | string | 是 | 资源路径安全约束 |
 | characters[].startingMoneyStepDelta | int | 是 | [-6,6] |
-| characters[].economyStepDeltas | object | 是 | 必含 uyPrice/toll/incomeSettlement/buildCost/upgradeCost，每项 int [-6,6] |
+| characters[].economyStepDeltas | object | 是 | 必含 uyPrice/toll/incomeSettlement/buildCost/upgradeCost，每项 int [-6,6] |
 
 ## 随机事件（Data/random_events.json）
 
@@ -137,7 +137,7 @@ effectKind 补充：
 | buildings[].buildCostBase | int | 是 | >=0 |
 | buildings[].upgradeCostBase | int | 是 | >=0 |
 | buildings[].settlementIncomeBase | int | 是 | >=0 |
-| buildings[].economyStepDeltas | object | 是 | 必含 uyPrice/toll/incomeSettlement/buildCost/upgradeCost，每项 int [-6,6] |
+| buildings[].economyStepDeltas | object | 是 | 必含 uyPrice/toll/incomeSettlement/buildCost/upgradeCost，每项 int [-6,6] |
 
 ## 宝物（Data/relics.json）
 
@@ -166,7 +166,7 @@ effectKind 补充：
 | regions[].nameKey | string | 是 | i18n key（双语） |
 | regions[].descriptionKey | string | 是 | i18n key（双语） |
 | regions[].effectKind | string | 是 | 固定 economyStepDelta |
-| regions[].economyStepDeltas | object | 是 | 必含 uyPrice/toll/incomeSettlement/buildCost/upgradeCost，每项 int [-6,6] |
+| regions[].economyStepDeltas | object | 是 | 必含 uyPrice/toll/incomeSettlement/buildCost/upgradeCost，每项 int [-6,6] |
 
 ## 设施（Data/facilities.json）
 
@@ -209,4 +209,14 @@ andom/tileId |
 - eventPools 的 eventIds 必须非空且不重复。
 - facility actions 必须满足：teleport 仅用 effectKind=teleport（不得包含 actionKind），其余必须包含 actionKind 且在允许列表内。
 - tileKind=empty 必须无 actions；tileKind=city 仅允许 buy_land/build；tileKind=event 仅允许 trigger_event。
+
+## 数值与权重门禁补充（T2）
+
+- economyStepDeltas：每项 int 且必须在 [-6,6]（硬门禁）。
+- moneyDelta：int 且必须在 [-10000,10000]（硬门禁）。
+- probability/chance/prob：number 且必须在 [0,1]。
+- weight：若列表中出现 weight，则该列表每项必须带 weight；
+  - 全部为 int 时，范围 [0,100] 且总和必须 = 100。
+  - 全部为 float 时，范围 [0,1] 且总和必须 = 1.0。
+  - 禁止 int/float 混用。
 

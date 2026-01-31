@@ -2,6 +2,8 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Game.Core.Ports;
+using Game.Core.Services.Sanguo;
 using Game.Godot.Scripts.Security;
 
 namespace Game.Godot.Autoloads;
@@ -36,8 +38,9 @@ public partial class LocalizationBootstrap : Node
             TryLoadCsvAndRegister(locale: "zh", csvPath: HelpTutorialZhPath);
             TryLoadCsvAndRegister(locale: "en", csvPath: UiEventLogEnPath);
             TryLoadCsvAndRegister(locale: "zh", csvPath: UiEventLogZhPath);
-            TryLoadJsonAndRegister(locale: "en", jsonPath: CoreStringsEnPath);
-            TryLoadJsonAndRegister(locale: "zh", jsonPath: CoreStringsZhPath);
+            var (coreEn, coreZh) = ResolveCoreStringsPaths();
+            TryLoadJsonAndRegister(locale: "en", jsonPath: coreEn);
+            TryLoadJsonAndRegister(locale: "zh", jsonPath: coreZh);
         }
         catch (Exception ex)
         {
@@ -201,5 +204,33 @@ public partial class LocalizationBootstrap : Node
         }
 
         return outList;
+    }
+
+    private static (string EnPath, string ZhPath) ResolveCoreStringsPaths()
+    {
+        var loader = new BootstrapResourceLoader();
+        if (SanguoContentPackResolver.TryResolveDefaultPack(loader, out var pack, out _))
+        {
+            return (pack.I18nEnPath, pack.I18nZhPath);
+        }
+
+        return (CoreStringsEnPath, CoreStringsZhPath);
+    }
+
+    private sealed class BootstrapResourceLoader : IResourceLoader
+    {
+        public string? LoadText(string path)
+        {
+            return SecurityFileAdapter.TryReadText(path, caller: nameof(LocalizationBootstrap), out var text, out _)
+                ? text
+                : null;
+        }
+
+        public byte[]? LoadBytes(string path)
+        {
+            return SecurityFileAdapter.TryReadBytes(path, caller: nameof(LocalizationBootstrap), out var bytes, out _)
+                ? bytes
+                : null;
+        }
     }
 }

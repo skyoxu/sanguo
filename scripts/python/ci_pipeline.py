@@ -115,6 +115,7 @@ def main():
         'selfcheck': {},
         'encoding': {},
         'i18n_keys': {},
+        'content_packs': {},
         'workflows_index': {},
         'gd_tests': {},
         'status': 'ok'
@@ -305,6 +306,7 @@ def main():
             p for p in changed_files
             if p.lower().endswith(".gd")
             and p.replace("\\", "/").startswith("Tests.Godot/tests/")
+            and os.path.isfile(os.path.join(root, p))
         ]
         if gd_changed:
             gd_out = os.path.join('logs', 'ci', date, 'gd-tests-changed.json')
@@ -337,6 +339,24 @@ def main():
             hard_fail = True
     except Exception as exc:
         summary['workflows_index'] = {'rc': 1, 'error': str(exc)}
+        hard_fail = True
+
+    # 9) Content pack validation (hard gate)
+    try:
+        rc_pack, out_pack = run_cmd(
+            ['py', '-3', 'scripts/python/validate_content_packs.py', '--strict'],
+            cwd=root,
+        )
+        summary['content_packs'] = {
+            'rc': rc_pack,
+            'note': 'see logs/ci/<date>/content-pack-validate.json',
+        }
+        with io.open(os.path.join('logs', 'ci', date, 'content-pack-stdout.txt'), 'w', encoding='utf-8') as f:
+            f.write(out_pack)
+        if rc_pack != 0:
+            hard_fail = True
+    except Exception as exc:
+        summary['content_packs'] = {'rc': 1, 'error': str(exc)}
         hard_fail = True
 
     summary['status'] = 'ok' if not hard_fail else 'fail'

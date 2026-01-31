@@ -117,12 +117,16 @@ public sealed class SanguoContractInstantiationTests
         var saved = new SanguoGameSaved(
             GameId: "game-1",
             SaveSlotId: "slot-1",
+            ContentPackId: "core_t2",
+            ContentPackVersion: 2,
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null
         );
         saved.GameId.Should().Be("game-1");
         saved.SaveSlotId.Should().Be("slot-1");
+        saved.ContentPackId.Should().Be("core_t2");
+        saved.ContentPackVersion.Should().Be(2);
         saved.OccurredAt.Should().Be(now);
         saved.CorrelationId.Should().Be("corr-1");
         saved.CausationId.Should().BeNull();
@@ -130,12 +134,16 @@ public sealed class SanguoContractInstantiationTests
         var loaded = new SanguoGameLoaded(
             GameId: "game-1",
             SaveSlotId: "slot-1",
+            ContentPackId: "core_t2",
+            ContentPackVersion: 2,
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null
         );
         loaded.GameId.Should().Be("game-1");
         loaded.SaveSlotId.Should().Be("slot-1");
+        loaded.ContentPackId.Should().Be("core_t2");
+        loaded.ContentPackVersion.Should().Be(2);
         loaded.OccurredAt.Should().Be(now);
         loaded.CorrelationId.Should().Be("corr-1");
         loaded.CausationId.Should().BeNull();

@@ -68,6 +68,8 @@ public sealed class SanguoSaveLoadService
         var evt = new SanguoGameSaved(
             GameId: snapshot.GameId,
             SaveSlotId: saveSlotId,
+            ContentPackId: snapshot.ContentPackId ?? string.Empty,
+            ContentPackVersion: snapshot.ContentPackVersion,
             OccurredAt: new DateTimeOffset(nowUtc),
             CorrelationId: correlationId,
             CausationId: causationId);
@@ -110,6 +112,8 @@ public sealed class SanguoSaveLoadService
         var evt = new SanguoGameLoaded(
             GameId: file.Snapshot.GameId,
             SaveSlotId: saveSlotId,
+            ContentPackId: file.Snapshot.ContentPackId ?? string.Empty,
+            ContentPackVersion: file.Snapshot.ContentPackVersion,
             OccurredAt: new DateTimeOffset(nowUtc),
             CorrelationId: correlationId,
             CausationId: causationId);

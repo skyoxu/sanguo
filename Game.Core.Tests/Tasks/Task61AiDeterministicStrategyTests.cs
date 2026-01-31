@@ -167,6 +167,25 @@ public sealed class Task61AiDeterministicStrategyTests
         SanguoGameOverTimingPolicy.GetGameOverCheckPhaseForElimination("Ai").Should().Be("AfterTurnAdvanced");
     }
 
+    [Fact]
+    public void GivenEliminationActorKinds_WhenResolvingGameOverTiming_ThenPhasesMatchPolicy()
+    {
+        SanguoGameOverTimingPolicy.GetGameOverCheckPhaseForElimination("Human").Should().Be("Immediate");
+        SanguoGameOverTimingPolicy.GetGameOverCheckPhaseForElimination("HumanPlayer").Should().Be("Immediate");
+        SanguoGameOverTimingPolicy.GetGameOverCheckPhaseForElimination("AI").Should().Be("AfterTurnAdvanced");
+        SanguoGameOverTimingPolicy.GetGameOverCheckPhaseForElimination("Unknown").Should().Be("AfterTurnAdvanced");
+    }
+
+    [Fact]
+    public void GivenNullActorKind_WhenResolvingGameOverTiming_ThenThrows()
+    {
+        string? actorKind = null;
+
+        Action act = () => SanguoGameOverTimingPolicy.GetGameOverCheckPhaseForElimination(actorKind!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
     // ACC:T61.4
     [Fact]
     public void GivenTurnFlow_WhenComparingAiAndPlayerDecisionPoints_ThenSequencesMatchAndContainRequiredPoints()

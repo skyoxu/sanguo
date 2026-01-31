@@ -50,13 +50,17 @@ public static class SanguoBuildingsCatalogLoader
     };
 
     public static bool TryLoadBuildingsCatalog(IResourceLoader loader, out SanguoBuildingsCatalog catalog, out string error)
+        => TryLoadBuildingsCatalog(loader, pack: null, out catalog, out error);
+
+    public static bool TryLoadBuildingsCatalog(IResourceLoader loader, SanguoContentPackPaths? pack, out SanguoBuildingsCatalog catalog, out string error)
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         catalog = new SanguoBuildingsCatalog(SchemaVersion: 0, Version: 0, Buildings: Array.Empty<SanguoBuildingDefinition>());
         error = string.Empty;
 
-        var json = loader.LoadText(BuildingsResPath);
+        var resPath = pack?.BuildingsPath ?? BuildingsResPath;
+        var json = loader.LoadText(resPath);
         if (string.IsNullOrWhiteSpace(json))
         {
             error = "buildings_catalog_missing";

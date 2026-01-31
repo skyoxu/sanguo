@@ -74,6 +74,7 @@ public partial class SanguoGameLoopController : Node
     private string _lastSaveSlotId = "quick";
     private GameStartConfig? _lastStartConfig;
     private ResourceLoaderAdapter? _fallbackResourceLoader;
+    private SanguoContentPackPaths? _contentPack;
 
     private sealed record GameStartedPayload(
         [property: JsonPropertyName("game_start_config")] GameStartConfig GameStartConfig,
@@ -143,6 +144,7 @@ public partial class SanguoGameLoopController : Node
         _advanceQueued = false;
         _activePlayerId = null;
         _fallbackResourceLoader = null;
+        _contentPack = null;
     }
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
@@ -450,7 +452,13 @@ public partial class SanguoGameLoopController : Node
                     return;
                 }
 
-                if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out var mapSourcePath, out var mapError))
+                if (!TryResolveContentPack(loader, out var pack, out var packError) || pack == null)
+                {
+                    GD.PushWarning($"SanguoGameLoopController: content pack resolve failed (error='{packError}').");
+                    return;
+                }
+
+                if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out var mapSourcePath, out var mapError, pack))
                 {
                     GD.PushWarning($"SanguoGameLoopController: map config load failed (source='{mapSourcePath}', error='{mapError}').");
                     return;
@@ -471,23 +479,32 @@ public partial class SanguoGameLoopController : Node
             if (_turnManager == null)
             {
                 var loader = ResolveResourceLoader();
+                if (loader == null)
+                {
+                    GD.PushWarning("SanguoGameLoopController: ResourceLoaderPort not found; cannot load catalogs.");
+                    return;
+                }
+
+                if (!TryResolveContentPack(loader, out var pack, out var packError) || pack == null)
+                {
+                    GD.PushWarning($"SanguoGameLoopController: content pack resolve failed (error='{packError}').");
+                    return;
+                }
+
                 SanguoActionCardsCatalog? actionCardsCatalog = null;
                 SanguoRandomEventsCatalog? randomEventsCatalog = null;
 
-                if (loader != null)
+                if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, pack, out var loadedCards, out _))
                 {
-                    if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var loadedCards, out _))
-                    {
-                        actionCardsCatalog = loadedCards;
-                    }
-
-                    if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var loadedEvents, out _))
-                    {
-                        randomEventsCatalog = loadedEvents;
-                    }
+                    actionCardsCatalog = loadedCards;
                 }
 
-                _turnManager = CreateNewTurnManager(_map, startConfig: null, actionCardsCatalog: actionCardsCatalog, randomEventsCatalog: randomEventsCatalog);
+                if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, pack, out var loadedEvents, out _))
+                {
+                    randomEventsCatalog = loadedEvents;
+                }
+
+                _turnManager = CreateNewTurnManager(_map, startConfig: null, actionCardsCatalog: actionCardsCatalog, randomEventsCatalog: randomEventsCatalog, pack: pack);
             }
 
             var service = new SanguoSaveLoadService(_bus, store);
@@ -560,6 +577,11 @@ public partial class SanguoGameLoopController : Node
             return (false, "resource_loader_missing");
         }
 
+        if (!TryResolveContentPack(loader, out var pack, out var packError) || pack == null)
+        {
+            GD.PushWarning($"SanguoGameLoopController: content pack resolve failed (error='{packError}').");
+            return (false, "content_pack_unavailable:" + (packError ?? "unknown"));
+        }
         GameStartConfig? startConfigOverride = null;
         if (!string.IsNullOrWhiteSpace(startConfigJson) && !string.Equals(startConfigJson.Trim(), "{}", StringComparison.Ordinal))
         {
@@ -583,7 +605,8 @@ public partial class SanguoGameLoopController : Node
                 correlationId: correlationId,
                 out map,
                 out mapSourcePath,
-                out mapError))
+                out mapError,
+                pack))
             {
                 GD.PushWarning($"SanguoGameLoopController: selected map load failed (mapId='{startConfigOverride.MapId}', source='{mapSourcePath}', error='{mapError}').");
                 return (false, "map_config_load_failed");
@@ -591,7 +614,7 @@ public partial class SanguoGameLoopController : Node
         }
         else
         {
-            if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out map, out mapSourcePath, out mapError))
+            if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out map, out mapSourcePath, out mapError, pack))
             {
                 GD.PushWarning($"SanguoGameLoopController: map config load failed (source='{mapSourcePath}', error='{mapError}').");
                 return (false, "map_config_load_failed");
@@ -614,7 +637,7 @@ public partial class SanguoGameLoopController : Node
         _lastStartConfig = startConfig;
 
         SanguoActionCardsCatalog? actionCardsCatalog = null;
-        if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var loadedCards, out var cardsError))
+        if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, pack, out var loadedCards, out var cardsError))
         {
             actionCardsCatalog = loadedCards;
         }
@@ -623,25 +646,25 @@ public partial class SanguoGameLoopController : Node
             GD.PushWarning($"SanguoGameLoopController: action cards catalog load failed (error='{cardsError}').");
         }
 
-        if (!Game.Core.Services.Sanguo.SanguoRelicsCatalogLoader.TryLoadRelicsCatalog(loader, out var relicsCatalog, out var relicsError))
+        if (!Game.Core.Services.Sanguo.SanguoRelicsCatalogLoader.TryLoadRelicsCatalog(loader, pack, out var relicsCatalog, out var relicsError))
         {
             GD.PushWarning($"SanguoGameLoopController: relics catalog load failed (error='{relicsError}').");
             return (false, "relics_catalog_load_failed");
         }
 
-        if (!SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var randomEventsCatalog, out var randomEventsError))
+        if (!SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, pack, out var randomEventsCatalog, out var randomEventsError))
         {
             GD.PushWarning($"SanguoGameLoopController: random events catalog load failed (error='{randomEventsError}').");
             return (false, "random_events_catalog_load_failed");
         }
 
-        if (!SanguoBuildingsCatalogLoader.TryLoadBuildingsCatalog(loader, out var buildingsCatalog, out var buildingsError))
+        if (!SanguoBuildingsCatalogLoader.TryLoadBuildingsCatalog(loader, pack, out var buildingsCatalog, out var buildingsError))
         {
             GD.PushWarning($"SanguoGameLoopController: buildings catalog load failed (error='{buildingsError}').");
             return (false, "buildings_catalog_load_failed");
         }
 
-        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog, randomEventsCatalog, buildingsCatalog, relicsCatalog);
+        _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog, randomEventsCatalog, buildingsCatalog, relicsCatalog, pack);
 
         try
         {
@@ -900,7 +923,12 @@ public partial class SanguoGameLoopController : Node
                     return;
                 }
 
-                if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out _, out _))
+                if (!TryResolveContentPack(loader, out var pack, out var packError) || pack == null)
+                {
+                    GD.Print($"[E2E_SAVELOAD] failed mode=load reason=content_pack_unavailable error={packError}");
+                    return;
+                }
+                if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out _, out _, pack))
                 {
                     GD.Print("[E2E_SAVELOAD] failed mode=load reason=map_load_failed");
                     return;
@@ -913,23 +941,32 @@ public partial class SanguoGameLoopController : Node
             if (_turnManager == null)
             {
                 var loader = ResolveResourceLoader();
+                if (loader == null)
+                {
+                    GD.Print("[E2E_SAVELOAD] failed mode=load reason=missing_loader");
+                    return;
+                }
+
+                if (!TryResolveContentPack(loader, out var pack, out var packError) || pack == null)
+                {
+                    GD.Print($"[E2E_SAVELOAD] failed mode=load reason=content_pack_unavailable error={packError}");
+                    return;
+                }
+
                 SanguoActionCardsCatalog? actionCardsCatalog = null;
                 SanguoRandomEventsCatalog? randomEventsCatalog = null;
 
-                if (loader != null)
+                if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, pack, out var loadedCards, out _))
                 {
-                    if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var loadedCards, out _))
-                    {
-                        actionCardsCatalog = loadedCards;
-                    }
-
-                    if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var loadedEvents, out _))
-                    {
-                        randomEventsCatalog = loadedEvents;
-                    }
+                    actionCardsCatalog = loadedCards;
                 }
 
-                _turnManager = CreateNewTurnManager(_map!, startConfig: null, actionCardsCatalog: actionCardsCatalog, randomEventsCatalog: randomEventsCatalog);
+                if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, pack, out var loadedEvents, out _))
+                {
+                    randomEventsCatalog = loadedEvents;
+                }
+
+                _turnManager = CreateNewTurnManager(_map!, startConfig: null, actionCardsCatalog: actionCardsCatalog, randomEventsCatalog: randomEventsCatalog, pack: pack);
             }
 
             var service = new SanguoSaveLoadService(_bus, store);
@@ -955,7 +992,8 @@ public partial class SanguoGameLoopController : Node
         SanguoActionCardsCatalog? actionCardsCatalog = null,
         SanguoRandomEventsCatalog? randomEventsCatalog = null,
         SanguoBuildingsCatalog? buildingsCatalog = null,
-        SanguoRelicsCatalog? relicsCatalog = null)
+        SanguoRelicsCatalog? relicsCatalog = null,
+        SanguoContentPackPaths? pack = null)
     {
         var economyRules = SanguoEconomyRules.Default;
         var playerOrder = startConfig != null
@@ -984,7 +1022,7 @@ public partial class SanguoGameLoopController : Node
             if (startConfig != null)
             {
                 var loader = ResolveResourceLoader();
-                if (loader != null && Game.Core.Services.Sanguo.SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, out var characters, out _))
+                if (loader != null && Game.Core.Services.Sanguo.SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, pack, out var characters, out _))
                 {
                     var byId = characters.Characters.ToDictionary(x => x.CharacterId, StringComparer.Ordinal);
                     foreach (var pid in playerOrder)
@@ -1037,7 +1075,29 @@ public partial class SanguoGameLoopController : Node
             buildingsCatalog: buildingsCatalog,
             relicsCatalog: relicsCatalog,
             tileTypesByPositionIndex: tileTypesByIndex,
-            combatRatingByPlayerId: combatRatingByPlayerId);
+            combatRatingByPlayerId: combatRatingByPlayerId,
+            contentPackId: pack?.PackId,
+            contentPackVersion: pack?.PackVersion ?? 0);
+    }
+
+    private bool TryResolveContentPack(IResourceLoader loader, out SanguoContentPackPaths? pack, out string error)
+    {
+        if (_contentPack != null)
+        {
+            pack = _contentPack;
+            error = string.Empty;
+            return true;
+        }
+
+        if (SanguoContentPackResolver.TryResolveDefaultPack(loader, out var resolved, out error))
+        {
+            _contentPack = resolved;
+            pack = resolved;
+            return true;
+        }
+
+        pack = null;
+        return false;
     }
 
     private IResourceLoader? ResolveResourceLoader()

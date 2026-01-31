@@ -240,6 +240,11 @@ def main() -> int:
         dotnet_status = str(dotnet_summary.get("status") or "")
         dotnet_coverage = dotnet_summary.get("coverage") if isinstance(dotnet_summary.get("coverage"), dict) else {}
 
+        # Optional: surface ci_pipeline summary details (content pack gate, etc.)
+        ci_pipeline_summary_path = os.path.join(ci_dir, "ci-pipeline-summary.json")
+        ci_pipeline_summary = _read_json(ci_pipeline_summary_path) if os.path.isfile(ci_pipeline_summary_path) else {}
+        content_packs = ci_pipeline_summary.get("content_packs") if isinstance(ci_pipeline_summary, dict) else {}
+
         # Default: treat coverage as a hard gate unless explicitly configured as soft.
         coverage_ok = bool(dotnet_summary.get("threshold_ok")) if isinstance(dotnet_summary, dict) else False
         coverage_failed = dotnet_status == "coverage_failed" or (dotnet_status == "ok" and not coverage_ok)
@@ -313,6 +318,8 @@ def main() -> int:
                 "coverage": dotnet_coverage,
                 "summary_path": dotnet_summary_path,
             },
+            "content_packs": content_packs,
+            "ci_pipeline_summary_path": ci_pipeline_summary_path,
             "perf_audit": perf_audit,
             "gdunit_hard": gdunit,
             "smoke": smoke,
