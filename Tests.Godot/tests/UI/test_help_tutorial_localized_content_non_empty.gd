@@ -18,17 +18,16 @@ const _REQUIRED_STEP_KEYS: PackedStringArray = [
 	"help.tutorial.step_06",
 ]
 
-const _LOCALE_ZH := "zh"
-const _KW_ROLL_DICE := "\u63b7\u9ab0\u5b50"
-const _KW_MOVE := "\u79fb\u52a8"
-const _KW_BUY := "\u4e70\u5730"
-const _KW_PAY := "\u4ed8\u8d39"
-const _KW_MONTH_SETTLEMENT := "\u6708\u672b\u7ed3\u7b97"
-const _KW_SEASON_EVENT := "\u5b63\u8282\u4e8b\u4ef6"
-const _KW_YEAR_PRICE_ADJUST := "\u5e74\u5ea6\u5730\u4ef7\u8c03\u6574"
-const _KW_TRIGGER := "\u89e6\u53d1"
-const _KW_ACTION := "\u64cd\u4f5c"
-const _KW_RESULT := "\u7ed3\u679c"
+const _LOCALE_EN := "en"
+const _KW_START_CONFIG := "random seed"
+const _KW_BEFORE_ROLL := "BeforeRoll"
+const _KW_TILE_EVENT := "tile event"
+const _KW_MULTIPLIERS := "multipliers"
+const _KW_COMBAT := "Combat"
+const _KW_GAME_ENDED := "game.ended"
+const _KW_TRIGGER := "Trigger"
+const _KW_ACTION := "Action"
+const _KW_RESULT := "Result"
 
 func test_translation_server_locale_is_non_empty() -> void:
 	var locale := ""
@@ -54,8 +53,8 @@ func test_help_tutorial_localized_content_entries_are_present_and_non_empty() ->
 
 	var target_locale := ""
 	for l in locales:
-		if String(l) == _LOCALE_ZH:
-			target_locale = _LOCALE_ZH
+		if String(l) == _LOCALE_EN:
+			target_locale = _LOCALE_EN
 			break
 	if target_locale.is_empty():
 		target_locale = String(locales[0])
@@ -67,15 +66,13 @@ func test_help_tutorial_localized_content_entries_are_present_and_non_empty() ->
 	for key in _REQUIRED_STEP_KEYS:
 		step_texts[String(key)] = _translate_non_empty_or_fail(String(key))
 
-	# Must cover the T2 loop topics in a step-by-step progression (each step has trigger/action/result).
-	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_01"], _KW_ROLL_DICE)
-	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_02"], _KW_MOVE)
-	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_03"], _KW_BUY)
-	# Allow either keyword for the buy/pay step.
-	assert_bool(String(step_texts["help.tutorial.step_03"]).find(_KW_PAY) != -1).is_true()
-	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_04"], _KW_MONTH_SETTLEMENT)
-	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_05"], _KW_SEASON_EVENT)
-	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_06"], _KW_YEAR_PRICE_ADJUST)
+	# Must cover the starter loop topics in a step-by-step progression (each step has trigger/action/result).
+	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_01"], _KW_START_CONFIG)
+	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_02"], _KW_BEFORE_ROLL)
+	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_03"], _KW_TILE_EVENT)
+	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_04"], _KW_MULTIPLIERS)
+	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_05"], _KW_COMBAT)
+	_assert_step_has_structure_and_keyword(step_texts["help.tutorial.step_06"], _KW_GAME_ENDED)
 
 	if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
 		TranslationServer.set_locale(original_locale)

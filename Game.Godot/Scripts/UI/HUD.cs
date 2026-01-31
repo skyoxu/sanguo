@@ -49,6 +49,14 @@ public partial class HUD : Control
     private EventToast? _toast;
     private EventLogPanel? _logPanel;
     private bool _logVisible;
+    private PanelContainer? _guidePanel;
+    private Label? _guideTitle;
+    private Label? _guideText;
+    private GuideHighlightOverlay? _guideOverlay;
+    private int _guideStepIndex;
+
+    [Export] public bool EnableGuideText { get; set; } = true;
+    [Export] public bool EnableGuideHighlight { get; set; } = true;
 
     private readonly Dictionary<int, TileInfo> _tilesByIndex = new();
     private readonly Dictionary<string, string> _tileNameKeyById = new(StringComparer.Ordinal);
@@ -67,6 +75,16 @@ public partial class HUD : Control
     private readonly Dictionary<string, string> _portraitPathByCharacterId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Texture2D> _portraitCache = new(StringComparer.Ordinal);
     private ResourceLoaderAdapter? _fallbackResourceLoader;
+    private const string GuideTitleKey = "help.tutorial.section.learning_route";
+    private static readonly string[] GuideStepKeys =
+    {
+        "help.tutorial.step_01",
+        "help.tutorial.step_02",
+        "help.tutorial.step_03",
+        "help.tutorial.step_04",
+        "help.tutorial.step_05",
+        "help.tutorial.step_06",
+    };
 
     public override void _Ready()
     {
@@ -102,6 +120,19 @@ public partial class HUD : Control
 
         _toast = GetNodeOrNull<EventToast>("EventToast");
         _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
+        _guidePanel = GetNodeOrNull<PanelContainer>("GuideHintPanel");
+        _guideTitle = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideTitle");
+        _guideText = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideText");
+        _guideOverlay = GetNodeOrNull<GuideHighlightOverlay>("GuideOverlay");
+        _guideStepIndex = 0;
+        if (_guidePanel != null)
+        {
+            _guidePanel.Visible = false;
+        }
+        if (_guideOverlay != null)
+        {
+            _guideOverlay.Visible = false;
+        }
         _logVisible = false;
         if (_logPanel != null)
         {
@@ -289,6 +320,7 @@ public partial class HUD : Control
 
     private void RecordEventForUi(string type, string source, string id, string timestampIso, JsonElement root)
     {
+        UpdateGuideHintForEventType(type);
         var tileLabelByIndex = _tilesByIndex.Count == 0
             ? null
             : new Func<int, string?>(idx => _tilesByIndex.TryGetValue(idx, out var tile) ? tile.Name : null);
@@ -322,6 +354,141 @@ public partial class HUD : Control
             eventLabelById);
         _toast?.ShowMessage(explanation.SummaryText);
         _logPanel?.Append(explanation);
+    }
+
+    private void UpdateGuideHintForEventType(string type)
+    {
+        if (string.IsNullOrWhiteSpace(type))
+        {
+            return;
+        }
+
+        if (string.Equals(type, SanguoGameStarted.EventType, StringComparison.Ordinal))
+        {
+            UpdateGuideStep(1);
+        }
+        else if (string.Equals(type, SanguoGameTurnStarted.EventType, StringComparison.Ordinal))
+        {
+            UpdateGuideStep(2);
+        }
+        else if (string.Equals(type, SanguoTokenMoved.EventType, StringComparison.Ordinal))
+        {
+            UpdateGuideStep(3);
+        }
+        else if (string.Equals(type, SanguoCityBought.EventType, StringComparison.Ordinal)
+                 || string.Equals(type, SanguoCityOwnerChanged.EventType, StringComparison.Ordinal)
+                 || string.Equals(type, SanguoCityTollPaid.EventType, StringComparison.Ordinal))
+        {
+            UpdateGuideStep(4);
+        }
+        else if (string.Equals(type, SanguoCombatStarted.EventType, StringComparison.Ordinal))
+        {
+            UpdateGuideStep(5);
+        }
+        else if (string.Equals(type, SanguoGameEnded.EventType, StringComparison.Ordinal))
+        {
+            UpdateGuideStep(6);
+        }
+    }
+
+    private void UpdateGuideStep(int stepIndex)
+    {
+        if (stepIndex <= _guideStepIndex || stepIndex < 1 || stepIndex > GuideStepKeys.Length)
+        {
+            return;
+        }
+
+        _guideStepIndex = stepIndex;
+        if (EnableGuideText && _guidePanel != null && _guideText != null)
+        {
+            _guidePanel.Visible = true;
+            if (_guideTitle != null)
+            {
+                _guideTitle.Text = TranslateOrFallback(GuideTitleKey);
+            }
+
+            var key = GuideStepKeys[stepIndex - 1];
+            _guideText.Text = TranslateOrFallback(key);
+        }
+        else if (_guidePanel != null)
+        {
+            _guidePanel.Visible = false;
+        }
+
+        if (EnableGuideHighlight)
+        {
+            UpdateGuideHighlightForStep(stepIndex);
+        }
+        else if (_guideOverlay != null)
+        {
+            _guideOverlay.ClearHighlight();
+            _guideOverlay.Visible = false;
+        }
+    }
+
+    private static string TranslateOrFallback(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
+
+        var translated = TranslationServer.Translate(key);
+        if (!string.IsNullOrWhiteSpace(translated) && !string.Equals(translated, key, StringComparison.Ordinal))
+        {
+            return translated;
+        }
+
+        return key;
+    }
+
+    private void UpdateGuideHighlightForStep(int stepIndex)
+    {
+        if (_guideOverlay == null)
+        {
+            return;
+        }
+
+        var target = FindGuideTargetForStep(stepIndex);
+        if (target == null)
+        {
+            _guideOverlay.ClearHighlight();
+            _guideOverlay.Visible = false;
+            return;
+        }
+
+        var globalRect = target.GetGlobalRect();
+        var overlayRect = _guideOverlay.GetGlobalRect();
+        var localPosition = globalRect.Position - overlayRect.Position;
+        _guideOverlay.SetHighlightRect(new Rect2(localPosition, globalRect.Size));
+        _guideOverlay.Visible = true;
+    }
+
+    private Control? FindGuideTargetForStep(int stepIndex)
+    {
+        return stepIndex switch
+        {
+            1 => TryFindControl("/root/Main/MainMenu/NewGameConfig")
+                 ?? TryFindControl("/root/Main/MainMenu/BtnPlay"),
+            2 => _diceButton,
+            3 => _toast as Control ?? _logPanel as Control,
+            4 => _actionPanel != null && _actionPanel.Visible ? _actionPanel : _money,
+            5 => TryFindControl("/root/Main/Overlays/SanguoBattleView/Panel")
+                 ?? TryFindControl("/root/Main/SanguoBattleView/Panel"),
+            6 => TryFindControl("/root/Main/Overlays/SettlementScreen/Center/Panel")
+                 ?? TryFindControl("/root/Main/SettlementScreen/Center/Panel"),
+            _ => null
+        };
+    }
+
+    private Control? TryFindControl(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        return GetNodeOrNull<Control>(path);
     }
 
     private void TryConnectBus(Callable callable)

@@ -1,12 +1,11 @@
 key,text
-help.tutorial.section.learning_route,Learning route suggestions
+help.tutorial.section.learning_route,Learning route suggestions (15-minute starter loop)
 help.tutorial.section.team_knowledge_base,Team knowledge base
-help.tutorial.step_01,"Step 01/06 - Roll dice. Trigger: Your turn starts. Action: Click Roll Dice. Result: Dice value used for movement."
-help.tutorial.step_02,"Step 02/06 - Move. Trigger: After rolling dice. Action: Token moves by dice value. Result: Land on a tile and evaluate actions."
-help.tutorial.step_03,"Step 03/06 - Buy/Pay. Trigger: Land on a city tile. Action: Buy if unowned; otherwise pay toll. Result: Ownership or money changes."
-help.tutorial.step_04,"Step 04/06 - Month settlement. Trigger: Month boundary. Action: Settlement runs for all players. Result: Money updates based on owned cities and rules."
-help.tutorial.step_05,"Step 05/06 - Season event. Trigger: After settlement (when applicable). Action: A season event applies to the economy. Result: Yields/modifiers change."
-help.tutorial.step_06,"Step 06/06 - Yearly price adjustment. Trigger: Year boundary. Action: City prices are adjusted. Result: Future buy prices and yields change."
-help.tutorial.step_07,"Knowledge base 1/2 - Terms. Dice: random value used for movement. Toll: money paid when landing on an owned city."
-help.tutorial.step_08,"Knowledge base 2/2 - Consistency. Keep rules aligned with Contracts/events. Prefer deterministic acceptance gates."
-
+help.tutorial.step_01,"Step 01/06 - Start config and reproducible seed. Trigger: New game setup. Action: Choose map, player count, initial money, event interval, random seed. Result: Deterministic start and goals."
+help.tutorial.step_02,Step 02/06 - BeforeRoll action cards. Trigger: Turn start. Action: Pick 0-1 cards and confirm. Result: Pre-roll economy or ownership effects.
+help.tutorial.step_03,"Step 03/06 - Roll, move, and event triggers. Trigger: After movement. Action: Resolve tile event first, then global event. Result: Money changes and explanations logged."
+help.tutorial.step_04,Step 04/06 - City build with multipliers. Trigger: Land on owned city. Action: Build or upgrade. Result: Building events with AppliedMultipliers breakdown.
+help.tutorial.step_05,Step 05/06 - Combat and return to loop. Trigger: Tile event starts combat. Action: Enter combat and return. Result: Combat outcome recorded and turn continues.
+help.tutorial.step_06,"Step 06/06 - Win or lose and settlement. Trigger: End condition met. Action: Show result screen. Result: game.ended reason, winner, stats, next-step options."
+help.tutorial.step_07,Knowledge base 1/2 - Rounds and events. RoundNumber drives global events; order: Tile -> Global.
+help.tutorial.step_08,Knowledge base 2/2 - Source of truth and fallback. UI consumes Contracts and explanations; missing keys fall back to raw text.

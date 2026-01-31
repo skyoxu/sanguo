@@ -167,6 +167,30 @@ def run_gdunit_hard(*, godot_bin: str, date: str) -> tuple[int, str]:
     return proc.returncode, report_dir
 
 
+def run_gdunit_ui(*, godot_bin: str, date: str) -> tuple[int, str]:
+    """Run the UI GdUnit4 suite (tests/UI)."""
+
+    report_dir = os.path.join("logs", "e2e", date, "quality-gates", "gdunit-ui")
+    args = [
+        "py",
+        "-3",
+        "scripts/python/run_gdunit.py",
+        "--prewarm",
+        "--godot-bin",
+        godot_bin,
+        "--project",
+        "Tests.Godot",
+        "--add",
+        "tests/UI",
+        "--timeout-sec",
+        "480",
+        "--rd",
+        report_dir,
+    ]
+    proc = subprocess.run(args, text=True)
+    return proc.returncode, report_dir
+
+
 def run_smoke_headless(*, godot_bin: str, timeout_sec: int) -> tuple[int, str]:
     """Run the Python headless smoke in strict mode.
 
@@ -208,6 +232,7 @@ def main() -> int:
     p_all.add_argument("--godot-bin", required=True)
     p_all.add_argument("--build-solutions", action="store_true")
     p_all.add_argument("--gdunit-hard", action="store_true", help="run hard GdUnit set (Adapters/Config + Security)")
+    p_all.add_argument("--gdunit-ui", action="store_true", help="run UI GdUnit suite (tests/UI)")
     p_all.add_argument("--smoke", action="store_true", help="run headless smoke (strict marker/DB check)")
     p_all.add_argument("--smoke-timeout-sec", type=int, default=120, help="smoke timeout seconds (default 120)")
     p_all.add_argument("--coverage-soft", action="store_true", help="treat coverage gate as soft (default hard)")
@@ -303,6 +328,33 @@ def main() -> int:
             if gd_rc != 0:
                 hard_failed = True
 
+        gdunit_ui = {"enabled": bool(args.gdunit_ui)}
+        gdunit_ui_rc = None
+        gdunit_ui_report_dir = None
+        if args.gdunit_ui:
+            if test_mode:
+                gd_ui_rc = _as_int(os.environ.get("QUALITY_GATES_TEST_GDUNIT_UI_RC"), default=0)
+                report_dir = str(os.environ.get("QUALITY_GATES_TEST_GDUNIT_UI_REPORT_DIR") or "").strip() or os.path.join(
+                    ci_dir, "gdunit-ui"
+                )
+                os.makedirs(report_dir, exist_ok=True)
+                run_summary_path = str(os.environ.get("QUALITY_GATES_TEST_GDUNIT_UI_RUN_SUMMARY_JSON") or "").strip()
+                if run_summary_path and os.path.isfile(run_summary_path):
+                    gdunit_ui["run_summary_path"] = run_summary_path
+                    gdunit_ui["run_summary"] = _read_json(run_summary_path)
+            else:
+                gd_ui_rc, report_dir = run_gdunit_ui(godot_bin=args.godot_bin, date=date)
+            gdunit_ui_rc = gd_ui_rc
+            gdunit_ui_report_dir = report_dir
+            gdunit_ui["rc"] = gd_ui_rc
+            gdunit_ui["report_dir"] = report_dir
+            if not test_mode:
+                run_summary_path = os.path.join(report_dir, "run-summary.json")
+                gdunit_ui["run_summary_path"] = run_summary_path
+                gdunit_ui["run_summary"] = _read_json(run_summary_path) if os.path.isfile(run_summary_path) else {}
+            if gd_ui_rc != 0:
+                hard_failed = True
+
         # Aggregate a stable summary for CI/ops.
         quality_gates_summary_path = os.path.join(ci_dir, "quality-gates-summary.json")
         summary = {
@@ -322,6 +374,7 @@ def main() -> int:
             "ci_pipeline_summary_path": ci_pipeline_summary_path,
             "perf_audit": perf_audit,
             "gdunit_hard": gdunit,
+            "gdunit_ui": gdunit_ui,
             "smoke": smoke,
             "artifacts": {
                 "quality_gates_summary": quality_gates_summary_path,
