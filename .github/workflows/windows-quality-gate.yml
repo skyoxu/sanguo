@@ -157,7 +157,7 @@ jobs:
         shell: pwsh
         run: |
           $date = Get-Date -Format 'yyyy-MM-dd'
-          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --smoke
+          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --gdunit-ui --smoke
 
           # Step Summary (coverage + GdUnit + Security)
           $sum = "logs/ci/$date/quality-gates-summary.json"
@@ -366,7 +366,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gdunit-reports
-          path: logs/e2e/**/gdunit-reports/**
+          path: |
+            logs/e2e/**/gdunit-reports/**
+            logs/e2e/**/quality-gates/gdunit-ui/**
           if-no-files-found: ignore
 
       - name: Schema dump (soft)

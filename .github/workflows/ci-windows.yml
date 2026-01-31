@@ -1,4 +1,4 @@
-﻿name: Windows CI
+name: Windows CI
 
 on:
   push:
@@ -109,7 +109,7 @@ jobs:
       - name: CI pipeline (Python)
         shell: pwsh
         run: |
-          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --smoke --coverage-soft
+          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --smoke --gdunit-ui --coverage-soft
 
       - name: Upload CI logs (always)
         if: always()
@@ -164,12 +164,6 @@ jobs:
         run: |
           py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --project Tests.Godot --add tests/Integration --add tests/Adapters/Db --timeout-sec 480 --rd "logs/e2e/${{ github.run_id }}/gdunit-reports/integration"
 
-      - name: GdUnit4 UI tests (Python, soft gate)
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --project Tests.Godot --add tests/UI --timeout-sec 480 --rd "logs/e2e/${{ github.run_id }}/gdunit-reports/ui"
-
       - name: GdUnit4 a11y tests (Python, soft gate)
         shell: pwsh
         continue-on-error: true
@@ -187,7 +181,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gdunit-reports
-          path: logs/e2e/**/gdunit-reports/**
+          path: |
+            logs/e2e/**/gdunit-reports/**
+            logs/e2e/**/quality-gates/gdunit-ui/**
           if-no-files-found: ignore
 
       - name: Schema dump (soft)

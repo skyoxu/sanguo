@@ -16,7 +16,7 @@ function Run-Step($name, [ScriptBlock]$block) {
 $fail = 0
 
 # 1) Python quality gates (delegates to ci_pipeline + future gates)
-$c = Run-Step 'python quality_gates.py' { py -3 "$PSScriptRoot/../python/quality_gates.py" all --godot-bin $GodotBin --solution 'Game.sln' --configuration 'Debug' --build-solutions }
+$c = Run-Step 'python quality_gates.py' { py -3 "$PSScriptRoot/../python/quality_gates.py" all --godot-bin $GodotBin --solution 'Game.sln' --configuration 'Debug' --build-solutions --gdunit-ui }
 if ($c -ne 0) { $fail++ }
 
 # 2) Export + EXE smoke (optional)
