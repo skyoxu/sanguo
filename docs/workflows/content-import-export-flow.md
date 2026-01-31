@@ -25,7 +25,7 @@
 ### 2) 更新内容文件
 
 - 仅编辑 Data/*.json 或 Data/maps/*。
-- 每次改动必须递增文件的 ersion。
+- 每次改动必须递增文件的 ersion。
 - 新增条目必须具备 
 ameKey/descriptionKey。
 
@@ -37,8 +37,8 @@ ameKey/descriptionKey。
 ### 4) 地图相关更新
 
 - 修改 Data/maps/map*.json 后，必须同步 bump：
-  - Data/maps/map*.json 的 ersion
-  - Data/maps/_index.json 的 ersion 与对应 contentVersion
+  - Data/maps/map*.json 的 ersion
+  - Data/maps/_index.json 的 ersion 与对应 contentVersion
 
 ### 5) 门禁校验（本地）
 
@@ -64,20 +64,20 @@ es://Assets/。
 ### 新增卡牌（action_cards.json）
 
 - 新增条目到 Data/action_cards.json
-- 同步 bump ersion
+- 同步 bump ersion
 - 增加 card.<id>.name 与 card.<id>.desc 的中英文 key
 
 ### 新增事件（random_events.json）
 
 - 新增 event 与 pool 引用
-- 同步 bump ersion
+- 同步 bump ersion
 - 增加 event.<id>.name 与 event.<id>.desc 的中英文 key
 
 ## 禁止事项
 
 - 禁止在 Data/** 使用 meta 字段。
 - 禁止在本地绕过门禁后再提交。
-- 禁止只改内容不改 ersion。
+- 禁止只改内容不改 ersion。
 
 ## 口径引用
 

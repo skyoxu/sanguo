@@ -28,13 +28,17 @@ public static class SanguoCharactersCatalogLoader
     };
 
     public static bool TryLoadCharactersCatalog(IResourceLoader loader, out SanguoCharactersCatalog catalog, out string error)
+        => TryLoadCharactersCatalog(loader, pack: null, out catalog, out error);
+
+    public static bool TryLoadCharactersCatalog(IResourceLoader loader, SanguoContentPackPaths? pack, out SanguoCharactersCatalog catalog, out string error)
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         catalog = new SanguoCharactersCatalog(SchemaVersion: 0, Version: 0, Characters: Array.Empty<SanguoCharacterDefinition>());
         error = string.Empty;
 
-        var json = loader.LoadText(CharactersResPath);
+        var resPath = pack?.CharactersPath ?? CharactersResPath;
+        var json = loader.LoadText(resPath);
         if (string.IsNullOrWhiteSpace(json))
         {
             error = "characters_catalog_missing";

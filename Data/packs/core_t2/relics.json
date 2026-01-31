@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "version": 2,
+  "relics": [
+    {
+      "relicId": "relic_gold_pouch",
+      "nameKey": "relic.relic_gold_pouch.name",
+      "descriptionKey": "relic.relic_gold_pouch.desc",
+      "effectKind": "moneyDelta",
+      "moneyDelta": 500
+    },
+    {
+      "relicId": "relic_tax_ledger",
+      "nameKey": "relic.relic_tax_ledger.name",
+      "descriptionKey": "relic.relic_tax_ledger.desc",
+      "effectKind": "economyStepDelta",
+      "stepDelta": 1
+    },
+    {
+      "relicId": "relic_silver_ingot",
+      "nameKey": "relic.relic_silver_ingot.name",
+      "descriptionKey": "relic.relic_silver_ingot.desc",
+      "effectKind": "moneyDelta",
+      "moneyDelta": 300
+    },
+    {
+      "relicId": "relic_prosperity_scroll",
+      "nameKey": "relic.relic_prosperity_scroll.name",
+      "descriptionKey": "relic.relic_prosperity_scroll.desc",
+      "effectKind": "economyStepDelta",
+      "stepDelta": 2
+    }
+  ]
+}

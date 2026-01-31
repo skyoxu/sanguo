@@ -83,4 +83,64 @@ public sealed class Task54RoleAssignmentUniquenessTests
         ok.Should().BeFalse();
         error.Should().Be("insufficient_characters");
     }
+
+    [Fact]
+    public void GivenZeroPlayers_WhenBuildingAssignments_ThenFailsWithExpectedError()
+    {
+        var ok = SanguoCharacterAssignmentsGenerator.TryBuildAssignments(
+            availableCharacterIds: AvailableIds,
+            playersCount: 0,
+            playerCharacterId: "c1",
+            seed: 1,
+            assignments: out _,
+            error: out var error);
+
+        ok.Should().BeFalse();
+        error.Should().Be("players_count_invalid");
+    }
+
+    [Fact]
+    public void GivenEmptyPlayerCharacter_WhenBuildingAssignments_ThenFailsWithExpectedError()
+    {
+        var ok = SanguoCharacterAssignmentsGenerator.TryBuildAssignments(
+            availableCharacterIds: AvailableIds,
+            playersCount: 4,
+            playerCharacterId: "",
+            seed: 1,
+            assignments: out _,
+            error: out var error);
+
+        ok.Should().BeFalse();
+        error.Should().Be("player_character_empty");
+    }
+
+    [Fact]
+    public void GivenEmptyAvailableCharacters_WhenBuildingAssignments_ThenFailsWithExpectedError()
+    {
+        var ok = SanguoCharacterAssignmentsGenerator.TryBuildAssignments(
+            availableCharacterIds: Array.Empty<string>(),
+            playersCount: 2,
+            playerCharacterId: "c1",
+            seed: 1,
+            assignments: out _,
+            error: out var error);
+
+        ok.Should().BeFalse();
+        error.Should().Be("insufficient_characters");
+    }
+
+    [Fact]
+    public void GivenMissingPlayerCharacter_WhenBuildingAssignments_ThenFailsWithExpectedError()
+    {
+        var ok = SanguoCharacterAssignmentsGenerator.TryBuildAssignments(
+            availableCharacterIds: AvailableIds,
+            playersCount: 4,
+            playerCharacterId: "c99",
+            seed: 1,
+            assignments: out _,
+            error: out var error);
+
+        ok.Should().BeFalse();
+        error.Should().Be("player_character_not_found");
+    }
 }

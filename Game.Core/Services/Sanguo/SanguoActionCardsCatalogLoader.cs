@@ -24,13 +24,17 @@ public static class SanguoActionCardsCatalogLoader
     };
 
     public static bool TryLoadActionCardsCatalog(IResourceLoader loader, out SanguoActionCardsCatalog catalog, out string error)
+        => TryLoadActionCardsCatalog(loader, pack: null, out catalog, out error);
+
+    public static bool TryLoadActionCardsCatalog(IResourceLoader loader, SanguoContentPackPaths? pack, out SanguoActionCardsCatalog catalog, out string error)
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         catalog = new SanguoActionCardsCatalog(SchemaVersion: 0, Version: 0, Cards: Array.Empty<SanguoActionCardCatalogEntry>());
         error = string.Empty;
 
-        var json = loader.LoadText(ActionCardsResPath);
+        var resPath = pack?.ActionCardsPath ?? ActionCardsResPath;
+        var json = loader.LoadText(resPath);
         if (string.IsNullOrWhiteSpace(json))
         {
             error = "action_cards_catalog_missing";

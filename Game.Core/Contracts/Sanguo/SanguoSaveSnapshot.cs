@@ -18,7 +18,9 @@ public sealed record SanguoSaveSnapshot(
     IReadOnlyList<string> PlayerOrder,
     IReadOnlyList<SanguoSavePlayer> Players,
     IReadOnlyList<SanguoSaveCityEconomy> CityEconomy,
-    long TreasuryMinorUnits
+    long TreasuryMinorUnits,
+    string ContentPackId = "",
+    int ContentPackVersion = 0
 );
 
 /// <summary>

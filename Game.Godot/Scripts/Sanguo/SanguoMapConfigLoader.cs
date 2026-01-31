@@ -12,7 +12,6 @@ namespace Game.Godot.Scripts.Sanguo;
 internal static class SanguoMapConfigLoader
 {
     internal const string MapsIndexPath = SanguoMapsCatalogLoader.MapsIndexResPath;
-    internal const string MapsDirPrefix = "res://Data/maps/";
     internal const string MapsFileSuffix = ".json";
 
     // Maps index parsing is handled in Game.Core.Services.Sanguo.SanguoMapsCatalogLoader (pure C#).
@@ -32,19 +31,30 @@ internal static class SanguoMapConfigLoader
         out string sourcePath,
         out string error
     )
+        => TryLoadMap(loader, correlationId, out map, out sourcePath, out error, pack: null);
+
+    internal static bool TryLoadMap(
+        IResourceLoader loader,
+        string correlationId,
+        out SanguoMapDefinition map,
+        out string sourcePath,
+        out string error,
+        SanguoContentPackPaths? pack
+    )
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         map = new SanguoMapDefinition(MapId: "invalid", TileCount: 0, Tiles: Array.Empty<SanguoTileDefinition>());
-        sourcePath = MapsIndexPath;
+        var mapsIndexPath = ResolveMapsIndexPath(pack);
+        sourcePath = mapsIndexPath;
         error = string.Empty;
 
-        if (!TryLoadMapsCatalog(loader, out var catalog, out var catalogError))
+        if (!TryLoadMapsCatalog(loader, pack, out var catalog, out var catalogError))
         {
             SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CATALOG_LOAD_FAILED",
                 reason: "maps_index_invalid",
-                target: $"path={MapsIndexPath} error={catalogError}",
+                target: $"path={mapsIndexPath} error={catalogError}",
                 caller: "SanguoMapConfigLoader.TryLoadMap",
                 eventType: "runtime.map.config.load.failed",
                 eventSource: nameof(SanguoMapConfigLoader),
@@ -56,7 +66,7 @@ internal static class SanguoMapConfigLoader
         SecurityAuditWriter.TryAppendSecurityAudit(
             action: "SANGUO_MAP_CATALOG_LOADED",
             reason: "maps_index",
-            target: $"path={MapsIndexPath}",
+            target: $"path={mapsIndexPath}",
             caller: "SanguoMapConfigLoader.TryLoadMap",
             eventType: "runtime.map.catalog.loaded",
             eventSource: nameof(SanguoMapConfigLoader),
@@ -67,7 +77,7 @@ internal static class SanguoMapConfigLoader
             SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CATALOG_LOAD_FAILED",
                 reason: "maps_index_empty",
-                target: $"path={MapsIndexPath}",
+                target: $"path={mapsIndexPath}",
                 caller: "SanguoMapConfigLoader.TryLoadMap",
                 eventType: "runtime.map.catalog.load.failed",
                 eventSource: nameof(SanguoMapConfigLoader),
@@ -82,7 +92,7 @@ internal static class SanguoMapConfigLoader
             SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CATALOG_LOAD_FAILED",
                 reason: "maps_index_entry_invalid",
-                target: $"path={MapsIndexPath}",
+                target: $"path={mapsIndexPath}",
                 caller: "SanguoMapConfigLoader.TryLoadMap",
                 eventType: "runtime.map.catalog.load.failed",
                 eventSource: nameof(SanguoMapConfigLoader),
@@ -92,13 +102,20 @@ internal static class SanguoMapConfigLoader
         }
 
         var mapId = defaultEntry.MapId;
-        if (!TryLoadRegionsKnownIds(loader, correlationId, out var knownRegionIds, out var regionsError))
+        var mapPath = ResolveMapPathFromEntry(defaultEntry, mapsIndexPath);
+        if (string.IsNullOrWhiteSpace(mapPath))
+        {
+            error = "map_path_invalid";
+            return false;
+        }
+
+        if (!TryLoadRegionsKnownIds(loader, correlationId, pack, out var knownRegionIds, out var regionsError))
         {
             error = regionsError;
             return false;
         }
 
-        if (!TryLoadMapV2FromMapId(loader, mapId, knownRegionIds, out var mapV2, out var mapV2Path, out var mapV2Error))
+        if (!TryLoadMapV2FromMapId(loader, mapId, mapPath, knownRegionIds, out var mapV2, out var mapV2Path, out var mapV2Error))
         {
             sourcePath = mapV2Path;
             SecurityAuditWriter.TryAppendSecurityAudit(
@@ -155,11 +172,23 @@ internal static class SanguoMapConfigLoader
         out string sourcePath,
         out string error
     )
+        => TryLoadMapById(loader, mapId, correlationId, out map, out sourcePath, out error, pack: null);
+
+    internal static bool TryLoadMapById(
+        IResourceLoader loader,
+        string mapId,
+        string correlationId,
+        out SanguoMapDefinition map,
+        out string sourcePath,
+        out string error,
+        SanguoContentPackPaths? pack
+    )
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         map = new SanguoMapDefinition(MapId: "invalid", TileCount: 0, Tiles: Array.Empty<SanguoTileDefinition>());
-        sourcePath = MapsIndexPath;
+        var mapsIndexPath = ResolveMapsIndexPath(pack);
+        sourcePath = mapsIndexPath;
         error = string.Empty;
 
         if (string.IsNullOrWhiteSpace(mapId))
@@ -168,12 +197,12 @@ internal static class SanguoMapConfigLoader
             return false;
         }
 
-        if (!TryLoadMapsCatalog(loader, out var catalog, out var catalogError))
+        if (!TryLoadMapsCatalog(loader, pack, out var catalog, out var catalogError))
         {
             SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CATALOG_LOAD_FAILED",
                 reason: "maps_index_invalid",
-                target: $"path={MapsIndexPath} error={catalogError}",
+                target: $"path={mapsIndexPath} error={catalogError}",
                 caller: "SanguoMapConfigLoader.TryLoadMapById",
                 eventType: "runtime.map.config.load.failed",
                 eventSource: nameof(SanguoMapConfigLoader),
@@ -188,14 +217,14 @@ internal static class SanguoMapConfigLoader
             return false;
         }
 
-        var exists = catalog.Maps.Any(m => m != null && string.Equals(m.MapId, mapId, StringComparison.Ordinal));
-        if (!exists)
+        var entry = catalog.Maps.FirstOrDefault(m => m != null && string.Equals(m.MapId, mapId, StringComparison.Ordinal));
+        if (entry == null)
         {
             error = "map_id_not_in_catalog";
             SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_MAP_CONFIG_LOAD_FAILED",
                 reason: "map_id_not_in_catalog",
-                target: $"mapId={mapId} path={MapsIndexPath}",
+                target: $"mapId={mapId} path={mapsIndexPath}",
                 caller: "SanguoMapConfigLoader.TryLoadMapById",
                 eventType: "runtime.map.config.load.failed",
                 eventSource: nameof(SanguoMapConfigLoader),
@@ -203,13 +232,20 @@ internal static class SanguoMapConfigLoader
             return false;
         }
 
-        if (!TryLoadRegionsKnownIds(loader, correlationId, out var knownRegionIds, out var regionsError))
+        var mapPath = ResolveMapPathFromEntry(entry, mapsIndexPath);
+        if (string.IsNullOrWhiteSpace(mapPath))
+        {
+            error = "map_path_invalid";
+            return false;
+        }
+
+        if (!TryLoadRegionsKnownIds(loader, correlationId, pack, out var knownRegionIds, out var regionsError))
         {
             error = regionsError;
             return false;
         }
 
-        if (!TryLoadMapV2FromMapId(loader, mapId, knownRegionIds, out var mapV2, out var mapV2Path, out var mapV2Error))
+        if (!TryLoadMapV2FromMapId(loader, mapId, mapPath, knownRegionIds, out var mapV2, out var mapV2Path, out var mapV2Error))
         {
             sourcePath = mapV2Path;
             error = mapV2Error;
@@ -252,27 +288,29 @@ internal static class SanguoMapConfigLoader
 
     private static bool TryLoadMapsCatalog(
         IResourceLoader loader,
+        SanguoContentPackPaths? pack,
         out SanguoMapsCatalog catalog,
         out string error)
     {
-        return SanguoMapsCatalogLoader.TryLoadMapsCatalog(loader, out catalog, out error);
+        return SanguoMapsCatalogLoader.TryLoadMapsCatalog(loader, pack, out catalog, out error);
     }
 
     private static bool TryLoadRegionsKnownIds(
         IResourceLoader loader,
         string correlationId,
+        SanguoContentPackPaths? pack,
         out IReadOnlySet<string> knownRegionIds,
         out string error)
     {
         knownRegionIds = new HashSet<string>(StringComparer.Ordinal);
         error = string.Empty;
 
-        if (!SanguoRegionsCatalogLoader.TryLoadRegionsCatalog(loader, out var catalog, out var catalogError))
+        if (!SanguoRegionsCatalogLoader.TryLoadRegionsCatalog(loader, pack, out var catalog, out var catalogError))
         {
             SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_REGIONS_CATALOG_LOAD_FAILED",
                 reason: "regions_catalog_invalid",
-                target: $"path={SanguoRegionsCatalogLoader.RegionsResPath} error={catalogError}",
+                target: $"path={pack?.RegionsPath ?? SanguoRegionsCatalogLoader.RegionsResPath} error={catalogError}",
                 caller: "SanguoMapConfigLoader.TryLoadRegionsKnownIds",
                 eventType: "runtime.regions.catalog.load.failed",
                 eventSource: nameof(SanguoMapConfigLoader),
@@ -286,7 +324,7 @@ internal static class SanguoMapConfigLoader
             SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_REGIONS_CATALOG_LOAD_FAILED",
                 reason: "regions_catalog_empty",
-                target: $"path={SanguoRegionsCatalogLoader.RegionsResPath}",
+                target: $"path={pack?.RegionsPath ?? SanguoRegionsCatalogLoader.RegionsResPath}",
                 caller: "SanguoMapConfigLoader.TryLoadRegionsKnownIds",
                 eventType: "runtime.regions.catalog.load.failed",
                 eventSource: nameof(SanguoMapConfigLoader),
@@ -307,7 +345,7 @@ internal static class SanguoMapConfigLoader
             SecurityAuditWriter.TryAppendSecurityAudit(
                 action: "SANGUO_REGIONS_CATALOG_LOAD_FAILED",
                 reason: "regions_catalog_empty",
-                target: $"path={SanguoRegionsCatalogLoader.RegionsResPath}",
+                target: $"path={pack?.RegionsPath ?? SanguoRegionsCatalogLoader.RegionsResPath}",
                 caller: "SanguoMapConfigLoader.TryLoadRegionsKnownIds",
                 eventType: "runtime.regions.catalog.load.failed",
                 eventSource: nameof(SanguoMapConfigLoader),
@@ -322,6 +360,7 @@ internal static class SanguoMapConfigLoader
     private static bool TryLoadMapV2FromMapId(
         IResourceLoader loader,
         string mapId,
+        string mapPath,
         IReadOnlySet<string>? knownRegionIds,
         out SanguoMapDefinitionV2 map,
         out string sourcePath,
@@ -335,7 +374,7 @@ internal static class SanguoMapConfigLoader
             Tiles: Array.Empty<SanguoMapTileDefinitionV2>());
         error = string.Empty;
 
-        sourcePath = $"{MapsDirPrefix}{mapId}{MapsFileSuffix}";
+        sourcePath = mapPath;
         var json = loader.LoadText(sourcePath);
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -426,5 +465,29 @@ internal static class SanguoMapConfigLoader
         }
 
         return string.IsNullOrWhiteSpace(kind) ? "unknown" : kind;
+    }
+
+    private static string ResolveMapsIndexPath(SanguoContentPackPaths? pack)
+        => pack?.MapsIndexPath ?? MapsIndexPath;
+
+    private static string ResolveMapPathFromEntry(SanguoMapCatalogEntry entry, string mapsIndexPath)
+    {
+        if (!string.IsNullOrWhiteSpace(entry.Path))
+        {
+            return entry.Path;
+        }
+
+        var baseDir = mapsIndexPath;
+        if (baseDir.EndsWith("_index.json", StringComparison.OrdinalIgnoreCase))
+        {
+            baseDir = baseDir.Substring(0, baseDir.Length - "_index.json".Length);
+        }
+
+        if (!baseDir.EndsWith("/", StringComparison.Ordinal))
+        {
+            baseDir += "/";
+        }
+
+        return $"{baseDir}{entry.MapId}{MapsFileSuffix}";
     }
 }

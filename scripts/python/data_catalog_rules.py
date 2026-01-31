@@ -49,6 +49,7 @@ I18N_NAMESPACE_PREFIXES = (
     "facility.",
     "building.",
     "tile.",
+    "pack.",
     "err.",
 )
 
@@ -241,7 +242,9 @@ def _validate_economy_steps(obj: Any, target: str, findings: list[Finding]) -> N
             findings.append(Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{target}.{k}", f"{k} must be int."))
             continue
         if v < -6 or v > 6:
-            findings.append(Finding("warn", "DATA_VALUE_SUSPICIOUS", f"{target}.{k}", "step delta outside [-6,6]."))
+            findings.append(Finding("fail", "DATA_VALUE_OUT_OF_RANGE", f"{target}.{k}", "step delta must be in [-6,6]."))
+
+
 
 
 def _walk_effect_kinds(obj: Any, path: str, out: list[tuple[str, str]]) -> None:
@@ -276,6 +279,8 @@ def validate_effect_kind_whitelist(data_dir: Path, findings: list[Finding]) -> N
                         f"effectKind {v!r} not in whitelist.",
                     )
                 )
+
+
 
 
 def validate_i18n_file(path: Path, findings: list[Finding], *, expected_locale: str = "zh-CN") -> dict[str, str]:

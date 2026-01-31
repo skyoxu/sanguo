@@ -648,7 +648,8 @@ public partial class HUD : Control
         _portraitPathByCharacterId.Clear();
 
         var loader = ResolveResourceLoader();
-        if (!SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, out var catalog, out _))
+        var pack = ResolveContentPack(loader);
+        if (!SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, pack, out var catalog, out _))
         {
             return;
         }
@@ -744,6 +745,13 @@ public partial class HUD : Control
         _fallbackResourceLoader = new ResourceLoaderAdapter { Name = "ResourceLoaderFallback" };
         AddChild(_fallbackResourceLoader);
         return _fallbackResourceLoader;
+    }
+
+    private static SanguoContentPackPaths? ResolveContentPack(IResourceLoader loader)
+    {
+        return SanguoContentPackResolver.TryResolveDefaultPack(loader, out var pack, out _)
+            ? pack
+            : null;
     }
 
     private void HandleTokenMovedEvent(JsonElement root)
@@ -893,8 +901,9 @@ public partial class HUD : Control
         try
         {
             var loader = ResolveResourceLoader();
+            var pack = ResolveContentPack(loader);
             var correlationId = Guid.NewGuid().ToString("N");
-            if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out _, out _))
+            if (!SanguoMapConfigLoader.TryLoadMap(loader, correlationId, out var map, out _, out _, pack))
             {
                 return;
             }
@@ -928,7 +937,8 @@ public partial class HUD : Control
         try
         {
             var loader = ResolveResourceLoader();
-            if (SanguoRegionsCatalogLoader.TryLoadRegionsCatalog(loader, out var regions, out _))
+            var pack = ResolveContentPack(loader);
+            if (SanguoRegionsCatalogLoader.TryLoadRegionsCatalog(loader, pack, out var regions, out _))
             {
                 foreach (var region in regions.Regions)
                 {
@@ -939,7 +949,7 @@ public partial class HUD : Control
                 }
             }
 
-            if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, out var cards, out _))
+            if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, pack, out var cards, out _))
             {
                 foreach (var card in cards.Cards)
                 {
@@ -950,7 +960,7 @@ public partial class HUD : Control
                 }
             }
 
-            if (SanguoRelicsCatalogLoader.TryLoadRelicsCatalog(loader, out var relics, out _))
+            if (SanguoRelicsCatalogLoader.TryLoadRelicsCatalog(loader, pack, out var relics, out _))
             {
                 foreach (var relic in relics.Relics)
                 {
@@ -961,7 +971,7 @@ public partial class HUD : Control
                 }
             }
 
-            if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var eventsCatalog, out _))
+            if (SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, pack, out var eventsCatalog, out _))
             {
                 foreach (var evt in eventsCatalog.Events)
                 {

@@ -450,16 +450,24 @@ public static class EventExplainService
         if (string.Equals(type, SanguoGameSaved.EventType, StringComparison.Ordinal))
         {
             var saveSlotId = TryGetStringLoose(root, "SaveSlotId");
+            var contentPackId = TryGetStringLoose(root, "ContentPackId");
+            var contentPackVersion = TryGetIntLoose(root, "ContentPackVersion");
             var parts = new List<string>(4) { prefix };
             AddSummaryPart(parts, type, "save_slot_id", "save_slot", saveSlotId);
+            AddSummaryPart(parts, type, "content_pack_id", "pack", contentPackId);
+            AddSummaryPart(parts, type, "content_pack_version", "pack_version", contentPackVersion);
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
         if (string.Equals(type, SanguoGameLoaded.EventType, StringComparison.Ordinal))
         {
             var saveSlotId = TryGetStringLoose(root, "SaveSlotId");
+            var contentPackId = TryGetStringLoose(root, "ContentPackId");
+            var contentPackVersion = TryGetIntLoose(root, "ContentPackVersion");
             var parts = new List<string>(4) { prefix };
             AddSummaryPart(parts, type, "save_slot_id", "save_slot", saveSlotId);
+            AddSummaryPart(parts, type, "content_pack_id", "pack", contentPackId);
+            AddSummaryPart(parts, type, "content_pack_version", "pack_version", contentPackVersion);
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
@@ -969,11 +977,15 @@ public static class EventExplainService
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "SaveSlotId", "save_slot_id");
+            AddFact(facts, type, root, "ContentPackId", "content_pack_id");
+            AddFact(facts, type, root, "ContentPackVersion", "content_pack_version");
         }
         else if (string.Equals(type, SanguoGameLoaded.EventType, StringComparison.Ordinal))
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "SaveSlotId", "save_slot_id");
+            AddFact(facts, type, root, "ContentPackId", "content_pack_id");
+            AddFact(facts, type, root, "ContentPackVersion", "content_pack_version");
         }
         else if (string.Equals(type, SanguoPlayerEliminated.EventType, StringComparison.Ordinal))
         {

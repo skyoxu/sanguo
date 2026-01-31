@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import data_catalog_rules as core
+import data_catalog_numeric_rules as numeric
 import data_catalog_rules_maps as maps
 
 
@@ -420,5 +421,6 @@ def collect_findings(repo_root: Path) -> list[core.Finding]:
         )
 
     core.validate_effect_kind_whitelist(data_dir, findings)
+    numeric.validate_probability_and_weight(data_dir, findings)
     return findings
 

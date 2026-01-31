@@ -52,6 +52,8 @@ public sealed class SanguoTurnManager
     private string? _gameOverEndReason;
     private int? _actionCardPlayedTurnNumber;
     private int? _diceRolledTurnNumber;
+    private readonly string _contentPackId;
+    private readonly int _contentPackVersion;
 
     public SanguoTurnManager(
         IEventBus bus,
@@ -73,7 +75,9 @@ public sealed class SanguoTurnManager
         SanguoBuildingsCatalog? buildingsCatalog = null,
         SanguoRelicsCatalog? relicsCatalog = null,
         IReadOnlyDictionary<int, string>? tileTypesByPositionIndex = null,
-        IReadOnlyDictionary<string, int>? combatRatingByPlayerId = null)
+        IReadOnlyDictionary<string, int>? combatRatingByPlayerId = null,
+        string? contentPackId = null,
+        int contentPackVersion = 0)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         _economy = economy ?? throw new ArgumentNullException(nameof(economy));
@@ -96,6 +100,8 @@ public sealed class SanguoTurnManager
         _buildingsById = CreateBuildingsById(buildingsCatalog);
         _tileTypesByPositionIndex = tileTypesByPositionIndex;
         _combatRatingByPlayerId = combatRatingByPlayerId ?? new Dictionary<string, int>(StringComparer.Ordinal);
+        _contentPackId = string.IsNullOrWhiteSpace(contentPackId) ? string.Empty : contentPackId.Trim();
+        _contentPackVersion = contentPackVersion < 0 ? 0 : contentPackVersion;
 
         if (_globalEventIntervalTurns != 5 && _globalEventIntervalTurns != 10 && _globalEventIntervalTurns != 20)
             throw new ArgumentOutOfRangeException(nameof(globalEventIntervalTurns), "GlobalEventIntervalTurns must be one of: 5, 10, 20.");
@@ -3431,7 +3437,9 @@ public sealed class SanguoTurnManager
             PlayerOrder: _playerOrder.ToArray(),
             Players: players,
             CityEconomy: cityEconomy,
-            TreasuryMinorUnits: _treasury.MinorUnits
+            TreasuryMinorUnits: _treasury.MinorUnits,
+            ContentPackId: _contentPackId,
+            ContentPackVersion: _contentPackVersion
         );
     }
 

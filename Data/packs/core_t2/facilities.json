@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "version": 2,
+  "facilities": [
+    {
+      "facilityId": "facility_wilderness",
+      "facilityKind": "wilderness",
+      "nameKey": "facility.facility_wilderness.name",
+      "descriptionKey": "facility.facility_wilderness.desc",
+      "actions": [
+        {
+          "actionId": "wilderness",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "wilderness"
+        }
+      ]
+    },
+    {
+      "facilityId": "facility_shop",
+      "facilityKind": "shop",
+      "nameKey": "facility.facility_shop.name",
+      "descriptionKey": "facility.facility_shop.desc",
+      "actions": [
+        {
+          "actionId": "shop",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "openShop"
+        }
+      ]
+    },
+    {
+      "facilityId": "facility_battlefield",
+      "facilityKind": "battlefield",
+      "nameKey": "facility.facility_battlefield.name",
+      "descriptionKey": "facility.facility_battlefield.desc",
+      "actions": [
+        {
+          "actionId": "start_combat",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "startCombat"
+        }
+      ]
+    },
+    {
+      "facilityId": "facility_jail",
+      "facilityKind": "jail",
+      "nameKey": "facility.facility_jail.name",
+      "descriptionKey": "facility.facility_jail.desc",
+      "actions": [
+        {
+          "actionId": "jail",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "jail"
+        }
+      ]
+    },
+    {
+      "facilityId": "facility_hospital",
+      "facilityKind": "hospital",
+      "nameKey": "facility.facility_hospital.name",
+      "descriptionKey": "facility.facility_hospital.desc",
+      "actions": [
+        {
+          "actionId": "hospital",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "hospital"
+        }
+      ]
+    },
+    {
+      "facilityId": "facility_job_center",
+      "facilityKind": "jobCenter",
+      "nameKey": "facility.facility_job_center.name",
+      "descriptionKey": "facility.facility_job_center.desc",
+      "actions": [
+        {
+          "actionId": "job",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "actionKind": "job"
+        }
+      ]
+    },
+    {
+      "facilityId": "facility_teleporter",
+      "facilityKind": "teleporter",
+      "nameKey": "facility.facility_teleporter.name",
+      "descriptionKey": "facility.facility_teleporter.desc",
+      "actions": [
+        {
+          "actionId": "teleport",
+          "iconResPath": "res://Assets/icons/action_default.svg",
+          "effectKind": "teleport",
+          "params": {
+            "targetMode": "random"
+          }
+        }
+      ]
+    }
+  ]
+}

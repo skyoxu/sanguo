@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "version": 3,
+  "maps": [
+    {
+      "mapId": "map001",
+      "nameKey": "map.map001.name",
+      "descriptionKey": "map.map001.desc",
+      "path": "res://Data/packs/core_t2/maps/map001.json",
+      "previewImagePath": "res://Assets/maps/map001_preview.svg",
+      "recommendedPlayersMin": 4,
+      "recommendedPlayersMax": 8,
+      "contentVersion": 2
+    }
+  ]
+}

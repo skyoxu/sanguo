@@ -145,6 +145,14 @@ def main():
     ap.add_argument('--rd', dest='report_dir', default=None, help='Custom destination to copy reports into (defaults to logs/e2e/<date>/gdunit-reports)')
     args = ap.parse_args()
     godot_bin = os.path.expandvars(args.godot_bin).strip().strip('"')
+    auto_prewarm = False
+    if not args.prewarm:
+        ci_flag = os.environ.get("CI", "").lower() in ("1", "true", "yes")
+        gha_flag = os.environ.get("GITHUB_ACTIONS", "").lower() in ("1", "true", "yes")
+        env_flag = os.environ.get("GDUNIT_PREWARM", "").lower() in ("1", "true", "yes")
+        if ci_flag or gha_flag or env_flag:
+            args.prewarm = True
+            auto_prewarm = True
 
     root = os.getcwd()
     proj = os.path.abspath(args.project)
@@ -206,6 +214,8 @@ def main():
                     agg.append(f'=== {item} rc={rc_b} ===\n{out_b}\n')
                 write_text(os.path.join(out_dir, 'prewarm-dotnet.txt'), '\n'.join(agg) if agg else 'NO_DOTNET_BUILD_TARGETS')
                 prewarm_note = 'fallback-dotnet'
+        if auto_prewarm and prewarm_note is None:
+            prewarm_note = 'auto-ci'
 
     # Run tests (Debugger break, fail-fast).
     # Important: remove stale reports before running, otherwise a failing run
@@ -272,6 +282,7 @@ def main():
         'project': proj,
         'added': args.add,
         'timeout_sec': args.timeout_sec,
+        'auto_prewarm': auto_prewarm,
         'results': parsed,
     }
     if prewarm_rc is not None:

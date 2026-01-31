@@ -119,6 +119,8 @@ public sealed record SanguoGameTurnAdvanced(
 public sealed record SanguoGameSaved(
     string GameId,
     string SaveSlotId,
+    string ContentPackId,
+    int ContentPackVersion,
     System.DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId
@@ -141,6 +143,8 @@ public sealed record SanguoGameSaved(
 public sealed record SanguoGameLoaded(
     string GameId,
     string SaveSlotId,
+    string ContentPackId,
+    int ContentPackVersion,
     System.DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId

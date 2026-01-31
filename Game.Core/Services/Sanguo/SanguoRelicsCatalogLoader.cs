@@ -22,13 +22,17 @@ public static class SanguoRelicsCatalogLoader
     };
 
     public static bool TryLoadRelicsCatalog(IResourceLoader loader, out SanguoRelicsCatalog catalog, out string error)
+        => TryLoadRelicsCatalog(loader, pack: null, out catalog, out error);
+
+    public static bool TryLoadRelicsCatalog(IResourceLoader loader, SanguoContentPackPaths? pack, out SanguoRelicsCatalog catalog, out string error)
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         catalog = new SanguoRelicsCatalog(SchemaVersion: 0, Version: 0, Relics: Array.Empty<SanguoRelicDefinition>());
         error = string.Empty;
 
-        var json = loader.LoadText(RelicsResPath);
+        var resPath = pack?.RelicsPath ?? RelicsResPath;
+        var json = loader.LoadText(resPath);
         if (string.IsNullOrWhiteSpace(json))
         {
             error = "relics_catalog_missing";

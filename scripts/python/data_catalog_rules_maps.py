@@ -191,6 +191,7 @@ def validate_maps_index(
     facility_action_ids_by_facility: dict[str, set[str]],
     region_ids: set[str],
     event_pool_ids: set[str],
+    map_path_prefixes: tuple[str, ...] = ("res://Data/maps/",),
     findings: list[core.Finding],
 ) -> None:
     try:
@@ -221,8 +222,9 @@ def validate_maps_index(
         core._validate_i18n_key(m.get("nameKey"), f"{loc}.nameKey", i18n, findings, required=True)
         core._validate_i18n_key(m.get("descriptionKey"), f"{loc}.descriptionKey", i18n, findings, required=True)
         p = m.get("path")
-        if not isinstance(p, str) or not p.startswith("res://Data/maps/") or not p.endswith(".json"):
-            findings.append(core.Finding("fail", "DATA_PATH_NOT_ALLOWED", f"{loc}.path", "path must be res://Data/maps/<file>.json"))
+        if not isinstance(p, str) or not p.endswith(".json") or not any(p.startswith(prefix) for prefix in map_path_prefixes):
+            allowed = ", ".join(map_path_prefixes)
+            findings.append(core.Finding("fail", "DATA_PATH_NOT_ALLOWED", f"{loc}.path", f"path must start with one of: {allowed}"))
             continue
         content_version = m.get("contentVersion")
         if not isinstance(content_version, int) or content_version < 1:

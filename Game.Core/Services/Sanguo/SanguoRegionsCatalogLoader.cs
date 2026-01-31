@@ -123,13 +123,17 @@ public static class SanguoRegionsCatalogLoader
     }
 
     public static bool TryLoadRegionsCatalog(IResourceLoader loader, out SanguoRegionsCatalog catalog, out string error)
+        => TryLoadRegionsCatalog(loader, pack: null, out catalog, out error);
+
+    public static bool TryLoadRegionsCatalog(IResourceLoader loader, SanguoContentPackPaths? pack, out SanguoRegionsCatalog catalog, out string error)
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         catalog = new SanguoRegionsCatalog(SchemaVersion: 0, Version: 0, Regions: Array.Empty<SanguoRegionDefinition>());
         error = string.Empty;
 
-        var json = loader.LoadText(RegionsResPath) ?? string.Empty;
+        var resPath = pack?.RegionsPath ?? RegionsResPath;
+        var json = loader.LoadText(resPath) ?? string.Empty;
         try
         {
             catalog = ParseAndValidate(json);

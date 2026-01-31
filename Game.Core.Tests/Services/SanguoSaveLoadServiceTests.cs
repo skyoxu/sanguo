@@ -98,7 +98,9 @@ public sealed class SanguoSaveLoadServiceTests
                 new SanguoSaveCityEconomy("c1", BasePrice: 50m, BaseToll: 20m),
                 new SanguoSaveCityEconomy("c2", BasePrice: 50m, BaseToll: 20m),
             },
-            TreasuryMinorUnits: 0
+            TreasuryMinorUnits: 0,
+            ContentPackId: "core_t2",
+            ContentPackVersion: 7
         );
     }
 
@@ -159,6 +161,8 @@ public sealed class SanguoSaveLoadServiceTests
         root.TryGetProperty("Checksum", out _).Should().BeTrue();
         root.TryGetProperty("Snapshot", out var snapProp).Should().BeTrue();
         snapProp.GetProperty("GameId").GetString().Should().Be("g1");
+        snapProp.GetProperty("ContentPackId").GetString().Should().Be("core_t2");
+        snapProp.GetProperty("ContentPackVersion").GetInt32().Should().Be(7);
 
         bus.Published.Should().ContainSingle(e => e.Type == SanguoGameSaved.EventType);
     }
@@ -196,6 +200,8 @@ public sealed class SanguoSaveLoadServiceTests
         savedPayload.GetProperty("SaveSlotId").GetString().Should().Be(saveId);
         savedPayload.GetProperty("CorrelationId").GetString().Should().Be("corr-save");
         savedPayload.GetProperty("CausationId").GetString().Should().Be("ui.hud.save");
+        savedPayload.GetProperty("ContentPackId").GetString().Should().Be("core_t2");
+        savedPayload.GetProperty("ContentPackVersion").GetInt32().Should().Be(7);
 
         var loadedEvt = bus.Published.Single(e => e.Type == SanguoGameLoaded.EventType);
         var loadedPayload = ((JsonElementEventData)loadedEvt.Data!).Value;
@@ -203,6 +209,8 @@ public sealed class SanguoSaveLoadServiceTests
         loadedPayload.GetProperty("SaveSlotId").GetString().Should().Be(saveId);
         loadedPayload.GetProperty("CorrelationId").GetString().Should().Be("corr-load");
         loadedPayload.GetProperty("CausationId").GetString().Should().Be("ui.hud.load");
+        loadedPayload.GetProperty("ContentPackId").GetString().Should().Be("core_t2");
+        loadedPayload.GetProperty("ContentPackVersion").GetInt32().Should().Be(7);
     }
 
     // ACC:T18.6

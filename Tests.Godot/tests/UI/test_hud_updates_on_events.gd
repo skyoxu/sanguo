@@ -1,4 +1,4 @@
-extends "res://tests/UI/_fixtures/ui_event_log_fixture.gd"
+extends "res://tests/UI/_fixtures/test_ui_event_log_fixture.gd"
 
 var _last_emitted_type := ""
 var _events: Array = []

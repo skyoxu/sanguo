@@ -18,13 +18,17 @@ public static class SanguoMapsCatalogLoader
     };
 
     public static bool TryLoadMapsCatalog(IResourceLoader loader, out SanguoMapsCatalog catalog, out string error)
+        => TryLoadMapsCatalog(loader, pack: null, out catalog, out error);
+
+    public static bool TryLoadMapsCatalog(IResourceLoader loader, SanguoContentPackPaths? pack, out SanguoMapsCatalog catalog, out string error)
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         catalog = new SanguoMapsCatalog(SchemaVersion: 0, Version: 0, Maps: Array.Empty<SanguoMapCatalogEntry>());
         error = string.Empty;
 
-        var json = loader.LoadText(MapsIndexResPath);
+        var resPath = pack?.MapsIndexPath ?? MapsIndexResPath;
+        var json = loader.LoadText(resPath);
         if (string.IsNullOrWhiteSpace(json))
         {
             error = "maps_index_missing";

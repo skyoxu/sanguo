@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "packs": [
+    {
+      "packId": "core_t2",
+      "nameKey": "pack.core_t2.name",
+      "descriptionKey": "pack.core_t2.desc",
+      "path": "res://Data/packs/core_t2/pack.json",
+      "order": 1,
+      "enabled": true
+    }
+  ]
+}

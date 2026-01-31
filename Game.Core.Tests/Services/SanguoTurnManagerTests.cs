@@ -698,6 +698,40 @@ public class SanguoTurnManagerTests
         p1.Money.Should().Be(moneyBeforeAdvance, "money changes must be rolled back when month settlement publish fails");
         treasury.MinorUnits.Should().Be(treasuryBeforeAdvance, "treasury changes must be rolled back when publish fails");
     }
+
+    [Fact]
+    public async Task ExportSaveSnapshot_ShouldIncludeContentPackMetadata_WhenProvided()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var (boardState, treasury) = CreateBoardState(
+            players: new[]
+            {
+                new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules),
+            },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            contentPackId: "core_t2",
+            contentPackVersion: 3);
+
+        await mgr.StartNewGameAsync(
+            gameId: "game-pack",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-pack",
+            causationId: null);
+
+        var snapshot = mgr.ExportSaveSnapshot();
+
+        snapshot.ContentPackId.Should().Be("core_t2");
+        snapshot.ContentPackVersion.Should().Be(3);
+    }
     private static (SanguoBoardState boardState, SanguoTreasury treasury) CreateBoardState(
         IReadOnlyList<SanguoPlayer> players,
         IReadOnlyDictionary<string, City> citiesById)

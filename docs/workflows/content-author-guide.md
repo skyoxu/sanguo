@@ -38,3 +38,16 @@ py -3 scripts/python/check_data_versions_bumped.py --base origin/main --head HEA
 - ADR-0004：事件命名与契约口径。
 - ADR-0005：质量门禁与 CI 约束。
 - ADR-0019：资源与路径安全基线。
+
+## 数值与权重硬门禁（最短版）
+
+- moneyDelta：int 且必须在 [-10000,10000]。
+- economyStepDeltas：每项 int 且必须在 [-6,6]。
+- probability/chance/prob：number 且必须在 [0,1]。
+- weight：列表内必须全员有 weight；int 权重总和=100，float 权重总和=1.0，禁止混用。
+
+## 内容包门禁（pack）
+
+- 新增/修改内容包必须通过：
+  - py -3 scripts/python/validate_content_packs.py --strict
+

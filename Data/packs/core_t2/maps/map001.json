@@ -1,0 +1,400 @@
+{
+  "schemaVersion": 1,
+  "version": 2,
+  "mapId": "map001",
+  "track": {
+    "length": 45,
+    "startTileId": "tile_01"
+  },
+  "tiles": [
+    {
+      "tileId": "tile_01",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_01.name",
+      "regionId": "region_01",
+      "city": { "basePrice": 1000, "baseToll": 60, "allowedBuildingIds": [ "building_market", "building_farm", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.50, "y": 0.12 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_02",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_02.name",
+      "layout": { "x": 0.58, "y": 0.13 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_03",
+      "tileKind": "facility",
+      "nameKey": "tile.map001.tile_03.name",
+      "facilityId": "facility_shop",
+      "layout": { "x": 0.65, "y": 0.15 },
+      "actions": [ { "actionId": "shop", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_04",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_04.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.72, "y": 0.18 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_05",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_05.name",
+      "regionId": "region_01",
+      "city": { "basePrice": 1200, "baseToll": 70, "allowedBuildingIds": [ "building_market", "building_barracks", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.78, "y": 0.22 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_06",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_06.name",
+      "layout": { "x": 0.83, "y": 0.27 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_07",
+      "tileKind": "facility",
+      "nameKey": "tile.map001.tile_07.name",
+      "facilityId": "facility_battlefield",
+      "layout": { "x": 0.87, "y": 0.33 },
+      "actions": [ { "actionId": "start_combat", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_08",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_08.name",
+      "regionId": "region_02",
+      "city": { "basePrice": 1400, "baseToll": 80, "allowedBuildingIds": [ "building_farm", "building_barracks", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.90, "y": 0.40 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_09",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_09.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.92, "y": 0.47 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_10",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_10.name",
+      "layout": { "x": 0.93, "y": 0.55 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_11",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_11.name",
+      "regionId": "region_02",
+      "city": { "basePrice": 1600, "baseToll": 90, "allowedBuildingIds": [ "building_market", "building_farm", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.92, "y": 0.62 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_12",
+      "tileKind": "facility",
+      "nameKey": "tile.map001.tile_12.name",
+      "facilityId": "facility_hospital",
+      "layout": { "x": 0.90, "y": 0.69 },
+      "actions": [ { "actionId": "hospital", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_13",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_13.name",
+      "layout": { "x": 0.87, "y": 0.75 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_14",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_14.name",
+      "regionId": "region_03",
+      "city": { "basePrice": 1800, "baseToll": 100, "allowedBuildingIds": [ "building_market", "building_barracks", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.83, "y": 0.80 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_15",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_15.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.78, "y": 0.84 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_16",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_16.name",
+      "layout": { "x": 0.72, "y": 0.87 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_17",
+      "tileKind": "facility",
+      "nameKey": "tile.map001.tile_17.name",
+      "facilityId": "facility_jail",
+      "layout": { "x": 0.65, "y": 0.89 },
+      "actions": [ { "actionId": "jail", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_18",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_18.name",
+      "regionId": "region_03",
+      "city": { "basePrice": 2000, "baseToll": 110, "allowedBuildingIds": [ "building_farm", "building_barracks", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.58, "y": 0.90 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_19",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_19.name",
+      "layout": { "x": 0.50, "y": 0.91 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_20",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_20.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.42, "y": 0.90 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_21",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_21.name",
+      "regionId": "region_04",
+      "city": { "basePrice": 2200, "baseToll": 120, "allowedBuildingIds": [ "building_market", "building_farm", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.35, "y": 0.89 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_22",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_22.name",
+      "layout": { "x": 0.28, "y": 0.87 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_23",
+      "tileKind": "facility",
+      "nameKey": "tile.map001.tile_23.name",
+      "facilityId": "facility_job_center",
+      "layout": { "x": 0.22, "y": 0.84 },
+      "actions": [ { "actionId": "job", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_24",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_24.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.17, "y": 0.80 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_25",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_25.name",
+      "regionId": "region_04",
+      "city": { "basePrice": 2400, "baseToll": 130, "allowedBuildingIds": [ "building_market", "building_barracks", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.13, "y": 0.75 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_26",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_26.name",
+      "layout": { "x": 0.10, "y": 0.69 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_27",
+      "tileKind": "facility",
+      "nameKey": "tile.map001.tile_27.name",
+      "facilityId": "facility_teleporter",
+      "layout": { "x": 0.08, "y": 0.62 },
+      "actions": [ { "actionId": "teleport", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_28",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_28.name",
+      "regionId": "region_05",
+      "city": { "basePrice": 2600, "baseToll": 140, "allowedBuildingIds": [ "building_farm", "building_barracks", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.07, "y": 0.55 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_29",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_29.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.08, "y": 0.47 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_30",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_30.name",
+      "layout": { "x": 0.10, "y": 0.40 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_31",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_31.name",
+      "regionId": "region_05",
+      "city": { "basePrice": 2800, "baseToll": 150, "allowedBuildingIds": [ "building_market", "building_farm", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.13, "y": 0.33 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_32",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_32.name",
+      "layout": { "x": 0.17, "y": 0.27 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_33",
+      "tileKind": "facility",
+      "nameKey": "tile.map001.tile_33.name",
+      "facilityId": "facility_wilderness",
+      "layout": { "x": 0.22, "y": 0.22 },
+      "actions": [ { "actionId": "wilderness", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_34",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_34.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.28, "y": 0.18 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_35",
+      "tileKind": "city",
+      "nameKey": "tile.map001.tile_35.name",
+      "regionId": "region_06",
+      "city": { "basePrice": 3000, "baseToll": 160, "allowedBuildingIds": [ "building_market", "building_barracks", "building_inn", "building_watchtower" ] },
+      "layout": { "x": 0.35, "y": 0.15 },
+      "actions": [
+        { "actionId": "buy_land", "iconResPath": "res://Assets/icons/action_default.svg" },
+        { "actionId": "build", "iconResPath": "res://Assets/icons/action_default.svg" }
+      ]
+    },
+    {
+      "tileId": "tile_36",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_36.name",
+      "layout": { "x": 0.42, "y": 0.13 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_37",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_37.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.50, "y": 0.12 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_38",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_38.name",
+      "layout": { "x": 0.58, "y": 0.13 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_39",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_39.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.65, "y": 0.15 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_40",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_40.name",
+      "layout": { "x": 0.72, "y": 0.18 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_41",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_41.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.78, "y": 0.22 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_42",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_42.name",
+      "layout": { "x": 0.83, "y": 0.27 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_43",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_43.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.87, "y": 0.33 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    },
+    {
+      "tileId": "tile_44",
+      "tileKind": "empty",
+      "nameKey": "tile.map001.tile_44.name",
+      "layout": { "x": 0.90, "y": 0.40 },
+      "actions": []
+    },
+    {
+      "tileId": "tile_45",
+      "tileKind": "event",
+      "nameKey": "tile.map001.tile_45.name",
+      "eventPoolId": "default",
+      "layout": { "x": 0.92, "y": 0.47 },
+      "actions": [ { "actionId": "trigger_event", "iconResPath": "res://Assets/icons/action_default.svg" } ]
+    }
+  ]
+}
