@@ -10,7 +10,7 @@ const KEY_STARTING_MONEY_PRESET := "starting_money_preset"
 const KEY_GLOBAL_EVENT_INTERVAL_TURNS := "global_event_interval_turns"
 const KEY_CHARACTER_ASSIGNMENTS := "character_assignments"
 
-const VALID_PLAYERS_COUNTS := [4, 5, 6, 7, 8]
+const VALID_PLAYERS_COUNTS := [2, 3, 4]
 const VALID_STARTING_MONEY_PRESETS := [5000, 10000, 20000]
 const VALID_GLOBAL_EVENT_INTERVAL_TURNS := [5, 10, 20]
 
@@ -83,7 +83,7 @@ func test_task54_start_flow_uses_new_game_menu_config_and_emits_game_started() -
 
 	# Pick a valid, non-default configuration (where possible).
 	for i in range(players.item_count):
-		if players.get_item_id(i) == 8:
+		if players.get_item_id(i) == 4:
 			players.select(i)
 			players.emit_signal("item_selected", i)
 			break

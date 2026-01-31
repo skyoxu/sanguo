@@ -8,7 +8,7 @@ const KEY_GLOBAL_EVENT_INTERVAL_TURNS := "global_event_interval_turns"
 const KEY_RANDOM_SEED := "random_seed"
 const KEY_CHARACTER_ASSIGNMENTS := "character_assignments"
 
-const ALLOWED_PLAYERS_COUNTS := [4, 5, 6, 7, 8]
+const ALLOWED_PLAYERS_COUNTS := [2, 3, 4]
 const ALLOWED_STARTING_MONEY_PRESETS := [5000, 10000, 20000]
 const ALLOWED_GLOBAL_EVENT_INTERVAL_TURNS := [5, 10, 20]
 
@@ -102,7 +102,7 @@ func test_task54_new_game_setup_presets_are_whitelisted_and_defaults_are_valid()
 	assert_int(map.item_count).is_greater(0)
 	assert_int(character.item_count).is_greater(0)
 
-	assert_int(players.get_item_id(players.selected)).is_equal(4)
+	assert_int(players.get_item_id(players.selected)).is_equal(2)
 	assert_int(money.get_item_id(money.selected)).is_equal(10000)
 	assert_int(interval.get_item_id(interval.selected)).is_equal(10)
 
@@ -136,7 +136,7 @@ func test_task54_start_publishes_unique_character_assignments_for_all_players() 
 
 	# Choose a non-default but valid setup when possible.
 	for i in range(players.item_count):
-		if players.get_item_id(i) == 6:
+		if players.get_item_id(i) == 4:
 			players.select(i)
 			players.emit_signal("item_selected", i)
 			break
@@ -173,7 +173,7 @@ func test_task54_start_publishes_unique_character_assignments_for_all_players() 
 	assert_bool(payload.has(KEY_CHARACTER_ASSIGNMENTS)).is_true()
 
 	assert_str(str(payload.get(KEY_MAP_ID, ""))).is_not_empty()
-	assert_int(int(payload.get(KEY_PLAYERS_COUNT, 0))).is_between(4, 8)
+	assert_int(int(payload.get(KEY_PLAYERS_COUNT, 0))).is_between(2, 4)
 	assert_bool(ALLOWED_STARTING_MONEY_PRESETS.has(int(payload.get(KEY_STARTING_MONEY_PRESET, 0)))).is_true()
 	assert_bool(ALLOWED_GLOBAL_EVENT_INTERVAL_TURNS.has(int(payload.get(KEY_GLOBAL_EVENT_INTERVAL_TURNS, 0)))).is_true()
 

@@ -72,7 +72,7 @@ func _assert_started_payload_shape(payload: Dictionary) -> void:
 	assert_str(str(cfg.get(KEY_MAP_ID, ""))).is_not_empty()
 
 	var players_count := int(cfg.get(KEY_PLAYERS_COUNT, 0))
-	assert_int(players_count).is_between(4, 8)
+	assert_int(players_count).is_between(2, 4)
 
 	var preset := int(cfg.get(KEY_STARTING_MONEY_PRESET, 0))
 	assert_bool(preset == 5000 or preset == 10000 or preset == 20000).is_true()

@@ -13,17 +13,20 @@ using System.Text.Json;
 
 namespace Game.Godot.Scripts.UI;
 
-public partial class HUD : Control
+public partial class HUD : Control, IHudEventHandlers
 {
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
-    private const string ActionBuild = "build";
     private const string UiHudDiceRollEventType = "ui.hud.dice.roll";
     private const string UiHudSaveEventType = "ui.hud.save";
     private const string UiHudLoadEventType = "ui.hud.load";
-    private const string UiTileActionSelectedEventType = "ui.sanguo.tile.action.selected";
+    private const string UiMenuSettingsEventType = "ui.menu.settings";
+    private const string UiMenuHelpEventType = "ui.menu.help";
+    private const string UiMenuQuitEventType = "ui.menu.quit";
     private const string MoneyCapAuditAction = "SANGUO_MONEY_CAPPED";
     private const string EventLogOverlayFlag = "event_log_overlay";
     private const string DefaultSaveSlotId = "quick";
+    private const string HelpTutorialGroup = "help_tutorial";
+    private const string HelpTutorialScenePath = "res://Game.Godot/Scenes/UI/HelpTutorial.tscn";
 
     private Label _score = default!;
     private Label _health = default!;
@@ -33,37 +36,28 @@ public partial class HUD : Control
     private Label _money = default!;
     private TextureRect? _avatar;
     private Button _diceButton = default!;
-    private Button _saveButton = default!;
-    private Button _loadButton = default!;
+    private Button _btnSave = default!;
+    private HudSettingsMenuController? _settingsMenuController;
+    private PlayersPanelController? _playersPanelController;
+    private HudEventHandlersController? _eventHandlersController;
+    private HudActionPanelController? _actionPanelController;
+    private HudGuideController? _guideController;
 
     private Control? _actionPanel;
-    private Label? _actionTitle;
-    private VBoxContainer? _actionButtons;
-    private Button? _skipActionButton;
 
     private string? _activePlayerId;
     private int _lastDateKey;
     private EventBusAdapter? _bus;
-    private readonly Dictionary<string, Action<JsonElement>> _handlers = new(StringComparer.Ordinal);
 
     private EventToast? _toast;
     private EventLogPanel? _logPanel;
     private bool _logVisible;
-    private PanelContainer? _guidePanel;
-    private Label? _guideTitle;
-    private Label? _guideText;
-    private GuideHighlightOverlay? _guideOverlay;
-    private int _guideStepIndex;
 
     [Export] public bool EnableGuideText { get; set; } = true;
     [Export] public bool EnableGuideHighlight { get; set; } = true;
 
     private readonly Dictionary<int, TileInfo> _tilesByIndex = new();
     private readonly Dictionary<string, string> _tileNameKeyById = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, string> _cityOwnersByCityId = new(StringComparer.Ordinal);
-    private bool _awaitingTileAction;
-    private string _awaitingCorrelationId = string.Empty;
-    private int _awaitingToIndex;
 
     private readonly Dictionary<string, string> _regionNameKeyById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _cardNameKeyById = new(StringComparer.Ordinal);
@@ -74,17 +68,8 @@ public partial class HUD : Control
     private readonly Dictionary<string, string> _characterNameKeyById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _portraitPathByCharacterId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Texture2D> _portraitCache = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, PlayerStateSnapshot> _playerStatesById = new(StringComparer.Ordinal);
     private ResourceLoaderAdapter? _fallbackResourceLoader;
-    private const string GuideTitleKey = "help.tutorial.section.learning_route";
-    private static readonly string[] GuideStepKeys =
-    {
-        "help.tutorial.step_01",
-        "help.tutorial.step_02",
-        "help.tutorial.step_03",
-        "help.tutorial.step_04",
-        "help.tutorial.step_05",
-        "help.tutorial.step_06",
-    };
 
     public override void _Ready()
     {
@@ -101,38 +86,53 @@ public partial class HUD : Control
         _diceButton.Disabled = true;
         _diceButton.Text = "Waiting...";
 
-        _saveButton = GetNode<Button>("TopBar/HBox/SaveButton");
-        _saveButton.Pressed += OnSavePressed;
-        _saveButton.Disabled = true;
+        var gameSettingsButton = GetNode<Button>("TopBar/HBox/GameSettingsButton");
+        var settingsMenu = GetNode<Control>("SettingsMenu");
+        var btnResume = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnResume");
+        var btnSave = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnSave");
+        var btnLoad = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnLoad");
+        var btnSetting = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnSetting");
+        var btnHelp = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnHelp");
+        var btnQuit = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnQuit");
 
-        _loadButton = GetNode<Button>("TopBar/HBox/LoadButton");
-        _loadButton.Pressed += OnLoadPressed;
-        _loadButton.Disabled = false;
+        _btnSave = btnSave;
+        _btnSave.Disabled = true;
+        btnLoad.Disabled = false;
+
+        _settingsMenuController = new HudSettingsMenuController(
+            owner: this,
+            menu: settingsMenu,
+            openButton: gameSettingsButton,
+            resumeButton: btnResume,
+            saveButton: btnSave,
+            loadButton: btnLoad,
+            settingButton: btnSetting,
+            helpButton: btnHelp,
+            quitButton: btnQuit,
+            onSave: OnSavePressed,
+            onLoad: OnLoadPressed,
+            onSetting: () => PublishMenuEvent(UiMenuSettingsEventType),
+            onHelp: () =>
+            {
+                PublishMenuEvent(UiMenuHelpEventType);
+                ToggleHelpTutorial();
+            },
+            onQuit: () => PublishMenuEvent(UiMenuQuitEventType));
+        _settingsMenuController.Bind();
+
+        _playersPanelController = new PlayersPanelController(GetNode<VBoxContainer>("PlayersPanel/VBox/PlayersList"));
 
         _actionPanel = GetNodeOrNull<Control>("ActionPanel");
-        _actionTitle = GetNodeOrNull<Label>("ActionPanel/VBox/ActionTitle");
-        _actionButtons = GetNodeOrNull<VBoxContainer>("ActionPanel/VBox/Actions");
-        _skipActionButton = GetNodeOrNull<Button>("ActionPanel/VBox/SkipButton");
-        if (_skipActionButton != null)
-        {
-            _skipActionButton.Pressed += OnSkipTileActionPressed;
-        }
+        var actionTitle = GetNodeOrNull<Label>("ActionPanel/VBox/ActionTitle");
+        var actionButtons = GetNodeOrNull<VBoxContainer>("ActionPanel/VBox/Actions");
+        var skipActionButton = GetNodeOrNull<Button>("ActionPanel/VBox/SkipButton");
 
         _toast = GetNodeOrNull<EventToast>("EventToast");
         _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
-        _guidePanel = GetNodeOrNull<PanelContainer>("GuideHintPanel");
-        _guideTitle = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideTitle");
-        _guideText = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideText");
-        _guideOverlay = GetNodeOrNull<GuideHighlightOverlay>("GuideOverlay");
-        _guideStepIndex = 0;
-        if (_guidePanel != null)
-        {
-            _guidePanel.Visible = false;
-        }
-        if (_guideOverlay != null)
-        {
-            _guideOverlay.Visible = false;
-        }
+        var guidePanel = GetNodeOrNull<PanelContainer>("GuideHintPanel");
+        var guideTitle = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideTitle");
+        var guideText = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideText");
+        var guideOverlay = GetNodeOrNull<GuideHighlightOverlay>("GuideOverlay");
         _logVisible = false;
         if (_logPanel != null)
         {
@@ -141,9 +141,39 @@ public partial class HUD : Control
             _logPanel.Visible = _logVisible;
         }
 
+        if (guidePanel != null && guideTitle != null && guideText != null && guideOverlay != null)
+        {
+            _guideController = new HudGuideController(
+                guidePanel,
+                guideTitle,
+                guideText,
+                guideOverlay,
+                _diceButton,
+                _money,
+                _actionPanel,
+                _toast as Control,
+                _logPanel as Control,
+                FindControlByPath,
+                TranslateOrFallback);
+            _guideController.Initialize();
+        }
+        else
+        {
+            if (guidePanel != null)
+            {
+                guidePanel.Visible = false;
+            }
+            if (guideOverlay != null)
+            {
+                guideOverlay.Visible = false;
+            }
+        }
+
+        _eventHandlersController = new HudEventHandlersController(
+            RecordEventForUi,
+            message => GD.PushWarning(message),
+            JsonOptions);
         RegisterHandlers();
-        TryLoadMapTilesForUi();
-        TryLoadUiCatalogLabels();
         UpdateActivePlayerIdentityDisplay();
 
         _score.Visible = false;
@@ -157,6 +187,23 @@ public partial class HUD : Control
             return;
         }
 
+        if (_actionPanel != null && actionTitle != null && actionButtons != null && skipActionButton != null)
+        {
+            _actionPanelController = new HudActionPanelController(
+                _actionPanel,
+                actionTitle,
+                actionButtons,
+                skipActionButton,
+                _diceButton,
+                _toast,
+                _bus,
+                nameof(HUD));
+            _actionPanelController.Bind();
+        }
+
+        TryLoadMapTilesForUi();
+        TryLoadUiCatalogLabels();
+
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
         TryConnectBus(callable);
     }
@@ -164,12 +211,8 @@ public partial class HUD : Control
     public override void _ExitTree()
     {
         _diceButton.Pressed -= OnDicePressed;
-        _saveButton.Pressed -= OnSavePressed;
-        _loadButton.Pressed -= OnLoadPressed;
-        if (_skipActionButton != null)
-        {
-            _skipActionButton.Pressed -= OnSkipTileActionPressed;
-        }
+        _settingsMenuController?.Unbind();
+        _actionPanelController?.Unbind();
 
         if (_bus == null)
         {
@@ -181,6 +224,11 @@ public partial class HUD : Control
 
         _bus = null;
         _fallbackResourceLoader = null;
+        _settingsMenuController = null;
+        _playersPanelController = null;
+        _eventHandlersController = null;
+        _actionPanelController = null;
+        _guideController = null;
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -210,7 +258,7 @@ public partial class HUD : Control
             return;
         }
 
-        if (_awaitingTileAction)
+        if (_actionPanelController != null && _actionPanelController.IsAwaitingTileAction())
         {
             _toast?.ShowMessage("Please choose a tile action or Skip.");
             return;
@@ -243,7 +291,7 @@ public partial class HUD : Control
             return;
         }
 
-        if (_awaitingTileAction)
+        if (_actionPanelController != null && _actionPanelController.IsAwaitingTileAction())
         {
             _toast?.ShowMessage("Please choose a tile action or Skip.");
             return;
@@ -269,7 +317,7 @@ public partial class HUD : Control
             return;
         }
 
-        if (_awaitingTileAction)
+        if (_actionPanelController != null && _actionPanelController.IsAwaitingTileAction())
         {
             _toast?.ShowMessage("Please choose a tile action or Skip.");
             return;
@@ -287,40 +335,66 @@ public partial class HUD : Control
         _bus.PublishSimple(UiHudLoadEventType, nameof(HUD), payload);
     }
 
+    private void PublishMenuEvent(string type)
+    {
+        if (_bus == null)
+        {
+            GD.PushWarning($"HUD: EventBus not found; cannot publish {type}");
+            return;
+        }
+
+        _bus.PublishSimple(type, nameof(HUD), "{}");
+    }
+
+    private void ToggleHelpTutorial()
+    {
+        var nodes = GetTree().GetNodesInGroup(HelpTutorialGroup);
+        if (nodes.Count > 0)
+        {
+            var anyVisible = false;
+            foreach (var node in nodes)
+            {
+                if (node is CanvasItem ci && ci.Visible)
+                {
+                    anyVisible = true;
+                    break;
+                }
+            }
+
+            var newVisible = !anyVisible;
+            foreach (var node in nodes)
+            {
+                if (node is CanvasItem ci)
+                {
+                    ci.Visible = newVisible;
+                }
+            }
+
+            return;
+        }
+
+        if (!ResourceLoader.Exists(HelpTutorialScenePath))
+        {
+            return;
+        }
+
+        var packed = GD.Load<PackedScene>(HelpTutorialScenePath);
+        var instance = packed?.Instantiate();
+        if (instance is CanvasItem canvas)
+        {
+            GetTree().Root.AddChild(canvas);
+            canvas.Visible = true;
+        }
+    }
+
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
-        if (string.IsNullOrWhiteSpace(source) || source.Length > 64)
-        {
-            return;
-        }
-
-        var json = string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson;
-        if (!_handlers.TryGetValue(type, out var handler))
-        {
-            return;
-        }
-
-        if (json.Length > 65536)
-        {
-            GD.PushWarning($"HUD ignored over-sized event payload (type='{type}', length={json.Length}).");
-            return;
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(json, JsonOptions);
-            RecordEventForUi(type, source, id, timestampIso, doc.RootElement);
-            handler(doc.RootElement);
-        }
-        catch (System.Exception ex)
-        {
-            GD.PushWarning($"HUD failed to handle event '{type}': {ex.Message}");
-        }
+        _eventHandlersController?.HandleDomainEvent(type, source, dataJson, id, timestampIso);
     }
 
     private void RecordEventForUi(string type, string source, string id, string timestampIso, JsonElement root)
     {
-        UpdateGuideHintForEventType(type);
+        _guideController?.UpdateGuideHintForEventType(type, EnableGuideText, EnableGuideHighlight);
         var tileLabelByIndex = _tilesByIndex.Count == 0
             ? null
             : new Func<int, string?>(idx => _tilesByIndex.TryGetValue(idx, out var tile) ? tile.Name : null);
@@ -356,76 +430,6 @@ public partial class HUD : Control
         _logPanel?.Append(explanation);
     }
 
-    private void UpdateGuideHintForEventType(string type)
-    {
-        if (string.IsNullOrWhiteSpace(type))
-        {
-            return;
-        }
-
-        if (string.Equals(type, SanguoGameStarted.EventType, StringComparison.Ordinal))
-        {
-            UpdateGuideStep(1);
-        }
-        else if (string.Equals(type, SanguoGameTurnStarted.EventType, StringComparison.Ordinal))
-        {
-            UpdateGuideStep(2);
-        }
-        else if (string.Equals(type, SanguoTokenMoved.EventType, StringComparison.Ordinal))
-        {
-            UpdateGuideStep(3);
-        }
-        else if (string.Equals(type, SanguoCityBought.EventType, StringComparison.Ordinal)
-                 || string.Equals(type, SanguoCityOwnerChanged.EventType, StringComparison.Ordinal)
-                 || string.Equals(type, SanguoCityTollPaid.EventType, StringComparison.Ordinal))
-        {
-            UpdateGuideStep(4);
-        }
-        else if (string.Equals(type, SanguoCombatStarted.EventType, StringComparison.Ordinal))
-        {
-            UpdateGuideStep(5);
-        }
-        else if (string.Equals(type, SanguoGameEnded.EventType, StringComparison.Ordinal))
-        {
-            UpdateGuideStep(6);
-        }
-    }
-
-    private void UpdateGuideStep(int stepIndex)
-    {
-        if (stepIndex <= _guideStepIndex || stepIndex < 1 || stepIndex > GuideStepKeys.Length)
-        {
-            return;
-        }
-
-        _guideStepIndex = stepIndex;
-        if (EnableGuideText && _guidePanel != null && _guideText != null)
-        {
-            _guidePanel.Visible = true;
-            if (_guideTitle != null)
-            {
-                _guideTitle.Text = TranslateOrFallback(GuideTitleKey);
-            }
-
-            var key = GuideStepKeys[stepIndex - 1];
-            _guideText.Text = TranslateOrFallback(key);
-        }
-        else if (_guidePanel != null)
-        {
-            _guidePanel.Visible = false;
-        }
-
-        if (EnableGuideHighlight)
-        {
-            UpdateGuideHighlightForStep(stepIndex);
-        }
-        else if (_guideOverlay != null)
-        {
-            _guideOverlay.ClearHighlight();
-            _guideOverlay.Visible = false;
-        }
-    }
-
     private static string TranslateOrFallback(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
@@ -442,46 +446,7 @@ public partial class HUD : Control
         return key;
     }
 
-    private void UpdateGuideHighlightForStep(int stepIndex)
-    {
-        if (_guideOverlay == null)
-        {
-            return;
-        }
-
-        var target = FindGuideTargetForStep(stepIndex);
-        if (target == null)
-        {
-            _guideOverlay.ClearHighlight();
-            _guideOverlay.Visible = false;
-            return;
-        }
-
-        var globalRect = target.GetGlobalRect();
-        var overlayRect = _guideOverlay.GetGlobalRect();
-        var localPosition = globalRect.Position - overlayRect.Position;
-        _guideOverlay.SetHighlightRect(new Rect2(localPosition, globalRect.Size));
-        _guideOverlay.Visible = true;
-    }
-
-    private Control? FindGuideTargetForStep(int stepIndex)
-    {
-        return stepIndex switch
-        {
-            1 => TryFindControl("/root/Main/MainMenu/NewGameConfig")
-                 ?? TryFindControl("/root/Main/MainMenu/BtnPlay"),
-            2 => _diceButton,
-            3 => _toast as Control ?? _logPanel as Control,
-            4 => _actionPanel != null && _actionPanel.Visible ? _actionPanel : _money,
-            5 => TryFindControl("/root/Main/Overlays/SanguoBattleView/Panel")
-                 ?? TryFindControl("/root/Main/SanguoBattleView/Panel"),
-            6 => TryFindControl("/root/Main/Overlays/SettlementScreen/Center/Panel")
-                 ?? TryFindControl("/root/Main/SettlementScreen/Center/Panel"),
-            _ => null
-        };
-    }
-
-    private Control? TryFindControl(string path)
+    private Control? FindControlByPath(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -538,78 +503,36 @@ public partial class HUD : Control
 
     private void RegisterHandlers()
     {
-        if (_handlers.Count != 0)
+        if (_eventHandlersController == null)
         {
             return;
         }
 
-        _handlers[SanguoGameStarted.EventType] = HandleGameStartedEvent;
-        _handlers[CoreGameEvents.ScoreUpdated] = HandleScoreEvent;
-        _handlers[CoreGameEvents.ScoreChanged] = HandleScoreEvent;
-
-        _handlers[CoreGameEvents.HealthUpdated] = HandleHealthEvent;
-        _handlers[CoreGameEvents.PlayerHealthChanged] = HandleHealthEvent;
-
-        _handlers[SanguoGameTurnStarted.EventType] = HandleTurnEvent;
-        _handlers[SanguoGameTurnAdvanced.EventType] = HandleTurnEvent;
-        _handlers[SanguoGameTurnEnded.EventType] = HandleUiOnlyEvent;
-
-        _handlers[SanguoPlayerStateChanged.EventType] = HandlePlayerStateChangedEvent;
-        _handlers[SanguoDiceRolled.EventType] = HandleDiceRolledEvent;
-        _handlers[SanguoCityTollPaid.EventType] = HandleCityTollPaidEvent;
-        _handlers[SanguoCityBought.EventType] = HandleCityBoughtEvent;
-        _handlers[SanguoCityOwnerChanged.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoActionCardPlayed.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoCombatStarted.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoCombatEnded.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoPlayerEliminated.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoGameSaved.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoGameLoaded.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoTokenMoved.EventType] = HandleTokenMovedEvent;
-        _handlers[SanguoMonthSettled.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoSeasonEventApplied.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoYearPriceAdjusted.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoLootGranted.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoRelicApplied.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoCardLost.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoRegionCaptured.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoRegionLost.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoRandomEventApplied.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoCityTollSynergyPaid.EventType] = HandleUiOnlyEvent;
-        _handlers[SanguoGameEnded.EventType] = HandleGameEndedEvent;
+        HudEventHandlerRegistry.RegisterAll(_eventHandlersController, this);
     }
 
-    private void HandleUiOnlyEvent(JsonElement _)
+    public void HandleUiOnly()
     {
         // Intentionally empty: the UI feedback is recorded via RecordEventForUi(...)
         // before the per-type handler is invoked.
     }
 
-    private void HandleCityBoughtEvent(JsonElement root)
+    public void HandleCityBought(HudCityBoughtDto dto)
     {
-        if (!root.TryGetProperty("BuyerId", out var buyerProp) || buyerProp.ValueKind != JsonValueKind.String)
+        if (string.IsNullOrWhiteSpace(dto.BuyerId) || string.IsNullOrWhiteSpace(dto.CityId))
         {
             return;
         }
 
-        if (!root.TryGetProperty("CityId", out var cityProp) || cityProp.ValueKind != JsonValueKind.String)
-        {
-            return;
-        }
-
-        var buyerId = buyerProp.GetString() ?? string.Empty;
-        var cityId = cityProp.GetString() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(buyerId) || string.IsNullOrWhiteSpace(cityId))
-        {
-            return;
-        }
-
-        _cityOwnersByCityId[cityId] = buyerId;
+        _actionPanelController?.UpdateCityOwner(dto.BuyerId, dto.CityId);
     }
 
-    private void HandleGameEndedEvent(JsonElement root)
+    public void HandleGameEnded()
     {
+        var previousActive = _activePlayerId;
         _activePlayerId = null;
+        _actionPanelController?.SetActivePlayerId(null);
+        _actionPanelController?.HandleActivePlayerChanged(previousActive, null);
         _diceButton.Disabled = true;
         _diceButton.Text = "Game Over";
         _activePlayer.Text = "Name: -";
@@ -619,31 +542,18 @@ public partial class HUD : Control
         }
     }
 
-    private void HandleCityTollPaidEvent(JsonElement root)
+    public void HandleCityTollPaid(HudCityTollPaidDto dto)
     {
-        decimal overflow = 0m;
-        if (root.TryGetProperty("TreasuryOverflow", out var ov) && ov.ValueKind == JsonValueKind.Number)
-        {
-            if (!ov.TryGetDecimal(out overflow))
-            {
-                overflow = ov.GetInt64();
-            }
-        }
-
-        if (overflow <= 0m)
+        if (dto.TreasuryOverflow <= 0m)
         {
             return;
         }
 
-        var payerId = root.TryGetProperty("PayerId", out var payer) ? payer.GetString() : null;
-        var ownerId = root.TryGetProperty("OwnerId", out var owner) ? owner.GetString() : null;
-        var cityId = root.TryGetProperty("CityId", out var city) ? city.GetString() : null;
-
         TryAppendSecurityAudit(
             action: MoneyCapAuditAction,
             reason: "money_cap_overflow",
-            target: $"payer_id={payerId} owner_id={ownerId} city_id={cityId} overflow={overflow}",
-            caller: "HUD.HandleCityTollPaidEvent");
+            target: $"payer_id={dto.PayerId} owner_id={dto.OwnerId} city_id={dto.CityId} overflow={dto.TreasuryOverflow}",
+            caller: "HUD.HandleCityTollPaid");
     }
 
     private static void TryAppendSecurityAudit(string action, string reason, string target, string caller)
@@ -658,36 +568,20 @@ public partial class HUD : Control
             eventId: Guid.NewGuid().ToString("N"));
     }
 
-    private void HandleScoreEvent(JsonElement root)
+    public void HandleScore(HudScoreDto dto)
     {
-        int v = 0;
-        if (root.TryGetProperty("value", out var val)) v = val.GetInt32();
-        else if (root.TryGetProperty("score", out var sc)) v = sc.GetInt32();
-        _score.Text = $"Score: {v}";
+        _score.Text = $"Score: {dto.Value}";
     }
 
-    private void HandleHealthEvent(JsonElement root)
+    public void HandleHealth(HudHealthDto dto)
     {
-        int v = 0;
-        if (root.TryGetProperty("value", out var val)) v = val.GetInt32();
-        else if (root.TryGetProperty("health", out var hp)) v = hp.GetInt32();
-        _health.Text = $"HP: {v}";
+        _health.Text = $"HP: {dto.Value}";
     }
 
-    private void HandleTurnEvent(JsonElement root)
+    public void HandleTurn(HudTurnDto dto)
     {
         var previousActive = _activePlayerId;
-        string active = "";
-        int year = 0;
-        int month = 0;
-        int day = 0;
-
-        if (root.TryGetProperty("ActivePlayerId", out var ap)) active = ap.GetString() ?? "";
-        if (root.TryGetProperty("Year", out var y)) year = y.GetInt32();
-        if (root.TryGetProperty("Month", out var m)) month = m.GetInt32();
-        if (root.TryGetProperty("Day", out var d)) day = d.GetInt32();
-
-        var dateKey = ComputeDateKey(year, month, day);
+        var dateKey = ComputeDateKey(dto.Year, dto.Month, dto.Day);
         if (dateKey > 0 && _lastDateKey > 0 && dateKey < _lastDateKey)
         {
             return;
@@ -698,17 +592,14 @@ public partial class HUD : Control
             _lastDateKey = dateKey;
         }
 
-        _activePlayerId = string.IsNullOrWhiteSpace(active) ? null : active;
-        _diceButton.Disabled = string.IsNullOrWhiteSpace(active) || IsAiPlayerId(active);
-        _diceButton.Text = string.IsNullOrWhiteSpace(active) ? "Roll Dice" : (IsAiPlayerId(active) ? "AI Turn" : "Roll Dice");
-        _saveButton.Disabled = string.IsNullOrWhiteSpace(active);
+        _activePlayerId = string.IsNullOrWhiteSpace(dto.ActivePlayerId) ? null : dto.ActivePlayerId;
+        _actionPanelController?.SetActivePlayerId(_activePlayerId);
+        _diceButton.Disabled = string.IsNullOrWhiteSpace(dto.ActivePlayerId) || IsAiPlayerId(dto.ActivePlayerId);
+        _diceButton.Text = string.IsNullOrWhiteSpace(dto.ActivePlayerId) ? "Roll Dice" : (IsAiPlayerId(dto.ActivePlayerId) ? "AI Turn" : "Roll Dice");
+        _btnSave.Disabled = string.IsNullOrWhiteSpace(dto.ActivePlayerId);
         UpdateActivePlayerIdentityDisplay();
-        _date.Text = $"Date: {year:D4}-{month:D2}-{day:D2}";
-
-        if (_awaitingTileAction && previousActive != null && !string.Equals(previousActive, _activePlayerId, StringComparison.Ordinal))
-        {
-            HideTileActionPanel();
-        }
+        _date.Text = $"Date: {dto.Year:D4}-{dto.Month:D2}-{dto.Day:D2}";
+        _actionPanelController?.HandleActivePlayerChanged(previousActive, _activePlayerId);
     }
 
     private static int ComputeDateKey(int year, int month, int day)
@@ -726,87 +617,50 @@ public partial class HUD : Control
         return !string.IsNullOrWhiteSpace(playerId) && playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
     }
 
-    private void HandlePlayerStateChangedEvent(JsonElement root)
+    public void HandlePlayerStateChanged(HudPlayerStateDto dto)
     {
-        if (!root.TryGetProperty("PlayerId", out var pidEl))
+        if (string.IsNullOrWhiteSpace(dto.PlayerId))
         {
             return;
         }
 
-        var pid = pidEl.GetString() ?? "";
-        if (string.IsNullOrWhiteSpace(pid) || _activePlayerId == null || pid != _activePlayerId)
+        _playerStatesById[dto.PlayerId] = new PlayerStateSnapshot(dto.Money, dto.PositionIndex);
+        UpdatePlayersList();
+
+        if (_activePlayerId != null && string.Equals(dto.PlayerId, _activePlayerId, StringComparison.Ordinal))
         {
-            return;
+            _money.Text = $"Money: {dto.Money}";
         }
-
-        if (!root.TryGetProperty("Money", out var moneyEl))
-        {
-            return;
-        }
-
-        decimal money = moneyEl.ValueKind switch
-        {
-            JsonValueKind.Number when moneyEl.TryGetDecimal(out var dec) => dec,
-            JsonValueKind.Number => moneyEl.GetInt64(),
-            _ => 0m,
-        };
-
-        _money.Text = $"Money: {money}";
     }
 
-    private void HandleDiceRolledEvent(JsonElement root)
+    public void HandleDiceRolled(HudDiceRolledDto dto)
     {
-        string pid = "";
-        if (root.TryGetProperty("PlayerId", out var pidEl))
-        {
-            pid = pidEl.GetString() ?? "";
-        }
-
-        if (!string.IsNullOrWhiteSpace(pid) && _activePlayerId != null && pid != _activePlayerId)
+        if (!string.IsNullOrWhiteSpace(dto.PlayerId)
+            && _activePlayerId != null
+            && !string.Equals(dto.PlayerId, _activePlayerId, StringComparison.Ordinal))
         {
             return;
         }
 
-        int value = 0;
-        if (root.TryGetProperty("Value", out var v))
-        {
-            value = v.GetInt32();
-        }
-        else if (root.TryGetProperty("value", out var vv))
-        {
-            value = vv.GetInt32();
-        }
-
-        _diceButton.Text = $"Dice: {value}";
+        _diceButton.Text = $"Dice: {dto.Value}";
     }
 
-    private void HandleGameStartedEvent(JsonElement root)
+    public void HandleGameStarted(HudGameStartedDto dto)
     {
-        if (!root.TryGetProperty("game_start_config", out var cfg) || cfg.ValueKind != JsonValueKind.Object)
-        {
-            return;
-        }
-
-        if (!cfg.TryGetProperty("character_assignments", out var assigns) || assigns.ValueKind != JsonValueKind.Object)
-        {
-            return;
-        }
-
         _characterIdByPlayerId.Clear();
-        foreach (var prop in assigns.EnumerateObject())
+        foreach (var assignment in dto.CharacterAssignments)
         {
-            var playerId = prop.Name ?? string.Empty;
-            var characterId = prop.Value.ValueKind == JsonValueKind.String ? (prop.Value.GetString() ?? string.Empty) : string.Empty;
-            if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(characterId))
+            if (string.IsNullOrWhiteSpace(assignment.Key) || string.IsNullOrWhiteSpace(assignment.Value))
             {
                 continue;
             }
 
-            _characterIdByPlayerId[playerId] = characterId;
+            _characterIdByPlayerId[assignment.Key] = assignment.Value;
         }
 
         TryLoadCharacterCatalog();
         UpdateActivePlayerIdentityDisplay();
+        UpdatePlayersList();
     }
 
     private void TryLoadCharacterCatalog()
@@ -896,6 +750,33 @@ public partial class HUD : Control
         }
     }
 
+    private void UpdatePlayersList()
+    {
+        if (_playersPanelController == null)
+        {
+            return;
+        }
+        _playersPanelController.Render(_playerStatesById, ResolvePlayerDisplayName, IsAiPlayerId);
+    }
+
+    private string ResolvePlayerDisplayName(string playerId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId))
+        {
+            return string.Empty;
+        }
+
+        if (_characterIdByPlayerId.TryGetValue(playerId, out var characterId)
+            && !string.IsNullOrWhiteSpace(characterId)
+            && _characterNameKeyById.TryGetValue(characterId, out var nameKey)
+            && !string.IsNullOrWhiteSpace(nameKey))
+        {
+            return TranslateOrFallback(nameKey);
+        }
+
+        return playerId;
+    }
+
     private IResourceLoader ResolveResourceLoader()
     {
         var portNode = GetNodeOrNull<Node>("/root/CompositionRoot/ResourceLoaderPort");
@@ -921,148 +802,14 @@ public partial class HUD : Control
             : null;
     }
 
-    private void HandleTokenMovedEvent(JsonElement root)
+    public void HandleTokenMoved(HudTokenMovedDto dto)
     {
-        if (_tilesByIndex.Count == 0)
-        {
-            return;
-        }
-
-        if (!root.TryGetProperty("PlayerId", out var pidProp) || pidProp.ValueKind != JsonValueKind.String)
-        {
-            return;
-        }
-
-        var playerId = pidProp.GetString() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(playerId) || IsAiPlayerId(playerId))
-        {
-            return;
-        }
-
-        if (_activePlayerId == null || !string.Equals(_activePlayerId, playerId, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        if (!root.TryGetProperty("ToIndex", out var toProp) || !toProp.TryGetInt32(out var toIndex) || toIndex < 0)
-        {
-            return;
-        }
-
-        if (!_tilesByIndex.TryGetValue(toIndex, out var tile))
-        {
-            return;
-        }
-
-        var corr = root.TryGetProperty("CorrelationId", out var corrProp) && corrProp.ValueKind == JsonValueKind.String
-            ? (corrProp.GetString() ?? string.Empty)
-            : string.Empty;
-
-        ShowTileActionPanel(playerId, toIndex, corr, tile);
-    }
-
-    private void ShowTileActionPanel(string playerId, int toIndex, string correlationId, TileInfo tile)
-    {
-        if (_actionPanel == null || _actionButtons == null || _skipActionButton == null || _bus == null)
-        {
-            return;
-        }
-
-        var actions = FilterTileActionsForUi(playerId, tile);
-        if (actions.Length == 0)
-        {
-            return;
-        }
-
-        _awaitingTileAction = true;
-        _awaitingCorrelationId = correlationId ?? string.Empty;
-        _awaitingToIndex = toIndex;
-
-        _diceButton.Disabled = true;
-
-        if (_actionTitle != null)
-        {
-            _actionTitle.Text = $"Tile: {tile.Name}";
-        }
-
-        foreach (var child in _actionButtons.GetChildren())
-        {
-            if (child is Node n)
-            {
-                n.QueueFree();
-            }
-        }
-
-        foreach (var action in actions)
-        {
-            var a = action ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(a))
-            {
-                continue;
-            }
-
-            var btn = new Button { Text = a, FocusMode = FocusModeEnum.All };
-            btn.Pressed += () => OnTileActionPressed(playerId, toIndex, _awaitingCorrelationId, a);
-            _actionButtons.AddChild(btn);
-        }
-
-        _actionPanel.Visible = true;
-        _toast?.ShowMessage($"Choose action for '{tile.Name}' or Skip.");
-    }
-
-    private void OnTileActionPressed(string playerId, int toIndex, string correlationId, string action)
-    {
-        PublishTileActionSelected(playerId, toIndex, correlationId, action);
-        HideTileActionPanel();
-    }
-
-    private void OnSkipTileActionPressed()
-    {
-        if (_activePlayerId == null)
-        {
-            return;
-        }
-
-        PublishTileActionSelected(_activePlayerId, _awaitingToIndex, _awaitingCorrelationId, "skip");
-        HideTileActionPanel();
-    }
-
-    private void PublishTileActionSelected(string playerId, int toIndex, string correlationId, string action)
-    {
-        if (_bus == null)
-        {
-            return;
-        }
-
-        var payload = JsonSerializer.Serialize(new
-        {
-            GameId = "g1",
-            PlayerId = playerId,
-            ToIndex = toIndex,
-            Action = action,
-            CorrelationId = string.IsNullOrWhiteSpace(correlationId) ? Guid.NewGuid().ToString("N") : correlationId,
-            CausationId = UiTileActionSelectedEventType,
-        });
-
-        _bus.PublishSimple(UiTileActionSelectedEventType, nameof(HUD), payload);
-    }
-
-    private void HideTileActionPanel()
-    {
-        _awaitingTileAction = false;
-        _awaitingCorrelationId = string.Empty;
-        _awaitingToIndex = 0;
-
-        if (_actionPanel != null)
-        {
-            _actionPanel.Visible = false;
-        }
+        _actionPanelController?.HandleTokenMoved(dto);
     }
 
     private void TryLoadMapTilesForUi()
     {
         _tilesByIndex.Clear();
-        _cityOwnersByCityId.Clear();
         _tileNameKeyById.Clear();
 
         try
@@ -1074,6 +821,8 @@ public partial class HUD : Control
             {
                 return;
             }
+
+            _actionPanelController?.LoadMapTiles(map);
 
             foreach (var tile in map.Tiles)
             {
@@ -1154,62 +903,7 @@ public partial class HUD : Control
         }
     }
 
-    private static bool IsCityTile(TileInfo tile) =>
-        string.Equals((tile.TileType ?? string.Empty).Trim(), "city", StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsBuildAction(string actionId) =>
-        string.Equals((actionId ?? string.Empty).Trim(), ActionBuild, StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsBuyLandAction(string actionId) =>
-        string.Equals((actionId ?? string.Empty).Trim(), "buy_land", StringComparison.OrdinalIgnoreCase);
-
-    private string[] FilterTileActionsForUi(string playerId, TileInfo tile)
-    {
-        if (tile.Actions.Length == 0)
-        {
-            return Array.Empty<string>();
-        }
-
-        var isCity = IsCityTile(tile);
-        var cityId = (tile.TileId ?? string.Empty).Trim();
-        var ownerId = string.Empty;
-        var hasOwner = isCity
-            && !string.IsNullOrWhiteSpace(cityId)
-            && _cityOwnersByCityId.TryGetValue(cityId, out ownerId);
-        var isOwnedByActive = hasOwner && string.Equals(ownerId, playerId, StringComparison.Ordinal);
-
-        var filtered = new List<string>(tile.Actions.Length);
-        foreach (var raw in tile.Actions)
-        {
-            var a = (raw ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(a))
-            {
-                continue;
-            }
-
-            if (IsBuildAction(a))
-            {
-                if (!isOwnedByActive)
-                {
-                    continue;
-                }
-            }
-            else if (IsBuyLandAction(a))
-            {
-                if (!isCity || hasOwner)
-                {
-                    continue;
-                }
-            }
-
-            filtered.Add(a);
-        }
-
-        return filtered.ToArray();
-    }
-
     private readonly record struct TileInfo(string TileId, string TileType, string Name, string[] Actions);
-
     public void SetScore(int v) => _score.Text = $"Score: {v}";
     public void SetHealth(int v) => _health.Text = $"HP: {v}";
 }

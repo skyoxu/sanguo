@@ -67,3 +67,13 @@ func test_hud_scene_instantiates() -> void:
     assert_bool(toast.visible).is_false()
     var toast_label: Label = toast.get_node("Panel/Label")
     assert_str(toast_label.text).is_equal("")
+
+func test_event_log_panel_is_bottom_docked() -> void:
+    var hud := preload("res://Game.Godot/Scenes/UI/HUD.tscn").instantiate()
+    add_child(auto_free(hud))
+    await get_tree().process_frame
+
+    var log_panel: Control = hud.get_node("EventLogPanel")
+    assert_float(float(log_panel.anchor_top)).is_equal(1.0)
+    assert_float(float(log_panel.anchor_bottom)).is_equal(1.0)
+    assert_bool(log_panel.offset_top < 0.0).is_true()
