@@ -9,7 +9,7 @@ const KEY_STARTING_MONEY_PRESET := "starting_money_preset"
 const KEY_GLOBAL_EVENT_INTERVAL_TURNS := "global_event_interval_turns"
 const KEY_CHARACTER_ASSIGNMENTS := "character_assignments"
 
-const VALID_PLAYERS_COUNTS := [4, 5, 6, 7, 8]
+const VALID_PLAYERS_COUNTS := [2, 3, 4]
 const VALID_STARTING_MONEY_PRESETS := [5000, 10000, 20000]
 const VALID_GLOBAL_EVENT_INTERVAL_TURNS := [5, 10, 20]
 
@@ -71,7 +71,7 @@ func test_task54_players_count_is_within_allowed_range_and_carried_in_started_co
 	var players := menu.get_node("NewGameConfig/VBox/PlayersOption") as OptionButton
 
 	for i in range(players.item_count):
-		if players.get_item_id(i) == 5:
+		if players.get_item_id(i) == 3:
 			players.select(i)
 			players.emit_signal("item_selected", i)
 			break
@@ -89,7 +89,7 @@ func test_task54_players_count_is_within_allowed_range_and_carried_in_started_co
 	var cfg: Dictionary = payload.get(KEY_GAME_START_CONFIG, {})
 	var pc := int(cfg.get(KEY_PLAYERS_COUNT, 0))
 	assert_bool(VALID_PLAYERS_COUNTS.has(pc)).is_true()
-	assert_int(pc).is_equal(5)
+	assert_int(pc).is_equal(3)
 
 # acceptance: ACC:T54.6
 func test_task54_starting_money_preset_is_valid_and_carried_in_started_config() -> void:

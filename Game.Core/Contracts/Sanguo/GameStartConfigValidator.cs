@@ -10,7 +10,7 @@ namespace Game.Core.Contracts.Sanguo;
 /// </summary>
 public static class GameStartConfigValidator
 {
-    private static readonly int[] AllowedPlayersCounts = { 4, 5, 6, 7, 8 };
+    private static readonly int[] AllowedPlayersCounts = { 2, 3, 4 };
     private static readonly int[] AllowedStartingMoneyPresets = { 5000, 10000, 20000 };
     private static readonly int[] AllowedGlobalEventIntervals = { 5, 10, 20 };
 

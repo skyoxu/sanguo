@@ -24,7 +24,7 @@ public partial class MainMenu : Control
     private const string HelpTutorialGroup = "help_tutorial";
     private const string HelpTutorialScenePath = "res://Game.Godot/Scenes/UI/HelpTutorial.tscn";
 
-    private static readonly int[] AllowedPlayersCounts = { 4, 5, 6, 7, 8 };
+    private static readonly int[] AllowedPlayersCounts = { 2, 3, 4 };
     private static readonly int[] AllowedStartingMoneyPresets = { 5000, 10000, 20000 };
     private static readonly int[] AllowedGlobalEventIntervals = { 5, 10, 20 };
 
