@@ -1,4 +1,5 @@
 using Godot;
+using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
 using Game.Core.Services.Sanguo;
 using System;
@@ -157,7 +158,7 @@ public sealed class HudActionPanelController
                 continue;
             }
 
-            var btn = new Button { Text = a, FocusMode = FocusModeEnum.All };
+            var btn = new Button { Text = a, FocusMode = Control.FocusModeEnum.All };
             btn.Pressed += () => OnTileActionPressed(playerId, toIndex, _awaitingCorrelationId, a);
             _actionButtons.AddChild(btn);
         }
