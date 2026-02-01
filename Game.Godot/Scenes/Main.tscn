@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://Game.Godot/Scripts/Main.gd" id="1_0k4m0"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/UI/HUD.tscn" id="2"]
@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoCityOwnershipStatusDisplay.tscn" id="16"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/Sanguo/SanguoBattleView.tscn" id="18_battle"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/UI/SettlementScreen.tscn" id="19_settlement"]
+[ext_resource type="Script" path="res://Game.Godot/Scripts/Sanguo/BoardViewportContainer.cs" id="20"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -47,10 +48,34 @@ script = ExtResource("14")
 [node name="Audio" type="Node" parent="."]
 script = ExtResource("17_audio")
 
-[node name="HudLayer" type="CanvasLayer" parent="."]
-layer = 50
+[node name="SplitRoot" type="VBoxContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="HUD" parent="HudLayer" instance=ExtResource("2")]
+[node name="TopArea" type="Control" parent="SplitRoot"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+clip_contents = true
+mouse_filter = 2
+
+[node name="HudLayer" type="Control" parent="SplitRoot/TopArea"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+mouse_filter = 2
+z_index = 50
+
+[node name="HUD" parent="SplitRoot/TopArea/HudLayer" instance=ExtResource("2")]
 visible = false
 
 [node name="MenuLayer" type="CanvasLayer" parent="."]
@@ -58,11 +83,43 @@ layer = 100
 
 [node name="MainMenu" parent="MenuLayer" instance=ExtResource("3")]
 
-[node name="SanguoBoardView" parent="." instance=ExtResource("15")]
+[node name="BottomArea" type="Control" parent="SplitRoot"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+clip_contents = true
+mouse_filter = 1
+
+[node name="BoardArea" type="Control" parent="SplitRoot/BottomArea"]
+layout_mode = 3
+anchors_preset = 15
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+mouse_filter = 1
+
+[node name="BoardViewportContainer" type="SubViewportContainer" parent="SplitRoot/BottomArea/BoardArea"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = false
+mouse_filter = 0
+script = ExtResource("20")
+
+[node name="BoardViewport" type="SubViewport" parent="SplitRoot/BottomArea/BoardArea/BoardViewportContainer"]
+handle_input_locally = true
+
+[node name="SanguoBoardView" parent="SplitRoot/BottomArea/BoardArea/BoardViewportContainer/BoardViewport" instance=ExtResource("15")]
 position = Vector2(0, 0)
 visible = false
 
-[node name="ScreenRoot" type="Control" parent="."]
+[node name="ScreenRoot" type="Control" parent="SplitRoot/BottomArea/BoardArea"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -73,10 +130,10 @@ mouse_filter = 2
 
 [node name="ScreenNavigator" type="Node" parent="."]
 script = ExtResource("13")
-ScreenRootPath = NodePath("../ScreenRoot")
+ScreenRootPath = NodePath("../SplitRoot/BottomArea/BoardArea/ScreenRoot")
 
 
-[node name="Overlays" type="Control" parent="."]
+[node name="Overlays" type="Control" parent="SplitRoot/BottomArea/BoardArea"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -86,7 +143,17 @@ grow_vertical = 2
 z_index = 100
 mouse_filter = 2
 
-[node name="CityOwnershipStatus" parent="Overlays" instance=ExtResource("16")]
+[node name="HudOverlay" type="Control" parent="SplitRoot/BottomArea/BoardArea/Overlays"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+z_index = 90
+
+[node name="CityOwnershipStatus" parent="SplitRoot/BottomArea/BoardArea/Overlays" instance=ExtResource("16")]
 layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
@@ -97,14 +164,14 @@ offset_right = 360.0
 offset_bottom = 96.0
 mouse_filter = 2
 
-[node name="SanguoBattleView" parent="Overlays" instance=ExtResource("18_battle")]
+[node name="SanguoBattleView" parent="SplitRoot/BottomArea/BoardArea/Overlays" instance=ExtResource("18_battle")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="SettlementScreen" parent="Overlays" instance=ExtResource("19_settlement")]
+[node name="SettlementScreen" parent="SplitRoot/BottomArea/BoardArea/Overlays" instance=ExtResource("19_settlement")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -126,33 +193,33 @@ layer = 200
 [node name="HelpLayer" type="CanvasLayer" parent="."]
 layer = 220
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="SplitRoot/TopArea"]
 layout_mode = 2
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 420.0
 offset_bottom = 260.0
 
-[node name="PublishBtn" type="Button" parent="VBox"]
+[node name="PublishBtn" type="Button" parent="SplitRoot/TopArea/VBox"]
 layout_mode = 2
 text = "Publish Event"
 
-[node name="SaveLoadBtn" type="Button" parent="VBox"]
+[node name="SaveLoadBtn" type="Button" parent="SplitRoot/TopArea/VBox"]
 layout_mode = 2
 text = "Save + Load (DataStore)"
 
-[node name="LogBtn" type="Button" parent="VBox"]
+[node name="LogBtn" type="Button" parent="SplitRoot/TopArea/VBox"]
 layout_mode = 2
 text = "Print Log"
 
-[node name="Output" type="Label" parent="VBox"]
+[node name="Output" type="Label" parent="SplitRoot/TopArea/VBox"]
 layout_mode = 2
 text = "Ready"
 
-[node name="AddScoreBtn" type="Button" parent="VBox"]
+[node name="AddScoreBtn" type="Button" parent="SplitRoot/TopArea/VBox"]
 layout_mode = 2
 text = "+10 Score"
 
-[node name="LoseHpBtn" type="Button" parent="VBox"]
+[node name="LoseHpBtn" type="Button" parent="SplitRoot/TopArea/VBox"]
 layout_mode = 2
 text = "-5 HP"

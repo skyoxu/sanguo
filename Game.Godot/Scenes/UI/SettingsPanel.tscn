@@ -9,7 +9,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
+mouse_filter = 0
 script = ExtResource("1")
 
 [node name="Backdrop" type="ColorRect" parent="."]
@@ -37,7 +37,7 @@ layout_mode = 2
 [node name="Panel" type="Panel" parent="Center/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(360, 220)
-mouse_filter = 2
+mouse_filter = 0
 
 [node name="VolRow" type="HBoxContainer" parent="Center/VBox"]
 layout_mode = 2

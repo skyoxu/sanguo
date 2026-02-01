@@ -8,6 +8,9 @@ namespace Game.Godot.Scripts.UI;
 
 public partial class SettlementScreen : Control
 {
+    private const string UiSettlementTitleKey = "ui.settlement.title";
+    private const string UiSettlementMainMenuKey = "ui.settlement.main_menu";
+    private const string UiSettlementNewGameKey = "ui.settlement.new_game";
     private const string RootEventBusPath = "/root/EventBus";
     private const string RootMainMenuPath = "/root/Main/MenuLayer/MainMenu";
     private const string RootMainMenuPlayButtonPath = "/root/Main/MenuLayer/MainMenu/MenuRow/MenuBox/BtnPlay";
@@ -17,6 +20,7 @@ public partial class SettlementScreen : Control
         MaxDepth = 32,
     };
 
+    private Label? _titleLabel;
     private Label? _winnerLabel;
     private RichTextLabel? _statsSnapshotLabel;
     private Button? _mainMenuButton;
@@ -28,6 +32,7 @@ public partial class SettlementScreen : Control
     {
         Visible = false;
 
+        _titleLabel = GetNodeOrNull<Label>("Center/Panel/VBox/Title");
         _winnerLabel = GetNodeOrNull<Label>("Center/Panel/VBox/WinnerLabel");
         _statsSnapshotLabel = GetNodeOrNull<RichTextLabel>("Center/Panel/VBox/StatsSnapshotLabel");
         _mainMenuButton = GetNodeOrNull<Button>("Center/Panel/VBox/Buttons/MainMenuButton");
@@ -44,6 +49,7 @@ public partial class SettlementScreen : Control
         }
 
         ClearText();
+        ApplyLocalizedTexts();
 
         _bus = GetNodeOrNull<EventBusAdapter>(RootEventBusPath);
         if (_bus != null)
@@ -54,6 +60,40 @@ public partial class SettlementScreen : Control
                 _bus.Connect(EventBusAdapter.SignalName.DomainEventEmitted, callable);
             }
         }
+    }
+
+    private void ApplyLocalizedTexts()
+    {
+        if (_titleLabel != null)
+        {
+            _titleLabel.Text = TranslateOrFallback(UiSettlementTitleKey, "Game Ended");
+        }
+
+        if (_mainMenuButton != null)
+        {
+            _mainMenuButton.Text = TranslateOrFallback(UiSettlementMainMenuKey, "Main Menu");
+        }
+
+        if (_newGameButton != null)
+        {
+            _newGameButton.Text = TranslateOrFallback(UiSettlementNewGameKey, "New Game");
+        }
+    }
+
+    private static string TranslateOrFallback(string key, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return fallback;
+        }
+
+        var translated = TranslationServer.Translate(key);
+        if (string.IsNullOrWhiteSpace(translated) || string.Equals(translated, key, StringComparison.Ordinal))
+        {
+            return fallback;
+        }
+
+        return translated;
     }
 
     public override void _ExitTree()

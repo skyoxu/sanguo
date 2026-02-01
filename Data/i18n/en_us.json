@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 6,
+  "version": 8,
   "locale": "en-US",
   "strings": {
     "building.building_barracks.desc": "Boosts toll income, ideal for military cities.",
@@ -144,6 +144,8 @@
     "relic.relic_silver_ingot.name": "Silver Ingot",
     "relic.relic_silver_ingot.desc": "Gain an immediate sum of money.",
     "relic.relic_prosperity_scroll.name": "Prosperity Scroll",
-    "relic.relic_prosperity_scroll.desc": "Increase economy steps by two."
+    "relic.relic_prosperity_scroll.desc": "Increase economy steps by two.",
+    "ui.hud.settings.return": "Back to Main Menu",
+    "ui.hud.log": "Log"
   }
 }

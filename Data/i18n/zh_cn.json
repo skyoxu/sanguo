@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 6,
+  "version": 8,
   "locale": "zh-CN",
   "strings": {
     "building.building_barracks.desc": "提升过路费，适合军事风格的城池。",
@@ -144,6 +144,8 @@
     "relic.relic_silver_ingot.name": "银锭",
     "relic.relic_silver_ingot.desc": "立刻获得一笔资金。",
     "relic.relic_prosperity_scroll.name": "兴盛卷",
-    "relic.relic_prosperity_scroll.desc": "经济倍率上调两档。"
+    "relic.relic_prosperity_scroll.desc": "经济倍率上调两档。",
+    "ui.hud.settings.return": "返回主菜单",
+    "ui.hud.log": "日志"
   }
 }

@@ -27,6 +27,18 @@ layout_mode = 2
 alignment = 1
 size_flags_horizontal = 4
 
+[node name="ConfigBackdrop" type="ColorRect" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.9)
+visible = false
+mouse_filter = 2
+z_index = 90
+
 [node name="ConfigCenter" type="CenterContainer" parent="."]
 layout_mode = 3
 anchors_preset = 15
@@ -34,11 +46,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+z_index = 100
 
 [node name="NewGameConfig" type="PanelContainer" parent="ConfigCenter"]
 visible = false
 layout_mode = 2
 mouse_filter = 2
+z_index = 110
 
 [node name="VBox" type="VBoxContainer" parent="ConfigCenter/NewGameConfig"]
 layout_mode = 2
@@ -93,6 +108,10 @@ text = "AI slots: -"
 [node name="BtnStart" type="Button" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 text = "Start"
+
+[node name="BtnBack" type="Button" parent="ConfigCenter/NewGameConfig/VBox"]
+layout_mode = 2
+text = "Back"
 
 [node name="LoadPanel" type="Panel" parent="."]
 visible = false

@@ -17,6 +17,7 @@ public partial class MainMenu : Control
     private const string UiMenuSettings = "ui.menu.settings";
     private const string UiMenuQuit = "ui.menu.quit";
     private const string UiMenuLoad = "ui.menu.load";
+    private const string UiMenuReturn = "ui.menu.return";
     private const string UiMenuStartFailed = "ui.menu.start.failed";
     private const string UiMenuHelp = "ui.menu.help";
     private const string StartButtonLabelKey = "ui.menu.start_game";
@@ -32,6 +33,13 @@ public partial class MainMenu : Control
     private const string MenuStartingMoneyLabelKey = "ui.menu.starting_money";
     private const string MenuGlobalEventIntervalLabelKey = "ui.menu.global_event_interval";
     private const string MenuAiSlotsLabelKey = "ui.menu.ai_slots";
+    private const string MenuBackLabelKey = "ui.menu.back";
+    private const string MenuStatusStartingKey = "ui.menu.status.starting";
+    private const string MenuStatusInvalidSetupKey = "ui.menu.status.invalid_setup";
+    private const string MenuStatusStartFailedKey = "ui.menu.status.start_failed";
+    private const string MenuErrorMapMissingKey = "ui.menu.error.map_missing";
+    private const string MenuErrorCharacterMissingKey = "ui.menu.error.character_missing";
+    private const string MenuErrorPlayersInvalidKey = "ui.menu.error.players_invalid";
 
     private const string TurnStarted = "core.sanguo.game.turn.started";
     private const string GameLoaded = SanguoGameLoaded.EventType;
@@ -56,6 +64,7 @@ public partial class MainMenu : Control
     private Button? _btnHelp;
     private Button _btnQuit = default!;
     private Button _btnStart = default!;
+    private Button _btnBack = default!;
     private Control _loadPanel = default!;
     private Label _statusLabel = default!;
     private Control _newGameConfig = default!;
@@ -93,6 +102,7 @@ public partial class MainMenu : Control
         _configCenter = GetNode<Control>("ConfigCenter");
         _newGameConfig = GetNode<Control>("ConfigCenter/NewGameConfig");
         _btnStart = GetNode<Button>("ConfigCenter/NewGameConfig/VBox/BtnStart");
+        _btnBack = GetNode<Button>("ConfigCenter/NewGameConfig/VBox/BtnBack");
         _titleLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/Title");
         _mapLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/MapLabel");
         _playersLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/PlayersLabel");
@@ -121,6 +131,7 @@ public partial class MainMenu : Control
         _btnLoad.Pressed += OnLoadPressed;
         _btnSettings.Pressed += OnSettingsPressed;
         _btnStart.Pressed += OnStartPressed;
+        _btnBack.Pressed += OnBackPressed;
         if (_btnHelp != null)
         {
             _btnHelp.Pressed += OnHelpPressed;
@@ -251,7 +262,7 @@ public partial class MainMenu : Control
                     Visible = true;
                     SetConfigPanelVisible(true);
                     SetHudVisible(false);
-                    ShowStatus("Invalid setup: " + error);
+                    ShowStatus($"{TranslateOrFallback(MenuStatusInvalidSetupKey, "Invalid setup")}: {TranslateStartError(error)}");
                     return;
                 }
 
@@ -261,10 +272,21 @@ public partial class MainMenu : Control
 
         _startPending = true;
         ClearStatus();
-        ShowStatus("Starting...");
+        ShowStatus(TranslateOrFallback(MenuStatusStartingKey, "Starting..."));
         SetMenuButtonsEnabled(false);
         SetStartButtonEnabled(false);
         Publish(UiMenuStart, "ui", startConfigJson ?? "{}");
+    }
+
+    private void OnBackPressed()
+    {
+        if (_startPending)
+        {
+            return;
+        }
+
+        ClearStatus();
+        SetConfigPanelVisible(false);
     }
 
     private void OnSettingsPressed()
@@ -341,6 +363,18 @@ public partial class MainMenu : Control
 
     private void OnDomainEventEmitted(string type, string _source, string dataJson, string _id, string _specVersion, string _dataContentType, string _timestampIso)
     {
+        if (string.Equals(type, UiMenuReturn, StringComparison.Ordinal))
+        {
+            _startPending = false;
+            _loadPending = false;
+            ClearStatus();
+            SetMenuButtonsEnabled(true);
+            SetStartButtonEnabled(true);
+            _loadPanel.Visible = false;
+            ShowMenu();
+            return;
+        }
+
         if (string.Equals(type, GameLoaded, StringComparison.Ordinal))
         {
             if (!_loadPending)
@@ -385,7 +419,7 @@ public partial class MainMenu : Control
             Visible = true;
             SetConfigPanelVisible(true);
             SetHudVisible(false);
-            ShowStatus("Start failed: " + (TryExtractStartFailedReason(dataJson) ?? "unknown"));
+            ShowStatus($"{TranslateOrFallback(MenuStatusStartFailedKey, "Start failed")}: {TranslateStartError(TryExtractStartFailedReason(dataJson) ?? "unknown")}");
         }
     }
 
@@ -500,7 +534,7 @@ public partial class MainMenu : Control
 
     private void SetHudVisible(bool visible)
     {
-        var hud = GetNodeOrNull<CanvasItem>("/root/Main/HudLayer/HUD");
+        var hud = GetNodeOrNull<CanvasItem>("/root/Main/SplitRoot/TopArea/HudLayer/HUD");
         if (hud != null)
         {
             hud.Visible = visible;
@@ -509,7 +543,7 @@ public partial class MainMenu : Control
 
     private void SetBoardVisible(bool visible)
     {
-        var board = GetNodeOrNull<CanvasItem>("/root/Main/SanguoBoardView");
+        var board = GetNodeOrNull<CanvasItem>("/root/Main/SplitRoot/BottomArea/BoardArea/BoardViewportContainer/BoardViewport/SanguoBoardView");
         if (board != null)
         {
             board.Visible = visible;
@@ -518,7 +552,7 @@ public partial class MainMenu : Control
 
     private void ResetBoardCameraIfNeeded()
     {
-        var board = GetNodeOrNull<Node>("/root/Main/SanguoBoardView");
+        var board = GetNodeOrNull<Node>("/root/Main/SplitRoot/BottomArea/BoardArea/BoardViewportContainer/BoardViewport/SanguoBoardView");
         if (board != null && board.HasMethod("ResetCameraView"))
         {
             board.Call("ResetCameraView");
@@ -528,6 +562,11 @@ public partial class MainMenu : Control
     private void SetConfigPanelVisible(bool visible)
     {
         _newGameConfig.Visible = visible;
+        var backdrop = GetNodeOrNull<ColorRect>("ConfigBackdrop");
+        if (backdrop != null)
+        {
+            backdrop.Visible = visible;
+        }
         _configCenter.MouseFilter = visible
             ? Control.MouseFilterEnum.Stop
             : Control.MouseFilterEnum.Ignore;
@@ -535,7 +574,7 @@ public partial class MainMenu : Control
 
     private void SetBoardInputEnabled(bool enabled)
     {
-        var board = GetNodeOrNull<Node>("/root/Main/SanguoBoardView");
+        var board = GetNodeOrNull<Node>("/root/Main/SplitRoot/BottomArea/BoardArea/BoardViewportContainer/BoardViewport/SanguoBoardView");
         if (board == null)
         {
             return;
@@ -548,28 +587,28 @@ public partial class MainMenu : Control
 
     private void SetOverlayInputEnabled(bool enabled)
     {
-        var screenRoot = GetNodeOrNull<Control>("/root/Main/ScreenRoot");
+        var screenRoot = GetNodeOrNull<Control>("/root/Main/SplitRoot/BottomArea/BoardArea/ScreenRoot");
         if (screenRoot != null)
         {
-            screenRoot.MouseFilter = enabled ? Control.MouseFilterEnum.Stop : Control.MouseFilterEnum.Ignore;
+            screenRoot.MouseFilter = enabled ? Control.MouseFilterEnum.Pass : Control.MouseFilterEnum.Ignore;
         }
 
-        var overlays = GetNodeOrNull<Control>("/root/Main/Overlays");
+        var overlays = GetNodeOrNull<Control>("/root/Main/SplitRoot/BottomArea/BoardArea/Overlays");
         if (overlays != null)
         {
-            overlays.MouseFilter = enabled ? Control.MouseFilterEnum.Stop : Control.MouseFilterEnum.Ignore;
+            overlays.MouseFilter = enabled ? Control.MouseFilterEnum.Pass : Control.MouseFilterEnum.Ignore;
         }
     }
 
     private void SetOverlayVisible(bool visible)
     {
-        var screenRoot = GetNodeOrNull<Control>("/root/Main/ScreenRoot");
+        var screenRoot = GetNodeOrNull<Control>("/root/Main/SplitRoot/BottomArea/BoardArea/ScreenRoot");
         if (screenRoot != null)
         {
             screenRoot.Visible = visible;
         }
 
-        var overlays = GetNodeOrNull<Control>("/root/Main/Overlays");
+        var overlays = GetNodeOrNull<Control>("/root/Main/SplitRoot/BottomArea/BoardArea/Overlays");
         if (overlays != null)
         {
             overlays.Visible = visible;
@@ -609,6 +648,7 @@ public partial class MainMenu : Control
         }
         _btnQuit.Text = TranslateOrFallback(MenuQuitLabelKey, "Quit");
         _btnStart.Text = TranslateOrFallback(StartButtonLabelKey, "Start");
+        _btnBack.Text = TranslateOrFallback(MenuBackLabelKey, "Back");
 
         _titleLabel.Text = TranslateOrFallback(MenuNewGameLabelKey, "New Game");
         _mapLabel.Text = TranslateOrFallback(MenuMapLabelKey, "Map");
@@ -617,6 +657,22 @@ public partial class MainMenu : Control
         _moneyLabel.Text = TranslateOrFallback(MenuStartingMoneyLabelKey, "Starting Money");
         _globalEventLabel.Text = TranslateOrFallback(MenuGlobalEventIntervalLabelKey, "Global Event Interval");
         _aiSlotsLabel = TranslateOrFallback(MenuAiSlotsLabelKey, "AI slots");
+    }
+
+    private string TranslateStartError(string error)
+    {
+        if (string.IsNullOrWhiteSpace(error))
+        {
+            return error;
+        }
+
+        return error switch
+        {
+            "map_missing" => TranslateOrFallback(MenuErrorMapMissingKey, error),
+            "character_missing" => TranslateOrFallback(MenuErrorCharacterMissingKey, error),
+            "players_count_invalid" => TranslateOrFallback(MenuErrorPlayersInvalidKey, error),
+            _ => error,
+        };
     }
 
     private bool TryBuildStartConfigJson(out string? json, out string error)

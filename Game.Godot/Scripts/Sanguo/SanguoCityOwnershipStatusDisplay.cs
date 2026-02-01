@@ -7,6 +7,8 @@ namespace Game.Godot.Scripts.Sanguo;
 
 public partial class SanguoCityOwnershipStatusDisplay : Control
 {
+    private const string OwnerPrefixKey = "ui.city_status.owner";
+    private const string UnownedKey = "ui.city_status.unowned";
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
 
     private EventBusAdapter? _bus;
@@ -138,10 +140,29 @@ public partial class SanguoCityOwnershipStatusDisplay : Control
 
         if (string.IsNullOrWhiteSpace(_ownerId))
         {
-            _statusLabel.Text = "Unowned";
+            _statusLabel.Text = TranslateOrFallback(UnownedKey, "Unowned");
+            Visible = false;
             return;
         }
 
-        _statusLabel.Text = $"Owner: {_ownerId}";
+        Visible = true;
+        var ownerPrefix = TranslateOrFallback(OwnerPrefixKey, "Owner");
+        _statusLabel.Text = $"{ownerPrefix}: {_ownerId}";
+    }
+
+    private static string TranslateOrFallback(string key, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return fallback;
+        }
+
+        var translated = TranslationServer.Translate(key);
+        if (string.IsNullOrWhiteSpace(translated) || string.Equals(translated, key, System.StringComparison.Ordinal))
+        {
+            return fallback;
+        }
+
+        return translated;
     }
 }
