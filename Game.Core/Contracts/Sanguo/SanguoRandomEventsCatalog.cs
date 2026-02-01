@@ -45,6 +45,7 @@ public sealed record SanguoRandomEventCatalogEntry(
 /// </summary>
 public sealed record SanguoRandomEventPoolCatalogEntry(
     string PoolId,
+    string NameKey,
     IReadOnlyList<string> EventIds
 );
 

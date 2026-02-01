@@ -109,17 +109,18 @@ public partial class HelpTutorial : Control
         _btnPrev.Disabled = StepKeys.Length <= 1 || (_stepIndex == 0);
         _btnNext.Disabled = StepKeys.Length <= 1;
         _btnPrev.Text = TranslateOrFallback("ui.help.prev", "Prev");
-        _btnNext.Text = TranslateOrFallback(_stepIndex == LearningRouteLastIndex ? "ui.help.finish" : "ui.help.next",
+        _btnNext.Text = TranslateOrFallback(
+            _stepIndex == LearningRouteLastIndex ? "ui.help.finish" : "ui.help.next",
             _stepIndex == LearningRouteLastIndex ? "Finish" : "Next");
         _btnClose.Text = TranslateOrFallback("ui.help.close", "Close");
     }
 
-    private static string TranslateOrFallback(string key)
+    private static string TranslateOrFallback(string key, string? fallback = null)
     {
         var text = TranslationServer.Translate(key);
         if (string.IsNullOrWhiteSpace(text) || text == key)
         {
-            return key;
+            return fallback ?? key;
         }
 
         return text;

@@ -150,8 +150,8 @@ public sealed class HudGuideController
     {
         return stepIndex switch
         {
-            1 => _findControl("/root/Main/MainMenu/NewGameConfig")
-                 ?? _findControl("/root/Main/MainMenu/BtnPlay"),
+            1 => _findControl("/root/Main/MenuLayer/MainMenu/ConfigCenter/NewGameConfig")
+                 ?? _findControl("/root/Main/MenuLayer/MainMenu/MenuRow/MenuBox/BtnPlay"),
             2 => _diceButton,
             3 => _toastControl ?? _logPanelControl,
             4 => _actionPanel != null && _actionPanel.Visible ? _actionPanel : _moneyLabel,

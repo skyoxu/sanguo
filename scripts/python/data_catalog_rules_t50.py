@@ -186,6 +186,7 @@ def validate_random_events(path: Path, i18n: dict[str, str], findings: list[core
             if pool_id in pool_ids:
                 findings.append(core.Finding("fail", "DATA_ID_DUPLICATE", f"{loc}.poolId", f"duplicate poolId: {pool_id}"))
             pool_ids.add(pool_id)
+        core._validate_i18n_key(pool.get("nameKey"), f"{loc}.nameKey", i18n, findings, required=True)
         event_ids = pool.get("eventIds")
         if not isinstance(event_ids, list) or not all(isinstance(x, str) for x in event_ids):
             findings.append(core.Finding("fail", "DATA_JSON_SCHEMA_ERROR", f"{loc}.eventIds", "eventIds must be array of strings."))

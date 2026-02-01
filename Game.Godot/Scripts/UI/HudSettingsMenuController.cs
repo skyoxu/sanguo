@@ -55,7 +55,7 @@ public sealed class HudSettingsMenuController
     public void Bind()
     {
         _menu.Visible = false;
-        _menu.ProcessMode = Node.ProcessModeEnum.WhenPaused;
+        _menu.ProcessMode = Node.ProcessModeEnum.Always;
 
         _openButton.Pressed += OnOpenPressed;
         _resumeButton.Pressed += OnResumePressed;

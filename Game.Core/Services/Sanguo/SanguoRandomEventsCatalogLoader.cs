@@ -144,6 +144,12 @@ public static class SanguoRandomEventsCatalogLoader
                 return false;
             }
 
+            if (!TryGetStringRequired(poolEl, "nameKey", out var nameKey))
+            {
+                error = "invalid_random_events_catalog:pool_missing_nameKey";
+                return false;
+            }
+
             if (!seen.Add(poolId))
             {
                 continue;
@@ -171,7 +177,7 @@ public static class SanguoRandomEventsCatalogLoader
                 }
             }
 
-            pools.Add(new SanguoRandomEventPoolCatalogEntry(PoolId: poolId, EventIds: ids));
+            pools.Add(new SanguoRandomEventPoolCatalogEntry(PoolId: poolId, NameKey: nameKey, EventIds: ids));
         }
 
         if (pools.Count == 0)

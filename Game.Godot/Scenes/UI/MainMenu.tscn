@@ -9,72 +9,90 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+z_index = 120
 script = ExtResource("1")
 
-[node name="VBox" type="VBoxContainer" parent="."]
-layout_mode = 2
-offset_left = 40.0
-offset_top = 40.0
-offset_right = 300.0
-offset_bottom = 240.0
+[node name="MenuRow" type="HBoxContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_top = 300.0
+alignment = 1
 
-[node name="NewGameConfig" type="PanelContainer" parent="."]
+[node name="MenuBox" type="VBoxContainer" parent="MenuRow"]
 layout_mode = 2
-offset_left = 340.0
-offset_top = 40.0
-offset_right = 820.0
-offset_bottom = 360.0
+alignment = 1
+size_flags_horizontal = 4
+
+[node name="ConfigCenter" type="CenterContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NewGameConfig" type="PanelContainer" parent="ConfigCenter"]
+visible = false
+layout_mode = 2
 mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="NewGameConfig"]
+[node name="VBox" type="VBoxContainer" parent="ConfigCenter/NewGameConfig"]
 layout_mode = 2
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 472.0
 offset_bottom = 312.0
 
-[node name="Title" type="Label" parent="NewGameConfig/VBox"]
+[node name="Title" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 text = "New Game"
 
-[node name="MapLabel" type="Label" parent="NewGameConfig/VBox"]
+[node name="MapLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 text = "Map"
 
-[node name="MapOption" type="OptionButton" parent="NewGameConfig/VBox"]
+[node name="MapOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 
-[node name="PlayersLabel" type="Label" parent="NewGameConfig/VBox"]
+[node name="PlayersLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 text = "Players"
 
-[node name="PlayersOption" type="OptionButton" parent="NewGameConfig/VBox"]
+[node name="PlayersOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 
-[node name="CharacterLabel" type="Label" parent="NewGameConfig/VBox"]
+[node name="CharacterLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 text = "Player Character"
 
-[node name="CharacterOption" type="OptionButton" parent="NewGameConfig/VBox"]
+[node name="CharacterOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 
-[node name="MoneyLabel" type="Label" parent="NewGameConfig/VBox"]
+[node name="MoneyLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 text = "Starting Money"
 
-[node name="StartingMoneyOption" type="OptionButton" parent="NewGameConfig/VBox"]
+[node name="StartingMoneyOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 
-[node name="GlobalEventLabel" type="Label" parent="NewGameConfig/VBox"]
+[node name="GlobalEventLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 text = "Global Event Interval"
 
-[node name="GlobalEventIntervalOption" type="OptionButton" parent="NewGameConfig/VBox"]
+[node name="GlobalEventIntervalOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 
-[node name="AiFillLabel" type="Label" parent="NewGameConfig/VBox"]
+[node name="AiFillLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
 layout_mode = 2
 text = "AI slots: -"
+
+[node name="BtnStart" type="Button" parent="ConfigCenter/NewGameConfig/VBox"]
+layout_mode = 2
+text = "Start"
 
 [node name="LoadPanel" type="Panel" parent="."]
 visible = false
@@ -94,22 +112,22 @@ offset_right = 620.0
 offset_bottom = 36.0
 text = ""
 
-[node name="BtnPlay" type="Button" parent="VBox"]
+[node name="BtnPlay" type="Button" parent="MenuRow/MenuBox"]
 layout_mode = 2
 text = "Play"
 
-[node name="BtnLoad" type="Button" parent="VBox"]
+[node name="BtnLoad" type="Button" parent="MenuRow/MenuBox"]
 layout_mode = 2
 text = "Load"
 
-[node name="BtnSettings" type="Button" parent="VBox"]
+[node name="BtnSettings" type="Button" parent="MenuRow/MenuBox"]
 layout_mode = 2
 text = "Settings"
 
-[node name="BtnHelp" type="Button" parent="VBox"]
+[node name="BtnHelp" type="Button" parent="MenuRow/MenuBox"]
 layout_mode = 2
 text = "Help"
 
-[node name="BtnQuit" type="Button" parent="VBox"]
+[node name="BtnQuit" type="Button" parent="MenuRow/MenuBox"]
 layout_mode = 2
 text = "Quit"

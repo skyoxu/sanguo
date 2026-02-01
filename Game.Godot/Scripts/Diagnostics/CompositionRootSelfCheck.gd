@@ -85,9 +85,9 @@ func _run() -> void:
             sandbox.add_child(main)
             await process_frame
             if typeof(main) == TYPE_OBJECT:
-                var has_menu := main.get_node_or_null("MainMenu") != null
-                var has_hud := main.get_node_or_null("HUD") != null
-                var has_settings := main.get_node_or_null("SettingsPanel") != null
+                var has_menu := main.get_node_or_null("MenuLayer/MainMenu") != null
+                var has_hud := main.get_node_or_null("HudLayer/HUD") != null
+                var has_settings := main.get_node_or_null("SettingsLayer/SettingsPanel") != null
                 var has_nav := main.get_node_or_null("ScreenNavigator") != null
                 result["ui"]["mainMenu"] = has_menu
                 result["ui"]["hud"] = has_hud
@@ -96,8 +96,8 @@ func _run() -> void:
                 var bus = get_root().get_node_or_null("/root/EventBus")
                 if bus != null:
                     bus.connect("DomainEventEmitted", Callable(self, "_on_sc_domain_evt").bind(result))
-                if has_menu and main.has_node("MainMenu/VBox/BtnPlay"):
-                    var btn = main.get_node_or_null("MainMenu/VBox/BtnPlay")
+                if has_menu and main.has_node("MenuLayer/MainMenu/MenuRow/MenuBox/BtnPlay"):
+                    var btn = main.get_node_or_null("MenuLayer/MainMenu/MenuRow/MenuBox/BtnPlay")
                     if btn != null:
                         btn.emit_signal("pressed")
                         await process_frame
