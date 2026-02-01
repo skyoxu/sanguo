@@ -146,6 +146,30 @@ public static class EventExplainService
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
+        if (string.Equals(type, SanguoAiDecisionMade.EventType, StringComparison.Ordinal))
+        {
+            var aiPlayerId = TryGetStringLoose(root, "AiPlayerId");
+            var decisionType = TryGetStringLoose(root, "DecisionType");
+            var reason = TryGetStringLoose(root, "Reason");
+            var targetCityId = TryGetStringLoose(root, "TargetCityId");
+            var pickedId = TryGetStringLoose(root, "PickedId");
+            var decisionLabel = TranslateTokenValue(type, "decision_type", decisionType);
+            var targetLabel = ResolveNamedValue(tileLabelById, targetCityId);
+
+            var parts = new List<string>(8) { prefix };
+            AddSummaryPart(parts, type, "ai_player_id", "ai", aiPlayerId);
+            AddSummaryPart(parts, type, "decision_type", "decision", decisionLabel);
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                var label = TranslateField(type, "detail", "reason", "reason");
+                var reasonLabel = TranslateReasonToken(type, reason);
+                parts.Add($"{label}={reasonLabel}");
+            }
+            AddSummaryPart(parts, type, "target_city_id", "target", targetLabel);
+            AddSummaryPart(parts, type, "picked_id", "picked_id", pickedId);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
         if (string.Equals(type, SanguoRandomEventApplied.EventType, StringComparison.Ordinal))
         {
             var playerId = TryGetStringLoose(root, "PlayerId");
@@ -1090,6 +1114,26 @@ public static class EventExplainService
 
                     AddAppliedMultipliersFacts(additive, multiplicative, type, item, $"breakdown[{cityLabel}]");
                 }
+            }
+        }
+        else if (string.Equals(type, SanguoAiDecisionMade.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "AiPlayerId", "ai_player_id");
+            AddFact(facts, type, root, "DecisionType", "decision_type", tokenCategory: "decision_type");
+            AddFact(facts, type, root, "DecisionNode", "decision_node");
+            AddFact(facts, type, root, "FromState", "from_state");
+            AddFact(facts, type, root, "ToState", "to_state");
+            AddFact(facts, type, root, "TargetCityId", "target_city_id", tileLabelById);
+            AddFact(facts, type, root, "RngContextId", "rng_context_id");
+            AddFact(facts, type, root, "PickedId", "picked_id");
+            AddFact(facts, type, root, "PickedIndex", "picked_index");
+
+            var reason = TryGetStringLoose(root, "Reason");
+            if (!string.IsNullOrWhiteSpace(reason))
+            {
+                var label = TranslateField(type, "detail", "reason", "reason");
+                facts.Add($"{label}: {TranslateReasonToken(type, reason)}");
             }
         }
         else

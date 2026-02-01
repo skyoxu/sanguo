@@ -21,12 +21,56 @@ public partial class HUD : Control, IHudEventHandlers
     private const string UiHudLoadEventType = "ui.hud.load";
     private const string UiMenuSettingsEventType = "ui.menu.settings";
     private const string UiMenuHelpEventType = "ui.menu.help";
+    private const string UiMenuReturnEventType = "ui.menu.return";
     private const string UiMenuQuitEventType = "ui.menu.quit";
+    private const string UiHudPlayerPrefixKey = "ui.hud.player";
+    private const string UiHudDatePrefixKey = "ui.hud.date";
+    private const string UiHudMoneyPrefixKey = "ui.hud.money";
+    private const string UiHudScorePrefixKey = "ui.hud.score";
+    private const string UiHudHealthPrefixKey = "ui.hud.health";
+    private const string UiHudDiceRollKey = "ui.hud.dice.roll";
+    private const string UiHudDiceWaitingKey = "ui.hud.dice.waiting";
+    private const string UiHudDiceAiKey = "ui.hud.dice.ai";
+    private const string UiHudDiceValueKey = "ui.hud.dice.value";
+    private const string UiHudGameOverKey = "ui.hud.game_over";
+    private const string UiHudGameSettingsKey = "ui.hud.game_settings";
+    private const string UiHudLogKey = "ui.hud.log";
+    private const string UiHudPlayersTitleKey = "ui.hud.players";
+    private const string UiHudSettingsTitleKey = "ui.hud.settings.title";
+    private const string UiHudSettingsResumeKey = "ui.hud.settings.resume";
+    private const string UiHudSettingsSaveKey = "ui.hud.settings.save";
+    private const string UiHudSettingsLoadKey = "ui.hud.settings.load";
+    private const string UiHudSettingsSettingKey = "ui.hud.settings.setting";
+    private const string UiHudSettingsHelpKey = "ui.hud.settings.help";
+    private const string UiHudSettingsReturnKey = "ui.hud.settings.return";
+    private const string UiHudSettingsQuitKey = "ui.hud.settings.quit";
+    private const string UiHudActionTitleKey = "ui.hud.action.title";
+    private const string UiHudActionSkipKey = "ui.hud.action.skip";
+    private const string UiHudGuideTitleKey = "ui.hud.guide.title";
+    private const string UiHudGuideStepKey = "ui.hud.guide.step";
+    private const string UiHudToastChooseActionKey = "ui.hud.toast.choose_action_or_skip";
+    private const string UiHudToastGameStartingKey = "ui.hud.toast.game_starting";
     private const string MoneyCapAuditAction = "SANGUO_MONEY_CAPPED";
     private const string EventLogOverlayFlag = "event_log_overlay";
     private const string DefaultSaveSlotId = "quick";
     private const string HelpTutorialGroup = "help_tutorial";
     private const string HelpTutorialScenePath = "res://Game.Godot/Scenes/UI/HelpTutorial.tscn";
+
+    private static readonly HashSet<string> ResultPopupEventTypes = new(StringComparer.Ordinal)
+    {
+        SanguoCityBought.EventType,
+        SanguoBuildingBuilt.EventType,
+        SanguoRandomEventApplied.EventType,
+        SanguoRandomEventRejected.EventType,
+        SanguoActionCardPlayed.EventType,
+        SanguoActionCardPlayRejected.EventType,
+        SanguoLootGranted.EventType,
+        SanguoRelicApplied.EventType,
+        SanguoCombatStarted.EventType,
+        SanguoCombatEnded.EventType,
+        SanguoCityTollPaid.EventType,
+        SanguoCityTollSynergyPaid.EventType,
+    };
 
     private Label _score = default!;
     private Label _health = default!;
@@ -50,6 +94,7 @@ public partial class HUD : Control, IHudEventHandlers
     private EventBusAdapter? _bus;
 
     private EventToast? _toast;
+    private EventResultPopup? _resultPopup;
     private EventLogPanel? _logPanel;
     private bool _logVisible;
 
@@ -71,30 +116,41 @@ public partial class HUD : Control, IHudEventHandlers
     private readonly Dictionary<string, Texture2D> _portraitCache = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PlayerStateSnapshot> _playerStatesById = new(StringComparer.Ordinal);
     private ResourceLoaderAdapter? _fallbackResourceLoader;
+    private string _playerPrefix = "Player";
+    private string _datePrefix = "Date";
+    private string _moneyPrefix = "Money";
+    private string _scorePrefix = "Score";
+    private string _healthPrefix = "HP";
+    private string _diceRollLabel = "Roll Dice";
+    private string _diceWaitingLabel = "Waiting...";
+    private string _diceAiLabel = "AI Turn";
+    private string _diceValueLabel = "Dice";
 
     public override void _Ready()
     {
         ProcessMode = Node.ProcessModeEnum.Always;
         _lastDateKey = -1;
-        _score = GetNode<Label>("TopBar/HBox/ScoreLabel");
-        _health = GetNode<Label>("TopBar/HBox/HealthLabel");
+        _score = GetNode<Label>("TopBar/TopStack/HBox/ScoreLabel");
+        _health = GetNode<Label>("TopBar/TopStack/HBox/HealthLabel");
 
-        _activePlayer = GetNode<Label>("TopBar/HBox/ActivePlayerLabel");
-        _date = GetNode<Label>("TopBar/HBox/DateLabel");
-        _money = GetNode<Label>("TopBar/HBox/MoneyLabel");
-        _avatar = GetNodeOrNull<TextureRect>("TopBar/HBox/Avatar");
-        _diceButton = GetNode<Button>("TopBar/HBox/DiceButton");
+        _activePlayer = GetNode<Label>("TopBar/TopStack/HBox/ActivePlayerLabel");
+        _date = GetNode<Label>("TopBar/TopStack/HBox/DateLabel");
+        _money = GetNode<Label>("TopBar/TopStack/HBox/MoneyLabel");
+        _avatar = GetNodeOrNull<TextureRect>("TopBar/TopStack/HBox/Avatar");
+        _diceButton = GetNode<Button>("TopBar/TopStack/HBox/DiceButton");
         _diceButton.Pressed += OnDicePressed;
         _diceButton.Disabled = true;
         _diceButton.Text = "Waiting...";
 
-        var gameSettingsButton = GetNode<Button>("TopBar/HBox/GameSettingsButton");
+        var gameSettingsButton = GetNode<Button>("TopBar/TopStack/HBox/GameSettingsButton");
+        var logButton = GetNode<Button>("TopBar/TopStack/HBox/LogButton");
         var settingsMenu = GetNode<Control>("SettingsMenu");
         var btnResume = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnResume");
         var btnSave = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnSave");
         var btnLoad = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnLoad");
         var btnSetting = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnSetting");
         var btnHelp = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnHelp");
+        var btnReturn = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnReturn");
         var btnQuit = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnQuit");
 
         _btnSave = btnSave;
@@ -110,6 +166,7 @@ public partial class HUD : Control, IHudEventHandlers
             loadButton: btnLoad,
             settingButton: btnSetting,
             helpButton: btnHelp,
+            returnButton: btnReturn,
             quitButton: btnQuit,
             onSave: OnSavePressed,
             onLoad: OnLoadPressed,
@@ -119,10 +176,11 @@ public partial class HUD : Control, IHudEventHandlers
                 PublishMenuEvent(UiMenuHelpEventType);
                 ToggleHelpTutorial();
             },
+            onReturn: () => PublishMenuEvent(UiMenuReturnEventType),
             onQuit: () => PublishMenuEvent(UiMenuQuitEventType));
         _settingsMenuController.Bind();
 
-        _playersPanelController = new PlayersPanelController(GetNode<VBoxContainer>("PlayersPanel/VBox/PlayersList"));
+        _playersPanelController = new PlayersPanelController(GetNode<VBoxContainer>("TopBar/TopStack/PlayersPanel/VBox/PlayersList"));
 
         _actionPanel = GetNodeOrNull<Control>("ActionPanel");
         var actionTitle = GetNodeOrNull<Label>("ActionPanel/VBox/ActionTitle");
@@ -130,6 +188,7 @@ public partial class HUD : Control, IHudEventHandlers
         var skipActionButton = GetNodeOrNull<Button>("ActionPanel/VBox/SkipButton");
 
         _toast = GetNodeOrNull<EventToast>("EventToast");
+        _resultPopup = GetNodeOrNull<EventResultPopup>("EventResultPopup");
         _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
         var guidePanel = GetNodeOrNull<PanelContainer>("GuideHintPanel");
         var guideTitle = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideTitle");
@@ -143,6 +202,35 @@ public partial class HUD : Control, IHudEventHandlers
             _logVisible = ff != null && ff.IsEnabled(EventLogOverlayFlag);
             _logPanel.Visible = _logVisible;
         }
+        logButton.Pressed += ToggleEventLogOverlay;
+        if (_logPanel == null)
+        {
+            logButton.Disabled = true;
+        }
+
+        MoveOverlayToBottom(settingsMenu);
+        MoveOverlayToBottom(_toast);
+        MoveOverlayToBottom(_resultPopup);
+        MoveOverlayToBottom(_logPanel);
+        MoveOverlayToBottom(guidePanel);
+        MoveOverlayToBottom(guideOverlay);
+        MoveOverlayToBottom(_actionPanel);
+        CallDeferred(nameof(AttachOverlaysToBottom));
+
+        ApplyLocalizedTexts(
+            gameSettingsButton,
+            logButton,
+            btnResume,
+            btnSave,
+            btnLoad,
+            btnSetting,
+            btnHelp,
+            btnReturn,
+            btnQuit,
+            actionTitle,
+            skipActionButton,
+            guideTitle,
+            guideText);
 
         if (guidePanel != null && guideTitle != null && guideText != null && guideOverlay != null)
         {
@@ -164,8 +252,6 @@ public partial class HUD : Control, IHudEventHandlers
                 guideCloseButton.Text = TranslateOrFallback("ui.guide.close");
                 guideCloseButton.Pressed += () =>
                 {
-                    EnableGuideText = false;
-                    EnableGuideHighlight = false;
                     guidePanel.Visible = false;
                     guideOverlay.Visible = false;
                 };
@@ -274,14 +360,14 @@ public partial class HUD : Control, IHudEventHandlers
 
         if (_actionPanelController != null && _actionPanelController.IsAwaitingTileAction())
         {
-            _toast?.ShowMessage("Please choose a tile action or Skip.");
+            _toast?.ShowMessage(TranslateOrFallback(UiHudToastChooseActionKey, "Please choose a tile action or Skip."));
             return;
         }
 
         var playerId = _activePlayerId ?? "";
         if (string.IsNullOrWhiteSpace(playerId))
         {
-            _toast?.ShowMessage("Game is starting. Please wait...");
+            _toast?.ShowMessage(TranslateOrFallback(UiHudToastGameStartingKey, "Game is starting. Please wait..."));
             GD.PushWarning("HUD: ActivePlayerId is not known; not publishing ui.hud.dice.roll");
             return;
         }
@@ -307,7 +393,7 @@ public partial class HUD : Control, IHudEventHandlers
 
         if (_actionPanelController != null && _actionPanelController.IsAwaitingTileAction())
         {
-            _toast?.ShowMessage("Please choose a tile action or Skip.");
+            _toast?.ShowMessage(TranslateOrFallback(UiHudToastChooseActionKey, "Please choose a tile action or Skip."));
             return;
         }
 
@@ -333,7 +419,7 @@ public partial class HUD : Control, IHudEventHandlers
 
         if (_actionPanelController != null && _actionPanelController.IsAwaitingTileAction())
         {
-            _toast?.ShowMessage("Please choose a tile action or Skip.");
+            _toast?.ShowMessage(TranslateOrFallback(UiHudToastChooseActionKey, "Please choose a tile action or Skip."));
             return;
         }
 
@@ -452,8 +538,83 @@ public partial class HUD : Control, IHudEventHandlers
             relicLabelById,
             eventLabelById,
             eventPoolLabelById);
+        if (ShouldShowResultPopup(type))
+        {
+            var autoHide = ResolvePopupAutoHideSeconds(type, root);
+            _resultPopup?.ShowMessage(explanation.SummaryText, autoHide);
+        }
         _toast?.ShowMessage(explanation.SummaryText);
         _logPanel?.Append(explanation);
+    }
+
+    private double? ResolvePopupAutoHideSeconds(string type, JsonElement root)
+    {
+        if (_resultPopup == null)
+        {
+            return null;
+        }
+
+        if (!IsAiEvent(type, root))
+        {
+            return null;
+        }
+
+        return Math.Max(0.5, _resultPopup.AutoHideSeconds * 0.5);
+    }
+
+    private static bool ShouldShowResultPopup(string type)
+        => ResultPopupEventTypes.Contains(type)
+           || string.Equals(type, SanguoAiDecisionMade.EventType, StringComparison.Ordinal);
+
+    private static bool IsAiEvent(string type, JsonElement root)
+    {
+        if (string.Equals(type, SanguoAiDecisionMade.EventType, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        var ids = new[]
+        {
+            TryGetStringLoose(root, "AiPlayerId"),
+            TryGetStringLoose(root, "PlayerId"),
+            TryGetStringLoose(root, "BuyerId"),
+            TryGetStringLoose(root, "OwnerId"),
+            TryGetStringLoose(root, "PayerId"),
+        };
+
+        foreach (var id in ids)
+        {
+            if (!string.IsNullOrWhiteSpace(id) && IsAiPlayerId(id))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string? TryGetStringLoose(JsonElement obj, string expectedName)
+    {
+        if (obj.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        foreach (var p in obj.EnumerateObject())
+        {
+            var name = p.Name;
+            if (string.Equals(name, expectedName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(name.Trim(), expectedName, StringComparison.OrdinalIgnoreCase))
+            {
+                if (p.Value.ValueKind == JsonValueKind.String)
+                {
+                    return p.Value.GetString();
+                }
+                return p.Value.ValueKind == JsonValueKind.Null ? null : p.Value.ToString();
+            }
+        }
+
+        return null;
     }
 
     private static string TranslateOrFallback(string key)
@@ -472,6 +633,97 @@ public partial class HUD : Control, IHudEventHandlers
         return key;
     }
 
+    private static string TranslateOrFallback(string key, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return fallback;
+        }
+
+        var translated = TranslationServer.Translate(key);
+        if (string.IsNullOrWhiteSpace(translated) || string.Equals(translated, key, StringComparison.Ordinal))
+        {
+            return fallback;
+        }
+
+        return translated;
+    }
+
+    private void ApplyLocalizedTexts(
+        Button gameSettingsButton,
+        Button logButton,
+        Button btnResume,
+        Button btnSave,
+        Button btnLoad,
+        Button btnSetting,
+        Button btnHelp,
+        Button btnReturn,
+        Button btnQuit,
+        Label? actionTitle,
+        Button? skipActionButton,
+        Label? guideTitle,
+        Label? guideText)
+    {
+        _playerPrefix = TranslateOrFallback(UiHudPlayerPrefixKey, "Player");
+        _datePrefix = TranslateOrFallback(UiHudDatePrefixKey, "Date");
+        _moneyPrefix = TranslateOrFallback(UiHudMoneyPrefixKey, "Money");
+        _scorePrefix = TranslateOrFallback(UiHudScorePrefixKey, "Score");
+        _healthPrefix = TranslateOrFallback(UiHudHealthPrefixKey, "HP");
+        _diceRollLabel = TranslateOrFallback(UiHudDiceRollKey, "Roll Dice");
+        _diceWaitingLabel = TranslateOrFallback(UiHudDiceWaitingKey, "Waiting...");
+        _diceAiLabel = TranslateOrFallback(UiHudDiceAiKey, "AI Turn");
+        _diceValueLabel = TranslateOrFallback(UiHudDiceValueKey, "Dice");
+
+        _activePlayer.Text = $"{_playerPrefix}: -";
+        _date.Text = $"{_datePrefix}: -";
+        _money.Text = $"{_moneyPrefix}: -";
+        _score.Text = $"{_scorePrefix}: 0";
+        _health.Text = $"{_healthPrefix}: 100";
+        _diceButton.Text = _diceWaitingLabel;
+
+        gameSettingsButton.Text = TranslateOrFallback(UiHudGameSettingsKey, "Game Settings");
+        logButton.Text = TranslateOrFallback(UiHudLogKey, "Log");
+        var playersTitle = GetNodeOrNull<Label>("TopBar/TopStack/PlayersPanel/VBox/PlayersTitle");
+        if (playersTitle != null)
+        {
+            playersTitle.Text = TranslateOrFallback(UiHudPlayersTitleKey, "Players");
+        }
+
+        var settingsTitle = GetNodeOrNull<Label>("SettingsMenu/Center/Panel/VBox/Title");
+        if (settingsTitle != null)
+        {
+            settingsTitle.Text = TranslateOrFallback(UiHudSettingsTitleKey, "Game Settings");
+        }
+
+        btnResume.Text = TranslateOrFallback(UiHudSettingsResumeKey, "Resume");
+        btnSave.Text = TranslateOrFallback(UiHudSettingsSaveKey, "Save");
+        btnLoad.Text = TranslateOrFallback(UiHudSettingsLoadKey, "Load");
+        btnSetting.Text = TranslateOrFallback(UiHudSettingsSettingKey, "Setting");
+        btnHelp.Text = TranslateOrFallback(UiHudSettingsHelpKey, "Help");
+        btnReturn.Text = TranslateOrFallback(UiHudSettingsReturnKey, "Back to Menu");
+        btnQuit.Text = TranslateOrFallback(UiHudSettingsQuitKey, "Quit");
+
+        if (actionTitle != null)
+        {
+            actionTitle.Text = TranslateOrFallback(UiHudActionTitleKey, "Tile Actions");
+        }
+
+        if (skipActionButton != null)
+        {
+            skipActionButton.Text = TranslateOrFallback(UiHudActionSkipKey, "Skip");
+        }
+
+        if (guideTitle != null)
+        {
+            guideTitle.Text = TranslateOrFallback(UiHudGuideTitleKey, "Guide");
+        }
+
+        if (guideText != null)
+        {
+            guideText.Text = TranslateOrFallback(UiHudGuideStepKey, "Step");
+        }
+    }
+
     private Control? FindControlByPath(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -480,6 +732,39 @@ public partial class HUD : Control, IHudEventHandlers
         }
 
         return GetNodeOrNull<Control>(path);
+    }
+
+    private void AttachOverlaysToBottom()
+    {
+        MoveOverlayToBottom(GetNodeOrNull<Control>("SettingsMenu"));
+        MoveOverlayToBottom(GetNodeOrNull<Control>("EventToast"));
+        MoveOverlayToBottom(GetNodeOrNull<Control>("EventResultPopup"));
+        MoveOverlayToBottom(GetNodeOrNull<Control>("EventLogPanel"));
+        MoveOverlayToBottom(GetNodeOrNull<Control>("GuideHintPanel"));
+        MoveOverlayToBottom(GetNodeOrNull<Control>("GuideOverlay"));
+        MoveOverlayToBottom(GetNodeOrNull<Control>("ActionPanel"));
+    }
+
+    private void MoveOverlayToBottom(Node? node)
+    {
+        if (node == null)
+        {
+            return;
+        }
+
+        var overlayRoot = GetNodeOrNull<Control>("/root/Main/SplitRoot/BottomArea/BoardArea/Overlays/HudOverlay");
+        if (overlayRoot == null)
+        {
+            return;
+        }
+
+        if (node.GetParent() == overlayRoot)
+        {
+            return;
+        }
+
+        node.GetParent()?.RemoveChild(node);
+        overlayRoot.AddChild(node);
     }
 
     private void TryConnectBus(Callable callable)
@@ -560,8 +845,8 @@ public partial class HUD : Control, IHudEventHandlers
         _actionPanelController?.SetActivePlayerId(null);
         _actionPanelController?.HandleActivePlayerChanged(previousActive, null);
         _diceButton.Disabled = true;
-        _diceButton.Text = "Game Over";
-        _activePlayer.Text = "Name: -";
+        _diceButton.Text = TranslateOrFallback(UiHudGameOverKey, "Game Over");
+        _activePlayer.Text = $"{_playerPrefix}: -";
         if (_avatar != null)
         {
             _avatar.Texture = null;
@@ -596,12 +881,12 @@ public partial class HUD : Control, IHudEventHandlers
 
     public void HandleScore(HudScoreDto dto)
     {
-        _score.Text = $"Score: {dto.Value}";
+        _score.Text = $"{_scorePrefix}: {dto.Value}";
     }
 
     public void HandleHealth(HudHealthDto dto)
     {
-        _health.Text = $"HP: {dto.Value}";
+        _health.Text = $"{_healthPrefix}: {dto.Value}";
     }
 
     public void HandleTurn(HudTurnDto dto)
@@ -621,10 +906,12 @@ public partial class HUD : Control, IHudEventHandlers
         _activePlayerId = string.IsNullOrWhiteSpace(dto.ActivePlayerId) ? null : dto.ActivePlayerId;
         _actionPanelController?.SetActivePlayerId(_activePlayerId);
         _diceButton.Disabled = string.IsNullOrWhiteSpace(dto.ActivePlayerId) || IsAiPlayerId(dto.ActivePlayerId);
-        _diceButton.Text = string.IsNullOrWhiteSpace(dto.ActivePlayerId) ? "Roll Dice" : (IsAiPlayerId(dto.ActivePlayerId) ? "AI Turn" : "Roll Dice");
+        _diceButton.Text = string.IsNullOrWhiteSpace(dto.ActivePlayerId)
+            ? _diceRollLabel
+            : (IsAiPlayerId(dto.ActivePlayerId) ? _diceAiLabel : _diceRollLabel);
         _btnSave.Disabled = string.IsNullOrWhiteSpace(dto.ActivePlayerId);
         UpdateActivePlayerIdentityDisplay();
-        _date.Text = $"Date: {dto.Year:D4}-{dto.Month:D2}-{dto.Day:D2}";
+        _date.Text = $"{_datePrefix}: {dto.Year:D4}-{dto.Month:D2}-{dto.Day:D2}";
         _actionPanelController?.HandleActivePlayerChanged(previousActive, _activePlayerId);
     }
 
@@ -655,7 +942,7 @@ public partial class HUD : Control, IHudEventHandlers
 
         if (_activePlayerId != null && string.Equals(dto.PlayerId, _activePlayerId, StringComparison.Ordinal))
         {
-            _money.Text = $"Money: {dto.Money}";
+            _money.Text = $"{_moneyPrefix}: {dto.Money}";
         }
     }
 
@@ -668,7 +955,7 @@ public partial class HUD : Control, IHudEventHandlers
             return;
         }
 
-        _diceButton.Text = $"Dice: {dto.Value}";
+        _diceButton.Text = $"{_diceValueLabel}: {dto.Value}";
     }
 
     public void HandleGameStarted(HudGameStartedDto dto)
@@ -734,7 +1021,7 @@ public partial class HUD : Control, IHudEventHandlers
         var pid = _activePlayerId;
         if (string.IsNullOrWhiteSpace(pid))
         {
-            _activePlayer.Text = "Player: -";
+            _activePlayer.Text = $"{_playerPrefix}: -";
             if (_avatar != null)
             {
                 _avatar.Texture = null;
@@ -744,7 +1031,7 @@ public partial class HUD : Control, IHudEventHandlers
 
         if (!_characterIdByPlayerId.TryGetValue(pid, out var characterId) || string.IsNullOrWhiteSpace(characterId))
         {
-            _activePlayer.Text = $"Player: {pid}";
+            _activePlayer.Text = $"{_playerPrefix}: {pid}";
             if (_avatar != null)
             {
                 _avatar.Texture = null;
@@ -752,7 +1039,7 @@ public partial class HUD : Control, IHudEventHandlers
             return;
         }
 
-        _activePlayer.Text = $"Player: {pid}";
+        _activePlayer.Text = $"{_playerPrefix}: {pid}";
 
         if (_avatar == null)
         {
@@ -955,6 +1242,6 @@ public partial class HUD : Control, IHudEventHandlers
     }
 
     private readonly record struct TileInfo(string TileId, string TileType, string Name, string[] Actions);
-    public void SetScore(int v) => _score.Text = $"Score: {v}";
-    public void SetHealth(int v) => _health.Text = $"HP: {v}";
+    public void SetScore(int v) => _score.Text = $"{_scorePrefix}: {v}";
+    public void SetHealth(int v) => _health.Text = $"{_healthPrefix}: {v}";
 }

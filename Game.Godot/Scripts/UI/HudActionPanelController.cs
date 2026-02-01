@@ -12,6 +12,8 @@ public sealed class HudActionPanelController
 {
     private const string ActionBuild = "build";
     private const string UiTileActionSelectedEventType = "ui.sanguo.tile.action.selected";
+    private const string UiActionTilePrefixKey = "ui.hud.action.tile";
+    private const string UiActionChooseKey = "ui.hud.action.choose_or_skip";
 
     private readonly Control _actionPanel;
     private readonly Label _actionTitle;
@@ -140,7 +142,8 @@ public sealed class HudActionPanelController
         _awaitingToIndex = toIndex;
 
         _diceButton.Disabled = true;
-        _actionTitle.Text = $"Tile: {tile.Name}";
+        var tilePrefix = TranslateOrFallback(UiActionTilePrefixKey, "Tile");
+        _actionTitle.Text = $"{tilePrefix}: {TranslateOrFallback(tile.Name, tile.Name)}";
 
         foreach (var child in _actionButtons.GetChildren())
         {
@@ -158,13 +161,14 @@ public sealed class HudActionPanelController
                 continue;
             }
 
-            var btn = new Button { Text = a, FocusMode = Control.FocusModeEnum.All };
+            var label = TranslateActionLabel(a);
+            var btn = new Button { Text = label, FocusMode = Control.FocusModeEnum.All };
             btn.Pressed += () => OnTileActionPressed(playerId, toIndex, _awaitingCorrelationId, a);
             _actionButtons.AddChild(btn);
         }
 
         _actionPanel.Visible = true;
-        _toast?.ShowMessage($"Choose action for '{tile.Name}' or Skip.");
+        _toast?.ShowMessage(TranslateOrFallback(UiActionChooseKey, "Choose action or Skip."));
     }
 
     private void OnTileActionPressed(string playerId, int toIndex, string correlationId, string action)
@@ -215,6 +219,9 @@ public sealed class HudActionPanelController
     private static bool IsCityTile(TileInfo tile) =>
         string.Equals((tile.TileType ?? string.Empty).Trim(), "city", StringComparison.OrdinalIgnoreCase);
 
+    private static bool IsEventTile(TileInfo tile) =>
+        string.Equals((tile.TileType ?? string.Empty).Trim(), SanguoTileDefinition.TileTypeEvent, StringComparison.OrdinalIgnoreCase);
+
     private static bool IsBuildAction(string actionId) =>
         string.Equals((actionId ?? string.Empty).Trim(), ActionBuild, StringComparison.OrdinalIgnoreCase);
 
@@ -223,6 +230,11 @@ public sealed class HudActionPanelController
 
     private string[] FilterTileActionsForUi(string playerId, TileInfo tile)
     {
+        if (IsEventTile(tile))
+        {
+            return Array.Empty<string>();
+        }
+
         if (tile.Actions.Length == 0)
         {
             return Array.Empty<string>();
@@ -268,6 +280,33 @@ public sealed class HudActionPanelController
 
     private static bool IsAiPlayerId(string playerId)
         => !string.IsNullOrWhiteSpace(playerId) && playerId.StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
+
+    private static string TranslateActionLabel(string actionId)
+    {
+        if (string.IsNullOrWhiteSpace(actionId))
+        {
+            return string.Empty;
+        }
+
+        var key = $"ui.hud.action.{actionId.Trim().ToLowerInvariant()}";
+        return TranslateOrFallback(key, actionId);
+    }
+
+    private static string TranslateOrFallback(string key, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return fallback;
+        }
+
+        var translated = TranslationServer.Translate(key);
+        if (string.IsNullOrWhiteSpace(translated) || string.Equals(translated, key, StringComparison.Ordinal))
+        {
+            return fallback;
+        }
+
+        return translated;
+    }
 
     private readonly record struct TileInfo(string TileId, string TileType, string Name, string[] Actions);
 }

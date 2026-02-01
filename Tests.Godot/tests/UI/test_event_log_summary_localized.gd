@@ -14,6 +14,7 @@ const MONTH_SETTLED_TYPE := "core.sanguo.economy.month.settled"
 const TOKEN_MOVED_TYPE := "core.sanguo.board.token.moved"
 const GAME_ENDED_TYPE := "core.sanguo.game.ended"
 const SCORE_UPDATED_TYPE := "core.score.updated"
+const AI_DECISION_TYPE := "core.sanguo.ai.decision.made"
 const LOCALE_ZH := "zh"
 
 func before_test() -> void:
@@ -127,6 +128,9 @@ func _publish_token_moved(data_json: String) -> void:
 func _publish_game_ended(data_json: String) -> void:
 	_bus.PublishSimple(GAME_ENDED_TYPE, "ut", data_json)
 
+func _publish_ai_decision_made(data_json: String) -> void:
+	_bus.PublishSimple(AI_DECISION_TYPE, "ut", data_json)
+
 func test_event_log_summary_is_localized_and_avoids_raw_tokens() -> void:
 	var original_locale := ""
 	if TranslationServer.has_method("get_locale"):
@@ -180,7 +184,9 @@ func test_random_event_summary_is_localized_and_avoids_raw_tokens() -> void:
 
 	var source_label := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_source", "trigger_source")
 	var source_value := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_source.tile", "tile")
-	assert_str(summary).contains(source_label + "=" + source_value)
+	var pool_name := _try_translate("event_pool.default.name")
+	var expected_source := pool_name if pool_name.length() > 0 else source_value
+	assert_str(summary).contains(source_label + "=" + expected_source)
 
 	var round_label := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_round", "trigger_round")
 	assert_str(summary).contains(round_label + "=7")
@@ -536,6 +542,44 @@ func test_game_ended_summary_is_localized_and_avoids_raw_tokens() -> void:
 	assert_str(summary).not_contains(GAME_ENDED_TYPE)
 	assert_str(summary).not_contains("end_reason")
 	assert_str(summary).not_contains("winner_player_id")
+
+	if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
+		TranslationServer.set_locale(original_locale)
+
+func test_ai_decision_summary_is_localized_and_avoids_raw_tokens() -> void:
+	var original_locale := ""
+	if TranslationServer.has_method("get_locale"):
+		original_locale = String(TranslationServer.get_locale())
+	if TranslationServer.has_method("set_locale"):
+		TranslationServer.set_locale(LOCALE_ZH)
+
+	var hud = await _hud()
+	_publish_ai_decision_made("{\"GameId\":\"g1\",\"AiPlayerId\":\"ai-1\",\"DecisionType\":\"RollDice\",\"DecisionNode\":\"sanguo.ai.decision.roll_unless_blocked.v1\",\"FromState\":\"RollDice\",\"ToState\":\"RollDice\",\"Reason\":\"rules_allow_roll\",\"OccurredAt\":\"2025-01-01T00:00:00Z\",\"CorrelationId\":\"c1\"}")
+	for _i in range(10):
+		await get_tree().process_frame
+		var pending := _event_log_messages(hud)
+		if pending.size() > 0:
+			break
+
+	var items := _event_log_messages(hud)
+	assert_int(items.size()).is_greater_equal(1)
+	var summary := str(items[items.size() - 1])
+	var summary_label := _translate_summary(AI_DECISION_TYPE)
+	assert_str(summary).contains(summary_label)
+
+	var player_label := _translate_field(AI_DECISION_TYPE, "detail", "ai_player_id", "ai_player_id")
+	var decision_label := _translate_field(AI_DECISION_TYPE, "detail", "decision_type", "decision_type")
+	var reason_label := _translate_field(AI_DECISION_TYPE, "detail", "reason", "reason")
+	var decision_value := _translate_token("decision_type", "RollDice")
+	var reason_value := _translate_field(AI_DECISION_TYPE, "detail", "reason_code.rules_allow_roll", "rules_allow_roll")
+
+	assert_str(summary).contains(player_label + "=ai-1")
+	assert_str(summary).contains(decision_label + "=" + decision_value)
+	assert_str(summary).contains(reason_label + "=" + reason_value)
+
+	assert_str(summary).not_contains(AI_DECISION_TYPE)
+	assert_str(summary).not_contains("RollDice")
+	assert_str(summary).not_contains("rules_allow_roll")
 
 	if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
 		TranslationServer.set_locale(original_locale)
