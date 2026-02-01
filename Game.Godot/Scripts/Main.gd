@@ -138,7 +138,7 @@ func _on_domain_event(type: String, source: String, data_json: String, id: Strin
             # Default gameplay uses the always-present Main scene (HUD + board view).
             # Avoid switching to placeholder screens that can block input.
     elif type == "ui.menu.settings":
-        var sp = get_node_or_null("/root/Main/SettingsPanel")
+        var sp = get_node_or_null("/root/Main/SettingsLayer/SettingsPanel")
         if sp != null and sp.has_method("ShowPanel"):
             sp.ShowPanel()
     elif type == "ui.menu.help":

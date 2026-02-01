@@ -9,8 +9,8 @@ namespace Game.Godot.Scripts.UI;
 public partial class SettlementScreen : Control
 {
     private const string RootEventBusPath = "/root/EventBus";
-    private const string RootMainMenuPath = "/root/Main/MainMenu";
-    private const string RootMainMenuPlayButtonPath = "/root/Main/MainMenu/VBox/BtnPlay";
+    private const string RootMainMenuPath = "/root/Main/MenuLayer/MainMenu";
+    private const string RootMainMenuPlayButtonPath = "/root/Main/MenuLayer/MainMenu/MenuRow/MenuBox/BtnPlay";
 
     private static readonly JsonDocumentOptions JsonParseOptions = new()
     {

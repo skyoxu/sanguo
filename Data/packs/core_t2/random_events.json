@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 3,
+  "version": 4,
   "eventPools": [
     {
       "poolId": "default",
@@ -14,7 +14,8 @@
         "event_money_small",
         "event_money_medium",
         "event_money_loss"
-      ]
+      ],
+      "nameKey": "event_pool.default.name"
     },
     {
       "poolId": "global",
@@ -25,7 +26,8 @@
         "event_money_small",
         "event_money_medium",
         "event_money_loss"
-      ]
+      ],
+      "nameKey": "event_pool.global.name"
     }
   ],
   "events": [

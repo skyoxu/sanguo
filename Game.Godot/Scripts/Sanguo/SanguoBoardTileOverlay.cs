@@ -24,6 +24,7 @@ internal sealed class SanguoBoardTileOverlay
     private readonly Dictionary<int, string> _ownerByIndex = new();
     private readonly Dictionary<int, string> _tileTypeByIndex = new();
     private readonly Dictionary<int, string> _baseLabelByIndex = new();
+    private int _hoverIndex = -1;
 
     internal SanguoBoardTileOverlay(Node2D root)
     {
@@ -82,6 +83,38 @@ internal sealed class SanguoBoardTileOverlay
         for (var i = 0; i < layout.TotalPositions; i++)
         {
             ApplyOwner(i, string.Empty);
+        }
+    }
+
+    internal void SetHoverIndex(SanguoBoardLayout layout, int index)
+    {
+        var next = index;
+        if (next >= 0)
+        {
+            next = layout.ClampIndex(next);
+        }
+
+        if (next == _hoverIndex)
+        {
+            return;
+        }
+
+        var previous = _hoverIndex;
+        _hoverIndex = next;
+
+        if (!_built)
+        {
+            return;
+        }
+
+        if (previous >= 0)
+        {
+            ApplyOwnerColor(previous, _ownerByIndex.TryGetValue(previous, out var owner) ? owner : string.Empty);
+        }
+
+        if (next >= 0)
+        {
+            ApplyOwnerColor(next, _ownerByIndex.TryGetValue(next, out var owner) ? owner : string.Empty);
         }
     }
 
@@ -216,7 +249,13 @@ internal sealed class SanguoBoardTileOverlay
         var ownerColor = string.Equals(ownerId, "p1", StringComparison.Ordinal)
             ? HumanColor
             : (SanguoGlueJson.IsAiPlayerId(ownerId) ? AiColor : TileUnowned);
-        tile.Color = string.IsNullOrWhiteSpace(ownerId) ? baseColor : baseColor.Lerp(ownerColor, 0.65f);
+        var blended = string.IsNullOrWhiteSpace(ownerId) ? baseColor : baseColor.Lerp(ownerColor, 0.65f);
+        if (index == _hoverIndex)
+        {
+            blended = blended.Lerp(Colors.White, 0.35f);
+        }
+
+        tile.Color = blended;
     }
 
     private void EnsureOwnerLabelForIndex(SanguoBoardLayout layout, int index, Vector2 tileLocalPosition)

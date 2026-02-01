@@ -26,12 +26,21 @@ public static class EventExplainService
         Func<string, string?>? regionLabelById = null,
         Func<string, string?>? cardLabelById = null,
         Func<string, string?>? relicLabelById = null,
-        Func<string, string?>? eventLabelById = null)
+        Func<string, string?>? eventLabelById = null,
+        Func<string, string?>? eventPoolLabelById = null)
     {
         var correlationId = TryGetStringLoose(root, "CorrelationId");
         var causationId = TryGetStringLoose(root, "CausationId");
 
-        var summary = BuildSummary(type, root, tileLabelById, regionLabelById, cardLabelById, relicLabelById, eventLabelById);
+        var summary = BuildSummary(
+            type,
+            root,
+            tileLabelById,
+            regionLabelById,
+            cardLabelById,
+            relicLabelById,
+            eventLabelById,
+            eventPoolLabelById);
         var details = BuildDetails(
             type,
             root,
@@ -41,6 +50,7 @@ public static class EventExplainService
             cardLabelById,
             relicLabelById,
             eventLabelById,
+            eventPoolLabelById,
             source,
             eventId,
             timestampIso,
@@ -66,7 +76,8 @@ public static class EventExplainService
         Func<string, string?>? regionLabelById,
         Func<string, string?>? cardLabelById,
         Func<string, string?>? relicLabelById,
-        Func<string, string?>? eventLabelById)
+        Func<string, string?>? eventLabelById,
+        Func<string, string?>? eventPoolLabelById)
     {
         var prefix = BuildSummaryPrefix(type);
         var multiplierSuffix = BuildAppliedMultipliersSuffix(type, root);
@@ -145,7 +156,7 @@ public static class EventExplainService
             var resolvedPickedId = !string.IsNullOrWhiteSpace(pickedId) ? pickedId : eventId;
             var pickedLabelKey = !string.IsNullOrWhiteSpace(pickedId) ? "picked_id" : "event_id";
             var pickedLabelValue = ResolveNamedValue(eventLabelById, resolvedPickedId);
-            var sourceLabel = ResolveRandomEventSourceLabel(type, root, resolvedPickedId);
+            var sourceLabel = ResolveRandomEventSourceLabel(type, root, resolvedPickedId, eventPoolLabelById);
             var roundNumber = TryGetRoundNumber(root);
             var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
             var stepDelta = TryGetIntLoose(root, "StepDelta");
@@ -637,6 +648,7 @@ public static class EventExplainService
         Func<string, string?>? cardLabelById,
         Func<string, string?>? relicLabelById,
         Func<string, string?>? eventLabelById,
+        Func<string, string?>? eventPoolLabelById,
         string source,
         string eventId,
         string timestampIso,
@@ -780,7 +792,11 @@ public static class EventExplainService
             AddFact(facts, type, root, "EncounterTarget", "encounter_target");
             AddFact(facts, type, root, "UiMessage", "prompt_message");
 
-            var sourceLabel = ResolveRandomEventSourceLabel(type, root, TryGetStringLoose(root, "PickedId") ?? TryGetStringLoose(root, "EventId"));
+            var sourceLabel = ResolveRandomEventSourceLabel(
+                type,
+                root,
+                TryGetStringLoose(root, "PickedId") ?? TryGetStringLoose(root, "EventId"),
+                eventPoolLabelById);
             if (!string.IsNullOrWhiteSpace(sourceLabel))
             {
                 var label = TranslateField(type, "detail", "trigger_source", "source");
@@ -1260,6 +1276,22 @@ public static class EventExplainService
         return TranslateOrFallback("ui.hud.event.shared.detail.unknown", "unknown");
     }
 
+    private static string? ResolveNamedLabel(Func<string, string?>? resolver, string? id)
+    {
+        if (resolver == null || string.IsNullOrWhiteSpace(id))
+        {
+            return null;
+        }
+
+        var key = resolver(id);
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return null;
+        }
+
+        return TryTranslate(key);
+    }
+
     private static string ResolveNamedValue(Func<string, string?>? resolver, string? id)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -1439,12 +1471,23 @@ public static class EventExplainService
         AddSummaryPart(parts, eventType, fieldKey, fallback, FormatDecimal(value.Value));
     }
 
-    private static string? ResolveRandomEventSourceLabel(string eventType, JsonElement root, string? eventId)
+    private static string? ResolveRandomEventSourceLabel(
+        string eventType,
+        JsonElement root,
+        string? eventId,
+        Func<string, string?>? eventPoolLabelById)
     {
         var token = ResolveRandomEventSourceToken(root, eventId);
         if (string.IsNullOrWhiteSpace(token))
         {
             return null;
+        }
+
+        var poolId = string.Equals(token, "global", StringComparison.Ordinal) ? "global" : "default";
+        var poolLabel = ResolveNamedLabel(eventPoolLabelById, poolId);
+        if (!string.IsNullOrWhiteSpace(poolLabel))
+        {
+            return poolLabel;
         }
 
         var key = token == "global" ? "trigger_source.global" : "trigger_source.tile";
