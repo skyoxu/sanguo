@@ -13,6 +13,7 @@ public partial class EventResultPopup : Control
     private Button _closeButton = default!;
     private SceneTreeTimer? _hideTimer;
     private readonly Queue<ResultMessage> _queue = new();
+    private bool _resumeOnHide;
 
     public override void _Ready()
     {
@@ -44,6 +45,7 @@ public partial class EventResultPopup : Control
     private void Display(ResultMessage entry)
     {
         _message.Text = entry.Text;
+        PauseGameIfNeeded();
         Visible = true;
         RestartTimer(entry.AutoHideSeconds ?? AutoHideSeconds);
     }
@@ -58,7 +60,7 @@ public partial class EventResultPopup : Control
             return;
         }
 
-        _hideTimer = GetTree().CreateTimer(seconds);
+        _hideTimer = GetTree().CreateTimer(seconds, true);
         _hideTimer.Timeout += OnAutoHideTimeout;
     }
 
@@ -80,10 +82,38 @@ public partial class EventResultPopup : Control
 
         if (_queue.Count == 0)
         {
+            ResumeGameIfNeeded();
             return;
         }
 
         Display(_queue.Dequeue());
+    }
+
+    private void PauseGameIfNeeded()
+    {
+        var tree = GetTree();
+        if (tree == null || tree.Paused)
+        {
+            return;
+        }
+
+        tree.Paused = true;
+        _resumeOnHide = true;
+    }
+
+    private void ResumeGameIfNeeded()
+    {
+        if (!_resumeOnHide)
+        {
+            return;
+        }
+
+        var tree = GetTree();
+        if (tree != null)
+        {
+            tree.Paused = false;
+        }
+        _resumeOnHide = false;
     }
 
     private static string TranslateOrFallback(string key, string fallback)
