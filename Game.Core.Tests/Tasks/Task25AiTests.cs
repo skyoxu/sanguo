@@ -46,8 +46,8 @@ public sealed class Task25AiTests
             policyA.Decide(viewRich),
             policyA.Decide(viewRich),
         };
-        seqA.Should().OnlyContain(d => d.DecisionNode == "sanguo.ai.decision.roll_skip.v1");
-        seqA.Should().OnlyContain(d => d.Reason == "alternate_per_player");
+        seqA.Should().OnlyContain(d => d.DecisionNode == "sanguo.ai.decision.roll_unless_blocked.v1");
+        seqA.Should().OnlyContain(d => d.Reason == "rules_allow_roll");
 
         var policyB = new DefaultSanguoAiDecisionPolicy();
         var seqB = new[]
@@ -59,7 +59,7 @@ public sealed class Task25AiTests
 
         seqA.Select(d => d.DecisionType).Should().Equal(
             SanguoAiDecisionType.RollDice,
-            SanguoAiDecisionType.Skip,
+            SanguoAiDecisionType.RollDice,
             SanguoAiDecisionType.RollDice);
 
         seqA.Should().Equal(seqB, "the baseline policy is expected to ignore Money/Position/OwnedCityIds and be reproducible for the same PlayerId");
@@ -80,9 +80,9 @@ public sealed class Task25AiTests
         var baseline = new DefaultSanguoAiDecisionPolicy();
         _ = baseline.Decide(view);
         var baselineSecond = baseline.Decide(view);
-        baselineSecond.DecisionType.Should().Be(SanguoAiDecisionType.Skip, "the baseline policy currently alternates decisions");
-        baselineSecond.DecisionNode.Should().Be("sanguo.ai.decision.roll_skip.v1");
-        baselineSecond.Reason.Should().Be("alternate_per_player");
+        baselineSecond.DecisionType.Should().Be(SanguoAiDecisionType.RollDice);
+        baselineSecond.DecisionNode.Should().Be("sanguo.ai.decision.roll_unless_blocked.v1");
+        baselineSecond.Reason.Should().Be("rules_allow_roll");
 
         var optimized = new OptimizedSanguoAiDecisionPolicy();
         _ = optimized.Decide(view);

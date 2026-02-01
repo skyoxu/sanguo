@@ -419,7 +419,7 @@ public sealed class Task17TurnTests
     // ACC:T17.11
     [Fact]
     [Trait("acceptance", "ACC:T17.11")]
-    public void ShouldUseExplicitAiStateMachineAndNotAlwaysPickSameAction_WhenAiIsNotEliminated()
+    public void ShouldRollDice_WhenAiIsNotEliminated()
     {
         var policy = new DefaultSanguoAiDecisionPolicy();
         var view = new SanguoPlayerView(
@@ -434,16 +434,13 @@ public sealed class Task17TurnTests
         var third = policy.Decide(view);
 
         first.DecisionType.Should().Be(SanguoAiDecisionType.RollDice);
-        second.DecisionType.Should().Be(SanguoAiDecisionType.Skip);
+        second.DecisionType.Should().Be(SanguoAiDecisionType.RollDice);
         third.DecisionType.Should().Be(SanguoAiDecisionType.RollDice);
 
-        first.DecisionNode.Should().NotBeNullOrWhiteSpace();
+        first.DecisionNode.Should().Be("sanguo.ai.decision.roll_unless_blocked.v1");
         first.FromState.Should().Be("RollDice");
-        first.ToState.Should().Be("Skip");
-        first.Reason.Should().NotBeNullOrWhiteSpace();
-
-        second.FromState.Should().Be("Skip");
-        second.ToState.Should().Be("RollDice");
+        first.ToState.Should().Be("RollDice");
+        first.Reason.Should().Be("rules_allow_roll");
 
         // Deterministic: for a fixed input sequence, two fresh policies should produce the same decisions.
         var policyA = new DefaultSanguoAiDecisionPolicy();
