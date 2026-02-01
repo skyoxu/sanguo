@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://Game.Godot/Scripts/UI/HUD.cs" id="1"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/UI/EventToast.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/UI/EventLogPanel.tscn" id="3"]
 [ext_resource type="Script" path="res://Game.Godot/Scripts/UI/GuideHighlightOverlay.cs" id="4"]
+[ext_resource type="Script" path="res://Game.Godot/Scripts/UI/EventResultPopup.cs" id="5"]
 
 [node name="HUD" type="Control"]
 layout_mode = 3
@@ -12,12 +13,66 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+clip_contents = true
 script = ExtResource("1")
 
 [node name="EventToast" parent="." instance=ExtResource("2")]
 
 [node name="EventLogPanel" parent="." instance=ExtResource("3")]
 visible = false
+
+[node name="EventResultPopup" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+z_index = 120
+script = ExtResource("5")
+
+[node name="Backdrop" type="ColorRect" parent="EventResultPopup"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
+mouse_filter = 0
+
+[node name="Center" type="CenterContainer" parent="EventResultPopup"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Panel" type="PanelContainer" parent="EventResultPopup/Center"]
+layout_mode = 2
+custom_minimum_size = Vector2(420, 180)
+mouse_filter = 0
+
+[node name="VBox" type="VBoxContainer" parent="EventResultPopup/Center/Panel"]
+layout_mode = 2
+offset_left = 16.0
+offset_top = 12.0
+offset_right = -16.0
+offset_bottom = -12.0
+
+[node name="Message" type="Label" parent="EventResultPopup/Center/Panel/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+horizontal_alignment = 1
+text = ""
+
+[node name="CloseButton" type="Button" parent="EventResultPopup/Center/Panel/VBox"]
+layout_mode = 2
+text = "Close"
 
 [node name="GuideOverlay" type="Control" parent="."]
 layout_mode = 3
@@ -67,78 +122,90 @@ text = "Close"
 
 [node name="TopBar" type="Control" parent="."]
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
 offset_top = 8.0
 offset_left = 8.0
 offset_right = -8.0
+offset_bottom = -8.0
+clip_contents = true
 
-[node name="HBox" type="HBoxContainer" parent="TopBar"]
+[node name="TopStack" type="VBoxContainer" parent="TopBar"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HBox" type="HBoxContainer" parent="TopBar/TopStack"]
 layout_mode = 2
 offset_left = 0.0
 offset_top = 0.0
 offset_right = 400.0
 offset_bottom = 32.0
 
-[node name="Avatar" type="TextureRect" parent="TopBar/HBox"]
+[node name="Avatar" type="TextureRect" parent="TopBar/TopStack/HBox"]
 custom_minimum_size = Vector2(28, 28)
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ActivePlayerLabel" type="Label" parent="TopBar/HBox"]
+[node name="ActivePlayerLabel" type="Label" parent="TopBar/TopStack/HBox"]
 layout_mode = 2
 text = "Player: -"
 
-[node name="DateLabel" type="Label" parent="TopBar/HBox"]
+[node name="DateLabel" type="Label" parent="TopBar/TopStack/HBox"]
 visible = true
 layout_mode = 2
 text = "Date: -"
 
-[node name="MoneyLabel" type="Label" parent="TopBar/HBox"]
+[node name="MoneyLabel" type="Label" parent="TopBar/TopStack/HBox"]
 layout_mode = 2
 text = "Money: -"
 
-[node name="ScoreLabel" type="Label" parent="TopBar/HBox"]
+[node name="ScoreLabel" type="Label" parent="TopBar/TopStack/HBox"]
 visible = false
 layout_mode = 2
 text = "Score: 0"
 
-[node name="HealthLabel" type="Label" parent="TopBar/HBox"]
+[node name="HealthLabel" type="Label" parent="TopBar/TopStack/HBox"]
 visible = false
 layout_mode = 2
 text = "HP: 100"
 
-[node name="DiceButton" type="Button" parent="TopBar/HBox"]
+[node name="DiceButton" type="Button" parent="TopBar/TopStack/HBox"]
 layout_mode = 2
 text = "Roll Dice"
 
-[node name="GameSettingsButton" type="Button" parent="TopBar/HBox"]
+[node name="GameSettingsButton" type="Button" parent="TopBar/TopStack/HBox"]
 layout_mode = 2
 text = "Game Settings"
 
-[node name="PlayersPanel" type="PanelContainer" parent="."]
-layout_mode = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -260.0
-offset_top = 48.0
-offset_right = -8.0
-offset_bottom = 240.0
+[node name="LogButton" type="Button" parent="TopBar/TopStack/HBox"]
+layout_mode = 2
+text = "Log"
+
+[node name="PlayersPanel" type="PanelContainer" parent="TopBar/TopStack"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 140)
 mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="PlayersPanel"]
+[node name="VBox" type="VBoxContainer" parent="TopBar/TopStack/PlayersPanel"]
 layout_mode = 2
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 244.0
 offset_bottom = 184.0
 
-[node name="PlayersTitle" type="Label" parent="PlayersPanel/VBox"]
+[node name="PlayersTitle" type="Label" parent="TopBar/TopStack/PlayersPanel/VBox"]
 layout_mode = 2
 text = "Players"
 
-[node name="PlayersList" type="VBoxContainer" parent="PlayersPanel/VBox"]
+[node name="PlayersList" type="VBoxContainer" parent="TopBar/TopStack/PlayersPanel/VBox"]
 layout_mode = 2
 
 [node name="SettingsMenu" type="Control" parent="."]
@@ -149,7 +216,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
+mouse_filter = 0
 z_index = 50
 
 [node name="Backdrop" type="ColorRect" parent="SettingsMenu"]
@@ -169,12 +236,12 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
+mouse_filter = 0
 
 [node name="Panel" type="PanelContainer" parent="SettingsMenu/Center"]
 layout_mode = 2
 custom_minimum_size = Vector2(320, 300)
-mouse_filter = 2
+mouse_filter = 0
 
 [node name="VBox" type="VBoxContainer" parent="SettingsMenu/Center/Panel"]
 layout_mode = 2
@@ -207,6 +274,10 @@ text = "Setting"
 [node name="BtnHelp" type="Button" parent="SettingsMenu/Center/Panel/VBox"]
 layout_mode = 2
 text = "Help"
+
+[node name="BtnReturn" type="Button" parent="SettingsMenu/Center/Panel/VBox"]
+layout_mode = 2
+text = "Return"
 
 [node name="BtnQuit" type="Button" parent="SettingsMenu/Center/Panel/VBox"]
 layout_mode = 2

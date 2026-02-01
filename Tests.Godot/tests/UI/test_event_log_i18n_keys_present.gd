@@ -51,6 +51,13 @@ const _EVENT_KEYS: PackedStringArray = [
 	"ui.hud.event.core.sanguo.game.loaded.summary",
 	"ui.hud.event.core.sanguo.player.eliminated.title",
 	"ui.hud.event.core.sanguo.player.eliminated.summary",
+	"ui.hud.event.core.sanguo.ai.decision.made.title",
+	"ui.hud.event.core.sanguo.ai.decision.made.summary",
+	"ui.hud.event.core.sanguo.ai.decision.made.detail.ai_player_id",
+	"ui.hud.event.core.sanguo.ai.decision.made.detail.decision_type",
+	"ui.hud.event.core.sanguo.ai.decision.made.detail.reason",
+	"ui.hud.event.core.sanguo.ai.decision.made.detail.reason_code.rules_allow_roll",
+	"ui.hud.event.core.sanguo.ai.decision.made.detail.reason_code.self_is_eliminated",
 	"ui.hud.event.core.sanguo.action_card.played.detail.game_id",
 	"ui.hud.event.core.sanguo.action_card.played.detail.turn",
 	"ui.hud.event.core.sanguo.action_card.played.detail.round",
@@ -160,6 +167,8 @@ const _EVENT_KEYS: PackedStringArray = [
 	"ui.hud.event.shared.detail.reason_code.bought",
 	"ui.hud.event.shared.detail.reason_code.already_played_this_turn",
 	"ui.hud.event.shared.detail.reason_code.bankrupt",
+	"ui.hud.event.shared.detail.decision_type.roll_dice",
+	"ui.hud.event.shared.detail.decision_type.skip",
 ]
 
 const _LOCALES: PackedStringArray = ["en", "zh"]

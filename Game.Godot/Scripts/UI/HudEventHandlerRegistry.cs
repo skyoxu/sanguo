@@ -96,6 +96,7 @@ public static class HudEventHandlerRegistry
         });
 
         controller.Register(SanguoCityOwnerChanged.EventType, _ => handlers.HandleUiOnly());
+        controller.Register(SanguoAiDecisionMade.EventType, _ => handlers.HandleUiOnly());
         controller.Register(SanguoActionCardPlayed.EventType, _ => handlers.HandleUiOnly());
         controller.Register(SanguoCombatStarted.EventType, _ => handlers.HandleUiOnly());
         controller.Register(SanguoCombatEnded.EventType, _ => handlers.HandleUiOnly());

@@ -31,6 +31,7 @@ public partial class SanguoGameLoopController : Node
 
     private const string UiMenuStart = "ui.menu.start";
     private const string UiMenuQuit = "ui.menu.quit";
+    private const string UiMenuReturn = "ui.menu.return";
     private const string UiMenuStartFailed = "ui.menu.start.failed";
     private const string UiHudDiceRoll = "ui.hud.dice.roll";
     private const string UiHudSave = "ui.hud.save";
@@ -48,13 +49,13 @@ public partial class SanguoGameLoopController : Node
     private const string DefaultMusicLoopId = "res://Game.Godot/Assets/Audio/music_loop.wav";
 
     [Export(PropertyHint.Range, "0,30,0.1,or_greater")]
-    public double AiAutoAdvanceDelaySeconds { get; set; } = 5.0;
+    public double AiAutoAdvanceDelaySeconds { get; set; } = 2.5;
 
     [Export(PropertyHint.Range, "0,30,0.1,or_greater")]
-    public double AiAutoAdvanceDelaySecondsWhenSkip { get; set; } = 5.0;
+    public double AiAutoAdvanceDelaySecondsWhenSkip { get; set; } = 2.5;
 
     [Export]
-    public NodePath BoardViewPath { get; set; } = new NodePath("../SanguoBoardView");
+    public NodePath BoardViewPath { get; set; } = new NodePath("../SplitRoot/BottomArea/BoardArea/BoardViewportContainer/BoardViewport/SanguoBoardView");
 
     private EventBusAdapter? _bus;
     private AudioPlayerAdapter? _audio;
@@ -153,6 +154,7 @@ public partial class SanguoGameLoopController : Node
             type == UiHudSave ||
             type == UiHudLoad ||
             type == UiMenuStart ||
+            type == UiMenuReturn ||
             type == UiMenuQuit ||
             type == UiHudDiceRoll ||
             type == UiTileActionSelected ||
@@ -165,14 +167,13 @@ public partial class SanguoGameLoopController : Node
 
         if (type == SanguoGameEnded.EventType)
         {
-            _started = false;
-            _turnManager = null;
-            _advanceQueued = false;
-            _activePlayerId = null;
-            _aiAutoAdvanceRequested = false;
-            _awaitingHumanTileAction = false;
-            _awaitingHumanActionCorrelationId = string.Empty;
-            _lastHumanMoveCorrelationId = string.Empty;
+            ResetRuntimeState();
+            return;
+        }
+
+        if (type == UiMenuReturn)
+        {
+            ResetRuntimeState();
             return;
         }
 
@@ -1154,6 +1155,19 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
+    private void ResetRuntimeState()
+    {
+        _started = false;
+        _turnManager = null;
+        _advanceQueued = false;
+        _activePlayerId = null;
+        _aiAutoAdvanceRequested = false;
+        _awaitingHumanTileAction = false;
+        _awaitingHumanActionCorrelationId = string.Empty;
+        _lastHumanMoveCorrelationId = string.Empty;
+        _lastHumanMoveToIndex = 0;
+    }
+
     private IDataStore? ResolveDataStore()
     {
         try
@@ -1368,6 +1382,13 @@ public partial class SanguoGameLoopController : Node
         _actionsByIndex.Clear();
         foreach (var tile in map.Tiles)
         {
+            var tileType = (tile.TileType ?? string.Empty).Trim();
+            if (string.Equals(tileType, SanguoTileDefinition.TileTypeEvent, StringComparison.OrdinalIgnoreCase))
+            {
+                _actionsByIndex[tile.PositionIndex] = Array.Empty<string>();
+                continue;
+            }
+
             if (tile.Actions is null)
             {
                 _actionsByIndex[tile.PositionIndex] = Array.Empty<string>();
