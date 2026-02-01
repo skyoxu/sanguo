@@ -358,3 +358,4 @@ ui.hud.event.core.sanguo.ai.decision.made.detail.reason_code.rules_allow_roll,Ru
 ui.hud.event.core.sanguo.ai.decision.made.detail.reason_code.self_is_eliminated,Eliminated
 ui.hud.event.shared.detail.decision_type.roll_dice,Roll dice
 ui.hud.event.shared.detail.decision_type.skip,Skip
+ui.hud.event.shared.detail.reason_code.not_owned,Card not owned

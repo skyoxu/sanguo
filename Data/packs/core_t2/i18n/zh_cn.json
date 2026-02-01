@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 17,
+  "version": 18,
   "locale": "zh-CN",
   "strings": {
     "building.building_barracks.desc": "提升过路费，适合军事风格的城池。",
@@ -252,6 +252,14 @@
     "ui.city_status.unowned": "无主",
     "ui.city_status.owner": "归属",
     "ui.hud.settings.return": "返回主菜单",
-    "ui.hud.log": "日志"
+    "ui.hud.log": "日志",
+    "ui.hud.cards": "卡牌",
+    "ui.hud.cards.title": "卡牌",
+    "ui.hud.cards.empty": "暂无卡牌",
+    "ui.hud.cards.use": "使用",
+    "ui.hud.cards.close": "关闭",
+    "ui.hud.cards.confirm_text": "确认使用卡牌",
+    "ui.hud.cards.confirm_use": "使用",
+    "ui.hud.cards.confirm_cancel": "取消"
   }
 }
