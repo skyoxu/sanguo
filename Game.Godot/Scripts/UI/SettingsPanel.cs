@@ -28,6 +28,15 @@ public partial class SettingsPanel : Control
     private const string KeyLanguage = "lang";
     private const string KeyResolution = "resolution";
     private const string KeyWindowMode = "window_mode";
+    private const string GraphicsLowKey = "ui.settings.graphics.low";
+    private const string GraphicsMediumKey = "ui.settings.graphics.medium";
+    private const string GraphicsHighKey = "ui.settings.graphics.high";
+    private const string LanguageEnKey = "ui.settings.language.en";
+    private const string LanguageZhKey = "ui.settings.language.zh";
+    private const string LanguageJaKey = "ui.settings.language.ja";
+    private const string WindowModeWindowedKey = "ui.settings.window_mode.windowed";
+    private const string WindowModeFullscreenKey = "ui.settings.window_mode.fullscreen";
+    private const string WindowModeExclusiveKey = "ui.settings.window_mode.exclusive_fullscreen";
 
     private Vector2I _lastValidResolution;
     private DisplayServer.WindowMode _lastValidWindowMode;
@@ -46,20 +55,8 @@ public partial class SettingsPanel : Control
         _save.Pressed += OnSave;
         _close.Pressed += () => Visible = false;
 
-        if (_graphics.ItemCount == 0)
-        {
-            _graphics.AddItem("low");
-            _graphics.AddItem("medium");
-            _graphics.AddItem("high");
-            _graphics.Selected = 1;
-        }
-        if (_language.ItemCount == 0)
-        {
-            _language.AddItem("en");
-            _language.AddItem("zh");
-            _language.AddItem("ja");
-            _language.Selected = 0;
-        }
+        SetupGraphicsOptions();
+        SetupLanguageOptions();
 
         // Realtime apply handlers
         _volume.ValueChanged += OnVolumeChanged;
@@ -151,10 +148,10 @@ public partial class SettingsPanel : Control
     private void OnSave()
     {
         var vol = Mathf.Clamp((float)_volume.Value, 0, 1);
-        var gfx = _graphics.GetItemText(_graphics.Selected);
-        var lang = _language.GetItemText(_language.Selected);
+        var gfx = GetSelectedOptionValue(_graphics, "medium");
+        var lang = GetSelectedOptionValue(_language, "en");
         var res = _resolution.GetItemText(_resolution.Selected);
-        var mode = _windowMode.GetItemText(_windowMode.Selected);
+        var mode = GetSelectedOptionValue(_windowMode, "windowed");
         // SSoT to ConfigFile
         SaveToConfig(vol, gfx, lang, res, mode);
 
@@ -181,22 +178,14 @@ public partial class SettingsPanel : Control
         // graphics selection
         if (!string.IsNullOrEmpty(gfx))
         {
-            for (int i = 0; i < _graphics.ItemCount; i++)
-            {
-                if (_graphics.GetItemText(i).Equals(gfx, StringComparison.OrdinalIgnoreCase))
-                { _graphics.Selected = i; break; }
-            }
+            SelectOptionByValue(_graphics, gfx);
         }
-        ApplyGraphicsQuality(_graphics.GetItemText(_graphics.Selected));
+        ApplyGraphicsQuality(GetSelectedOptionValue(_graphics, "medium"));
         // language
         if (!string.IsNullOrEmpty(lang))
         {
-            for (int i = 0; i < _language.ItemCount; i++)
-            {
-                if (_language.GetItemText(i).Equals(lang, StringComparison.OrdinalIgnoreCase))
-                { _language.Selected = i; break; }
-            }
-            ApplyLanguage(_language.GetItemText(_language.Selected));
+            SelectOptionByValue(_language, lang);
+            ApplyLanguage(GetSelectedOptionValue(_language, "en"));
         }
 
         ApplyResolution(ParseResolutionOrFallback(res));
@@ -216,13 +205,13 @@ public partial class SettingsPanel : Control
 
     private void OnGraphicsChanged(long index)
     {
-        var gfx = _graphics.GetItemText((int)index);
+        var gfx = GetOptionValueAtIndex(_graphics, (int)index, "medium");
         ApplyGraphicsQuality(gfx);
     }
 
     private void OnLanguageChanged(long index)
     {
-        var lang = _language.GetItemText((int)index);
+        var lang = GetOptionValueAtIndex(_language, (int)index, "en");
         ApplyLanguage(lang);
     }
 
@@ -234,7 +223,7 @@ public partial class SettingsPanel : Control
 
     private void OnWindowModeChanged(long index)
     {
-        var mode = _windowMode.GetItemText((int)index);
+        var mode = GetOptionValueAtIndex(_windowMode, (int)index, "windowed");
         ApplyWindowMode(ParseWindowModeOrFallback(mode));
     }
 
@@ -265,6 +254,7 @@ public partial class SettingsPanel : Control
         SetLabelText("Center/VBox/WindowModeRow/WindowModeLabel", "ui.settings.window_mode", "Window Mode");
         SetButtonText("Center/VBox/Buttons/SaveBtn", "ui.settings.save", "Save");
         SetButtonText("Center/VBox/Buttons/CloseBtn", "ui.settings.close", "Close");
+        ApplyLocalizedOptions();
     }
 
     private void SetLabelText(string path, string key, string fallback)
@@ -350,12 +340,9 @@ public partial class SettingsPanel : Control
 
     private void SetupWindowModeOptions()
     {
-        if (_windowMode.ItemCount == 0)
-        {
-            _windowMode.AddItem("windowed");
-            _windowMode.AddItem("fullscreen");
-            _windowMode.AddItem("exclusive_fullscreen");
-        }
+        EnsureOption(_windowMode, "windowed", WindowModeWindowedKey, "windowed");
+        EnsureOption(_windowMode, "fullscreen", WindowModeFullscreenKey, "fullscreen");
+        EnsureOption(_windowMode, "exclusive_fullscreen", WindowModeExclusiveKey, "exclusive_fullscreen");
 
         var current = SafeGetWindowMode();
         _lastValidWindowMode = current;
@@ -528,20 +515,119 @@ public partial class SettingsPanel : Control
 
     private void SelectWindowMode(DisplayServer.WindowMode mode)
     {
-        var label = mode switch
+        var value = mode switch
         {
             DisplayServer.WindowMode.Fullscreen => "fullscreen",
             DisplayServer.WindowMode.ExclusiveFullscreen => "exclusive_fullscreen",
             _ => "windowed",
         };
-        for (int i = 0; i < _windowMode.ItemCount; i++)
+        SelectOptionByValue(_windowMode, value);
+    }
+
+    private void SetupGraphicsOptions()
+    {
+        EnsureOption(_graphics, "low", GraphicsLowKey, "low");
+        EnsureOption(_graphics, "medium", GraphicsMediumKey, "medium");
+        EnsureOption(_graphics, "high", GraphicsHighKey, "high");
+        if (_graphics.Selected < 0)
         {
-            if (string.Equals(_windowMode.GetItemText(i), label, StringComparison.OrdinalIgnoreCase))
+            _graphics.Selected = 1;
+        }
+    }
+
+    private void SetupLanguageOptions()
+    {
+        EnsureOption(_language, "en", LanguageEnKey, "en");
+        EnsureOption(_language, "zh", LanguageZhKey, "zh");
+        EnsureOption(_language, "ja", LanguageJaKey, "ja");
+        if (_language.Selected < 0)
+        {
+            _language.Selected = 0;
+        }
+    }
+
+    private void ApplyLocalizedOptions()
+    {
+        UpdateOptionLabel(_graphics, "low", GraphicsLowKey, "low");
+        UpdateOptionLabel(_graphics, "medium", GraphicsMediumKey, "medium");
+        UpdateOptionLabel(_graphics, "high", GraphicsHighKey, "high");
+        UpdateOptionLabel(_language, "en", LanguageEnKey, "en");
+        UpdateOptionLabel(_language, "zh", LanguageZhKey, "zh");
+        UpdateOptionLabel(_language, "ja", LanguageJaKey, "ja");
+        UpdateOptionLabel(_windowMode, "windowed", WindowModeWindowedKey, "windowed");
+        UpdateOptionLabel(_windowMode, "fullscreen", WindowModeFullscreenKey, "fullscreen");
+        UpdateOptionLabel(_windowMode, "exclusive_fullscreen", WindowModeExclusiveKey, "exclusive_fullscreen");
+    }
+
+    private static void EnsureOption(OptionButton option, string value, string key, string fallback)
+    {
+        var idx = FindOptionIndexByValue(option, value);
+        if (idx < 0)
+        {
+            option.AddItem(TranslateOrFallback(key, fallback));
+            idx = option.ItemCount - 1;
+            option.SetItemMetadata(idx, value);
+            return;
+        }
+
+        option.SetItemText(idx, TranslateOrFallback(key, fallback));
+    }
+
+    private static void UpdateOptionLabel(OptionButton option, string value, string key, string fallback)
+    {
+        var idx = FindOptionIndexByValue(option, value);
+        if (idx < 0)
+        {
+            return;
+        }
+
+        option.SetItemText(idx, TranslateOrFallback(key, fallback));
+    }
+
+    private static int FindOptionIndexByValue(OptionButton option, string value)
+    {
+        for (int i = 0; i < option.ItemCount; i++)
+        {
+            var meta = option.GetItemMetadata(i);
+            if (meta.VariantType == Variant.Type.String && string.Equals(meta.AsString(), value, StringComparison.OrdinalIgnoreCase))
             {
-                _windowMode.Selected = i;
-                return;
+                return i;
             }
         }
-        _windowMode.Selected = 0;
+        return -1;
+    }
+
+    private static void SelectOptionByValue(OptionButton option, string value)
+    {
+        var idx = FindOptionIndexByValue(option, value);
+        if (idx >= 0)
+        {
+            option.Selected = idx;
+            return;
+        }
+
+        option.Selected = 0;
+    }
+
+    private static string GetSelectedOptionValue(OptionButton option, string fallback)
+    {
+        return GetOptionValueAtIndex(option, option.Selected, fallback);
+    }
+
+    private static string GetOptionValueAtIndex(OptionButton option, int index, string fallback)
+    {
+        if (option.ItemCount == 0 || index < 0 || index >= option.ItemCount)
+        {
+            return fallback;
+        }
+
+        var meta = option.GetItemMetadata(index);
+        if (meta.VariantType == Variant.Type.String)
+        {
+            return meta.AsString();
+        }
+
+        var text = option.GetItemText(index);
+        return string.IsNullOrWhiteSpace(text) ? fallback : text;
     }
 }

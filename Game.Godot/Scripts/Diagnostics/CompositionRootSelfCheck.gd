@@ -86,7 +86,7 @@ func _run() -> void:
             await process_frame
             if typeof(main) == TYPE_OBJECT:
                 var has_menu := main.get_node_or_null("MenuLayer/MainMenu") != null
-                var has_hud := main.get_node_or_null("HudLayer/HUD") != null
+                var has_hud := main.get_node_or_null("SplitRoot/TopArea/HudLayer/HUD") != null
                 var has_settings := main.get_node_or_null("SettingsLayer/SettingsPanel") != null
                 var has_nav := main.get_node_or_null("ScreenNavigator") != null
                 result["ui"]["mainMenu"] = has_menu

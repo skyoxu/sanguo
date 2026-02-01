@@ -13,11 +13,13 @@ public sealed class HudSettingsMenuController
     private readonly Button _loadButton;
     private readonly Button _settingButton;
     private readonly Button _helpButton;
+    private readonly Button _returnButton;
     private readonly Button _quitButton;
     private readonly Action _onSave;
     private readonly Action _onLoad;
     private readonly Action _onSetting;
     private readonly Action _onHelp;
+    private readonly Action _onReturn;
     private readonly Action _onQuit;
 
     public HudSettingsMenuController(
@@ -29,11 +31,13 @@ public sealed class HudSettingsMenuController
         Button loadButton,
         Button settingButton,
         Button helpButton,
+        Button returnButton,
         Button quitButton,
         Action onSave,
         Action onLoad,
         Action onSetting,
         Action onHelp,
+        Action onReturn,
         Action onQuit)
     {
         _owner = owner ?? throw new ArgumentNullException(nameof(owner));
@@ -44,11 +48,13 @@ public sealed class HudSettingsMenuController
         _loadButton = loadButton ?? throw new ArgumentNullException(nameof(loadButton));
         _settingButton = settingButton ?? throw new ArgumentNullException(nameof(settingButton));
         _helpButton = helpButton ?? throw new ArgumentNullException(nameof(helpButton));
+        _returnButton = returnButton ?? throw new ArgumentNullException(nameof(returnButton));
         _quitButton = quitButton ?? throw new ArgumentNullException(nameof(quitButton));
         _onSave = onSave ?? throw new ArgumentNullException(nameof(onSave));
         _onLoad = onLoad ?? throw new ArgumentNullException(nameof(onLoad));
         _onSetting = onSetting ?? throw new ArgumentNullException(nameof(onSetting));
         _onHelp = onHelp ?? throw new ArgumentNullException(nameof(onHelp));
+        _onReturn = onReturn ?? throw new ArgumentNullException(nameof(onReturn));
         _onQuit = onQuit ?? throw new ArgumentNullException(nameof(onQuit));
     }
 
@@ -63,6 +69,7 @@ public sealed class HudSettingsMenuController
         _loadButton.Pressed += OnLoadPressed;
         _settingButton.Pressed += OnSettingPressed;
         _helpButton.Pressed += OnHelpPressed;
+        _returnButton.Pressed += OnReturnPressed;
         _quitButton.Pressed += OnQuitPressed;
     }
 
@@ -74,6 +81,7 @@ public sealed class HudSettingsMenuController
         _loadButton.Pressed -= OnLoadPressed;
         _settingButton.Pressed -= OnSettingPressed;
         _helpButton.Pressed -= OnHelpPressed;
+        _returnButton.Pressed -= OnReturnPressed;
         _quitButton.Pressed -= OnQuitPressed;
 
         if (_owner.GetTree().Paused)
@@ -99,5 +107,11 @@ public sealed class HudSettingsMenuController
     private void OnLoadPressed() => _onLoad();
     private void OnSettingPressed() => _onSetting();
     private void OnHelpPressed() => _onHelp();
+    private void OnReturnPressed()
+    {
+        _menu.Visible = false;
+        _owner.GetTree().Paused = false;
+        _onReturn();
+    }
     private void OnQuitPressed() => _onQuit();
 }

@@ -6,11 +6,16 @@ namespace Game.Godot.Scripts.UI;
 
 public partial class EventLogPanel : PanelContainer
 {
+    private const string TitleKey = "ui.event_log.title";
+    private const string DetailsKey = "ui.event_log.details";
+
     [Export(PropertyHint.Range, "1,200,1")]
     public int MaxEntries { get; set; } = 50;
 
     private ItemList _list = default!;
     private Label? _details;
+    private Label? _titleLabel;
+    private Label? _detailsLabel;
     private readonly List<EventExplanation> _entries = new();
     private string _latestDetailText = string.Empty;
 
@@ -18,8 +23,40 @@ public partial class EventLogPanel : PanelContainer
     {
         _list = GetNode<ItemList>("Margin/VBox/EventList");
         _details = GetNodeOrNull<Label>("Margin/VBox/Details/Scroll/DetailsText");
+        _titleLabel = GetNodeOrNull<Label>("Margin/VBox/TitleLabel");
+        _detailsLabel = GetNodeOrNull<Label>("Margin/VBox/Details/DetailsLabel");
 
         _list.ItemSelected += OnItemSelected;
+        ApplyLocalizedTexts();
+    }
+
+    private void ApplyLocalizedTexts()
+    {
+        if (_titleLabel != null)
+        {
+            _titleLabel.Text = TranslateOrFallback(TitleKey, "Events");
+        }
+
+        if (_detailsLabel != null)
+        {
+            _detailsLabel.Text = TranslateOrFallback(DetailsKey, "Details");
+        }
+    }
+
+    private static string TranslateOrFallback(string key, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return fallback;
+        }
+
+        var translated = TranslationServer.Translate(key);
+        if (string.IsNullOrWhiteSpace(translated) || string.Equals(translated, key, StringComparison.Ordinal))
+        {
+            return fallback;
+        }
+
+        return translated;
     }
 
     public void Append(EventExplanation explanation)

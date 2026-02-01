@@ -167,11 +167,27 @@ public partial class SanguoBoardView : Node2D
         UpdateHover();
     }
 
+    public override void _Input(InputEvent @event)
+    {
+        if (HandlePointerInput(@event))
+        {
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
     public override void _UnhandledInput(InputEvent @event)
+    {
+        if (HandlePointerInput(@event))
+        {
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    private bool HandlePointerInput(InputEvent @event)
     {
         if (!EnableMousePan && !EnableWheelScroll)
         {
-            return;
+            return false;
         }
 
         if (@event is InputEventMouseButton mouseButton)
@@ -182,22 +198,23 @@ public partial class SanguoBoardView : Node2D
                 if (delta != Vector2.Zero)
                 {
                     ApplyPanDelta(delta);
-                    GetViewport().SetInputAsHandled();
-                    return;
+                    return true;
                 }
             }
 
             if (EnableMousePan && mouseButton.ButtonIndex == PanButton)
             {
                 _isPanning = mouseButton.Pressed;
-                GetViewport().SetInputAsHandled();
+                return true;
             }
         }
         else if (EnableMousePan && _isPanning && @event is InputEventMouseMotion motion)
         {
             ApplyPanDelta(-motion.Relative * DragSpeed);
-            GetViewport().SetInputAsHandled();
+            return true;
         }
+
+        return false;
     }
 
     public void ApplyMapDefinition(SanguoMapDefinition map)
@@ -581,7 +598,7 @@ public partial class SanguoBoardView : Node2D
             ? (_layout.LayoutEdgeSteps * StepPixels + StepPixels)
             : 56f;
         var origin = _layout.Origin + new Vector2(-StepPixels * 0.5f, -StepPixels * 0.5f);
-        _cameraBounds = new Rect2(GlobalPosition + origin, new Vector2(width, height));
+        _cameraBounds = new Rect2(origin, new Vector2(width, height));
         _cameraBoundsValid = true;
     }
 
@@ -592,7 +609,21 @@ public partial class SanguoBoardView : Node2D
             return;
         }
 
-        _cameraTarget = _cameraBounds.Position + _cameraBounds.Size * 0.5f;
+        var viewSize = GetViewport().GetVisibleRect().Size;
+        var half = viewSize * 0.5f;
+        var padding = new Vector2(CameraBoundsPadding, CameraBoundsPadding);
+        var min = _cameraBounds.Position + half - padding;
+        var max = _cameraBounds.Position + _cameraBounds.Size - half + padding;
+
+        var centerX = _cameraBounds.Position.X + _cameraBounds.Size.X * 0.5f;
+        var targetX = min.X > max.X
+            ? centerX
+            : Math.Clamp(centerX, min.X, max.X);
+        var targetY = min.Y > max.Y
+            ? (_cameraBounds.Position.Y + _cameraBounds.Size.Y * 0.5f)
+            : min.Y;
+
+        _cameraTarget = new Vector2(targetX, targetY);
         _camera.Position = _cameraTarget;
     }
 
@@ -636,27 +667,27 @@ public partial class SanguoBoardView : Node2D
             return;
         }
 
-        var mouse = GetGlobalMousePosition();
+        var mouse = GetLocalMousePosition();
         var maxDistSq = HoverDetectRadiusPixels * HoverDetectRadiusPixels;
         var nearestIndex = -1;
         var nearestPos = Vector2.Zero;
 
         for (var i = 0; i < _layout.TotalPositions; i++)
         {
-            var worldPos = GlobalPosition + _layout.GetBasePositionForIndex(i);
-            var distSq = mouse.DistanceSquaredTo(worldPos);
+            var localPos = _layout.GetBasePositionForIndex(i);
+            var distSq = mouse.DistanceSquaredTo(localPos);
             if (distSq <= maxDistSq)
             {
                 maxDistSq = distSq;
                 nearestIndex = i;
-                nearestPos = worldPos;
+                nearestPos = localPos;
             }
         }
 
         ApplyHoverIndex(nearestIndex, nearestPos);
     }
 
-    private void ApplyHoverIndex(int index, Vector2 worldPos)
+    private void ApplyHoverIndex(int index, Vector2 localPos)
     {
         if (index != _hoverIndex)
         {
@@ -687,7 +718,6 @@ public partial class SanguoBoardView : Node2D
 
         _hoverTooltip.Text = tooltipText;
         _hoverTooltip.Visible = true;
-        var localPos = ToLocal(worldPos);
         _hoverTooltip.Position = localPos + new Vector2(12f, -20f);
     }
 

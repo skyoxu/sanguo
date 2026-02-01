@@ -155,9 +155,9 @@ public sealed class HudGuideController
             2 => _diceButton,
             3 => _toastControl ?? _logPanelControl,
             4 => _actionPanel != null && _actionPanel.Visible ? _actionPanel : _moneyLabel,
-            5 => _findControl("/root/Main/Overlays/SanguoBattleView/Panel")
+            5 => _findControl("/root/Main/SplitRoot/BottomArea/BoardArea/Overlays/SanguoBattleView/Panel")
                  ?? _findControl("/root/Main/SanguoBattleView/Panel"),
-            6 => _findControl("/root/Main/Overlays/SettlementScreen/Center/Panel")
+            6 => _findControl("/root/Main/SplitRoot/BottomArea/BoardArea/Overlays/SettlementScreen/Center/Panel")
                  ?? _findControl("/root/Main/SettlementScreen/Center/Panel"),
             _ => null
         };

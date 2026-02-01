@@ -23,7 +23,7 @@ public partial class DemoScreen : Control
         _btnGoSettings.Pressed += OnGoSettings;
 
         // Locate overlays container in Main scene
-        _overlays = GetNodeOrNull<Control>("/root/Main/Overlays");
+        _overlays = GetNodeOrNull<Control>("/root/Main/SplitRoot/BottomArea/BoardArea/Overlays");
 
         // If Modal/Toast exist under this screen, reparent them under Overlays for proper layering
         var modalLocal = GetNodeOrNull<Control>("Modal");
@@ -56,14 +56,14 @@ public partial class DemoScreen : Control
 
     private void OnToast()
     {
-        var node = _toast ?? GetNodeOrNull<Control>("/root/Main/Overlays/Toast");
+        var node = _toast ?? GetNodeOrNull<Control>("/root/Main/SplitRoot/BottomArea/BoardArea/Overlays/Toast");
         if (node != null && node.HasMethod("ShowToast"))
             node.Call("ShowToast", "Hello from Toast!", 2.0);
     }
 
     private void OnModal()
     {
-        var node = _modal ?? GetNodeOrNull<Control>("/root/Main/Overlays/Modal");
+        var node = _modal ?? GetNodeOrNull<Control>("/root/Main/SplitRoot/BottomArea/BoardArea/Overlays/Modal");
         if (node != null && node.HasMethod("Open"))
             node.Call("Open", "Are you ready?");
     }
