@@ -8,7 +8,11 @@ public static class HudEventDtoMapper
 {
     public static bool TryParseGameStarted(JsonElement root, out HudGameStartedDto dto)
     {
-        dto = new HudGameStartedDto(new Dictionary<string, string>(StringComparer.Ordinal));
+        dto = new HudGameStartedDto(
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            Array.Empty<string>(),
+            0,
+            0);
 
         if (!root.TryGetProperty("game_start_config", out var configElement) || configElement.ValueKind != JsonValueKind.Object)
         {
@@ -37,7 +41,19 @@ public static class HudEventDtoMapper
             assignments[playerId] = characterId;
         }
 
-        dto = new HudGameStartedDto(assignments);
+        var playersCount = TryGetInt(configElement, "players_count", out var parsedCount) ? parsedCount : assignments.Count;
+        var startingMoney = TryGetInt(configElement, "starting_money_preset", out var parsedMoney) ? parsedMoney : 0;
+        var playerIds = new List<string>(assignments.Keys);
+        playerIds.Sort(StringComparer.Ordinal);
+        if (playerIds.Count == 0 && playersCount > 0)
+        {
+            for (var i = 1; i <= playersCount; i++)
+            {
+                playerIds.Add($"p{i}");
+            }
+        }
+
+        dto = new HudGameStartedDto(assignments, playerIds, playersCount, startingMoney);
         return true;
     }
 

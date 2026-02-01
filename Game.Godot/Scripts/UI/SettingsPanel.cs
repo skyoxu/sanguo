@@ -18,7 +18,6 @@ public partial class SettingsPanel : Control
     private OptionButton _resolution = default!;
     private OptionButton _windowMode = default!;
     private Button _save = default!;
-    private Button _load = default!;
     private Button _close = default!;
 
     private const string UserId = "default";
@@ -35,17 +34,16 @@ public partial class SettingsPanel : Control
 
     public override void _Ready()
     {
-        _volume = GetNode<HSlider>("VBox/VolRow/VolSlider");
-        _graphics = GetNode<OptionButton>("VBox/GraphicsRow/GraphicsOpt");
-        _language = GetNode<OptionButton>("VBox/LangRow/LangOpt");
-        _resolution = GetNode<OptionButton>("VBox/ResolutionRow/ResolutionOpt");
-        _windowMode = GetNode<OptionButton>("VBox/WindowModeRow/WindowModeOpt");
-        _save = GetNode<Button>("VBox/Buttons/SaveBtn");
-        _load = GetNode<Button>("VBox/Buttons/LoadBtn");
-        _close = GetNode<Button>("VBox/Buttons/CloseBtn");
+        ProcessMode = Node.ProcessModeEnum.Always;
+        _volume = GetNode<HSlider>("Center/VBox/VolRow/VolSlider");
+        _graphics = GetNode<OptionButton>("Center/VBox/GraphicsRow/GraphicsOpt");
+        _language = GetNode<OptionButton>("Center/VBox/LangRow/LangOpt");
+        _resolution = GetNode<OptionButton>("Center/VBox/ResolutionRow/ResolutionOpt");
+        _windowMode = GetNode<OptionButton>("Center/VBox/WindowModeRow/WindowModeOpt");
+        _save = GetNode<Button>("Center/VBox/Buttons/SaveBtn");
+        _close = GetNode<Button>("Center/VBox/Buttons/CloseBtn");
 
         _save.Pressed += OnSave;
-        _load.Pressed += OnLoad;
         _close.Pressed += () => Visible = false;
 
         if (_graphics.ItemCount == 0)
@@ -73,6 +71,7 @@ public partial class SettingsPanel : Control
         SetupResolutionOptions();
         SetupWindowModeOptions();
 
+        ApplyLocalizedTexts();
         Visible = false;
     }
 
@@ -167,7 +166,7 @@ public partial class SettingsPanel : Control
         ApplyWindowMode(ParseWindowModeOrFallback(mode));
     }
 
-    private void OnLoad()
+    private void LoadAndApplySettings()
     {
         // Prefer ConfigFile; migrate once from DB if missing
         float vol; string gfx; string lang; string res; string mode;
@@ -204,7 +203,11 @@ public partial class SettingsPanel : Control
         ApplyWindowMode(ParseWindowModeOrFallback(mode));
     }
 
-    public void ShowPanel() => Visible = true;
+    public void ShowPanel()
+    {
+        Visible = true;
+        LoadAndApplySettings();
+    }
 
     private void OnVolumeChanged(double value)
     {
@@ -247,7 +250,59 @@ public partial class SettingsPanel : Control
     private void ApplyLanguage(string lang)
     {
         if (!string.IsNullOrEmpty(lang))
+        {
             TranslationServer.SetLocale(lang);
+            ApplyLocalizedTexts();
+        }
+    }
+
+    private void ApplyLocalizedTexts()
+    {
+        SetLabelText("Center/VBox/VolRow/VolLabel", "ui.settings.volume", "Volume");
+        SetLabelText("Center/VBox/GraphicsRow/GraphicsLabel", "ui.settings.graphics", "Graphics");
+        SetLabelText("Center/VBox/LangRow/LangLabel", "ui.settings.language", "Language");
+        SetLabelText("Center/VBox/ResolutionRow/ResolutionLabel", "ui.settings.resolution", "Resolution");
+        SetLabelText("Center/VBox/WindowModeRow/WindowModeLabel", "ui.settings.window_mode", "Window Mode");
+        SetButtonText("Center/VBox/Buttons/SaveBtn", "ui.settings.save", "Save");
+        SetButtonText("Center/VBox/Buttons/CloseBtn", "ui.settings.close", "Close");
+    }
+
+    private void SetLabelText(string path, string key, string fallback)
+    {
+        var label = GetNodeOrNull<Label>(path);
+        if (label == null)
+        {
+            return;
+        }
+
+        label.Text = TranslateOrFallback(key, fallback);
+    }
+
+    private void SetButtonText(string path, string key, string fallback)
+    {
+        var button = GetNodeOrNull<Button>(path);
+        if (button == null)
+        {
+            return;
+        }
+
+        button.Text = TranslateOrFallback(key, fallback);
+    }
+
+    private static string TranslateOrFallback(string key, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return fallback;
+        }
+
+        var translated = TranslationServer.Translate(key);
+        if (string.IsNullOrWhiteSpace(translated) || string.Equals(translated, key, StringComparison.Ordinal))
+        {
+            return fallback;
+        }
+
+        return translated;
     }
 
     private void ApplyGraphicsQuality(string quality)
