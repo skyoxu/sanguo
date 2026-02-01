@@ -63,6 +63,7 @@ public partial class HUD : Control, IHudEventHandlers
     private readonly Dictionary<string, string> _cardNameKeyById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _relicNameKeyById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _randomEventNameKeyById = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _randomEventPoolNameKeyById = new(StringComparer.Ordinal);
 
     private readonly Dictionary<string, string> _characterIdByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _characterNameKeyById = new(StringComparer.Ordinal);
@@ -73,6 +74,7 @@ public partial class HUD : Control, IHudEventHandlers
 
     public override void _Ready()
     {
+        ProcessMode = Node.ProcessModeEnum.Always;
         _lastDateKey = -1;
         _score = GetNode<Label>("TopBar/HBox/ScoreLabel");
         _health = GetNode<Label>("TopBar/HBox/HealthLabel");
@@ -132,6 +134,7 @@ public partial class HUD : Control, IHudEventHandlers
         var guidePanel = GetNodeOrNull<PanelContainer>("GuideHintPanel");
         var guideTitle = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideTitle");
         var guideText = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideText");
+        var guideCloseButton = GetNodeOrNull<Button>("GuideHintPanel/VBox/GuideButtonRow/GuideCloseButton");
         var guideOverlay = GetNodeOrNull<GuideHighlightOverlay>("GuideOverlay");
         _logVisible = false;
         if (_logPanel != null)
@@ -156,6 +159,17 @@ public partial class HUD : Control, IHudEventHandlers
                 FindControlByPath,
                 TranslateOrFallback);
             _guideController.Initialize();
+            if (guideCloseButton != null)
+            {
+                guideCloseButton.Text = TranslateOrFallback("ui.guide.close");
+                guideCloseButton.Pressed += () =>
+                {
+                    EnableGuideText = false;
+                    EnableGuideHighlight = false;
+                    guidePanel.Visible = false;
+                    guideOverlay.Visible = false;
+                };
+            }
         }
         else
         {
@@ -382,7 +396,15 @@ public partial class HUD : Control, IHudEventHandlers
         var instance = packed?.Instantiate();
         if (instance is CanvasItem canvas)
         {
-            GetTree().Root.AddChild(canvas);
+            var helpLayer = GetNodeOrNull<Node>("/root/Main/HelpLayer");
+            if (helpLayer != null)
+            {
+                helpLayer.AddChild(canvas);
+            }
+            else
+            {
+                GetTree().Root.AddChild(canvas);
+            }
             canvas.Visible = true;
         }
     }
@@ -413,6 +435,9 @@ public partial class HUD : Control, IHudEventHandlers
         var eventLabelById = _randomEventNameKeyById.Count == 0
             ? null
             : new Func<string, string?>(eventId => _randomEventNameKeyById.TryGetValue(eventId ?? string.Empty, out var nameKey) ? nameKey : null);
+        var eventPoolLabelById = _randomEventPoolNameKeyById.Count == 0
+            ? null
+            : new Func<string, string?>(poolId => _randomEventPoolNameKeyById.TryGetValue(poolId ?? string.Empty, out var nameKey) ? nameKey : null);
 
         var explanation = EventExplainService.Explain(
             type,
@@ -425,7 +450,8 @@ public partial class HUD : Control, IHudEventHandlers
             regionLabelById,
             cardLabelById,
             relicLabelById,
-            eventLabelById);
+            eventLabelById,
+            eventPoolLabelById);
         _toast?.ShowMessage(explanation.SummaryText);
         _logPanel?.Append(explanation);
     }
@@ -658,6 +684,22 @@ public partial class HUD : Control, IHudEventHandlers
             _characterIdByPlayerId[assignment.Key] = assignment.Value;
         }
 
+        if (dto.PlayerIds != null)
+        {
+            foreach (var playerId in dto.PlayerIds)
+            {
+                if (string.IsNullOrWhiteSpace(playerId))
+                {
+                    continue;
+                }
+
+                if (!_playerStatesById.ContainsKey(playerId))
+                {
+                    _playerStatesById[playerId] = new PlayerStateSnapshot(dto.StartingMoneyPreset, 0);
+                }
+            }
+        }
+
         TryLoadCharacterCatalog();
         UpdateActivePlayerIdentityDisplay();
         UpdatePlayersList();
@@ -849,6 +891,7 @@ public partial class HUD : Control, IHudEventHandlers
         _cardNameKeyById.Clear();
         _relicNameKeyById.Clear();
         _randomEventNameKeyById.Clear();
+        _randomEventPoolNameKeyById.Clear();
 
         try
         {
@@ -894,6 +937,14 @@ public partial class HUD : Control, IHudEventHandlers
                     if (!string.IsNullOrWhiteSpace(evt.EventId))
                     {
                         _randomEventNameKeyById[evt.EventId] = evt.NameKey ?? string.Empty;
+                    }
+                }
+
+                foreach (var pool in eventsCatalog.EventPools)
+                {
+                    if (!string.IsNullOrWhiteSpace(pool.PoolId))
+                    {
+                        _randomEventPoolNameKeyById[pool.PoolId] = pool.NameKey ?? string.Empty;
                     }
                 }
             }

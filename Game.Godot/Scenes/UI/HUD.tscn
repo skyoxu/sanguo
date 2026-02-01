@@ -58,6 +58,13 @@ layout_mode = 2
 autowrap_mode = 3
 text = "Step"
 
+[node name="GuideButtonRow" type="HBoxContainer" parent="GuideHintPanel/VBox"]
+layout_mode = 2
+
+[node name="GuideCloseButton" type="Button" parent="GuideHintPanel/VBox/GuideButtonRow"]
+layout_mode = 2
+text = "Close"
+
 [node name="TopBar" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 10
@@ -143,14 +150,26 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+z_index = 50
 
-[node name="Center" type="CenterContainer" parent="SettingsMenu"]
-layout_mode = 1
+[node name="Backdrop" type="ColorRect" parent="SettingsMenu"]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+color = Color(0, 0, 0, 0.35)
+mouse_filter = 0
+
+[node name="Center" type="CenterContainer" parent="SettingsMenu"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="Panel" type="PanelContainer" parent="SettingsMenu/Center"]
 layout_mode = 2
@@ -163,7 +182,7 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = 312.0
 offset_bottom = 292.0
-mouse_filter = 2
+mouse_filter = 0
 
 [node name="Title" type="Label" parent="SettingsMenu/Center/Panel/VBox"]
 layout_mode = 2

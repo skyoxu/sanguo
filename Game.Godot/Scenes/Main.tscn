@@ -47,12 +47,20 @@ script = ExtResource("14")
 [node name="Audio" type="Node" parent="."]
 script = ExtResource("17_audio")
 
-[node name="HUD" parent="." instance=ExtResource("2")]
+[node name="HudLayer" type="CanvasLayer" parent="."]
+layer = 50
 
-[node name="MainMenu" parent="." instance=ExtResource("3")]
+[node name="HUD" parent="HudLayer" instance=ExtResource("2")]
+visible = false
+
+[node name="MenuLayer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="MainMenu" parent="MenuLayer" instance=ExtResource("3")]
 
 [node name="SanguoBoardView" parent="." instance=ExtResource("15")]
-position = Vector2(80, 360)
+position = Vector2(0, 0)
+visible = false
 
 [node name="ScreenRoot" type="Control" parent="."]
 layout_mode = 3
@@ -110,7 +118,13 @@ mouse_filter = 2
 
 
 
-[node name="SettingsPanel" parent="." instance=ExtResource("7")]
+[node name="SettingsLayer" type="CanvasLayer" parent="."]
+layer = 200
+
+[node name="SettingsPanel" parent="SettingsLayer" instance=ExtResource("7")]
+
+[node name="HelpLayer" type="CanvasLayer" parent="."]
+layer = 220
 
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 2

@@ -2,7 +2,11 @@ using System.Collections.Generic;
 
 namespace Game.Godot.Scripts.UI;
 
-public sealed record HudGameStartedDto(IReadOnlyDictionary<string, string> CharacterAssignments);
+public sealed record HudGameStartedDto(
+    IReadOnlyDictionary<string, string> CharacterAssignments,
+    IReadOnlyList<string> PlayerIds,
+    int PlayersCount,
+    int StartingMoneyPreset);
 
 public readonly record struct HudScoreDto(int Value);
 public readonly record struct HudHealthDto(int Value);

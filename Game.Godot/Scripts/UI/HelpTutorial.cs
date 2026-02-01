@@ -34,6 +34,8 @@ public partial class HelpTutorial : Control
     public override void _Ready()
     {
         AddToGroup(GroupName);
+        ProcessMode = Node.ProcessModeEnum.Always;
+        MouseFilter = Control.MouseFilterEnum.Stop;
 
         _sectionTitle = GetNode<Label>("Panel/VBox/SectionTitle");
         _content = GetNode<RichTextLabel>("Panel/VBox/Content");
@@ -106,7 +108,10 @@ public partial class HelpTutorial : Control
         _content.Text = text;
         _btnPrev.Disabled = StepKeys.Length <= 1 || (_stepIndex == 0);
         _btnNext.Disabled = StepKeys.Length <= 1;
-        _btnNext.Text = _stepIndex == LearningRouteLastIndex ? "Finish" : "Next";
+        _btnPrev.Text = TranslateOrFallback("ui.help.prev", "Prev");
+        _btnNext.Text = TranslateOrFallback(_stepIndex == LearningRouteLastIndex ? "ui.help.finish" : "ui.help.next",
+            _stepIndex == LearningRouteLastIndex ? "Finish" : "Next");
+        _btnClose.Text = TranslateOrFallback("ui.help.close", "Close");
     }
 
     private static string TranslateOrFallback(string key)

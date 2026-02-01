@@ -17,40 +17,16 @@ public partial class SettingsLoader : Node
 
     public override void _Ready()
     {
-        if (TryLoadFromConfig(out float vol, out string gfx, out string lang, out string resolution, out string windowMode))
+        if (!TryLoadFromConfig(out var vol, out var gfx, out var lang, out var resolution, out var windowMode))
         {
-            ApplyVolume(vol);
-            ApplyLanguage(lang);
-            ApplyGraphicsQuality(gfx);
-            ApplyResolution(resolution);
-            ApplyWindowMode(windowMode);
             return;
         }
 
-        var db = GetNodeOrNull<SqliteDataStore>("/root/SqlDb");
-        if (db == null) return;
-        try
-        {
-            var rows = db.Query("SELECT audio_volume, graphics_quality, language FROM settings WHERE user_id=@0;", UserId);
-            if (rows.Count == 0) return;
-            var r = rows[0];
-            if (r.TryGetValue("audio_volume", out var v) && v != null)
-            {
-                ApplyVolume((float)Convert.ToSingle(v));
-            }
-            if (r.TryGetValue("language", out var l) && l != null)
-            {
-                ApplyLanguage(l.ToString() ?? "");
-            }
-            if (r.TryGetValue("graphics_quality", out var g) && g != null)
-            {
-                ApplyGraphicsQuality(g.ToString() ?? "medium");
-            }
-        }
-        catch (Exception ex)
-        {
-            GD.PushWarning($"SettingsLoader: failed to load/apply settings from DB: {ex.GetType().Name}: {ex.Message}");
-        }
+        ApplyLanguage(lang);
+        ApplyVolume(vol);
+        ApplyGraphicsQuality(gfx);
+        ApplyResolution(resolution);
+        ApplyWindowMode(windowMode);
     }
 
     private static bool TryLoadFromConfig(out float vol, out string gfx, out string lang, out string resolution, out string windowMode)
