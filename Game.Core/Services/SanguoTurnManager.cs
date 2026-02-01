@@ -4,6 +4,7 @@ using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
 using Game.Core.Utilities;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -31,6 +32,7 @@ public sealed class SanguoTurnManager
     private readonly Dictionary<string, int> _turnEventStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _turnActionCardStepDeltasByPlayerId = new(StringComparer.Ordinal);
     private readonly SanguoActionCardsCatalog? _actionCardsCatalog;
+    private readonly Dictionary<string, Dictionary<string, int>> _actionCardsByPlayerId = new(StringComparer.Ordinal);
     private readonly SanguoBuildingsCatalog? _buildingsCatalog;
     private readonly SanguoRelicsCatalog? _relicsCatalog;
     private readonly IReadOnlyDictionary<string, SanguoBuildingDefinition> _buildingsById;
@@ -54,6 +56,8 @@ public sealed class SanguoTurnManager
     private int? _diceRolledTurnNumber;
     private readonly string _contentPackId;
     private readonly int _contentPackVersion;
+    private const int InitialActionCardCopiesPerType = 2;
+    private const int MaxActionCardsPerPlayer = 15;
 
     public SanguoTurnManager(
         IEventBus bus,
@@ -173,6 +177,7 @@ public sealed class SanguoTurnManager
         _grantedRelicIds.Clear();
         _globalRoundGate = new SanguoGlobalEventRoundGate();
         ResetRegionCaptureState();
+        ResetActionCardInventory(_playerOrder);
 
         var occurredAt = DateTimeOffset.UtcNow;
         var activePlayerId = _playerOrder[_activePlayerIndex];
@@ -369,6 +374,29 @@ public sealed class SanguoTurnManager
             return false;
         }
 
+        if (!HasActionCard(activePlayerId, cardId))
+        {
+            var rejected = new DomainEvent(
+                Type: SanguoActionCardPlayRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoActionCardPlayRejected(
+                    GameId: _gameId,
+                    TurnNumber: _turnNumber,
+                    RoundNumber: ComputeRoundNumber(_turnNumber),
+                    PlayerId: activePlayerId,
+                    Phase: SanguoTurnPhase.BeforeRoll.ToString(),
+                    CardId: cardId,
+                    ReasonCode: SanguoActionCardPlayRejected.ReasonNotOwned,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejected);
+            return false;
+        }
+
         if (string.Equals(card.EffectKind, SanguoEffectKinds.EconomyStepDelta, StringComparison.Ordinal))
         {
             var appliedAfter = CommitTurnActionCardEconomyStepDeltaAndGetSnapshot(activePlayerId, card.StepDelta);
@@ -410,6 +438,7 @@ public sealed class SanguoTurnManager
                 Id: Guid.NewGuid().ToString("N"));
             await _bus.PublishAsync(cardLost);
 
+            ConsumeActionCard(activePlayerId, cardId);
             _actionCardPlayedTurnNumber = _turnNumber;
             return true;
         }
@@ -516,6 +545,7 @@ public sealed class SanguoTurnManager
                 Id: Guid.NewGuid().ToString("N"));
             await _bus.PublishAsync(cardLost);
 
+            ConsumeActionCard(activePlayerId, cardId);
             _actionCardPlayedTurnNumber = _turnNumber;
             return true;
         }
@@ -3439,7 +3469,8 @@ public sealed class SanguoTurnManager
             CityEconomy: cityEconomy,
             TreasuryMinorUnits: _treasury.MinorUnits,
             ContentPackId: _contentPackId,
-            ContentPackVersion: _contentPackVersion
+            ContentPackVersion: _contentPackVersion,
+            ActionCardsByPlayerId: BuildActionCardsSnapshot()
         );
     }
 
@@ -3571,6 +3602,144 @@ public sealed class SanguoTurnManager
         ResetTurnScopedEventStepDeltas();
         _globalRoundGate = new SanguoGlobalEventRoundGate();
         ResetRegionCaptureState();
+        RestoreActionCardInventory(snapshot.ActionCardsByPlayerId, order);
+    }
+
+    private void ResetActionCardInventory(string[] playerOrder)
+    {
+        _actionCardsByPlayerId.Clear();
+
+        if (_actionCardsCatalog is null || _actionCardsCatalog.Cards.Count == 0)
+        {
+            return;
+        }
+
+        var cardIds = _actionCardsCatalog.Cards
+            .Select(c => (c.CardId ?? string.Empty).Trim())
+            .Where(id => id.Length != 0)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(id => id, StringComparer.Ordinal)
+            .ToArray();
+
+        foreach (var playerId in playerOrder)
+        {
+            var cards = new Dictionary<string, int>(StringComparer.Ordinal);
+            _actionCardsByPlayerId[playerId] = cards;
+
+            var remaining = MaxActionCardsPerPlayer;
+            foreach (var cardId in cardIds)
+            {
+                if (remaining <= 0)
+                {
+                    break;
+                }
+
+                var add = Math.Min(InitialActionCardCopiesPerType, remaining);
+                if (add <= 0)
+                {
+                    break;
+                }
+
+                cards[cardId] = add;
+                remaining -= add;
+            }
+        }
+    }
+
+    private void RestoreActionCardInventory(
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>>? snapshot,
+        string[] playerOrder)
+    {
+        _actionCardsByPlayerId.Clear();
+
+        if (snapshot is null)
+        {
+            ResetActionCardInventory(playerOrder);
+            return;
+        }
+
+        foreach (var playerId in playerOrder)
+        {
+            if (!snapshot.TryGetValue(playerId, out var cards) || cards is null)
+            {
+                _actionCardsByPlayerId[playerId] = new Dictionary<string, int>(StringComparer.Ordinal);
+                continue;
+            }
+
+            var restored = new Dictionary<string, int>(StringComparer.Ordinal);
+            var remaining = MaxActionCardsPerPlayer;
+            foreach (var (cardIdRaw, countRaw) in cards.OrderBy(k => k.Key, StringComparer.Ordinal))
+            {
+                var cardId = (cardIdRaw ?? string.Empty).Trim();
+                if (cardId.Length == 0 || countRaw <= 0 || remaining <= 0)
+                {
+                    continue;
+                }
+
+                var add = Math.Min(countRaw, remaining);
+                restored[cardId] = add;
+                remaining -= add;
+            }
+
+            _actionCardsByPlayerId[playerId] = restored;
+        }
+    }
+
+    private IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> BuildActionCardsSnapshot()
+    {
+        if (_actionCardsByPlayerId.Count == 0)
+        {
+            return new Dictionary<string, IReadOnlyDictionary<string, int>>(StringComparer.Ordinal);
+        }
+
+        var snapshot = new Dictionary<string, IReadOnlyDictionary<string, int>>(StringComparer.Ordinal);
+        foreach (var (playerId, cards) in _actionCardsByPlayerId)
+        {
+            var copy = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var (cardId, count) in cards)
+            {
+                if (count > 0)
+                {
+                    copy[cardId] = count;
+                }
+            }
+            snapshot[playerId] = copy;
+        }
+
+        return snapshot;
+    }
+
+    private bool HasActionCard(string playerId, string cardId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(cardId))
+        {
+            return false;
+        }
+
+        return _actionCardsByPlayerId.TryGetValue(playerId, out var cards)
+            && cards.TryGetValue(cardId, out var count)
+            && count > 0;
+    }
+
+    private void ConsumeActionCard(string playerId, string cardId)
+    {
+        if (!_actionCardsByPlayerId.TryGetValue(playerId, out var cards))
+        {
+            return;
+        }
+
+        if (!cards.TryGetValue(cardId, out var count) || count <= 0)
+        {
+            return;
+        }
+
+        if (count == 1)
+        {
+            cards.Remove(cardId);
+            return;
+        }
+
+        cards[cardId] = count - 1;
     }
 
     public async Task PublishStateSnapshotAsync(string correlationId, string? causationId)

@@ -56,6 +56,7 @@ public sealed record SanguoActionCardPlayRejected(
     public const string ReasonUnknownCardId = "unknown_card_id";
     public const string ReasonInvalidCardEffectKind = "invalid_card_effect_kind";
     public const string ReasonInvalidTarget = "invalid_target";
+    public const string ReasonNotOwned = "not_owned";
 
     /// <summary>
     /// CloudEvents type for this domain event.

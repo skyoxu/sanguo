@@ -9,6 +9,7 @@ using Game.Godot.Scripts.Sanguo;
 using Game.Godot.Scripts.Security;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace Game.Godot.Scripts.UI;
@@ -35,6 +36,14 @@ public partial class HUD : Control, IHudEventHandlers
     private const string UiHudGameOverKey = "ui.hud.game_over";
     private const string UiHudGameSettingsKey = "ui.hud.game_settings";
     private const string UiHudLogKey = "ui.hud.log";
+    private const string UiHudCardsKey = "ui.hud.cards";
+    private const string UiHudCardsTitleKey = "ui.hud.cards.title";
+    private const string UiHudCardsEmptyKey = "ui.hud.cards.empty";
+    private const string UiHudCardsUseKey = "ui.hud.cards.use";
+    private const string UiHudCardsCloseKey = "ui.hud.cards.close";
+    private const string UiHudCardsConfirmTextKey = "ui.hud.cards.confirm_text";
+    private const string UiHudCardsConfirmUseKey = "ui.hud.cards.confirm_use";
+    private const string UiHudCardsConfirmCancelKey = "ui.hud.cards.confirm_cancel";
     private const string UiHudPlayersTitleKey = "ui.hud.players";
     private const string UiHudSettingsTitleKey = "ui.hud.settings.title";
     private const string UiHudSettingsResumeKey = "ui.hud.settings.resume";
@@ -50,11 +59,14 @@ public partial class HUD : Control, IHudEventHandlers
     private const string UiHudGuideStepKey = "ui.hud.guide.step";
     private const string UiHudToastChooseActionKey = "ui.hud.toast.choose_action_or_skip";
     private const string UiHudToastGameStartingKey = "ui.hud.toast.game_starting";
+    private const string UiActionCardPlayEventType = "ui.sanguo.action_card.play";
     private const string MoneyCapAuditAction = "SANGUO_MONEY_CAPPED";
     private const string EventLogOverlayFlag = "event_log_overlay";
     private const string DefaultSaveSlotId = "quick";
     private const string HelpTutorialGroup = "help_tutorial";
     private const string HelpTutorialScenePath = "res://Game.Godot/Scenes/UI/HelpTutorial.tscn";
+    private const int InitialActionCardCopiesPerType = 2;
+    private const int MaxActionCardsPerPlayer = 15;
 
     private static readonly HashSet<string> ResultPopupEventTypes = new(StringComparer.Ordinal)
     {
@@ -81,6 +93,7 @@ public partial class HUD : Control, IHudEventHandlers
     private TextureRect? _avatar;
     private Button _diceButton = default!;
     private Button _btnSave = default!;
+    private Button? _cardsButton;
     private HudSettingsMenuController? _settingsMenuController;
     private PlayersPanelController? _playersPanelController;
     private HudEventHandlersController? _eventHandlersController;
@@ -96,6 +109,16 @@ public partial class HUD : Control, IHudEventHandlers
     private EventToast? _toast;
     private EventResultPopup? _resultPopup;
     private EventLogPanel? _logPanel;
+    private Control? _cardsPanel;
+    private VBoxContainer? _cardsList;
+    private Label? _cardsTitle;
+    private Label? _cardsEmptyLabel;
+    private Button? _cardsCloseButton;
+    private Control? _cardConfirmPanel;
+    private Label? _cardConfirmLabel;
+    private Button? _cardConfirmUseButton;
+    private Button? _cardConfirmCancelButton;
+    private string? _pendingCardId;
     private bool _logVisible;
 
     [Export] public bool EnableGuideText { get; set; } = true;
@@ -115,6 +138,8 @@ public partial class HUD : Control, IHudEventHandlers
     private readonly Dictionary<string, string> _portraitPathByCharacterId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Texture2D> _portraitCache = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PlayerStateSnapshot> _playerStatesById = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Dictionary<string, int>> _cardsByPlayerId = new(StringComparer.Ordinal);
+    private readonly List<string> _cardIds = new();
     private ResourceLoaderAdapter? _fallbackResourceLoader;
     private string _playerPrefix = "Player";
     private string _datePrefix = "Date";
@@ -144,6 +169,7 @@ public partial class HUD : Control, IHudEventHandlers
 
         var gameSettingsButton = GetNode<Button>("TopBar/TopStack/HBox/GameSettingsButton");
         var logButton = GetNode<Button>("TopBar/TopStack/HBox/LogButton");
+        var cardsButton = GetNode<Button>("TopBar/TopStack/HBox/CardsButton");
         var settingsMenu = GetNode<Control>("SettingsMenu");
         var btnResume = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnResume");
         var btnSave = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnSave");
@@ -154,6 +180,7 @@ public partial class HUD : Control, IHudEventHandlers
         var btnQuit = GetNode<Button>("SettingsMenu/Center/Panel/VBox/BtnQuit");
 
         _btnSave = btnSave;
+        _cardsButton = cardsButton;
         _btnSave.Disabled = true;
         btnLoad.Disabled = false;
 
@@ -179,6 +206,7 @@ public partial class HUD : Control, IHudEventHandlers
             onReturn: () => PublishMenuEvent(UiMenuReturnEventType),
             onQuit: () => PublishMenuEvent(UiMenuQuitEventType));
         _settingsMenuController.Bind();
+        cardsButton.Pressed += ToggleCardsPanel;
 
         _playersPanelController = new PlayersPanelController(GetNode<VBoxContainer>("TopBar/TopStack/PlayersPanel/VBox/PlayersList"));
 
@@ -190,6 +218,15 @@ public partial class HUD : Control, IHudEventHandlers
         _toast = GetNodeOrNull<EventToast>("EventToast");
         _resultPopup = GetNodeOrNull<EventResultPopup>("EventResultPopup");
         _logPanel = GetNodeOrNull<EventLogPanel>("EventLogPanel");
+        _cardsPanel = GetNodeOrNull<Control>("CardsPanel");
+        _cardsTitle = GetNodeOrNull<Label>("CardsPanel/Center/Panel/VBox/Title");
+        _cardsList = GetNodeOrNull<VBoxContainer>("CardsPanel/Center/Panel/VBox/CardsScroll/CardsList");
+        _cardsEmptyLabel = GetNodeOrNull<Label>("CardsPanel/Center/Panel/VBox/EmptyLabel");
+        _cardsCloseButton = GetNodeOrNull<Button>("CardsPanel/Center/Panel/VBox/ButtonRow/CloseButton");
+        _cardConfirmPanel = GetNodeOrNull<Control>("CardsPanel/CardConfirm");
+        _cardConfirmLabel = GetNodeOrNull<Label>("CardsPanel/CardConfirm/ConfirmCenter/ConfirmPanel/ConfirmVBox/ConfirmLabel");
+        _cardConfirmUseButton = GetNodeOrNull<Button>("CardsPanel/CardConfirm/ConfirmCenter/ConfirmPanel/ConfirmVBox/ConfirmButtons/ConfirmUseButton");
+        _cardConfirmCancelButton = GetNodeOrNull<Button>("CardsPanel/CardConfirm/ConfirmCenter/ConfirmPanel/ConfirmVBox/ConfirmButtons/ConfirmCancelButton");
         var guidePanel = GetNodeOrNull<PanelContainer>("GuideHintPanel");
         var guideTitle = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideTitle");
         var guideText = GetNodeOrNull<Label>("GuideHintPanel/VBox/GuideText");
@@ -208,10 +245,32 @@ public partial class HUD : Control, IHudEventHandlers
             logButton.Disabled = true;
         }
 
+        if (_cardsPanel != null)
+        {
+            _cardsPanel.Visible = false;
+        }
+        if (_cardConfirmPanel != null)
+        {
+            _cardConfirmPanel.Visible = false;
+        }
+        if (_cardsCloseButton != null)
+        {
+            _cardsCloseButton.Pressed += HideCardsPanel;
+        }
+        if (_cardConfirmCancelButton != null)
+        {
+            _cardConfirmCancelButton.Pressed += HideCardConfirm;
+        }
+        if (_cardConfirmUseButton != null)
+        {
+            _cardConfirmUseButton.Pressed += OnConfirmUseCard;
+        }
+
         MoveOverlayToBottom(settingsMenu);
         MoveOverlayToBottom(_toast);
         MoveOverlayToBottom(_resultPopup);
         MoveOverlayToBottom(_logPanel);
+        MoveOverlayToBottom(_cardsPanel);
         MoveOverlayToBottom(guidePanel);
         MoveOverlayToBottom(guideOverlay);
         MoveOverlayToBottom(_actionPanel);
@@ -220,6 +279,7 @@ public partial class HUD : Control, IHudEventHandlers
         ApplyLocalizedTexts(
             gameSettingsButton,
             logButton,
+            cardsButton,
             btnResume,
             btnSave,
             btnLoad,
@@ -303,6 +363,7 @@ public partial class HUD : Control, IHudEventHandlers
 
         TryLoadMapTilesForUi();
         TryLoadUiCatalogLabels();
+        UpdateCardsButtonState();
 
         var callable = new Callable(this, nameof(OnDomainEventEmitted));
         TryConnectBus(callable);
@@ -503,6 +564,7 @@ public partial class HUD : Control, IHudEventHandlers
     private void RecordEventForUi(string type, string source, string id, string timestampIso, JsonElement root)
     {
         _guideController?.UpdateGuideHintForEventType(type, EnableGuideText, EnableGuideHighlight);
+        UpdateCardsFromEvent(type, root);
         var tileLabelByIndex = _tilesByIndex.Count == 0
             ? null
             : new Func<int, string?>(idx => _tilesByIndex.TryGetValue(idx, out var tile) ? tile.Name : null);
@@ -652,6 +714,7 @@ public partial class HUD : Control, IHudEventHandlers
     private void ApplyLocalizedTexts(
         Button gameSettingsButton,
         Button logButton,
+        Button cardsButton,
         Button btnResume,
         Button btnSave,
         Button btnLoad,
@@ -683,6 +746,7 @@ public partial class HUD : Control, IHudEventHandlers
 
         gameSettingsButton.Text = TranslateOrFallback(UiHudGameSettingsKey, "Game Settings");
         logButton.Text = TranslateOrFallback(UiHudLogKey, "Log");
+        cardsButton.Text = TranslateOrFallback(UiHudCardsKey, "Cards");
         var playersTitle = GetNodeOrNull<Label>("TopBar/TopStack/PlayersPanel/VBox/PlayersTitle");
         if (playersTitle != null)
         {
@@ -702,6 +766,31 @@ public partial class HUD : Control, IHudEventHandlers
         btnHelp.Text = TranslateOrFallback(UiHudSettingsHelpKey, "Help");
         btnReturn.Text = TranslateOrFallback(UiHudSettingsReturnKey, "Back to Menu");
         btnQuit.Text = TranslateOrFallback(UiHudSettingsQuitKey, "Quit");
+
+        if (_cardsTitle != null)
+        {
+            _cardsTitle.Text = TranslateOrFallback(UiHudCardsTitleKey, "Cards");
+        }
+        if (_cardsEmptyLabel != null)
+        {
+            _cardsEmptyLabel.Text = TranslateOrFallback(UiHudCardsEmptyKey, "No cards");
+        }
+        if (_cardsCloseButton != null)
+        {
+            _cardsCloseButton.Text = TranslateOrFallback(UiHudCardsCloseKey, "Close");
+        }
+        if (_cardConfirmLabel != null)
+        {
+            _cardConfirmLabel.Text = TranslateOrFallback(UiHudCardsConfirmTextKey, "Use card");
+        }
+        if (_cardConfirmUseButton != null)
+        {
+            _cardConfirmUseButton.Text = TranslateOrFallback(UiHudCardsConfirmUseKey, "Use");
+        }
+        if (_cardConfirmCancelButton != null)
+        {
+            _cardConfirmCancelButton.Text = TranslateOrFallback(UiHudCardsConfirmCancelKey, "Cancel");
+        }
 
         if (actionTitle != null)
         {
@@ -740,6 +829,7 @@ public partial class HUD : Control, IHudEventHandlers
         MoveOverlayToBottom(GetNodeOrNull<Control>("EventToast"));
         MoveOverlayToBottom(GetNodeOrNull<Control>("EventResultPopup"));
         MoveOverlayToBottom(GetNodeOrNull<Control>("EventLogPanel"));
+        MoveOverlayToBottom(GetNodeOrNull<Control>("CardsPanel"));
         MoveOverlayToBottom(GetNodeOrNull<Control>("GuideHintPanel"));
         MoveOverlayToBottom(GetNodeOrNull<Control>("GuideOverlay"));
         MoveOverlayToBottom(GetNodeOrNull<Control>("ActionPanel"));
@@ -851,6 +941,7 @@ public partial class HUD : Control, IHudEventHandlers
         {
             _avatar.Texture = null;
         }
+        HideCardsPanel();
     }
 
     public void HandleCityTollPaid(HudCityTollPaidDto dto)
@@ -911,8 +1002,14 @@ public partial class HUD : Control, IHudEventHandlers
             : (IsAiPlayerId(dto.ActivePlayerId) ? _diceAiLabel : _diceRollLabel);
         _btnSave.Disabled = string.IsNullOrWhiteSpace(dto.ActivePlayerId);
         UpdateActivePlayerIdentityDisplay();
+        UpdateCardsButtonState();
         _date.Text = $"{_datePrefix}: {dto.Year:D4}-{dto.Month:D2}-{dto.Day:D2}";
         _actionPanelController?.HandleActivePlayerChanged(previousActive, _activePlayerId);
+
+        if (_cardsPanel != null && _cardsPanel.Visible)
+        {
+            RefreshCardsList();
+        }
     }
 
     private static int ComputeDateKey(int year, int month, int day)
@@ -987,9 +1084,11 @@ public partial class HUD : Control, IHudEventHandlers
             }
         }
 
+        InitializeActionCardsForPlayers(dto.PlayerIds);
         TryLoadCharacterCatalog();
         UpdateActivePlayerIdentityDisplay();
         UpdatePlayersList();
+        RefreshCardsList();
     }
 
     private void TryLoadCharacterCatalog()
@@ -1088,6 +1187,329 @@ public partial class HUD : Control, IHudEventHandlers
         _playersPanelController.Render(_playerStatesById, ResolvePlayerDisplayName, IsAiPlayerId);
     }
 
+    private void InitializeActionCardsForPlayers(IReadOnlyList<string> playerIds)
+    {
+        _cardsByPlayerId.Clear();
+
+        if (playerIds == null || playerIds.Count == 0)
+        {
+            return;
+        }
+
+        if (_cardIds.Count == 0)
+        {
+            TryLoadUiCatalogLabels();
+        }
+
+        if (_cardIds.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var playerId in playerIds)
+        {
+            if (string.IsNullOrWhiteSpace(playerId))
+            {
+                continue;
+            }
+
+            var cards = new Dictionary<string, int>(StringComparer.Ordinal);
+            _cardsByPlayerId[playerId] = cards;
+
+            var remaining = MaxActionCardsPerPlayer;
+            foreach (var cardId in _cardIds)
+            {
+                if (remaining <= 0)
+                {
+                    break;
+                }
+
+                var add = Math.Min(InitialActionCardCopiesPerType, remaining);
+                if (add <= 0)
+                {
+                    break;
+                }
+
+                cards[cardId] = add;
+                remaining -= add;
+            }
+        }
+    }
+
+    private void UpdateCardsFromEvent(string type, JsonElement root)
+    {
+        if (string.Equals(type, SanguoCardLost.EventType, StringComparison.Ordinal))
+        {
+            var playerId = TryGetStringLoose(root, "PlayerId") ?? string.Empty;
+            var cardId = TryGetStringLoose(root, "CardId") ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(playerId) && !string.IsNullOrWhiteSpace(cardId))
+            {
+                RemoveActionCard(playerId, cardId, 1);
+            }
+        }
+
+        if (string.Equals(type, SanguoLootGranted.EventType, StringComparison.Ordinal))
+        {
+            var playerId = TryGetStringLoose(root, "PlayerId") ?? string.Empty;
+            var cardId = TryGetStringLoose(root, "CardId") ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(playerId) && !string.IsNullOrWhiteSpace(cardId))
+            {
+                AddActionCard(playerId, cardId, 1);
+            }
+        }
+
+        if (_cardsPanel != null && _cardsPanel.Visible && !string.IsNullOrWhiteSpace(_activePlayerId))
+        {
+            RefreshCardsList();
+        }
+    }
+
+    private void AddActionCard(string playerId, string cardId, int count)
+    {
+        if (count <= 0)
+        {
+            return;
+        }
+
+        var cards = GetOrCreatePlayerCards(playerId);
+        if (cards == null)
+        {
+            return;
+        }
+
+        var total = cards.Values.Sum();
+        if (total >= MaxActionCardsPerPlayer)
+        {
+            return;
+        }
+
+        var add = Math.Min(count, MaxActionCardsPerPlayer - total);
+        if (add <= 0)
+        {
+            return;
+        }
+
+        if (cards.TryGetValue(cardId, out var existing))
+        {
+            cards[cardId] = existing + add;
+            return;
+        }
+
+        cards[cardId] = add;
+    }
+
+    private void RemoveActionCard(string playerId, string cardId, int count)
+    {
+        if (count <= 0)
+        {
+            return;
+        }
+
+        if (!_cardsByPlayerId.TryGetValue(playerId, out var cards))
+        {
+            return;
+        }
+
+        if (!cards.TryGetValue(cardId, out var existing) || existing <= 0)
+        {
+            return;
+        }
+
+        var next = existing - count;
+        if (next <= 0)
+        {
+            cards.Remove(cardId);
+            return;
+        }
+
+        cards[cardId] = next;
+    }
+
+    private Dictionary<string, int>? GetOrCreatePlayerCards(string playerId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId))
+        {
+            return null;
+        }
+
+        if (_cardsByPlayerId.TryGetValue(playerId, out var cards))
+        {
+            return cards;
+        }
+
+        var created = new Dictionary<string, int>(StringComparer.Ordinal);
+        _cardsByPlayerId[playerId] = created;
+        return created;
+    }
+
+    private void UpdateCardsButtonState()
+    {
+        if (_cardsButton == null)
+        {
+            return;
+        }
+
+        var active = _activePlayerId ?? string.Empty;
+        _cardsButton.Disabled = _cardIds.Count == 0 || string.IsNullOrWhiteSpace(active) || IsAiPlayerId(active);
+    }
+
+    private void ToggleCardsPanel()
+    {
+        if (_cardsPanel == null)
+        {
+            return;
+        }
+
+        if (_cardsPanel.Visible)
+        {
+            HideCardsPanel();
+            return;
+        }
+
+        ShowCardsPanel();
+    }
+
+    private void ShowCardsPanel()
+    {
+        if (_cardsPanel == null)
+        {
+            return;
+        }
+
+        _cardsPanel.Visible = true;
+        RefreshCardsList();
+    }
+
+    private void HideCardsPanel()
+    {
+        if (_cardsPanel == null)
+        {
+            return;
+        }
+
+        HideCardConfirm();
+        _cardsPanel.Visible = false;
+    }
+
+    private void RefreshCardsList()
+    {
+        if (_cardsList == null || _cardsEmptyLabel == null)
+        {
+            return;
+        }
+
+        foreach (var child in _cardsList.GetChildren())
+        {
+            child.QueueFree();
+        }
+
+        var playerId = _activePlayerId ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(playerId) || !_cardsByPlayerId.TryGetValue(playerId, out var cards) || cards.Count == 0)
+        {
+            _cardsEmptyLabel.Visible = true;
+            return;
+        }
+
+        var entries = cards
+            .Where(kv => kv.Value > 0)
+            .OrderBy(kv => kv.Key, StringComparer.Ordinal)
+            .ToArray();
+
+        if (entries.Length == 0)
+        {
+            _cardsEmptyLabel.Visible = true;
+            return;
+        }
+
+        _cardsEmptyLabel.Visible = false;
+
+        foreach (var (cardId, count) in entries)
+        {
+            var row = new HBoxContainer();
+            var nameKey = _cardNameKeyById.TryGetValue(cardId, out var key) ? key : string.Empty;
+            var displayName = TranslateOrFallback(string.IsNullOrWhiteSpace(nameKey) ? cardId : nameKey, cardId);
+            var label = new Label { Text = $"{displayName} x{count}" };
+            var useButton = new Button { Text = TranslateOrFallback(UiHudCardsUseKey, "Use") };
+            if (IsAiPlayerId(playerId))
+            {
+                useButton.Disabled = true;
+            }
+            useButton.Pressed += () => ShowCardConfirm(cardId);
+            row.AddChild(label);
+            row.AddChild(useButton);
+            _cardsList.AddChild(row);
+        }
+    }
+
+    private void ShowCardConfirm(string cardId)
+    {
+        if (_cardConfirmPanel == null || string.IsNullOrWhiteSpace(cardId))
+        {
+            return;
+        }
+
+        _pendingCardId = cardId;
+        if (_cardConfirmLabel != null)
+        {
+            var nameKey = _cardNameKeyById.TryGetValue(cardId, out var key) ? key : string.Empty;
+            var displayName = TranslateOrFallback(string.IsNullOrWhiteSpace(nameKey) ? cardId : nameKey, cardId);
+            var prefix = TranslateOrFallback(UiHudCardsConfirmTextKey, "Use card");
+            _cardConfirmLabel.Text = $"{prefix}: {displayName}";
+        }
+
+        _cardConfirmPanel.Visible = true;
+    }
+
+    private void HideCardConfirm()
+    {
+        if (_cardConfirmPanel == null)
+        {
+            _pendingCardId = null;
+            return;
+        }
+
+        _cardConfirmPanel.Visible = false;
+        _pendingCardId = null;
+    }
+
+    private void OnConfirmUseCard()
+    {
+        var cardId = _pendingCardId ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(cardId))
+        {
+            return;
+        }
+
+        HideCardConfirm();
+        PublishActionCardPlay(cardId);
+        HideCardsPanel();
+    }
+
+    private void PublishActionCardPlay(string cardId)
+    {
+        if (_bus == null)
+        {
+            return;
+        }
+
+        var playerId = _activePlayerId ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(playerId) || IsAiPlayerId(playerId))
+        {
+            return;
+        }
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            GameId = "g1",
+            PlayerId = playerId,
+            CardId = cardId,
+            CorrelationId = Guid.NewGuid().ToString("N"),
+            CausationId = UiActionCardPlayEventType
+        });
+
+        _bus.PublishSimple(UiActionCardPlayEventType, nameof(HUD), payload);
+    }
+
     private string ResolvePlayerDisplayName(string playerId)
     {
         if (string.IsNullOrWhiteSpace(playerId))
@@ -1176,6 +1598,7 @@ public partial class HUD : Control, IHudEventHandlers
     {
         _regionNameKeyById.Clear();
         _cardNameKeyById.Clear();
+        _cardIds.Clear();
         _relicNameKeyById.Clear();
         _randomEventNameKeyById.Clear();
         _randomEventPoolNameKeyById.Clear();
@@ -1197,13 +1620,23 @@ public partial class HUD : Control, IHudEventHandlers
 
             if (SanguoActionCardsCatalogLoader.TryLoadActionCardsCatalog(loader, pack, out var cards, out _))
             {
+                var seen = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var card in cards.Cards)
                 {
                     if (!string.IsNullOrWhiteSpace(card.CardId))
                     {
                         _cardNameKeyById[card.CardId] = card.NameKey ?? string.Empty;
+                        if (seen.Add(card.CardId))
+                        {
+                            _cardIds.Add(card.CardId);
+                        }
                     }
                 }
+            }
+
+            if (_cardIds.Count > 1)
+            {
+                _cardIds.Sort(StringComparer.Ordinal);
             }
 
             if (SanguoRelicsCatalogLoader.TryLoadRelicsCatalog(loader, pack, out var relics, out _))

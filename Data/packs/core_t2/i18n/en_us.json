@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 17,
+  "version": 18,
   "locale": "en-US",
   "strings": {
     "building.building_barracks.desc": "Boosts toll income, ideal for military cities.",
@@ -252,6 +252,14 @@
     "ui.city_status.unowned": "Unowned",
     "ui.city_status.owner": "Owner",
     "ui.hud.settings.return": "Back to Main Menu",
-    "ui.hud.log": "Log"
+    "ui.hud.log": "Log",
+    "ui.hud.cards": "Cards",
+    "ui.hud.cards.title": "Cards",
+    "ui.hud.cards.empty": "No cards",
+    "ui.hud.cards.use": "Use",
+    "ui.hud.cards.close": "Close",
+    "ui.hud.cards.confirm_text": "Use card",
+    "ui.hud.cards.confirm_use": "Use",
+    "ui.hud.cards.confirm_cancel": "Cancel"
   }
 }

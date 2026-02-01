@@ -358,3 +358,4 @@ ui.hud.event.core.sanguo.ai.decision.made.detail.reason_code.rules_allow_roll,�
 ui.hud.event.core.sanguo.ai.decision.made.detail.reason_code.self_is_eliminated,已淘汰
 ui.hud.event.shared.detail.decision_type.roll_dice,掷骰
 ui.hud.event.shared.detail.decision_type.skip,跳过
+ui.hud.event.shared.detail.reason_code.not_owned,未持有卡牌
