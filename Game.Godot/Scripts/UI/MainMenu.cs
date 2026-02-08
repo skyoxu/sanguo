@@ -65,6 +65,9 @@ public partial class MainMenu : Control
     private Button _btnQuit = default!;
     private Button _btnStart = default!;
     private Button _btnBack = default!;
+    private Button _btnCharPrev = default!;
+    private Button _btnCharNext = default!;
+    private Button[] _characterSlots = Array.Empty<Button>();
     private Control _loadPanel = default!;
     private Label _statusLabel = default!;
     private Control _newGameConfig = default!;
@@ -75,10 +78,26 @@ public partial class MainMenu : Control
     private Label _characterLabel = default!;
     private Label _moneyLabel = default!;
     private Label _globalEventLabel = default!;
+    private TextureRect _characterPortrait = default!;
+    private Label _characterName = default!;
+    private Label _characterDesc = default!;
+    private Label _combatKey = default!;
+    private Label _startMoneyStepKey = default!;
+    private Label _buyStepKey = default!;
+    private Label _tollStepKey = default!;
+    private Label _incomeStepKey = default!;
+    private Label _buildStepKey = default!;
+    private Label _upgradeStepKey = default!;
+    private Label _combatValue = default!;
+    private Label _startMoneyStepValue = default!;
+    private Label _buyStepValue = default!;
+    private Label _tollStepValue = default!;
+    private Label _incomeStepValue = default!;
+    private Label _buildStepValue = default!;
+    private Label _upgradeStepValue = default!;
 
     private OptionButton _mapOption = default!;
     private OptionButton _playersOption = default!;
-    private OptionButton _characterOption = default!;
     private OptionButton _startingMoneyOption = default!;
     private OptionButton _globalEventIntervalOption = default!;
     private Label _aiFillLabel = default!;
@@ -89,6 +108,9 @@ public partial class MainMenu : Control
     private bool _loadPending;
     private bool _newGameConfigReady;
     private string _aiSlotsLabel = "AI slots";
+    private List<SanguoCharacterDefinition> _characters = new();
+    private string _selectedCharacterId = string.Empty;
+    private int _characterCarouselOffset;
 
     public override void _Ready()
     {
@@ -101,21 +123,52 @@ public partial class MainMenu : Control
         _statusLabel = GetNode<Label>("StatusLabel");
         _configCenter = GetNode<Control>("ConfigCenter");
         _newGameConfig = GetNode<Control>("ConfigCenter/NewGameConfig");
-        _btnStart = GetNode<Button>("ConfigCenter/NewGameConfig/VBox/BtnStart");
-        _btnBack = GetNode<Button>("ConfigCenter/NewGameConfig/VBox/BtnBack");
-        _titleLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/Title");
-        _mapLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/MapLabel");
-        _playersLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/PlayersLabel");
-        _characterLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/CharacterLabel");
-        _moneyLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/MoneyLabel");
-        _globalEventLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/GlobalEventLabel");
+        _btnStart = GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart");
+        _btnBack = GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnBack");
+        _btnCharPrev = GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/BtnCharPrev");
+        _btnCharNext = GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/BtnCharNext");
+        _characterSlots = new[]
+        {
+            GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid/CharSlot0"),
+            GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid/CharSlot1"),
+            GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid/CharSlot2"),
+            GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid/CharSlot3"),
+            GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid/CharSlot4"),
+            GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid/CharSlot5"),
+            GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid/CharSlot6"),
+            GetNode<Button>("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid/CharSlot7"),
+        };
 
-        _mapOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/VBox/MapOption");
-        _playersOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/VBox/PlayersOption");
-        _characterOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/VBox/CharacterOption");
-        _startingMoneyOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/VBox/StartingMoneyOption");
-        _globalEventIntervalOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/VBox/GlobalEventIntervalOption");
-        _aiFillLabel = GetNode<Label>("ConfigCenter/NewGameConfig/VBox/AiFillLabel");
+        _titleLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/Title");
+        _mapLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/MapLabel");
+        _playersLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/PlayersLabel");
+        _characterLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterLabel");
+        _moneyLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/MoneyLabel");
+        _globalEventLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/GlobalEventLabel");
+
+        _characterPortrait = GetNode<TextureRect>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/Portrait");
+        _characterName = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterName");
+        _characterDesc = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterDesc");
+        _combatKey = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/CombatKey");
+        _startMoneyStepKey = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/StartMoneyStepKey");
+        _buyStepKey = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/BuyStepKey");
+        _tollStepKey = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/TollStepKey");
+        _incomeStepKey = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/IncomeStepKey");
+        _buildStepKey = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/BuildStepKey");
+        _upgradeStepKey = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/UpgradeStepKey");
+        _combatValue = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/CombatValue");
+        _startMoneyStepValue = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/StartMoneyStepValue");
+        _buyStepValue = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/BuyStepValue");
+        _tollStepValue = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/TollStepValue");
+        _incomeStepValue = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/IncomeStepValue");
+        _buildStepValue = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/BuildStepValue");
+        _upgradeStepValue = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats/UpgradeStepValue");
+
+        _mapOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/MapOption");
+        _playersOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/PlayersOption");
+        _startingMoneyOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/StartingMoneyOption");
+        _globalEventIntervalOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/GlobalEventIntervalOption");
+        _aiFillLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/AiFillLabel");
 
         _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
         if (_bus != null)
@@ -426,10 +479,17 @@ public partial class MainMenu : Control
     private void WireNewGameConfigControls()
     {
         _playersOption.ItemSelected += _ => RefreshStartAvailability();
-        _characterOption.ItemSelected += _ => RefreshStartAvailability();
         _startingMoneyOption.ItemSelected += _ => RefreshStartAvailability();
         _globalEventIntervalOption.ItemSelected += _ => RefreshStartAvailability();
         _mapOption.ItemSelected += _ => RefreshStartAvailability();
+
+        _btnCharPrev.Pressed += () => ShiftCharacterCarousel(-1);
+        _btnCharNext.Pressed += () => ShiftCharacterCarousel(1);
+        for (var i = 0; i < _characterSlots.Length; i++)
+        {
+            var slotIndex = i;
+            _characterSlots[i].Pressed += () => OnCharacterSlotPressed(slotIndex);
+        }
     }
 
     private void PopulateNewGameConfigControls()
@@ -477,30 +537,12 @@ public partial class MainMenu : Control
                 _mapOption.SetItemMetadata(idx, "map001");
             }
 
-            _characterOption.Clear();
-            if (SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, pack, out var chars, out _))
-            {
-                foreach (var c in chars.Characters.OrderBy(x => x.NameKey, StringComparer.Ordinal))
-                {
-                    var label = string.IsNullOrWhiteSpace(c.NameKey) ? c.CharacterId : c.NameKey;
-                    var idx = _characterOption.ItemCount;
-                    _characterOption.AddItem(label);
-                    _characterOption.SetItemMetadata(idx, c.CharacterId);
-                }
-            }
-
-            if (_characterOption.ItemCount == 0)
-            {
-                var idx = _characterOption.ItemCount;
-                _characterOption.AddItem("c1");
-                _characterOption.SetItemMetadata(idx, "c1");
-            }
-
             _playersOption.Select(0);
             _startingMoneyOption.Select(1);
             _globalEventIntervalOption.Select(1);
             _mapOption.Select(0);
-            _characterOption.Select(0);
+
+            PopulateCharacters(loader, pack);
 
             _newGameConfigReady = true;
         }
@@ -657,6 +699,17 @@ public partial class MainMenu : Control
         _moneyLabel.Text = TranslateOrFallback(MenuStartingMoneyLabelKey, "Starting Money");
         _globalEventLabel.Text = TranslateOrFallback(MenuGlobalEventIntervalLabelKey, "Global Event Interval");
         _aiSlotsLabel = TranslateOrFallback(MenuAiSlotsLabelKey, "AI slots");
+
+        _combatKey.Text = TranslateOrFallback("ui.menu.character.combat", "Combat");
+        _startMoneyStepKey.Text = TranslateOrFallback("ui.menu.character.start_money_step", "Starting money step");
+        _buyStepKey.Text = TranslateOrFallback("ui.menu.character.buy_price_step", "Buy price step");
+        _tollStepKey.Text = TranslateOrFallback("ui.menu.character.toll_step", "Toll step");
+        _incomeStepKey.Text = TranslateOrFallback("ui.menu.character.income_step", "Income step");
+        _buildStepKey.Text = TranslateOrFallback("ui.menu.character.build_cost_step", "Build cost step");
+        _upgradeStepKey.Text = TranslateOrFallback("ui.menu.character.upgrade_cost_step", "Upgrade cost step");
+
+        UpdateCharacterInfoPanel();
+        RenderCharacterCarousel();
     }
 
     private string TranslateStartError(string error)
@@ -776,6 +829,158 @@ public partial class MainMenu : Control
             : null;
     }
 
+    private void PopulateCharacters(IResourceLoader loader, SanguoContentPackPaths? pack)
+    {
+        _characters = new List<SanguoCharacterDefinition>();
+        _selectedCharacterId = string.Empty;
+        _characterCarouselOffset = 0;
+
+        if (SanguoCharactersCatalogLoader.TryLoadCharactersCatalog(loader, pack, out var chars, out _)
+            && chars.Characters != null && chars.Characters.Count > 0)
+        {
+            _characters = chars.Characters
+                .OrderBy(x => x.NameKey, StringComparer.Ordinal)
+                .ToList();
+        }
+        else
+        {
+            _characters.Add(new SanguoCharacterDefinition(
+                CharacterId: "c1",
+                NameKey: "c1",
+                DescriptionKey: string.Empty,
+                CombatRating: 0,
+                PortraitPath: string.Empty,
+                StartingMoneyStepDelta: 0,
+                EconomyStepDeltas: new SanguoEconomyStepDeltas(0, 0, 0, 0, 0)));
+        }
+
+        _selectedCharacterId = _characters[0].CharacterId;
+        UpdateCharacterInfoPanel();
+        RenderCharacterCarousel();
+    }
+
+    private void ShiftCharacterCarousel(int delta)
+    {
+        if (_characters.Count <= 8)
+        {
+            return;
+        }
+
+        var count = _characters.Count;
+        _characterCarouselOffset = (_characterCarouselOffset + delta) % count;
+        if (_characterCarouselOffset < 0)
+        {
+            _characterCarouselOffset += count;
+        }
+
+        RenderCharacterCarousel();
+    }
+
+    private void OnCharacterSlotPressed(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= _characterSlots.Length)
+        {
+            return;
+        }
+
+        var button = _characterSlots[slotIndex];
+        if (!button.HasMeta("character_index"))
+        {
+            return;
+        }
+
+        var idx = (int)button.GetMeta("character_index");
+        if (idx < 0 || idx >= _characters.Count)
+        {
+            return;
+        }
+
+        _selectedCharacterId = _characters[idx].CharacterId;
+        UpdateCharacterInfoPanel();
+        RenderCharacterCarousel();
+        RefreshStartAvailability();
+    }
+
+    private void RenderCharacterCarousel()
+    {
+        var count = _characters.Count;
+        var canScroll = count > 8;
+        _btnCharPrev.Disabled = !canScroll;
+        _btnCharNext.Disabled = !canScroll;
+
+        for (var slot = 0; slot < _characterSlots.Length; slot++)
+        {
+            var btn = _characterSlots[slot];
+            if (count == 0)
+            {
+                btn.Visible = false;
+                continue;
+            }
+
+            int idx;
+            if (!canScroll)
+            {
+                if (slot >= count)
+                {
+                    btn.Visible = false;
+                    continue;
+                }
+
+                idx = slot;
+            }
+            else
+            {
+                idx = (_characterCarouselOffset + slot) % count;
+            }
+
+            var def = _characters[idx];
+            btn.Visible = true;
+            btn.Text = TranslateOrFallback(def.NameKey, def.CharacterId);
+            btn.SetMeta("character_index", idx);
+            btn.ButtonPressed = string.Equals(def.CharacterId, _selectedCharacterId, StringComparison.Ordinal);
+        }
+    }
+
+    private void UpdateCharacterInfoPanel()
+    {
+        if (_characters.Count == 0)
+        {
+            _characterName.Text = "-";
+            _characterDesc.Text = string.Empty;
+            _characterPortrait.Texture = null;
+            _combatValue.Text = "-";
+            _startMoneyStepValue.Text = "-";
+            _buyStepValue.Text = "-";
+            _tollStepValue.Text = "-";
+            _incomeStepValue.Text = "-";
+            _buildStepValue.Text = "-";
+            _upgradeStepValue.Text = "-";
+            return;
+        }
+
+        var selected = _characters.FirstOrDefault(x => string.Equals(x.CharacterId, _selectedCharacterId, StringComparison.Ordinal))
+            ?? _characters[0];
+
+        _characterName.Text = TranslateOrFallback(selected.NameKey, selected.CharacterId);
+        _characterDesc.Text = TranslateOrFallback(selected.DescriptionKey, string.Empty);
+        _combatValue.Text = selected.CombatRating.ToString();
+        _startMoneyStepValue.Text = selected.StartingMoneyStepDelta.ToString();
+        _buyStepValue.Text = selected.EconomyStepDeltas.BuyPrice.ToString();
+        _tollStepValue.Text = selected.EconomyStepDeltas.Toll.ToString();
+        _incomeStepValue.Text = selected.EconomyStepDeltas.IncomeSettlement.ToString();
+        _buildStepValue.Text = selected.EconomyStepDeltas.BuildCost.ToString();
+        _upgradeStepValue.Text = selected.EconomyStepDeltas.UpgradeCost.ToString();
+
+        if (!string.IsNullOrWhiteSpace(selected.PortraitPath) && ResourceLoader.Exists(selected.PortraitPath))
+        {
+            _characterPortrait.Texture = GD.Load<Texture2D>(selected.PortraitPath);
+        }
+        else
+        {
+            _characterPortrait.Texture = null;
+        }
+    }
+
     private string GetSelectedMapId()
     {
         if (_mapOption.ItemCount == 0)
@@ -789,13 +994,7 @@ public partial class MainMenu : Control
 
     private string GetSelectedCharacterId()
     {
-        if (_characterOption.ItemCount == 0)
-        {
-            return string.Empty;
-        }
-
-        var meta = _characterOption.GetItemMetadata(_characterOption.Selected);
-        return meta.VariantType == Variant.Type.String ? meta.AsString() : string.Empty;
+        return _selectedCharacterId ?? string.Empty;
     }
 
     private int GetSelectedPlayersCount()
