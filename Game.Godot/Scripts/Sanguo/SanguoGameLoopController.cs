@@ -1355,12 +1355,17 @@ public partial class SanguoGameLoopController : Node
             if (!_started || _turnManager == null)
                 return;
 
-        if (!SanguoGlueJson.IsAiPlayerId(_activePlayerId))
-            return;
+            if (!SanguoGlueJson.IsAiPlayerId(_activePlayerId))
+                return;
 
             // Give the board view time to animate AI moves (if any) before the next turn starts.
-            var timer = GetTree().CreateTimer(delaySec <= 0 ? AiAutoAdvanceDelaySeconds : delaySec);
+            var timer = GetTree().CreateTimer(delaySec <= 0 ? AiAutoAdvanceDelaySeconds : delaySec, true);
             await ToSignal(timer, SceneTreeTimer.SignalName.Timeout);
+
+            await WaitForTreeResumedAsync();
+
+            if (!SanguoGlueJson.IsAiPlayerId(_activePlayerId))
+                return;
 
             await _turnManager.AdvanceTurnAsync(correlationId: correlationId, causationId: AiAutoAdvanceCausationId);
         }
@@ -1375,6 +1380,17 @@ public partial class SanguoGameLoopController : Node
 
         // In case multiple AIs exist, keep advancing until a non-AI player becomes active.
         TryQueueAiAutoAdvanceIfNeeded();
+    }
+
+    private async Task WaitForTreeResumedAsync()
+    {
+        var tree = GetTree();
+        while (tree != null && tree.Paused)
+        {
+            var timer = tree.CreateTimer(0.05, true);
+            await ToSignal(timer, SceneTreeTimer.SignalName.Timeout);
+            tree = GetTree();
+        }
     }
 
     private void LoadMapActions(SanguoMapDefinition map)
