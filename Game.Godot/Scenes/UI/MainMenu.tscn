@@ -55,61 +55,247 @@ layout_mode = 2
 mouse_filter = 2
 z_index = 110
 
-[node name="VBox" type="VBoxContainer" parent="ConfigCenter/NewGameConfig"]
+[node name="Margin" type="MarginContainer" parent="ConfigCenter/NewGameConfig"]
 layout_mode = 2
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 472.0
-offset_bottom = 312.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
-[node name="Title" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="Root" type="VBoxContainer" parent="ConfigCenter/NewGameConfig/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="TopRow" type="HBoxContainer" parent="ConfigCenter/NewGameConfig/Margin/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="CharacterInfo" type="PanelContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Margin" type="MarginContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="CharacterLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox"]
+layout_mode = 2
+text = "Character"
+
+[node name="Portrait" type="TextureRect" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(220, 220)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CharacterName" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox"]
+layout_mode = 2
+text = "-"
+
+[node name="CharacterDesc" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 3
+text = ""
+
+[node name="CharacterStats" type="GridContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox"]
+layout_mode = 2
+columns = 2
+
+[node name="CombatKey" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "Combat"
+
+[node name="CombatValue" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "-"
+
+[node name="StartMoneyStepKey" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "Starting money step"
+
+[node name="StartMoneyStepValue" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "-"
+
+[node name="BuyStepKey" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "Buy price step"
+
+[node name="BuyStepValue" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "-"
+
+[node name="TollStepKey" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "Toll step"
+
+[node name="TollStepValue" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "-"
+
+[node name="IncomeStepKey" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "Income step"
+
+[node name="IncomeStepValue" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "-"
+
+[node name="BuildStepKey" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "Build cost step"
+
+[node name="BuildStepValue" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "-"
+
+[node name="UpgradeStepKey" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "Upgrade cost step"
+
+[node name="UpgradeStepValue" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterStats"]
+layout_mode = 2
+text = "-"
+
+[node name="OptionsPanel" type="PanelContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Margin" type="MarginContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 text = "New Game"
 
-[node name="MapLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="MapLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 text = "Map"
 
-[node name="MapOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="MapOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="PlayersLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="PlayersLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 text = "Players"
 
-[node name="PlayersOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="PlayersOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="CharacterLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
-layout_mode = 2
-text = "Player Character"
-
-[node name="CharacterOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
-layout_mode = 2
-
-[node name="MoneyLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="MoneyLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 text = "Starting Money"
 
-[node name="StartingMoneyOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="StartingMoneyOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="GlobalEventLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="GlobalEventLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 text = "Global Event Interval"
 
-[node name="GlobalEventIntervalOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="GlobalEventIntervalOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="AiFillLabel" type="Label" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="AiFillLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 text = "AI slots: -"
 
-[node name="BtnStart" type="Button" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="BottomBar" type="VBoxContainer" parent="ConfigCenter/NewGameConfig/Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CharacterCarousel" type="HBoxContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BtnCharPrev" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel"]
+layout_mode = 2
+text = "<"
+
+[node name="CharacterGrid" type="GridContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel"]
+layout_mode = 2
+columns = 8
+size_flags_horizontal = 3
+
+[node name="CharSlot0" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"]
+layout_mode = 2
+toggle_mode = true
+text = "-"
+
+[node name="CharSlot1" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"]
+layout_mode = 2
+toggle_mode = true
+text = "-"
+
+[node name="CharSlot2" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"]
+layout_mode = 2
+toggle_mode = true
+text = "-"
+
+[node name="CharSlot3" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"]
+layout_mode = 2
+toggle_mode = true
+text = "-"
+
+[node name="CharSlot4" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"]
+layout_mode = 2
+toggle_mode = true
+text = "-"
+
+[node name="CharSlot5" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"]
+layout_mode = 2
+toggle_mode = true
+text = "-"
+
+[node name="CharSlot6" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"]
+layout_mode = 2
+toggle_mode = true
+text = "-"
+
+[node name="CharSlot7" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"]
+layout_mode = 2
+toggle_mode = true
+text = "-"
+
+[node name="BtnCharNext" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel"]
+layout_mode = 2
+text = ">"
+
+[node name="BottomButtons" type="HBoxContainer" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="BtnStart" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons"]
 layout_mode = 2
 text = "Start"
 
-[node name="BtnBack" type="Button" parent="ConfigCenter/NewGameConfig/VBox"]
+[node name="BtnBack" type="Button" parent="ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons"]
 layout_mode = 2
 text = "Back"
 
