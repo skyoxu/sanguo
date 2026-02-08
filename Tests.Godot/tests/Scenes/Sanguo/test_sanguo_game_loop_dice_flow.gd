@@ -3,6 +3,7 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 const UI_DICE_ROLL := "ui.hud.dice.roll"
 const CORE_DICE_ROLLED := "core.sanguo.dice.rolled"
 const CORE_TOKEN_MOVED := "core.sanguo.board.token.moved"
+const CORE_AI_DECISION_MADE := "core.sanguo.ai.decision.made"
 
 var _bus: Node
 var _events: Array = []
@@ -70,6 +71,16 @@ func _has_turn_started_for(active_player_id: String) -> bool:
             return true
     return false
 
+func _find_turn_started_index_for(active_player_id: String, start_index: int = 0) -> int:
+    for i in range(max(0, start_index), _events.size()):
+        var e: Dictionary = _events[i]
+        if str(e.get("type", "")) != "core.sanguo.game.turn.started":
+            continue
+        var payload: Dictionary = JSON.parse_string(str(e.get("data_json", "{}")))
+        if str(payload.get("ActivePlayerId", "")) == active_player_id:
+            return i
+    return -1
+
 func _wait_for_turn_started(active_player_id: String, max_frames: int = 180) -> void:
     for _i in range(max_frames):
         if _has_turn_started_for(active_player_id):
@@ -80,7 +91,11 @@ func _wait_for_turn_started(active_player_id: String, max_frames: int = 180) -> 
         for e in _events_of_type("core.sanguo.game.turn.started"):
             var payload: Dictionary = JSON.parse_string(str(e.get("data_json", "{}")))
             seen.append(str(payload.get("ActivePlayerId", "")))
+        var types: Array = []
+        for e in _events:
+            types.append(str(e.get("type", "")))
         print("Missing turn.started for '%s'. Seen ActivePlayerId values: %s" % [active_player_id, str(seen)])
+        print("Observed event types: %s" % str(types))
     assert_bool(_has_turn_started_for(active_player_id)).is_true()
 
 func _wait_for_event(type_name: String, max_frames: int = 120) -> void:
@@ -97,6 +112,20 @@ func _wait_for_event_for_corr_player(type_name: String, correlation_id: String, 
         await get_tree().process_frame
     assert_bool(_find_last_event_for_corr_player(type_name, correlation_id, causation_id, player_id).size() > 0).is_true()
 
+func _resolve_hud(main: Node) -> Node:
+    if main == null:
+        return null
+
+    var hud := main.get_node_or_null("HUD")
+    if hud != null:
+        return hud
+
+    hud = main.get_node_or_null("SplitRoot/TopArea/HudLayer/HUD")
+    if hud != null:
+        return hud
+
+    return get_node_or_null("/root/Main/SplitRoot/TopArea/HudLayer/HUD")
+
 # Acceptance anchors:
 # ACC:T17.10
 func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_ids() -> void:
@@ -112,8 +141,9 @@ func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_id
     _bus.PublishSimple("ui.menu.start", "ut", "{}")
     await _wait_for_event("core.sanguo.game.turn.started", 180)
 
-    var hud := main.get_node("HUD")
-    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+    var hud := _resolve_hud(main)
+    assert_bool(hud != null).is_true()
+    var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
     dice.emit_signal("pressed")
 
     await _wait_for_event(UI_DICE_ROLL, 120)
@@ -171,5 +201,71 @@ func test_ui_dice_roll_produces_core_dice_and_token_move_with_order_and_trace_id
     var core_move2_evt := _find_last_event_for_corr_player(CORE_TOKEN_MOVED, corr2, UI_DICE_ROLL, "ai-1")
     assert_bool(core_move2_evt.size() == 0).is_true()
 
-    # Runtime auto-advances AI turns; verify we return control to the human player.
-    await _wait_for_turn_started("p1", 240)
+
+# ACC:T60.4
+func test_ai_auto_advance_is_not_blocked_by_ai_result_popup_pause() -> void:
+    var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
+    add_child(auto_free(main))
+    await get_tree().process_frame
+
+    var controller := main.get_node_or_null("SanguoGameLoopController")
+    if controller != null:
+        controller.set("AiAutoAdvanceDelaySeconds", 2.0)
+        controller.set("AiAutoAdvanceDelaySecondsWhenSkip", 2.0)
+
+    var hud := _resolve_hud(main)
+    assert_bool(hud != null).is_true()
+    var popup: Control = hud.get_node("EventResultPopup")
+    popup.AutoHideSeconds = 1.2
+
+    _bus.PublishSimple("ui.menu.start", "ut", "{}")
+    await _wait_for_event("core.sanguo.game.turn.started", 180)
+    var initial_turn_started_count := _events_of_type("core.sanguo.game.turn.started").size()
+    assert_int(initial_turn_started_count).is_greater_equal(1)
+
+    _events = []
+    var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
+    dice.emit_signal("pressed")
+
+    await _wait_for_event(UI_DICE_ROLL, 120)
+    var ui_evt := _last_event(UI_DICE_ROLL)
+    var ui_payload: Dictionary = JSON.parse_string(str(ui_evt.get("data_json", "{}")))
+    var corr := str(ui_payload.get("CorrelationId", ""))
+    assert_bool(corr.length() > 0).is_true()
+
+    await _wait_for_event_for_corr_player(CORE_TOKEN_MOVED, corr, UI_DICE_ROLL, "p1", 180)
+    var move_evt := _find_last_event_for_corr_player(CORE_TOKEN_MOVED, corr, UI_DICE_ROLL, "p1")
+    var move_payload: Dictionary = JSON.parse_string(str(move_evt.get("data_json", "{}")))
+    var to_index := int(move_payload.get("ToIndex", 0))
+
+    _bus.PublishSimple("ui.sanguo.tile.action.selected", "ut",
+        "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"ToIndex\":%d,\"Action\":\"skip\",\"CorrelationId\":\"%s\",\"CausationId\":\"ui.sanguo.tile.action.selected\"}" % [to_index, corr])
+
+    var elapsed_begin := Time.get_ticks_msec()
+    var saw_paused := false
+    for _i in range(240):
+        if get_tree().paused:
+            saw_paused = true
+            break
+        await get_tree().process_frame
+    assert_bool(saw_paused).is_true()
+
+    var p1_turn_index := -1
+    for _i in range(420):
+        p1_turn_index = _find_turn_started_index_for("p1", 0)
+        if p1_turn_index >= 0:
+            break
+        await get_tree().process_frame
+
+    var final_turn_started_count := _events_of_type("core.sanguo.game.turn.started").size()
+
+    if p1_turn_index < 0 or final_turn_started_count <= initial_turn_started_count:
+        var types: Array = []
+        for e in _events:
+            types.append(str(e.get("type", "")))
+        print("AI popup recovery missing next p1 turn. Observed event types: %s" % str(types))
+
+    assert_bool(final_turn_started_count > initial_turn_started_count).is_true()
+
+    var elapsed_seconds := float(Time.get_ticks_msec() - elapsed_begin) / 1000.0
+    assert_float(elapsed_seconds).is_less(8.0)

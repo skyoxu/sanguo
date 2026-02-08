@@ -146,6 +146,8 @@
     "relic.relic_prosperity_scroll.name": "Prosperity Scroll",
     "relic.relic_prosperity_scroll.desc": "Increase economy steps by two.",
     "ui.hud.settings.return": "Back to Main Menu",
-    "ui.hud.log": "Log"
+    "ui.hud.log": "Log",
+    "event_pool.default.name": "Tile Event Pool",
+    "event_pool.global.name": "Global Event Pool"
   }
 }
