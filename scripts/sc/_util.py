@@ -30,15 +30,12 @@ def ci_dir(name: str) -> Path:
 
 def write_text(path: Path, content: str) -> None:
     ensure_dir(path.parent)
-    # Project rule: always write UTF-8 without BOM. Avoid PowerShell pipeline writes.
-    with path.open("w", encoding="utf-8", newline="\r\n") as f:
-        f.write(content)
+    path.write_text(content, encoding="utf-8")
 
 
 def write_json(path: Path, payload: Any) -> None:
     ensure_dir(path.parent)
-    with path.open("w", encoding="utf-8", newline="\r\n") as f:
-        f.write(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def run_cmd(
