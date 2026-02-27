@@ -3,8 +3,14 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 const EVENT_TURN_ADVANCED := "core.sanguo.game.turn.advanced"
 
 var _bus: Node
+var _original_locale := ""
 
 func before() -> void:
+	if TranslationServer.has_method("get_locale"):
+		_original_locale = String(TranslationServer.get_locale())
+	if TranslationServer.has_method("set_locale"):
+		TranslationServer.set_locale("en")
+
 	var existing = get_node_or_null("/root/EventBus")
 	if existing != null:
 		existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
@@ -14,8 +20,15 @@ func before() -> void:
 	_bus.name = "EventBus"
 	get_tree().get_root().add_child(auto_free(_bus))
 
+func after() -> void:
+	if TranslationServer.has_method("set_locale") and _original_locale.strip_edges().length() > 0:
+		TranslationServer.set_locale(_original_locale)
+
 func _format_date_text(year: int, month: int, day: int) -> String:
-	return "Date: %04d-%02d-%02d" % [year, month, day]
+	return "%04d-%02d-%02d" % [year, month, day]
+
+func _assert_date_label(date_label: Label, year: int, month: int, day: int) -> void:
+	assert_bool(date_label.text.ends_with(": " + _format_date_text(year, month, day))).is_true()
 
 func _hud() -> Node:
 	var hud = preload("res://Game.Godot/Scenes/UI/HUD.tscn").instantiate()
@@ -33,30 +46,30 @@ func _publish_turn_advanced(year: int, month: int, day: int, active_player_id: S
 # ACC:T21.3
 func test_date_label_updates_on_multiple_turn_advanced_events() -> void:
 	var hud = await _hud()
-	var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
+	var date_label: Label = hud.get_node("TopBar/TopStack/HBox/DateLabel")
 
 	_publish_turn_advanced(3, 2, 1, "p1")
 	await get_tree().process_frame
-	assert_str(date_label.text).is_equal(_format_date_text(3, 2, 1))
+	_assert_date_label(date_label, 3, 2, 1)
 
 	_publish_turn_advanced(3, 2, 2, "p1")
 	await get_tree().process_frame
-	assert_str(date_label.text).is_equal(_format_date_text(3, 2, 2))
+	_assert_date_label(date_label, 3, 2, 2)
 
 	_publish_turn_advanced(3, 2, 3, "p1")
 	await get_tree().process_frame
-	assert_str(date_label.text).is_equal(_format_date_text(3, 2, 3))
+	_assert_date_label(date_label, 3, 2, 3)
 
 # ACC:T21.3
 func test_date_label_does_not_rollback_when_older_turn_advanced_event_arrives_late() -> void:
 	var hud = await _hud()
-	var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
+	var date_label: Label = hud.get_node("TopBar/TopStack/HBox/DateLabel")
 
 	_publish_turn_advanced(3, 2, 10, "p1")
 	await get_tree().process_frame
 	var expected_latest := _format_date_text(3, 2, 10)
-	assert_str(date_label.text).is_equal(expected_latest)
+	assert_bool(date_label.text.ends_with(": " + expected_latest)).is_true()
 
 	_publish_turn_advanced(3, 2, 9, "p1")
 	await get_tree().process_frame
-	assert_str(date_label.text).is_equal(expected_latest)
+	assert_bool(date_label.text.ends_with(": " + expected_latest)).is_true()

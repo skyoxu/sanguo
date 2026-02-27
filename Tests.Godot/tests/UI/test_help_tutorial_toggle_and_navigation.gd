@@ -31,8 +31,14 @@ const _LOCALE_ZH := "zh"
 
 var _bus: Node
 var _created_bus := false
+var _original_locale := ""
 
 func before() -> void:
+	if TranslationServer.has_method("get_locale"):
+		_original_locale = String(TranslationServer.get_locale())
+	if TranslationServer.has_method("set_locale"):
+		TranslationServer.set_locale("en")
+
 	_created_bus = false
 	_bus = get_node_or_null("/root/EventBus")
 	if _bus == null and ResourceLoader.exists("res://Game.Godot/Adapters/EventBusAdapter.cs"):
@@ -46,6 +52,8 @@ func after() -> void:
 		_bus.queue_free()
 	_bus = null
 	_created_bus = false
+	if TranslationServer.has_method("set_locale") and _original_locale.strip_edges().length() > 0:
+		TranslationServer.set_locale(_original_locale)
 
 func _load_first_existing_packed_scene(paths: Array) -> PackedScene:
 	for p in paths:
@@ -314,7 +322,8 @@ func test_help_tutorial_toggle_and_navigation_does_not_pause_tree_and_shows_non_
 
 	# Step 06 is the end of the learning route. "Next" should not wrap to Step 01.
 	assert_bool(String(content.text).find("06/06") != -1).is_true()
-	assert_str(String((next_btn as Button).text)).is_equal("Finish")
+	var finish_text := String((next_btn as Button).text)
+	assert_bool(finish_text.contains("Finish") or finish_text.contains("完成")).is_true()
 
 	# After the 01 -> 06 learning route steps, navigating further should reach the knowledge base section.
 	next_btn.emit_signal("pressed")

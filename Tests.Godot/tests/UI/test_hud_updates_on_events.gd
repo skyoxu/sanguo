@@ -2,8 +2,10 @@ extends "res://tests/UI/_fixtures/test_ui_event_log_fixture.gd"
 
 var _last_emitted_type := ""
 var _events: Array = []
+var _original_locale := ""
 
 func before_test() -> void:
+    _original_locale = _set_locale("en")
     await _setup_event_bus()
     _connect_domain_event_emitted(Callable(self, "_on_domain_event_emitted"))
     _last_emitted_type = ""
@@ -11,6 +13,7 @@ func before_test() -> void:
 
 func after_test() -> void:
     await _teardown_event_bus()
+    _restore_locale(_original_locale)
 
 func _on_domain_event_emitted(type, _source, data_json, _id, _spec, _ct, _ts) -> void:
     _last_emitted_type = str(type)
@@ -66,25 +69,28 @@ func _translate_summary(event_type: String) -> String:
         return translated
     return "event"
 
+func _assert_label_value(text: String, expected_value: String) -> void:
+    assert_bool(text.ends_with(": " + expected_value)).is_true()
+
 # ACC:T22.2
 func test_hud_core_interactions_are_wired() -> void:
     var hud = await _hud()
-    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+    var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
     _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
     await get_tree().process_frame
-    assert_str(dice.text).is_equal("Dice: 6")
+    _assert_label_value(dice.text, "6")
 
 # ACC:T20.2
 # ACC:T9.4
 func test_hud_has_core_status_nodes() -> void:
     var hud = await _hud()
-    assert_object(hud.get_node_or_null("TopBar/HBox/DiceButton")).is_not_null()
-    assert_object(hud.get_node_or_null("TopBar/HBox/ActivePlayerLabel")).is_not_null()
-    assert_object(hud.get_node_or_null("TopBar/HBox/DateLabel")).is_not_null()
-    assert_object(hud.get_node_or_null("TopBar/HBox/MoneyLabel")).is_not_null()
+    assert_object(hud.get_node_or_null("TopBar/TopStack/HBox/DiceButton")).is_not_null()
+    assert_object(hud.get_node_or_null("TopBar/TopStack/HBox/ActivePlayerLabel")).is_not_null()
+    assert_object(hud.get_node_or_null("TopBar/TopStack/HBox/DateLabel")).is_not_null()
+    assert_object(hud.get_node_or_null("TopBar/TopStack/HBox/MoneyLabel")).is_not_null()
 
 # ACC:T9.5
 func test_hud_has_event_toast_and_log_panel_nodes() -> void:
@@ -161,70 +167,70 @@ func test_hud_records_month_season_game_end_events_to_toast_and_log_panel() -> v
 
 func test_hud_updates_on_score_event() -> void:
     var hud = await _hud()
-    var score_label: Label = hud.get_node("TopBar/HBox/ScoreLabel")
+    var score_label: Label = hud.get_node("TopBar/TopStack/HBox/ScoreLabel")
     _bus.PublishSimple("core.score.updated", "ut", "{\"value\":42}")
     await get_tree().process_frame
-    assert_str(score_label.text).is_equal("Score: 42")
+    _assert_label_value(score_label.text, "42")
 
 func test_hud_updates_on_health_event() -> void:
     var hud = await _hud()
-    var hp_label: Label = hud.get_node("TopBar/HBox/HealthLabel")
+    var hp_label: Label = hud.get_node("TopBar/TopStack/HBox/HealthLabel")
     _bus.PublishSimple("core.health.updated", "ut", "{\"value\":77}")
     await get_tree().process_frame
-    assert_str(hp_label.text).is_equal("HP: 77")
+    _assert_label_value(hp_label.text, "77")
 
 # ACC:T20.3
 # ACC:T21.2
 func test_hud_updates_on_sanguo_turn_started_event() -> void:
     var hud = await _hud()
-    var active_label: Label = hud.get_node("TopBar/HBox/ActivePlayerLabel")
-    var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
-    var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
+    var active_label: Label = hud.get_node("TopBar/TopStack/HBox/ActivePlayerLabel")
+    var date_label: Label = hud.get_node("TopBar/TopStack/HBox/DateLabel")
+    var money_label: Label = hud.get_node("TopBar/TopStack/HBox/MoneyLabel")
 
-    assert_str(money_label.text).is_equal("Money: -")
+    _assert_label_value(money_label.text, "-")
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
-    assert_str(active_label.text).is_equal("Player: p1")
-    assert_str(date_label.text).is_equal("Date: 0003-02-01")
+    _assert_label_value(active_label.text, "p1")
+    _assert_label_value(date_label.text, "0003-02-01")
 
     _bus.PublishSimple("core.sanguo.game.turn.advanced", "ut", "{\"GameId\":\"g1\",\"ActivePlayerId\":\"p1\",\"TurnNumber\":2,\"Year\":3,\"Month\":2,\"Day\":2}")
     await get_tree().process_frame
-    assert_str(date_label.text).is_equal("Date: 0003-02-02")
+    _assert_label_value(date_label.text, "0003-02-02")
 
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":123,\"PositionIndex\":0}")
     await get_tree().process_frame
-    assert_str(money_label.text).is_equal("Money: 123")
+    _assert_label_value(money_label.text, "123")
 
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":456,\"PositionIndex\":0}")
     await get_tree().process_frame
-    assert_str(money_label.text).is_equal("Money: 456")
+    _assert_label_value(money_label.text, "456")
 
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p2\",\"Money\":999,\"PositionIndex\":0}")
     await get_tree().process_frame
-    assert_str(money_label.text).is_equal("Money: 456")
+    _assert_label_value(money_label.text, "456")
 
 func test_hud_ignores_state_changed_before_turn_started() -> void:
     var hud = await _hud()
-    var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
+    var money_label: Label = hud.get_node("TopBar/TopStack/HBox/MoneyLabel")
 
-    assert_str(money_label.text).is_equal("Money: -")
+    _assert_label_value(money_label.text, "-")
 
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":111,\"PositionIndex\":0}")
     await get_tree().process_frame
-    assert_str(money_label.text).is_equal("Money: -")
+    _assert_label_value(money_label.text, "-")
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
 
     _bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"PlayerId\":\"p1\",\"Money\":222,\"PositionIndex\":0}")
     await get_tree().process_frame
-    assert_str(money_label.text).is_equal("Money: 222")
+    _assert_label_value(money_label.text, "222")
 
 # ACC:T9.2
 func test_dice_button_emits_ui_roll_event() -> void:
     var hud = await _hud()
-    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+    var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
     _last_emitted_type = ""
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
@@ -236,7 +242,7 @@ func test_dice_button_emits_ui_roll_event() -> void:
 # Core domain events are validated in an integration test that includes the game loop controller.
 func test_hud_dice_roll_emits_ui_event_with_trace_ids() -> void:
     var hud = await _hud()
-    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+    var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
     _events = []
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
@@ -343,33 +349,33 @@ func test_money_cap_overflow_writes_security_audit_and_toast_auto_hides_after_3_
 # ACC:T22.3
 func test_hud_updates_on_sanguo_dice_rolled_event() -> void:
     var hud = await _hud()
-    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+    var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
 
     _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
     await get_tree().process_frame
-    assert_str(dice.text).is_equal("Dice: 6")
+    _assert_label_value(dice.text, "6")
 
     _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":1}")
     await get_tree().process_frame
-    assert_str(dice.text).is_equal("Dice: 1")
+    _assert_label_value(dice.text, "1")
 
 func test_hud_does_not_mix_dice_results_between_players() -> void:
     var hud = await _hud()
-    var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+    var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
 
     _bus.PublishSimple("core.sanguo.game.turn.started", "ut", "{\"ActivePlayerId\":\"p1\",\"Year\":3,\"Month\":2,\"Day\":1}")
     await get_tree().process_frame
 
     _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Value\":6}")
     await get_tree().process_frame
-    assert_str(dice.text).is_equal("Dice: 6")
+    _assert_label_value(dice.text, "6")
 
     _bus.PublishSimple("core.sanguo.dice.rolled", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p2\",\"Value\":1}")
     await get_tree().process_frame
-    assert_str(dice.text).is_equal("Dice: 6")
+    _assert_label_value(dice.text, "6")
 
 
 

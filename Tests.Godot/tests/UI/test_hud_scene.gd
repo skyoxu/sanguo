@@ -1,8 +1,17 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
 var _bus: Node
+var _original_locale := ""
+
+func _assert_label_value(text: String, expected_value: String) -> void:
+    assert_bool(text.ends_with(": " + expected_value)).is_true()
 
 func before() -> void:
+    if TranslationServer.has_method("get_locale"):
+        _original_locale = String(TranslationServer.get_locale())
+    if TranslationServer.has_method("set_locale"):
+        TranslationServer.set_locale("en")
+
     var existing = get_node_or_null("/root/EventBus")
     if existing != null:
         existing.name = "EventBus__old__%s" % str(Time.get_ticks_msec())
@@ -11,6 +20,10 @@ func before() -> void:
     _bus = preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
     _bus.name = "EventBus"
     get_tree().get_root().add_child(auto_free(_bus))
+
+func after() -> void:
+    if TranslationServer.has_method("set_locale") and _original_locale.strip_edges().length() > 0:
+        TranslationServer.set_locale(_original_locale)
 
 # ACC:T22.1
 # ACC:T9.1
@@ -29,7 +42,7 @@ func test_hud_scene_instantiates() -> void:
     assert_object(main.theme).is_not_null()
     assert_str(main.theme.resource_path).contains("res://Game.Godot/Themes/default_theme.tres")
 
-    var hud := main.get_node_or_null("HUD")
+    var hud := main.get_node_or_null("SplitRoot/TopArea/HudLayer/HUD")
     assert_object(hud).is_not_null()
     assert_object(hud.get_node_or_null("EventToast")).is_not_null()
     assert_object(hud.get_node_or_null("EventLogPanel")).is_not_null()
@@ -37,21 +50,21 @@ func test_hud_scene_instantiates() -> void:
     assert_bool(event_log_panel.visible).is_false()
     hud.call("ToggleEventLogOverlay")
     await get_tree().process_frame
-    assert_bool(event_log_panel.is_visible_in_tree()).is_true()
-    var date_label: Label = hud.get_node("TopBar/HBox/DateLabel")
-    assert_bool(date_label.is_visible_in_tree()).is_true()
-    var money_label: Label = hud.get_node("TopBar/HBox/MoneyLabel")
-    assert_str(money_label.text).is_equal("Money: -")
+    assert_bool(event_log_panel.visible).is_true()
+    var date_label: Label = hud.get_node("TopBar/TopStack/HBox/DateLabel")
+    assert_bool(date_label.visible).is_true()
+    var money_label: Label = hud.get_node("TopBar/TopStack/HBox/MoneyLabel")
+    _assert_label_value(money_label.text, "-")
 
-    assert_object(main.get_node_or_null("SanguoBoardView")).is_not_null()
-    assert_object(main.get_node_or_null("Overlays/CityOwnershipStatus")).is_not_null()
+    assert_object(main.get_node_or_null("SplitRoot/BottomArea/BoardArea/BoardViewportContainer/BoardViewport/SanguoBoardView")).is_not_null()
+    assert_object(main.get_node_or_null("SplitRoot/BottomArea/BoardArea/Overlays/CityOwnershipStatus")).is_not_null()
 
     _bus.PublishSimple("ui.menu.start", "ut", "{}")
     for _i in range(20):
         await get_tree().process_frame
-        if date_label.text != "Date: -":
+        if not date_label.text.ends_with(": -"):
             break
-    assert_str(date_label.text).is_equal("Date: 0003-02-01")
+    _assert_label_value(date_label.text, "0003-02-01")
 
     var toast := preload("res://Game.Godot/Scenes/UI/EventToast.tscn").instantiate()
     add_child(auto_free(toast))

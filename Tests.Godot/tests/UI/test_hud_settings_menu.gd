@@ -16,7 +16,7 @@ func _on_domain_event_emitted(type, _source, _data_json, _id, _spec, _ct, _ts) -
 func test_settings_menu_pauses_and_resumes_game() -> void:
 	var hud = await _hud()
 	var menu: Control = hud.get_node("SettingsMenu")
-	var btn_settings: Button = hud.get_node("TopBar/HBox/GameSettingsButton")
+	var btn_settings: Button = hud.get_node("TopBar/TopStack/HBox/GameSettingsButton")
 	var btn_resume: Button = hud.get_node("SettingsMenu/Center/Panel/VBox/BtnResume")
 
 	assert_bool(menu.visible).is_false()
@@ -34,7 +34,7 @@ func test_settings_menu_pauses_and_resumes_game() -> void:
 
 func test_settings_menu_emits_save_load_and_quit_events() -> void:
 	var hud = await _hud()
-	var btn_settings: Button = hud.get_node("TopBar/HBox/GameSettingsButton")
+	var btn_settings: Button = hud.get_node("TopBar/TopStack/HBox/GameSettingsButton")
 	var btn_save: Button = hud.get_node("SettingsMenu/Center/Panel/VBox/BtnSave")
 	var btn_load: Button = hud.get_node("SettingsMenu/Center/Panel/VBox/BtnLoad")
 	var btn_quit: Button = hud.get_node("SettingsMenu/Center/Panel/VBox/BtnQuit")

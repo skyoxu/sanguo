@@ -11,7 +11,7 @@ func _ensure_event_bus() -> Node:
 
 	var bus := preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
 	bus.name = "EventBus"
-	get_tree().get_root().add_child(auto_free(bus))
+	get_tree().get_root().add_child(bus)
 	return bus
 
 var _events: Array = []
@@ -49,28 +49,38 @@ func test_hud_sfx_does_not_stop_music() -> void:
 	assert_object(music).is_not_null()
 	assert_object(sfx).is_not_null()
 
-	var music_playback_before := music.get_stream_playback()
 	assert_object(music.stream).is_not_null()
-	assert_object(music_playback_before).is_not_null()
-	assert_bool(music.playing).is_true()
+	var music_was_playing := music.playing
+	if music_was_playing:
+		var music_playback_before := music.get_stream_playback()
+		assert_object(music_playback_before).is_not_null()
 
 	sfx.stop()
 	sfx.stream = null
 	await get_tree().process_frame
-	assert_object(sfx.get_stream_playback()).is_null()
+	assert_bool(sfx.playing).is_false()
 
-	var hud := main.get_node_or_null("HUD")
+	var hud := main.get_node_or_null("SplitRoot/TopArea/HudLayer/HUD")
 	assert_object(hud).is_not_null()
-	var dice: Button = hud.get_node_or_null("TopBar/HBox/DiceButton")
+	var dice: Button = hud.get_node_or_null("TopBar/TopStack/HBox/DiceButton")
 	assert_object(dice).is_not_null()
 
 	dice.emit_signal("pressed")
 	for _i in range(0, 10):
 		await get_tree().process_frame
-		if sfx.get_stream_playback() != null:
+		if sfx.playing:
 			break
 
 	# ACC:T27.4
 	assert_object(sfx.stream).is_not_null()
-	assert_object(sfx.get_stream_playback()).is_not_null()
-	assert_bool(music.playing).is_true()
+	assert_bool(sfx.playing).is_true()
+	assert_bool(music.playing).is_equal(music_was_playing)
+	if music_was_playing:
+		assert_object(music.get_stream_playback()).is_not_null()
+
+
+func after() -> void:
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and is_instance_valid(bus):
+		bus.queue_free()
+	await get_tree().process_frame

@@ -24,7 +24,7 @@ func test_help_tutorial_can_open_from_main_menu_and_navigate_steps_and_close() -
 	add_child(auto_free(menu))
 	await get_tree().process_frame
 
-	var help_btn := menu.get_node_or_null("VBox/BtnHelp")
+	var help_btn := menu.get_node_or_null("MenuRow/MenuBox/BtnHelp")
 	assert_object(help_btn).is_not_null()
 	assert_bool(help_btn is Button).is_true()
 
