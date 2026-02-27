@@ -40,10 +40,29 @@ func _hud() -> Node:
 	await get_tree().process_frame
 	return hud
 
-func _find_action_button(actions_box: Node, action_text: String) -> Button:
+func _action_label_candidates(action_id: String) -> Array[String]:
+	var normalized := action_id.strip_edges().to_lower()
+	var candidates: Array[String] = []
+	if normalized.length() == 0:
+		return candidates
+
+	candidates.append(normalized)
+	if TranslationServer.has_method("translate"):
+		var key := "ui.hud.action.%s" % normalized
+		var translated := String(TranslationServer.translate(key)).strip_edges()
+		if translated.length() > 0 and translated != key and not candidates.has(translated):
+			candidates.append(translated)
+	return candidates
+
+func _find_action_button(actions_box: Node, action_id: String) -> Button:
+	var candidates := _action_label_candidates(action_id)
 	for child in actions_box.get_children():
-		if child is Button and str((child as Button).text) == action_text:
-			return child as Button
+		if not (child is Button):
+			continue
+		var button_text := str((child as Button).text).strip_edges()
+		for candidate in candidates:
+			if button_text.to_lower() == str(candidate).to_lower():
+				return child as Button
 	return null
 
 # ACC:T58.3
