@@ -323,6 +323,9 @@ jobs:
           $date = (& py -3 -c "import datetime as dt; print(dt.date.today().strftime('%Y-%m-%d'))").Trim()
           $strict = "${{ github.event_name == 'workflow_dispatch' && inputs.strict_adr_status || 'false' }}"
           $reqPerf = "${{ github.event_name == 'workflow_dispatch' && inputs.require_perf || 'false' }}"
+          # Coverage is already handled by quality_gates.py in this workflow.
+          # Avoid duplicate hard 90/85 enforcement inside scripts/sc/test.py during acceptance_check.
+          $env:SC_ACCEPTANCE_NO_COVERAGE_GATE = "1"
 
           foreach ($id in $env:SC_TASK_IDS.Split(',')) {
             $args = @("py", "-3", "scripts/sc/acceptance_check.py", "--task-id", $id, "--godot-bin", "$env:GODOT_BIN")
