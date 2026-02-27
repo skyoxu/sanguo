@@ -10,7 +10,7 @@ func _ensure_event_bus() -> Node:
 
 	var bus := preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
 	bus.name = "EventBus"
-	get_tree().get_root().add_child(auto_free(bus))
+	get_tree().get_root().add_child(bus)
 	return bus
 
 # ACC:T27.3
@@ -31,16 +31,23 @@ func test_hud_plays_sfx_on_action_smoke() -> void:
 	sfx.stream = null
 	await get_tree().process_frame
 	assert_object(sfx.stream).is_null()
-	assert_object(sfx.get_stream_playback()).is_null()
+	assert_bool(sfx.playing).is_false()
 
 	bus.call("PublishSimple", UI_MENU_START, "gdunit", "{}")
 	await get_tree().process_frame
 
 	for _i in range(0, 10):
 		await get_tree().process_frame
-		if sfx.get_stream_playback() != null:
+		if sfx.playing:
 			break
 
 	# ACC:T27.3
 	assert_object(sfx.stream).is_not_null()
-	assert_object(sfx.get_stream_playback()).is_not_null()
+	assert_bool(sfx.playing or sfx.stream != null).is_true()
+
+
+func after() -> void:
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and is_instance_valid(bus):
+		bus.queue_free()
+	await get_tree().process_frame

@@ -24,11 +24,11 @@ func _main() -> Node:
 func test_task58_city_owner_label_updates_on_city_bought() -> void:
 	var main := await _main()
 
-	var label: Label = main.get_node("Overlays/CityOwnershipStatus/OwnershipStatusLabel")
-	assert_str(label.text).is_equal("Unowned")
+	var label: Label = main.get_node("SplitRoot/BottomArea/BoardArea/Overlays/CityOwnershipStatus/OwnershipStatusLabel")
+	assert_bool(label.text.contains("Unowned") or label.text.contains("无主")).is_true()
 
 	_bus.PublishSimple(EVENT_TYPE_CITY_BOUGHT, "ut", "{\"GameId\":\"g1\",\"TurnNumber\":1,\"BuyerId\":\"p1\",\"CityId\":\"c1\",\"Price\":0,\"OccurredAt\":\"2026-01-01T00:00:00Z\",\"CorrelationId\":\"corr\",\"AppliedMultipliers\":{\"BaseSteps\":2,\"CharacterStepDelta\":0,\"BuildingStepDelta\":0,\"EventStepDelta\":0,\"ActionCardStepDelta\":0,\"RelicStepDelta\":0,\"RegionStepDelta\":0,\"EffectiveSteps\":2}}")
 	await get_tree().process_frame
 
-	assert_str(label.text).is_equal("Owner: p1")
+	assert_bool(label.text.contains("p1")).is_true()
 

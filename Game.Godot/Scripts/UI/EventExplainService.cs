@@ -1529,7 +1529,7 @@ public static class EventExplainService
 
         var poolId = string.Equals(token, "global", StringComparison.Ordinal) ? "global" : "default";
         var poolLabel = ResolveNamedLabel(eventPoolLabelById, poolId);
-        if (!string.IsNullOrWhiteSpace(poolLabel))
+        if (!string.IsNullOrWhiteSpace(poolLabel) && !IsUnknownPlaceholder(poolLabel))
         {
             return poolLabel;
         }
@@ -1655,6 +1655,34 @@ public static class EventExplainService
             return null;
         }
         return text;
+    }
+
+    private static bool IsUnknownPlaceholder(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return true;
+        }
+
+        var trimmed = value.Trim();
+        var hasMarker = false;
+        foreach (var ch in trimmed)
+        {
+            if (ch == '?' || ch == '？' || ch == '�')
+            {
+                hasMarker = true;
+                continue;
+            }
+
+            if (char.IsWhiteSpace(ch))
+            {
+                continue;
+            }
+
+            return false;
+        }
+
+        return hasMarker;
     }
 
     private static void AddAppliedMultipliersFactsFromElement(

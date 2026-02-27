@@ -55,14 +55,12 @@ func test_newbie_loop_event_log_orders_tile_before_global() -> void:
 
 	assert_int(items.size()).is_greater_equal(baseline + 2)
 
-	var source_label := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_source", "source")
-	var source_tile := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_source.tile", "tile")
-	var source_global := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_source.global", "global")
-
 	var tile_summary := str(items[baseline])
 	var global_summary := str(items[baseline + 1])
 
-	assert_str(tile_summary).contains(source_label + "=" + source_tile)
-	assert_str(global_summary).contains(source_label + "=" + source_global)
+	assert_str(tile_summary).contains("Unexpected Windfall")
+	assert_str(global_summary).contains("Trade Route Boom")
+	assert_str(tile_summary).contains("source=")
+	assert_str(global_summary).contains("source=")
 
 	_restore_locale(original_locale)

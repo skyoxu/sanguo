@@ -8,7 +8,7 @@ func after_test() -> void:
 
 func test_players_list_updates_for_all_players() -> void:
 	var hud = await _hud()
-	var list: VBoxContainer = hud.get_node("PlayersPanel/VBox/PlayersList")
+	var list: VBoxContainer = hud.get_node("TopBar/TopStack/PlayersPanel/VBox/PlayersList")
 	assert_int(list.get_child_count()).is_equal(0)
 
 	_bus.PublishSimple("core.sanguo.player.state.changed", "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"Money\":120,\"PositionIndex\":1}")
