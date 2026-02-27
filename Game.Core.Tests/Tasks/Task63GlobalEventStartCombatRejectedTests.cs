@@ -52,8 +52,8 @@ public sealed class Task63GlobalEventStartCombatRejectedTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "event_combat_small" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "event_combat_small" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "event_combat_small" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "event_combat_small" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -123,8 +123,8 @@ public sealed class Task63GlobalEventStartCombatRejectedTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "event_combat_small" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "event_combat_small" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "event_combat_small" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "event_combat_small" }),
             });
 
         var mgr = new SanguoTurnManager(

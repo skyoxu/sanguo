@@ -405,8 +405,8 @@ public sealed class Task59CombatTriggerAndReturnTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "event_combat_small" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "event_combat_small" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "event_combat_small" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "event_combat_small" }),
             });
 
         var combatRating = new Dictionary<string, int>(StringComparer.Ordinal) { ["p1"] = 100 };
@@ -494,8 +494,8 @@ public sealed class Task59CombatTriggerAndReturnTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "event_combat_small" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "event_combat_small" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "event_combat_small" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "event_combat_small" }),
             });
 
         var mgr = new SanguoTurnManager(

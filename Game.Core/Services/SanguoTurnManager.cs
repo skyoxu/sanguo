@@ -3703,7 +3703,11 @@ public sealed class SanguoTurnManager
                     copy[cardId] = count;
                 }
             }
-            snapshot[playerId] = copy;
+
+            if (copy.Count > 0)
+            {
+                snapshot[playerId] = copy;
+            }
         }
 
         return snapshot;

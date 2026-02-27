@@ -119,8 +119,8 @@ public sealed class Task56RandomEventCoverageTests
             Events: Array.Empty<SanguoRandomEventCatalogEntry>(),
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "missing" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "missing" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "missing" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "missing" }),
             });
 
         var bus = new RecordingEventBus();
@@ -176,7 +176,7 @@ public sealed class Task56RandomEventCoverageTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "e1" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "e1" }),
             });
 
         var bus = new RecordingEventBus();
@@ -381,8 +381,8 @@ public sealed class Task56RandomEventCoverageTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { eventId }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { eventId }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { eventId }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { eventId }),
             });
 
     private static Task InvokeTryTriggerTileRandomEventAsync(

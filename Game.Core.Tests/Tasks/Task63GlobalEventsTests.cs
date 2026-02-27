@@ -266,8 +266,8 @@ public sealed class Task63GlobalEventsTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "drought" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "drought" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "drought" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "drought" }),
             });
 
         var manager = new SanguoTurnManager(
@@ -376,8 +376,8 @@ public sealed class Task63GlobalEventsTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "drought" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "drought" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "drought" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "drought" }),
             });
 
         var manager = new SanguoTurnManager(
@@ -455,8 +455,8 @@ public sealed class Task63GlobalEventsTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "unique_once" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "unique_once" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "unique_once" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "unique_once" }),
             });
 
         var manager = new SanguoTurnManager(
@@ -732,8 +732,8 @@ public sealed class Task63GlobalEventsTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "drought" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "drought" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "drought" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "drought" }),
             });
 
         var manager = new SanguoTurnManager(

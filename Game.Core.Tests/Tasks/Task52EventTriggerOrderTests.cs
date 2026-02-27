@@ -48,9 +48,11 @@ public sealed class Task52EventTriggerOrderTests
         {
             new SanguoRandomEventPoolCatalogEntry(
                 PoolId: "default",
+                NameKey: "event.pool.test",
                 EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
             new SanguoRandomEventPoolCatalogEntry(
                 PoolId: "global",
+                NameKey: "event.pool.test",
                 EventIds: new[] { "event_economy_boost_a", "event_economy_boost_b" }),
         });
 

@@ -47,7 +47,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenStartCombatMissingEncounterId()
     {
         var json = "{\"schemaVersion\":1,\"version\":1,"
-                   + "\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"event_combat_small\"]},{\"poolId\":\"global\",\"eventIds\":[]}],"
+                   + "\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"event_combat_small\"]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[]}],"
                    + "\"events\":[{\"eventId\":\"event_combat_small\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"startCombat\",\"encounterTarget\":10}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
@@ -61,7 +61,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenStartCombatEncounterTargetInvalid()
     {
         var json = "{\"schemaVersion\":1,\"version\":1,"
-                   + "\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"event_combat_small\"]},{\"poolId\":\"global\",\"eventIds\":[]}],"
+                   + "\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"event_combat_small\"]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[]}],"
                    + "\"events\":[{\"eventId\":\"event_combat_small\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"startCombat\",\"encounterId\":\"enc_event_combat_small\",\"encounterTarget\":-1}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
@@ -140,7 +140,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenRequiredPoolsMissing()
     {
-        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\",\"moneyDelta\":1}]}";
+        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\",\"moneyDelta\":1}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
@@ -174,7 +174,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenPoolMissingEventIds()
     {
-        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\"}],\"events\":[]}");
+        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\"}],\"events\":[]}");
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
 
@@ -185,7 +185,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenPoolEventIdsNotStrings()
     {
-        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[1]}],\"events\":[]}");
+        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[1]}],\"events\":[]}");
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
 
@@ -196,7 +196,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenEventNotObject()
     {
-        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[]},{\"poolId\":\"global\",\"eventIds\":[]}],\"events\":[1]}");
+        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[]}],\"events\":[1]}");
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
 
@@ -207,7 +207,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenEventsMissing()
     {
-        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[]},{\"poolId\":\"global\",\"eventIds\":[]}]}");
+        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[]}]}");
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
 
@@ -218,7 +218,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenEventsNotArray()
     {
-        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[]},{\"poolId\":\"global\",\"eventIds\":[]}],\"events\":{}}");
+        var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[]}],\"events\":{}}");
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
 
@@ -229,7 +229,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenUniqueOnceMissing()
     {
-        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\",\"moneyDelta\":1}]}";
+        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\",\"moneyDelta\":1}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
@@ -241,7 +241,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenEffectKindNotAllowed()
     {
-        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"teleport\",\"moneyDelta\":1}]}";
+        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"teleport\",\"moneyDelta\":1}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
@@ -253,7 +253,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenMoneyDeltaMissingForMoneyDeltaKind()
     {
-        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\"}]}";
+        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\"}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
@@ -265,7 +265,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenStepDeltaOutOfRange()
     {
-        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"economyStepDelta\",\"stepDelta\":7}]}";
+        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"economyStepDelta\",\"stepDelta\":7}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
@@ -277,7 +277,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldFail_WhenCooldownInvalid()
     {
-        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":-1,\"effectKind\":\"moneyDelta\",\"moneyDelta\":1}]}";
+        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"a\"]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[\"a\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":-1,\"effectKind\":\"moneyDelta\",\"moneyDelta\":1}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out _, out var error);
@@ -289,7 +289,7 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
     [Fact]
     public void TryLoadRandomEventsCatalog_ShouldDeDuplicatePoolsAndEvents_ById()
     {
-        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"eventIds\":[\"a\",\"a\"]},{\"poolId\":\"default\",\"eventIds\":[\"b\"]},{\"poolId\":\"global\",\"eventIds\":[\"a\",\"b\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\",\"moneyDelta\":1},{\"eventId\":\"a\",\"nameKey\":\"n2\",\"descriptionKey\":\"d2\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\",\"moneyDelta\":2},{\"eventId\":\"b\",\"nameKey\":\"n3\",\"descriptionKey\":\"d3\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"economyStepDelta\",\"stepDelta\":1}]}";
+        var json = "{\"schemaVersion\":1,\"version\":1,\"eventPools\":[{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"a\",\"a\"]},{\"poolId\":\"default\",\"nameKey\":\"event.pool.default\",\"eventIds\":[\"b\"]},{\"poolId\":\"global\",\"nameKey\":\"event.pool.global\",\"eventIds\":[\"a\",\"b\"]}],\"events\":[{\"eventId\":\"a\",\"nameKey\":\"n\",\"descriptionKey\":\"d\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\",\"moneyDelta\":1},{\"eventId\":\"a\",\"nameKey\":\"n2\",\"descriptionKey\":\"d2\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"moneyDelta\",\"moneyDelta\":2},{\"eventId\":\"b\",\"nameKey\":\"n3\",\"descriptionKey\":\"d3\",\"uniqueOnce\":false,\"cooldownRounds\":0,\"effectKind\":\"economyStepDelta\",\"stepDelta\":1}]}";
         var loader = new FakeResourceLoader(SanguoRandomEventsCatalogLoader.RandomEventsResPath, json);
 
         var ok = SanguoRandomEventsCatalogLoader.TryLoadRandomEventsCatalog(loader, out var catalog, out var error);
@@ -304,8 +304,8 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
   ""schemaVersion"": 1,
   ""version"": 1,
   ""eventPools"": [
-    { ""poolId"": ""default"", ""eventIds"": [ ""event_money_small"", ""event_economy_boost"" ] },
-    { ""poolId"": ""global"", ""eventIds"": [ ""event_money_small"" ] }
+    { ""poolId"": ""default"", ""nameKey"": ""event.pool.default"", ""eventIds"": [ ""event_money_small"", ""event_economy_boost"" ] },
+    { ""poolId"": ""global"", ""nameKey"": ""event.pool.global"", ""eventIds"": [ ""event_money_small"" ] }
   ],
   ""events"": [
     {
@@ -333,8 +333,8 @@ public sealed class SanguoRandomEventsCatalogLoaderTests
   ""schemaVersion"": 1,
   ""version"": 1,
   ""eventPools"": [
-    { ""poolId"": ""default"", ""eventIds"": [ ""event_combat_small"" ] },
-    { ""poolId"": ""global"", ""eventIds"": [ ""event_money_small"" ] }
+    { ""poolId"": ""default"", ""nameKey"": ""event.pool.default"", ""eventIds"": [ ""event_combat_small"" ] },
+    { ""poolId"": ""global"", ""nameKey"": ""event.pool.global"", ""eventIds"": [ ""event_money_small"" ] }
   ],
   ""events"": [
     {
