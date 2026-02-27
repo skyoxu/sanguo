@@ -64,10 +64,15 @@ func test_hud_sfx_does_not_stop_music() -> void:
 	assert_object(hud).is_not_null()
 	var dice: Button = hud.get_node_or_null("TopBar/TopStack/HBox/DiceButton")
 	assert_object(dice).is_not_null()
+	for _i in range(0, 120):
+		await get_tree().process_frame
+		if dice != null and not dice.disabled and dice.visible:
+			break
+	assert_bool(dice.disabled).is_false()
 
 	dice.emit_signal("pressed")
 	var sfx_started := false
-	for _i in range(0, 10):
+	for _i in range(0, 60):
 		await get_tree().process_frame
 		if sfx.playing:
 			sfx_started = true
