@@ -26,15 +26,14 @@ func test_settings_panel_works_without_db() -> void:
         panel.ShowPanel()
         await get_tree().process_frame
         assert_bool(panel.visible).is_true()
-    # trigger save/load signals without /root/SqlDb
-    var save_btn = panel.get_node("VBox/Buttons/SaveBtn")
-    var load_btn = panel.get_node("VBox/Buttons/LoadBtn")
+    # trigger save/show flow without /root/SqlDb
+    var save_btn = panel.get_node("Center/VBox/Buttons/SaveBtn")
     save_btn.emit_signal("pressed")
-    load_btn.emit_signal("pressed")
+    if panel.has_method("ShowPanel"):
+        panel.ShowPanel()
     await get_tree().process_frame
     # close should hide panel
-    var close_btn = panel.get_node("VBox/Buttons/CloseBtn")
+    var close_btn = panel.get_node("Center/VBox/Buttons/CloseBtn")
     close_btn.emit_signal("pressed")
     await get_tree().process_frame
     assert_bool(panel.visible).is_false()
-

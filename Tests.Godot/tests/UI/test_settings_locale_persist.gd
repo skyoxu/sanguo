@@ -11,11 +11,14 @@ func _new_panel() -> Node:
     return panel
 
 func _select_lang(panel: Node, code: String) -> void:
-    var lang_opt = panel.get_node("VBox/LangRow/LangOpt")
+    var lang_opt = panel.get_node("Center/VBox/LangRow/LangOpt") as OptionButton
     if lang_opt.get_item_count() == 0:
         lang_opt.add_item("en"); lang_opt.add_item("zh"); lang_opt.add_item("ja")
     var idx := -1
     for i in range(lang_opt.get_item_count()):
+        if str(lang_opt.get_item_metadata(i)).to_lower() == code.to_lower():
+            idx = i
+            break
         if str(lang_opt.get_item_text(i)).to_lower() == code.to_lower():
             idx = i
             break
@@ -30,12 +33,18 @@ func _clear_config() -> void:
         dir.remove("settings.cfg")
 
 func test_settings_locale_persist_cross_restart_via_config() -> void:
+    var original_locale := ""
+    if TranslationServer.has_method("get_locale"):
+        original_locale = String(TranslationServer.get_locale())
+
     _clear_config()
     var panel = await _new_panel()
     if panel == null:
+        if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
+            TranslationServer.set_locale(original_locale)
         return
     _select_lang(panel, "zh")
-    var save_btn = panel.get_node("VBox/Buttons/SaveBtn")
+    var save_btn = panel.get_node("Center/VBox/Buttons/SaveBtn")
     save_btn.emit_signal("pressed")
     await get_tree().process_frame
     assert_str(TranslationServer.get_locale()).contains("zh")
@@ -44,7 +53,9 @@ func test_settings_locale_persist_cross_restart_via_config() -> void:
     panel.queue_free()
     await get_tree().process_frame
     var panel2 = await _new_panel()
-    var load_btn = panel2.get_node("VBox/Buttons/LoadBtn")
-    load_btn.emit_signal("pressed")
+    if panel2 != null:
+        panel2.call("ShowPanel")
     await get_tree().process_frame
     assert_str(TranslationServer.get_locale()).contains("zh")
+    if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
+        TranslationServer.set_locale(original_locale)

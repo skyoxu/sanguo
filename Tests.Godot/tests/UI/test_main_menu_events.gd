@@ -26,8 +26,14 @@ func test_main_menu_emits_start() -> void:
     var menu = preload("res://Game.Godot/Scenes/UI/MainMenu.tscn").instantiate()
     add_child(auto_free(menu))
     await get_tree().process_frame
-    var btn = menu.get_node("VBox/BtnPlay")
-    btn.emit_signal("pressed")
+    var btn_play = menu.get_node("MenuRow/MenuBox/BtnPlay")
+    var btn_start = menu.get_node("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart")
+    btn_play.emit_signal("pressed")
     await get_tree().process_frame
+    btn_start.emit_signal("pressed")
+    for _i in range(60):
+        if _received:
+            break
+        await get_tree().process_frame
     assert_bool(_received).is_true()
     assert_str(_etype).is_equal("ui.menu.start")

@@ -11,7 +11,7 @@ func test_settings_panel_close_button_hides_panel() -> void:
         await get_tree().process_frame
     assert_bool(panel.visible).is_true()
     # White-box: click CloseBtn and expect hidden
-    var close_btn = panel.get_node("VBox/Buttons/CloseBtn")
+    var close_btn = panel.get_node("Center/VBox/Buttons/CloseBtn")
     close_btn.emit_signal("pressed")
     await get_tree().process_frame
     assert_bool(panel.visible).is_false()

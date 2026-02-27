@@ -25,13 +25,13 @@ func test_invalid_resolution_in_config_falls_back_to_last_valid_and_ui_matches_e
 	add_child(auto_free(panel))
 	await get_tree().process_frame
 
-	var res_opt := panel.get_node("VBox/ResolutionRow/ResolutionOpt")
+	var res_opt := panel.get_node("Center/VBox/ResolutionRow/ResolutionOpt")
 	assert_bool(res_opt != null).is_true()
 	if res_opt == null:
 		return
 	assert_bool(res_opt.get_item_count() > 0).is_true()
 
-	var mode_opt := panel.get_node("VBox/WindowModeRow/WindowModeOpt") as OptionButton
+	var mode_opt := panel.get_node("Center/VBox/WindowModeRow/WindowModeOpt") as OptionButton
 	assert_bool(mode_opt != null).is_true()
 	if mode_opt == null:
 		return
@@ -44,7 +44,7 @@ func test_invalid_resolution_in_config_falls_back_to_last_valid_and_ui_matches_e
 	res_opt.select(0)
 	mode_opt.select(0)
 	await get_tree().process_frame
-	panel.get_node("VBox/Buttons/SaveBtn").emit_signal("pressed")
+	panel.get_node("Center/VBox/Buttons/SaveBtn").emit_signal("pressed")
 	await get_tree().process_frame
 	assert_bool(_last_valid_resolution.x > 0 and _last_valid_resolution.y > 0).is_true()
 	_saved_window_mode_text = mode_opt.get_item_text(mode_opt.selected)
@@ -64,7 +64,7 @@ func test_invalid_resolution_in_config_falls_back_to_last_valid_and_ui_matches_e
 	mode_opt.select(min(1, mode_opt.get_item_count() - 1))
 	await get_tree().process_frame
 
-	panel.get_node("VBox/Buttons/LoadBtn").emit_signal("pressed")
+	panel.call("ShowPanel")
 	await get_tree().process_frame
 
 	var expected_text: String = "%dx%d" % [_last_valid_resolution.x, _last_valid_resolution.y]

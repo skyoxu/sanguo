@@ -39,14 +39,14 @@ func test_main_menu_settings_button_shows_settings_panel() -> void:
 	get_tree().get_root().add_child(_main)
 	await get_tree().process_frame
 
-	var panel := _main.get_node_or_null("SettingsPanel") as Control
+	var panel := _main.get_node_or_null("SettingsLayer/SettingsPanel") as Control
 	assert_bool(panel != null).is_true()
 	if panel == null:
 		return
 	assert_bool(panel.visible).is_false()
 
 	_saw_settings_event = false
-	var btn := _main.get_node("MainMenu/VBox/BtnSettings")
+	var btn := _main.get_node("MenuLayer/MainMenu/MenuRow/MenuBox/BtnSettings")
 	btn.emit_signal("pressed")
 	await get_tree().process_frame
 

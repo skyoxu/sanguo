@@ -49,20 +49,14 @@ func test_settings_panel_invalid_volume_is_clamped_and_loadable() -> void:
 	add_child(auto_free(panel))
 	await get_tree().process_frame
 
-	var slider := panel.get_node_or_null("VBox/VolRow/VolSlider") as Range
+	var slider := panel.get_node_or_null("Center/VBox/VolRow/VolSlider") as Range
 	assert_bool(slider != null).is_true()
 	if slider == null:
 		AudioServer.set_bus_volume_db(bus, original_db)
 		return
 
-	var load_btn := panel.get_node_or_null("VBox/Buttons/LoadBtn")
-	assert_bool(load_btn != null).is_true()
-	if load_btn == null:
-		AudioServer.set_bus_volume_db(bus, original_db)
-		return
-
 	# Load invalid value and ensure runtime/UI clamps it.
-	load_btn.emit_signal("pressed")
+	panel.call("ShowPanel")
 	await get_tree().process_frame
 
 	assert_bool(abs(float(slider.value) - float(slider.max_value)) < 0.0001).is_true()
