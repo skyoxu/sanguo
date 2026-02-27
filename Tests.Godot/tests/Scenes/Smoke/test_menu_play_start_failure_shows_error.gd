@@ -1,6 +1,6 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
-const MenuTestDriver = preload("res://tests/Scenes/Smoke/_fixtures/menu_test_driver.gd")
+const MenuTestDriver = preload("res://tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd")
 
 const EVT_START := "ui.menu.start"
 const EVT_START_FAILED := "ui.menu.start.failed"
