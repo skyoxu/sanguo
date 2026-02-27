@@ -15,6 +15,7 @@ Usage (Windows):
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import uuid
@@ -190,6 +191,49 @@ def run_sanguo_saveload_restart(out_dir: Path, godot_bin: str, *, run_id: str) -
     return {"name": "sanguo-saveload-restart", "cmd": cmd, "rc": rc, "log": str(log_path)}
 
 
+def _is_truthy(raw: str | None) -> bool:
+    return str(raw or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _validate_coverage_bypass_guard(*, no_coverage_gate: bool) -> tuple[bool, str, dict[str, Any]]:
+    details: dict[str, Any] = {
+        "enabled": bool(no_coverage_gate),
+        "scope": "none",
+        "status": "skipped",
+    }
+
+    if not no_coverage_gate:
+        return True, "", details
+
+    acceptance_scope = _is_truthy(os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE"))
+    details["scope"] = "acceptance" if acceptance_scope else "manual"
+    if not acceptance_scope:
+        details["status"] = "ok"
+        return True, "", details
+
+    quality_summary = repo_root() / "logs" / "ci" / today_str() / "quality-gates-summary.json"
+    details["quality_gates_summary"] = str(quality_summary)
+    if not quality_summary.exists():
+        details["status"] = "fail"
+        return False, f"quality_gates_summary_missing: {quality_summary}", details
+
+    try:
+        payload = json.loads(quality_summary.read_text(encoding="utf-8"))
+    except Exception as ex:
+        details["status"] = "fail"
+        details["error"] = f"quality_gates_summary_parse_error: {ex}"
+        return False, details["error"], details
+
+    status = str(payload.get("status") or "").strip().lower()
+    details["quality_gates_status"] = status
+    if status != "ok":
+        details["status"] = "fail"
+        return False, f"quality_gates_status_not_ok: {status or 'unknown'}", details
+
+    details["status"] = "ok"
+    return True, "", details
+
+
 def main() -> int:
     args = build_parser().parse_args()
     out_dir = ci_dir("sc-test")
@@ -211,6 +255,21 @@ def main() -> int:
     }
 
     hard_fail = False
+
+    guard_ok, guard_reason, guard_details = _validate_coverage_bypass_guard(no_coverage_gate=bool(args.no_coverage_gate))
+    summary["steps"].append(
+        {
+            "name": "coverage-bypass-guard",
+            "status": "ok" if guard_ok else "fail",
+            "rc": 0 if guard_ok else 1,
+            "details": guard_details,
+        }
+    )
+    if not guard_ok:
+        summary["status"] = "fail"
+        write_json(out_dir / "summary.json", summary)
+        print(f"SC_TEST status=fail reason={guard_reason} out={out_dir}")
+        return 1
 
     if args.type in ("unit", "all"):
         if args.no_coverage_gate:
