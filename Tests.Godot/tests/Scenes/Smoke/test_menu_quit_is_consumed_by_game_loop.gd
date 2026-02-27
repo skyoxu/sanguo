@@ -49,7 +49,13 @@ func test_menu_quit_event_is_consumed_by_game_loop_controller() -> void:
     add_child(auto_free(menu))
     await get_tree().process_frame
 
-    menu.get_node("VBox/BtnQuit").emit_signal("pressed")
+    var btn_quit = menu.get_node_or_null("MenuRow/MenuBox/BtnQuit")
+    if btn_quit == null:
+        btn_quit = menu.get_node_or_null("VBox/BtnQuit")
+    assert_object(btn_quit).is_not_null()
+    if btn_quit == null:
+        return
+    btn_quit.emit_signal("pressed")
 
     for _i in range(30):
         if _quit_requested:
