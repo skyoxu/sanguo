@@ -29,7 +29,7 @@ func test_settings_panel_applies_window_resolution_via_settings_panel_and_persis
 	_last_resolution = Vector2i.ZERO
 	panel.connect("ResolutionApplied", Callable(self, "_on_resolution_applied"))
 
-	var res_opt := panel.get_node("VBox/ResolutionRow/ResolutionOpt") as OptionButton
+	var res_opt := panel.get_node("Center/VBox/ResolutionRow/ResolutionOpt") as OptionButton
 	assert_bool(res_opt != null).is_true()
 	if res_opt == null:
 		return
@@ -41,18 +41,21 @@ func test_settings_panel_applies_window_resolution_via_settings_panel_and_persis
 	await get_tree().process_frame
 	saved_text = res_opt.get_item_text(res_opt.selected)
 
-	panel.get_node("VBox/Buttons/SaveBtn").emit_signal("pressed")
+	panel.get_node("Center/VBox/Buttons/SaveBtn").emit_signal("pressed")
 	await get_tree().process_frame
 
-	# Change selection to prove Load restores it.
-	var other: int = 0 if res_opt.get_item_count() <= 1 else 1
-	res_opt.select(other)
+	var panel2 = packed.instantiate()
+	add_child(auto_free(panel2))
+	await get_tree().process_frame
+	panel2.call("ShowPanel")
 	await get_tree().process_frame
 
-	panel.get_node("VBox/Buttons/LoadBtn").emit_signal("pressed")
-	await get_tree().process_frame
+	var res_opt2 := panel2.get_node("Center/VBox/ResolutionRow/ResolutionOpt") as OptionButton
+	assert_bool(res_opt2 != null).is_true()
+	if res_opt2 == null:
+		return
 
-	assert_str(res_opt.get_item_text(res_opt.selected)).is_equal(saved_text)
+	assert_str(res_opt2.get_item_text(res_opt2.selected)).is_equal(saved_text)
 	assert_bool(_resolution_applied).is_true()
 	assert_bool(_last_resolution.x > 0 and _last_resolution.y > 0).is_true()
 

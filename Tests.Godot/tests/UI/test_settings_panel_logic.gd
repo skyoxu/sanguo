@@ -9,37 +9,43 @@ func _clear_config() -> void:
 
 # ACC:T29.2
 func test_settings_save_and_load_via_configfile() -> void:
+    var original_locale := ""
+    if TranslationServer.has_method("get_locale"):
+        original_locale = String(TranslationServer.get_locale())
+
     _clear_config()
     var packed = load("res://Game.Godot/Scenes/UI/SettingsPanel.tscn") as PackedScene
     assert_bool(packed != null).is_true()
     if packed == null:
+        if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
+            TranslationServer.set_locale(original_locale)
         return
     var panel = packed.instantiate()
     add_child(auto_free(panel))
     await get_tree().process_frame
 
     # set values
-    var slider = panel.get_node("VBox/VolRow/VolSlider")
+    var slider = panel.get_node("Center/VBox/VolRow/VolSlider")
     slider.value = 0.7
-    var gfx = panel.get_node("VBox/GraphicsRow/GraphicsOpt")
+    var gfx = panel.get_node("Center/VBox/GraphicsRow/GraphicsOpt")
     if gfx.get_item_count() == 0:
         gfx.add_item("low"); gfx.add_item("medium"); gfx.add_item("high")
     gfx.select(2) # high
-    var lang = panel.get_node("VBox/LangRow/LangOpt")
+    var lang = panel.get_node("Center/VBox/LangRow/LangOpt")
     if lang.get_item_count() == 0:
         lang.add_item("en"); lang.add_item("zh"); lang.add_item("ja")
     lang.select(1) # zh
-    var res_opt = panel.get_node("VBox/ResolutionRow/ResolutionOpt")
+    var res_opt = panel.get_node("Center/VBox/ResolutionRow/ResolutionOpt")
     if res_opt.get_item_count() == 0:
         res_opt.add_item("1280x720"); res_opt.add_item("1600x900")
     res_opt.select(0)
-    var mode_opt = panel.get_node("VBox/WindowModeRow/WindowModeOpt")
+    var mode_opt = panel.get_node("Center/VBox/WindowModeRow/WindowModeOpt")
     if mode_opt.get_item_count() == 0:
         mode_opt.add_item("windowed"); mode_opt.add_item("fullscreen")
     mode_opt.select(0)
 
     # save (to ConfigFile)
-    panel.get_node("VBox/Buttons/SaveBtn").emit_signal("pressed")
+    panel.get_node("Center/VBox/Buttons/SaveBtn").emit_signal("pressed")
     await get_tree().process_frame
 
     # validate persisted ConfigFile keys
@@ -62,11 +68,13 @@ func test_settings_save_and_load_via_configfile() -> void:
     mode_opt.select(min(1, mode_opt.get_item_count() - 1))
 
     # load (from ConfigFile)
-    panel.get_node("VBox/Buttons/LoadBtn").emit_signal("pressed")
+    panel.call("ShowPanel")
     await get_tree().process_frame
     assert_bool(abs(float(slider.value) - 0.7) < 0.0001).is_true()
-    assert_str(gfx.get_item_text(gfx.selected)).is_equal("high")
-    assert_str(lang.get_item_text(lang.selected)).is_equal("zh")
+    assert_str(str(gfx.get_item_metadata(gfx.selected))).is_equal("high")
+    assert_str(str(lang.get_item_metadata(lang.selected))).is_equal("zh")
     assert_str(res_opt.get_item_text(res_opt.selected)).is_equal(saved_res)
-    assert_str(mode_opt.get_item_text(mode_opt.selected)).is_equal(saved_mode)
+    assert_str(str(mode_opt.get_item_metadata(mode_opt.selected))).is_equal(saved_mode)
     panel.queue_free()
+    if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
+        TranslationServer.set_locale(original_locale)

@@ -100,14 +100,26 @@ func test_new_game_flow_publishes_game_started_with_reproducible_payload() -> vo
 	add_child(auto_free(main))
 	await get_tree().process_frame
 
-	var menu := main.get_node_or_null("MainMenu")
+	var menu := main.get_node_or_null("MenuLayer/MainMenu")
 	assert_object(menu).is_not_null()
-	var btn := menu.get_node_or_null("VBox/BtnPlay")
-	assert_object(btn).is_not_null()
+	if menu == null:
+		return
+
+	var btn_play := menu.get_node_or_null("MenuRow/MenuBox/BtnPlay")
+	assert_object(btn_play).is_not_null()
+	if btn_play == null:
+		return
+
+	var btn_start := menu.get_node_or_null("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart")
+	assert_object(btn_start).is_not_null()
+	if btn_start == null:
+		return
 
 	_seen_game_started = false
 	_last_payload_json = ""
-	btn.emit_signal("pressed")
+	btn_play.emit_signal("pressed")
+	await get_tree().process_frame
+	btn_start.emit_signal("pressed")
 	for _i in range(240):
 		if _seen_game_started:
 			break

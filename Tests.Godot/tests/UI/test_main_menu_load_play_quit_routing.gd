@@ -74,9 +74,9 @@ func test_load_action_is_distinct_from_play_and_quit_when_present() -> void:
     var menu = _create_menu()
     await get_tree().process_frame
 
-    var btn_play = menu.get_node_or_null("VBox/BtnPlay")
-    var btn_quit = menu.get_node_or_null("VBox/BtnQuit")
-    var btn_load = menu.get_node_or_null("VBox/BtnLoad")
+    var btn_play = menu.get_node_or_null("MenuRow/MenuBox/BtnPlay")
+    var btn_quit = menu.get_node_or_null("MenuRow/MenuBox/BtnQuit")
+    var btn_load = menu.get_node_or_null("MenuRow/MenuBox/BtnLoad")
     assert_object(btn_play).is_not_null()
     assert_object(btn_quit).is_not_null()
     assert_object(btn_load).is_not_null()
@@ -102,7 +102,7 @@ func test_load_produces_observable_state_when_present() -> void:
     var menu = _create_menu()
     await get_tree().process_frame
 
-    var btn_load = menu.get_node_or_null("VBox/BtnLoad")
+    var btn_load = menu.get_node_or_null("MenuRow/MenuBox/BtnLoad")
     assert_object(btn_load).is_not_null()
     if btn_load == null:
         return
@@ -127,21 +127,31 @@ func test_play_and_quit_semantics_are_not_confused_smoke() -> void:
     var menu = _create_menu()
     await get_tree().process_frame
 
-    var btn_play = menu.get_node("VBox/BtnPlay")
+    var btn_play = menu.get_node("MenuRow/MenuBox/BtnPlay")
     assert_object(btn_play).is_not_null()
 
     _events.clear()
     btn_play.emit_signal("pressed")
     await get_tree().process_frame
     var types = _event_types()
-    assert_bool(types.has(EVT_START)).is_true()
+    assert_bool(types.has(EVT_START)).is_false()
     assert_bool(types.has(EVT_QUIT)).is_false()
     assert_bool(menu.visible).is_true()
-    assert_bool((btn_play as Button).disabled).is_true()
-    var status = menu.get_node_or_null("StatusLabel")
-    assert_object(status).is_not_null()
-    if status != null:
-        assert_bool((status as Label).visible).is_true()
+
+    var config_panel = menu.get_node_or_null("ConfigCenter/NewGameConfig")
+    assert_object(config_panel).is_not_null()
+    if config_panel != null:
+        assert_bool((config_panel as Control).visible).is_true()
+
+    var btn_start = menu.get_node_or_null("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart")
+    assert_object(btn_start).is_not_null()
+    if btn_start != null:
+        btn_start.emit_signal("pressed")
+        await get_tree().process_frame
+
+    var types_after_start = _event_types()
+    assert_bool(types_after_start.has(EVT_START)).is_true()
+    assert_bool(types_after_start.has(EVT_QUIT)).is_false()
 
     var src = _read_res_text(MAIN_MENU_SCRIPT)
     assert_str(src).contains(EVT_START)
@@ -151,8 +161,8 @@ func test_play_and_quit_semantics_are_not_confused_smoke() -> void:
     _events.clear()
     var menu2 = _create_menu()
     await get_tree().process_frame
-    var btn_quit = menu2.get_node_or_null("VBox/BtnQuit")
-    var btn_load2 = menu2.get_node_or_null("VBox/BtnLoad")
+    var btn_quit = menu2.get_node_or_null("MenuRow/MenuBox/BtnQuit")
+    var btn_load2 = menu2.get_node_or_null("MenuRow/MenuBox/BtnLoad")
     assert_object(btn_quit).is_not_null()
     assert_object(btn_load2).is_not_null()
     if btn_quit == null or btn_load2 == null:

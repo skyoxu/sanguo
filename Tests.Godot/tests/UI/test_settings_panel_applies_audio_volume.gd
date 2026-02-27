@@ -28,16 +28,15 @@ func test_settings_panel_volume_slider_applies_master_bus_volume() -> void:
 	add_child(auto_free(panel))
 	await get_tree().process_frame
 
-	var slider := panel.get_node("VBox/VolRow/VolSlider") as Range
+	var slider := panel.get_node("Center/VBox/VolRow/VolSlider") as Range
 	assert_bool(slider != null).is_true()
 	if slider == null:
 		AudioServer.set_bus_volume_db(bus, original_db)
 		return
 
-	var save_btn := panel.get_node("VBox/Buttons/SaveBtn")
-	var load_btn := panel.get_node("VBox/Buttons/LoadBtn")
-	assert_bool(save_btn != null and load_btn != null).is_true()
-	if save_btn == null or load_btn == null:
+	var save_btn := panel.get_node("Center/VBox/Buttons/SaveBtn")
+	assert_bool(save_btn != null).is_true()
+	if save_btn == null:
 		AudioServer.set_bus_volume_db(bus, original_db)
 		return
 
@@ -46,15 +45,21 @@ func test_settings_panel_volume_slider_applies_master_bus_volume() -> void:
 	save_btn.emit_signal("pressed")
 	await get_tree().process_frame
 
-	slider.value = 0.1
-	await get_tree().process_frame
-	load_btn.emit_signal("pressed")
-	await get_tree().process_frame
-
 	var after_db := AudioServer.get_bus_volume_db(bus)
-	var expected_db := linear_to_db(float(slider.value))
+	var expected_db := linear_to_db(0.65)
 	assert_bool(abs(after_db - expected_db) < 0.75).is_true()
 	assert_bool(abs(after_db - before_db) > 0.001).is_true()
+
+	var panel2 = packed.instantiate()
+	add_child(auto_free(panel2))
+	await get_tree().process_frame
+	panel2.call("ShowPanel")
+	await get_tree().process_frame
+
+	var slider2 := panel2.get_node("Center/VBox/VolRow/VolSlider") as Range
+	assert_bool(slider2 != null).is_true()
+	if slider2 != null:
+		assert_bool(abs(float(slider2.value) - 0.65) < 0.06).is_true()
 
 	# Restore previous state to avoid test interference
 	AudioServer.set_bus_volume_db(bus, original_db)
