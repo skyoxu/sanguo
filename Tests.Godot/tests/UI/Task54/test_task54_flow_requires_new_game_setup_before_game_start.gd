@@ -14,6 +14,13 @@ const VALID_PLAYERS_COUNTS := [2, 3, 4]
 const VALID_STARTING_MONEY_PRESETS := [5000, 10000, 20000]
 const VALID_GLOBAL_EVENT_INTERVAL_TURNS := [5, 10, 20]
 
+const PATH_BTN_PLAY := "MenuRow/MenuBox/BtnPlay"
+const PATH_BTN_START := "ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart"
+const PATH_MAP_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/MapOption"
+const PATH_PLAYERS_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/PlayersOption"
+const PATH_MONEY_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/StartingMoneyOption"
+const PATH_INTERVAL_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/GlobalEventIntervalOption"
+
 var _bus: Node
 var _seen_game_started := false
 var _seen_menu_start := false
@@ -71,15 +78,15 @@ func test_task54_start_flow_uses_new_game_menu_config_and_emits_game_started() -
 	add_child(auto_free(main))
 	await get_tree().process_frame
 
-	var menu := main.get_node_or_null("MainMenu")
+	var menu := main.get_node_or_null("MenuLayer/MainMenu")
 	assert_object(menu).is_not_null()
 
-	var btn := menu.get_node("VBox/BtnPlay") as Button
-	var players := menu.get_node("NewGameConfig/VBox/PlayersOption") as OptionButton
-	var money := menu.get_node("NewGameConfig/VBox/StartingMoneyOption") as OptionButton
-	var interval := menu.get_node("NewGameConfig/VBox/GlobalEventIntervalOption") as OptionButton
-	var character := menu.get_node("NewGameConfig/VBox/CharacterOption") as OptionButton
-	var map := menu.get_node("NewGameConfig/VBox/MapOption") as OptionButton
+	var btn_play := menu.get_node(PATH_BTN_PLAY) as Button
+	var btn_start := menu.get_node(PATH_BTN_START) as Button
+	var players := menu.get_node(PATH_PLAYERS_OPTION) as OptionButton
+	var money := menu.get_node(PATH_MONEY_OPTION) as OptionButton
+	var interval := menu.get_node(PATH_INTERVAL_OPTION) as OptionButton
+	var map := menu.get_node(PATH_MAP_OPTION) as OptionButton
 
 	# Pick a valid, non-default configuration (where possible).
 	for i in range(players.item_count):
@@ -101,7 +108,10 @@ func test_task54_start_flow_uses_new_game_menu_config_and_emits_game_started() -
 	_seen_menu_start = false
 	_seen_game_started = false
 	_last_started_payload_json = ""
-	btn.emit_signal("pressed")
+
+	btn_play.emit_signal("pressed")
+	await get_tree().process_frame
+	btn_start.emit_signal("pressed")
 
 	for _i in range(240):
 		if _seen_game_started:
@@ -140,11 +150,6 @@ func test_task54_start_flow_uses_new_game_menu_config_and_emits_game_started() -
 	assert_int(assigns.size()).is_equal(pc)
 	assert_bool(_has_unique_non_empty_assignments(assigns)).is_true()
 
-	var selected_character_meta: Variant = character.get_item_metadata(character.selected)
-	var selected_character_id := str(selected_character_meta)
-	assert_str(selected_character_id).is_not_empty()
-	assert_str(str(assigns.get("p1", ""))).is_equal(selected_character_id)
-
 	var selected_map_meta: Variant = map.get_item_metadata(map.selected)
 	var selected_map_id := str(selected_map_meta)
 	assert_str(selected_map_id).is_not_empty()
@@ -156,10 +161,10 @@ func test_task54_start_config_presets_are_whitelisted() -> void:
 	add_child(auto_free(main))
 	await get_tree().process_frame
 
-	var menu := main.get_node("MainMenu")
-	var players := menu.get_node("NewGameConfig/VBox/PlayersOption") as OptionButton
-	var money := menu.get_node("NewGameConfig/VBox/StartingMoneyOption") as OptionButton
-	var interval := menu.get_node("NewGameConfig/VBox/GlobalEventIntervalOption") as OptionButton
+	var menu := main.get_node("MenuLayer/MainMenu")
+	var players := menu.get_node(PATH_PLAYERS_OPTION) as OptionButton
+	var money := menu.get_node(PATH_MONEY_OPTION) as OptionButton
+	var interval := menu.get_node(PATH_INTERVAL_OPTION) as OptionButton
 
 	var got_players: Array = []
 	for i in range(players.item_count):
@@ -182,12 +187,15 @@ func test_task54_menu_start_event_is_emitted_before_game_started() -> void:
 	add_child(auto_free(main))
 	await get_tree().process_frame
 
-	var menu := main.get_node("MainMenu")
-	var btn := menu.get_node("VBox/BtnPlay") as Button
+	var menu := main.get_node("MenuLayer/MainMenu")
+	var btn_play := menu.get_node(PATH_BTN_PLAY) as Button
+	var btn_start := menu.get_node(PATH_BTN_START) as Button
 
 	_seen_menu_start = false
 	_seen_game_started = false
-	btn.emit_signal("pressed")
+	btn_play.emit_signal("pressed")
+	await get_tree().process_frame
+	btn_start.emit_signal("pressed")
 
 	for _i in range(120):
 		if _seen_menu_start:

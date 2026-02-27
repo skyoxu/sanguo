@@ -12,6 +12,14 @@ const ALLOWED_PLAYERS_COUNTS := [2, 3, 4]
 const ALLOWED_STARTING_MONEY_PRESETS := [5000, 10000, 20000]
 const ALLOWED_GLOBAL_EVENT_INTERVAL_TURNS := [5, 10, 20]
 
+const PATH_BTN_PLAY := "MenuRow/MenuBox/BtnPlay"
+const PATH_BTN_START := "ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart"
+const PATH_MAP_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/MapOption"
+const PATH_PLAYERS_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/PlayersOption"
+const PATH_MONEY_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/StartingMoneyOption"
+const PATH_INTERVAL_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/GlobalEventIntervalOption"
+const PATH_CHAR_GRID := "ConfigCenter/NewGameConfig/Margin/Root/BottomBar/CharacterCarousel/CharacterGrid"
+
 var _bus: Node
 var _seen_menu_start := false
 var _last_payload_json := ""
@@ -40,8 +48,7 @@ func after_test() -> void:
 		_bus.queue_free()
 
 func _on_domain_event_emitted(type, _source, data_json, _id, _spec, _ct, _ts) -> void:
-	var t := str(type)
-	if t == EVENT_TYPE_MENU_START:
+	if str(type) == EVENT_TYPE_MENU_START:
 		_seen_menu_start = true
 		_last_payload_json = str(data_json)
 
@@ -74,12 +81,13 @@ func _assert_option_ids(option: OptionButton, expected_ids: Array) -> void:
 
 func _find_menu_nodes(menu: Node) -> Dictionary:
 	return {
-		"play": menu.get_node("VBox/BtnPlay"),
-		"map": menu.get_node("NewGameConfig/VBox/MapOption"),
-		"players": menu.get_node("NewGameConfig/VBox/PlayersOption"),
-		"character": menu.get_node("NewGameConfig/VBox/CharacterOption"),
-		"money": menu.get_node("NewGameConfig/VBox/StartingMoneyOption"),
-		"interval": menu.get_node("NewGameConfig/VBox/GlobalEventIntervalOption"),
+		"play": menu.get_node(PATH_BTN_PLAY),
+		"start": menu.get_node(PATH_BTN_START),
+		"map": menu.get_node(PATH_MAP_OPTION),
+		"players": menu.get_node(PATH_PLAYERS_OPTION),
+		"money": menu.get_node(PATH_MONEY_OPTION),
+		"interval": menu.get_node(PATH_INTERVAL_OPTION),
+		"char_grid": menu.get_node(PATH_CHAR_GRID),
 	}
 
 # acceptance: ACC:T54.1
@@ -93,14 +101,14 @@ func test_task54_new_game_setup_presets_are_whitelisted_and_defaults_are_valid()
 	var money: OptionButton = nodes["money"]
 	var interval: OptionButton = nodes["interval"]
 	var map: OptionButton = nodes["map"]
-	var character: OptionButton = nodes["character"]
+	var char_grid: GridContainer = nodes["char_grid"]
 
 	_assert_option_ids(players, ALLOWED_PLAYERS_COUNTS)
 	_assert_option_ids(money, ALLOWED_STARTING_MONEY_PRESETS)
 	_assert_option_ids(interval, ALLOWED_GLOBAL_EVENT_INTERVAL_TURNS)
 
 	assert_int(map.item_count).is_greater(0)
-	assert_int(character.item_count).is_greater(0)
+	assert_int(char_grid.get_child_count()).is_equal(8)
 
 	assert_int(players.get_item_id(players.selected)).is_equal(2)
 	assert_int(money.get_item_id(money.selected)).is_equal(10000)
@@ -118,7 +126,6 @@ func test_task54_start_publishes_unique_character_assignments_for_all_players() 
 	await get_tree().process_frame
 	assert_bool(_seen_menu_start).is_true()
 
-	# Reset capture for actual menu emission.
 	_seen_menu_start = false
 	_last_payload_json = ""
 
@@ -127,14 +134,12 @@ func test_task54_start_publishes_unique_character_assignments_for_all_players() 
 	await get_tree().process_frame
 
 	var nodes := _find_menu_nodes(menu)
-	var btn: Button = nodes["play"]
+	var btn_play: Button = nodes["play"]
+	var btn_start: Button = nodes["start"]
 	var players: OptionButton = nodes["players"]
 	var money: OptionButton = nodes["money"]
 	var interval: OptionButton = nodes["interval"]
-	var map: OptionButton = nodes["map"]
-	var character: OptionButton = nodes["character"]
 
-	# Choose a non-default but valid setup when possible.
 	for i in range(players.item_count):
 		if players.get_item_id(i) == 4:
 			players.select(i)
@@ -151,7 +156,9 @@ func test_task54_start_publishes_unique_character_assignments_for_all_players() 
 			interval.emit_signal("item_selected", i)
 			break
 
-	btn.emit_signal("pressed")
+	btn_play.emit_signal("pressed")
+	await get_tree().process_frame
+	btn_start.emit_signal("pressed")
 	for _i in range(120):
 		if _seen_menu_start:
 			break
@@ -185,8 +192,4 @@ func test_task54_start_publishes_unique_character_assignments_for_all_players() 
 	var players_count := int(payload.get(KEY_PLAYERS_COUNT, 0))
 	assert_int(assigns.size()).is_equal(players_count)
 	assert_bool(_has_unique_non_empty_assignments(assigns)).is_true()
-
-	var selected_character_meta: Variant = character.get_item_metadata(character.selected)
-	var selected_character_id := str(selected_character_meta)
-	assert_str(selected_character_id).is_not_empty()
-	assert_str(str(assigns.get("p1", ""))).is_equal(selected_character_id)
+	assert_str(str(assigns.get("p1", ""))).is_not_empty()

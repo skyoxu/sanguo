@@ -6,6 +6,11 @@ const EVENT_TYPE_GAME_STARTED := "core.sanguo.game.started"
 const KEY_GAME_START_CONFIG := "game_start_config"
 const KEY_GLOBAL_EVENT_INTERVAL_TURNS := "global_event_interval_turns"
 
+const PATH_MENU := "MenuLayer/MainMenu"
+const PATH_BTN_PLAY := "MenuRow/MenuBox/BtnPlay"
+const PATH_BTN_START := "ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart"
+const PATH_INTERVAL_OPTION := "ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/GlobalEventIntervalOption"
+
 var _bus: Node
 var _seen_game_started := false
 var _last_payload_json := ""
@@ -30,8 +35,7 @@ func before() -> void:
 	_bus.connect("DomainEventEmitted", Callable(self, "_on_domain_event_emitted"))
 
 func _on_domain_event_emitted(type, _source, data_json, _id, _spec, _ct, _ts) -> void:
-	var t := str(type)
-	if t == EVENT_TYPE_GAME_STARTED:
+	if str(type) == EVENT_TYPE_GAME_STARTED:
 		_seen_game_started = true
 		_last_payload_json = str(data_json)
 
@@ -63,9 +67,10 @@ func test_task54_global_event_interval_observable_matches_config_smoke() -> void
 	add_child(auto_free(main))
 	await get_tree().process_frame
 
-	var menu := main.get_node("MainMenu")
-	var btn := menu.get_node("VBox/BtnPlay") as Button
-	var interval := menu.get_node("NewGameConfig/VBox/GlobalEventIntervalOption") as OptionButton
+	var menu := main.get_node(PATH_MENU)
+	var btn_play := menu.get_node(PATH_BTN_PLAY) as Button
+	var btn_start := menu.get_node(PATH_BTN_START) as Button
+	var interval := menu.get_node(PATH_INTERVAL_OPTION) as OptionButton
 
 	for i in range(interval.item_count):
 		if interval.get_item_id(i) == 5:
@@ -75,7 +80,9 @@ func test_task54_global_event_interval_observable_matches_config_smoke() -> void
 
 	_seen_game_started = false
 	_last_payload_json = ""
-	btn.emit_signal("pressed")
+	btn_play.emit_signal("pressed")
+	await get_tree().process_frame
+	btn_start.emit_signal("pressed")
 	for _i in range(240):
 		if _seen_game_started:
 			break
@@ -90,4 +97,3 @@ func test_task54_global_event_interval_observable_matches_config_smoke() -> void
 
 	var turns := _compute_trigger_turns(it, 30)
 	assert_array(turns).contains_exactly([5, 10, 15, 20, 25, 30])
-
