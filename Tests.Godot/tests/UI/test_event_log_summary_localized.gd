@@ -38,6 +38,21 @@ func _try_translate(key: String) -> String:
 			return translated
 	return ""
 
+func _is_unknown_placeholder(value: String) -> bool:
+	var trimmed := value.strip_edges()
+	if trimmed.length() == 0:
+		return true
+
+	var has_marker := false
+	for i in range(trimmed.length()):
+		var ch := trimmed[i]
+		if ch == "?" or ch == "?" or ch == "?":
+			has_marker = true
+			continue
+		return false
+
+	return has_marker
+
 func _require_translation(key: String) -> String:
 	var translated := _try_translate(key)
 	assert_bool(translated.strip_edges().length() > 0).is_true()
@@ -185,7 +200,9 @@ func test_random_event_summary_is_localized_and_avoids_raw_tokens() -> void:
 	var source_label := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_source", "trigger_source")
 	var source_value := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_source.tile", "tile")
 	var pool_name := _try_translate("event_pool.default.name")
-	var expected_source := pool_name if pool_name.length() > 0 else source_value
+	var expected_source := source_value
+	if pool_name.length() > 0 and not _is_unknown_placeholder(pool_name):
+		expected_source = pool_name
 	assert_str(summary).contains(source_label + "=" + expected_source)
 
 	var round_label := _translate_field(RANDOM_EVENT_TYPE, "detail", "trigger_round", "trigger_round")

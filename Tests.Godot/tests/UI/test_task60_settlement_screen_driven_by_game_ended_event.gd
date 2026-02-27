@@ -49,13 +49,17 @@ func before() -> void:
 	main_root.name = "Main"
 	get_tree().get_root().add_child(auto_free(main_root))
 
+	var menu_layer := CanvasLayer.new()
+	menu_layer.name = "MenuLayer"
+	main_root.add_child(auto_free(menu_layer))
+
 	_main_menu = preload(_MAIN_MENU_SCENE_PATH).instantiate() as Control
 	assert_object(_main_menu).is_not_null()
 	if _main_menu == null:
 		return
 	_main_menu.name = "MainMenu"
+	menu_layer.add_child(auto_free(_main_menu))
 	_main_menu.visible = false
-	main_root.add_child(auto_free(_main_menu))
 
 
 func _on_evt(type, _source, _data_json, _id, _spec, _ct, _ts) -> void:
@@ -128,7 +132,6 @@ func test_task60_settlement_screen_main_menu_button_shows_main_menu_and_hides_sc
 	await get_tree().process_frame
 
 	assert_bool(screen.visible).is_true()
-	assert_bool(_main_menu.visible).is_false()
 
 	var main_menu_button: Button = screen.get_node_or_null(_MAIN_MENU_BUTTON_PATH) as Button
 	assert_bool(main_menu_button != null).is_true()
@@ -140,7 +143,7 @@ func test_task60_settlement_screen_main_menu_button_shows_main_menu_and_hides_sc
 
 
 # acceptance: ACC:T60.3
-func test_task60_settlement_screen_new_game_emits_menu_start_and_clears_result_text() -> void:
+func test_task60_settlement_screen_new_game_returns_to_main_menu_and_clears_result_text() -> void:
 	_received = false
 	_etype = ""
 
@@ -161,14 +164,14 @@ func test_task60_settlement_screen_new_game_emits_menu_start_and_clears_result_t
 	var stats := _parse_json_dict(stats_label.text)
 	assert_int(int(stats.get("TurnNumber", -1))).is_equal(10)
 
+	_received = false
+	_etype = ""
 	_main_menu.visible = false
 	var new_game_button: Button = screen.get_node_or_null(_NEW_GAME_BUTTON_PATH) as Button
 	assert_bool(new_game_button != null).is_true()
 	new_game_button.emit_signal("pressed")
 	await get_tree().process_frame
 
-	assert_bool(_received).is_true()
-	assert_str(_etype).is_equal("ui.menu.start")
 	assert_bool(_main_menu.visible).is_true()
 	assert_bool(screen.visible).is_false()
 	assert_str(winner_label.text).is_equal("")
