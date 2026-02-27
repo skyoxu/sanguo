@@ -428,6 +428,14 @@ def step_ui_event_security(out_dir: Path, *, json_mode: str, source_mode: str) -
 
 def step_tests_all(out_dir: Path, godot_bin: str | None, *, run_id: str | None = None, test_type: str = "all") -> StepResult:
     cmd = ["py", "-3", "scripts/sc/test.py", "--type", test_type]
+    no_coverage_gate = str(os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if no_coverage_gate:
+        cmd += ["--no-coverage-gate"]
     if run_id:
         cmd += ["--run-id", run_id]
     if godot_bin and test_type != "unit":

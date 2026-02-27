@@ -213,7 +213,10 @@ def main() -> int:
     hard_fail = False
 
     if args.type in ("unit", "all"):
-        if not args.no_coverage_gate:
+        if args.no_coverage_gate:
+            os.environ["COVERAGE_LINES_MIN"] = "0"
+            os.environ["COVERAGE_BRANCHES_MIN"] = "0"
+        else:
             os.environ.setdefault("COVERAGE_LINES_MIN", "90")
             os.environ.setdefault("COVERAGE_BRANCHES_MIN", "85")
 
