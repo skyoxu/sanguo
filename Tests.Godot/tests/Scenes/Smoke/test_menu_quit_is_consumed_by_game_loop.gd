@@ -1,5 +1,7 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
+const MenuTestDriver = preload("res://tests/Scenes/Smoke/_fixtures/menu_test_driver.gd")
+
 const EVT_QUIT := "ui.menu.quit"
 
 var _bus: Node
@@ -49,9 +51,7 @@ func test_menu_quit_event_is_consumed_by_game_loop_controller() -> void:
     add_child(auto_free(menu))
     await get_tree().process_frame
 
-    var btn_quit = menu.get_node_or_null("MenuRow/MenuBox/BtnQuit")
-    if btn_quit == null:
-        btn_quit = menu.get_node_or_null("VBox/BtnQuit")
+    var btn_quit = MenuTestDriver.resolve_quit_button(menu)
     assert_object(btn_quit).is_not_null()
     if btn_quit == null:
         return
