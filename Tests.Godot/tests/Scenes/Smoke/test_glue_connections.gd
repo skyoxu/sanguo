@@ -1,5 +1,7 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
+const MenuTestDriver = preload("res://tests/Scenes/Smoke/_fixtures/menu_test_driver.gd")
+
 var _bus: Node
 var _etype := ""
 var _got := false
@@ -21,21 +23,10 @@ func test_main_scene_glue_publishes_on_menu_start() -> void:
     var main = preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
     add_child(auto_free(main))
     await get_tree().process_frame
-    var menu := main.get_node_or_null("MenuLayer/MainMenu")
-    if menu == null:
-        menu = main.get_node_or_null("MainMenu")
+    var menu := MenuTestDriver.resolve_menu(main)
     assert_object(menu).is_not_null()
-    var btn = menu.get_node_or_null("MenuRow/MenuBox/BtnPlay")
-    if btn == null:
-        btn = menu.get_node_or_null("VBox/BtnPlay")
-    assert_object(btn).is_not_null()
-    btn.emit_signal("pressed")
-
-    var btn_start = menu.get_node_or_null("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart")
-    if btn_start == null:
-        btn_start = menu.get_node_or_null("ConfigCenter/NewGameConfig/VBox/BtnStart")
-    assert_object(btn_start).is_not_null()
-    btn_start.emit_signal("pressed")
+    var ok := MenuTestDriver.press_play_then_start(menu)
+    assert_bool(ok).is_true()
 
     await get_tree().process_frame
     assert_bool(_got).is_true()

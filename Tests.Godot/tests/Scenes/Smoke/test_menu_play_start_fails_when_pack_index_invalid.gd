@@ -1,5 +1,7 @@
 extends "res://addons/gdUnit4/src/core/GdUnitTestSuite.gd"
 
+const MenuTestDriver = preload("res://tests/Scenes/Smoke/_fixtures/menu_test_driver.gd")
+
 const EVT_START := "ui.menu.start"
 const EVT_START_FAILED := "ui.menu.start.failed"
 
@@ -47,28 +49,15 @@ func test_play_start_fails_when_pack_index_invalid() -> void:
 	add_child(auto_free(main))
 	await get_tree().process_frame
 
-	var menu := main.get_node_or_null("MenuLayer/MainMenu")
-	if menu == null:
-		menu = main.get_node_or_null("MainMenu")
+	var menu := MenuTestDriver.resolve_menu(main)
 	assert_object(menu).is_not_null()
 	if menu == null:
 		return
 
-	var btn_play = menu.get_node_or_null("MenuRow/MenuBox/BtnPlay")
-	if btn_play == null:
-		btn_play = menu.get_node_or_null("VBox/BtnPlay")
-	assert_object(btn_play).is_not_null()
-	if btn_play == null:
+	var ok := MenuTestDriver.press_play_then_start(menu)
+	assert_bool(ok).is_true()
+	if not ok:
 		return
-	btn_play.emit_signal("pressed")
-
-	var btn_start = menu.get_node_or_null("ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart")
-	if btn_start == null:
-		btn_start = menu.get_node_or_null("ConfigCenter/NewGameConfig/VBox/BtnStart")
-	assert_object(btn_start).is_not_null()
-	if btn_start == null:
-		return
-	btn_start.emit_signal("pressed")
 
 	for _i in range(120):
 		if _types.has(EVT_START_FAILED):
