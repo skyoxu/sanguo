@@ -25,20 +25,14 @@ func test_controls_are_focusable_and_can_grab_focus() -> void:
     var panel = await _instantiate_settings_panel()
     if panel == null:
         return
-    var save_btn: Control = panel.get_node("VBox/Buttons/SaveBtn")
-    var load_btn: Control = panel.get_node("VBox/Buttons/LoadBtn")
-    var close_btn: Control = panel.get_node("VBox/Buttons/CloseBtn")
+    var save_btn: Control = panel.get_node("Center/VBox/Buttons/SaveBtn")
+    var close_btn: Control = panel.get_node("Center/VBox/Buttons/CloseBtn")
     assert_bool(_can_focus(save_btn)).is_true()
-    assert_bool(_can_focus(load_btn)).is_true()
     assert_bool(_can_focus(close_btn)).is_true()
 
     save_btn.grab_focus()
     await get_tree().process_frame
     assert_bool(save_btn.has_focus()).is_true()
-    load_btn.grab_focus()
-    await get_tree().process_frame
-    assert_bool(load_btn.has_focus()).is_true()
     close_btn.grab_focus()
     await get_tree().process_frame
     assert_bool(close_btn.has_focus()).is_true()
-
