@@ -11,18 +11,18 @@ from _taskmaster import default_paths, load_json
 
 
 _MOJIBAKE_TOKENS: tuple[str, ...] = (
-    "�",
-    "Ã",
-    "Â",
-    "Ð",
-    "Ñ",
-    "æ",
-    "å",
-    "ç",
-    "â€™",
-    "â€œ",
-    "â€",
-    "ðŸ",
+    chr(0xFFFD),
+    chr(0x00C3),
+    chr(0x00C2),
+    chr(0x00D0),
+    chr(0x00D1),
+    chr(0x00E6),
+    chr(0x00E5),
+    chr(0x00E7),
+    f"{chr(0x00E2)}{chr(0x20AC)}{chr(0x2122)}",
+    f"{chr(0x00E2)}{chr(0x20AC)}{chr(0x0153)}",
+    f"{chr(0x00E2)}{chr(0x20AC)}",
+    f"{chr(0x00F0)}{chr(0x0178)}",
 )
 
 _CN_BREAK_Q_RE = re.compile(r"[\u4e00-\u9fff]\?[\u4e00-\u9fff]")
@@ -229,4 +229,3 @@ def render_top_hits(report: dict[str, Any], *, limit: int = 8) -> list[str]:
             if len(lines) >= limit:
                 return lines
     return lines
-

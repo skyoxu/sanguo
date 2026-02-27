@@ -1668,7 +1668,7 @@ public static class EventExplainService
         var hasMarker = false;
         foreach (var ch in trimmed)
         {
-            if (ch == '?' || ch == '？' || ch == '�')
+            if (ch == '?' || ch == '？' || ch == '\uFFFD')
             {
                 hasMarker = true;
                 continue;
