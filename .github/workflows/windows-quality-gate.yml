@@ -127,7 +127,26 @@ jobs:
           [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
           $tpz = "godot/export_templates.tpz"
           $u = "https://github.com/godotengine/godot/releases/download/${env:GODOT_VERSION}-stable/Godot_v${env:GODOT_VERSION}-stable_export_templates.tpz"
-          Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $tpz
+          $maxAttempts = 5
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            try {
+              if (Test-Path $tpz) { Remove-Item -Force $tpz }
+              Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $tpz -TimeoutSec 120 -ErrorAction Stop
+              if ((Test-Path $tpz) -and ((Get-Item $tpz).Length -gt 0)) {
+                Write-Host ("Templates download success on attempt {0}/{1}" -f $attempt, $maxAttempts)
+                break
+              }
+              throw "Downloaded template archive is empty."
+            }
+            catch {
+              if ($attempt -ge $maxAttempts) {
+                throw
+              }
+              $delay = 5 * $attempt
+              Write-Warning ("Templates download failed attempt {0}/{1}: {2}. Retrying in {3}s" -f $attempt, $maxAttempts, $_.Exception.Message, $delay)
+              Start-Sleep -Seconds $delay
+            }
+          }
           $temp = "godot/templates_unpacked"
           Expand-Archive $tpz -DestinationPath $temp -Force
           $src = Join-Path $temp 'templates'
