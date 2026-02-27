@@ -1068,9 +1068,10 @@ public partial class HUD : Control, IHudEventHandlers
             _characterIdByPlayerId[assignment.Key] = assignment.Value;
         }
 
-        if (dto.PlayerIds != null)
+        var playerIds = dto.PlayerIds ?? Array.Empty<string>();
+        if (playerIds.Count > 0)
         {
-            foreach (var playerId in dto.PlayerIds)
+            foreach (var playerId in playerIds)
             {
                 if (string.IsNullOrWhiteSpace(playerId))
                 {
@@ -1084,7 +1085,7 @@ public partial class HUD : Control, IHudEventHandlers
             }
         }
 
-        InitializeActionCardsForPlayers(dto.PlayerIds);
+        InitializeActionCardsForPlayers(playerIds);
         TryLoadCharacterCatalog();
         UpdateActivePlayerIdentityDisplay();
         UpdatePlayersList();
