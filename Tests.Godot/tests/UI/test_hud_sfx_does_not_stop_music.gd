@@ -66,14 +66,18 @@ func test_hud_sfx_does_not_stop_music() -> void:
 	assert_object(dice).is_not_null()
 
 	dice.emit_signal("pressed")
+	var sfx_started := false
 	for _i in range(0, 10):
 		await get_tree().process_frame
 		if sfx.playing:
+			sfx_started = true
 			break
+	if sfx.playing:
+		sfx_started = true
 
 	# ACC:T27.4
 	assert_object(sfx.stream).is_not_null()
-	assert_bool(sfx.playing).is_true()
+	assert_bool(sfx_started).is_true()
 	assert_bool(music.playing).is_equal(music_was_playing)
 	if music_was_playing:
 		assert_object(music.get_stream_playback()).is_not_null()
