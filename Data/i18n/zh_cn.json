@@ -147,7 +147,7 @@
     "relic.relic_prosperity_scroll.desc": "经济倍率上调两档。",
     "ui.hud.settings.return": "返回主菜单",
     "ui.hud.log": "日志",
-    "event_pool.default.name": "?????",
-    "event_pool.global.name": "?????"
+    "event_pool.default.name": "地块事件池",
+    "event_pool.global.name": "全局事件池"
   }
 }
