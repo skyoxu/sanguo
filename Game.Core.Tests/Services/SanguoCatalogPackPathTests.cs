@@ -216,11 +216,13 @@ public sealed class SanguoCatalogPackPathTests
                 new Dictionary<string, object?>
                 {
                     ["poolId"] = "default",
+                    ["nameKey"] = "event.pool.default",
                     ["eventIds"] = new[] { "event_1" }
                 },
                 new Dictionary<string, object?>
                 {
                     ["poolId"] = "global",
+                    ["nameKey"] = "event.pool.global",
                     ["eventIds"] = new[] { "event_1" }
                 }
             },

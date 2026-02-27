@@ -28,14 +28,14 @@ public sealed class HudSceneTests
     [Fact]
     public void ShouldContainTurnEventHandling_WhenReadingHudScript()
     {
-        var code = ReadText("Game.Godot/Scripts/UI/HUD.cs");
-        code.Should().MatchRegex(new Regex("\\bSanguoGameTurnStarted\\b", RegexOptions.CultureInvariant));
+        var code = ReadText("Game.Godot/Scripts/UI/HudEventHandlerRegistry.cs");
+        code.Should().MatchRegex(new Regex("\\bSanguoGameTurnStarted\\.EventType\\b", RegexOptions.CultureInvariant));
     }
 
     [Fact]
     public void ShouldContainDiceRolledHandling_WhenReadingHudScript()
     {
-        var code = ReadText("Game.Godot/Scripts/UI/HUD.cs");
+        var code = ReadText("Game.Godot/Scripts/UI/HudEventHandlerRegistry.cs");
         code.Should().Contain("SanguoDiceRolled.EventType");
     }
 

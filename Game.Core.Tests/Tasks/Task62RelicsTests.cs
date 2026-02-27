@@ -401,8 +401,8 @@ public sealed class Task62RelicsTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "event_money" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "event_money" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "event_money" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "event_money" }),
             });
 
         var mgr = new SanguoTurnManager(

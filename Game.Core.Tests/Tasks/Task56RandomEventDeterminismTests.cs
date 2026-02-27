@@ -126,8 +126,8 @@ public sealed class Task56RandomEventDeterminismTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "unique_once" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "unique_once" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "unique_once" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "unique_once" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -194,8 +194,8 @@ public sealed class Task56RandomEventDeterminismTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "cooldown_event" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "cooldown_event" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "cooldown_event" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "cooldown_event" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -388,9 +388,11 @@ public sealed class Task56RandomEventDeterminismTests
             {
                 new SanguoRandomEventPoolCatalogEntry(
                     PoolId: "default",
+                    NameKey: "event.pool.test",
                     EventIds: new[] { "event_money_small", "event_economy_boost" }),
                 new SanguoRandomEventPoolCatalogEntry(
                     PoolId: "global",
+                    NameKey: "event.pool.test",
                     EventIds: new[] { "event_money_small", "event_economy_boost" }),
             });
     }

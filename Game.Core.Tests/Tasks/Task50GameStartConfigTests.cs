@@ -58,7 +58,7 @@ public sealed class Task50GameStartConfigTests
 
     // ACC:T50.1
     [Theory]
-    [InlineData(3)]
+    [InlineData(1)]
     [InlineData(9)]
     public void ShouldRejectConfig_WhenPlayersCountIsInvalid(int invalidPlayersCount)
     {
@@ -186,7 +186,7 @@ public sealed class Task50GameStartConfigTests
     {
         var cfg = new GameStartConfig(
             MapId: "",
-            PlayersCount: 3,
+            PlayersCount: 1,
             StartingMoneyPreset: 0,
             GlobalEventIntervalTurns: 0,
             RandomSeed: 12345,

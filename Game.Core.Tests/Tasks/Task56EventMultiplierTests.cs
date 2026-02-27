@@ -44,8 +44,8 @@ public sealed class Task56EventMultiplierTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "bad_global" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "bad_global" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "bad_global" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "bad_global" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -119,8 +119,8 @@ public sealed class Task56EventMultiplierTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "bad_tile" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "bad_tile" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "bad_tile" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "bad_tile" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -189,8 +189,8 @@ public sealed class Task56EventMultiplierTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "money_gain" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "money_gain" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "money_gain" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "money_gain" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -258,8 +258,8 @@ public sealed class Task56EventMultiplierTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "step_boost" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "step_boost" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "step_boost" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "step_boost" }),
             });
 
         var mgr = new SanguoTurnManager(
@@ -338,8 +338,8 @@ public sealed class Task56EventMultiplierTests
             },
             EventPools: new[]
             {
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", EventIds: new[] { "money_penalty" }),
-                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", EventIds: new[] { "money_penalty" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "default", NameKey: "event.pool.test", EventIds: new[] { "money_penalty" }),
+                new SanguoRandomEventPoolCatalogEntry(PoolId: "global", NameKey: "event.pool.test", EventIds: new[] { "money_penalty" }),
             });
 
         var mgr = new SanguoTurnManager(
