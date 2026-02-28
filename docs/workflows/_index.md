@@ -20,3 +20,5 @@
 - `task-semantics-gates-evolution.md` — Task semantics gates evolution
 - `ui-explainability-matrix.md` — UI explainability matrix
 - `content-data-audit.md` 内容数据盘点（覆盖与缺口）
+
+- `contracts-template-v1.md` ? Contract templates and authoring checklist
