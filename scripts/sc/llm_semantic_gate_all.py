@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from _garbled_gate import parse_task_ids_csv, render_top_hits, scan_task_text_integrity
 from _semantic_gate_all_contract import (
@@ -17,7 +15,7 @@ from _semantic_gate_all_contract import (
     run_semantic_gate_all_self_check,
     validate_semantic_gate_summary,
 )
-from _taskmaster import resolve_triplet
+from _semantic_gate_all_runtime import build_prompt_with_budget, load_task_maps
 from _util import ci_dir, repo_root, today_str, write_json, write_text
 
 
@@ -26,142 +24,6 @@ class SemanticFinding:
     task_id: int
     verdict: str  # OK | Needs Fix | Unknown
     reason: str
-
-
-PROMPT_HEADER = """Role: semantic-equivalence-auditor (batch)
-
-Goal: for each task below, judge whether the acceptance set is semantically equivalent to the task description.
-Scope: stage-2 only. Do NOT re-check deterministic gates (refs existence, anchors, ADR/security/static scans).
-Important: DO NOT infer requirements from any test file names/paths; treat refs as non-semantic metadata.
-
-Output format (STRICT, no markdown fences):
-For each task, output exactly one TSV line:
-T<id>\\tOK|Needs Fix\\t<short reason (<=120 chars)>
-
-Rules:
-- Verdict OK if acceptance covers all REQUIRED behaviors/invariants/failure-semantics implied by the master description/details, and does not CONTRADICT them.
-- Extra refinements are allowed if they are consistent with the task intent; do NOT mark Needs Fix only because acceptance is more detailed.
-- Mark Needs Fix only if: described behavior missing, contradiction, or clearly unrelated feature.
-- If the task has both back/gameplay acceptance, treat the union as the acceptance set.
-- If back/gameplay descriptions conflict with master, master is source of truth.
-- If unsure, choose OK (do not guess).
-
-Tasks:
-""".strip()
-
-
-def _strip_refs_clause(text: str) -> str:
-    s = str(text or "").strip()
-    idx = s.lower().find("refs:")
-    if idx >= 0:
-        s = s[:idx].rstrip()
-    return re.sub(r"\s+", " ", s).strip()
-
-
-def _read_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _truncate(text: str, *, max_chars: int) -> str:
-    s = str(text or "")
-    if len(s) <= max_chars:
-        return s
-    return s[: max_chars - 3] + "..."
-
-
-def _load_all_task_ids() -> list[int]:
-    tasks_json = _read_json(repo_root() / ".taskmaster" / "tasks" / "tasks.json")
-    tasks = (tasks_json.get("master") or {}).get("tasks") or []
-    out: list[int] = []
-    for item in tasks:
-        if not isinstance(item, dict):
-            continue
-        try:
-            out.append(int(str(item.get("id") or "").strip()))
-        except ValueError:
-            continue
-    return sorted(set(out))
-
-
-def _task_brief(task_id: int, *, max_acceptance_items: int) -> str:
-    triplet = resolve_triplet(task_id=str(task_id))
-    master = triplet.master or {}
-    back = triplet.back or {}
-    gameplay = triplet.gameplay or {}
-
-    def _list(entry: dict[str, Any], key: str) -> list[str]:
-        raw = entry.get(key) or []
-        if not isinstance(raw, list):
-            return []
-        out: list[str] = []
-        for x in raw:
-            s = str(x or "").strip()
-            if s and s not in out:
-                out.append(s)
-        return out
-
-    def _acc(entry: dict[str, Any]) -> list[str]:
-        raw = entry.get("acceptance") or []
-        if not isinstance(raw, list):
-            return []
-        items = [_strip_refs_clause(x) for x in raw]
-        return [s for s in items if s][:max_acceptance_items]
-
-    lines = [
-        f"### Task {task_id}: {str(master.get('title') or '').strip()}",
-        f"- master.description: {_truncate(master.get('description') or '', max_chars=400)}",
-        f"- master.details: {_truncate(master.get('details') or '', max_chars=800)}",
-        f"- back.description: {_truncate(back.get('description') or '', max_chars=400)}",
-        f"- gameplay.description: {_truncate(gameplay.get('description') or '', max_chars=400)}",
-    ]
-    overlay_refs = sorted(set(_list(back, "overlay_refs") + _list(gameplay, "overlay_refs")))
-    contract_refs = sorted(set(_list(back, "contractRefs") + _list(gameplay, "contractRefs")))
-    labels = sorted(set(_list(back, "labels") + _list(gameplay, "labels")))
-    if overlay_refs:
-        lines.append(f"- overlay_refs: {', '.join(overlay_refs[:12])}{' ...' if len(overlay_refs) > 12 else ''}")
-    if contract_refs:
-        lines.append(f"- contractRefs: {', '.join(contract_refs[:20])}{' ...' if len(contract_refs) > 20 else ''}")
-    if labels:
-        lines.append(f"- labels: {', '.join(labels[:20])}{' ...' if len(labels) > 20 else ''}")
-    back_acc = _acc(back)
-    gameplay_acc = _acc(gameplay)
-    if back_acc:
-        lines.append("- acceptance (view=back):")
-        lines.extend([f"  - {a}" for a in back_acc])
-    if gameplay_acc:
-        lines.append("- acceptance (view=gameplay):")
-        lines.extend([f"  - {a}" for a in gameplay_acc])
-    if not back_acc and not gameplay_acc:
-        lines.append("- acceptance: (missing in both views)")
-    return "\n".join(lines).strip()
-
-
-def _build_batch_prompt(*, batch: list[int], max_acceptance_items: int, max_task_brief_chars: int) -> str:
-    blocks = [PROMPT_HEADER, ""]
-    for tid in batch:
-        brief = _task_brief(tid, max_acceptance_items=max_acceptance_items)
-        blocks.append(_truncate(brief, max_chars=max_task_brief_chars))
-        blocks.append("")
-    return "\n".join(blocks).strip() + "\n"
-
-
-def _build_prompt_with_budget(*, batch: list[int], max_acceptance_items: int, max_prompt_chars: int) -> tuple[str, bool, int]:
-    budget = 3200
-    prompt = _build_batch_prompt(batch=batch, max_acceptance_items=max_acceptance_items, max_task_brief_chars=budget)
-    if len(prompt) <= max_prompt_chars:
-        return prompt, False, budget
-
-    trimmed = True
-    header_len = len(_build_batch_prompt(batch=[], max_acceptance_items=max_acceptance_items, max_task_brief_chars=budget))
-    budget = max(250, int((max_prompt_chars - header_len) / max(1, len(batch))))
-    for _ in range(6):
-        prompt = _build_batch_prompt(batch=batch, max_acceptance_items=max_acceptance_items, max_task_brief_chars=budget)
-        if len(prompt) <= max_prompt_chars:
-            break
-        budget = max(120, int(budget * 0.8))
-    if len(prompt) > max_prompt_chars:
-        prompt = _build_batch_prompt(batch=batch, max_acceptance_items=max_acceptance_items, max_task_brief_chars=120)
-    return prompt, trimmed, budget
 
 
 def _run_codex_exec(*, prompt: str, out_path: Path, timeout_sec: int, model_reasoning_effort: str) -> tuple[int, str]:
@@ -201,23 +63,38 @@ def _run_codex_exec(*, prompt: str, out_path: Path, timeout_sec: int, model_reas
 
 
 def _parse_tsv_output(text: str) -> list[SemanticFinding]:
+    def _normalize_verdict(raw: str) -> str:
+        value = re.sub(r"\s+", " ", str(raw or "").strip()).lower()
+        if value in {"ok", "pass", "passed"}:
+            return "OK"
+        if value in {"needs fix", "needs_fix", "need fix", "fail", "failed"}:
+            return "Needs Fix"
+        return "Unknown"
+
+    def _parse_task_id(token: str) -> int | None:
+        s = str(token or "").strip()
+        if not s:
+            return None
+        if s.lower().startswith("t"):
+            s = s[1:].strip()
+        if not s.isdigit():
+            return None
+        return int(s)
+
     out: list[SemanticFinding] = []
     for raw in str(text or "").splitlines():
         line = raw.strip()
-        if not line or not line.startswith("T"):
+        if not line:
             continue
         line = line.replace("\\t", "\t")
         parts = line.split("\t")
         if len(parts) < 2:
             continue
-        try:
-            task_id = int(parts[0].strip().lstrip("T").strip())
-        except ValueError:
+        task_id = _parse_task_id(parts[0])
+        if task_id is None:
             continue
-        verdict = parts[1].strip()
+        verdict = _normalize_verdict(parts[1])
         reason = parts[2].strip() if len(parts) >= 3 else ""
-        if verdict not in {"OK", "Needs Fix"}:
-            verdict = "Unknown"
         out.append(SemanticFinding(task_id=task_id, verdict=verdict, reason=reason))
     return out
 
@@ -251,6 +128,10 @@ def main() -> int:
     if batch_size <= 0:
         print("[sc-semantic-gate-all] ERROR: --batch-size must be > 0")
         return 2
+    consensus_runs = int(args.consensus_runs)
+    if consensus_runs <= 0 or consensus_runs % 2 == 0:
+        print("[sc-semantic-gate-all] ERROR: --consensus-runs must be an odd positive integer (1,3,5,...)")
+        return 2
     max_prompt_chars = max(3000, int(args.max_prompt_chars))
 
     out_dir = ci_dir("sc-semantic-gate-all")
@@ -276,7 +157,7 @@ def main() -> int:
                     print(f" - {line}")
             return 2
 
-    all_ids = _load_all_task_ids()
+    all_ids, master_by_id, back_by_id, gameplay_by_id = load_task_maps()
     if str(args.task_ids or "").strip():
         all_ids = [tid for tid in all_ids if tid in task_filter]
     if int(args.max_tasks) > 0:
@@ -286,12 +167,15 @@ def main() -> int:
     all_findings: dict[int, SemanticFinding] = {}
     batch_meta: list[dict[str, Any]] = []
     for idx, batch in enumerate(batches, 1):
-        prompt, prompt_trimmed, task_brief_budget = _build_prompt_with_budget(
+        prompt, prompt_trimmed, task_brief_budget = build_prompt_with_budget(
             batch=batch,
             max_acceptance_items=int(args.max_acceptance_items),
             max_prompt_chars=max_prompt_chars,
+            master_by_id=master_by_id,
+            back_by_id=back_by_id,
+            gameplay_by_id=gameplay_by_id,
         )
-        runs = max(1, int(args.consensus_runs))
+        runs = consensus_runs
         per_run: list[dict[int, SemanticFinding]] = []
         per_run_meta: list[dict[str, Any]] = []
         for run_idx in range(1, runs + 1):
@@ -364,7 +248,7 @@ def main() -> int:
         "fail_reasons": fail_reasons,
         "status": "fail" if fail_by_policy else "ok",
         "config": {
-            "consensus_runs": int(args.consensus_runs),
+            "consensus_runs": int(consensus_runs),
             "timeout_sec": int(args.timeout_sec),
             "model_reasoning_effort": str(args.model_reasoning_effort),
             "max_acceptance_items": int(args.max_acceptance_items),
