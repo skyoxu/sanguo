@@ -10,20 +10,26 @@ from typing import Any
 from _taskmaster import default_paths, load_json
 
 
-_MOJIBAKE_TOKENS: tuple[str, ...] = (
-    "�",
-    "Ã",
-    "Â",
-    "Ð",
-    "Ñ",
-    "æ",
-    "å",
-    "ç",
-    "â€™",
-    "â€œ",
-    "â€",
-    "ðŸ",
+_MOJIBAKE_TOKEN_ESCAPES: tuple[str, ...] = (
+    r"\ufffd",
+    r"\u00c3",
+    r"\u00c2",
+    r"\u00d0",
+    r"\u00d1",
+    r"\u00e6",
+    r"\u00e5",
+    r"\u00e7",
+    r"\u00e2\u20ac\u2122",
+    r"\u00e2\u20ac\u0153",
+    r"\u00e2\u20ac",
+    r"\u00f0\ud83d",
 )
+
+_MOJIBAKE_TOKENS: tuple[str, ...] = tuple(
+    bytes(token, "ascii").decode("unicode_escape")
+    for token in _MOJIBAKE_TOKEN_ESCAPES
+)
+
 
 _CN_BREAK_Q_RE = re.compile(r"[\u4e00-\u9fff]\?[\u4e00-\u9fff]")
 _MULTI_Q_RE = re.compile(r"\?{3,}")
