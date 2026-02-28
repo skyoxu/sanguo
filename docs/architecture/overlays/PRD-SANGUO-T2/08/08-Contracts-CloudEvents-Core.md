@@ -45,6 +45,7 @@ Status: Accepted
 
 - `Game.Core/Contracts/DomainEvent.cs`
 - `Game.Core/Contracts/CoreGameEvents.cs`
+- `Game.Core/Contracts/EventTypes.cs`
 - `Game.Core/Contracts/Guild/GuildMemberJoined.cs`
 - `Game.Core/Contracts/Sanguo/BoardEvents.cs`
 - `Game.Core/Contracts/Sanguo/GameEvents.cs`

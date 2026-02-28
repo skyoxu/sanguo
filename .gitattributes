@@ -1,33 +1,54 @@
-* text=auto eol=crlf
+.gitattributes text eol=lf
+* text=auto
 
-# Text files (force as text with CRLF in working tree)
-*.md      text eol=crlf
-*.txt     text eol=crlf
-*.cs      text diff=csharp eol=crlf
-*.csproj  text eol=crlf
-*.sln     text eol=crlf
-*.gd      text eol=crlf
-*.tscn    text eol=crlf
-*.tres    text eol=crlf
-*.json    text eol=crlf
-*.yml     text eol=crlf
-*.yaml    text eol=crlf
-*.xml     text eol=crlf
-*.ps1     text eol=crlf
+# Source and project files (stable LF in repo)
+*.cs        text diff=csharp eol=lf
+*.csproj    text eol=lf
+*.sln       text eol=lf
+*.gd        text eol=lf
+*.tscn      text eol=lf
+*.tres      text eol=lf
+*.godot     text eol=lf
+*.json      text eol=lf
+*.jsonl     text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.xml       text eol=lf
+*.md        text eol=lf
+*.txt       text eol=lf
+*.csv       text eol=lf
+*.sql       text eol=lf
+*.feature   text eol=lf
+*.svg       text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
 
-# Binary files (no EOL conversions)
-*.png  binary
-*.jpg  binary
-*.jpeg binary
-*.gif  binary
-*.bmp  binary
-*.ico  binary
-*.ogg  binary
-*.wav  binary
-*.mp3  binary
-*.zip  binary
-*.7z   binary
-*.exe  binary
-*.dll  binary
-*.pdb  binary
-*.pck  binary
+# Scripts
+*.py        text eol=lf
+*.sh        text eol=lf
+*.ps1       text eol=crlf
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+
+# Godot metadata
+*.import    text eol=lf
+*.uid       text eol=lf
+*.cfg       text eol=lf
+
+# Binary files (no EOL conversion)
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.bmp       binary
+*.ico       binary
+*.ogg       binary
+*.wav       binary
+*.mp3       binary
+*.zip       binary
+*.7z        binary
+*.exe       binary
+*.dll       binary
+*.pdb       binary
+*.pck       binary
+*.scn       binary

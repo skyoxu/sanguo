@@ -30,6 +30,9 @@ namespace Game.Core.Contracts.Sanguo;
 ///
 /// Related ADRs: ADR-0022, ADR-0005, ADR-0018.
 /// </remarks>
+/// <summary>
+/// Provides deterministic order validation helpers for turn-scope Sanguo events.
+/// </summary>
 public static class SanguoEventOrderingRules
 {
     /// <summary>

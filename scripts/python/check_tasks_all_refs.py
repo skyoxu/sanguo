@@ -1,73 +1,101 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Validate ADR/chapter/overlay refs for all Taskmaster tasks.
+"""Validate ADR/chapter/overlay/dependency references for task view files.
 
-This script extends the logic of check_tasks_back_references.py to
-cover all tasks in tasks_back.json and tasks_gameplay.json so that
-we can reproduce the kind of report you saw in Claude Code.
+Scope:
+- .taskmaster/tasks/tasks_back.json
+- .taskmaster/tasks/tasks_gameplay.json
 
-It only reads JSON/ADR/overlay files and prints a summary; it does
-not modify any files.
+Validation levels:
+1) Hard errors (fail gate):
+   - Missing required fields
+   - ADR ids that do not exist under docs/adr
+   - Invalid chapter_refs format (must be CH01..CH12)
+   - overlay_refs paths that do not exist
+   - depends_on ids that do not exist in the same task file
+2) Warnings (non-blocking):
+   - chapter_refs differ from ADR->chapter mapping in ADR_FOR_CH
+   - ADR present but not mapped in ADR_FOR_CH
+
+This keeps hard-gate correctness strict while making chapter mapping drift visible
+without over-blocking when ADR mapping evolves.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Any
 
 
-ADR_FOR_CH: Dict[str, List[str]] = {
-    # Repo-level baseline / template lineage
-    # Note: ADR-0001 in this repo may contain legacy content; we still map it
-    # to the minimal CH set used by tasks to keep traceability checks consistent.
+# ADR -> chapter mapping for consistency warnings.
+# Values are used as expected chapter refs. Missing/extra chapters are warnings.
+ADR_FOR_CH: dict[str, list[str]] = {
     "ADR-0001": ["CH01", "CH07"],
-
     "ADR-0002": ["CH02"],
-    "ADR-0019": ["CH02"],
     "ADR-0003": ["CH03"],
     "ADR-0004": ["CH04"],
+    "ADR-0005": ["CH07"],
     "ADR-0006": ["CH05"],
     "ADR-0007": ["CH05", "CH06"],
-    "ADR-0005": ["CH07"],
-    "ADR-0011": ["CH07", "CH10"],
     "ADR-0008": ["CH10"],
+    "ADR-0009": ["CH10"],
+    "ADR-0010": ["CH10"],
+    "ADR-0011": ["CH07", "CH10"],
+    "ADR-0012": ["CH07"],
     "ADR-0015": ["CH09"],
+    "ADR-0016": ["CH05"],
+    "ADR-0017": ["CH07"],
     "ADR-0018": ["CH01", "CH06", "CH07"],
+    "ADR-0019": ["CH02"],
     "ADR-0020": ["CH05", "CH06"],
-    "ADR-0025": ["CH06", "CH07"],
-    "ADR-0023": ["CH05"],
-
-    # Sanguo-specific ADRs (phase docs / template rules)
     "ADR-0021": ["CH05", "CH06"],
     "ADR-0022": ["CH04"],
+    "ADR-0023": ["CH05"],
     "ADR-0024": ["CH01", "CH07"],
+    "ADR-0025": ["CH06", "CH07"],
+    "ADR-0026": ["CH04", "CH06"],
+    "ADR-0027": ["CH05", "CH06"],
+    "ADR-0028": ["CH04"],
+    "ADR-0029": ["CH06", "CH07"],
+    "ADR-0030": ["CH06", "CH09"],
+    "ADR-0031": ["CH07", "CH10"],
+    "ADR-0032": ["CH05", "CH06", "CH07"],
+    "ADR-0033": ["CH05", "CH06"],
 }
 
 
-def load_json_list(path: Path) -> list[dict]:
-    return json.loads(path.read_text(encoding="utf-8"))
+REQUIRED_FIELDS = ["layer", "adr_refs", "chapter_refs", "overlay_refs", "depends_on"]
+CHAPTER_RE = re.compile(r"^CH(0[1-9]|1[0-2])$")
 
 
-def collect_adr_ids(root: Path) -> Set[str]:
+def _norm(path: str) -> str:
+    return path.replace("\\", "/")
+
+
+def load_json_list(path: Path) -> list[dict[str, Any]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, list):
+        raise ValueError(f"Task file must be JSON array: {_norm(str(path))}")
+    return payload
+
+
+def collect_adr_ids(root: Path) -> set[str]:
     adr_dir = root / "docs" / "adr"
-    ids: Set[str] = set()
+    ids: set[str] = set()
     if not adr_dir.exists():
         return ids
-    for f in adr_dir.glob("ADR-*.md"):
-        m = re.match(r"ADR-(\d{4})", f.stem)
-        if m:
-            ids.add(f"ADR-{m.group(1)}")
+    for file_path in adr_dir.glob("ADR-*.md"):
+        match = re.match(r"ADR-(\d{4})", file_path.stem)
+        if match:
+            ids.add(f"ADR-{match.group(1)}")
     return ids
 
 
-def collect_overlay_paths(root: Path) -> Set[str]:
-    """
-    Collect overlay 08/* paths for all overlays under docs/architecture/overlays.
-    """
-    overlay_paths: Set[str] = set()
-
+def collect_overlay_paths(root: Path) -> set[str]:
+    overlay_paths: set[str] = set()
     overlays_root = root / "docs" / "architecture" / "overlays"
     if not overlays_root.exists():
         return overlay_paths
@@ -78,92 +106,180 @@ def collect_overlay_paths(root: Path) -> Set[str]:
         chapter_dir = prd_dir / "08"
         if not chapter_dir.exists():
             continue
-        for p in chapter_dir.glob("*"):
-            rel = p.relative_to(root)
-            overlay_paths.add(str(rel).replace("\\", "/"))
-
+        for item in chapter_dir.glob("*"):
+            if item.is_file():
+                overlay_paths.add(_norm(str(item.relative_to(root))))
     return overlay_paths
 
 
-def check_tasks(tasks: list[dict], adr_ids: Set[str], overlay_paths: Set[str], label: str) -> bool:
-    total = len(tasks)
-    ok_count = 0
-    print(f"\n=== Checking {label} ({total} tasks) ===")
+def _validate_task(
+    task: dict[str, Any],
+    known_ids: set[str],
+    adr_ids: set[str],
+    overlay_paths: set[str],
+) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
 
-    # For depends_on validation we need the set of known ids within this file.
-    known_ids: Set[str] = {str(t.get("id")) for t in tasks if "id" in t}
+    task_id = str(task.get("id", ""))
 
-    for t in sorted(tasks, key=lambda x: x.get("id", "")):
-        tid = t.get("id")
-        story_id = t.get("story_id")
-        has_error = False
+    # Required fields existence/type
+    for field in REQUIRED_FIELDS:
+        if field not in task:
+            errors.append(f"{task_id}: missing required field '{field}'")
+            continue
+        if field in {"adr_refs", "chapter_refs", "overlay_refs", "depends_on"} and not isinstance(task[field], list):
+            errors.append(f"{task_id}: field '{field}' must be array")
 
-        # ADR refs
-        missing_adrs = [a for a in t.get("adr_refs", []) if a not in adr_ids]
-        if missing_adrs:
-            print(f"- {tid}: missing ADRs {missing_adrs}")
-            has_error = True
+    adr_refs = task.get("adr_refs") if isinstance(task.get("adr_refs"), list) else []
+    chapter_refs = task.get("chapter_refs") if isinstance(task.get("chapter_refs"), list) else []
+    overlay_refs = task.get("overlay_refs") if isinstance(task.get("overlay_refs"), list) else []
+    depends_on = task.get("depends_on") if isinstance(task.get("depends_on"), list) else []
 
-        # chapter_refs vs ADR_FOR_CH
-        expected_ch: set[str] = set()
-        for adr in t.get("adr_refs", []):
-            expected_ch.update(ADR_FOR_CH.get(adr, []))
-        current_ch = set(t.get("chapter_refs", []))
-        missing_ch = expected_ch - current_ch
-        extra_ch = current_ch - expected_ch
-        if missing_ch:
-            print(f"- {tid}: missing chapter_refs (from ADR): {sorted(missing_ch)}")
-            has_error = True
-        if extra_ch:
-            # Optional improvement (A+B): allow extra chapters as warnings.
-            print(f"- {tid}: WARN extra chapter_refs (not implied by ADR map): {sorted(extra_ch)}")
+    # ADR refs must exist
+    for adr in adr_refs:
+        adr_id = str(adr)
+        if adr_id not in adr_ids:
+            errors.append(f"{task_id}: missing ADR file for '{adr_id}'")
 
-        # overlay_refs only for tasks_back (label heuristic)
-        if label.startswith("tasks_back"):
-            refs = [p.replace("\\", "/") for p in t.get("overlay_refs", [])]
-            if refs:
-                missing_overlays = [p for p in refs if p not in overlay_paths]
-                if missing_overlays:
-                    print(f"- {tid}: missing overlays {missing_overlays}")
-                    has_error = True
+    # Chapter format validity
+    for chapter in chapter_refs:
+        chapter_id = str(chapter)
+        if not CHAPTER_RE.match(chapter_id):
+            errors.append(f"{task_id}: invalid chapter ref '{chapter_id}' (expected CH01..CH12)")
 
-        # depends_on: ensure all referenced ids exist in the same task file.
-        # This is a local consistency check; cross-file mapping is handled elsewhere.
-        deps = [str(d) for d in t.get("depends_on") or []]
-        missing_deps = [d for d in deps if d not in known_ids]
-        if missing_deps:
-            print(f"- {tid}: depends_on references missing ids {missing_deps}")
-            has_error = True
+    # Overlay path existence
+    for overlay in overlay_refs:
+        overlay_path = _norm(str(overlay))
+        if overlay_path not in overlay_paths:
+            errors.append(f"{task_id}: missing overlay file '{overlay_path}'")
 
-        if not has_error:
-            ok_count += 1
+    # depends_on local integrity
+    for dep in depends_on:
+        dep_id = str(dep)
+        if dep_id not in known_ids:
+            errors.append(f"{task_id}: depends_on references missing id '{dep_id}'")
 
-    print(f"Summary for {label}: {ok_count}/{total} tasks passed")
-    return ok_count == total
+    # Non-blocking chapter alignment warnings
+    expected_chapters: set[str] = set()
+    for adr in adr_refs:
+        adr_id = str(adr)
+        mapped = ADR_FOR_CH.get(adr_id)
+        if mapped is None:
+            warnings.append(f"{task_id}: ADR '{adr_id}' not mapped in ADR_FOR_CH")
+            continue
+        expected_chapters.update(mapped)
+
+    current_chapters = {str(x) for x in chapter_refs}
+    missing_ch = sorted(expected_chapters - current_chapters)
+    extra_ch = sorted(current_chapters - expected_chapters)
+    if missing_ch:
+        warnings.append(f"{task_id}: missing chapter_refs from ADR map {missing_ch}")
+    if extra_ch:
+        warnings.append(f"{task_id}: extra chapter_refs not in ADR map {extra_ch}")
+
+    return errors, warnings
 
 
-def run_check_all(root: Path) -> bool:
-    """Run full ADR/CH/overlay checks for all task files."""
+def check_tasks(tasks: list[dict[str, Any]], adr_ids: set[str], overlay_paths: set[str], label: str) -> tuple[bool, list[str], list[str]]:
+    print(f"\n=== Checking {label} ({len(tasks)} tasks) ===")
+
+    known_ids = {str(item.get("id")) for item in tasks if item.get("id") is not None}
+    all_errors: list[str] = []
+    all_warnings: list[str] = []
+
+    for task in sorted(tasks, key=lambda x: str(x.get("id", ""))):
+        errors, warnings = _validate_task(task, known_ids, adr_ids, overlay_paths)
+        all_errors.extend(errors)
+        all_warnings.extend(warnings)
+
+    for message in all_errors:
+        print(f"- ERROR: {message}")
+    for message in all_warnings:
+        print(f"- WARN: {message}")
+
+    failed = len(all_errors)
+    warn_count = len(all_warnings)
+    passed = len(tasks) - len({msg.split(':', 1)[0] for msg in all_errors})
+    print(f"Summary for {label}: passed={passed}/{len(tasks)} errors={failed} warnings={warn_count}")
+
+    return failed == 0, all_errors, all_warnings
+
+
+def _write_summary(path: Path, summary: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def run_check_all(root: Path, max_warnings: int = -1, summary_out: Path | None = None) -> bool:
     adr_ids = collect_adr_ids(root)
     overlay_paths = collect_overlay_paths(root)
 
     back = load_json_list(root / ".taskmaster" / "tasks" / "tasks_back.json")
     gameplay = load_json_list(root / ".taskmaster" / "tasks" / "tasks_gameplay.json")
 
-    print(f"known ADR ids (sample): {sorted(adr_ids)[:10]} ...")
+    print(f"known ADR ids (sample): {sorted(adr_ids)[:12]} ...")
     print(f"overlay files (08/*): {sorted(overlay_paths)}")
 
-    ok_back = check_tasks(back, adr_ids, overlay_paths, label="tasks_back.json")
-    ok_gameplay = check_tasks(gameplay, adr_ids, overlay_paths, label="tasks_gameplay.json")
-    return ok_back and ok_gameplay
+    ok_back, back_errors, back_warnings = check_tasks(back, adr_ids, overlay_paths, "tasks_back.json")
+    ok_gameplay, gameplay_errors, gameplay_warnings = check_tasks(gameplay, adr_ids, overlay_paths, "tasks_gameplay.json")
+
+    total_warnings = len(back_warnings) + len(gameplay_warnings)
+    warning_budget_ok = True
+    if max_warnings >= 0 and total_warnings > max_warnings:
+        print(
+            f"- ERROR: warning budget exceeded: warnings={total_warnings} budget={max_warnings}"
+        )
+        warning_budget_ok = False
+
+    summary = {
+        "action": "check-tasks-all-refs",
+        "status": "ok" if (ok_back and ok_gameplay and warning_budget_ok) else "fail",
+        "max_warnings": max_warnings,
+        "total_warnings": total_warnings,
+        "files": {
+            "tasks_back.json": {
+                "tasks": len(back),
+                "errors": len(back_errors),
+                "warnings": len(back_warnings),
+            },
+            "tasks_gameplay.json": {
+                "tasks": len(gameplay),
+                "errors": len(gameplay_errors),
+                "warnings": len(gameplay_warnings),
+            },
+        },
+    }
+    if summary_out is not None:
+        _write_summary(summary_out, summary)
+
+    return ok_back and ok_gameplay and warning_budget_ok
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Validate ADR/chapter/overlay/dependency references for task view files.",
+    )
+    parser.add_argument(
+        "--max-warnings",
+        type=int,
+        default=-1,
+        help="Fail when total warning count exceeds this value; -1 disables budget check.",
+    )
+    parser.add_argument(
+        "--summary-out",
+        type=str,
+        default="",
+        help="Optional summary json output path.",
+    )
+    args = parser.parse_args()
+
     root = Path(__file__).resolve().parents[2]
-    ok = run_check_all(root)
+    summary_out = Path(args.summary_out) if args.summary_out else None
+    ok = run_check_all(root, max_warnings=args.max_warnings, summary_out=summary_out)
     if not ok:
         raise SystemExit(1)
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     main()
