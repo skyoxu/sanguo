@@ -67,11 +67,11 @@ def read_json(path: Path) -> Any:
 
 
 def write_json(path: Path, obj: Any) -> None:
-    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\r\n")
+    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def write_text(path: Path, text: str) -> None:
-    path.write_text(str(text).replace("\r\n", "\n"), encoding="utf-8", newline="\r\n")
+    path.write_text(str(text).replace("\r\n", "\n"), encoding="utf-8", newline="\n")
 
 
 ABS_PATH_RE = re.compile(r"\b[A-Za-z]:\\")
@@ -83,9 +83,10 @@ _CN_HARD = r"\u52a0\u56fa"  # 加固
 _CN_DEMO = r"\u6f14\u793a"  # 演示
 _CN_EXAMPLE = r"\u793a\u4f8b"  # 示例
 _CN_REF = r"\u53c2\u8003"  # 参考
+_CN_COLON = r"[:\uFF1A]"  # : or ：
 
 OPTIONAL_PREFIX_RE = re.compile(
-    rf"^\s*(?:[-*]\s*)?(?:Optional\s*:|{_CN_OPT}\s*[:：]|{_CN_SUG}\s*[:：]|{_CN_HARD}\s*[:：]|{_CN_DEMO}\s*[:：]|{_CN_EXAMPLE}\s*[:：]|{_CN_REF}\s*[:：])",
+    rf"^\s*(?:[-*]\s*)?(?:Optional\s*:|{_CN_OPT}\s*{_CN_COLON}|{_CN_SUG}\s*{_CN_COLON}|{_CN_HARD}\s*{_CN_COLON}|{_CN_DEMO}\s*{_CN_COLON}|{_CN_EXAMPLE}\s*{_CN_COLON}|{_CN_REF}\s*{_CN_COLON})",
     flags=re.IGNORECASE,
 )
 OPTIONAL_PAREN_PREFIX_RE = re.compile(
@@ -93,7 +94,14 @@ OPTIONAL_PAREN_PREFIX_RE = re.compile(
     flags=re.IGNORECASE,
 )
 LOCAL_DEMO_RE = re.compile(r"\b(local demo|demo references|demo paths)\b", flags=re.IGNORECASE)
-SUPPLEMENT_PREFIX_RE = re.compile(r"^\s*(?:[-*]\s*)?(?:supplement|add-?on|extra)\s*[:：]", flags=re.IGNORECASE)
+SUPPLEMENT_PREFIX_RE = re.compile(
+    rf"^\s*(?:[-*]\s*)?(?:supplement|add-?on|extra)\s*{_CN_COLON}",
+    flags=re.IGNORECASE,
+)
+OPTIONAL_CONTEXT_RE = re.compile(
+    rf"(?:\boptional(?:\s+hint)?\s*{_CN_COLON}|\bhint(?:\s+path)?\s*{_CN_COLON}|\bdemo(?:\s+path|s)?\s*{_CN_COLON}|{_CN_OPT}\s*{_CN_COLON}|{_CN_SUG}\s*{_CN_COLON}|{_CN_HARD}\s*{_CN_COLON}|{_CN_DEMO}\s*{_CN_COLON}|{_CN_EXAMPLE}\s*{_CN_COLON}|{_CN_REF}\s*{_CN_COLON}|\b(?:supplement|add-?on|extra)\b\s*{_CN_COLON}|\b(local demo|demo references|demo paths)\b)",
+    flags=re.IGNORECASE,
+)
 
 
 def _norm_space(text: str) -> str:
@@ -111,7 +119,8 @@ def _is_optional_hint_line(line: str) -> bool:
     if LOCAL_DEMO_RE.search(s):
         return True
     if ABS_PATH_RE.search(s):
-        return True
+        # Absolute path alone is not enough; require optional/hint context.
+        return bool(OPTIONAL_CONTEXT_RE.search(s))
     if SUPPLEMENT_PREFIX_RE.match(s):
         return True
     return False
@@ -209,6 +218,15 @@ def _view_items_as_list(view_obj: Any) -> list[dict[str, Any]]:
     return []
 
 
+def _canonical_task_id(value: Any) -> str:
+    s = str(value or "").strip()
+    if not s:
+        return ""
+    if s.isdigit():
+        return str(int(s))
+    return s
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Migrate optional hints out of tasks.json into view test_strategy.")
     ap.add_argument("--task-ids", default="", help="Comma-separated master task ids (e.g. 6,12). Default: all.")
@@ -236,11 +254,11 @@ def main() -> int:
         # Views may legitimately be empty in early stages; keep failure explicit to avoid silent no-op.
         raise SystemExit("Invalid view task files: expected a non-empty list or {tasks:[...]} structure.")
 
-    back_by_id: dict[int, dict[str, Any]] = {
-        int(t.get("taskmaster_id")): t for t in back_items if str(t.get("taskmaster_id") or "").isdigit()
+    back_by_id: dict[str, dict[str, Any]] = {
+        key: t for t in back_items if (key := _canonical_task_id(t.get("taskmaster_id")))
     }
-    gameplay_by_id: dict[int, dict[str, Any]] = {
-        int(t.get("taskmaster_id")): t for t in gameplay_items if str(t.get("taskmaster_id") or "").isdigit()
+    gameplay_by_id: dict[str, dict[str, Any]] = {
+        key: t for t in gameplay_items if (key := _canonical_task_id(t.get("taskmaster_id")))
     }
 
     selected_ids: set[str] = set()
@@ -248,21 +266,25 @@ def main() -> int:
         for raw in str(args.task_ids).split(","):
             s = str(raw or "").strip()
             if s:
-                selected_ids.add(s)
+                selected_ids.add(_canonical_task_id(s))
 
     changes: list[TaskChange] = []
     total_removed = 0
     total_added = 0
     total_normalized = 0
     skipped_no_changes = 0
+    master_dirty = False
+    back_dirty = False
+    gameplay_dirty = False
 
     for t in master_tasks:
         if not isinstance(t, dict):
             continue
         tid = str(t.get("id") or "").strip()
+        tid_key = _canonical_task_id(tid)
         if not tid:
             continue
-        if selected_ids and tid not in selected_ids:
+        if selected_ids and tid_key not in selected_ids:
             continue
 
         moved_details: list[str] = []
@@ -276,10 +298,11 @@ def main() -> int:
                 moved_details.append(ln)
             else:
                 kept_details.append(ln)
-        master_details_changed = bool(moved_details)
+        details_after = _rejoin_lines(kept_details) if moved_details else details_before
+        master_details_changed = details_after != details_before
         if master_details_changed:
-            details_after = _rejoin_lines(kept_details)
             t["details"] = details_after
+            master_dirty = True
 
         master_ts_before = str(t.get("testStrategy") or "")
         master_ts_lines = _split_keep_lines(master_ts_before)
@@ -289,10 +312,11 @@ def main() -> int:
                 moved_test_strategy.append(ln)
             else:
                 kept_ts.append(ln)
-        master_ts_changed = bool(moved_test_strategy)
+        master_ts_after = _rejoin_lines(kept_ts) if moved_test_strategy else master_ts_before
+        master_ts_changed = master_ts_after != master_ts_before
         if master_ts_changed:
-            master_ts_after = _rejoin_lines(kept_ts)
             t["testStrategy"] = master_ts_after
+            master_dirty = True
 
         moved_optional_raw = [*moved_details, *moved_test_strategy]
         moved_optional = [_to_optional_prefix_item(x) for x in moved_optional_raw if _should_migrate_to_views(x)]
@@ -303,14 +327,12 @@ def main() -> int:
         view_items_normalized: dict[str, int] = {}
         missing_views: list[str] = []
 
-        try:
-            tid_i = int(tid)
-        except ValueError:
+        if not tid_key:
             skipped_no_changes += 1
             continue
 
         for view_name, view_map in (("back", back_by_id), ("gameplay", gameplay_by_id)):
-            view_entry = view_map.get(tid_i)
+            view_entry = view_map.get(tid_key)
             if not view_entry:
                 missing_views.append(view_name)
                 continue
@@ -354,6 +376,10 @@ def main() -> int:
                 view_items_normalized[view_name] = ncount
                 total_added += add_count
                 total_normalized += ncount
+                if view_name == "back":
+                    back_dirty = True
+                elif view_name == "gameplay":
+                    gameplay_dirty = True
 
         total_removed += len(moved_details) + len(moved_test_strategy)
 
@@ -386,6 +412,11 @@ def main() -> int:
         "removed_lines_from_master": total_removed,
         "added_optional_items_to_views": total_added,
         "normalized_optional_items_in_views": total_normalized,
+        "files_dirty": {
+            "tasks_json": master_dirty,
+            "tasks_back_json": back_dirty,
+            "tasks_gameplay_json": gameplay_dirty,
+        },
         "out_dir": str(out_dir.relative_to(root)).replace("\\", "/"),
     }
 
@@ -426,10 +457,13 @@ def main() -> int:
     write_json(out_dir / "summary.json", summary)
     write_text(out_dir / "report.md", "\n".join(report_lines).strip() + "\n")
 
-    if args.write and changes:
-        write_json(master_p, master)
-        write_json(back_p, back)
-        write_json(gameplay_p, gameplay)
+    if args.write:
+        if master_dirty:
+            write_json(master_p, master)
+        if back_dirty:
+            write_json(back_p, back)
+        if gameplay_dirty:
+            write_json(gameplay_p, gameplay)
 
     print(f"MIGRATE_OPTIONAL_HINTS status=ok write={bool(args.write)} out={out_dir}")
     return 0
