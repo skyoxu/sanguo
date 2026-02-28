@@ -200,9 +200,16 @@ def build_risk_summary(
                 evidence=_to_posix((out_dir / "perf-budget.json").relative_to(root)) if (out_dir / "perf-budget.json").exists() else None,
             )
         elif _safe_int(max_p95_ms, 0) <= 0:
-            # Perf budget is explicitly disabled by configuration (max_p95_ms <= 0).
-            # Do not treat this as a risk signal by default; enable the gate to enforce SLOs.
-            pass
+            perf_score -= 5
+            _add_signal(
+                signals,
+                signal_id="perf-budget-disabled",
+                domain="performance",
+                severity="P2",
+                message="perf budget gate disabled (max_p95_ms=0); treat as missing deterministic SLO enforcement",
+                step="perf-budget",
+                evidence=_to_posix((out_dir / "perf-budget.json").relative_to(root)) if (out_dir / "perf-budget.json").exists() else None,
+            )
         elif budget_status and budget_status not in {"pass", "disabled"}:
             perf_score -= 10
             _add_signal(
