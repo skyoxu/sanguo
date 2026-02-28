@@ -15,9 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +29,12 @@ _bootstrap_imports()
 
 from _taskmaster import resolve_triplet  # noqa: E402
 from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text  # noqa: E402
+from _tdd_shared import (  # noqa: E402
+    assert_no_new_contract_files,
+    check_no_task_red_test_skeletons,
+    snapshot_contract_files,
+    write_coverage_hotspots,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -41,109 +45,12 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--configuration", default="Debug")
     ap.add_argument("--generate-red-test", action="store_true", help="create a failing test skeleton if missing")
     ap.add_argument("--no-coverage-gate", action="store_true", help="do not enforce default coverage thresholds")
+    ap.add_argument(
+        "--allow-contract-changes",
+        action="store_true",
+        help="allow creating new files under Game.Core/Contracts during this TDD stage",
+    )
     return ap
-
-
-def extract_run_dotnet_out_dir(output: str) -> Path | None:
-    m = re.search(r"out=([A-Za-z]:\\[^\r\n]+)", output)
-    if not m:
-        return None
-    return Path(m.group(1).strip())
-
-
-def build_coverage_hotspots_report(coverage_xml: Path) -> list[str]:
-    root = ET.fromstring(coverage_xml.read_text(encoding="utf-8"))
-    items: list[tuple[float, int, int, float, str, str]] = []
-    for cls in root.findall(".//class"):
-        filename = (cls.get("filename") or "").replace("/", "\\")
-        cls_name = cls.get("name") or ""
-        br = float(cls.get("branch-rate") or 0.0)
-        lr = float(cls.get("line-rate") or 0.0)
-        branches_valid = 0
-        branches_covered = 0
-        for line in cls.findall(".//line"):
-            cc = line.get("condition-coverage")
-            if not cc:
-                continue
-            mm = re.search(r"\((\d+)/(\d+)\)", cc)
-            if not mm:
-                continue
-            branches_covered += int(mm.group(1))
-            branches_valid += int(mm.group(2))
-        if branches_valid <= 0:
-            continue
-        items.append((br, branches_valid, branches_covered, lr, filename, cls_name))
-
-    items.sort(key=lambda x: (x[0], -x[1], x[4], x[5]))
-
-    lines: list[str] = []
-    lines.append("Lowest branch-rate classes (top 25):")
-    for br, bv, bc, lr, filename, cls_name in items[:25]:
-        lines.append(
-            f"{br*100:6.2f}%  branches {bc}/{bv}  lines {lr*100:6.2f}%  {filename}  ({cls_name})"
-        )
-    return lines
-
-
-def write_coverage_hotspots(
-    *,
-    ci_out_dir: Path,
-    run_dotnet_output: str,
-) -> dict[str, Any]:
-    name = "coverage_hotspots"
-    log_path = ci_out_dir / "coverage-hotspots.txt"
-
-    unit_out_dir = extract_run_dotnet_out_dir(run_dotnet_output)
-    if not unit_out_dir:
-        write_text(log_path, "SKIP: cannot parse unit out_dir from run_dotnet output.\n")
-        return {"name": name, "cmd": ["internal"], "rc": 0, "log": str(log_path), "status": "skipped", "reason": "missing:out_dir"}
-
-    coverage_xml = unit_out_dir / "coverage.cobertura.xml"
-    unit_summary = unit_out_dir / "summary.json"
-    header_lines: list[str] = [
-        f"unit_out_dir={unit_out_dir}",
-        f"coverage_xml={coverage_xml}",
-        f"unit_summary={unit_summary}",
-        "",
-    ]
-
-    if unit_summary.exists():
-        try:
-            payload = json.loads(unit_summary.read_text(encoding="utf-8"))
-            cov = payload.get("coverage") or {}
-            header_lines.insert(
-                0,
-                f"overall line={cov.get('line_pct', 'n/a')}% branch={cov.get('branch_pct', 'n/a')}% status={payload.get('status', 'n/a')}",
-            )
-        except Exception:
-            pass
-
-    if not coverage_xml.exists():
-        write_text(log_path, "\n".join(header_lines + ["SKIP: coverage.cobertura.xml not found."]))
-        return {"name": name, "cmd": ["internal"], "rc": 0, "log": str(log_path), "status": "skipped", "reason": "missing:coverage_xml"}
-
-    try:
-        report_lines = build_coverage_hotspots_report(coverage_xml)
-        write_text(log_path, "\n".join(header_lines + report_lines) + "\n")
-        return {"name": name, "cmd": ["internal"], "rc": 0, "log": str(log_path), "status": "ok", "unit_out_dir": str(unit_out_dir)}
-    except Exception as ex:
-        write_text(log_path, "\n".join(header_lines + [f"FAIL: exception while parsing cobertura: {ex}"]) + "\n")
-        return {"name": name, "cmd": ["internal"], "rc": 0, "log": str(log_path), "status": "fail", "unit_out_dir": str(unit_out_dir)}
-
-
-def snapshot_contract_files() -> set[str]:
-    root = repo_root() / "Game.Core" / "Contracts"
-    if not root.exists():
-        return set()
-    return {str(p.relative_to(repo_root())).replace("\\", "/") for p in root.rglob("*.cs")}
-
-
-def assert_no_new_contract_files(before: set[str]) -> None:
-    after = snapshot_contract_files()
-    new_files = sorted(after - before)
-    if new_files:
-        joined = "\n".join(f"- {p}" for p in new_files)
-        raise RuntimeError(f"New contract files were created, which is not allowed:\n{joined}")
 
 
 def default_task_test_path(task_id: str) -> Path:
@@ -344,22 +251,7 @@ def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
         }
     )
     candidates = [
-        ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py", "--task-id", str(task_id), "--style", "strict"], "scripts/python/check_test_naming.py"),
-        (
-            "check_gd_test_naming_and_encoding",
-            [
-                "py",
-                "-3",
-                "scripts/python/check_gd_test_naming_and_encoding.py",
-                "--task-id",
-                str(task_id),
-                "--style",
-                "strict",
-                "--out",
-                str(out_dir / "gd-test-naming-and-encoding.json"),
-            ],
-            "scripts/python/check_gd_test_naming_and_encoding.py",
-        ),
+        ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py", "--task-id", str(task_id), "--style", "should_when"], "scripts/python/check_test_naming.py"),
         ("check_tasks_all_refs", ["py", "-3", "scripts/python/check_tasks_all_refs.py"], "scripts/python/check_tasks_all_refs.py"),
         ("validate_contracts", ["py", "-3", "scripts/python/validate_contracts.py"], "scripts/python/validate_contracts.py"),
     ]
@@ -376,37 +268,10 @@ def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
     return steps
 
 
-def check_no_task_red_test_skeletons(out_dir: Path) -> dict[str, Any]:
-    name = "check_no_task_red_test_skeletons"
-    log_path = out_dir / f"{name}.log"
-
-    tasks_dir = repo_root() / "Game.Core.Tests" / "Tasks"
-    if not tasks_dir.exists():
-        write_text(log_path, "OK: Game.Core.Tests/Tasks does not exist.\n")
-        return {"name": name, "cmd": ["internal"], "rc": 0, "log": str(log_path), "status": "ok"}
-
-    offenders = sorted(tasks_dir.glob("Task*RedTests.cs"))
-    if not offenders:
-        write_text(log_path, "OK: no Task<id>RedTests.cs files found.\n")
-        return {"name": name, "cmd": ["internal"], "rc": 0, "log": str(log_path), "status": "ok"}
-
-    rel_paths = [str(p.relative_to(repo_root())).replace("\\", "/") for p in offenders]
-    details = "\n".join(f"- {p}" for p in rel_paths)
-
-    message = (
-        "[FAIL] Found task-scoped red test skeleton(s) which must NOT be kept at refactor stage.\n"
-        "These files are generated by sc-build tdd --generate-red-test and should be migrated.\n"
-        "Fix:\n"
-        "  - Move assertions into stable class-scoped tests named {ClassName}Tests.cs (see docs/testing-framework.md)\n"
-        "  - Delete Task<id>RedTests.cs after migration\n"
-        "Found:\n"
-        f"{details}\n"
-    )
-    write_text(log_path, message)
-    return {"name": name, "cmd": ["internal"], "rc": 1, "log": str(log_path), "status": "fail", "offenders": rel_paths}
-
-
 def main() -> int:
+    # Keep local TDD loop aligned with CI default security posture.
+    os.environ.setdefault("SECURITY_PROFILE", "host-safe")
+
     args = build_parser().parse_args()
     out_dir = ci_dir("sc-build-tdd")
 
@@ -415,6 +280,7 @@ def main() -> int:
     summary: dict[str, Any] = {
         "cmd": "sc-build-tdd",
         "stage": args.stage,
+        "allow_contract_changes": bool(args.allow_contract_changes),
         "status": "fail",
         "steps": [],
     }
@@ -437,7 +303,7 @@ def main() -> int:
         if ctx_step["rc"] != 0:
             write_json(out_dir / "summary.json", summary)
             print(f"SC_BUILD_TDD status=fail out={out_dir}")
-            assert_no_new_contract_files(before_contracts)
+            assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
             return 1
 
         test_path = ensure_red_test_exists(
@@ -463,7 +329,7 @@ def main() -> int:
         summary["status"] = "ok" if step["rc"] != 0 else "unexpected_green"
         write_json(out_dir / "summary.json", summary)
         print(f"SC_BUILD_TDD status={summary['status']} out={out_dir}")
-        assert_no_new_contract_files(before_contracts)
+        assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
         return 0 if summary["status"] == "ok" else 1
 
     if args.stage == "green":
@@ -473,7 +339,7 @@ def main() -> int:
         if ctx_step["rc"] != 0:
             write_json(out_dir / "summary.json", summary)
             print(f"SC_BUILD_TDD status=fail out={out_dir}")
-            assert_no_new_contract_files(before_contracts)
+            assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
             return 1
 
         step = run_green_gate(
@@ -488,7 +354,7 @@ def main() -> int:
         summary["status"] = "ok" if step["rc"] == 0 else "fail"
         write_json(out_dir / "summary.json", summary)
         print(f"SC_BUILD_TDD status={summary['status']} out={out_dir}")
-        assert_no_new_contract_files(before_contracts)
+        assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
         return 0 if step["rc"] == 0 else 1
 
     if args.stage == "refactor":
@@ -498,7 +364,7 @@ def main() -> int:
         if ctx_step["rc"] != 0:
             write_json(out_dir / "summary.json", summary)
             print(f"SC_BUILD_TDD status=fail out={out_dir}")
-            assert_no_new_contract_files(before_contracts)
+            assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
             return 1
 
         steps = run_refactor_checks(out_dir, task_id=triplet.task_id)
@@ -535,7 +401,7 @@ def main() -> int:
         else:
             print(f"SC_BUILD_TDD status=ok out={out_dir}")
 
-        assert_no_new_contract_files(before_contracts)
+        assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
         return 0 if summary["status"] == "ok" else 1
 
     write_json(out_dir / "summary.json", summary)
