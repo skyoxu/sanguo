@@ -101,3 +101,11 @@ Arch-Refs:
 ### T65（州郡机制）
 - 事件：复用经济事件（必须携带 `AppliedMultipliers`），以及必要时通过 `core.sanguo.city.toll.paid` 体现“连协收费”结果
 
+
+
+## DTO?Contracts?
+
+- `GameStartConfigValidator`????????????`Game.Core/Contracts/Sanguo/GameStartConfigValidator.cs`
+- `SanguoFacilitiesCatalog`???????`Game.Core/Contracts/Sanguo/SanguoFacilitiesCatalog.cs`
+- `SanguoRegionsCatalog`???????`Game.Core/Contracts/Sanguo/SanguoRegionsCatalog.cs`
+- `SanguoRelicsCatalog`???????`Game.Core/Contracts/Sanguo/SanguoRelicsCatalog.cs`
