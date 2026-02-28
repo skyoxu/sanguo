@@ -242,7 +242,7 @@ jobs:
           # - Explicit "no-task" marker in title
           #
           # NOTE: PowerShell single-quoted strings do not need double escaping for regex backslashes.
-          $isNonTaskPr = $rawSpec -match '(?i)^(workflow|docs|chore|ci|build|refactor|infra)(\([^\)]+\))?\s*[:\-]' -or $rawSpec -match '(?i)\bno-task\b'
+          $isNonTaskPr = $rawSpec -match '(?i)^(workflow|docs|chore|ci|build|refactor|infra|hotfix|fix)(\([^\)]+\))?\s*[:\-]' -or $rawSpec -match '(?i)\bno-task\b'
           Write-Host "PR_TITLE_RAW=$rawSpec"
           Write-Host "PR_IS_NON_TASK=$isNonTaskPr"
 
