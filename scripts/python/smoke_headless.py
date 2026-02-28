@@ -16,6 +16,10 @@ Example (PowerShell):
     --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" `
     --project-path "." --scene "res://Game.Godot/Scenes/Main.tscn" `
     --timeout-sec 5 --strict
+
+Legacy compatibility:
+- Older callers may still pass `--mode strict|loose`.
+- New callers should prefer `--strict` (boolean).
 """
 
 from __future__ import annotations
@@ -187,10 +191,17 @@ def main() -> int:
     parser.add_argument("--scene", default="res://Game.Godot/Scenes/Main.tscn", help="Scene to load")
     parser.add_argument("--timeout-sec", type=int, default=5, help="Timeout seconds before kill")
     parser.add_argument("--strict", action="store_true", help="Enable strict gate mode")
+    parser.add_argument(
+        "--mode",
+        choices=["loose", "strict"],
+        default=None,
+        help="Legacy gate mode for backward compatibility; prefer --strict.",
+    )
     parser.add_argument("--task-id", type=int, default=None, help="Optional task id to emit logs/ci/<date>/task-<id>.json")
 
     args = parser.parse_args()
-    return _run_smoke(args.godot_bin, args.project_path, args.scene, args.timeout_sec, args.strict, args.task_id)
+    strict = bool(args.strict or (args.mode == "strict"))
+    return _run_smoke(args.godot_bin, args.project_path, args.scene, args.timeout_sec, strict, args.task_id)
 
 
 if __name__ == "__main__":
