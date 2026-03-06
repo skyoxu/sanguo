@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Enforce workflow usage of run_gate_bundle.py and forbid direct invocation of bundled gates.
