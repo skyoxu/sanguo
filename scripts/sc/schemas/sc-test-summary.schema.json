@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://newrouge.local/schemas/sc-test-summary.schema.json",
+  "title": "sc-test summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cmd",
+    "run_id",
+    "type",
+    "solution",
+    "configuration",
+    "status",
+    "steps"
+  ],
+  "properties": {
+    "cmd": {
+      "const": "sc-test"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{32}$"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "unit",
+        "integration",
+        "e2e",
+        "all"
+      ]
+    },
+    "solution": {
+      "type": "string",
+      "minLength": 1
+    },
+    "configuration": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "fail"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "status"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "fail",
+            "skipped"
+          ]
+        },
+        "rc": {
+          "type": "integer"
+        },
+        "cmd": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "log": {
+          "type": "string"
+        },
+        "artifacts_dir": {
+          "type": "string"
+        },
+        "report_dir": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "ok",
+                  "fail"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "rc",
+              "log"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

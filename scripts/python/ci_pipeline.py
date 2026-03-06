@@ -22,6 +22,8 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
+from _ci_pipeline_entrypoint_guard import resolve_dotnet_stage_timeout_ms, run_unified_entrypoint_gates
+
 
 def run_cmd(args, cwd=None, timeout=900_000):
     p = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -99,6 +101,12 @@ def main():
     ap_all.add_argument('--godot-bin', required=True)
     ap_all.add_argument('--project', default='project.godot')
     ap_all.add_argument('--build-solutions', action='store_true')
+    ap_all.add_argument(
+        '--dotnet-stage-timeout-ms',
+        type=int,
+        default=None,
+        help='Outer timeout for run_dotnet stage in milliseconds. Default derives from DOTNET_TEST_TIMEOUT_MS and is at least 3600000.',
+    )
 
     args = ap.parse_args()
     if args.cmd != 'all':
@@ -111,6 +119,8 @@ def main():
     os.makedirs(ci_dir, exist_ok=True)
 
     summary = {
+        'manual_triplet_examples': {},
+        'whitelist_expiry_warning': {},
         'dotnet': {},
         'selfcheck': {},
         'encoding': {},
@@ -122,10 +132,25 @@ def main():
     }
     hard_fail = False
 
+    # 0) Unified task-level entrypoint policy gates:
+    #    - hard gate: forbid manual sc triplet examples
+    #    - soft warning: whitelist expiry horizon
+    gate_details, gate_hard_fail = run_unified_entrypoint_gates(
+        root=root,
+        ci_dir=ci_dir,
+        date=date,
+        run_cmd=run_cmd,
+        read_json=read_json,
+    )
+    summary.update(gate_details)
+    if gate_hard_fail:
+        hard_fail = True
+
     # 1) Dotnet tests + coverage (soft gate on coverage)
+    dotnet_stage_timeout_ms = resolve_dotnet_stage_timeout_ms(args.dotnet_stage_timeout_ms)
     rc, out = run_cmd(['py', '-3', 'scripts/python/run_dotnet.py',
                        '--solution', args.solution,
-                       '--configuration', args.configuration], cwd=root)
+                       '--configuration', args.configuration], cwd=root, timeout=dotnet_stage_timeout_ms)
     dotnet_sum = read_json(os.path.join('logs', 'unit', date, 'summary.json')) or {}
     summary['dotnet'] = {
         'rc': rc,
