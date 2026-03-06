@@ -4,7 +4,7 @@ sc-build: Repo-specific build shim (Godot+C# template).
 
 Usage (Windows):
   py -3 scripts/sc/build.py
-  py -3 scripts/sc/build.py NewRouge.sln --type prod --clean --verbose
+  py -3 scripts/sc/build.py Game.sln --type prod --clean --verbose
 
 TDD helper (gated, non-generative):
   py -3 scripts/sc/build.py tdd --stage green
@@ -22,7 +22,7 @@ from _util import ci_dir, repo_root, run_cmd, write_json, write_text
 
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="sc-build (build shim)")
-    ap.add_argument("target", nargs="?", default="NewRouge.csproj", help="build target (.csproj/.sln)")
+    ap.add_argument("target", nargs="?", default="GodotGame.csproj", help="build target (.csproj/.sln)")
     ap.add_argument("--type", choices=["dev", "prod", "test"], default="dev")
     ap.add_argument("--clean", action="store_true")
     ap.add_argument("--optimize", action="store_true")

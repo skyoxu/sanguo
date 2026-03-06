@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Validate run_gate_bundle.py configuration, referenced scripts, and workflow allowlist.
