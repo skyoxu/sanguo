@@ -187,10 +187,10 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
     dotnet_sdk_versions = _parse_dotnet_sdk_versions(out_dotnet_sdks)
     details["commands"]["dotnet_list_sdks_command"] = {"rc": rc_dotnet_sdks}
 
-    # dotnet restore .\NewRouge.sln
+    # dotnet restore .\Game.sln
     # Run once to warm caches, then persist the second (steady-state) output.
-    _run_command(["dotnet", "restore", ".\\NewRouge.sln"], cwd=root, timeout_sec=240)
-    rc_restore, out_restore = _run_command(["dotnet", "restore", ".\\NewRouge.sln"], cwd=root, timeout_sec=240)
+    _run_command(["dotnet", "restore", ".\\Game.sln"], cwd=root, timeout_sec=240)
+    rc_restore, out_restore = _run_command(["dotnet", "restore", ".\\Game.sln"], cwd=root, timeout_sec=240)
     _write_utf8_file(evidence_dir / "dotnet-restore.txt", out_restore)
     details["commands"]["dotnet_restore_command"] = {"rc": rc_restore}
 
@@ -258,7 +258,7 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
             },
         },
         "dotnet_restore": {
-            "command": "dotnet restore .\\NewRouge.sln",
+            "command": "dotnet restore .\\Game.sln",
             "exit_code": rc_restore,
             "evidence_file": f"logs/ci/{date}/env-evidence/dotnet-restore.txt",
         },
@@ -280,12 +280,12 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
             "evidence_file": f"logs/ci/{date}/env-evidence/utf8-check.txt",
             "reason": "",
         },
-        "adr_refs": ["ADR-0031", "ADR-0011"],
+        "adr_refs": ["ADR-0005", "ADR-0011", "ADR-0018"],
     }
 
     write_json(task_json_path, task_payload)
 
-    checklist_path = root / "docs" / "architecture" / "overlays" / "PRD-NEWROUGE-GAME-0001" / "08" / "ACCEPTANCE_CHECKLIST.md"
+    checklist_path = root / "docs" / "architecture" / "overlays" / "PRD-SANGUO-T2" / "08" / "ACCEPTANCE_CHECKLIST.md"
     utf8_checked_files: list[str] = [
         _rel(root, task_json_path),
         _rel(root, checklist_path),
@@ -349,7 +349,6 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
         "dotnet_version_ok",
         "dotnet_sdk_8_present",
         "dotnet_restore_ok",
-        "packages_lock_exists",
         "windows_only",
         "os_platform_windows",
         "utf8_ok",
