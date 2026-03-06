@@ -31,7 +31,10 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd"
+      "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs",
+      "Game.Core.Tests/Tasks/Task1WindowsPlatformGateTests.cs",
+      "Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs"
     ],
     "acceptance": [
       "在 Godot 4.x 环境下，主场景（Main.tscn）可在 headless 运行中被成功加载、实例化并进树（用于验证“项目已创建/初始化完成”与基础资源路径有效）。 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",

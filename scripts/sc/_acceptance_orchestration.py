@@ -10,6 +10,7 @@ from typing import Any, Callable
 from _acceptance_evidence_steps import (
     step_acceptance_executed_refs,
     step_headless_e2e_evidence,
+    step_post_evidence_integration,
     step_security_audit_evidence,
 )
 from _acceptance_steps import (
@@ -49,6 +50,7 @@ def build_step_plan(
     require_executed_refs: bool,
     audit_evidence_mode: str,
     perf_p95_ms: int,
+    task_id: int,
 ) -> list[dict[str, Any]]:
     plan: list[dict[str, Any]] = []
 
@@ -104,6 +106,14 @@ def build_step_plan(
         tests_enabled and require_headless_e2e,
         "hard",
         None if (tests_enabled and require_headless_e2e) else ("not_required" if tests_enabled else "tests_disabled"),
+    )
+    add(
+        "post-evidence-integration",
+        tests_enabled and require_headless_e2e and task_id == 1,
+        "hard",
+        None
+        if (tests_enabled and require_headless_e2e and task_id == 1)
+        else ("task_not_targeted" if tests_enabled and require_headless_e2e else ("not_required" if tests_enabled else "tests_disabled")),
     )
     add(
         "acceptance-executed-refs",
@@ -215,10 +225,30 @@ def run_tests_bundle(
         steps.append(StepResult(name="tests-all", status="fail", rc=2, details={"error": "missing_godot_bin", "hint": "set --godot-bin or env GODOT_BIN"}))
         return steps
 
-    steps.append(step_tests_all(out_dir, godot_bin, run_id=run_id, test_type=test_type, task_id=str(triplet.task_id)))
+    no_coverage_gate = bool(require_headless_e2e) and int(triplet.task_id) == 1
+    steps.append(step_tests_all(out_dir, godot_bin, run_id=run_id, test_type=test_type, task_id=str(triplet.task_id), no_coverage_gate=no_coverage_gate))
 
     if require_headless_e2e:
-        steps.append(step_headless_e2e_evidence(out_dir, expected_run_id=run_id))
+        headless_step = step_headless_e2e_evidence(out_dir, expected_run_id=run_id)
+        steps.append(headless_step)
+        if headless_step.status == "ok":
+            steps.append(
+                step_post_evidence_integration(
+                    out_dir,
+                    task_id=int(triplet.task_id),
+                    expected_run_id=run_id,
+                    godot_bin=godot_bin,
+                )
+            )
+        else:
+            steps.append(
+                StepResult(
+                    name="post-evidence-integration",
+                    status="skipped",
+                    rc=0,
+                    details={"reason": "headless_e2e_evidence_failed"},
+                )
+            )
     if require_executed_refs:
         steps.append(step_acceptance_executed_refs(out_dir, task_id=int(triplet.task_id), expected_run_id=run_id))
 

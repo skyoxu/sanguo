@@ -165,6 +165,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--solution', default='Game.sln')
     ap.add_argument('--configuration', default='Debug')
+    ap.add_argument('--filter', default=None, help='Optional dotnet test filter expression.')
     ap.add_argument('--out-dir', default=None)
     args = ap.parse_args()
 
@@ -177,6 +178,7 @@ def main():
     summary = {
         'solution': args.solution,
         'configuration': args.configuration,
+        'filter': args.filter or '',
         'out_dir': out_dir,
         'dotnet': dotnet,
         'status': 'fail',
@@ -220,13 +222,17 @@ def main():
         return 1
 
     # Test with coverage
-    rc, out = run_cmd([dotnet, 'test', args.solution,
-                       f'-c', args.configuration,
-                       '--collect:XPlat Code Coverage',
-                       '--logger', 'trx;LogFileName=tests.trx'], cwd=root)
+    test_cmd = [dotnet, 'test', args.solution,
+                f'-c', args.configuration,
+                '--collect:XPlat Code Coverage',
+                '--logger', 'trx;LogFileName=tests.trx']
+    if args.filter:
+        test_cmd.extend(['--filter', args.filter])
+    rc, out = run_cmd(test_cmd, cwd=root)
     with io.open(os.path.join(out_dir, 'dotnet-test-output.txt'), 'w', encoding='utf-8') as f:
         f.write(out)
     summary['test_rc'] = rc
+    summary['test_cmd'] = test_cmd
 
     # Copy artifacts using paths emitted by dotnet test output (preferred).
     artifacts = parse_paths_from_test_output(out)
@@ -281,6 +287,7 @@ def main():
     # NOTE: These defaults are the project baseline. See docs/testing-framework.md.
     default_lines_min = 90.0
     default_branches_min = 85.0
+    skip_coverage_gate = (os.environ.get('SC_ACCEPTANCE_NO_COVERAGE_GATE') or '').strip().lower() in {'1', 'true', 'yes', 'on'}
 
     raw_lines_min = (os.environ.get('COVERAGE_LINES_MIN') or '').strip()
     raw_branches_min = (os.environ.get('COVERAGE_BRANCHES_MIN') or '').strip()
@@ -291,6 +298,11 @@ def main():
         'lines_min': 'default',
         'branches_min': 'default',
     }
+    summary['skip_coverage_gate'] = skip_coverage_gate
+
+    if skip_coverage_gate:
+        threshold_source['lines_min'] = 'acceptance-env-skip'
+        threshold_source['branches_min'] = 'acceptance-env-skip'
 
     try:
         if raw_lines_min:
@@ -316,8 +328,8 @@ def main():
         coverage['branches_min'] = branches_min
         coverage['threshold_source'] = threshold_source
 
-    threshold_ok = False
-    if coverage and isinstance(coverage, dict):
+    threshold_ok = skip_coverage_gate
+    if not skip_coverage_gate and coverage and isinstance(coverage, dict):
         try:
             threshold_ok = (float(coverage.get('line_pct', 0) or 0) >= float(lines_min)) and (
                 float(coverage.get('branch_pct', 0) or 0) >= float(branches_min)

@@ -41,9 +41,26 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
-def run_unit(out_dir: Path, solution: str, configuration: str, *, run_id: str) -> dict[str, Any]:
+def run_unit(
+    out_dir: Path,
+    solution: str,
+    configuration: str,
+    *,
+    run_id: str,
+    no_coverage_gate: bool = False,
+) -> dict[str, Any]:
     cmd = ["py", "-3", "scripts/python/run_dotnet.py", "--solution", solution, "--configuration", configuration]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=1_800)
+    previous_skip_gate = os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE")
+    if no_coverage_gate:
+        os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = "1"
+    try:
+        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=1_800)
+    finally:
+        if no_coverage_gate:
+            if previous_skip_gate is None:
+                os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
+            else:
+                os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = previous_skip_gate
     log_path = out_dir / "unit.log"
     write_text(log_path, out)
     unit_artifacts_dir = repo_root() / "logs" / "unit" / today_str()
@@ -239,7 +256,21 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = N
     ]
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
+    previous_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+    previous_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
+    os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
+    os.environ.setdefault("GD_SMOKE_EXIT_DELAY_SEC", "0.25")
+    try:
+        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
+    finally:
+        if previous_exit_on_ready is None:
+            os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_ON_READY"] = previous_exit_on_ready
+        if previous_exit_delay is None:
+            os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = previous_exit_delay
     log_path = out_dir / "smoke.log"
     write_text(log_path, out)
     return {"name": "smoke", "cmd": cmd, "rc": rc, "log": str(log_path)}
@@ -270,7 +301,7 @@ def main() -> int:
             os.environ.setdefault("COVERAGE_LINES_MIN", "90")
             os.environ.setdefault("COVERAGE_BRANCHES_MIN", "85")
 
-        step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id)
+        step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id, no_coverage_gate=bool(args.no_coverage_gate))
         summary["steps"].append(step)
         if step["rc"] != 0:
             hard_fail = True

@@ -45,6 +45,45 @@ def read_json(path):
         return None
 
 
+def run_env_evidence_preflight(root: str, godot_bin: str):
+    """
+    Generate deterministic environment evidence artifacts before unit tests.
+    This keeps cold CI workspaces aligned with acceptance test expectations.
+    """
+    sc_dir = os.path.join(root, 'scripts', 'sc')
+    if not os.path.isdir(sc_dir):
+        return 1, {'status': 'fail', 'reason': f'missing scripts/sc: {sc_dir}'}
+
+    added_path = False
+    if sc_dir not in sys.path:
+        sys.path.insert(0, sc_dir)
+        added_path = True
+
+    try:
+        from _env_evidence_preflight import step_env_evidence_preflight
+        from _util import ci_dir
+
+        step = step_env_evidence_preflight(ci_dir('ci-pipeline-env-preflight'), godot_bin=godot_bin, task_id='1')
+        details = dict(getattr(step, 'details', {}) or {})
+        details.update(
+            {
+                'name': getattr(step, 'name', 'env-evidence-preflight'),
+                'status': getattr(step, 'status', 'fail'),
+                'rc': getattr(step, 'rc', 1),
+                'log': getattr(step, 'log', None),
+            }
+        )
+        return int(getattr(step, 'rc', 1)), details
+    except Exception as exc:
+        return 1, {'status': 'fail', 'reason': f'env preflight import/exec error: {exc}'}
+    finally:
+        if added_path:
+            try:
+                sys.path.remove(sc_dir)
+            except ValueError:
+                pass
+
+
 def _copy_if_exists(src: str, dst: str) -> bool:
     try:
         if not os.path.isfile(src):
@@ -122,6 +161,8 @@ def main():
         'manual_triplet_examples': {},
         'whitelist_expiry_warning': {},
         'gate_bundle': {},
+        'preflight_env_evidence': {},
+        'preflight_task1': {},
         'dotnet': {},
         'selfcheck': {},
         'encoding': {},
@@ -176,6 +217,17 @@ def main():
         'soft_failures_count': gate_bundle_sum.get('soft_failures_count', 0),
     }
     if rc_bundle != 0:
+        hard_fail = True
+
+    # 0.5) Deterministic Task1 environment evidence preflight (hard gate)
+    rc_preflight, preflight_details = run_env_evidence_preflight(root, args.godot_bin)
+    summary['preflight_env_evidence'] = preflight_details
+    summary['preflight_task1'] = {
+        'rc': rc_preflight,
+        'status': preflight_details.get('status'),
+        'log': preflight_details.get('log'),
+    }
+    if rc_preflight != 0:
         hard_fail = True
 
     # 1) Dotnet tests + coverage (soft gate on coverage)

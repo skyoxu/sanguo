@@ -6,6 +6,7 @@ Evidence-oriented acceptance-check steps.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -126,3 +127,72 @@ def step_security_audit_evidence(out_dir: Path, *, expected_run_id: str) -> Step
     write_text(log_path, out)
     return StepResult(name="security-audit-executed-evidence", status="ok" if rc == 0 else "fail", rc=rc, cmd=cmd, log=str(log_path))
 
+
+def step_post_evidence_integration(
+    out_dir: Path,
+    *,
+    task_id: int,
+    expected_run_id: str,
+    godot_bin: str | None,
+) -> StepResult:
+    if task_id != 1:
+        return StepResult(
+            name="post-evidence-integration",
+            status="skipped",
+            rc=0,
+            details={"reason": "task_not_targeted"},
+        )
+
+    root = repo_root()
+    report_dir_rel = Path("logs") / "unit" / today_str() / "sc-acceptance-post-evidence-task-1"
+    report_dir = root / report_dir_rel
+    test_filter = (
+        "FullyQualifiedName~Task1EnvironmentEvidencePersistenceTests"
+        "|FullyQualifiedName~Task1WindowsPlatformGateTests"
+        "|FullyQualifiedName~Task1ToolchainVersionChecksTests"
+    )
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/run_dotnet.py",
+        "--solution",
+        "Game.sln",
+        "--configuration",
+        "Debug",
+        "--filter",
+        test_filter,
+        "--out-dir",
+        str(report_dir),
+    ]
+
+    previous_flag = os.environ.get("TASK1_PREFLIGHT_REQUIRED")
+    previous_coverage_flag = os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE")
+    os.environ["TASK1_PREFLIGHT_REQUIRED"] = "1"
+    os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = "1"
+    try:
+        rc, out = run_cmd(cmd, cwd=root, timeout_sec=900)
+    finally:
+        if previous_flag is None:
+            os.environ.pop("TASK1_PREFLIGHT_REQUIRED", None)
+        else:
+            os.environ["TASK1_PREFLIGHT_REQUIRED"] = previous_flag
+        if previous_coverage_flag is None:
+            os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
+        else:
+            os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = previous_coverage_flag
+
+    log_path = out_dir / "post-evidence-integration.log"
+    write_text(log_path, out)
+    return StepResult(
+        name="post-evidence-integration",
+        status="ok" if rc == 0 else "fail",
+        rc=rc,
+        cmd=cmd,
+        log=str(log_path),
+        details={
+            "task_id": task_id,
+            "expected_run_id": expected_run_id,
+            "report_dir": str(report_dir_rel).replace("\\", "/"),
+            "godot_bin_seen": bool(godot_bin),
+        },
+    )

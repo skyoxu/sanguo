@@ -33,9 +33,10 @@ from _acceptance_task_requirements import (
 from _acceptance_steps import StepResult, step_perf_budget
 from _risk_summary import write_risk_summary
 from _security_profile import security_profile_payload
+from _summary_schema import SummarySchemaError, validate_sc_acceptance_summary
 from _taskmaster import resolve_triplet
 from _unit_metrics import collect_unit_metrics
-from _util import ci_dir, repo_root, today_str, write_json
+from _util import ci_dir, repo_root, today_str, write_json, write_text
 
 
 def _collect_metrics(steps: list[StepResult]) -> dict[str, Any]:
@@ -147,6 +148,25 @@ def _build_summary(
     return summary
 
 
+def _write_validated_summary(out_dir: Path, summary: dict[str, Any]) -> bool:
+    schema_error_log = out_dir / "summary-schema-validation-error.log"
+    try:
+        validate_sc_acceptance_summary(summary)
+    except SummarySchemaError as exc:
+        write_text(schema_error_log, f"{exc}\n")
+        write_json(out_dir / "summary.invalid.json", summary)
+        print(f"[sc-acceptance-check] ERROR: summary schema validation failed. details={schema_error_log}")
+        return False
+
+    invalid_summary_path = out_dir / "summary.invalid.json"
+    if schema_error_log.exists():
+        schema_error_log.unlink(missing_ok=True)
+    if invalid_summary_path.exists():
+        invalid_summary_path.unlink(missing_ok=True)
+    write_json(out_dir / "summary.json", summary)
+    return True
+
+
 def _run_self_check(args: Any) -> int:
     only_steps = parse_only_steps(args.only)
     subtasks_mode = normalize_subtasks_mode(args.subtasks_coverage)
@@ -169,7 +189,8 @@ def _run_self_check(args: Any) -> int:
         security_modes=security_modes,
         arg_errors=arg_errors,
     )
-    write_json(out_dir / "summary.json", summary)
+    if not _write_validated_summary(out_dir, summary):
+        return 2
     for err in arg_errors:
         print(f"[sc-acceptance-check] ERROR: {err}")
     print(f"SC_ACCEPTANCE_SELF_CHECK status={summary['status']} out={out_dir}")
@@ -192,7 +213,8 @@ def main() -> int:
     only_steps = parse_only_steps(args.only)
     subtasks_mode = normalize_subtasks_mode(args.subtasks_coverage)
 
-    has_gd_refs = task_requires_headless_e2e(triplet)
+    force_headless_for_task1 = bool(args.require_headless_e2e) and int(triplet.task_id) == 1
+    has_gd_refs = task_requires_headless_e2e(triplet) or force_headless_for_task1
     needs_env_preflight = task_requires_env_evidence_preflight(triplet)
     require_headless_e2e = bool(args.require_headless_e2e) and has_gd_refs
     require_executed_refs = bool(args.require_executed_refs)
@@ -213,11 +235,17 @@ def main() -> int:
             print(f"[sc-acceptance-check] ERROR: {e}")
         return 2
 
-    run_id = uuid.uuid4().hex
+    run_id = str(getattr(args, "run_id", None) or os.environ.get("SC_ACCEPTANCE_RUN_ID") or "").strip() or uuid.uuid4().hex
+    os.environ["SC_ACCEPTANCE_RUN_ID"] = run_id
+    os.environ["SC_TEST_RUN_ID"] = run_id
     godot_bin = args.godot_bin or os.environ.get("GODOT_BIN")
 
     if bool(getattr(args, "dry_run_plan", False)):
         out_dir = ci_dir(f"sc-acceptance-dry-plan-task-{triplet.task_id}") if bool(args.out_per_task) else ci_dir("sc-acceptance-dry-plan")
+        try:
+            task_id_for_plan = int(triplet.task_id)
+        except (TypeError, ValueError):
+            task_id_for_plan = 0
         step_plan = build_step_plan(
             only_steps=only_steps,
             subtasks_mode=subtasks_mode,
@@ -228,6 +256,7 @@ def main() -> int:
             require_executed_refs=require_executed_refs,
             audit_evidence_mode=audit_evidence_mode,
             perf_p95_ms=perf_p95_ms,
+            task_id=task_id_for_plan,
         )
         summary = _build_summary(
             mode="dry-run-plan",
@@ -247,7 +276,8 @@ def main() -> int:
             },
             step_plan=step_plan,
         )
-        write_json(out_dir / "summary.json", summary)
+        if not _write_validated_summary(out_dir, summary):
+            return 2
         print(f"SC_ACCEPTANCE_DRY_RUN_PLAN status={summary['status']} out={out_dir}")
         return 0
 
@@ -316,7 +346,8 @@ def main() -> int:
         risk_summary_rel=risk_summary_rel,
     )
 
-    write_json(out_dir / "summary.json", summary)
+    if not _write_validated_summary(out_dir, summary):
+        return 2
     write_markdown_report(out_dir, triplet, steps, metrics=metrics or None)
     print(f"SC_ACCEPTANCE status={summary['status']} out={out_dir}")
     return 0 if not hard_failed else 1
