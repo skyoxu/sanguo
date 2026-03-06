@@ -46,6 +46,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Governance gate bundle
+        shell: pwsh
+        run: |
+          py -3 scripts/python/run_gate_bundle.py --mode all --task-links-max-warnings $env:TASK_LINKS_MAX_WARNINGS
+
       - name: Ensure GdUnit4 plugin
         shell: pwsh
         run: |
