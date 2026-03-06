@@ -95,8 +95,8 @@ func test_task59_roundtrip_enters_battle_view_and_returns_to_map_and_allows_cont
 	_bus.PublishSimple(UI_MENU_START, "ut", _start_config_json(7))
 	await _wait_for_turn_started("p1", 240)
 
-	var hud := main.get_node("HUD")
-	var dice: Button = hud.get_node("TopBar/HBox/DiceButton")
+	var hud := main.get_node("SplitRoot/TopArea/HudLayer/HUD")
+	var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
 	dice.emit_signal("pressed")
 
 	await _wait_for_event(UI_DICE_ROLL, 120)
@@ -122,7 +122,7 @@ func test_task59_roundtrip_enters_battle_view_and_returns_to_map_and_allows_cont
 			money_after = float(payload.get("Money", 0.0))
 	assert_bool(money_after > 5000.0).is_true()
 
-	var battle_view: Control = main.get_node("Overlays/SanguoBattleView")
+	var battle_view: Control = main.get_node("SplitRoot/BottomArea/BoardArea/Overlays/SanguoBattleView")
 	assert_bool(battle_view.visible).is_true()
 
 	var continue_btn: Button = battle_view.get_node("Panel/VBox/ContinueButton")

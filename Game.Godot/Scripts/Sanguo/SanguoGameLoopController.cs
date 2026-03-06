@@ -290,7 +290,6 @@ public partial class SanguoGameLoopController : Node
             }
 
             _audio?.PlaySfx(DefaultUiClickSfxId, 1f);
-            _audio?.PlayMusic(DefaultMusicLoopId, 0.6f, true);
 
             var correlationId = Guid.NewGuid().ToString("N");
             CallDeferred(nameof(StartGameDeferred), correlationId, string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson);
@@ -678,6 +677,7 @@ public partial class SanguoGameLoopController : Node
                 correlationId: correlationId,
                 causationId: causationId);
             _started = true;
+            _audio?.PlayMusic(DefaultMusicLoopId, 0.6f, true);
 
             PublishGameStarted(startConfig);
             TryQueueAiAutoAdvanceIfNeeded();
