@@ -141,6 +141,21 @@ func _read_display_fingerprint(status_node: Node) -> String:
     return ""
 
 
+func _translate_or_fallback(key: String, fallback: String) -> String:
+    var translated := TranslationServer.translate(key)
+    if translated.is_empty() or translated == key:
+        return fallback
+    return translated
+
+
+func _expected_unowned_text() -> String:
+    return _translate_or_fallback("ui.city_status.unowned", "Unowned")
+
+
+func _expected_owner_text(owner_id: String) -> String:
+    return "%s: %s" % [_translate_or_fallback("ui.city_status.owner", "Owner"), owner_id]
+
+
 # ACC:T23.1
 func test_ui_scene_can_be_instantiated_and_has_visible_ownership_element() -> void:
     var root = await _instantiate_ownership_ui()
@@ -157,11 +172,11 @@ func test_initial_render_matches_current_ownership_and_updates_when_changed() ->
 
     assert_bool(_try_set_ownership(root, "")).is_true()
     await get_tree().process_frame
-    assert_str(label.text).is_equal("Unowned")
+    assert_str(label.text).is_equal(_expected_unowned_text())
 
     assert_bool(_try_set_ownership(root, "p1")).is_true()
     await get_tree().process_frame
-    assert_str(label.text).is_equal("Owner: p1")
+    assert_str(label.text).is_equal(_expected_owner_text("p1"))
 
 
 # ACC:T23.3
@@ -172,11 +187,11 @@ func test_ui_shows_updated_ownership_on_next_refresh() -> void:
 
     assert_bool(_try_set_ownership(root, "p1")).is_true()
     await get_tree().process_frame
-    assert_str(label.text).is_equal("Owner: p1")
+    assert_str(label.text).is_equal(_expected_owner_text("p1"))
 
     assert_bool(_try_set_ownership(root, "p2")).is_true()
     await get_tree().process_frame
-    assert_str(label.text).is_equal("Owner: p2")
+    assert_str(label.text).is_equal(_expected_owner_text("p2"))
 
 
 # ACC:T23.4
@@ -207,11 +222,11 @@ func test_display_differs_for_two_distinct_ownership_inputs() -> void:
 
     assert_bool(_try_set_ownership(root, "")).is_true()
     await get_tree().process_frame
-    assert_str(label.text).is_equal("Unowned")
+    assert_str(label.text).is_equal(_expected_unowned_text())
 
     assert_bool(_try_set_ownership(root, "p1")).is_true()
     await get_tree().process_frame
-    assert_str(label.text).is_equal("Owner: p1")
+    assert_str(label.text).is_equal(_expected_owner_text("p1"))
 
 
 # ACC:T23.6
@@ -223,9 +238,9 @@ func test_updates_display_when_city_bought_event_emitted_for_matching_city() -> 
     assert_bool(_try_set_city_id(root, "c1")).is_true()
     assert_bool(_try_set_ownership(root, "")).is_true()
     await get_tree().process_frame
-    assert_str(label.text).is_equal("Unowned")
+    assert_str(label.text).is_equal(_expected_unowned_text())
 
     _publish_city_bought("g1", "p1", "c1")
     await get_tree().process_frame
-    assert_str(label.text).is_equal("Owner: p1")
+    assert_str(label.text).is_equal(_expected_owner_text("p1"))
 
