@@ -121,6 +121,7 @@ def main():
     summary = {
         'manual_triplet_examples': {},
         'whitelist_expiry_warning': {},
+        'gate_bundle': {},
         'dotnet': {},
         'selfcheck': {},
         'encoding': {},
@@ -144,6 +145,37 @@ def main():
     )
     summary.update(gate_details)
     if gate_hard_fail:
+        hard_fail = True
+
+    # 0.4) Governance gate bundle (hard gate)
+    gate_bundle_summary_path = os.path.join('logs', 'ci', date, 'gate-bundle', 'ci-pipeline-summary.json')
+    task_links_max_warnings = _safe_int(os.environ.get('TASK_LINKS_MAX_WARNINGS', '-1'), -1)
+    rc_bundle, out_bundle = run_cmd(
+        [
+            'py',
+            '-3',
+            'scripts/python/run_gate_bundle.py',
+            '--mode',
+            'all',
+            '--task-links-max-warnings',
+            str(task_links_max_warnings),
+            '--summary-out',
+            gate_bundle_summary_path,
+        ],
+        root,
+        900_000,
+    )
+    with io.open(os.path.join(ci_dir, 'gate-bundle-stdout.txt'), 'w', encoding='utf-8') as f:
+        f.write(out_bundle)
+    gate_bundle_sum = read_json(gate_bundle_summary_path) or {}
+    summary['gate_bundle'] = {
+        'rc': rc_bundle,
+        'status': gate_bundle_sum.get('status') or ('ok' if rc_bundle == 0 else 'fail'),
+        'out': gate_bundle_summary_path,
+        'hard_failures_count': gate_bundle_sum.get('hard_failures_count', gate_bundle_sum.get('failures_count')),
+        'soft_failures_count': gate_bundle_sum.get('soft_failures_count', 0),
+    }
+    if rc_bundle != 0:
         hard_fail = True
 
     # 1) Dotnet tests + coverage (soft gate on coverage)
