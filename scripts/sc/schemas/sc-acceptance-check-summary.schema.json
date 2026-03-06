@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://newrouge.local/schemas/sc-acceptance-check-summary.schema.json",
+  "title": "sc-acceptance-check summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "cmd",
+    "mode",
+    "date",
+    "only",
+    "status",
+    "out_dir",
+    "subtasks_coverage_mode",
+    "security_profile",
+    "security_modes",
+    "arg_validation"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "cmd": {
+      "const": "sc-acceptance-check"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "self-check",
+        "dry-run-plan",
+        "run"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "only": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "fail"
+      ]
+    },
+    "out_dir": {
+      "type": "string"
+    },
+    "subtasks_coverage_mode": {
+      "type": "string",
+      "enum": [
+        "skip",
+        "warn",
+        "require"
+      ]
+    },
+    "security_profile": {
+      "$ref": "#/$defs/security_profile"
+    },
+    "security_modes": {
+      "$ref": "#/$defs/security_modes"
+    },
+    "arg_validation": {
+      "$ref": "#/$defs/arg_validation"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{32}$"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step_result"
+      }
+    },
+    "task_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "has_gd_refs",
+        "requires_env_evidence_preflight"
+      ],
+      "properties": {
+        "has_gd_refs": {
+          "type": "boolean"
+        },
+        "requires_env_evidence_preflight": {
+          "type": "boolean"
+        }
+      }
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "risk_summary": {
+      "type": "string"
+    },
+    "step_plan": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "$defs": {
+    "gate_modes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sql",
+        "audit_schema",
+        "ui_event_json_guards",
+        "ui_event_source_verify",
+        "audit_evidence"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "enum": [
+            "skip",
+            "warn",
+            "require"
+          ]
+        },
+        "sql": {
+          "type": "string",
+          "enum": [
+            "skip",
+            "warn",
+            "require"
+          ]
+        },
+        "audit_schema": {
+          "type": "string",
+          "enum": [
+            "skip",
+            "warn",
+            "require"
+          ]
+        },
+        "ui_event_json_guards": {
+          "type": "string",
+          "enum": [
+            "skip",
+            "warn",
+            "require"
+          ]
+        },
+        "ui_event_source_verify": {
+          "type": "string",
+          "enum": [
+            "skip",
+            "warn",
+            "require"
+          ]
+        },
+        "audit_evidence": {
+          "type": "string",
+          "enum": [
+            "skip",
+            "warn",
+            "require"
+          ]
+        }
+      }
+    },
+    "security_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "gate_defaults"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": [
+            "strict",
+            "host-safe"
+          ]
+        },
+        "gate_defaults": {
+          "$ref": "#/$defs/gate_modes"
+        }
+      }
+    },
+    "security_modes": {
+      "$ref": "#/$defs/gate_modes"
+    },
+    "arg_validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "errors",
+        "valid"
+      ],
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "valid": {
+          "type": "boolean"
+        }
+      }
+    },
+    "step_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "status"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "fail",
+            "skipped"
+          ]
+        },
+        "rc": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "cmd": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "log": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "details": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "ok",
+                  "fail"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "rc"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "run"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "then": {
+        "required": [
+          "run_id",
+          "task_id",
+          "title",
+          "steps"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "dry-run-plan"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "then": {
+        "required": [
+          "run_id",
+          "task_id",
+          "title",
+          "task_requirements",
+          "step_plan"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# Whitelist format (required in CI):
+# path|owner|expire_date(YYYY-MM-DD)|reason
+
+docs/workflows/acceptance-check-and-llm-review.md|arch-team|2026-12-31|Legacy workflow document keeps historical command examples for migration context.
+docs/workflows/task-semantics-gates-evolution.md|arch-team|2026-12-31|Evolution doc preserves historical command timeline; pending full consolidation.
+docs/acceptance-check-list.md|qa-team|2026-12-31|Checklist keeps legacy examples for compatibility during rollout.
+docs/adr/ADR-0005-quality-gates.md|arch-team|2026-12-31|ADR history references old commands as prior state evidence.
+taskdoc/pr-49.md|arch-team|2026-12-31|Legacy PR note keeps historical acceptance_check command for traceability.
+tmp/pr-body-17-utf8.md|arch-team|2026-12-31|Temporary PR draft snapshot stores historical triplet commands for diff trace.
+tmp/pr-body-17.md|arch-team|2026-12-31|Temporary PR draft snapshot stores historical triplet commands for diff trace.
+tmp/pr_task5.md|arch-team|2026-12-31|Temporary task note preserves historical command usage during migration.
+docs/workflows/bmad-integration.md|arch-team|2026-12-31|Workflow migration doc still references legacy llm_review command pending consolidation.
