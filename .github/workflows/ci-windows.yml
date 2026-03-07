@@ -27,6 +27,17 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Pin .NET SDK/Runtime and set DOTNET_ROOT
+        shell: pwsh
+        run: |
+          $installer = "$HOME/dotnet-install.ps1"
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://dot.net/v1/dotnet-install.ps1' -OutFile $installer
+          & powershell -NoProfile -ExecutionPolicy Bypass -File $installer -Version 8.0.401 -InstallDir "$HOME/.dotnet"
+          & powershell -NoProfile -ExecutionPolicy Bypass -File $installer -Runtime dotnet -Version 8.0.21 -InstallDir "$HOME/.dotnet"
+          "DOTNET_ROOT=$HOME/.dotnet" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "$HOME/.dotnet" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          dotnet --info
+
       - name: Download Godot .NET (GitHub Releases)
         shell: pwsh
         run: |
