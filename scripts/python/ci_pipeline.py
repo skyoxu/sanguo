@@ -25,6 +25,13 @@ import xml.etree.ElementTree as ET
 from _ci_pipeline_entrypoint_guard import resolve_dotnet_stage_timeout_ms, run_unified_entrypoint_gates
 
 
+def _safe_int(raw, default):
+    try:
+        return int(str(raw).strip())
+    except Exception:
+        return default
+
+
 def run_cmd(args, cwd=None, timeout=900_000):
     p = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          text=True, encoding='utf-8', errors='ignore')
