@@ -36,6 +36,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--smoke-scene", default="res://Game.Godot/Scenes/Main.tscn", help="Main scene for smoke test")
     ap.add_argument("--timeout-sec", type=int, default=600)
     ap.add_argument("--skip-smoke", action="store_true")
+    ap.add_argument(
+        "--task-scoped-gdunit-only",
+        action="store_true",
+        help="for e2e/all with --task-id, run only task-scoped gd refs (fallback to smoke gd test when empty)",
+    )
     ap.add_argument("--no-coverage-gate", action="store_true", help="do not enforce default coverage thresholds")
     ap.add_argument("--no-coverage-report", action="store_true", help="skip HTML coverage report generation")
     return ap
@@ -184,6 +189,7 @@ def run_gdunit_hard(
     *,
     run_id: str,
     task_id: str | None = None,
+    task_scoped_only: bool = False,
 ) -> dict[str, Any]:
     date = today_str()
     report_dir = Path("logs") / "e2e" / date / "sc-test" / "gdunit-hard"
@@ -191,26 +197,35 @@ def run_gdunit_hard(
 
     add_dirs: list[str] = []
     tests_project = repo_root() / "Tests.Godot"
-    for rel in ["tests/Scenes", "tests/UI", "tests/Adapters/Config", "tests/Security/Hard"]:
-        if (tests_project / rel).exists():
-            add_dirs.append(rel)
-        elif (repo_root() / rel).exists():
-            # Backward-compatible fallback for repos that keep GdUnit suites at repo root.
-            add_dirs.append(rel)
-    # Task-specific acceptance suites (e.g., tests/Tasks/test_taskXXXX_acceptance.gd)
-    # should be included only when a concrete task id is being validated.
-    if str(task_id or "").strip():
-        rel = "tests/Tasks"
-        if (tests_project / rel).exists():
-            add_dirs.append(rel)
-        elif (repo_root() / rel).exists():
-            add_dirs.append(rel)
-
-        # Add task-scoped GdUnit refs from task views so acceptance-executed-refs
-        # can bind to real executed tests.
+    if task_scoped_only and str(task_id or "").strip():
         for rel_ref in _task_scoped_gdunit_refs(task_id=task_id, tests_project=tests_project):
             if rel_ref not in add_dirs:
                 add_dirs.append(rel_ref)
+        if not add_dirs:
+            smoke_rel = "tests/Scenes/Smoke/test_main_scene_smoke.gd"
+            if (tests_project / smoke_rel).is_file() or (repo_root() / smoke_rel).is_file():
+                add_dirs.append(smoke_rel)
+    else:
+        for rel in ["tests/Scenes", "tests/UI", "tests/Adapters/Config", "tests/Security/Hard"]:
+            if (tests_project / rel).exists():
+                add_dirs.append(rel)
+            elif (repo_root() / rel).exists():
+                # Backward-compatible fallback for repos that keep GdUnit suites at repo root.
+                add_dirs.append(rel)
+        # Task-specific acceptance suites (e.g., tests/Tasks/test_taskXXXX_acceptance.gd)
+        # should be included only when a concrete task id is being validated.
+        if str(task_id or "").strip():
+            rel = "tests/Tasks"
+            if (tests_project / rel).exists():
+                add_dirs.append(rel)
+            elif (repo_root() / rel).exists():
+                add_dirs.append(rel)
+
+            # Add task-scoped GdUnit refs from task views so acceptance-executed-refs
+            # can bind to real executed tests.
+            for rel_ref in _task_scoped_gdunit_refs(task_id=task_id, tests_project=tests_project):
+                if rel_ref not in add_dirs:
+                    add_dirs.append(rel_ref)
 
     cmd = [
         "py",
@@ -317,7 +332,14 @@ def main() -> int:
             print("[sc-test] ERROR: --godot-bin (or env GODOT_BIN) is required for e2e/integration tests.")
             return 2
 
-        step = run_gdunit_hard(out_dir, godot_bin, args.timeout_sec, run_id=run_id, task_id=args.task_id)
+        step = run_gdunit_hard(
+            out_dir,
+            godot_bin,
+            args.timeout_sec,
+            run_id=run_id,
+            task_id=args.task_id,
+            task_scoped_only=bool(args.task_scoped_gdunit_only),
+        )
         summary["steps"].append(step)
         if step["rc"] != 0:
             hard_fail = True

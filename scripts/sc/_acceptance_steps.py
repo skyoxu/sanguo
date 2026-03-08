@@ -253,6 +253,8 @@ def step_tests_all(
     cmd = ["py", "-3", "scripts/sc/test.py", "--type", test_type]
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
+        if test_type != "unit":
+            cmd += ["--task-scoped-gdunit-only"]
     if run_id:
         cmd += ["--run-id", run_id]
     if godot_bin and test_type != "unit":
