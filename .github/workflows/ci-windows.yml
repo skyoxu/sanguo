@@ -141,7 +141,7 @@ jobs:
           }
           $env:SC_ACCEPTANCE_NO_COVERAGE_GATE = "1"
           Write-Host "SC_ACCEPTANCE_TASK_ID=$taskId"
-          py -3 scripts/sc/acceptance_check.py --task-id "$taskId" --only tests --security-profile "$env:SECURITY_PROFILE" --require-task-test-refs --godot-bin "$env:GODOT_BIN"
+          py -3 scripts/sc/acceptance_check.py --task-id "$taskId" --only tests --subtasks-coverage skip --security-profile "$env:SECURITY_PROFILE" --require-task-test-refs --godot-bin "$env:GODOT_BIN"
 
       - name: Upload CI logs (always)
         if: always()

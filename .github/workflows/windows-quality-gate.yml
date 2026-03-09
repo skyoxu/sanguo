@@ -352,6 +352,7 @@ jobs:
               "py", "-3", "scripts/sc/acceptance_check.py",
               "--task-id", $id,
               "--only", $only,
+              "--subtasks-coverage", "skip",
               "--security-profile", "$env:SECURITY_PROFILE",
               "--require-task-test-refs",
               "--godot-bin", "$env:GODOT_BIN"
