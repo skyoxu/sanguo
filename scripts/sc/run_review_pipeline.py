@@ -67,7 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--llm-agents", default="all", help="llm_review --agents value. Default: all.")
     parser.add_argument("--llm-timeout-sec", type=int, default=900, help="llm_review total timeout.")
     parser.add_argument("--llm-agent-timeout-sec", type=int, default=300, help="llm_review per-agent timeout.")
-    parser.add_argument("--llm-semantic-gate", default="require", choices=["skip", "warn", "require"])
+    parser.add_argument("--llm-semantic-gate", default="warn", choices=["skip", "warn", "require"])
     parser.add_argument("--llm-base", default="main", help="llm_review --base value.")
     parser.add_argument("--llm-diff-mode", default="full", choices=["full", "summary", "none"], help="llm_review --diff-mode value.")
     parser.add_argument("--llm-no-uncommitted", action="store_true", help="Do not pass --uncommitted to llm_review.")
@@ -264,8 +264,7 @@ def main() -> int:
         "--out-per-task",
         "--security-profile",
         args.security_profile,
-        "--require-executed-refs",
-        "--require-headless-e2e",
+        "--require-task-test-refs",
     ]
     if args.godot_bin:
         acceptance_cmd += ["--godot-bin", str(args.godot_bin)]

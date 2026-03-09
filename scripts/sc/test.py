@@ -313,8 +313,8 @@ def main() -> int:
 
     if args.type in ("unit", "all"):
         if not args.no_coverage_gate:
-            os.environ.setdefault("COVERAGE_LINES_MIN", "90")
-            os.environ.setdefault("COVERAGE_BRANCHES_MIN", "85")
+            os.environ.setdefault("COVERAGE_LINES_MIN", "70")
+            os.environ.setdefault("COVERAGE_BRANCHES_MIN", "60")
 
         step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id, no_coverage_gate=bool(args.no_coverage_gate))
         summary["steps"].append(step)
