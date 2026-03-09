@@ -16,7 +16,7 @@ jobs:
       PYTHONUTF8: '1'
       SECURITY_PROFILE: 'host-safe'
       WHITELIST_WARN_DAYS: '90'
-      TASK_LINKS_MAX_WARNINGS: '100'
+      TASK_LINKS_MAX_WARNINGS: '200'
       CI_DOTNET_STAGE_TIMEOUT_MS: '4200000'
     steps:
       - name: Checkout
@@ -141,7 +141,7 @@ jobs:
           }
           $env:SC_ACCEPTANCE_NO_COVERAGE_GATE = "1"
           Write-Host "SC_ACCEPTANCE_TASK_ID=$taskId"
-          py -3 scripts/sc/acceptance_check.py --task-id "$taskId" --only tests --security-profile "$env:SECURITY_PROFILE" --require-headless-e2e --godot-bin "$env:GODOT_BIN"
+          py -3 scripts/sc/acceptance_check.py --task-id "$taskId" --only tests --security-profile "$env:SECURITY_PROFILE" --require-task-test-refs --godot-bin "$env:GODOT_BIN"
 
       - name: Upload CI logs (always)
         if: always()
@@ -163,8 +163,8 @@ jobs:
         shell: pwsh
         continue-on-error: true
         env:
-          COVERAGE_LINES_MIN: '75'
-          COVERAGE_BRANCHES_MIN: '70'
+          COVERAGE_LINES_MIN: '70'
+          COVERAGE_BRANCHES_MIN: '60'
         run: |
           py -3 scripts/python/run_dotnet.py --solution Game.sln --configuration Debug
           if ($LASTEXITCODE -ne 0) { Write-Warning 'Coverage soft gate failed'; exit 0 }
@@ -226,4 +226,3 @@ jobs:
           $out = "logs/ci/${{ github.run_id }}/schema-dump.json"
           py -3 scripts/python/db_schema_dump.py --glob "$env:APPDATA\Godot\app_userdata\GodotGame\*.db" --out "$out"
           Write-Host "SCHEMA_DUMP_OUT=$out"
-

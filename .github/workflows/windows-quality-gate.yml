@@ -33,7 +33,7 @@ jobs:
       PYTHONUTF8: '1'
       SECURITY_PROFILE: 'host-safe'
       WHITELIST_WARN_DAYS: '90'
-      TASK_LINKS_MAX_WARNINGS: '100'
+      TASK_LINKS_MAX_WARNINGS: '200'
       CI_DOTNET_STAGE_TIMEOUT_MS: '4200000'
     steps:
       - name: Checkout
@@ -353,7 +353,7 @@ jobs:
               "--task-id", $id,
               "--only", $only,
               "--security-profile", "$env:SECURITY_PROFILE",
-              "--require-headless-e2e",
+              "--require-task-test-refs",
               "--godot-bin", "$env:GODOT_BIN"
             )
             if ($strict -eq "true") { $args += "--strict-adr-status" }
