@@ -96,7 +96,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ap.add_argument(
         "--subtasks-coverage",
-        default="skip",
+        default="warn",
         choices=["skip", "warn", "require"],
         help="Subtasks coverage gate mode (tasks.json subtasks must be covered by tasks_back/tasks_gameplay acceptance).",
     )
