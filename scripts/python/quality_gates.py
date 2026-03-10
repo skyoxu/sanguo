@@ -1,27 +1,5 @@
 #!/usr/bin/env python3
-"""
-Quality gates entry for Windows (Godot+C# variant).
-
-Current minimal implementation:
-- Delegates to ci_pipeline.py `all` command, which runs:
-  * dotnet tests + coverage (soft gate on coverage)
-  * Godot self-check (hard gate)
-  * encoding scan (soft gate)
-
-Usage (Windows):
-  py -3 scripts/python/quality_gates.py all `
-    --solution Game.sln --configuration Debug `
-    --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" `
-    --build-solutions
-
-Exit codes:
-  0  all hard gates passed
-  1  hard gate failed (dotnet tests or self-check)
-
-This script is designed to be extended in Phase 13 to include
-additional gates (GdUnit4 sets, smoke, perf, etc.).
-"""
-
+"""Windows quality gates entry for Godot+C#."""
 import argparse
 import datetime as dt
 import io
@@ -222,6 +200,19 @@ def run_smoke_headless(*, godot_bin: str, timeout_sec: int) -> tuple[int, str]:
     return proc.returncode, env["GD_SMOKE_EXIT_ON_READY"]
 
 
+def run_architecture_hotspots(*, ci_dir: str) -> tuple[int, str]:
+    summary_path = os.path.join(ci_dir, "architecture-hotspots-summary.json")
+    args = [
+        "py",
+        "-3",
+        "scripts/python/check_architecture_hotspots.py",
+        "--out",
+        summary_path,
+    ]
+    proc = subprocess.run(args, text=True)
+    return proc.returncode, summary_path
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -300,6 +291,19 @@ def main() -> int:
         if perf_audit_rc != 0:
             hard_failed = True
 
+        architecture_hotspots = {"enabled": True}
+        if test_mode:
+            ah_rc = _as_int(os.environ.get("QUALITY_GATES_TEST_ARCH_HOTSPOTS_RC"), default=0)
+            ah_summary_path = str(os.environ.get("QUALITY_GATES_TEST_ARCH_HOTSPOTS_SUMMARY") or "").strip() or os.path.join(
+                ci_dir, "architecture-hotspots-summary.json")
+        else:
+            ah_rc, ah_summary_path = run_architecture_hotspots(ci_dir=ci_dir)
+        architecture_hotspots["rc"] = ah_rc
+        architecture_hotspots["summary_path"] = ah_summary_path
+        architecture_hotspots["summary"] = _read_json(ah_summary_path) if os.path.isfile(ah_summary_path) else {}
+        if ah_rc != 0:
+            hard_failed = True
+
         # 3) Optional hard gate: GdUnit subset.
         gdunit = {"enabled": bool(args.gdunit_hard)}
         gdunit_rc = None
@@ -373,6 +377,7 @@ def main() -> int:
             "content_packs": content_packs,
             "ci_pipeline_summary_path": ci_pipeline_summary_path,
             "perf_audit": perf_audit,
+            "architecture_hotspots": architecture_hotspots,
             "gdunit_hard": gdunit,
             "gdunit_ui": gdunit_ui,
             "smoke": smoke,

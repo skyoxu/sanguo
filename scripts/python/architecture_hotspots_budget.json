@@ -1,0 +1,24 @@
+{
+  "hotspots": [
+    {
+      "path": "Game.Core/Services/SanguoTurnManager.cs",
+      "max_lines": 3925,
+      "max_methods": 62
+    },
+    {
+      "path": "Game.Godot/Scripts/UI/EventExplainService.cs",
+      "max_lines": 2050,
+      "max_methods": 50
+    },
+    {
+      "path": "Game.Godot/Scripts/UI/HUD.cs",
+      "max_lines": 1725,
+      "max_methods": 65
+    },
+    {
+      "path": "Game.Godot/Scripts/Sanguo/SanguoGameLoopController.cs",
+      "max_lines": 1460,
+      "max_methods": 32
+    }
+  ]
+}
