@@ -3496,6 +3496,8 @@ public sealed class SanguoTurnManager
         if (snapshot.TreasuryMinorUnits < 0)
             throw new ArgumentOutOfRangeException(nameof(snapshot), "Snapshot TreasuryMinorUnits must be non-negative.");
 
+        EnsureSnapshotContentPackCompatible(snapshot);
+
         var order = snapshot.PlayerOrder.Select(p => (p ?? string.Empty).Trim()).Where(p => p.Length != 0).ToArray();
         if (order.Length != snapshot.PlayerOrder.Count)
             throw new ArgumentException("Snapshot PlayerOrder must not contain empty player ids.", nameof(snapshot));
@@ -3603,6 +3605,29 @@ public sealed class SanguoTurnManager
         _globalRoundGate = new SanguoGlobalEventRoundGate();
         ResetRegionCaptureState();
         RestoreActionCardInventory(snapshot.ActionCardsByPlayerId, order);
+    }
+
+    private void EnsureSnapshotContentPackCompatible(SanguoSaveSnapshot snapshot)
+    {
+        if (string.IsNullOrWhiteSpace(_contentPackId) && _contentPackVersion <= 0)
+        {
+            return;
+        }
+
+        var snapshotPackId = (snapshot.ContentPackId ?? string.Empty).Trim();
+        var snapshotPackVersion = snapshot.ContentPackVersion < 0 ? 0 : snapshot.ContentPackVersion;
+
+        if (!string.Equals(snapshotPackId, _contentPackId, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"content_pack_mismatch: expected id '{_contentPackId}' but snapshot has '{snapshotPackId}'.");
+        }
+
+        if (_contentPackVersion > 0 && snapshotPackVersion != _contentPackVersion)
+        {
+            throw new InvalidOperationException(
+                $"content_pack_mismatch: expected version '{_contentPackVersion}' but snapshot has '{snapshotPackVersion}'.");
+        }
     }
 
     private void ResetActionCardInventory(string[] playerOrder)

@@ -732,6 +732,78 @@ public class SanguoTurnManagerTests
         snapshot.ContentPackId.Should().Be("core_t2");
         snapshot.ContentPackVersion.Should().Be(3);
     }
+
+    [Fact]
+    public async Task RestoreFromSaveSnapshot_ShouldFail_WhenContentPackIdDoesNotMatch()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var (boardState, treasury) = CreateBoardState(
+            players: new[]
+            {
+                new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules),
+            },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            contentPackId: "core_t2",
+            contentPackVersion: 3);
+
+        await mgr.StartNewGameAsync(
+            gameId: "game-pack",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-pack",
+            causationId: null);
+
+        var snapshot = mgr.ExportSaveSnapshot() with { ContentPackId = "other_pack" };
+
+        Action act = () => mgr.RestoreFromSaveSnapshot(snapshot);
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("*content_pack_mismatch*");
+    }
+
+    [Fact]
+    public async Task RestoreFromSaveSnapshot_ShouldFail_WhenContentPackVersionDoesNotMatch()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var (boardState, treasury) = CreateBoardState(
+            players: new[]
+            {
+                new SanguoPlayer(playerId: "p1", money: 0m, positionIndex: 0, economyRules: Rules),
+            },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            contentPackId: "core_t2",
+            contentPackVersion: 3);
+
+        await mgr.StartNewGameAsync(
+            gameId: "game-pack",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-pack",
+            causationId: null);
+
+        var snapshot = mgr.ExportSaveSnapshot() with { ContentPackVersion = 4 };
+
+        Action act = () => mgr.RestoreFromSaveSnapshot(snapshot);
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("*content_pack_mismatch*");
+    }
     private static (SanguoBoardState boardState, SanguoTreasury treasury) CreateBoardState(
         IReadOnlyList<SanguoPlayer> players,
         IReadOnlyDictionary<string, City> citiesById)
