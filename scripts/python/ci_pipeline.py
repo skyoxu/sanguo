@@ -175,6 +175,7 @@ def main():
         'encoding': {},
         'i18n_keys': {},
         'content_packs': {},
+        'prd_v3_rules': {},
         'workflows_index': {},
         'gd_tests': {},
         'status': 'ok'
@@ -473,6 +474,26 @@ def main():
             hard_fail = True
     except Exception as exc:
         summary['content_packs'] = {'rc': 1, 'error': str(exc)}
+        hard_fail = True
+
+    # 10) PRD v3 frozen rules validation (hard gate on schema + semantic invariants)
+    try:
+        rules_out = os.path.join('logs', 'ci', date, 'prd-v3-rules-validate.json')
+        rc_rules, out_rules = run_cmd(
+            ['py', '-3', 'scripts/python/validate_prd_v3_rules.py', '--hash-mode', 'warn', '--out', rules_out],
+            cwd=root,
+        )
+        summary['prd_v3_rules'] = {
+            'rc': rc_rules,
+            'out': rules_out,
+            'hash_mode': 'warn',
+        }
+        with io.open(os.path.join('logs', 'ci', date, 'prd-v3-rules-stdout.txt'), 'w', encoding='utf-8') as f:
+            f.write(out_rules)
+        if rc_rules != 0:
+            hard_fail = True
+    except Exception as exc:
+        summary['prd_v3_rules'] = {'rc': 1, 'error': str(exc)}
         hard_fail = True
 
     summary['status'] = 'ok' if not hard_fail else 'fail'
