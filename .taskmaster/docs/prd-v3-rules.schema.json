@@ -1,0 +1,432 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/prd-v3-rules.schema.json",
+  "title": "PRD v3 frozen campaign rules",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "ruleSetId",
+    "source",
+    "mode",
+    "difficultyProfiles",
+    "bossRules",
+    "objectiveRules",
+    "rewardRules",
+    "autosaveRules",
+    "saveLoadRules",
+    "eventRules",
+    "uiRules",
+    "immutableTimeline"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "ruleSetId": {
+      "type": "string",
+      "pattern": "^Campaign-Rules-v[0-9]+\\.[0-9]+$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hashAlgorithm",
+        "files"
+      ],
+      "properties": {
+        "hashAlgorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "campaignAiEnabled"
+      ],
+      "properties": {
+        "campaignAiEnabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "difficultyProfiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "normal",
+        "hard",
+        "hell"
+      ],
+      "properties": {
+        "normal": {
+          "$ref": "#/$defs/difficultyProfile"
+        },
+        "hard": {
+          "$ref": "#/$defs/difficultyProfile"
+        },
+        "hell": {
+          "$ref": "#/$defs/difficultyProfile"
+        }
+      }
+    },
+    "bossRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revealBeforeForceChallenge",
+        "challengeOnlyInCamp",
+        "delayHardCapRounds",
+        "forceChallengeOnLeaveCampAtCap",
+        "delayCounterStartAtRevealRound",
+        "finalBossWinEndsRun",
+        "lossResetUnitStrengthTo",
+        "regenPerRoundPercentByDifficulty",
+        "regenHasCap"
+      ],
+      "properties": {
+        "revealBeforeForceChallenge": {
+          "type": "boolean"
+        },
+        "challengeOnlyInCamp": {
+          "type": "boolean"
+        },
+        "delayHardCapRounds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "forceChallengeOnLeaveCampAtCap": {
+          "type": "boolean"
+        },
+        "delayCounterStartAtRevealRound": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "finalBossWinEndsRun": {
+          "type": "boolean"
+        },
+        "lossResetUnitStrengthTo": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "regenPerRoundPercentByDifficulty": {
+          "$ref": "#/$defs/numberByDifficulty"
+        },
+        "regenHasCap": {
+          "type": "boolean"
+        }
+      }
+    },
+    "objectiveRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "questChainEnabled",
+        "phase1ObjectiveType",
+        "settlePreviousOnCampEntry",
+        "publishAfterBossSettlement",
+        "skipPublishWhenRunEnded",
+        "failurePenalty"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "questChainEnabled": {
+          "type": "boolean"
+        },
+        "phase1ObjectiveType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "settlePreviousOnCampEntry": {
+          "type": "boolean"
+        },
+        "publishAfterBossSettlement": {
+          "type": "boolean"
+        },
+        "skipPublishWhenRunEnded": {
+          "type": "boolean"
+        },
+        "failurePenalty": {
+          "type": "string",
+          "enum": [
+            "none"
+          ]
+        }
+      }
+    },
+    "rewardRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "optionsPerDraft",
+        "dedupWithinDraft",
+        "fallbackGuarantee",
+        "cardsAllowDuplicate",
+        "maxRelicOptionPerDraft",
+        "relicsRequireRedraw",
+        "relicPoolExhaustedFallbackGold"
+      ],
+      "properties": {
+        "optionsPerDraft": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dedupWithinDraft": {
+          "type": "boolean"
+        },
+        "fallbackGuarantee": {
+          "type": "boolean"
+        },
+        "cardsAllowDuplicate": {
+          "type": "boolean"
+        },
+        "maxRelicOptionPerDraft": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "relicsRequireRedraw": {
+          "type": "boolean"
+        },
+        "relicPoolExhaustedFallbackGold": {
+          "$ref": "#/$defs/numberByDifficulty"
+        }
+      }
+    },
+    "autosaveRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channelSeparateFromManualSave",
+        "policy",
+        "loadLatestValidatedAutosave",
+        "applyRewardBeforeAutosave",
+        "failurePolicy"
+      ],
+      "properties": {
+        "channelSeparateFromManualSave": {
+          "type": "boolean"
+        },
+        "policy": {
+          "type": "string",
+          "enum": [
+            "single_overwrite_slot"
+          ]
+        },
+        "loadLatestValidatedAutosave": {
+          "type": "boolean"
+        },
+        "applyRewardBeforeAutosave": {
+          "type": "boolean"
+        },
+        "failurePolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "firstFailure",
+            "sameRoundRepeatedFailure"
+          ],
+          "properties": {
+            "firstFailure": {
+              "type": "string",
+              "enum": [
+                "popup_warn_continue"
+              ]
+            },
+            "sameRoundRepeatedFailure": {
+              "type": "string",
+              "enum": [
+                "silent_audit_continue"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "saveLoadRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "compatibilityHardReject",
+        "requiredMatchFields",
+        "contentFingerprint",
+        "rejectedEventType"
+      ],
+      "properties": {
+        "compatibilityHardReject": {
+          "type": "boolean"
+        },
+        "requiredMatchFields": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "contentFingerprint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required",
+            "algorithm",
+            "scope"
+          ],
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "scope": {
+              "type": "string",
+              "const": "gameplay_impacting_files_only"
+            }
+          }
+        },
+        "rejectedEventType": {
+          "type": "string",
+          "pattern": "^core\\.sanguo\\.[a-z0-9_.]+$"
+        }
+      }
+    },
+    "eventRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "typePrefix",
+        "roundNumberRequiredForRoundRelatedEvents",
+        "sequenceNoPerRound",
+        "sequenceNoValidationMode"
+      ],
+      "properties": {
+        "typePrefix": {
+          "type": "string",
+          "const": "core.sanguo."
+        },
+        "roundNumberRequiredForRoundRelatedEvents": {
+          "type": "boolean"
+        },
+        "sequenceNoPerRound": {
+          "type": "boolean"
+        },
+        "sequenceNoValidationMode": {
+          "type": "string",
+          "enum": [
+            "soft_warn_audit"
+          ]
+        }
+      }
+    },
+    "uiRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "criticalPopupRequiresManualConfirmation",
+        "normalPopupAutoCloseSeconds",
+        "allowViewLogAndContinue"
+      ],
+      "properties": {
+        "criticalPopupRequiresManualConfirmation": {
+          "type": "boolean"
+        },
+        "normalPopupAutoCloseSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "allowViewLogAndContinue": {
+          "type": "boolean"
+        }
+      }
+    },
+    "immutableTimeline": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "difficultyProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "durationMinMinutes",
+        "durationMaxMinutes",
+        "bossCount",
+        "pressureGrowthCap"
+      ],
+      "properties": {
+        "durationMinMinutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "durationMaxMinutes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "bossCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pressureGrowthCap": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "numberByDifficulty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "normal",
+        "hard",
+        "hell"
+      ],
+      "properties": {
+        "normal": {
+          "type": "number"
+        },
+        "hard": {
+          "type": "number"
+        },
+        "hell": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "ruleSetId": "Campaign-Rules-v1.0",
+  "source": {
+    "hashAlgorithm": "sha256",
+    "files": [
+      {
+        "path": "prd_v3.md",
+        "sha256": "d022f077acacc4beb97749dcad09431cefea82ab8931ba56789c19128fa0e272"
+      },
+      {
+        "path": "PRD_V3_TRACEABILITY_MATRIX.md",
+        "sha256": "455cbf187a39e0c1ef84041d8a87a296244335a2f56073e55b3f121f2ffafdef"
+      }
+    ]
+  },
+  "mode": {
+    "campaignAiEnabled": false
+  },
+  "difficultyProfiles": {
+    "normal": {
+      "durationMinMinutes": 45,
+      "durationMaxMinutes": 60,
+      "bossCount": 2,
+      "pressureGrowthCap": 5
+    },
+    "hard": {
+      "durationMinMinutes": 60,
+      "durationMaxMinutes": 90,
+      "bossCount": 3,
+      "pressureGrowthCap": 8
+    },
+    "hell": {
+      "durationMinMinutes": 60,
+      "durationMaxMinutes": 90,
+      "bossCount": 3,
+      "pressureGrowthCap": 12
+    }
+  },
+  "bossRules": {
+    "revealBeforeForceChallenge": true,
+    "challengeOnlyInCamp": true,
+    "delayHardCapRounds": 10,
+    "forceChallengeOnLeaveCampAtCap": true,
+    "delayCounterStartAtRevealRound": 1,
+    "finalBossWinEndsRun": true,
+    "lossResetUnitStrengthTo": 1,
+    "regenPerRoundPercentByDifficulty": {
+      "normal": 5,
+      "hard": 10,
+      "hell": 15
+    },
+    "regenHasCap": false
+  },
+  "objectiveRules": {
+    "name": "random_objective",
+    "questChainEnabled": false,
+    "phase1ObjectiveType": "reach_camp_this_round",
+    "settlePreviousOnCampEntry": true,
+    "publishAfterBossSettlement": true,
+    "skipPublishWhenRunEnded": true,
+    "failurePenalty": "none"
+  },
+  "rewardRules": {
+    "optionsPerDraft": 3,
+    "dedupWithinDraft": true,
+    "fallbackGuarantee": true,
+    "cardsAllowDuplicate": true,
+    "maxRelicOptionPerDraft": 1,
+    "relicsRequireRedraw": true,
+    "relicPoolExhaustedFallbackGold": {
+      "normal": 100,
+      "hard": 150,
+      "hell": 200
+    }
+  },
+  "autosaveRules": {
+    "channelSeparateFromManualSave": true,
+    "policy": "single_overwrite_slot",
+    "loadLatestValidatedAutosave": true,
+    "applyRewardBeforeAutosave": true,
+    "failurePolicy": {
+      "firstFailure": "popup_warn_continue",
+      "sameRoundRepeatedFailure": "silent_audit_continue"
+    }
+  },
+  "saveLoadRules": {
+    "compatibilityHardReject": true,
+    "requiredMatchFields": [
+      "packId",
+      "version",
+      "content_fingerprint"
+    ],
+    "contentFingerprint": {
+      "required": true,
+      "algorithm": "sha256",
+      "scope": "gameplay_impacting_files_only"
+    },
+    "rejectedEventType": "core.sanguo.save.load.rejected"
+  },
+  "eventRules": {
+    "typePrefix": "core.sanguo.",
+    "roundNumberRequiredForRoundRelatedEvents": true,
+    "sequenceNoPerRound": true,
+    "sequenceNoValidationMode": "soft_warn_audit"
+  },
+  "uiRules": {
+    "criticalPopupRequiresManualConfirmation": true,
+    "normalPopupAutoCloseSeconds": 3,
+    "allowViewLogAndContinue": true
+  },
+  "immutableTimeline": [
+    "settle_previous_objective_on_camp_entry",
+    "start_new_round_at_camp",
+    "camp_operations_then_leave_camp",
+    "resolve_boss_flow_before_objective_publish",
+    "publish_current_round_objective_for_board_phase",
+    "skip_objective_publish_if_run_ends_in_boss"
+  ]
+}
