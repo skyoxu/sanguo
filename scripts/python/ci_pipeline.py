@@ -168,6 +168,7 @@ def main():
         'manual_triplet_examples': {},
         'whitelist_expiry_warning': {},
         'gate_bundle': {},
+        'line_endings': {},
         'preflight_env_evidence': {},
         'preflight_task1': {},
         'dotnet': {},
@@ -225,6 +226,32 @@ def main():
         'soft_failures_count': gate_bundle_sum.get('soft_failures_count', 0),
     }
     if rc_bundle != 0:
+        hard_fail = True
+
+    # 0.45) Line endings policy gate (hard gate)
+    line_endings_summary_path = os.path.join('logs', 'ci', date, 'line-endings-summary.json')
+    rc_eol, out_eol = run_cmd(
+        [
+            'py',
+            '-3',
+            'scripts/python/check_line_endings.py',
+            '--summary-out',
+            line_endings_summary_path,
+        ],
+        root,
+        180_000,
+    )
+    with io.open(os.path.join(ci_dir, 'line-endings-stdout.txt'), 'w', encoding='utf-8') as f:
+        f.write(out_eol)
+    line_endings_sum = read_json(line_endings_summary_path) or {}
+    summary['line_endings'] = {
+        'rc': rc_eol,
+        'status': line_endings_sum.get('status') or ('ok' if rc_eol == 0 else 'fail'),
+        'out': line_endings_summary_path,
+        'checked': line_endings_sum.get('checked'),
+        'violations_count': line_endings_sum.get('violations_count'),
+    }
+    if rc_eol != 0:
         hard_fail = True
 
     # 0.5) Deterministic Task1 environment evidence preflight (hard gate)

@@ -99,6 +99,12 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Line endings policy gate
+        shell: pwsh
+        run: |
+          $date = Get-Date -Format 'yyyy-MM-dd'
+          py -3 scripts/python/check_line_endings.py --summary-out "logs/ci/$date/line-endings-summary.json"
+
       - name: Governance gate bundle
         shell: pwsh
         run: |
