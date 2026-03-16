@@ -359,3 +359,23 @@ ui.hud.event.core.sanguo.ai.decision.made.detail.reason_code.self_is_eliminated,
 ui.hud.event.shared.detail.decision_type.roll_dice,Roll dice
 ui.hud.event.shared.detail.decision_type.skip,Skip
 ui.hud.event.shared.detail.reason_code.not_owned,Card not owned
+ui.hud.event.core.sanguo.boss.challenge.prompted.title,Boss challenge prompt
+ui.hud.event.core.sanguo.boss.challenge.prompted.summary,Boss challenge prompt
+ui.hud.event.core.sanguo.boss.challenge.prompted.detail.boss_id,Boss
+ui.hud.event.core.sanguo.boss.challenge.prompted.detail.trigger_round,Round
+ui.hud.event.core.sanguo.boss.challenge.prompted.detail.win_rate_tier,Win rate
+ui.hud.event.core.sanguo.boss.challenge.prompted.detail.next_round_pressure_forecast,Next round pressure forecast
+ui.hud.event.core.sanguo.boss.challenge.prompted.detail.key_loss_summary,Key loss summary
+ui.hud.event.core.sanguo.boss.challenge.prompted.detail.fail_consequence,Fail consequence
+ui.hud.event.core.sanguo.objective.skipped.title,Objective skipped
+ui.hud.event.core.sanguo.objective.skipped.summary,Objective skipped
+ui.hud.event.core.sanguo.objective.skipped.detail.objective_id,Objective
+ui.hud.event.core.sanguo.objective.skipped.detail.trigger_round,Round
+ui.hud.event.core.sanguo.objective.skipped.detail.reason,Reason
+ui.hud.event.core.sanguo.objective.skipped.detail.boss_id,Boss
+ui.hud.event.shared.detail.win_rate_tier.low,Low
+ui.hud.event.shared.detail.win_rate_tier.mid,Mid
+ui.hud.event.shared.detail.win_rate_tier.high,High
+ui.hud.event.shared.detail.fail_consequence.return_to_camp_end_round,Return to camp and end round
+ui.hud.event.shared.detail.key_loss_summary.camp_hp_risk,Camp HP risk
+ui.hud.event.shared.detail.objective_skip_reason.run_ended_in_boss,Run ended in boss battle

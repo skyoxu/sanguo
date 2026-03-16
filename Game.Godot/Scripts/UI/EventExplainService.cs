@@ -228,6 +228,44 @@ public static class EventExplainService
             return string.Join(' ', parts) + suffix + multiplierSuffix;
         }
 
+        if (string.Equals(type, SanguoBossChallengePrompted.EventType, StringComparison.Ordinal))
+        {
+            var bossId = TryGetStringLoose(root, "BossId");
+            var roundNumber = TryGetIntLoose(root, "RoundNumber");
+            var winRateTier = TryGetStringLoose(root, "WinRateTier");
+            var pressureForecast = TryGetIntLoose(root, "NextRoundPressureForecast");
+            var keyLossSummary = TryGetStringLoose(root, "KeyLossSummary");
+            var failConsequence = TryGetStringLoose(root, "FailConsequence");
+            var winRateTierLabel = TranslateTokenValue(type, "win_rate_tier", winRateTier);
+            var keyLossLabel = TranslateTokenValue(type, "key_loss_summary", keyLossSummary);
+            var failConsequenceLabel = TranslateTokenValue(type, "fail_consequence", failConsequence);
+
+            var parts = new List<string>(10) { prefix };
+            AddSummaryPart(parts, type, "boss_id", "boss_id", bossId);
+            AddSummaryPart(parts, type, "trigger_round", "round", roundNumber);
+            AddSummaryPart(parts, type, "win_rate_tier", "win_rate_tier", winRateTierLabel);
+            AddSummaryPart(parts, type, "next_round_pressure_forecast", "next_round_pressure_forecast", pressureForecast);
+            AddSummaryPart(parts, type, "key_loss_summary", "key_loss_summary", keyLossLabel);
+            AddSummaryPart(parts, type, "fail_consequence", "fail_consequence", failConsequenceLabel);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
+        if (string.Equals(type, SanguoObjectiveSkipped.EventType, StringComparison.Ordinal))
+        {
+            var objectiveId = TryGetStringLoose(root, "ObjectiveId");
+            var roundNumber = TryGetIntLoose(root, "RoundNumber");
+            var reason = TryGetStringLoose(root, "Reason");
+            var bossId = TryGetStringLoose(root, "BossId");
+            var reasonLabel = TranslateTokenValue(type, "objective_skip_reason", reason);
+
+            var parts = new List<string>(8) { prefix };
+            AddSummaryPart(parts, type, "objective_id", "objective_id", objectiveId);
+            AddSummaryPart(parts, type, "trigger_round", "round", roundNumber);
+            AddSummaryPart(parts, type, "reason", "reason", reasonLabel);
+            AddSummaryPart(parts, type, "boss_id", "boss_id", bossId);
+            return string.Join(' ', parts) + multiplierSuffix;
+        }
+
         if (string.Equals(type, SanguoLootGranted.EventType, StringComparison.Ordinal))
         {
             var playerId = TryGetStringLoose(root, "PlayerId");
@@ -1135,6 +1173,24 @@ public static class EventExplainService
                 var label = TranslateField(type, "detail", "reason", "reason");
                 facts.Add($"{label}: {TranslateReasonToken(type, reason)}");
             }
+        }
+        else if (string.Equals(type, SanguoBossChallengePrompted.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "BossId", "boss_id");
+            AddFact(facts, type, root, "RoundNumber", "trigger_round");
+            AddFact(facts, type, root, "WinRateTier", "win_rate_tier", tokenCategory: "win_rate_tier");
+            AddFact(facts, type, root, "NextRoundPressureForecast", "next_round_pressure_forecast");
+            AddFact(facts, type, root, "KeyLossSummary", "key_loss_summary", tokenCategory: "key_loss_summary");
+            AddFact(facts, type, root, "FailConsequence", "fail_consequence", tokenCategory: "fail_consequence");
+        }
+        else if (string.Equals(type, SanguoObjectiveSkipped.EventType, StringComparison.Ordinal))
+        {
+            AddFact(facts, type, root, "GameId", "game_id");
+            AddFact(facts, type, root, "ObjectiveId", "objective_id");
+            AddFact(facts, type, root, "RoundNumber", "trigger_round");
+            AddFact(facts, type, root, "Reason", "reason", tokenCategory: "objective_skip_reason");
+            AddFact(facts, type, root, "BossId", "boss_id");
         }
         else
         {

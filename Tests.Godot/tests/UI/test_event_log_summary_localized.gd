@@ -15,6 +15,8 @@ const TOKEN_MOVED_TYPE := "core.sanguo.board.token.moved"
 const GAME_ENDED_TYPE := "core.sanguo.game.ended"
 const SCORE_UPDATED_TYPE := "core.score.updated"
 const AI_DECISION_TYPE := "core.sanguo.ai.decision.made"
+const BOSS_CHALLENGE_PROMPTED_TYPE := "core.sanguo.boss.challenge.prompted"
+const OBJECTIVE_SKIPPED_TYPE := "core.sanguo.objective.skipped"
 const LOCALE_ZH := "zh"
 
 func before_test() -> void:
@@ -145,6 +147,21 @@ func _publish_game_ended(data_json: String) -> void:
 
 func _publish_ai_decision_made(data_json: String) -> void:
 	_bus.PublishSimple(AI_DECISION_TYPE, "ut", data_json)
+
+func _publish_boss_challenge_prompted(data_json: String) -> void:
+	_bus.PublishSimple(BOSS_CHALLENGE_PROMPTED_TYPE, "ut", data_json)
+
+func _publish_objective_skipped(data_json: String) -> void:
+	_bus.PublishSimple(OBJECTIVE_SKIPPED_TYPE, "ut", data_json)
+
+func _await_event_log_items(hud: Node, min_count: int = 1, max_frames: int = 10) -> Array:
+	var items := _event_log_messages(hud)
+	for _i in range(max_frames):
+		if items.size() >= min_count:
+			return items
+		await get_tree().process_frame
+		items = _event_log_messages(hud)
+	return items
 
 func test_event_log_summary_is_localized_and_avoids_raw_tokens() -> void:
 	var original_locale := ""
@@ -627,6 +644,71 @@ func test_fallback_value_summary_is_localized_and_avoids_raw_tokens() -> void:
 	assert_str(summary).not_contains(SCORE_UPDATED_TYPE)
 	assert_str(summary).not_contains("player=")
 	assert_str(summary).not_contains("value=")
+
+	if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
+		TranslationServer.set_locale(original_locale)
+
+func test_boss_challenge_prompted_summary_is_localized_and_avoids_raw_tokens() -> void:
+	var original_locale := ""
+	if TranslationServer.has_method("get_locale"):
+		original_locale = String(TranslationServer.get_locale())
+	if TranslationServer.has_method("set_locale"):
+		TranslationServer.set_locale(LOCALE_ZH)
+
+	var hud = await _hud()
+	_publish_boss_challenge_prompted("{\"GameId\":\"g1\",\"BossId\":\"boss_1\",\"RoundNumber\":6,\"WinRateTier\":\"mid\",\"NextRoundPressureForecast\":4,\"KeyLossSummary\":\"camp_hp_risk\",\"FailConsequence\":\"return_to_camp_end_round\"}")
+	var items := await _await_event_log_items(hud)
+	assert_int(items.size()).is_greater_equal(1)
+	var summary := str(items[items.size() - 1])
+	var summary_label := _translate_summary(BOSS_CHALLENGE_PROMPTED_TYPE)
+	assert_str(summary).contains(summary_label)
+
+	var win_rate_label := _translate_field(BOSS_CHALLENGE_PROMPTED_TYPE, "detail", "win_rate_tier", "win_rate_tier")
+	var win_rate_value := _translate_token("win_rate_tier", "mid")
+	var fail_label := _translate_field(BOSS_CHALLENGE_PROMPTED_TYPE, "detail", "fail_consequence", "fail_consequence")
+	var fail_value := _translate_token("fail_consequence", "return_to_camp_end_round")
+	var loss_label := _translate_field(BOSS_CHALLENGE_PROMPTED_TYPE, "detail", "key_loss_summary", "key_loss_summary")
+	var loss_value := _translate_token("key_loss_summary", "camp_hp_risk")
+	var round_label := _translate_field(BOSS_CHALLENGE_PROMPTED_TYPE, "detail", "trigger_round", "trigger_round")
+
+	assert_str(summary).contains(win_rate_label + "=" + win_rate_value)
+	assert_str(summary).contains(fail_label + "=" + fail_value)
+	assert_str(summary).contains(loss_label + "=" + loss_value)
+	assert_str(summary).contains(round_label + "=6")
+
+	assert_str(summary).not_contains(BOSS_CHALLENGE_PROMPTED_TYPE)
+	assert_str(summary).not_contains("win_rate_tier")
+	assert_str(summary).not_contains("mid")
+	assert_str(summary).not_contains("return_to_camp_end_round")
+	assert_str(summary).not_contains("camp_hp_risk")
+
+	if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
+		TranslationServer.set_locale(original_locale)
+
+func test_objective_skipped_summary_is_localized_and_avoids_raw_tokens() -> void:
+	var original_locale := ""
+	if TranslationServer.has_method("get_locale"):
+		original_locale = String(TranslationServer.get_locale())
+	if TranslationServer.has_method("set_locale"):
+		TranslationServer.set_locale(LOCALE_ZH)
+
+	var hud = await _hud()
+	_publish_objective_skipped("{\"GameId\":\"g1\",\"ObjectiveId\":\"obj_01\",\"RoundNumber\":6,\"Reason\":\"run_ended_in_boss\",\"BossId\":\"boss_1\"}")
+	var items := await _await_event_log_items(hud)
+	assert_int(items.size()).is_greater_equal(1)
+	var summary := str(items[items.size() - 1])
+	var summary_label := _translate_summary(OBJECTIVE_SKIPPED_TYPE)
+	assert_str(summary).contains(summary_label)
+
+	var reason_label := _translate_field(OBJECTIVE_SKIPPED_TYPE, "detail", "reason", "reason")
+	var reason_value := _translate_token("objective_skip_reason", "run_ended_in_boss")
+	var round_label := _translate_field(OBJECTIVE_SKIPPED_TYPE, "detail", "trigger_round", "trigger_round")
+	assert_str(summary).contains(reason_label + "=" + reason_value)
+	assert_str(summary).contains(round_label + "=6")
+
+	assert_str(summary).not_contains(OBJECTIVE_SKIPPED_TYPE)
+	assert_str(summary).not_contains("run_ended_in_boss")
+	assert_str(summary).not_contains("reason=")
 
 	if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
 		TranslationServer.set_locale(original_locale)
