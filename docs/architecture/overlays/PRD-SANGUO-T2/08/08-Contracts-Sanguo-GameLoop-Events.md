@@ -17,6 +17,8 @@ Contracts-Refs:
   - Game.Core/Contracts/Sanguo/GameEvents.cs
   - Game.Core/Contracts/Sanguo/EconomyEvents.cs
   - Game.Core/Contracts/Sanguo/PlayerAndAiEvents.cs
+  - Game.Core/Contracts/Sanguo/SanguoBossChallengePrompted.cs
+  - Game.Core/Contracts/Sanguo/SanguoObjectiveSkipped.cs
 Status: Accepted
 ---
 
@@ -28,6 +30,22 @@ Status: Accepted
 - 回合推进/存档/结束：`Game.Core/Contracts/Sanguo/GameEvents.cs`
 - 经济结算/调价/买地/付费：`Game.Core/Contracts/Sanguo/EconomyEvents.cs`
 - 玩家状态/AI 决策：`Game.Core/Contracts/Sanguo/PlayerAndAiEvents.cs`
+- Boss 挑战确认提示：`Game.Core/Contracts/Sanguo/SanguoBossChallengePrompted.cs`
+- 随机任务跳过事件：`Game.Core/Contracts/Sanguo/SanguoObjectiveSkipped.cs`
+
+## 契约定义
+
+### 事件
+
+- **SanguoBossChallengePrompted** (`core.sanguo.boss.challenge.prompted`)
+  - 触发时机：Boss 挑战确认弹窗展示时。
+  - 字段：`GameId`, `BossId`, `RoundNumber`, `WinRateTier`, `NextRoundPressureForecast`, `KeyLossSummary`, `FailConsequence`, `OccurredAt`, `CorrelationId`, `CausationId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoBossChallengePrompted.cs`
+
+- **SanguoObjectiveSkipped** (`core.sanguo.objective.skipped`)
+  - 触发时机：Boss 战直接结束对局导致本轮任务不再发布时。
+  - 字段：`GameId`, `ObjectiveId`, `RoundNumber`, `Reason`, `BossId`, `OccurredAt`, `CorrelationId`, `CausationId`
+  - 契约位置：`Game.Core/Contracts/Sanguo/SanguoObjectiveSkipped.cs`
 
 ## 与纵切文档的关系（引用）
 
