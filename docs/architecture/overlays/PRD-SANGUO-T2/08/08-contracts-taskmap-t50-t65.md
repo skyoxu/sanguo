@@ -44,8 +44,12 @@ Arch-Refs:
 - `SanguoActionCardsCatalog`（行动卡目录）：`Game.Core/Contracts/Sanguo/SanguoActionCardsCatalog.cs`
 - `SanguoCharactersCatalog`（角色目录）：`Game.Core/Contracts/Sanguo/SanguoCharactersCatalog.cs`
 - `SanguoBuildingsCatalog`（建筑目录）：`Game.Core/Contracts/Sanguo/SanguoBuildingsCatalog.cs`
+- `SanguoFacilitiesCatalog`（设施目录）：`Game.Core/Contracts/Sanguo/SanguoFacilitiesCatalog.cs`
+- `SanguoRegionsCatalog`（州郡目录）：`Game.Core/Contracts/Sanguo/SanguoRegionsCatalog.cs`
+- `SanguoRelicsCatalog`（宝物目录）：`Game.Core/Contracts/Sanguo/SanguoRelicsCatalog.cs`
 - `SanguoEconomyStepDeltas`（steps 分项）：`Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs`
 - `SanguoBuildingDefinition`：`Game.Core/Contracts/Sanguo/SanguoBuildingDefinition.cs`
+- `GameStartConfigValidator`（开局配置校验）：`Game.Core/Contracts/Sanguo/GameStartConfigValidator.cs`
 
 ## 接口契约（Interfaces）
 
