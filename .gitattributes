@@ -1,5 +1,9 @@
+# Default: normalize all text files and keep LF in working tree.
+* text=auto eol=lf
+
+# Repository meta files
 .gitattributes text eol=lf
-* text=auto
+.editorconfig  text eol=lf
 
 # Source and project files (stable LF in repo)
 *.cs        text diff=csharp eol=lf
