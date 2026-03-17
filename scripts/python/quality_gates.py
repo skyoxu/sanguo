@@ -213,6 +213,22 @@ def run_architecture_hotspots(*, ci_dir: str) -> tuple[int, str]:
     return proc.returncode, summary_path
 
 
+def run_prd_v3_core_assertions(*, date: str, ci_dir: str) -> tuple[int, str]:
+    summary_path = os.path.join(ci_dir, "prd-v3-core-assertions-summary.json")
+    trx_path = os.path.join("logs", "ci", date, "tests.trx")
+    args = [
+        "py",
+        "-3",
+        "scripts/python/validate_prd_v3_core_assertions.py",
+        "--trx",
+        trx_path,
+        "--summary-out",
+        summary_path,
+    ]
+    proc = subprocess.run(args, text=True)
+    return proc.returncode, summary_path
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -304,6 +320,22 @@ def main() -> int:
         if ah_rc != 0:
             hard_failed = True
 
+        prd_v3_core_assertions = {"enabled": True}
+        if test_mode:
+            prd_rc = _as_int(os.environ.get("QUALITY_GATES_TEST_PRD_V3_ASSERTIONS_RC"), default=0)
+            prd_summary_path = str(
+                os.environ.get("QUALITY_GATES_TEST_PRD_V3_ASSERTIONS_SUMMARY") or ""
+            ).strip() or os.path.join(ci_dir, "prd-v3-core-assertions-summary.json")
+        else:
+            prd_rc, prd_summary_path = run_prd_v3_core_assertions(date=date, ci_dir=ci_dir)
+        prd_v3_core_assertions["rc"] = prd_rc
+        prd_v3_core_assertions["summary_path"] = prd_summary_path
+        prd_v3_core_assertions["summary"] = (
+            _read_json(prd_summary_path) if os.path.isfile(prd_summary_path) else {}
+        )
+        if prd_rc != 0:
+            hard_failed = True
+
         # 3) Optional hard gate: GdUnit subset.
         gdunit = {"enabled": bool(args.gdunit_hard)}
         gdunit_rc = None
@@ -378,6 +410,7 @@ def main() -> int:
             "ci_pipeline_summary_path": ci_pipeline_summary_path,
             "perf_audit": perf_audit,
             "architecture_hotspots": architecture_hotspots,
+            "prd_v3_core_assertions": prd_v3_core_assertions,
             "gdunit_hard": gdunit,
             "gdunit_ui": gdunit_ui,
             "smoke": smoke,
