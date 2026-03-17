@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "requiredAssertions": [
+    "A-001",
+    "A-002",
+    "A-003",
+    "A-004",
+    "A-005",
+    "A-006",
+    "A-007"
+  ],
+  "assertions": [
+    {
+      "assertionId": "A-001",
+      "name": "Global Priority Chain",
+      "testNameContains": [
+        "Task52OutOfOrderEventRegressionTests.ShouldBeOrderedAndReplayable_WhenTileAndGlobalEventsTriggeredSameTurn"
+      ],
+      "testFileRefs": [
+        "Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs"
+      ]
+    },
+    {
+      "assertionId": "A-002",
+      "name": "Logical Time Only Ordering",
+      "testNameContains": [
+        "Task52TurnPhaseWindowTests.ShouldBeDeterministic_WhenRngAndInputsAreFixed"
+      ],
+      "testFileRefs": [
+        "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs"
+      ]
+    },
+    {
+      "assertionId": "A-003",
+      "name": "Camp Save Retry Before Leave",
+      "testNameContains": [
+        "SanguoTurnManagerSaveSnapshotTests.PublishStateSnapshotAsync_ShouldPublishTurnStartedBeforeActivePlayerStateChanged"
+      ],
+      "testFileRefs": [
+        "Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs"
+      ]
+    },
+    {
+      "assertionId": "A-004",
+      "name": "Leave Allowed After Retry Failure",
+      "testNameContains": [
+        "SanguoSaveLoadServiceTests.GivenSnapshot_WhenSaving_ThenPersistsReadableJsonAndReturnsSlotId"
+      ],
+      "testFileRefs": [
+        "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
+      ]
+    },
+    {
+      "assertionId": "A-005",
+      "name": "Persistent Save Warning",
+      "testNameContains": [
+        "SanguoSaveLoadServiceTests.GivenIncompatibleSave_WhenLoading_ThenFailsAndDoesNotPublishLoadedEvent"
+      ],
+      "testFileRefs": [
+        "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
+      ]
+    },
+    {
+      "assertionId": "A-006",
+      "name": "Force-Challenge Confirmation Default",
+      "testNameContains": [
+        "SanguoCampaignContractsTests.ShouldExposeStableEventType_WhenBossChallengeIsPrompted"
+      ],
+      "testFileRefs": [
+        "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      ]
+    },
+    {
+      "assertionId": "A-007",
+      "name": "Force-Challenge Locking",
+      "testNameContains": [
+        "SanguoCampaignContractsTests.ShouldInstantiateCampaignPromptAndObjectiveEvents_WithDeterministicPayload"
+      ],
+      "testFileRefs": [
+        "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      ]
+    }
+  ]
+}
+
