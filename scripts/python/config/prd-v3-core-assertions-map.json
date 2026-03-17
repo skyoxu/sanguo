@@ -34,17 +34,17 @@
       "assertionId": "A-003",
       "name": "Camp Save Retry Before Leave",
       "testNameContains": [
-        "SanguoTurnManagerSaveSnapshotTests.PublishStateSnapshotAsync_ShouldPublishTurnStartedBeforeActivePlayerStateChanged"
+        "SanguoSaveLoadServiceTests.A003_ShouldAllowRetrySaveAfterFailure_WhenCallerRetriesBeforeLeavingCamp"
       ],
       "testFileRefs": [
-        "Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs"
+        "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
       ]
     },
     {
       "assertionId": "A-004",
       "name": "Leave Allowed After Retry Failure",
       "testNameContains": [
-        "SanguoSaveLoadServiceTests.GivenSnapshot_WhenSaving_ThenPersistsReadableJsonAndReturnsSlotId"
+        "SanguoSaveLoadServiceTests.A004_ShouldRemainCallable_WhenRetryStillFailsAndLaterAttemptSucceeds"
       ],
       "testFileRefs": [
         "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
@@ -54,7 +54,7 @@
       "assertionId": "A-005",
       "name": "Persistent Save Warning",
       "testNameContains": [
-        "SanguoSaveLoadServiceTests.GivenIncompatibleSave_WhenLoading_ThenFailsAndDoesNotPublishLoadedEvent"
+        "SanguoSaveLoadServiceTests.A005_ShouldKeepSaveWarningActive_UntilNextSuccessfulSave"
       ],
       "testFileRefs": [
         "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
@@ -64,7 +64,7 @@
       "assertionId": "A-006",
       "name": "Force-Challenge Confirmation Default",
       "testNameContains": [
-        "SanguoCampaignContractsTests.ShouldExposeStableEventType_WhenBossChallengeIsPrompted"
+        "SanguoCampaignContractsTests.A006_ShouldExposeBossPromptConstants_ForDefaultConfirmationCopy"
       ],
       "testFileRefs": [
         "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
@@ -74,7 +74,7 @@
       "assertionId": "A-007",
       "name": "Force-Challenge Locking",
       "testNameContains": [
-        "SanguoCampaignContractsTests.ShouldInstantiateCampaignPromptAndObjectiveEvents_WithDeterministicPayload"
+        "SanguoCampaignContractsTests.A007_ShouldUseReturnToCampConsequence_ForBossPromptFailPath"
       ],
       "testFileRefs": [
         "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
@@ -82,4 +82,3 @@
     }
   ]
 }
-

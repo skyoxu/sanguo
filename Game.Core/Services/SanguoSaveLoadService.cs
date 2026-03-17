@@ -21,6 +21,10 @@ public sealed class SanguoSaveLoadService
     private readonly IEventBus _bus;
     private readonly IDataStore _store;
 
+    public bool IsSaveWarningActive { get; private set; }
+
+    public int ConsecutiveSaveFailures { get; private set; }
+
     public SanguoSaveLoadService(IEventBus bus, IDataStore store)
     {
         _bus = bus ?? throw new ArgumentNullException(nameof(bus));
@@ -63,7 +67,18 @@ public sealed class SanguoSaveLoadService
         if (json.Length > MaxSerializedChars)
             throw new InvalidOperationException($"Save payload too large ({json.Length} chars).");
 
-        await _store.SaveAsync(BuildKey(saveSlotId), json);
+        try
+        {
+            await _store.SaveAsync(BuildKey(saveSlotId), json);
+            IsSaveWarningActive = false;
+            ConsecutiveSaveFailures = 0;
+        }
+        catch
+        {
+            IsSaveWarningActive = true;
+            ConsecutiveSaveFailures++;
+            throw;
+        }
 
         var evt = new SanguoGameSaved(
             GameId: snapshot.GameId,
