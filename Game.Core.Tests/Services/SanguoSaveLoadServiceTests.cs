@@ -42,6 +42,45 @@ internal sealed class RecordingDataStore : IDataStore
     }
 }
 
+internal sealed class FlakySaveDataStore : IDataStore
+{
+    private readonly Dictionary<string, string> _dict = new(StringComparer.Ordinal);
+
+    public int RemainingSaveFailures { get; set; }
+
+    public int SaveAttempts { get; private set; }
+
+    public FlakySaveDataStore(int remainingSaveFailures)
+    {
+        RemainingSaveFailures = remainingSaveFailures;
+    }
+
+    public Task SaveAsync(string key, string json)
+    {
+        SaveAttempts++;
+        if (RemainingSaveFailures > 0)
+        {
+            RemainingSaveFailures--;
+            throw new InvalidOperationException("simulated_save_failure");
+        }
+
+        _dict[key] = json;
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> LoadAsync(string key)
+    {
+        _dict.TryGetValue(key, out var v);
+        return Task.FromResult<string?>(v);
+    }
+
+    public Task DeleteAsync(string key)
+    {
+        _dict.Remove(key);
+        return Task.CompletedTask;
+    }
+}
+
 public sealed class SanguoSaveLoadServiceTests
 {
     [Fact]
@@ -586,5 +625,114 @@ public sealed class SanguoSaveLoadServiceTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Save file is corrupted");
         bus.Published.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A003_ShouldAllowRetrySaveAfterFailure_WhenCallerRetriesBeforeLeavingCamp()
+    {
+        var store = new FlakySaveDataStore(remainingSaveFailures: 1);
+        var bus = new RecordingEventBus();
+        var svc = new SanguoSaveLoadService(bus, store);
+        var snapshot = MakeSnapshot(gameId: "g-a003", turnNumber: 2, activePlayerIndex: 0);
+
+        Func<Task> firstAttempt = async () => await svc.SaveGameAsync(
+            snapshot: snapshot,
+            saveSlotId: "slot-a003",
+            correlationId: "corr-a003-1",
+            causationId: "camp.leave");
+
+        await firstAttempt.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("simulated_save_failure");
+
+        svc.IsSaveWarningActive.Should().BeTrue();
+        svc.ConsecutiveSaveFailures.Should().Be(1);
+
+        var slotId = await svc.SaveGameAsync(
+            snapshot: snapshot,
+            saveSlotId: "slot-a003",
+            correlationId: "corr-a003-2",
+            causationId: "camp.leave.retry");
+
+        slotId.Should().Be("slot-a003");
+        svc.IsSaveWarningActive.Should().BeFalse();
+        svc.ConsecutiveSaveFailures.Should().Be(0);
+        store.SaveAttempts.Should().Be(2);
+        bus.Published.Should().ContainSingle(e => e.Type == SanguoGameSaved.EventType);
+    }
+
+    [Fact]
+    public async Task A004_ShouldRemainCallable_WhenRetryStillFailsAndLaterAttemptSucceeds()
+    {
+        var store = new FlakySaveDataStore(remainingSaveFailures: 2);
+        var bus = new RecordingEventBus();
+        var svc = new SanguoSaveLoadService(bus, store);
+        var snapshot = MakeSnapshot(gameId: "g-a004", turnNumber: 2, activePlayerIndex: 0);
+
+        Func<Task> firstAttempt = async () => await svc.SaveGameAsync(
+            snapshot: snapshot,
+            saveSlotId: "slot-a004",
+            correlationId: "corr-a004-1",
+            causationId: "camp.leave");
+        Func<Task> secondAttempt = async () => await svc.SaveGameAsync(
+            snapshot: snapshot,
+            saveSlotId: "slot-a004",
+            correlationId: "corr-a004-2",
+            causationId: "camp.leave.retry");
+
+        await firstAttempt.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("simulated_save_failure");
+        await secondAttempt.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("simulated_save_failure");
+
+        svc.IsSaveWarningActive.Should().BeTrue();
+        svc.ConsecutiveSaveFailures.Should().Be(2);
+        store.SaveAttempts.Should().Be(2);
+
+        var slotId = await svc.SaveGameAsync(
+            snapshot: snapshot,
+            saveSlotId: "slot-a004",
+            correlationId: "corr-a004-3",
+            causationId: "camp.leave.final");
+
+        slotId.Should().Be("slot-a004");
+        svc.IsSaveWarningActive.Should().BeFalse();
+        svc.ConsecutiveSaveFailures.Should().Be(0);
+        store.SaveAttempts.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task A005_ShouldKeepSaveWarningActive_UntilNextSuccessfulSave()
+    {
+        var store = new FlakySaveDataStore(remainingSaveFailures: 2);
+        var bus = new RecordingEventBus();
+        var svc = new SanguoSaveLoadService(bus, store);
+        var snapshot = MakeSnapshot(gameId: "g-a005", turnNumber: 5, activePlayerIndex: 1);
+
+        for (var attempt = 1; attempt <= 2; attempt++)
+        {
+            Func<Task> act = async () => await svc.SaveGameAsync(
+                snapshot: snapshot,
+                saveSlotId: "slot-a005",
+                correlationId: $"corr-a005-{attempt}",
+                causationId: "camp.autosave");
+
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("simulated_save_failure");
+
+            svc.IsSaveWarningActive.Should().BeTrue();
+            svc.ConsecutiveSaveFailures.Should().Be(attempt);
+        }
+
+        bus.Published.Should().BeEmpty();
+
+        _ = await svc.SaveGameAsync(
+            snapshot: snapshot,
+            saveSlotId: "slot-a005",
+            correlationId: "corr-a005-3",
+            causationId: "camp.autosave.retry");
+
+        svc.IsSaveWarningActive.Should().BeFalse();
+        svc.ConsecutiveSaveFailures.Should().Be(0);
+        bus.Published.Should().ContainSingle(e => e.Type == SanguoGameSaved.EventType);
     }
 }

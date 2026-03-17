@@ -62,4 +62,19 @@ public sealed class SanguoCampaignContractsTests
         skipped.Reason.Should().Be(SanguoObjectiveSkipped.ReasonRunEndedInBoss);
         skipped.BossId.Should().Be("boss-1");
     }
+
+    [Fact]
+    public void A006_ShouldExposeBossPromptConstants_ForDefaultConfirmationCopy()
+    {
+        SanguoBossChallengePrompted.WinRateTierLow.Should().Be("low");
+        SanguoBossChallengePrompted.WinRateTierMid.Should().Be("mid");
+        SanguoBossChallengePrompted.WinRateTierHigh.Should().Be("high");
+    }
+
+    [Fact]
+    public void A007_ShouldUseReturnToCampConsequence_ForBossPromptFailPath()
+    {
+        SanguoBossChallengePrompted.FailConsequenceReturnToCampAndEndRound
+            .Should().Be("return_to_camp_end_round");
+    }
 }
