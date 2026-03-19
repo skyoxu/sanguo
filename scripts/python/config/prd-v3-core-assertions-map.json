@@ -63,6 +63,11 @@
     {
       "assertionId": "A-006",
       "name": "Force-Challenge Confirmation Default",
+      "coverage": {
+        "contract": "covered",
+        "integration": "pending",
+        "status": "integration_pending"
+      },
       "testNameContains": [
         "SanguoCampaignContractsTests.A006_ShouldExposeBossPromptConstants_ForDefaultConfirmationCopy"
       ],
@@ -73,6 +78,11 @@
     {
       "assertionId": "A-007",
       "name": "Force-Challenge Locking",
+      "coverage": {
+        "contract": "covered",
+        "integration": "pending",
+        "status": "integration_pending"
+      },
       "testNameContains": [
         "SanguoCampaignContractsTests.A007_ShouldUseReturnToCampConsequence_ForBossPromptFailPath"
       ],
