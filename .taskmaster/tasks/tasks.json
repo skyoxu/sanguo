@@ -292,35 +292,6 @@
         "expansionPrompt": "Break down this task with a focus on 设计ui界面."
       },
       {
-        "id": "22",
-        "title": "实现UI骰子结果显示",
-        "description": "在UI上显示骰子投掷结果。",
-        "details": "在玩家掷骰后，显示骰子结果。",
-        "testStrategy": "通过多次掷骰测试，验证结果显示的正确性。",
-        "priority": "low",
-        "dependencies": [
-          "9",
-          "5"
-        ],
-        "status": "done",
-        "subtasks": [],
-        "adrRefs": [
-          "ADR-0005",
-          "ADR-0018",
-          "ADR-0022"
-        ],
-        "archRefs": [
-          "CH01",
-          "CH04",
-          "CH06",
-          "CH07"
-        ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-        "complexity": 5,
-        "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down this task with a focus on 实现ui骰子结果显示."
-      },
-      {
         "id": "10",
         "title": "实现玩家棋子移动",
         "description": "根据骰子结果移动玩家棋子。",
@@ -353,105 +324,6 @@
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现玩家棋子移动."
-      },
-      {
-        "id": "12",
-        "title": "实现土地购买逻辑",
-        "description": "处理玩家购买城池的逻辑。",
-        "details": "在玩家停留在无人城池时，提供购买选项，扣除资金并更新城池所有权。\n\nT2 购买选择口径：当行动者落在无人城池时，真人玩家必须具备“购买/放弃”选择；Core 层不应自动购买，仅在上层明确调用购买 API 时才改变资金与所有权。AI 可按策略自动决定并调用购买。",
-        "testStrategy": "通过多次购买测试，验证购买逻辑的正确性和资金更新。",
-        "priority": "high",
-        "dependencies": [
-          "4",
-          "10"
-        ],
-        "status": "done",
-        "subtasks": [],
-        "adrRefs": [
-          "ADR-0005",
-          "ADR-0015",
-          "ADR-0018",
-          "ADR-0020",
-          "ADR-0021",
-          "ADR-0024",
-          "ADR-0025",
-          "ADR-0027",
-          "ADR-0028",
-          "ADR-0030"
-        ],
-        "archRefs": [
-          "CH01",
-          "CH05",
-          "CH06",
-          "CH07",
-          "CH09"
-        ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-        "complexity": 5,
-        "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down this task with a focus on 实现土地购买逻辑."
-      },
-      {
-        "id": "23",
-        "title": "实现UI城池状态显示",
-        "description": "在UI上显示城池的占有状态。",
-        "details": "根据城池的占有情况，更新UI显示。",
-        "testStrategy": "通过多次购买和占领测试，验证状态显示的正确性。",
-        "priority": "low",
-        "dependencies": [
-          "9",
-          "12"
-        ],
-        "status": "done",
-        "subtasks": [],
-        "adrRefs": [
-          "ADR-0005",
-          "ADR-0018",
-          "ADR-0022"
-        ],
-        "archRefs": [
-          "CH01",
-          "CH04",
-          "CH06",
-          "CH07"
-        ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-        "complexity": 5,
-        "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down this task with a focus on 实现ui城池状态显示."
-      },
-      {
-        "id": "13",
-        "title": "实现过路费支付逻辑",
-        "description": "处理玩家支付过路费的逻辑。",
-        "details": "在玩家停留在他人城池时，计算应支付过路费并更新资金；若资金不足，则将剩余资金转给债权人，支付方资金归零并判定出局，同时释放其全部已占领城池为无人占领（回合轮转/游戏结束由 TurnManager 处理：玩家出局→GameOver；NPC 出局→退出本局）。",
-        "testStrategy": "通过多次支付测试，验证过路费计算和资金更新的正确性，并覆盖资金不足的破产/出局分支：剩余资金正确转移、资金不允许为负、城池释放为无人占领。",
-        "priority": "high",
-        "dependencies": [
-          "12"
-        ],
-        "status": "done",
-        "subtasks": [],
-        "adrRefs": [
-          "ADR-0005",
-          "ADR-0015",
-          "ADR-0018",
-          "ADR-0020",
-          "ADR-0021",
-          "ADR-0024",
-          "ADR-0025"
-        ],
-        "archRefs": [
-          "CH01",
-          "CH05",
-          "CH06",
-          "CH07",
-          "CH09"
-        ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-        "complexity": 5,
-        "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down this task with a focus on 实现过路费支付逻辑."
       },
       {
         "id": "11",
@@ -525,6 +397,76 @@
         "expansionPrompt": "将AI行为设计分为基本规则实现、状态机接口预留、测试用例编写三个子任务。"
       },
       {
+        "id": "12",
+        "title": "实现土地购买逻辑",
+        "description": "处理玩家购买城池的逻辑。",
+        "details": "在玩家停留在无人城池时，提供购买选项，扣除资金并更新城池所有权。\n\nT2 购买选择口径：当行动者落在无人城池时，真人玩家必须具备“购买/放弃”选择；Core 层不应自动购买，仅在上层明确调用购买 API 时才改变资金与所有权。AI 可按策略自动决定并调用购买。",
+        "testStrategy": "通过多次购买测试，验证购买逻辑的正确性和资金更新。",
+        "priority": "high",
+        "dependencies": [
+          "4",
+          "10"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0015",
+          "ADR-0018",
+          "ADR-0020",
+          "ADR-0021",
+          "ADR-0024",
+          "ADR-0025",
+          "ADR-0027",
+          "ADR-0028",
+          "ADR-0030"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH09"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down this task with a focus on 实现土地购买逻辑."
+      },
+      {
+        "id": "13",
+        "title": "实现过路费支付逻辑",
+        "description": "处理玩家支付过路费的逻辑。",
+        "details": "在玩家停留在他人城池时，计算应支付过路费并更新资金；若资金不足，则将剩余资金转给债权人，支付方资金归零并判定出局，同时释放其全部已占领城池为无人占领（回合轮转/游戏结束由 TurnManager 处理：玩家出局→GameOver；NPC 出局→退出本局）。",
+        "testStrategy": "通过多次支付测试，验证过路费计算和资金更新的正确性，并覆盖资金不足的破产/出局分支：剩余资金正确转移、资金不允许为负、城池释放为无人占领。",
+        "priority": "high",
+        "dependencies": [
+          "12"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0015",
+          "ADR-0018",
+          "ADR-0020",
+          "ADR-0021",
+          "ADR-0024",
+          "ADR-0025"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH09"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down this task with a focus on 实现过路费支付逻辑."
+      },
+      {
         "id": "14",
         "title": "实现月末收益结算",
         "description": "自动结算玩家的月末收益。",
@@ -559,35 +501,6 @@
         "expansionPrompt": "Break down this task with a focus on 实现月末收益结算."
       },
       {
-        "id": "20",
-        "title": "实现UI资金显示",
-        "description": "在UI上显示玩家的资金信息。",
-        "details": "实时更新并显示玩家的资金信息。",
-        "testStrategy": "通过资金变动测试，验证UI显示的正确性。",
-        "priority": "low",
-        "dependencies": [
-          "9",
-          "14"
-        ],
-        "status": "done",
-        "subtasks": [],
-        "adrRefs": [
-          "ADR-0005",
-          "ADR-0018",
-          "ADR-0022"
-        ],
-        "archRefs": [
-          "CH01",
-          "CH04",
-          "CH06",
-          "CH07"
-        ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-        "complexity": 5,
-        "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down this task with a focus on 实现ui资金显示."
-      },
-      {
         "id": "15",
         "title": "实现季度环境事件",
         "description": "触发并应用季度环境事件。",
@@ -620,36 +533,6 @@
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现季度环境事件."
-      },
-      {
-        "id": "19",
-        "title": "实现UI事件提示",
-        "description": "在UI上显示游戏事件提示。",
-        "details": "在事件发生时，通过UI弹出提示信息，通知玩家。",
-        "testStrategy": "通过事件触发测试，验证提示信息的正确显示。",
-        "priority": "low",
-        "dependencies": [
-          "9",
-          "15"
-        ],
-        "status": "done",
-        "subtasks": [],
-        "adrRefs": [
-          "ADR-0005",
-          "ADR-0018",
-          "ADR-0022",
-          "ADR-0028"
-        ],
-        "archRefs": [
-          "CH01",
-          "CH04",
-          "CH06",
-          "CH07"
-        ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-        "complexity": 5,
-        "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down this task with a focus on 实现ui事件提示."
       },
       {
         "id": "16",
@@ -771,6 +654,98 @@
         "expansionPrompt": "将回合循环分为玩家行动、AI行动、时间推进、测试验证四个子任务。"
       },
       {
+        "id": "18",
+        "title": "实现存档功能",
+        "description": "实现游戏进度的保存和加载。",
+        "details": "使用本地文件系统保存游戏状态，支持游戏进度的保存和加载。",
+        "testStrategy": "通过多次存档和加载，验证游戏状态的正确保存和恢复。",
+        "priority": "medium",
+        "dependencies": [
+          "17"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0015",
+          "ADR-0018",
+          "ADR-0020",
+          "ADR-0021",
+          "ADR-0024",
+          "ADR-0025"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH09"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down this task with a focus on 实现存档功能."
+      },
+      {
+        "id": "19",
+        "title": "实现UI事件提示",
+        "description": "在UI上显示游戏事件提示。",
+        "details": "在事件发生时，通过UI弹出提示信息，通知玩家。",
+        "testStrategy": "通过事件触发测试，验证提示信息的正确显示。",
+        "priority": "low",
+        "dependencies": [
+          "9",
+          "15"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0018",
+          "ADR-0022",
+          "ADR-0028"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH04",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down this task with a focus on 实现ui事件提示."
+      },
+      {
+        "id": "20",
+        "title": "实现UI资金显示",
+        "description": "在UI上显示玩家的资金信息。",
+        "details": "实时更新并显示玩家的资金信息。",
+        "testStrategy": "通过资金变动测试，验证UI显示的正确性。",
+        "priority": "low",
+        "dependencies": [
+          "9",
+          "14"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0018",
+          "ADR-0022"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH04",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down this task with a focus on 实现ui资金显示."
+      },
+      {
         "id": "21",
         "title": "实现UI日期显示",
         "description": "在UI上显示当前游戏日期。",
@@ -800,37 +775,62 @@
         "expansionPrompt": "Break down this task with a focus on 实现ui日期显示."
       },
       {
-        "id": "18",
-        "title": "实现存档功能",
-        "description": "实现游戏进度的保存和加载。",
-        "details": "使用本地文件系统保存游戏状态，支持游戏进度的保存和加载。",
-        "testStrategy": "通过多次存档和加载，验证游戏状态的正确保存和恢复。",
-        "priority": "medium",
+        "id": "22",
+        "title": "实现UI骰子结果显示",
+        "description": "在UI上显示骰子投掷结果。",
+        "details": "在玩家掷骰后，显示骰子结果。",
+        "testStrategy": "通过多次掷骰测试，验证结果显示的正确性。",
+        "priority": "low",
         "dependencies": [
-          "17"
+          "9",
+          "5"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
-          "ADR-0015",
           "ADR-0018",
-          "ADR-0020",
-          "ADR-0021",
-          "ADR-0024",
-          "ADR-0025"
+          "ADR-0022"
         ],
         "archRefs": [
           "CH01",
-          "CH05",
+          "CH04",
           "CH06",
-          "CH07",
-          "CH09"
+          "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down this task with a focus on 实现存档功能."
+        "expansionPrompt": "Break down this task with a focus on 实现ui骰子结果显示."
+      },
+      {
+        "id": "23",
+        "title": "实现UI城池状态显示",
+        "description": "在UI上显示城池的占有状态。",
+        "details": "根据城池的占有情况，更新UI显示。",
+        "testStrategy": "通过多次购买和占领测试，验证状态显示的正确性。",
+        "priority": "low",
+        "dependencies": [
+          "9",
+          "12"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0018",
+          "ADR-0022"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH04",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down this task with a focus on 实现ui城池状态显示."
       },
       {
         "id": "24",
@@ -842,7 +842,7 @@
         "dependencies": [
           "19"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -982,7 +982,7 @@
         "dependencies": [
           "9"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1038,7 +1038,7 @@
         "dependencies": [
           "28"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1176,7 +1176,7 @@
         "testStrategy": "本地构建：在开发机运行 build_windows.py release/debug，验证输出文件与日志。\nCI 集成：触发 Windows Release (Manual/Tag) 工作流，确认 Artifact 中包含 EXE、PCK、build-info.json 与 SHA256 校验文件。",
         "priority": "medium",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -1294,7 +1294,7 @@
         "testStrategy": "本地：构造一个故意高重复率、高复杂度的小示例，验证 quality_gates.py 能将其标记为 failed。\nCI：在 windows-quality-gate 工作流中增加对 duplication 与 complexity 报告的校验，并在 Step Summary 中展示关键指标。",
         "priority": "medium",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1389,7 +1389,7 @@
         "testStrategy": "CI：针对测试分支手动触发 performance-gates 工作流，观察在性能超阈值和正常情况下的行为差异。\n文档：在 Phase-15 或 README 中记录如何启用或关闭性能门禁工作流。",
         "priority": "low",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1535,7 +1535,7 @@
         "testStrategy": "GdUnit4 安全用例：编写/扩展 Hard 集测试外链、文件、进程三类接口的 allow/deny/invalid 行为。\n脚本校验：新增或扩展 scripts/python/validate_audit_logs.py，针对 security-audit.jsonl 做格式与字段校验，在 CI 中运行。",
         "priority": "high",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1609,7 +1609,7 @@
         "dependencies": [
           "50"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1778,7 +1778,7 @@
           "51",
           "53"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1825,7 +1825,7 @@
         "dependencies": [
           "52"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1882,7 +1882,7 @@
           "58",
           "59"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1909,7 +1909,7 @@
           "52",
           "56"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1935,7 +1935,7 @@
           "53",
           "58"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1963,7 +1963,7 @@
           "58",
           "51"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1978,13 +1978,2895 @@
           "CH10"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t65-regions-mechanics.md"
+      },
+      {
+        "id": "66",
+        "title": "Module: A-006 Forced Challenge Prompt UI Integration Tests",
+        "description": "Complete A-006 with GdUnit integration coverage: pre-challenge prompt copy, win-rate tier, and fail consequence are visible in HUD/dialog and consistent with contracts.",
+        "details": "Goal: extend the UI consumption chain of core.sanguo.boss.challenge.prompted from contract unit tests to integration layer (event publish -> UI render -> user confirm). Keep deferred for now; implementation must add dedicated GdUnit tests and ACC anchors. acceptanceRefs: [A-006] contractRefs: [core.sanguo.boss.challenge.prompted].",
+        "testStrategy": "GdUnit: lock default prompt copy and win-rate tier rendering, aligned with contract constants.",
+        "priority": "medium",
+        "dependencies": [
+          "59",
+          "61"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 6
+      },
+      {
+        "id": "67",
+        "title": "Module: A-007 Forced Challenge Fail-to-Camp UI Integration Tests",
+        "description": "Complete A-007 with GdUnit integration coverage: reject path must execute \"return to camp and end round\" and remain observable in UI flow.",
+        "details": "Goal: verify the forced-challenge reject branch enforces return_to_camp_end_round semantics at integration layer. Keep deferred for now; implementation must add dedicated GdUnit tests and ACC anchors. acceptanceRefs: [A-007] contractRefs: [core.sanguo.boss.challenge.prompted].",
+        "testStrategy": "GdUnit: reject branch must trigger return-to-camp plus end-round, with no continued board actions.",
+        "priority": "medium",
+        "dependencies": [
+          "66",
+          "59",
+          "61"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 6
+      },
+      {
+        "id": "68",
+        "title": "Module: HUD explainability integration pack",
+        "description": "Integration closure after split tasks 81, 82.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 81, 82.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "81",
+          "82"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 4
+      },
+      {
+        "id": "69",
+        "title": "Module: i18n release/dev exposure policy (A-011/A-012)",
+        "description": "Apply build-mode dependent missing-key behavior: release hides raw keys, dev allows diagnostic raw-key exposure.",
+        "details": "Based on PRD_V3_RULES_FREEZE 4.4 and A-011/A-012: release UI must not expose raw i18n keys and must show friendly fallback; dev mode may expose raw keys for diagnostics.",
+        "testStrategy": "GdUnit mode-parameterized tests for release/dev explanation text behavior.",
+        "priority": "high",
+        "dependencies": [
+          "68"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 6
+      },
+      {
+        "id": "70",
+        "title": "Module: replay integrity integration pack",
+        "description": "Integration closure after split tasks 83, 84.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 83, 84.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "83",
+          "84"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH06",
+          "CH07",
+          "CH05"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 4
+      },
+      {
+        "id": "71",
+        "title": "Module: diagnostic payload desensitization and retention window (A-016/A-017) integration pack",
+        "description": "Integration closure after split tasks 113, 114.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 113, 114.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "medium",
+        "dependencies": [
+          "113",
+          "114"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md",
+        "complexity": 8
+      },
+      {
+        "id": "72",
+        "title": "Module: audit write fallback and rotation cap (A-018/A-019) integration pack",
+        "description": "Integration closure after split tasks 115, 116.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 115, 116.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "medium",
+        "dependencies": [
+          "115",
+          "116"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005",
+          "ADR-0019"
+        ],
+        "archRefs": [
+          "CH02",
+          "CH03",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md",
+        "complexity": 8
+      },
+      {
+        "id": "73",
+        "title": "Module: contract evolution compatibility gate (A-020)",
+        "description": "Add CI contract-compatibility gate to reject remove/rename without deprecation window.",
+        "details": "Based on PRD_V3_RULES_FREEZE 7 and A-020: contract updates are additive by default; breaking changes require explicit deprecation window and migration plan.",
+        "testStrategy": "Script + xUnit wrapper tests for compatibility checker and CI summary output.",
+        "priority": "high",
+        "dependencies": [
+          "72"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md",
+        "complexity": 6
+      },
+      {
+        "id": "74",
+        "title": "Module: CampaignRuleEngine integration pack",
+        "description": "Integration closure after split tasks 85, 86.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 85, 86.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "85",
+          "86"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH06",
+          "CH07",
+          "CH05"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md",
+        "complexity": 4
+      },
+      {
+        "id": "75",
+        "title": "Module: CampLifecycleEngine integration pack",
+        "description": "Integration closure after split tasks 87, 88.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 87, 88.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "87",
+          "88"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH06",
+          "CH07",
+          "CH05"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md",
+        "complexity": 4
+      },
+      {
+        "id": "76",
+        "title": "Module: BossPressureEngine integration pack",
+        "description": "Integration closure after split tasks 89, 90.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 89, 90.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "89",
+          "90"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH06",
+          "CH07",
+          "CH05"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md",
+        "complexity": 4
+      },
+      {
+        "id": "77",
+        "title": "Module: RandomObjectiveEngine (pace-compensation loop) integration pack",
+        "description": "Integration closure after split tasks 117, 118.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 117, 118.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "medium",
+        "dependencies": [
+          "117",
+          "118"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md",
+        "complexity": 8
+      },
+      {
+        "id": "78",
+        "title": "Module: RewardDraftEngine (deterministic 3-choice draft) integration pack",
+        "description": "Integration closure after split tasks 119, 120.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 119, 120.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "medium",
+        "dependencies": [
+          "119",
+          "120"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md",
+        "complexity": 7
+      },
+      {
+        "id": "79",
+        "title": "Module: campaign-mode AI hard-disable guard",
+        "description": "Hard-disable AI decision entry points in campaign mode while preserving non-campaign AI paths.",
+        "details": "Based on prd_v3 conflict resolution 3.1 and matrix R10: campaign runtime never executes AI decision path.",
+        "testStrategy": "xUnit mode guard tests for AI decision entry points.",
+        "priority": "medium",
+        "dependencies": [
+          "74",
+          "61"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0011"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md",
+        "complexity": 5
+      },
+      {
+        "id": "80",
+        "title": "Module: PRD v3 assertion gate integration pack",
+        "description": "Integration closure after split tasks 91, 92.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 91, 92.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "91",
+          "92"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005",
+          "ADR-0015"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH07",
+          "CH09"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md",
+        "complexity": 4
+      },
+      {
+        "id": "81",
+        "title": "Module: popup-log atomic commit (split from T68)",
+        "description": "Split task for A-008.",
+        "details": "Independent split task for A-008; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "51",
+          "56",
+          "59"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 6
+      },
+      {
+        "id": "82",
+        "title": "Module: HUD log overflow/windowing (split from T68)",
+        "description": "Split task for A-009~A-010.",
+        "details": "Independent split task for A-009~A-010; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "81"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 6
+      },
+      {
+        "id": "83",
+        "title": "Module: replay trust hash + save_untrusted (split from T70)",
+        "description": "Split task for A-013~A-014.",
+        "details": "Independent split task for A-013~A-014; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "52",
+          "67"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 6
+      },
+      {
+        "id": "84",
+        "title": "Module: replay mismatch mode policy (split from T70)",
+        "description": "Split task for A-015.",
+        "details": "Independent split task for A-015; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "83"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 6
+      },
+      {
+        "id": "85",
+        "title": "Module: campaign runmode isolation (split from T74)",
+        "description": "Split task for R1.",
+        "details": "Independent split task for R1; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "60"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md",
+        "complexity": 6
+      },
+      {
+        "id": "86",
+        "title": "Module: campaign endgame adjudicator (split from T74)",
+        "description": "Split task for R3.",
+        "details": "Independent split task for R3; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "85"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md",
+        "complexity": 6
+      },
+      {
+        "id": "87",
+        "title": "Module: camp transition + one-action rule (split from T75)",
+        "description": "Split task for R2/R5.",
+        "details": "Independent split task for R2/R5; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "74"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md",
+        "complexity": 6
+      },
+      {
+        "id": "88",
+        "title": "Module: leave-camp save retry + warning (split from T75)",
+        "description": "Split task for A-003~A-005.",
+        "details": "Independent split task for A-003~A-005; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "87"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md",
+        "complexity": 6
+      },
+      {
+        "id": "89",
+        "title": "Module: boss pressure timeline (split from T76)",
+        "description": "Split task for R6.",
+        "details": "Independent split task for R6; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "75"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md",
+        "complexity": 6
+      },
+      {
+        "id": "90",
+        "title": "Module: forced challenge preemption (split from T76)",
+        "description": "Split task for A-006~A-007.",
+        "details": "Independent split task for A-006~A-007; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "89",
+          "66",
+          "67"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md",
+        "complexity": 6
+      },
+      {
+        "id": "91",
+        "title": "Module: core assertion gate runner (split from T80)",
+        "description": "Split task for A-013~A-020.",
+        "details": "Independent split task for A-013~A-020; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "70",
+          "71",
+          "72",
+          "73"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md",
+        "complexity": 6
+      },
+      {
+        "id": "92",
+        "title": "Module: UI assertion gate runner (split from T80)",
+        "description": "Split task for A-008~A-012.",
+        "details": "Independent split task for A-008~A-012; keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "68",
+          "69"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0010"
+        ],
+        "archRefs": [
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md",
+        "complexity": 6
+      },
+      {
+        "id": "93",
+        "title": "Module: campaign run mode and start payload completion",
+        "description": "Extend start config and game-start payload with campaign run mode, commander, strategems, map and seed fields.",
+        "details": "Based on prd_v3 4.1 + 6.1 + 6.2: make campaign start inputs explicit in core contracts and runtime state initialization.",
+        "testStrategy": "xUnit validates payload mapping and defaults; GdUnit validates NewGameConfig serialization and start handoff.",
+        "priority": "high",
+        "dependencies": [
+          "50",
+          "54",
+          "74"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md",
+        "complexity": 6
+      },
+      {
+        "id": "94",
+        "title": "Module: commander roster and strategem pick flow integration pack",
+        "description": "Integration closure after split tasks 121, 122.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 121, 122.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "121",
+          "122"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md",
+        "complexity": 8
+      },
+      {
+        "id": "95",
+        "title": "Module: campaign HUD parameter panel and i18n",
+        "description": "Show campaign key parameters on HUD with zh/en localization and no raw event codes in release mode.",
+        "details": "Based on prd_v3 4.1 + 6.3 + 9.3: expose commander, strategems, boss pressure context, and round markers in localized HUD summaries.",
+        "testStrategy": "GdUnit locks localized HUD summary rendering for campaign key fields in release mode.",
+        "priority": "medium",
+        "dependencies": [
+          "94",
+          "68",
+          "69"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH05",
+          "CH06",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md",
+        "complexity": 6
+      },
+      {
+        "id": "96",
+        "title": "Module: campaign round lifecycle state machine integration pack",
+        "description": "Integration closure after split tasks 123, 124.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 123, 124.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "123",
+          "124"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md",
+        "complexity": 9
+      },
+      {
+        "id": "97",
+        "title": "Module: camp building slot and durability model integration pack",
+        "description": "Integration closure after split tasks 125, 126.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 125, 126.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "125",
+          "126"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0006",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md",
+        "complexity": 8
+      },
+      {
+        "id": "98",
+        "title": "Module: camp one-action-per-round guard",
+        "description": "Enforce single camp action per round and provide explicit blocked reason in event logs.",
+        "details": "Based on prd_v3 4.3 and freeze interaction rules: second action attempts are rejected with deterministic reason code and explain entry.",
+        "testStrategy": "xUnit validates guard; GdUnit validates blocked action message and unchanged camp state.",
+        "priority": "high",
+        "dependencies": [
+          "97",
+          "87"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md",
+        "complexity": 5
+      },
+      {
+        "id": "99",
+        "title": "Module: camp building effects minimum set integration pack",
+        "description": "Integration closure after split tasks 127, 128.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 127, 128.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "127",
+          "128"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md",
+        "complexity": 8
+      },
+      {
+        "id": "100",
+        "title": "Module: camp durability fatal adjudicator integration pack",
+        "description": "Integration closure after split tasks 129, 130.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 129, 130.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "129",
+          "130"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md",
+        "complexity": 7
+      },
+      {
+        "id": "101",
+        "title": "Module: boss dice profile by difficulty and duration target integration pack",
+        "description": "Integration closure after split tasks 131, 132.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 131, 132.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "131",
+          "132"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0015",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH09"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md",
+        "complexity": 7
+      },
+      {
+        "id": "102",
+        "title": "Module: boss pressure resolver and explainability payload integration pack",
+        "description": "Integration closure after split tasks 133, 134.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 133, 134.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "133",
+          "134"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md",
+        "complexity": 8
+      },
+      {
+        "id": "103",
+        "title": "Module: boss reveal delay challenge and hard-cap forcing integration pack",
+        "description": "Integration closure after split tasks 135, 136.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 135, 136.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "135",
+          "136"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md",
+        "complexity": 8
+      },
+      {
+        "id": "104",
+        "title": "Module: board event auto-trigger and skip restriction guard integration pack",
+        "description": "Integration closure after split tasks 137, 138.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 137, 138.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "medium",
+        "dependencies": [
+          "137",
+          "138"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
+        "complexity": 7
+      },
+      {
+        "id": "105",
+        "title": "Module: random objective publish-settle timeline closure integration pack",
+        "description": "Integration closure after split tasks 139, 140.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 139, 140.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "139",
+          "140"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md",
+        "complexity": 8
+      },
+      {
+        "id": "106",
+        "title": "Module: random objective reward source integration integration pack",
+        "description": "Integration closure after split tasks 141, 142.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 141, 142.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "medium",
+        "dependencies": [
+          "141",
+          "142"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md",
+        "complexity": 7
+      },
+      {
+        "id": "107",
+        "title": "Module: campaign win-lose adjudicator completion integration pack",
+        "description": "Integration closure after split tasks 143, 144.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 143, 144.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "143",
+          "144"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md",
+        "complexity": 7
+      },
+      {
+        "id": "108",
+        "title": "Module: campaign AI hard-disable runtime guard completion",
+        "description": "Ensure campaign mode disables AI decision paths entirely and emits explicit blocked diagnostics.",
+        "details": "Based on prd_v3 conflict rule 3.1 and matrix R10: campaign runtime must not execute AI behavior paths.",
+        "testStrategy": "xUnit validates AI entrypoint guard by run mode; integration validates no AI action events in campaign rounds.",
+        "priority": "medium",
+        "dependencies": [
+          "79",
+          "93",
+          "96"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md",
+        "complexity": 5
+      },
+      {
+        "id": "109",
+        "title": "Module: campaign contracts and DTO mapper completion integration pack",
+        "description": "Integration closure after split tasks 145, 146.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 145, 146.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "145",
+          "146"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md",
+        "complexity": 8
+      },
+      {
+        "id": "110",
+        "title": "Module: campaign content-pack schema and gates extension integration pack",
+        "description": "Integration closure after split tasks 147, 148.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 147, 148.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "147",
+          "148"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0006",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md",
+        "complexity": 9
+      },
+      {
+        "id": "111",
+        "title": "Module: PRD v3 business acceptance integration suite integration pack",
+        "description": "Integration closure after split tasks 149, 150.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 149, 150.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "149",
+          "150"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+        "complexity": 8
+      },
+      {
+        "id": "112",
+        "title": "Module: PRD v3 explainability/replay/i18n hard-gate closure integration pack",
+        "description": "Integration closure after split tasks 151, 152.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 151, 152.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "151",
+          "152"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md",
+        "complexity": 9
+      },
+      {
+        "id": "113",
+        "title": "Module: diagnostic payload desensitization policy (split from T71)",
+        "description": "Split task for A-016 desensitization policy.",
+        "details": "Implement mode-aware diagnostics desensitization with deterministic field masking strategy.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "70"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      },
+      {
+        "id": "114",
+        "title": "Module: diagnostic retention window enforcement (split from T71)",
+        "description": "Split task for A-017 retention policy.",
+        "details": "Enforce bounded diagnostics retention window and deterministic cleanup trigger.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "113"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      },
+      {
+        "id": "115",
+        "title": "Module: audit write fallback path (split from T72)",
+        "description": "Split task for A-018 fallback behavior.",
+        "details": "Implement audit write fallback to user:// when primary sink fails without runtime abort.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "71"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005",
+          "ADR-0019"
+        ],
+        "archRefs": [
+          "CH02",
+          "CH03",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      },
+      {
+        "id": "116",
+        "title": "Module: audit fallback rotation cap (split from T72)",
+        "description": "Split task for A-019 rotation cap.",
+        "details": "Implement fallback file rotation cap and bounded total size policy.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "115"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005",
+          "ADR-0019"
+        ],
+        "archRefs": [
+          "CH02",
+          "CH03",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      },
+      {
+        "id": "117",
+        "title": "Module: objective generation determinism (split from T77)",
+        "description": "Split task for deterministic objective generation.",
+        "details": "Generate per-round objective deterministically under fixed seed and mode constraints.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "76",
+          "56"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      },
+      {
+        "id": "118",
+        "title": "Module: objective settlement timeline closure (split from T77)",
+        "description": "Split task for objective settlement and timeline closure.",
+        "details": "Close objective lifecycle with settle timing, skip semantics, and replay-safe ordering.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "117"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      },
+      {
+        "id": "119",
+        "title": "Module: reward draft candidate determinism (split from T78)",
+        "description": "Split task for deterministic candidate generation.",
+        "details": "Generate deterministic 3-choice reward draft candidates with stable ordering.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "77"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+      },
+      {
+        "id": "120",
+        "title": "Module: reward draft commit and source tags (split from T78)",
+        "description": "Split task for draft commit semantics.",
+        "details": "Implement single-commit reward selection and source-tag explainability output.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "119"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+      },
+      {
+        "id": "121",
+        "title": "Module: commander roster lock/open states (split from T94)",
+        "description": "Split task for commander roster state machine.",
+        "details": "Implement commander roster lock/open/default availability model in campaign setup.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "93",
+          "55"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+      },
+      {
+        "id": "122",
+        "title": "Module: active/passive strategem selection guard (split from T94)",
+        "description": "Split task for strategem selection constraints.",
+        "details": "Require one active and one passive strategem pick before campaign start commit.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "121"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+      },
+      {
+        "id": "123",
+        "title": "Module: camp-pressure-board transition sequencer (split from T96)",
+        "description": "Split task for phase transition state machine.",
+        "details": "Implement deterministic sequencer for camp -> pressure -> board transition path.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "52",
+          "74",
+          "75",
+          "76"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      },
+      {
+        "id": "124",
+        "title": "Module: round ordering replay-stability checks (split from T96)",
+        "description": "Split task for ordering stability.",
+        "details": "Lock event ordering under same round/tick and replay consistency constraints.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "123"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      },
+      {
+        "id": "125",
+        "title": "Module: camp five-slot durability model (split from T97)",
+        "description": "Split task for 5-slot durability modeling.",
+        "details": "Model five camp building durability pools and disable-on-zero baseline behavior.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "58",
+          "75",
+          "87"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0006",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      },
+      {
+        "id": "126",
+        "title": "Module: camp durability persistence mapping (split from T97)",
+        "description": "Split task for save/load durability mapping.",
+        "details": "Persist and restore camp durability state with deterministic schema mapping.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "125"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0006",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      },
+      {
+        "id": "127",
+        "title": "Module: camp building effects set A (split from T99)",
+        "description": "Split task for relic workshop/tavern/defense center effects.",
+        "details": "Implement deterministic effect outputs and fallback for first building effect set.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "97",
+          "98",
+          "62"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      },
+      {
+        "id": "128",
+        "title": "Module: camp building effects set B (split from T99)",
+        "description": "Split task for war hall/training ground effects.",
+        "details": "Implement deterministic effect outputs and fallback for second building effect set.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "127"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      },
+      {
+        "id": "129",
+        "title": "Module: camp durability fatal preemption rule (split from T100)",
+        "description": "Split task for fatal preemption logic.",
+        "details": "Apply global priority chain when camp durability fatal condition collides with other events.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "97",
+          "99",
+          "86"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      },
+      {
+        "id": "130",
+        "title": "Module: camp-fail settlement routing (split from T100)",
+        "description": "Split task for camp-fail settlement flow.",
+        "details": "Route fatal camp condition to defeat settlement without loop deadlock.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "129"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      },
+      {
+        "id": "131",
+        "title": "Module: boss difficulty profile schema (split from T101)",
+        "description": "Split task for boss profile schema and bounds.",
+        "details": "Define and validate boss difficulty profile schema fields and value bounds.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "53",
+          "76"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0015",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH09"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      },
+      {
+        "id": "132",
+        "title": "Module: boss count and duration target validator (split from T101)",
+        "description": "Split task for duration target validation.",
+        "details": "Validate configured boss count and expected run-length target bands by difficulty.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "131"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0015",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH09"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      },
+      {
+        "id": "133",
+        "title": "Module: boss elite-attack pressure resolver (split from T102)",
+        "description": "Split task for elite attack count resolution.",
+        "details": "Resolve boss dice outcomes into deterministic elite attack counts.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "51",
+          "89",
+          "101"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      },
+      {
+        "id": "134",
+        "title": "Module: boss pressure explain payload mapper (split from T102)",
+        "description": "Split task for explainability payload.",
+        "details": "Emit source/value/duration explain payload for boss pressure items.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "133"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      },
+      {
+        "id": "135",
+        "title": "Module: boss reveal delay pressure stacking (split from T103)",
+        "description": "Split task for reveal delay stacking.",
+        "details": "Implement pressure stacking behavior while boss challenge is delayed across rounds.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "66",
+          "67",
+          "90",
+          "102"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      },
+      {
+        "id": "136",
+        "title": "Module: hard-cap forced challenge preemption (split from T103)",
+        "description": "Split task for hard-cap preemption.",
+        "details": "Trigger forced challenge at leave-camp edge once pressure reaches hard cap.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "135"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      },
+      {
+        "id": "137",
+        "title": "Module: event tile auto-trigger enforcement (split from T104)",
+        "description": "Split task for event tile trigger behavior.",
+        "details": "Ensure event tiles trigger immediately without optional skip branch.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "52",
+          "56",
+          "57",
+          "59"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      },
+      {
+        "id": "138",
+        "title": "Module: skip blocked-reason rule matrix (split from T104)",
+        "description": "Split task for skip eligibility matrix.",
+        "details": "Constrain skip to rule-blocked scenarios and publish deterministic blocked reasons.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "137"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      },
+      {
+        "id": "139",
+        "title": "Module: objective publish-after-boss timing (split from T105)",
+        "description": "Split task for objective publish timing.",
+        "details": "Publish objective only after boss branch completion in camp-leave timeline.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "77",
+          "96",
+          "103"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      },
+      {
+        "id": "140",
+        "title": "Module: objective settle and endgame suppression (split from T105)",
+        "description": "Split task for objective settlement and suppression.",
+        "details": "Settle previous objective at camp and suppress new publish when game ends.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "139"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      },
+      {
+        "id": "141",
+        "title": "Module: objective reward source integration (split from T106)",
+        "description": "Split task for reward source integration.",
+        "details": "Bind objective rewards to event/elite/boss sources with deterministic source tags.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "62",
+          "78",
+          "105"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+      },
+      {
+        "id": "142",
+        "title": "Module: objective reward draft deterministic hook (split from T106)",
+        "description": "Split task for deterministic reward-draft hook.",
+        "details": "Integrate deterministic reward-draft selection into objective settlement path.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "medium",
+        "dependencies": [
+          "141"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+      },
+      {
+        "id": "143",
+        "title": "Module: final-boss victory adjudication branch (split from T107)",
+        "description": "Split task for final-boss win branch.",
+        "details": "Adjudicate campaign victory strictly on final boss defeat branch.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "60",
+          "100",
+          "103"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      },
+      {
+        "id": "144",
+        "title": "Module: camp-failure defeat adjudication branch (split from T107)",
+        "description": "Split task for camp-failure branch.",
+        "details": "Adjudicate campaign defeat branch on camp durability fatal condition.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "143"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      },
+      {
+        "id": "145",
+        "title": "Module: campaign contract set completion (split from T109) integration pack",
+        "description": "Integration closure after split tasks 169, 170.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 169, 170.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "169",
+          "170"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      },
+      {
+        "id": "146",
+        "title": "Module: campaign HUD DTO mapper closure (split from T109)",
+        "description": "Split task for DTO mapper closure.",
+        "details": "Register campaign events in HUD mapper and eliminate raw payload coupling paths.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "145"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      },
+      {
+        "id": "147",
+        "title": "Module: campaign content schema extension (split from T110) integration pack",
+        "description": "Integration closure after split tasks 171, 172.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 171, 172.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "171",
+          "172"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0006",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      },
+      {
+        "id": "148",
+        "title": "Module: campaign content quality gates closure (split from T110)",
+        "description": "Split task for content gate closure.",
+        "details": "Add quality gates for cross refs, version bump, and i18n coverage in campaign content.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "147"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0006",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      },
+      {
+        "id": "149",
+        "title": "Module: campaign full-loop boss-win scenario (split from T111)",
+        "description": "Split task for boss-win integration scenario.",
+        "details": "Add deterministic end-to-end scenario from campaign start to final boss victory.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "104",
+          "106",
+          "107",
+          "108",
+          "110"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      },
+      {
+        "id": "150",
+        "title": "Module: campaign full-loop camp-fail scenario (split from T111)",
+        "description": "Split task for camp-fail integration scenario.",
+        "details": "Add deterministic end-to-end scenario from campaign start to camp durability defeat.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "149"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      },
+      {
+        "id": "151",
+        "title": "Module: core assertion hard-gate closure (split from T112) integration pack",
+        "description": "Integration closure after split tasks 173, 174, 175.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 173, 174, 175.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "173",
+          "174",
+          "175"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "152",
+        "title": "Module: UI assertion hard-gate closure (split from T112)",
+        "description": "Split task for UI assertion hard gates.",
+        "details": "Harden CI gates for UI explainability and i18n exposure assertions.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "151"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "153",
+        "title": "Module: R4 end-to-end explainability and replayability gate",
+        "description": "Build an explicit integration gate for R4 to validate explainability chain and replay consistency in one deterministic scenario set.",
+        "details": "Cover trigger source, timing, impact fields, localized HUD summaries, and replay stability under fixed seed in a single acceptance gate.",
+        "testStrategy": "CI integration tests lock end-to-end explainability plus replayability evidence for campaign scenarios.",
+        "priority": "high",
+        "dependencies": [
+          "111",
+          "112"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "154",
+        "title": "Module: freeze policy guard for non-crash feedback suppression",
+        "description": "Add executable guard for freeze section 1.2 to ensure non-crash issues do not trigger user-facing feedback flows.",
+        "details": "Enforce runtime policy: only crash category may route to explicit user feedback path; non-crash diagnostics stay in logs/audit only.",
+        "testStrategy": "xUnit + integration tests verify feedback routing policy by issue category with deterministic outcomes.",
+        "priority": "high",
+        "dependencies": [
+          "71",
+          "72"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      },
+      {
+        "id": "155",
+        "title": "Module: freeze change-control triplet gate",
+        "description": "Add hard gate for freeze section 9 change-control triplet: freeze revision, assertion update, and test evidence update.",
+        "details": "Detect rule changes without synchronized freeze/assertion/evidence updates and fail CI with actionable diagnostics.",
+        "testStrategy": "Scripted CI tests verify the change-control triplet gate with positive and negative fixtures.",
+        "priority": "high",
+        "dependencies": [
+          "73",
+          "112"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "156",
+        "title": "Module: signal XML documentation completeness gate (PH9-B2)",
+        "description": "Add executable gate for Signal/Event XML documentation completeness under contracts and security-critical signals.",
+        "details": "Enforce XML summary/remarks for signal contracts and reject missing documentation in CI, aligned with ADR-0004 and signal governance backlog.",
+        "testStrategy": "Scripted CI check plus unit fixture for missing-XML negative cases.",
+        "priority": "high",
+        "dependencies": [
+          "36",
+          "40"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      },
+      {
+        "id": "157",
+        "title": "Module: CI signal compliance workflow hard-gate (PH9-B4) integration pack",
+        "description": "Integration closure after split tasks 162, 163.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 162, 163.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "162",
+          "163"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "158",
+        "title": "Module: GDScript subscription lifecycle leak guard (PH9-B5) integration pack",
+        "description": "Integration closure after split tasks 164, 165.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 164, 165.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "164",
+          "165"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+      },
+      {
+        "id": "159",
+        "title": "Module: privacy-compliance document and policy gate (PH16-B4)",
+        "description": "Add privacy-compliance baseline document and CI policy check to ensure observability payload handling stays compliant.",
+        "details": "Introduce doc and machine-checkable policy assertions for data minimization, retention bounds, and non-crash feedback suppression linkage.",
+        "testStrategy": "Policy gate script verifies required clauses and cross-links to freeze/assertion artifacts.",
+        "priority": "medium",
+        "dependencies": [
+          "154",
+          "155"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "160",
+        "title": "Module: logging-guidelines document and lint gate (PH16-B5)",
+        "description": "Add logging-guidelines baseline and lint gate for structured logging, redaction, and traceability fields.",
+        "details": "Gate ensures required logging fields and redaction rules are documented and referenced by observability scripts/tests.",
+        "testStrategy": "Lint-like documentation and config checks with regression fixtures for missing mandatory sections.",
+        "priority": "medium",
+        "dependencies": [
+          "37",
+          "159"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "161",
+        "title": "Module: migration compatibility report automation gate (PH20-B3) integration pack",
+        "description": "Integration closure after split tasks 166, 167, 168.",
+        "details": "Reduced complexity by split; implementation is moved to tasks 166, 167, 168.",
+        "testStrategy": "Integration closure check from split-task evidence.",
+        "priority": "high",
+        "dependencies": [
+          "166",
+          "167",
+          "168"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      },
+      {
+        "id": "162",
+        "title": "Module: signal compliance aggregator implementation (split from T157)",
+        "description": "Split task for deterministic signal compliance aggregation.",
+        "details": "Implement deterministic aggregation of naming/doc/lifecycle checks into one signal compliance report.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "156",
+          "40"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "163",
+        "title": "Module: signal compliance workflow hard-gate wiring (split from T157)",
+        "description": "Split task for hard-gate workflow wiring and artifacts.",
+        "details": "Wire signal compliance report into fast-mode CI hard gate with stable failure diagnostics.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "162"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "164",
+        "title": "Module: runtime signal subscription lifecycle guard (split from T158)",
+        "description": "Split task for runtime subscribe/unsubscribe lifecycle guard.",
+        "details": "Enforce subscribe/unsubscribe symmetry and node-exit cleanup for scene-bound signal listeners.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "157"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+      },
+      {
+        "id": "165",
+        "title": "Module: GdUnit signal lifecycle leak fixtures (split from T158)",
+        "description": "Split task for deterministic leak-detection fixtures.",
+        "details": "Add GdUnit lifecycle fixtures and assertions for stale signal handler leak detection.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "164"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+      },
+      {
+        "id": "166",
+        "title": "Module: migration compatibility report generator (split from T161)",
+        "description": "Split task for compatibility report generation.",
+        "details": "Generate migration compatibility report from assertions, gates, and scenario evidence.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "111",
+          "153",
+          "160"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      },
+      {
+        "id": "167",
+        "title": "Module: migration compatibility completeness validator (split from T161)",
+        "description": "Split task for report completeness validation.",
+        "details": "Validate mandatory report sections and evidence links with deterministic failure output.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "166"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      },
+      {
+        "id": "168",
+        "title": "Module: migration compatibility CI hard-gate integration (split from T161)",
+        "description": "Split task for CI hard-gate integration and rollout.",
+        "details": "Integrate compatibility report validator into CI hard gate and standardize failure diagnostics.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "167"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      },
+      {
+        "id": "169",
+        "title": "Module: campaign contract additive set and versioning (split from T145)",
+        "description": "Split task for campaign contract additive set and compatibility baseline.",
+        "details": "Define additive campaign event/DTO contract set and versioning hooks for forward-compatible evolution.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "93",
+          "95",
+          "96",
+          "97",
+          "102",
+          "105"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      },
+      {
+        "id": "170",
+        "title": "Module: campaign contract field harmonization for runtime flows (split from T145)",
+        "description": "Split task for cross-flow field harmonization over campaign contracts.",
+        "details": "Harmonize contract fields across start/round/objective flows and lock deterministic payload semantics.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "169"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      },
+      {
+        "id": "171",
+        "title": "Module: campaign content schema catalog extension (split from T147)",
+        "description": "Split task for campaign content schema and catalog extension.",
+        "details": "Extend schema and catalog definitions for commander, strategem, building, boss and objective datasets.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "53",
+          "69",
+          "73",
+          "101",
+          "105",
+          "109"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0006",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      },
+      {
+        "id": "172",
+        "title": "Module: campaign content cross-table constraints and bump rules (split from T147)",
+        "description": "Split task for cross-table consistency and version bump constraints.",
+        "details": "Enforce cross-table references, i18n key presence, and version bump invariants for campaign content packs.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "171"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0006",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      },
+      {
+        "id": "173",
+        "title": "Module: core assertion hard-gate bundle A-013 to A-015 (split from T151)",
+        "description": "Split task for replay integrity and mismatch policy assertion bundle.",
+        "details": "Harden CI checks for replay hash set, save_untrusted behavior, and mismatch policy by mode.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "69",
+          "70",
+          "71",
+          "72",
+          "73",
+          "91",
+          "92",
+          "111"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "174",
+        "title": "Module: core assertion hard-gate bundle A-016 to A-019 (split from T151)",
+        "description": "Split task for diagnostics and audit fallback assertion bundle.",
+        "details": "Harden CI checks for diagnostic desensitization/retention and audit fallback/rotation assertions.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "173"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      },
+      {
+        "id": "175",
+        "title": "Module: core assertion hard-gate A-020 compatibility closure (split from T151)",
+        "description": "Split task for contract evolution compatibility hard-gate closure.",
+        "details": "Integrate contract additive-only compatibility assertion into core hard-gate runner output.",
+        "testStrategy": "Task-specific deterministic tests.",
+        "priority": "high",
+        "dependencies": [
+          "174"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "adrRefs": [
+          "ADR-0003",
+          "ADR-0004",
+          "ADR-0005",
+          "ADR-0010",
+          "ADR-0020"
+        ],
+        "archRefs": [
+          "CH03",
+          "CH04",
+          "CH05",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-01-10T06:18:33Z",
-      "taskCount": 49,
-      "completedCount": 1,
+      "lastModified": "2026-03-19T09:39:57Z",
+      "taskCount": 175,
+      "completedCount": 54,
       "tags": [
         "master"
       ]

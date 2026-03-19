@@ -1147,7 +1147,7 @@
     "story_id": "PRD-SANGUO-T2-SAVELOAD",
     "title": "实现存档功能",
     "description": "使用本地文件系统保存游戏状态，支持游戏进度的保存和加载。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "depends_on": [
@@ -1502,7 +1502,7 @@
     "story_id": "PRD-SANGUO-T2-UI-LOG",
     "title": "实现UI事件日志",
     "description": "记录游戏中的重要事件，并在 UI 上显示事件日志。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P2",
     "layer": "adapter",
     "depends_on": [
@@ -1692,7 +1692,7 @@
     "story_id": "PRD-SANGUO-T2-AUDIO",
     "title": "实现音效和音乐",
     "description": "在游戏中添加合适的音效和背景音乐，增强游戏体验。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P2",
     "layer": "adapter",
     "depends_on": [
@@ -1805,7 +1805,7 @@
     "story_id": "PRD-SANGUO-T2-MENU-SETTINGS",
     "title": "实现游戏设置菜单",
     "description": "在 Godot 中设计并实现游戏的设置菜单，提供音量、分辨率等设置选项。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P2",
     "layer": "adapter",
     "depends_on": [
@@ -2033,7 +2033,7 @@
     "story_id": "PH17-BACKLOG-B1-B2-B3",
     "title": "Python 构建驱动脚本与 Windows Release Workflow 整合",
     "description": "依据 Phase-17-Build-System-and-Godot-Export.md 与 Backlog，在 scripts 下实现跨平台 Python 构建驱动脚本（build_windows.py），统一调用 Godot headless 导出、生成版本元数据（build-info.json/release-profile.json）与 SHA256 校验；并将现有 Windows Release (Tag/Manual) 工作流调整为调用该脚本，简化导出与发布流程。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P2",
     "layer": "ci",
     "depends_on": [],
@@ -2308,7 +2308,7 @@
     "story_id": "PH13-BACKLOG-B3",
     "title": "代码重复率与圈复杂度门禁",
     "description": "根据 Phase-13-Quality-Gates-Backlog.md B3，为 sanguo 模板补齐代码重复率（Duplication%）与圈复杂度（Cyclomatic Complexity）质量门禁，将 jscpd、Roslyn 或 SonarQube 指标纳入 quality_gates.py 的统一判断。\n\n证据工件（非 test_refs）：\n- logs/ci/<date>/quality-gates-duplication.json\n- logs/ci/<date>/quality-gates-complexity.json",
-    "status": "deferred",
+    "status": "done",
     "priority": "P2",
     "layer": "ci",
     "depends_on": [],
@@ -2512,7 +2512,7 @@
     "story_id": "PH15-BACKLOG-B5",
     "title": "独立性能门禁 CI 工作流（performance-gates.yml）",
     "description": "根据 Phase-15-Performance-Budgets-Backlog.md B5，新增专门的性能门禁 CI 工作流（例如 .github/workflows/performance-gates.yml），仅运行性能相关脚本与阈值校验，与常规 build/test 工作流解耦。\n\n证据工件（非 test_refs）：\n- .github/workflows/performance-gates.yml\n- logs/ci/<date>/performance-gates-summary.json",
-    "status": "deferred",
+    "status": "done",
     "priority": "P3",
     "layer": "ci",
     "depends_on": [],
@@ -2841,7 +2841,7 @@
     "story_id": "PH14-BACKLOG-B1-B2-B3-B4",
     "title": "Godot 安全适配层增强：外链白名单、文件访问与 OS.execute 守卫",
     "description": "按照 Phase-14-Godot-Security-Baseline.md 与 Backlog，对当前 Godot+C# 模板补齐安全适配层：统一外链白名单配置（ALLOWED_EXTERNAL_HOSTS）、文件访问适配（仅 res:// 与 user://，拒绝 .. 和绝对路径）、显式封装 OS.execute，并为安全审计 JSONL 增加格式校验与最小测试集。\n\n证据工件（非 test_refs）：\n- logs/ci/<date>/security-audit.jsonl",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "adapter",
     "depends_on": [],
@@ -3002,7 +3002,7 @@
     "story_id": "PRD-SANGUO-T2-SKEL-51",
     "title": "Spine: 倍率合成规则与 applied_multipliers 事件快照",
     "description": "锁死经济修饰合成规则（乘法链+clamp+[0.5,3.0]+0.5步进）并要求所有经济事件写入 applied_multipliers。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "core",
     "owner": "gameplay",
@@ -3495,7 +3495,7 @@
     "story_id": "PRD-SANGUO-T2-SKEL-60",
     "title": "模块: 每局胜利与结算界面",
     "description": "引入胜利判定与结算 UI：Core 判定并发布 game.ended，UI 展示结果并支持返回主菜单/再来一局。",
-    "status": "deferred",
+    "status": "done",
     "priority": "P2",
     "layer": "adapter",
     "owner": "gameplay",
@@ -3648,7 +3648,7 @@
       "economy"
     ],
     "priority": "P3",
-    "status": "deferred",
+    "status": "done",
     "layer": "core",
     "owner": "gameplay"
   },
@@ -3701,7 +3701,7 @@
       "determinism"
     ],
     "priority": "P3",
-    "status": "deferred",
+    "status": "done",
     "layer": "core",
     "owner": "gameplay"
   },
@@ -3757,7 +3757,7 @@
       "economy"
     ],
     "priority": "P3",
-    "status": "deferred",
+    "status": "done",
     "layer": "core",
     "owner": "gameplay"
   },
@@ -3814,8 +3814,5717 @@
       "economy"
     ],
     "priority": "P3",
-    "status": "deferred",
+    "status": "done",
     "layer": "core",
     "owner": "gameplay"
+  },
+  {
+    "id": "SG-0066",
+    "taskmaster_id": 66,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0066",
+    "title": "Module: A-006 Forced Challenge Prompt UI Integration Tests",
+    "description": "Complete A-006 integration evidence: boss pre-challenge prompt copy, win-rate tier, and fail consequence are observable in UI and aligned with contract fields.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "adapter",
+    "owner": "gameplay",
+    "labels": [
+      "ui",
+      "boss",
+      "integration",
+      "acceptance"
+    ],
+    "depends_on": [
+      "SG-0059",
+      "SG-0061"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "acceptanceRefs": [
+      "A-006"
+    ],
+    "acceptance": [
+      "GdUnit: after publishing core.sanguo.boss.challenge.prompted, UI must show the pre-challenge prompt and render WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence; missing fields must not silently fallback. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
+      "GdUnit: default copy and fail-consequence semantics must match contract constants (including return_to_camp_end_round), while keeping an observable i18n fallback path. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd"
+    ],
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd"
+    ],
+    "test_strategy": [
+      "GdUnit integration tests for A-006; current state is integration_pending."
+    ],
+    "contractRefs": [
+      "core.sanguo.boss.challenge.prompted"
+    ]
+  },
+  {
+    "id": "SG-0067",
+    "taskmaster_id": 67,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0067",
+    "title": "Module: A-007 Forced Challenge Fail-to-Camp UI Integration Tests",
+    "description": "Complete A-007 integration evidence: rejecting forced challenge must execute \"return to camp and end round\", and the UI state machine must not continue board flow.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "adapter",
+    "owner": "gameplay",
+    "labels": [
+      "ui",
+      "boss",
+      "integration",
+      "acceptance"
+    ],
+    "depends_on": [
+      "SG-0066",
+      "SG-0059",
+      "SG-0061"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "acceptanceRefs": [
+      "A-007"
+    ],
+    "acceptance": [
+      "GdUnit: when rejecting from the forced challenge prompt, flow must enter return_to_camp_end_round and end current round; board-phase continuation is not allowed. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd",
+      "GdUnit: fail consequence hint must be visible/replayable (at least one of log or HUD) and aligned with FailConsequence contract field. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd"
+    ],
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd"
+    ],
+    "test_strategy": [
+      "GdUnit integration tests for A-007; current state is integration_pending."
+    ],
+    "contractRefs": [
+      "core.sanguo.boss.challenge.prompted"
+    ]
+  },
+  {
+    "id": "SG-0068",
+    "taskmaster_id": 68,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0068",
+    "title": "Module: HUD explainability integration pack",
+    "description": "Integration closure after split tasks 81, 82.",
+    "priority": "P1",
+    "layer": "adapter",
+    "labels": [
+      "ui",
+      "hud-log",
+      "explain",
+      "integration"
+    ],
+    "depends_on": [
+      "SG-0081",
+      "SG-0082"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07",
+      "CH10"
+    ],
+    "acceptanceRefs": [
+      "A-008",
+      "A-009",
+      "A-010"
+    ],
+    "acceptance": [
+      "Integration closure uses split-task evidence from 81, 82."
+    ],
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_task68_hud_popup_log_transaction.gd",
+      "Tests.Godot/tests/UI/test_task68_hud_log_window_lazy_load.gd"
+    ],
+    "test_strategy": [
+      "Integration closure checks from split-task outputs."
+    ],
+    "contractRefs": [
+      "core.sanguo.city.bought",
+      "core.sanguo.action_card.played",
+      "core.sanguo.combat.ended"
+    ]
+  },
+  {
+    "id": "SG-0069",
+    "taskmaster_id": 69,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0069",
+    "title": "Module: i18n release/dev exposure policy (A-011/A-012)",
+    "description": "Apply build-mode dependent missing-key behavior: release hides raw keys, dev allows diagnostic raw-key exposure.",
+    "priority": "P1",
+    "layer": "adapter",
+    "labels": [
+      "ui",
+      "i18n",
+      "explain"
+    ],
+    "depends_on": [
+      "SG-0068"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07",
+      "CH10"
+    ],
+    "acceptanceRefs": [
+      "A-011",
+      "A-012"
+    ],
+    "acceptance": [
+      "GdUnit: release mode never exposes raw i18n keys in player-facing explanation text. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
+      "GdUnit: dev mode may expose raw i18n keys for diagnostics. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd"
+    ],
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd"
+    ],
+    "test_strategy": [
+      "GdUnit mode-parameterized i18n fallback tests."
+    ],
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
+    ]
+  },
+  {
+    "id": "SG-0070",
+    "taskmaster_id": 70,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0070",
+    "title": "Module: replay integrity integration pack",
+    "description": "Integration closure after split tasks 83, 84.",
+    "priority": "P1",
+    "layer": "core",
+    "labels": [
+      "replay",
+      "integrity",
+      "gate"
+    ],
+    "depends_on": [
+      "SG-0083",
+      "SG-0084"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH05"
+    ],
+    "acceptanceRefs": [
+      "A-013",
+      "A-014",
+      "A-015"
+    ],
+    "acceptance": [
+      "Integration closure uses split-task evidence from 83, 84."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task70ReplayIntegrityTrustTests.cs"
+    ],
+    "test_strategy": [
+      "Integration closure checks from split-task outputs."
+    ],
+    "contractRefs": [
+      "core.sanguo.game.saved",
+      "core.sanguo.game.loaded",
+      "core.run.continue.blocked"
+    ]
+  },
+  {
+    "id": "SG-0071",
+    "taskmaster_id": 71,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0071",
+    "title": "Module: diagnostic payload desensitization and retention window (A-016/A-017) integration pack",
+    "description": "Integration closure after split tasks 113, 114.",
+    "priority": "P2",
+    "layer": "core",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0113",
+      "SG-0114"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH07"
+    ],
+    "acceptanceRefs": [
+      "A-016",
+      "A-017"
+    ],
+    "acceptance": [
+      "xUnit: diagnostics payload is desensitized with mode-based priority policy. Refs: Game.Core.Tests/Tasks/Task71DiagnosticsRetentionTests.cs",
+      "xUnit: retention keeps latest bounded window only (default 3 runs). Refs: Game.Core.Tests/Tasks/Task71DiagnosticsRetentionTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task71SplitIntegrationTests.cs"
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "contractRefs": [
+      "core.traceability.checked",
+      "core.audit.logged"
+    ]
+  },
+  {
+    "id": "SG-0072",
+    "taskmaster_id": 72,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0072",
+    "title": "Module: audit write fallback and rotation cap (A-018/A-019) integration pack",
+    "description": "Integration closure after split tasks 115, 116.",
+    "priority": "P2",
+    "layer": "core",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0115",
+      "SG-0116"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH03",
+      "CH07"
+    ],
+    "acceptanceRefs": [
+      "A-018",
+      "A-019"
+    ],
+    "acceptance": [
+      "xUnit/integration: on primary audit write failure, runtime continues and fallback write to user:// is attempted. Refs: Game.Core.Tests/Tasks/Task72AuditFallbackRotationTests.cs",
+      "xUnit/filesystem: fallback files rotate under fixed cap policy. Refs: Game.Core.Tests/Tasks/Task72AuditFallbackRotationTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task72SplitIntegrationTests.cs"
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "contractRefs": [
+      "core.audit.logged"
+    ]
+  },
+  {
+    "id": "SG-0073",
+    "taskmaster_id": 73,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "architecture",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0073",
+    "title": "Module: contract evolution compatibility gate (A-020)",
+    "description": "Add CI contract-compatibility gate to reject remove/rename without deprecation window.",
+    "priority": "P1",
+    "layer": "ci",
+    "labels": [
+      "contracts",
+      "ci",
+      "compatibility"
+    ],
+    "depends_on": [
+      "SG-0072"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07"
+    ],
+    "acceptanceRefs": [
+      "A-020"
+    ],
+    "acceptance": [
+      "CI gate rejects remove/rename contract changes without deprecation window and migration notice. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs"
+    ],
+    "test_strategy": [
+      "Script gate + xUnit wrapper tests for contract compatibility."
+    ],
+    "contractRefs": []
+  },
+  {
+    "id": "SG-0074",
+    "taskmaster_id": 74,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0074",
+    "title": "Module: CampaignRuleEngine integration pack",
+    "description": "Integration closure after split tasks 85, 86.",
+    "priority": "P1",
+    "layer": "core",
+    "labels": [
+      "campaign",
+      "rules",
+      "state-machine"
+    ],
+    "depends_on": [
+      "SG-0085",
+      "SG-0086"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH05"
+    ],
+    "acceptanceRefs": [
+      "R1",
+      "R3"
+    ],
+    "acceptance": [
+      "Integration closure uses split-task evidence from 85, 86."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task74CampaignRuleEngineTests.cs",
+      "Tests.Godot/tests/UI/test_task74_campaign_game_end_ui_flow.gd"
+    ],
+    "test_strategy": [
+      "Integration closure checks from split-task outputs."
+    ],
+    "contractRefs": [
+      "core.sanguo.game.started",
+      "core.sanguo.game.ended",
+      "core.run.state.transitioned"
+    ]
+  },
+  {
+    "id": "SG-0075",
+    "taskmaster_id": 75,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0075",
+    "title": "Module: CampLifecycleEngine integration pack",
+    "description": "Integration closure after split tasks 87, 88.",
+    "priority": "P1",
+    "layer": "core",
+    "labels": [
+      "camp",
+      "state-machine",
+      "save"
+    ],
+    "depends_on": [
+      "SG-0087",
+      "SG-0088"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH05"
+    ],
+    "acceptanceRefs": [
+      "R2",
+      "R5",
+      "A-003",
+      "A-004",
+      "A-005"
+    ],
+    "acceptance": [
+      "Integration closure uses split-task evidence from 87, 88."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task75CampLifecycleEngineTests.cs"
+    ],
+    "test_strategy": [
+      "Integration closure checks from split-task outputs."
+    ],
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended",
+      "core.save.write.failed",
+      "core.save.write.succeeded"
+    ]
+  },
+  {
+    "id": "SG-0076",
+    "taskmaster_id": 76,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0076",
+    "title": "Module: BossPressureEngine integration pack",
+    "description": "Integration closure after split tasks 89, 90.",
+    "priority": "P1",
+    "layer": "core",
+    "labels": [
+      "boss",
+      "pressure",
+      "combat-entry"
+    ],
+    "depends_on": [
+      "SG-0089",
+      "SG-0090"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH06",
+      "CH07",
+      "CH05"
+    ],
+    "acceptanceRefs": [
+      "R6",
+      "A-006",
+      "A-007"
+    ],
+    "acceptance": [
+      "Integration closure uses split-task evidence from 89, 90."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task76BossPressureEngineTests.cs",
+      "Tests.Godot/tests/UI/test_task76_force_challenge_preempt_board_flow.gd"
+    ],
+    "test_strategy": [
+      "Integration closure checks from split-task outputs."
+    ],
+    "contractRefs": [
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.game.turn.ended",
+      "core.sanguo.random_event.applied"
+    ]
+  },
+  {
+    "id": "SG-0077",
+    "taskmaster_id": 77,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0077",
+    "title": "Module: RandomObjectiveEngine (pace-compensation loop) integration pack",
+    "description": "Integration closure after split tasks 117, 118.",
+    "priority": "P2",
+    "layer": "core",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0117",
+      "SG-0118"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ],
+    "acceptance": [
+      "xUnit: per-round objective generation and settlement are deterministic under fixed seed. Refs: Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs",
+      "GdUnit: objective publication and settlement hints are visible in HUD/log explain chain. Refs: Tests.Godot/tests/UI/test_task77_random_objective_hud_visibility.gd"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task77SplitIntegrationTests.cs"
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "contractRefs": [
+      "core.sanguo.objective.skipped",
+      "core.reward.offer.presented",
+      "core.reward.offer.selected"
+    ]
+  },
+  {
+    "id": "SG-0078",
+    "taskmaster_id": 78,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0078",
+    "title": "Module: RewardDraftEngine (deterministic 3-choice draft) integration pack",
+    "description": "Integration closure after split tasks 119, 120.",
+    "priority": "P2",
+    "layer": "core",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0119",
+      "SG-0120"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ],
+    "acceptance": [
+      "xUnit: reward draft exposes deterministic 3-choice candidates under fixed seed and commits selected outcome once. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "contractRefs": [
+      "core.reward.offer.presented",
+      "core.reward.offer.selected",
+      "core.reward.offer.skipped"
+    ]
+  },
+  {
+    "id": "SG-0079",
+    "taskmaster_id": 79,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "gameplay",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0079",
+    "title": "Module: campaign-mode AI hard-disable guard",
+    "description": "Hard-disable AI decision entry points in campaign mode while preserving non-campaign AI paths.",
+    "priority": "P2",
+    "layer": "core",
+    "labels": [
+      "campaign",
+      "ai",
+      "guard"
+    ],
+    "depends_on": [
+      "SG-0074",
+      "SG-0061"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0011"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07",
+      "CH10"
+    ],
+    "acceptanceRefs": [
+      "R10"
+    ],
+    "acceptance": [
+      "xUnit: campaign mode blocks AI decision execution path while non-campaign keeps existing AI behavior. Refs: Game.Core.Tests/Tasks/Task79CampaignAiDisabledGuardTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task79CampaignAiDisabledGuardTests.cs"
+    ],
+    "test_strategy": [
+      "xUnit mode guard tests for AI decision entry points."
+    ],
+    "contractRefs": [
+      "core.sanguo.ai.decision.made",
+      "core.run.continue.blocked"
+    ]
+  },
+  {
+    "id": "SG-0080",
+    "taskmaster_id": 80,
+    "taskmaster_exported": true,
+    "status": "deferred",
+    "owner": "architecture",
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "story_id": "PRD-SANGUO-T3-RULES-SG-0080",
+    "title": "Module: PRD v3 assertion gate integration pack",
+    "description": "Integration closure after split tasks 91, 92.",
+    "priority": "P1",
+    "layer": "ci",
+    "labels": [
+      "quality-gate",
+      "assertions",
+      "ci"
+    ],
+    "depends_on": [
+      "SG-0091",
+      "SG-0092"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0015"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH07",
+      "CH09"
+    ],
+    "acceptanceRefs": [
+      "A-008",
+      "A-020"
+    ],
+    "acceptance": [
+      "Integration closure uses split-task evidence from 91, 92."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs"
+    ],
+    "test_strategy": [
+      "Integration closure checks from split-task outputs."
+    ],
+    "contractRefs": []
+  },
+  {
+    "id": "SG-0081",
+    "taskmaster_id": 81,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0081",
+    "title": "Module: popup-log atomic commit (split from T68)",
+    "description": "Split task for A-008.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0051",
+      "SG-0056",
+      "SG-0059"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "acceptanceRefs": [
+      "A-008"
+    ],
+    "acceptance": [
+      "Task verifies A-008 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task81SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.sanguo.city.bought",
+      "core.sanguo.action_card.played",
+      "core.sanguo.combat.ended"
+    ]
+  },
+  {
+    "id": "SG-0082",
+    "taskmaster_id": 82,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0082",
+    "title": "Module: HUD log overflow/windowing (split from T68)",
+    "description": "Split task for A-009~A-010.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0081"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "acceptanceRefs": [
+      "A-009~A-010"
+    ],
+    "acceptance": [
+      "Task verifies A-009~A-010 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task82SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.sanguo.city.bought",
+      "core.sanguo.combat.ended"
+    ]
+  },
+  {
+    "id": "SG-0083",
+    "taskmaster_id": 83,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0083",
+    "title": "Module: replay trust hash + save_untrusted (split from T70)",
+    "description": "Split task for A-013~A-014.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0052",
+      "SG-0067"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "acceptanceRefs": [
+      "A-013~A-014"
+    ],
+    "acceptance": [
+      "Task verifies A-013~A-014 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task83SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.sanguo.game.saved",
+      "core.sanguo.game.loaded"
+    ]
+  },
+  {
+    "id": "SG-0084",
+    "taskmaster_id": 84,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0084",
+    "title": "Module: replay mismatch mode policy (split from T70)",
+    "description": "Split task for A-015.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0083"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "acceptanceRefs": [
+      "A-015"
+    ],
+    "acceptance": [
+      "Task verifies A-015 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task84SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.run.continue.blocked",
+      "core.sanguo.game.loaded"
+    ]
+  },
+  {
+    "id": "SG-0085",
+    "taskmaster_id": 85,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0085",
+    "title": "Module: campaign runmode isolation (split from T74)",
+    "description": "Split task for R1.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0060"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "acceptanceRefs": [
+      "R1"
+    ],
+    "acceptance": [
+      "Task verifies R1 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task85SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.run.state.transitioned",
+      "core.sanguo.game.started"
+    ]
+  },
+  {
+    "id": "SG-0086",
+    "taskmaster_id": 86,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0086",
+    "title": "Module: campaign endgame adjudicator (split from T74)",
+    "description": "Split task for R3.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0085"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "acceptanceRefs": [
+      "R3"
+    ],
+    "acceptance": [
+      "Task verifies R3 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task86SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ]
+  },
+  {
+    "id": "SG-0087",
+    "taskmaster_id": 87,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0087",
+    "title": "Module: camp transition + one-action rule (split from T75)",
+    "description": "Split task for R2/R5.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0074"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+    ],
+    "acceptanceRefs": [
+      "R2/R5"
+    ],
+    "acceptance": [
+      "Task verifies R2/R5 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task87SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended"
+    ]
+  },
+  {
+    "id": "SG-0088",
+    "taskmaster_id": 88,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0088",
+    "title": "Module: leave-camp save retry + warning (split from T75)",
+    "description": "Split task for A-003~A-005.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0087"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+    ],
+    "acceptanceRefs": [
+      "A-003~A-005"
+    ],
+    "acceptance": [
+      "Task verifies A-003~A-005 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task88SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.save.write.failed",
+      "core.save.write.succeeded"
+    ]
+  },
+  {
+    "id": "SG-0089",
+    "taskmaster_id": 89,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0089",
+    "title": "Module: boss pressure timeline (split from T76)",
+    "description": "Split task for R6.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0075"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "acceptanceRefs": [
+      "R6"
+    ],
+    "acceptance": [
+      "Task verifies R6 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task89SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.sanguo.random_event.applied",
+      "core.sanguo.game.turn.ended"
+    ]
+  },
+  {
+    "id": "SG-0090",
+    "taskmaster_id": 90,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0090",
+    "title": "Module: forced challenge preemption (split from T76)",
+    "description": "Split task for A-006~A-007.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "owner": "gameplay",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0089",
+      "SG-0066",
+      "SG-0067"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "acceptanceRefs": [
+      "A-006~A-007"
+    ],
+    "acceptance": [
+      "Task verifies A-006~A-007 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task90SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": [
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.game.turn.ended"
+    ]
+  },
+  {
+    "id": "SG-0091",
+    "taskmaster_id": 91,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0091",
+    "title": "Module: core assertion gate runner (split from T80)",
+    "description": "Split task for A-013~A-020.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "owner": "architecture",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0070",
+      "SG-0071",
+      "SG-0072",
+      "SG-0073"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "acceptanceRefs": [
+      "A-013~A-020"
+    ],
+    "acceptance": [
+      "Task verifies A-013~A-020 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task91SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": []
+  },
+  {
+    "id": "SG-0092",
+    "taskmaster_id": 92,
+    "taskmaster_exported": true,
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0092",
+    "title": "Module: UI assertion gate runner (split from T80)",
+    "description": "Split task for A-008~A-012.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "owner": "architecture",
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "depends_on": [
+      "SG-0068",
+      "SG-0069"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0010"
+    ],
+    "chapter_refs": [
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "acceptanceRefs": [
+      "A-008~A-012"
+    ],
+    "acceptance": [
+      "Task verifies A-008~A-012 with deterministic evidence."
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task92SplitTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "contractRefs": []
+  },
+  {
+    "id": "SG-0093",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0093",
+    "title": "Module: campaign run mode and start payload completion",
+    "description": "Extend start config and game-start payload with campaign run mode, commander, strategems, map and seed fields.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0050",
+      "SG-0054",
+      "SG-0074"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md"
+    ],
+    "labels": [
+      "campaign",
+      "runmode",
+      "start-config"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task93V3Tests.cs",
+      "Tests.Godot/tests/UI/test_task93_campaign_ui_visibility.gd"
+    ],
+    "acceptance": [
+      "Campaign run start payload is deterministic and replay-addressable."
+    ],
+    "test_strategy": [
+      "xUnit validates payload mapping and defaults; GdUnit validates NewGameConfig serialization and start handoff."
+    ],
+    "taskmaster_id": 93,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.started",
+      "core.run.state.transitioned"
+    ],
+    "acceptanceRefs": [
+      "R1"
+    ]
+  },
+  {
+    "id": "SG-0094",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0094",
+    "title": "Module: commander roster and strategem pick flow integration pack",
+    "description": "Integration closure after split tasks 121, 122.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0121",
+      "SG-0122"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task94SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Campaign start blocks until commander and strategem picks are complete."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 94,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.started"
+    ],
+    "acceptanceRefs": [
+      "R1"
+    ]
+  },
+  {
+    "id": "SG-0095",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0095",
+    "title": "Module: campaign HUD parameter panel and i18n",
+    "description": "Show campaign key parameters on HUD with zh/en localization and no raw event codes in release mode.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0094",
+      "SG-0068",
+      "SG-0069"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH05",
+      "CH06",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md"
+    ],
+    "labels": [
+      "hud",
+      "i18n",
+      "campaign",
+      "explainability"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Tests.Godot/tests/UI/test_task95_campaign_integration.gd"
+    ],
+    "acceptance": [
+      "HUD shows campaign context in localized text without raw keys in release mode."
+    ],
+    "test_strategy": [
+      "GdUnit locks localized HUD summary rendering for campaign key fields in release mode."
+    ],
+    "taskmaster_id": 95,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.started",
+      "core.sanguo.random_event.applied"
+    ],
+    "acceptanceRefs": [
+      "A-011",
+      "A-012"
+    ]
+  },
+  {
+    "id": "SG-0096",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0096",
+    "title": "Module: campaign round lifecycle state machine integration pack",
+    "description": "Integration closure after split tasks 123, 124.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0123",
+      "SG-0124"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Round order remains deterministic and replay-stable under multi-event collisions."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 96,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended",
+      "core.run.state.transitioned"
+    ],
+    "acceptanceRefs": [
+      "R2",
+      "A-001",
+      "A-002"
+    ]
+  },
+  {
+    "id": "SG-0097",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0097",
+    "title": "Module: camp building slot and durability model integration pack",
+    "description": "Integration closure after split tasks 125, 126.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0125",
+      "SG-0126"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0006",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task97SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Five camp building slots are persisted and degrade deterministically."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 97,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.building.built",
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R5"
+    ]
+  },
+  {
+    "id": "SG-0098",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0098",
+    "title": "Module: camp one-action-per-round guard",
+    "description": "Enforce single camp action per round and provide explicit blocked reason in event logs.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0097",
+      "SG-0087"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+    ],
+    "labels": [
+      "camp",
+      "action-guard",
+      "state-machine"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task98V3Tests.cs",
+      "Tests.Godot/tests/UI/test_task98_campaign_ui_visibility.gd"
+    ],
+    "acceptance": [
+      "Camp allows at most one action per round, with stable blocked reason reporting."
+    ],
+    "test_strategy": [
+      "xUnit validates guard; GdUnit validates blocked action message and unchanged camp state."
+    ],
+    "taskmaster_id": 98,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.action_card.play.rejected",
+      "core.sanguo.game.turn.ended"
+    ],
+    "acceptanceRefs": [
+      "R5"
+    ]
+  },
+  {
+    "id": "SG-0099",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0099",
+    "title": "Module: camp building effects minimum set integration pack",
+    "description": "Integration closure after split tasks 127, 128.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0127",
+      "SG-0128"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task99SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Each camp building produces explainable and deterministic effects."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 99,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.relic.applied",
+      "core.sanguo.loot.granted",
+      "core.sanguo.building.built"
+    ],
+    "acceptanceRefs": [
+      "R5"
+    ]
+  },
+  {
+    "id": "SG-0100",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0100",
+    "title": "Module: camp durability fatal adjudicator integration pack",
+    "description": "Integration closure after split tasks 129, 130.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0129",
+      "SG-0130"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task100SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Camp durability zero produces immediate deterministic defeat and exits round safely."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 100,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R3",
+      "A-001"
+    ]
+  },
+  {
+    "id": "SG-0101",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0101",
+    "title": "Module: boss dice profile by difficulty and duration target integration pack",
+    "description": "Integration closure after split tasks 131, 132.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0131",
+      "SG-0132"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Difficulty profiles map to configured boss counts and pressure pacing constraints."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 101,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
+    ],
+    "acceptanceRefs": [
+      "R6"
+    ]
+  },
+  {
+    "id": "SG-0102",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0102",
+    "title": "Module: boss pressure resolver and explainability payload integration pack",
+    "description": "Integration closure after split tasks 133, 134.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0133",
+      "SG-0134"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task102SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Pressure entries include trigger source, numeric impact, and duration for replay and HUD explainability."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 102,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
+    ],
+    "acceptanceRefs": [
+      "R6"
+    ]
+  },
+  {
+    "id": "SG-0103",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0103",
+    "title": "Module: boss reveal delay challenge and hard-cap forcing integration pack",
+    "description": "Integration closure after split tasks 135, 136.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0135",
+      "SG-0136"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Hard-cap challenge preempts board flow and follows forced challenge prompt policy."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 103,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.game.turn.ended"
+    ],
+    "acceptanceRefs": [
+      "A-006",
+      "A-007"
+    ]
+  },
+  {
+    "id": "SG-0104",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0104",
+    "title": "Module: board event auto-trigger and skip restriction guard integration pack",
+    "description": "Integration closure after split tasks 137, 138.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0137",
+      "SG-0138"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Skip remains a rule-blocked fallback only and event tiles auto-trigger."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 104,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.action_card.play.rejected",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.combat.started"
+    ],
+    "acceptanceRefs": [
+      "R7"
+    ]
+  },
+  {
+    "id": "SG-0105",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0105",
+    "title": "Module: random objective publish-settle timeline closure integration pack",
+    "description": "Integration closure after split tasks 139, 140.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0139",
+      "SG-0140"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task105SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Objective timeline is deterministic: settle at camp, publish after boss branch, and suppress on game end."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 105,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.objective.skipped",
+      "core.reward.offer.presented",
+      "core.reward.offer.selected"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0106",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0106",
+    "title": "Module: random objective reward source integration integration pack",
+    "description": "Integration closure after split tasks 141, 142.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0141",
+      "SG-0142"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Objective reward pipeline is deterministic and explains reward source at commit time."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 106,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.reward.offer.presented",
+      "core.reward.offer.selected",
+      "core.sanguo.loot.granted"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0107",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0107",
+    "title": "Module: campaign win-lose adjudicator completion integration pack",
+    "description": "Integration closure after split tasks 143, 144.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0143",
+      "SG-0144"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task107SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Campaign win/lose adjudication matches final boss and camp durability rules exactly."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 107,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R3"
+    ]
+  },
+  {
+    "id": "SG-0108",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0108",
+    "title": "Module: campaign AI hard-disable runtime guard completion",
+    "description": "Ensure campaign mode disables AI decision paths entirely and emits explicit blocked diagnostics.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0079",
+      "SG-0093",
+      "SG-0096"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md"
+    ],
+    "labels": [
+      "campaign",
+      "ai-guard",
+      "runmode"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task108V3Tests.cs",
+      "Tests.Godot/tests/UI/test_task108_campaign_ui_visibility.gd"
+    ],
+    "acceptance": [
+      "Campaign mode never executes AI decisions and keeps deterministic diagnostics."
+    ],
+    "test_strategy": [
+      "xUnit validates AI entrypoint guard by run mode; integration validates no AI action events in campaign rounds."
+    ],
+    "taskmaster_id": 108,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.run.continue.blocked",
+      "core.sanguo.ai.decision.made"
+    ],
+    "acceptanceRefs": [
+      "R10"
+    ]
+  },
+  {
+    "id": "SG-0109",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0109",
+    "title": "Module: campaign contracts and DTO mapper completion integration pack",
+    "description": "Integration closure after split tasks 145, 146.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0145",
+      "SG-0146"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task109SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Campaign events are contract-first and consumed through DTO mapper registry."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 109,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9",
+      "A-020"
+    ]
+  },
+  {
+    "id": "SG-0110",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0110",
+    "title": "Module: campaign content-pack schema and gates extension integration pack",
+    "description": "Integration closure after split tasks 147, 148.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0147",
+      "SG-0148"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0006",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task110SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Campaign data packs are rejected by gate when schema or reference constraints are violated."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 110,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9",
+      "R11"
+    ]
+  },
+  {
+    "id": "SG-0111",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0111",
+    "title": "Module: PRD v3 business acceptance integration suite integration pack",
+    "description": "Integration closure after split tasks 149, 150.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0149",
+      "SG-0150"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Campaign business flow passes deterministic integration acceptance scenarios."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 111,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "9.1"
+    ]
+  },
+  {
+    "id": "SG-0112",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0112",
+    "title": "Module: PRD v3 explainability/replay/i18n hard-gate closure integration pack",
+    "description": "Integration closure after split tasks 151, 152.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0151",
+      "SG-0152"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task112SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "PRD v3 assertion set is fully hard-gated with deterministic pass/fail summaries."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 112,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "A-011",
+      "A-012",
+      "A-013",
+      "A-014",
+      "A-015",
+      "A-016",
+      "A-017",
+      "A-018",
+      "A-019",
+      "A-020",
+      "9.3"
+    ]
+  },
+  {
+    "id": "SG-0113",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0113",
+    "title": "Module: diagnostic payload desensitization policy (split from T71)",
+    "description": "Split task for A-016 desensitization policy.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0070"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task113SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-016 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 113,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.traceability.checked",
+      "core.audit.logged"
+    ],
+    "acceptanceRefs": [
+      "A-016"
+    ]
+  },
+  {
+    "id": "SG-0114",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0114",
+    "title": "Module: diagnostic retention window enforcement (split from T71)",
+    "description": "Split task for A-017 retention policy.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0113"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task114SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-017 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 114,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.traceability.checked",
+      "core.audit.logged"
+    ],
+    "acceptanceRefs": [
+      "A-017"
+    ]
+  },
+  {
+    "id": "SG-0115",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0115",
+    "title": "Module: audit write fallback path (split from T72)",
+    "description": "Split task for A-018 fallback behavior.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0071"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH03",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task115SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-018 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 115,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.audit.logged"
+    ],
+    "acceptanceRefs": [
+      "A-018"
+    ]
+  },
+  {
+    "id": "SG-0116",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0116",
+    "title": "Module: audit fallback rotation cap (split from T72)",
+    "description": "Split task for A-019 rotation cap.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0115"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0019"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH03",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task116SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-019 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 116,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.audit.logged"
+    ],
+    "acceptanceRefs": [
+      "A-019"
+    ]
+  },
+  {
+    "id": "SG-0117",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0117",
+    "title": "Module: objective generation determinism (split from T77)",
+    "description": "Split task for deterministic objective generation.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0076",
+      "SG-0056"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task117SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R8 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 117,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.objective.skipped",
+      "core.reward.offer.presented",
+      "core.reward.offer.selected"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0118",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0118",
+    "title": "Module: objective settlement timeline closure (split from T77)",
+    "description": "Split task for objective settlement and timeline closure.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0117"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task118SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R8 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 118,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.objective.skipped",
+      "core.reward.offer.presented",
+      "core.reward.offer.selected"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0119",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0119",
+    "title": "Module: reward draft candidate determinism (split from T78)",
+    "description": "Split task for deterministic candidate generation.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0077"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task119SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R8 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 119,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.reward.offer.presented",
+      "core.reward.offer.selected",
+      "core.reward.offer.skipped"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0120",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0120",
+    "title": "Module: reward draft commit and source tags (split from T78)",
+    "description": "Split task for draft commit semantics.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0119"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task120SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R8 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 120,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.reward.offer.presented",
+      "core.reward.offer.selected",
+      "core.reward.offer.skipped"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0121",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0121",
+    "title": "Module: commander roster lock/open states (split from T94)",
+    "description": "Split task for commander roster state machine.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0093",
+      "SG-0055"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task121SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R1 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 121,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.started"
+    ],
+    "acceptanceRefs": [
+      "R1"
+    ]
+  },
+  {
+    "id": "SG-0122",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0122",
+    "title": "Module: active/passive strategem selection guard (split from T94)",
+    "description": "Split task for strategem selection constraints.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0121"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task122SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R1 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 122,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.started"
+    ],
+    "acceptanceRefs": [
+      "R1"
+    ]
+  },
+  {
+    "id": "SG-0123",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0123",
+    "title": "Module: camp-pressure-board transition sequencer (split from T96)",
+    "description": "Split task for phase transition state machine.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0052",
+      "SG-0074",
+      "SG-0075",
+      "SG-0076"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task123SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R2, A-001 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 123,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended",
+      "core.run.state.transitioned"
+    ],
+    "acceptanceRefs": [
+      "R2",
+      "A-001"
+    ]
+  },
+  {
+    "id": "SG-0124",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0124",
+    "title": "Module: round ordering replay-stability checks (split from T96)",
+    "description": "Split task for ordering stability.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0123"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task124SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R2, A-002 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 124,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended",
+      "core.run.state.transitioned"
+    ],
+    "acceptanceRefs": [
+      "R2",
+      "A-002"
+    ]
+  },
+  {
+    "id": "SG-0125",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0125",
+    "title": "Module: camp five-slot durability model (split from T97)",
+    "description": "Split task for 5-slot durability modeling.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0058",
+      "SG-0075",
+      "SG-0087"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0006",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task125SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R5 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 125,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.building.built",
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R5"
+    ]
+  },
+  {
+    "id": "SG-0126",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0126",
+    "title": "Module: camp durability persistence mapping (split from T97)",
+    "description": "Split task for save/load durability mapping.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0125"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0006",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task126SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R5 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 126,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.building.built",
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R5"
+    ]
+  },
+  {
+    "id": "SG-0127",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0127",
+    "title": "Module: camp building effects set A (split from T99)",
+    "description": "Split task for relic workshop/tavern/defense center effects.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0097",
+      "SG-0098",
+      "SG-0062"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task127SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R5 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 127,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.relic.applied",
+      "core.sanguo.loot.granted",
+      "core.sanguo.building.built"
+    ],
+    "acceptanceRefs": [
+      "R5"
+    ]
+  },
+  {
+    "id": "SG-0128",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0128",
+    "title": "Module: camp building effects set B (split from T99)",
+    "description": "Split task for war hall/training ground effects.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0127"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task128SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R5 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 128,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.relic.applied",
+      "core.sanguo.loot.granted",
+      "core.sanguo.building.built"
+    ],
+    "acceptanceRefs": [
+      "R5"
+    ]
+  },
+  {
+    "id": "SG-0129",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0129",
+    "title": "Module: camp durability fatal preemption rule (split from T100)",
+    "description": "Split task for fatal preemption logic.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0097",
+      "SG-0099",
+      "SG-0086"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task129SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R3, A-001 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 129,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R3",
+      "A-001"
+    ]
+  },
+  {
+    "id": "SG-0130",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0130",
+    "title": "Module: camp-fail settlement routing (split from T100)",
+    "description": "Split task for camp-fail settlement flow.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0129"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task130SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R3 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 130,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R3"
+    ]
+  },
+  {
+    "id": "SG-0131",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0131",
+    "title": "Module: boss difficulty profile schema (split from T101)",
+    "description": "Split task for boss profile schema and bounds.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0053",
+      "SG-0076"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task131SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R6 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 131,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
+    ],
+    "acceptanceRefs": [
+      "R6"
+    ]
+  },
+  {
+    "id": "SG-0132",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0132",
+    "title": "Module: boss count and duration target validator (split from T101)",
+    "description": "Split task for duration target validation.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0131"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0015",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH09"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task132SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R6 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 132,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
+    ],
+    "acceptanceRefs": [
+      "R6"
+    ]
+  },
+  {
+    "id": "SG-0133",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0133",
+    "title": "Module: boss elite-attack pressure resolver (split from T102)",
+    "description": "Split task for elite attack count resolution.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0051",
+      "SG-0089",
+      "SG-0101"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task133SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R6 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 133,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
+    ],
+    "acceptanceRefs": [
+      "R6"
+    ]
+  },
+  {
+    "id": "SG-0134",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0134",
+    "title": "Module: boss pressure explain payload mapper (split from T102)",
+    "description": "Split task for explainability payload.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0133"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task134SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R6 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 134,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.random_event.applied"
+    ],
+    "acceptanceRefs": [
+      "R6"
+    ]
+  },
+  {
+    "id": "SG-0135",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0135",
+    "title": "Module: boss reveal delay pressure stacking (split from T103)",
+    "description": "Split task for reveal delay stacking.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0066",
+      "SG-0067",
+      "SG-0090",
+      "SG-0102"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task135SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-006 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 135,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.game.turn.ended"
+    ],
+    "acceptanceRefs": [
+      "A-006"
+    ]
+  },
+  {
+    "id": "SG-0136",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0136",
+    "title": "Module: hard-cap forced challenge preemption (split from T103)",
+    "description": "Split task for hard-cap preemption.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0135"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task136SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-007 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 136,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.game.turn.ended"
+    ],
+    "acceptanceRefs": [
+      "A-007"
+    ]
+  },
+  {
+    "id": "SG-0137",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0137",
+    "title": "Module: event tile auto-trigger enforcement (split from T104)",
+    "description": "Split task for event tile trigger behavior.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0052",
+      "SG-0056",
+      "SG-0057",
+      "SG-0059"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task137SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R7 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 137,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.action_card.play.rejected",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.combat.started"
+    ],
+    "acceptanceRefs": [
+      "R7"
+    ]
+  },
+  {
+    "id": "SG-0138",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0138",
+    "title": "Module: skip blocked-reason rule matrix (split from T104)",
+    "description": "Split task for skip eligibility matrix.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0137"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task138SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R7 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 138,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.action_card.play.rejected",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.combat.started"
+    ],
+    "acceptanceRefs": [
+      "R7"
+    ]
+  },
+  {
+    "id": "SG-0139",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0139",
+    "title": "Module: objective publish-after-boss timing (split from T105)",
+    "description": "Split task for objective publish timing.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0077",
+      "SG-0096",
+      "SG-0103"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task139SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R8 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 139,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.objective.skipped",
+      "core.reward.offer.presented",
+      "core.reward.offer.selected"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0140",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0140",
+    "title": "Module: objective settle and endgame suppression (split from T105)",
+    "description": "Split task for objective settlement and suppression.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0139"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task140SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R8 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 140,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.objective.skipped",
+      "core.reward.offer.presented",
+      "core.reward.offer.selected"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0141",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0141",
+    "title": "Module: objective reward source integration (split from T106)",
+    "description": "Split task for reward source integration.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0062",
+      "SG-0078",
+      "SG-0105"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task141SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R8 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 141,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.reward.offer.presented",
+      "core.reward.offer.selected",
+      "core.sanguo.loot.granted"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0142",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0142",
+    "title": "Module: objective reward draft deterministic hook (split from T106)",
+    "description": "Split task for deterministic reward-draft hook.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "core",
+    "depends_on": [
+      "SG-0141"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task142SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R8 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 142,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.reward.offer.presented",
+      "core.reward.offer.selected",
+      "core.sanguo.loot.granted"
+    ],
+    "acceptanceRefs": [
+      "R8"
+    ]
+  },
+  {
+    "id": "SG-0143",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0143",
+    "title": "Module: final-boss victory adjudication branch (split from T107)",
+    "description": "Split task for final-boss win branch.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0060",
+      "SG-0100",
+      "SG-0103"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task143SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R3 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 143,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R3"
+    ]
+  },
+  {
+    "id": "SG-0144",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0144",
+    "title": "Module: camp-failure defeat adjudication branch (split from T107)",
+    "description": "Split task for camp-failure branch.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0143"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task144SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R3 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 144,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.ended"
+    ],
+    "acceptanceRefs": [
+      "R3"
+    ]
+  },
+  {
+    "id": "SG-0145",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0145",
+    "title": "Module: campaign contract set completion (split from T109) integration pack",
+    "description": "Integration closure after split tasks 169, 170.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0169",
+      "SG-0170"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task145SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R9, A-020 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 145,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9",
+      "A-020"
+    ]
+  },
+  {
+    "id": "SG-0146",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0146",
+    "title": "Module: campaign HUD DTO mapper closure (split from T109)",
+    "description": "Split task for DTO mapper closure.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0145"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task146SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R9 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 146,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9"
+    ]
+  },
+  {
+    "id": "SG-0147",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0147",
+    "title": "Module: campaign content schema extension (split from T110) integration pack",
+    "description": "Integration closure after split tasks 171, 172.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0171",
+      "SG-0172"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0006",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task147SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R9 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 147,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9"
+    ]
+  },
+  {
+    "id": "SG-0148",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0148",
+    "title": "Module: campaign content quality gates closure (split from T110)",
+    "description": "Split task for content gate closure.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0147"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0006",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task148SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R11 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 148,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R11"
+    ]
+  },
+  {
+    "id": "SG-0149",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0149",
+    "title": "Module: campaign full-loop boss-win scenario (split from T111)",
+    "description": "Split task for boss-win integration scenario.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0104",
+      "SG-0106",
+      "SG-0107",
+      "SG-0108",
+      "SG-0110"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task149SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies 9.1 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 149,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "9.1"
+    ]
+  },
+  {
+    "id": "SG-0150",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0150",
+    "title": "Module: campaign full-loop camp-fail scenario (split from T111)",
+    "description": "Split task for camp-fail integration scenario.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0149"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task150SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies 9.1 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 150,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "9.1"
+    ]
+  },
+  {
+    "id": "SG-0151",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0151",
+    "title": "Module: core assertion hard-gate closure (split from T112) integration pack",
+    "description": "Integration closure after split tasks 173, 174, 175.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0173",
+      "SG-0174",
+      "SG-0175"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task151SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-013, A-014, A-015, A-016, A-017, A-018, A-019, A-020 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 151,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "A-013",
+      "A-014",
+      "A-015",
+      "A-016",
+      "A-017",
+      "A-018",
+      "A-019",
+      "A-020"
+    ]
+  },
+  {
+    "id": "SG-0152",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0152",
+    "title": "Module: UI assertion hard-gate closure (split from T112)",
+    "description": "Split task for UI assertion hard gates.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0151"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task152SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-011, A-012, 9.3 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 152,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "A-011",
+      "A-012",
+      "9.3"
+    ]
+  },
+  {
+    "id": "SG-0153",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0153",
+    "title": "Module: R4 end-to-end explainability and replayability gate",
+    "description": "Build an explicit integration gate for R4 to validate explainability chain and replay consistency in one deterministic scenario set.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0111",
+      "SG-0112"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "traceability",
+      "r4",
+      "explainability",
+      "replay",
+      "ci"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task153V3Tests.cs"
+    ],
+    "acceptance": [
+      "R4 end-to-end explainability and replayability has executable deterministic evidence."
+    ],
+    "test_strategy": [
+      "CI integration tests lock end-to-end explainability plus replayability evidence for campaign scenarios."
+    ],
+    "taskmaster_id": 153,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R4"
+    ]
+  },
+  {
+    "id": "SG-0154",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0154",
+    "title": "Module: freeze policy guard for non-crash feedback suppression",
+    "description": "Add executable guard for freeze section 1.2 to ensure non-crash issues do not trigger user-facing feedback flows.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0071",
+      "SG-0072"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "freeze",
+      "policy-guard",
+      "feedback",
+      "non-crash"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task154V3Tests.cs"
+    ],
+    "acceptance": [
+      "Freeze 1.2 policy is executable: non-crash issues never open user-facing feedback flow."
+    ],
+    "test_strategy": [
+      "xUnit + integration tests verify feedback routing policy by issue category with deterministic outcomes."
+    ],
+    "taskmaster_id": 154,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "RF-1.2"
+    ]
+  },
+  {
+    "id": "SG-0155",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0155",
+    "title": "Module: freeze change-control triplet gate",
+    "description": "Add hard gate for freeze section 9 change-control triplet: freeze revision, assertion update, and test evidence update.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0073",
+      "SG-0112"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "freeze",
+      "governance",
+      "ci",
+      "change-control"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task155V3Tests.cs"
+    ],
+    "acceptance": [
+      "Freeze section 9 triplet gate fails when any of the three required artifacts is missing."
+    ],
+    "test_strategy": [
+      "Scripted CI tests verify the change-control triplet gate with positive and negative fixtures."
+    ],
+    "taskmaster_id": 155,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "RF-9",
+      "R11"
+    ]
+  },
+  {
+    "id": "SG-0156",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0156",
+    "title": "Module: signal XML documentation completeness gate (PH9-B2)",
+    "description": "Add executable gate for Signal/Event XML documentation completeness under contracts and security-critical signals.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0036",
+      "SG-0040"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "labels": [
+      "governance",
+      "signal",
+      "xml-doc",
+      "ci"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task156GovernanceTests.cs"
+    ],
+    "acceptance": [
+      "Signal/Event contracts must have required XML docs; CI blocks missing cases."
+    ],
+    "test_strategy": [
+      "Scripted CI check plus unit fixture for missing-XML negative cases."
+    ],
+    "taskmaster_id": 156,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9",
+      "R11",
+      "PH9-B2"
+    ]
+  },
+  {
+    "id": "SG-0157",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0157",
+    "title": "Module: CI signal compliance workflow hard-gate (PH9-B4) integration pack",
+    "description": "Integration closure after split tasks 162, 163.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0162",
+      "SG-0163"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Signal compliance workflow is a required hard gate in V3 fast pipeline."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 157,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R11",
+      "PH9-B4"
+    ]
+  },
+  {
+    "id": "SG-0158",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0158",
+    "title": "Module: GDScript subscription lifecycle leak guard (PH9-B5) integration pack",
+    "description": "Integration closure after split tasks 164, 165.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0164",
+      "SG-0165"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task158SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "No stale subscription remains after scene lifecycle teardown in campaign runtime."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 158,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended"
+    ],
+    "acceptanceRefs": [
+      "R11",
+      "PH9-B5"
+    ]
+  },
+  {
+    "id": "SG-0159",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0159",
+    "title": "Module: privacy-compliance document and policy gate (PH16-B4)",
+    "description": "Add privacy-compliance baseline document and CI policy check to ensure observability payload handling stays compliant.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "docs",
+    "depends_on": [
+      "SG-0154",
+      "SG-0155"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "governance",
+      "privacy",
+      "compliance",
+      "policy"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task159GovernanceTests.cs"
+    ],
+    "acceptance": [
+      "Privacy-compliance baseline is documented and enforced by policy gate in CI."
+    ],
+    "test_strategy": [
+      "Policy gate script verifies required clauses and cross-links to freeze/assertion artifacts."
+    ],
+    "taskmaster_id": 159,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "A-016",
+      "A-017",
+      "RF-1.2",
+      "PH16-B4"
+    ]
+  },
+  {
+    "id": "SG-0160",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0160",
+    "title": "Module: logging-guidelines document and lint gate (PH16-B5)",
+    "description": "Add logging-guidelines baseline and lint gate for structured logging, redaction, and traceability fields.",
+    "status": "deferred",
+    "priority": "P2",
+    "layer": "docs",
+    "depends_on": [
+      "SG-0037",
+      "SG-0159"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "governance",
+      "logging",
+      "guidelines",
+      "policy"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task160GovernanceTests.cs"
+    ],
+    "acceptance": [
+      "Logging guidelines and redaction policies are enforced via executable lint gate."
+    ],
+    "test_strategy": [
+      "Lint-like documentation and config checks with regression fixtures for missing mandatory sections."
+    ],
+    "taskmaster_id": 160,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R4",
+      "R11",
+      "PH16-B5"
+    ]
+  },
+  {
+    "id": "SG-0161",
+    "story_id": "PRD-SANGUO-T3-V3-SG-0161",
+    "title": "Module: migration compatibility report automation gate (PH20-B3) integration pack",
+    "description": "Integration closure after split tasks 166, 167, 168.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0166",
+      "SG-0167",
+      "SG-0168"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task161SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Migration compatibility report is generated and hard-gated for completeness."
+    ],
+    "test_strategy": [
+      "Integration closure check from split-task evidence."
+    ],
+    "taskmaster_id": 161,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R11",
+      "PH20-B3"
+    ]
+  },
+  {
+    "id": "SG-0162",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0162",
+    "title": "Module: signal compliance aggregator implementation (split from T157)",
+    "description": "Split task for deterministic signal compliance aggregation.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0156",
+      "SG-0040"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task162SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R11, PH9-B4 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 162,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R11",
+      "PH9-B4"
+    ]
+  },
+  {
+    "id": "SG-0163",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0163",
+    "title": "Module: signal compliance workflow hard-gate wiring (split from T157)",
+    "description": "Split task for hard-gate workflow wiring and artifacts.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0162"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task163SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R11, PH9-B4 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 163,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R11",
+      "PH9-B4"
+    ]
+  },
+  {
+    "id": "SG-0164",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0164",
+    "title": "Module: runtime signal subscription lifecycle guard (split from T158)",
+    "description": "Split task for runtime subscribe/unsubscribe lifecycle guard.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0157"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task164SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R11, PH9-B5 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 164,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended"
+    ],
+    "acceptanceRefs": [
+      "R11",
+      "PH9-B5"
+    ]
+  },
+  {
+    "id": "SG-0165",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0165",
+    "title": "Module: GdUnit signal lifecycle leak fixtures (split from T158)",
+    "description": "Split task for deterministic leak-detection fixtures.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "adapter",
+    "depends_on": [
+      "SG-0164"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "gameplay",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task165SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R11, PH9-B5 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 165,
+    "taskmaster_exported": true,
+    "contractRefs": [
+      "core.sanguo.game.turn.started",
+      "core.sanguo.game.turn.ended"
+    ],
+    "acceptanceRefs": [
+      "R11",
+      "PH9-B5"
+    ]
+  },
+  {
+    "id": "SG-0166",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0166",
+    "title": "Module: migration compatibility report generator (split from T161)",
+    "description": "Split task for compatibility report generation.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0111",
+      "SG-0153",
+      "SG-0160"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task166SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R11, PH20-B3 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 166,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R11",
+      "PH20-B3"
+    ]
+  },
+  {
+    "id": "SG-0167",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0167",
+    "title": "Module: migration compatibility completeness validator (split from T161)",
+    "description": "Split task for report completeness validation.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0166"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task167SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R11, PH20-B3 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 167,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R11",
+      "PH20-B3"
+    ]
+  },
+  {
+    "id": "SG-0168",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0168",
+    "title": "Module: migration compatibility CI hard-gate integration (split from T161)",
+    "description": "Split task for CI hard-gate integration and rollout.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0167"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task168SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R11, PH20-B3 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 168,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R11",
+      "PH20-B3"
+    ]
+  },
+  {
+    "id": "SG-0169",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0169",
+    "title": "Module: campaign contract additive set and versioning (split from T145)",
+    "description": "Split task for campaign contract additive set and compatibility baseline.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0093",
+      "SG-0095",
+      "SG-0096",
+      "SG-0097",
+      "SG-0102",
+      "SG-0105"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task169SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R9, A-020 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 169,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9",
+      "A-020"
+    ]
+  },
+  {
+    "id": "SG-0170",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0170",
+    "title": "Module: campaign contract field harmonization for runtime flows (split from T145)",
+    "description": "Split task for cross-flow field harmonization over campaign contracts.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "core",
+    "depends_on": [
+      "SG-0169"
+    ],
+    "adr_refs": [
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task170SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R9, A-020 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 170,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9",
+      "A-020"
+    ]
+  },
+  {
+    "id": "SG-0171",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0171",
+    "title": "Module: campaign content schema catalog extension (split from T147)",
+    "description": "Split task for campaign content schema and catalog extension.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0053",
+      "SG-0069",
+      "SG-0073",
+      "SG-0101",
+      "SG-0105",
+      "SG-0109"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0006",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task171SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R9 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 171,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9"
+    ]
+  },
+  {
+    "id": "SG-0172",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0172",
+    "title": "Module: campaign content cross-table constraints and bump rules (split from T147)",
+    "description": "Split task for cross-table consistency and version bump constraints.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0171"
+    ],
+    "adr_refs": [
+      "ADR-0005",
+      "ADR-0006",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task172SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies R9, R11 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 172,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "R9",
+      "R11"
+    ]
+  },
+  {
+    "id": "SG-0173",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0173",
+    "title": "Module: core assertion hard-gate bundle A-013 to A-015 (split from T151)",
+    "description": "Split task for replay integrity and mismatch policy assertion bundle.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0069",
+      "SG-0070",
+      "SG-0071",
+      "SG-0072",
+      "SG-0073",
+      "SG-0091",
+      "SG-0092",
+      "SG-0111"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task173SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-013, A-014, A-015 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 173,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "A-013",
+      "A-014",
+      "A-015"
+    ]
+  },
+  {
+    "id": "SG-0174",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0174",
+    "title": "Module: core assertion hard-gate bundle A-016 to A-019 (split from T151)",
+    "description": "Split task for diagnostics and audit fallback assertion bundle.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0173"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task174SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-016, A-017, A-018, A-019 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 174,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "A-016",
+      "A-017",
+      "A-018",
+      "A-019"
+    ]
+  },
+  {
+    "id": "SG-0175",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0175",
+    "title": "Module: core assertion hard-gate A-020 compatibility closure (split from T151)",
+    "description": "Split task for contract evolution compatibility hard-gate closure.",
+    "status": "deferred",
+    "priority": "P1",
+    "layer": "ci",
+    "depends_on": [
+      "SG-0174"
+    ],
+    "adr_refs": [
+      "ADR-0003",
+      "ADR-0004",
+      "ADR-0005",
+      "ADR-0010",
+      "ADR-0020"
+    ],
+    "chapter_refs": [
+      "CH03",
+      "CH04",
+      "CH05",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+    ],
+    "labels": [
+      "split",
+      "complexity"
+    ],
+    "owner": "architecture",
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task175SplitTests.cs"
+    ],
+    "acceptance": [
+      "Task verifies A-020, R11 with deterministic evidence."
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests."
+    ],
+    "taskmaster_id": 175,
+    "taskmaster_exported": true,
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "A-020",
+      "R11"
+    ]
   }
 ]

@@ -93,6 +93,8 @@ def main() -> int:
         "checks": [],
         "failures": [],
         "missingMappings": [],
+        "integrationPendingAssertions": [],
+        "warnings": [],
     }
 
     if not os.path.isfile(args.map):
@@ -125,6 +127,7 @@ def main() -> int:
     results = _load_trx_results(args.trx)
 
     failures: list[str] = []
+    integration_pending: list[str] = []
 
     for assertion_id in required:
         item = assertions_by_id.get(assertion_id)
@@ -175,6 +178,16 @@ def main() -> int:
         if not assertion_ok:
             failures.append(f"{assertion_id}: one or more mapped tests missing/failed")
 
+        coverage = item.get("coverage") if isinstance(item.get("coverage"), dict) else {}
+        coverage_status = str(coverage.get("status") or "").strip().lower()
+        integration_status = str(coverage.get("integration") or "").strip().lower()
+        is_integration_pending = (
+            coverage_status == "integration_pending"
+            or integration_status == "pending"
+        )
+        if is_integration_pending:
+            integration_pending.append(assertion_id)
+
         summary["checks"].append(
             {
                 "assertionId": assertion_id,
@@ -182,10 +195,17 @@ def main() -> int:
                 "name": item.get("name"),
                 "matches": matched_rows,
                 "testFileRefs": item.get("testFileRefs") or [],
+                "coverage": coverage,
+                "integrationPending": is_integration_pending,
             }
         )
 
     summary["failures"].extend(failures)
+    summary["integrationPendingAssertions"] = integration_pending
+    if integration_pending:
+        summary["warnings"].append(
+            "integration tests pending: " + ", ".join(integration_pending)
+        )
     summary["status"] = "ok" if not failures else "fail"
     _write_json(args.summary_out, summary)
 
@@ -196,9 +216,13 @@ def main() -> int:
         return 1
 
     print(f"PRD_V3_CORE_ASSERTIONS status=ok required={len(required)} summary={args.summary_out}")
+    if integration_pending:
+        print(
+            "PRD_V3_CORE_ASSERTIONS_WARN "
+            f"integration_pending={len(integration_pending)} ids={','.join(integration_pending)}"
+        )
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
-
