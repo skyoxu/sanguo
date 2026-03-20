@@ -460,6 +460,7 @@
     ],
     "chapter_refs": [
       "CH01",
+      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -721,6 +722,7 @@
     ],
     "chapter_refs": [
       "CH01",
+      "CH04",
       "CH05",
       "CH06",
       "CH07",
@@ -2542,9 +2544,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "acceptanceRefs": [
       "A-006"
@@ -2597,9 +2599,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "acceptanceRefs": [
       "A-007"
@@ -2625,9 +2627,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0068",
     "title": "Module: HUD explainability integration pack",
@@ -2670,9 +2672,12 @@
       "Integration closure checks from split-task outputs."
     ],
     "contractRefs": [
-      "core.sanguo.city.bought",
+      "core.sanguo.random_event.applied",
       "core.sanguo.action_card.played",
-      "core.sanguo.combat.ended"
+      "core.sanguo.building.built",
+      "core.sanguo.loot.granted",
+      "core.sanguo.objective.skipped",
+      "core.sanguo.game.ended"
     ]
   },
   {
@@ -2682,9 +2687,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0069",
     "title": "Module: i18n release/dev exposure policy (A-011/A-012)",
@@ -2724,7 +2729,12 @@
       "GdUnit mode-parameterized i18n fallback tests."
     ],
     "contractRefs": [
-      "core.sanguo.random_event.applied"
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.action_card.played",
+      "core.sanguo.loot.granted",
+      "core.sanguo.objective.skipped",
+      "core.sanguo.game.ended"
     ]
   },
   {
@@ -2734,9 +2744,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0070",
     "title": "Module: replay integrity integration pack",
@@ -2778,9 +2788,12 @@
       "Integration closure checks from split-task outputs."
     ],
     "contractRefs": [
+      "core.sanguo.game.started",
       "core.sanguo.game.saved",
       "core.sanguo.game.loaded",
-      "core.run.continue.blocked"
+      "core.sanguo.game.turn.advanced",
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.game.ended"
     ]
   },
   {
@@ -2790,9 +2803,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0071",
     "title": "Module: diagnostic payload desensitization and retention window (A-016/A-017) integration pack",
@@ -2829,10 +2842,7 @@
     "test_strategy": [
       "Integration closure check from split-task evidence."
     ],
-    "contractRefs": [
-      "core.traceability.checked",
-      "core.audit.logged"
-    ]
+    "contractRefs": []
   },
   {
     "id": "GM-0072",
@@ -2841,9 +2851,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0072",
     "title": "Module: audit write fallback and rotation cap (A-018/A-019) integration pack",
@@ -2882,9 +2892,7 @@
     "test_strategy": [
       "Integration closure check from split-task evidence."
     ],
-    "contractRefs": [
-      "core.audit.logged"
-    ]
+    "contractRefs": []
   },
   {
     "id": "GM-0073",
@@ -2893,9 +2901,9 @@
     "status": "deferred",
     "owner": "architecture",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-contracts-taskmap-t50-t65.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0073",
     "title": "Module: contract evolution compatibility gate (A-020)",
@@ -2930,7 +2938,13 @@
     "test_strategy": [
       "Script gate + xUnit wrapper tests for contract compatibility."
     ],
-    "contractRefs": []
+    "contractRefs": [
+      "core.sanguo.game.started",
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.loot.granted",
+      "core.sanguo.game.ended"
+    ]
   },
   {
     "id": "GM-0074",
@@ -2939,9 +2953,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0074",
     "title": "Module: CampaignRuleEngine integration pack",
@@ -2985,7 +2999,7 @@
     "contractRefs": [
       "core.sanguo.game.started",
       "core.sanguo.game.ended",
-      "core.run.state.transitioned"
+      "core.sanguo.player.eliminated"
     ]
   },
   {
@@ -2995,9 +3009,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t52-turn-window-and-event-ordering.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0075",
     "title": "Module: CampLifecycleEngine integration pack",
@@ -3041,10 +3055,9 @@
       "Integration closure checks from split-task outputs."
     ],
     "contractRefs": [
-      "core.sanguo.game.turn.started",
-      "core.sanguo.game.turn.ended",
-      "core.save.write.failed",
-      "core.save.write.succeeded"
+      "core.sanguo.game.saved",
+      "core.sanguo.game.turn.advanced",
+      "core.sanguo.boss.challenge.prompted"
     ]
   },
   {
@@ -3054,9 +3067,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0076",
     "title": "Module: BossPressureEngine integration pack",
@@ -3099,9 +3112,10 @@
       "Integration closure checks from split-task outputs."
     ],
     "contractRefs": [
+      "core.sanguo.game.turn.advanced",
       "core.sanguo.boss.challenge.prompted",
-      "core.sanguo.game.turn.ended",
-      "core.sanguo.random_event.applied"
+      "core.sanguo.combat.started",
+      "core.sanguo.combat.ended"
     ]
   },
   {
@@ -3111,9 +3125,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t56-random-events.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0077",
     "title": "Module: RandomObjectiveEngine (pace-compensation loop) integration pack",
@@ -3150,9 +3164,9 @@
       "Integration closure check from split-task evidence."
     ],
     "contractRefs": [
+      "core.sanguo.random_event.applied",
       "core.sanguo.objective.skipped",
-      "core.reward.offer.presented",
-      "core.reward.offer.selected"
+      "core.sanguo.loot.granted"
     ]
   },
   {
@@ -3162,9 +3176,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t57-action-cards.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0078",
     "title": "Module: RewardDraftEngine (deterministic 3-choice draft) integration pack",
@@ -3200,9 +3214,10 @@
       "Integration closure check from split-task evidence."
     ],
     "contractRefs": [
-      "core.reward.offer.presented",
-      "core.reward.offer.selected",
-      "core.reward.offer.skipped"
+      "core.sanguo.loot.granted",
+      "core.sanguo.relic.applied",
+      "core.sanguo.action_card.played",
+      "core.sanguo.action_card.play.rejected"
     ]
   },
   {
@@ -3212,9 +3227,9 @@
     "status": "deferred",
     "owner": "gameplay",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t61-ai-minimal-deterministic.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0079",
     "title": "Module: campaign-mode AI hard-disable guard",
@@ -3253,8 +3268,7 @@
       "xUnit mode guard tests for AI decision entry points."
     ],
     "contractRefs": [
-      "core.sanguo.ai.decision.made",
-      "core.run.continue.blocked"
+      "core.sanguo.ai.decision.made"
     ]
   },
   {
@@ -3264,9 +3278,10 @@
     "status": "deferred",
     "owner": "architecture",
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "story_id": "PRD-SANGUO-T3-RULES-GM-0080",
     "title": "Module: PRD v3 assertion gate integration pack",
@@ -3305,7 +3320,15 @@
     "test_strategy": [
       "Integration closure checks from split-task outputs."
     ],
-    "contractRefs": []
+    "contractRefs": [
+      "core.sanguo.game.saved",
+      "core.sanguo.game.loaded",
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.action_card.played",
+      "core.sanguo.loot.granted",
+      "core.sanguo.game.ended"
+    ]
   },
   {
     "id": "GM-0081",
@@ -3338,9 +3361,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "acceptanceRefs": [
       "A-008"
@@ -3355,9 +3378,11 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
-      "core.sanguo.city.bought",
+      "core.sanguo.random_event.applied",
       "core.sanguo.action_card.played",
-      "core.sanguo.combat.ended"
+      "core.sanguo.building.built",
+      "core.sanguo.loot.granted",
+      "core.sanguo.game.ended"
     ]
   },
   {
@@ -3389,9 +3414,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "acceptanceRefs": [
       "A-009~A-010"
@@ -3406,8 +3431,12 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
-      "core.sanguo.city.bought",
-      "core.sanguo.combat.ended"
+      "core.sanguo.random_event.applied",
+      "core.sanguo.action_card.played",
+      "core.sanguo.building.built",
+      "core.sanguo.loot.granted",
+      "core.sanguo.objective.skipped",
+      "core.sanguo.game.ended"
     ]
   },
   {
@@ -3441,9 +3470,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "acceptanceRefs": [
       "A-013~A-014"
@@ -3458,6 +3487,7 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
+      "core.sanguo.game.started",
       "core.sanguo.game.saved",
       "core.sanguo.game.loaded"
     ]
@@ -3492,9 +3522,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "acceptanceRefs": [
       "A-015"
@@ -3509,8 +3539,9 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
-      "core.run.continue.blocked",
-      "core.sanguo.game.loaded"
+      "core.sanguo.game.started",
+      "core.sanguo.game.loaded",
+      "core.sanguo.game.ended"
     ]
   },
   {
@@ -3543,9 +3574,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "acceptanceRefs": [
       "R1"
@@ -3560,8 +3591,8 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
-      "core.run.state.transitioned",
-      "core.sanguo.game.started"
+      "core.sanguo.game.started",
+      "core.sanguo.game.ended"
     ]
   },
   {
@@ -3594,9 +3625,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "acceptanceRefs": [
       "R3"
@@ -3611,7 +3642,8 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
-      "core.sanguo.game.ended"
+      "core.sanguo.game.ended",
+      "core.sanguo.player.eliminated"
     ]
   },
   {
@@ -3644,9 +3676,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t52-turn-window-and-event-ordering.md"
     ],
     "acceptanceRefs": [
       "R2/R5"
@@ -3661,8 +3693,7 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
-      "core.sanguo.game.turn.started",
-      "core.sanguo.game.turn.ended"
+      "core.sanguo.game.turn.advanced"
     ]
   },
   {
@@ -3695,9 +3726,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t52-turn-window-and-event-ordering.md"
     ],
     "acceptanceRefs": [
       "A-003~A-005"
@@ -3712,8 +3743,8 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
-      "core.save.write.failed",
-      "core.save.write.succeeded"
+      "core.sanguo.game.saved",
+      "core.sanguo.boss.challenge.prompted"
     ]
   },
   {
@@ -3746,9 +3777,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "acceptanceRefs": [
       "R6"
@@ -3763,8 +3794,8 @@
       "Task-specific deterministic tests."
     ],
     "contractRefs": [
-      "core.sanguo.random_event.applied",
-      "core.sanguo.game.turn.ended"
+      "core.sanguo.game.turn.advanced",
+      "core.sanguo.combat.started"
     ]
   },
   {
@@ -3799,9 +3830,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "acceptanceRefs": [
       "A-006~A-007"
@@ -3817,7 +3848,8 @@
     ],
     "contractRefs": [
       "core.sanguo.boss.challenge.prompted",
-      "core.sanguo.game.turn.ended"
+      "core.sanguo.combat.started",
+      "core.sanguo.combat.ended"
     ]
   },
   {
@@ -3850,9 +3882,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "acceptanceRefs": [
       "A-013~A-020"
@@ -3866,7 +3899,13 @@
     "test_strategy": [
       "Task-specific deterministic tests."
     ],
-    "contractRefs": []
+    "contractRefs": [
+      "core.sanguo.game.started",
+      "core.sanguo.game.saved",
+      "core.sanguo.game.loaded",
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.game.ended"
+    ]
   },
   {
     "id": "GM-0092",
@@ -3896,9 +3935,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "acceptanceRefs": [
       "A-008~A-012"
@@ -3912,7 +3952,14 @@
     "test_strategy": [
       "Task-specific deterministic tests."
     ],
-    "contractRefs": []
+    "contractRefs": [
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.action_card.played",
+      "core.sanguo.loot.granted",
+      "core.sanguo.objective.skipped",
+      "core.sanguo.game.ended"
+    ]
   },
   {
     "id": "GM-0093",
@@ -3939,9 +3986,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t50-game-start-config.md"
     ],
     "labels": [
       "campaign",
@@ -3993,9 +4040,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t55-characters.md"
     ],
     "labels": [
       "split",
@@ -4045,9 +4092,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t54-new-game-menu.md"
     ],
     "labels": [
       "hud",
@@ -4100,9 +4147,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t52-turn-window-and-event-ordering.md"
     ],
     "labels": [
       "split",
@@ -4154,9 +4201,9 @@
       "CH06"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t58-buildings.md"
     ],
     "labels": [
       "split",
@@ -4206,9 +4253,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t58-buildings.md"
     ],
     "labels": [
       "camp",
@@ -4260,9 +4307,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t58-buildings.md"
     ],
     "labels": [
       "split",
@@ -4313,9 +4360,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "labels": [
       "split",
@@ -4367,9 +4414,9 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -4387,9 +4434,7 @@
     ],
     "taskmaster_id": 101,
     "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.random_event.applied"
-    ],
+    "contractRefs": [],
     "acceptanceRefs": [
       "R6"
     ]
@@ -4418,9 +4463,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -4438,9 +4483,7 @@
     ],
     "taskmaster_id": 102,
     "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.random_event.applied"
-    ],
+    "contractRefs": [],
     "acceptanceRefs": [
       "R6"
     ]
@@ -4469,9 +4512,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -4522,9 +4565,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
     ],
     "labels": [
       "split",
@@ -4575,9 +4618,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t56-random-events.md"
     ],
     "labels": [
       "split",
@@ -4628,9 +4671,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t62-relics.md"
     ],
     "labels": [
       "split",
@@ -4681,9 +4724,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "labels": [
       "split",
@@ -4733,9 +4776,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t61-ai-minimal-deterministic.md"
     ],
     "labels": [
       "campaign",
@@ -4787,9 +4830,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "labels": [
       "split",
@@ -4838,9 +4881,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-contracts-taskmap-t50-t65.md"
     ],
     "labels": [
       "split",
@@ -4886,9 +4929,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md"
     ],
     "labels": [
       "split",
@@ -4939,9 +4983,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -4994,9 +5039,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md"
     ],
     "labels": [
       "split",
@@ -5042,9 +5087,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md"
     ],
     "labels": [
       "split",
@@ -5092,9 +5137,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md"
     ],
     "labels": [
       "split",
@@ -5141,9 +5186,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Security.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md"
     ],
     "labels": [
       "split",
@@ -5189,9 +5234,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t56-random-events.md"
     ],
     "labels": [
       "split",
@@ -5238,9 +5283,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t56-random-events.md"
     ],
     "labels": [
       "split",
@@ -5287,9 +5332,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t57-action-cards.md"
     ],
     "labels": [
       "split",
@@ -5336,9 +5381,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t57-action-cards.md"
     ],
     "labels": [
       "split",
@@ -5389,9 +5434,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t55-characters.md"
     ],
     "labels": [
       "split",
@@ -5439,9 +5484,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t55-characters.md"
     ],
     "labels": [
       "split",
@@ -5492,9 +5537,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t52-turn-window-and-event-ordering.md"
     ],
     "labels": [
       "split",
@@ -5545,9 +5590,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t52-turn-window-and-event-ordering.md"
     ],
     "labels": [
       "split",
@@ -5599,9 +5644,9 @@
       "CH06"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t58-buildings.md"
     ],
     "labels": [
       "split",
@@ -5649,9 +5694,9 @@
       "CH06"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t58-buildings.md"
     ],
     "labels": [
       "split",
@@ -5702,9 +5747,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t58-buildings.md"
     ],
     "labels": [
       "split",
@@ -5754,9 +5799,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t58-buildings.md"
     ],
     "labels": [
       "split",
@@ -5808,9 +5853,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "labels": [
       "split",
@@ -5859,9 +5904,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "labels": [
       "split",
@@ -5912,9 +5957,9 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -5932,9 +5977,7 @@
     ],
     "taskmaster_id": 131,
     "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.random_event.applied"
-    ],
+    "contractRefs": [],
     "acceptanceRefs": [
       "R6"
     ]
@@ -5964,9 +6007,9 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -5984,9 +6027,7 @@
     ],
     "taskmaster_id": 132,
     "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.random_event.applied"
-    ],
+    "contractRefs": [],
     "acceptanceRefs": [
       "R6"
     ]
@@ -6016,9 +6057,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -6036,9 +6077,7 @@
     ],
     "taskmaster_id": 133,
     "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.random_event.applied"
-    ],
+    "contractRefs": [],
     "acceptanceRefs": [
       "R6"
     ]
@@ -6066,9 +6105,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -6086,9 +6125,7 @@
     ],
     "taskmaster_id": 134,
     "taskmaster_exported": true,
-    "contractRefs": [
-      "core.sanguo.random_event.applied"
-    ],
+    "contractRefs": [],
     "acceptanceRefs": [
       "R6"
     ]
@@ -6119,9 +6156,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -6170,9 +6207,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t63-global-events.md"
     ],
     "labels": [
       "split",
@@ -6224,9 +6261,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
     ],
     "labels": [
       "split",
@@ -6276,9 +6313,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md"
     ],
     "labels": [
       "split",
@@ -6330,9 +6367,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t56-random-events.md"
     ],
     "labels": [
       "split",
@@ -6382,9 +6419,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t56-random-events.md"
     ],
     "labels": [
       "split",
@@ -6436,9 +6473,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t62-relics.md"
     ],
     "labels": [
       "split",
@@ -6488,9 +6525,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t62-relics.md"
     ],
     "labels": [
       "split",
@@ -6542,9 +6579,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "labels": [
       "split",
@@ -6592,9 +6629,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md"
     ],
     "labels": [
       "split",
@@ -6643,9 +6680,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "labels": [
       "split",
@@ -6692,9 +6729,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "labels": [
       "split",
@@ -6742,9 +6779,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-contracts-taskmap-t50-t65.md"
     ],
     "labels": [
       "split",
@@ -6791,9 +6828,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-contracts-taskmap-t50-t65.md"
     ],
     "labels": [
       "split",
@@ -6841,9 +6878,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md"
     ],
     "labels": [
       "split",
@@ -6887,9 +6925,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md"
     ],
     "labels": [
       "split",
@@ -6941,9 +6980,13 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-contracts-taskmap-t50-t65.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7000,9 +7043,11 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7055,9 +7100,12 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "traceability",
@@ -7078,7 +7126,18 @@
     ],
     "taskmaster_id": 153,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.sanguo.game.started",
+      "core.sanguo.game.saved",
+      "core.sanguo.game.loaded",
+      "core.sanguo.game.turn.advanced",
+      "core.sanguo.boss.challenge.prompted",
+      "core.sanguo.random_event.applied",
+      "core.sanguo.action_card.played",
+      "core.sanguo.loot.granted",
+      "core.sanguo.objective.skipped",
+      "core.sanguo.game.ended"
+    ],
     "acceptanceRefs": [
       "R4"
     ]
@@ -7107,9 +7166,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md"
     ],
     "labels": [
       "freeze",
@@ -7156,9 +7216,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-freeze-change-control.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "freeze",
@@ -7207,9 +7269,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "labels": [
       "governance",
@@ -7260,9 +7323,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-signal-compliance-workflow.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7310,9 +7375,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md"
     ],
     "labels": [
       "split",
@@ -7363,9 +7429,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "governance",
@@ -7416,9 +7484,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-logging-policy-and-lint.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "governance",
@@ -7468,9 +7538,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7517,9 +7589,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-signal-compliance-workflow.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7566,9 +7640,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-signal-compliance-workflow.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7615,9 +7691,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md"
     ],
     "labels": [
       "split",
@@ -7667,9 +7744,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md"
     ],
     "labels": [
       "split",
@@ -7719,9 +7797,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7766,9 +7846,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7813,9 +7895,11 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -7867,9 +7951,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "labels": [
       "split",
@@ -7916,9 +8000,9 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md"
     ],
     "labels": [
       "split",
@@ -7971,9 +8055,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-contracts-taskmap-t50-t65.md"
     ],
     "labels": [
       "split",
@@ -8020,9 +8104,9 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-contracts-taskmap-t50-t65.md"
     ],
     "labels": [
       "split",
@@ -8080,9 +8164,11 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Sanguo-GameLoop-Events.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -8134,9 +8220,11 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Security.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
@@ -8189,9 +8277,11 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-contracts-taskmap-t50-t65.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md"
     ],
     "labels": [
       "split",
