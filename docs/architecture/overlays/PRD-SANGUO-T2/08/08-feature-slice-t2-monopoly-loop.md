@@ -83,6 +83,19 @@ Arch-Refs:
 
 这些任务共同构成 T2 阶段「掷骰子 → 移动 → 买地/付费 → 月末结算 → 季度事件 → 年度地价 → 回合推进」的完整功能闭环。
 
+## 8.3.1 Explicit Owner Anchors
+
+To keep task backlinks machine-checkable, this page explicitly anchors the early T2 runtime-loop tasks that historically depended on this feature-slice page.
+
+| Task set | Concern |
+|---|---|
+| T1, T3, T4, T5, T6, T7, T8 | project bootstrap, core entities, turn manager, economy manager, and seasonal event manager |
+| T9, T10, T11, T12, T13, T14, T15, T16, T17, T18 | UI baseline, token movement, AI, land purchase, toll, monthly settlement, quarterly event, yearly adjustment, turn loop, and save flow |
+| T19, T20, T21, T22, T23, T24, T25, T26 | HUD event prompt, money/date/dice/city state displays, event log, AI optimization, and end-condition routing |
+| T27, T28, T29, T30, T36 | audio and music, main menu, settings menu, help/tutorial, and legacy event-name migration ownership |
+
+These tasks are historical T2 loop owners first. `_index.md` and `ACCEPTANCE_CHECKLIST.md` remain directory-level closure pages, not substitutes for this explicit anchor list.
+
 ## 8.4 测试与验收（引用型）
 
 测试策略遵循 `docs/testing-framework.md` 与 ADR-0005/ADR-0020 口径，不在本节重复阈值与具体门禁，仅给出引用与占位：
