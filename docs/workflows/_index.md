@@ -1,24 +1,25 @@
 # Workflows Index
 
-- `acceptance-check-and-llm-review.md` — Acceptance gates and LLM review workflow
-- `acceptance-semantics-methodology.md` — Acceptance semantics methodology
-- `bmad-integration.md` — BMAD integration workflow
-- `build_taskmaster_tasks.md` — Taskmaster build workflow
-- `contracts-catalog-prd-sanguo-t2.md` — Contracts catalog for PRD-SANGUO-T2
-- `content-author-guide.md` — Content author guide (T2 minimal loop)
-- `content-id-reference-rules.md` — ID and reference consistency rules
-- `content-import-export-flow.md` — Data import/export minimal flow
-- `content-pack-manifest.md` — Content pack manifest specification
-- `content-schema-fields.md` — Content field schema and ranges
-- `doc-stack-convergence-guide.md` — Documentation stack convergence guide
-- `GM-NG-T2-playable-guide.md` — T2 playable guide
-- `map-config.md` — Map config guide
-- `overlays-authoring-guide.md` — Overlays authoring guide
-- `serena-mcp-command-reference.md` — Serena MCP command reference
-- `superclaude-command-reference.md` — SuperClaude command reference
-- `task-master-superclaude-integration.md` — Taskmaster + SuperClaude integration
-- `task-semantics-gates-evolution.md` — Task semantics gates evolution
-- `ui-explainability-matrix.md` — UI explainability matrix
-- `content-data-audit.md` 内容数据盘点（覆盖与缺口）
-
-- `contracts-template-v1.md` ? Contract templates and authoring checklist
+- `acceptance-check-and-llm-review.md` - Acceptance gates and LLM review workflow
+- `acceptance-semantics-methodology.md` - Acceptance semantics methodology
+- `bmad-integration.md` - BMAD integration workflow
+- `build_taskmaster_tasks.md` - Taskmaster build workflow
+- `content-author-guide.md` - Content author guide (T2 minimal loop)
+- `content-data-audit.md` - Content data audit (coverage and gaps)
+- `content-id-reference-rules.md` - ID and reference consistency rules
+- `content-import-export-flow.md` - Data import/export minimal flow
+- `content-pack-manifest.md` - Content pack manifest specification
+- `content-schema-fields.md` - Content field schema and ranges
+- `contracts-catalog-prd-sanguo-t2.md` - Contracts catalog for PRD-SANGUO-T2
+- `contracts-template-v1.md` - Contract templates and authoring checklist
+- `doc-stack-convergence-guide.md` - Documentation stack convergence guide
+- `GM-NG-T2-playable-guide.md` - T2 playable guide
+- `map-config.md` - Map config guide
+- `overlay-generation-sop.md` - Standard operating procedure for overlay generation from a new PRD
+- `overlay-generation-quickstart.md` - Minimal command set for a new PRD overlay generation wave
+- `overlays-authoring-guide.md` - Overlays authoring guide
+- `serena-mcp-command-reference.md` - Serena MCP command reference
+- `superclaude-command-reference.md` - SuperClaude command reference
+- `task-master-superclaude-integration.md` - Taskmaster + SuperClaude integration
+- `task-semantics-gates-evolution.md` - Task semantics gates evolution
+- `ui-explainability-matrix.md` - UI explainability matrix
