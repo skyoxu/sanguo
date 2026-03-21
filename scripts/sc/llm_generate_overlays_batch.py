@@ -14,6 +14,7 @@ import llm_generate_overlays_from_prd as single_run
 from _overlay_generator_batch import (
     build_batch_run_name,
     build_page_run_suffix,
+    classify_child_failure,
     default_batch_suffix,
     render_batch_report_markdown,
     resolve_target_pages,
@@ -127,6 +128,11 @@ def main() -> int:
         child_summary_path = child_out_dir / "summary.json"
         child_summary = _read_json(child_summary_path) if child_summary_path.exists() else {}
         child_status = str(child_summary.get("status") or ("ok" if proc.returncode == 0 else "fail"))
+        failure_info = classify_child_failure(
+            rc=proc.returncode,
+            child_status=child_status,
+            child_summary=child_summary,
+        )
 
         diff_status = ""
         similarity_ratio = None
@@ -141,6 +147,8 @@ def main() -> int:
             "page": page,
             "rc": proc.returncode,
             "child_status": child_status,
+            "failure_type": failure_info["failure_type"],
+            "child_error": failure_info["child_error"],
             "child_mode": str(child_summary.get("mode") or ("dry-run" if args.dry_run else "simulate")),
             "diff_status": diff_status,
             "similarity_ratio": similarity_ratio,

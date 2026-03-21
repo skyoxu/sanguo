@@ -10,7 +10,8 @@ Rules:
 - Main entry: `py -3 scripts/sc/llm_generate_overlays_batch.py`
 - Single-page repair: `py -3 scripts/sc/llm_generate_overlays_from_prd.py`
 - Default mode: `--page-mode scaffold`
-- Recommended timeout: `--timeout-sec 1200`
+- Default timeout: `--timeout-sec 1200`
+- Retry timeout for routing or dense contracts pages: `--timeout-sec 1800`
 - Always pass `--batch-suffix` or `--run-suffix`
 
 ## 1. Core Dry-Run
@@ -58,7 +59,7 @@ Recommended order:
 Use this when one page is unstable or low-similarity:
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-filter 08-Contracts-Sanguo-GameLoop-Events.md --page-mode scaffold --timeout-sec 1200 --run-suffix v4-contracts-fix1
+py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-filter 08-Contracts-Sanguo-GameLoop-Events.md --page-mode scaffold --timeout-sec 1800 --run-suffix v4-contracts-fix1
 ```
 
 ## 5. Small-Batch Apply
