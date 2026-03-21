@@ -11,6 +11,8 @@ Use these rules unless there is a strong reason to override them:
 - Single-page debug entry: `py -3 scripts/sc/llm_generate_overlays_from_prd.py`
 - Default mode: `--page-mode scaffold`
 - Default flow: `dry-run -> simulate -> single-page repair -> batch apply`
+- Default timeout: `--timeout-sec 1200`
+- Retry timeout for routing or dense contracts pages: `--timeout-sec 1800`
 - Do not start with full `--apply`
 
 ## Entry Selection
@@ -106,14 +108,14 @@ py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SAN
 If one page is unstable, use the single-page entry.
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-filter 08-Contracts-Sanguo-GameLoop-Events.md --page-mode scaffold --timeout-sec 1200 --run-suffix v4-contracts-fix1
+py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-filter 08-Contracts-Sanguo-GameLoop-Events.md --page-mode scaffold --timeout-sec 1800 --run-suffix v4-contracts-fix1
 ```
 
 Use the single-page path when:
 
 - `diff_status=modified` and similarity is too low
 - page content drifts into another page's semantics
-- one page times out and needs isolated rerun
+- one page times out and needs isolated rerun with `--timeout-sec 1800`
 
 ### Step 5: Apply in Small Batches
 
@@ -140,14 +142,16 @@ Guidance:
 
 ### `--timeout-sec`
 
-Recommended value:
+Recommended values:
 
-- `1200`
+- default: `1200`
+- retry for routing or dense contracts pages: `1800`
 
 Reason:
 
-- dense routing and contracts pages can exceed 600 seconds
+- dense routing and contracts pages can exceed 1200 seconds in real runs
 - too small a timeout creates false failures
+- treat `1800` as a targeted retry value, not the default for every page
 
 ### `--batch-suffix` and `--run-suffix`
 
@@ -236,7 +240,7 @@ into the repo before review. That increases manual repair cost.
 If one page times out:
 
 1. rerun that page alone
-2. increase `--timeout-sec`
+2. rerun that page with `--timeout-sec 1800`
 3. inspect prompt and page complexity only after isolated rerun still fails
 
 ## Minimal Best-Practice Sequence

@@ -53,6 +53,7 @@ class OverlayGeneratorBatchTests(unittest.TestCase):
                 {
                     "page": "_index.md",
                     "child_status": "ok",
+                    "failure_type": "",
                     "diff_status": "unchanged",
                     "similarity_ratio": 1.0,
                     "child_out_dir": "logs/ci/2026-03-20/run-a",
@@ -60,6 +61,7 @@ class OverlayGeneratorBatchTests(unittest.TestCase):
                 {
                     "page": "ACCEPTANCE_CHECKLIST.md",
                     "child_status": "ok",
+                    "failure_type": "",
                     "diff_status": "modified",
                     "similarity_ratio": 0.93,
                     "child_out_dir": "logs/ci/2026-03-20/run-b",
@@ -69,9 +71,39 @@ class OverlayGeneratorBatchTests(unittest.TestCase):
 
         text = batchmod.render_batch_report_markdown(summary)
 
-        self.assertIn("| Page | Child Status | Diff Status | Similarity | Output |", text)
-        self.assertIn("| _index.md | ok | unchanged | 1.0000 | logs/ci/2026-03-20/run-a |", text)
-        self.assertIn("| ACCEPTANCE_CHECKLIST.md | ok | modified | 0.9300 | logs/ci/2026-03-20/run-b |", text)
+        self.assertIn("| Page | Child Status | Failure Type | Diff Status | Similarity | Output |", text)
+        self.assertIn("| _index.md | ok |  | unchanged | 1.0000 | logs/ci/2026-03-20/run-a |", text)
+        self.assertIn("| ACCEPTANCE_CHECKLIST.md | ok |  | modified | 0.9300 | logs/ci/2026-03-20/run-b |", text)
+
+    def test_classify_child_failure_should_mark_timeout(self) -> None:
+        result = batchmod.classify_child_failure(
+            rc=1,
+            child_status="fail",
+            child_summary={"error": "codex_exec_failed", "rc": 124},
+        )
+
+        self.assertEqual("timeout", result["failure_type"])
+        self.assertEqual("codex_exec_failed", result["child_error"])
+
+    def test_classify_child_failure_should_mark_model_error(self) -> None:
+        result = batchmod.classify_child_failure(
+            rc=1,
+            child_status="fail",
+            child_summary={"error": "invalid_page_output", "detail": "bad json"},
+        )
+
+        self.assertEqual("model_error", result["failure_type"])
+        self.assertEqual("invalid_page_output", result["child_error"])
+
+    def test_classify_child_failure_should_mark_script_error(self) -> None:
+        result = batchmod.classify_child_failure(
+            rc=1,
+            child_status="fail",
+            child_summary={"error": "prd_not_found"},
+        )
+
+        self.assertEqual("script_error", result["failure_type"])
+        self.assertEqual("prd_not_found", result["child_error"])
 
 
 if __name__ == "__main__":

@@ -47,6 +47,28 @@ def resolve_target_pages(
     return [str(page.get("filename") or "") for page in selected if str(page.get("filename") or "").strip()]
 
 
+def classify_child_failure(
+    *,
+    rc: int,
+    child_status: str,
+    child_summary: dict[str, Any],
+) -> dict[str, str]:
+    if str(child_status or "") == "ok" and int(rc) == 0:
+        return {"failure_type": "", "child_error": ""}
+
+    child_error = str(child_summary.get("error") or "").strip()
+    child_rc = int(child_summary.get("rc") or rc or 0)
+
+    if child_rc == 124:
+        failure_type = "timeout"
+    elif child_error == "invalid_page_output":
+        failure_type = "model_error"
+    else:
+        failure_type = "script_error"
+
+    return {"failure_type": failure_type, "child_error": child_error}
+
+
 def render_batch_report_markdown(summary: dict[str, Any]) -> str:
     lines = [
         f"# Overlay Batch Summary ({summary.get('prd_id', '')})",
@@ -56,16 +78,17 @@ def render_batch_report_markdown(summary: dict[str, Any]) -> str:
         f"- Success count: {summary.get('success_count', 0)}",
         f"- Failure count: {summary.get('failure_count', 0)}",
         "",
-        "| Page | Child Status | Diff Status | Similarity | Output |",
-        "|---|---|---|---:|---|",
+        "| Page | Child Status | Failure Type | Diff Status | Similarity | Output |",
+        "|---|---|---|---|---:|---|",
     ]
     for item in summary.get("results") or []:
         similarity = item.get("similarity_ratio")
         similarity_text = f"{float(similarity):.4f}" if similarity is not None else ""
         lines.append(
-            "| {page} | {child_status} | {diff_status} | {similarity} | {child_out_dir} |".format(
+            "| {page} | {child_status} | {failure_type} | {diff_status} | {similarity} | {child_out_dir} |".format(
                 page=str(item.get("page") or ""),
                 child_status=str(item.get("child_status") or ""),
+                failure_type=str(item.get("failure_type") or ""),
                 diff_status=str(item.get("diff_status") or ""),
                 similarity=similarity_text,
                 child_out_dir=str(item.get("child_out_dir") or ""),
