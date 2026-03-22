@@ -1,4 +1,4 @@
-﻿# ADR Sync Guide (Windows-only)
+# ADR Sync Guide (Windows-only)
 
 This guide explains how to keep ADR references in Base docs and PRD chunks consistent with the accepted ADR inventory, and how to triage failures. All commands and scripts are Windows-first and require Node.js. No body content is changed — only front‑matter (FM) ADR lists are updated.
 

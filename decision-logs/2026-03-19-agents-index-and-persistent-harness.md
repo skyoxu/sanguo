@@ -1,0 +1,21 @@
+# Agents Index And Persistent Harness
+
+- Title: agents-index-and-persistent-harness
+- Date: 2026-03-19
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: main
+- Git Head: 18d32f77c4fd76e3f8a07396e9024952631a650f
+- Why now: the repository already depended on chat history and one mutable `summary.json`, which was too weak for deterministic recovery after a context reset.
+- Context: `AGENTS.md` had grown into a long encyclopedia and the local review pipeline produced only `summary.json`, which was not enough for fast recovery after a context reset.
+- Decision: keep `AGENTS.md` short and index-only, move durable guidance into `docs/agents/`, add git-tracked `execution-plans/` and `decision-logs/`, and add `execution-context.json` plus `repair-guide.json/md` as sidecar outputs of `scripts/sc/run_review_pipeline.py`.
+- Consequences: recovery now depends on a small set of stable files instead of chat history alone; `summary.json` schema stays stable; future harness work should extend sidecar files instead of mutating the current summary contract.
+- Recovery impact: after a context reset, start from `AGENTS.md`, `docs/agents/00-index.md`, the latest execution plan, and the pipeline sidecars instead of relying on prior chat turns.
+- Validation: validated by the first-phase local dry-run artifacts under `logs/ci/2026-03-19/` and by the committed introduction of persistent harness sidecars; stable run id was not preserved for this historical note.
+- Related ADRs: pending future ADR for agent recovery and harness persistence
+- Related execution plans: `execution-plans/2026-03-19-phase1-agent-harness-foundation.md`
+- Related task id(s): n/a (repository-wide harness recovery decision; not tied to one Taskmaster task)
+- Related run id: n/a (historical local dry-run path only; preserved run id not recorded in this decision note)
+- Related latest.json: n/a (decision recorded before a stable task-scoped latest.json pointer was preserved)
+- Related pipeline artifacts: `logs/ci/2026-03-19/`

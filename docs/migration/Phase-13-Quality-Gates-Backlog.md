@@ -1,5 +1,7 @@
 # Phase 13 Backlog — Quality Gates Script（质量门禁脚本增强）
 
+> 历史说明（2026-03 校订）：本 Backlog 初稿建立在 `quality_gates.py -> ci_pipeline.py` 的早期实现之上。当前仓库已改为 `run_gate_bundle.py` 主链；本文件中的 `ci_pipeline.py` 应理解为 legacy/preflight 维度，而非当前唯一入口。
+
 > 状态：Backlog（非当前模板 DoD，供后续按需启用）
 > 目的：承接 Phase-13-Quality-Gates-Script.md 中尚未在本 Godot+C# 模板落地的 10 项蓝图门禁，避免“文档超前、实现滞后”，同时为后续项目提供可选优化清单。
 > 相关脚本：`scripts/python/quality_gates.py`、`scripts/python/ci_pipeline.py`、`scripts/ci/quality_gate.ps1`
@@ -26,9 +28,9 @@
 - 现状：
   - GdUnit4 测试（Adapters/Security/Integration/UI/A11y 等）目前主要通过：
     - `.github/workflows/ci-windows.yml` 和 `.github/workflows/windows-quality-gate.yml` 直接调用 `scripts/python/run_gdunit.py`；
-  - `quality_gates.py` 目前只委托 `ci_pipeline.py`，未直接感知 GdUnit4 结果。
+  - `quality_gates.py` 当前已可在 hard gate bundle 之后追加 `--gdunit-hard` / `--smoke`，但还没有把更多细分套件统一编排成稳定的参数矩阵。
 - 蓝图目标：
-  - 将关键 GdUnit4 集合（如 Adapters+Security 硬门禁、Integration/UI 软门禁）纳入 quality_gates.py：
+  - 将更多关键 GdUnit4 集合（如 Adapters+Security 硬门禁、Integration/UI 软门禁）继续纳入 quality_gates.py：
     - 提供参数化入口，例如：
       - `quality_gates.py all --with-gdunit-adapters-security --with-gdunit-integration-ui`；
     - 在统一 summary 中记录各集 rc/统计信息，并参与 Quality Gate 决策。
@@ -98,6 +100,6 @@
   - 每启用一项门禁，应同步更新 Phase-13 文档与 ADR‑0005 的“验证”段落，避免“工具启用了但文档没跟上”。
 
 - 对于模板本身：
-  - 当前 Phase 13 仅要求 `quality_gates.py + ci_pipeline.py` 对 dotnet/selfcheck/encoding 三类门禁给出统一入口与清晰日志；
+  - 当前模板以 `run_gate_bundle.py` 作为硬门主链，`quality_gates.py` 负责可选引擎附加步骤与局部聚合；
   - 本 Backlog 文件用来记录“蓝图中尚未落地的质量门禁”，帮助后续迭代避免把 Phase 13 再次拉得过大。
 

@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Use this page when a new PRD arrives and you need the shortest safe command set
-for overlay generation.
+Use this page when a new PRD wave arrives and you need the shortest safe command
+set for generating or repairing `docs/architecture/overlays/<PRD-ID>/08/`.
 
 Rules:
 
@@ -13,11 +13,12 @@ Rules:
 - Default timeout: `--timeout-sec 1200`
 - Retry timeout for routing or dense contracts pages: `--timeout-sec 1800`
 - Always pass `--batch-suffix` or `--run-suffix`
+- Every file listed in `--prd-docs` is treated as required input; a missing file is a hard failure
 
 ## 1. Core Dry-Run
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-family core --page-mode scaffold --timeout-sec 1200 --dry-run --batch-suffix v4-core-dryrun
+py -3 scripts/sc/llm_generate_overlays_batch.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --page-family core --page-mode scaffold --timeout-sec 1200 --dry-run --batch-suffix <wave>-core-dryrun
 ```
 
 Use this first to validate:
@@ -30,7 +31,7 @@ Use this first to validate:
 ## 2. Core Simulate
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-family core --page-mode scaffold --timeout-sec 1200 --batch-suffix v4-core-sim
+py -3 scripts/sc/llm_generate_overlays_batch.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --page-family core --page-mode scaffold --timeout-sec 1200 --batch-suffix <wave>-core-sim
 ```
 
 Read:
@@ -43,7 +44,7 @@ Read:
 Example for contracts pages:
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-family contracts --page-mode scaffold --timeout-sec 1200 --batch-suffix v4-contracts-sim
+py -3 scripts/sc/llm_generate_overlays_batch.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --page-family contracts --page-mode scaffold --timeout-sec 1200 --batch-suffix <wave>-contracts-sim
 ```
 
 Recommended order:
@@ -59,7 +60,7 @@ Recommended order:
 Use this when one page is unstable or low-similarity:
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-filter 08-Contracts-Sanguo-GameLoop-Events.md --page-mode scaffold --timeout-sec 1800 --run-suffix v4-contracts-fix1
+py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --page-filter 08-Contracts-Domain-Events.md --page-mode scaffold --timeout-sec 1800 --run-suffix <wave>-contracts-fix1
 ```
 
 ## 5. Small-Batch Apply
@@ -67,7 +68,7 @@ py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd prd_v4.md --prd-id PRD-
 Only apply reviewed pages:
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --pages _index.md,ACCEPTANCE_CHECKLIST.md,08-rules-freeze-and-assertion-routing.md --page-mode scaffold --timeout-sec 1200 --apply --batch-suffix v4-apply-core
+py -3 scripts/sc/llm_generate_overlays_batch.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --pages _index.md,ACCEPTANCE_CHECKLIST.md,08-rules-freeze-and-assertion-routing.md --page-mode scaffold --timeout-sec 1200 --apply --batch-suffix <wave>-apply-core
 ```
 
 ## Stop-Loss Rule

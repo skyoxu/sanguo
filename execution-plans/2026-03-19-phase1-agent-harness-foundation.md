@@ -1,0 +1,21 @@
+# Phase 1 Agent Harness Foundation
+
+- Title: phase1-agent-harness-foundation
+- Status: done
+- Branch: main
+- Git Head: 18d32f77c4fd76e3f8a07396e9024952631a650f
+- Goal: establish durable recovery state, persistent local harness outputs, and a slim AGENTS index
+- Scope: `AGENTS.md`, `docs/agents/`, `execution-plans/`, `decision-logs/`, `scripts/sc/run_review_pipeline.py`
+- Current step: archived after phase 1 commit
+- Last completed step: committed the first-phase harness foundation with durable recovery outputs
+- Stop-loss: do not change existing `summary.json` schema in phase 1
+- Next action: continue with phase 2 sidecar reviewer and reviewer-facing recovery docs
+- Recovery command: n/a (historical phase note only; no preserved run id to resume from)
+- Open questions: none (phase archived; remaining work moved into phase 2)
+- Exit criteria: persistent sidecar outputs, slim `AGENTS.md` index behavior, and durable `execution-plans/` + `decision-logs/` directories were committed
+- Related ADRs: pending future ADR for persistent harness and agent recovery model
+- Related decision logs: `decision-logs/2026-03-19-agents-index-and-persistent-harness.md`
+- Related task id(s): n/a (phase-wide harness foundation work; not tied to one Taskmaster task)
+- Related run id: n/a (historical local dry-run path only; preserved run id not recorded in this phase note)
+- Related latest.json: n/a (phase archived before a stable task-scoped latest.json pointer was recorded)
+- Related pipeline artifacts: `logs/ci/2026-03-19/`

@@ -1,8 +1,8 @@
-# 项目能力状态总览（Godot+C# 模板版）
+# 项目能力状态总览（sanguo）
 
-> 目的：基于 `PROJECT_DOCUMENTATION_INDEX.md` 与 `docs/migration/Phase-*.md`，梳理当前 **Godot 4.5 + C# 游戏模板** 已具备的能力、已进入 Backlog 的能力，以及仍未实现/未迁移的能力。
+> 目的：基于 `PROJECT_DOCUMENTATION_INDEX.md` 与 `docs/migration/Phase-*.md`，梳理当前 `skyoxu/sanguo` 已继承和落地的模板能力、已进入 Backlog 的能力，以及仍未实现/未迁移的能力。
 
-本文件只关注 **与 Godot+C# 模板直接相关** 的能力；LegacyDesktopShell/LegacyUIFramework 专用能力会统一归入“未实现/未迁移（LegacyProject 专用）”。
+本文件优先关注 `skyoxu/sanguo` 当前已接入的通用工具链与基础能力；LegacyDesktopShell/LegacyUIFramework 专用能力会统一归入“未实现/未迁移（LegacyProject 专用）”。
 
 ## 0. 状态标记约定
 
@@ -101,7 +101,7 @@
   说明：
   - 已有：Domain/Engine/Services/State/Utilities 等多组测试，如 `DamageTests`、`GameEngineCoreEventTests`、`GameConfigTests`；
   - 使用 FluentAssertions + NSubstitute，支持 coverlet 覆盖率采集；
-  - dotnet 测试通过 `scripts/python/run_dotnet.py` 与 `ci_pipeline.py all` 集成进 CI。
+  - dotnet 测试通过 `scripts/python/run_dotnet.py` 集成；语义 / 契约硬门由 `scripts/python/run_gate_bundle.py` 统一执行，workflow 按需组合。
 
 - 能力：GdUnit4 场景与适配层测试（Tests.Godot）  
   状态：**Implemented（关键小集） + Backlog（更全面覆盖）**  
@@ -119,8 +119,9 @@
 - 能力：统一质量门禁脚本（Phase-13，quality_gates.py）  
   状态：**Implemented（入口统一） + Backlog（10 项门禁全量脚本化）**  
   说明：
-  - 已有：`quality_gates.py all` 作为 Python 入口，内部调用 `ci_pipeline.py all`；
-  - CI 中通过 `scripts/ci/quality_gate.ps1` 调用；
+  - 已有：`quality_gates.py all` 作为 Python 聚合入口，默认先调用 `scripts/python/run_gate_bundle.py --mode hard`，再按需追加 `--gdunit-hard` / `--smoke`；
+  - `ci_pipeline.py` 仅保留为 legacy/preflight helper，不再是当前主入口；
+  - CI 中仍可通过 `scripts/ci/quality_gate.ps1` 或 workflow 直接调用这些入口；
   - 尚未完全按照蓝图实现所有 10 项门禁（重复率、复杂度、循环依赖、Sentry 等），对应条目在 Phase-13/15/16 Backlog 中。
 
 ---

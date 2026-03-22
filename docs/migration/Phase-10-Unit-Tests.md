@@ -35,7 +35,7 @@
   - `Domain/ValueObjects/DamageTests.cs`：验证 Damage 值对象的裁剪与 Critical 标志（EffectiveAmount 不为负）。
   - `Engine/GameEngineCoreEventTests.cs`：通过 fake `IEventBus` 捕获 `DomainEvent`，验证事件 Type/Source/Data（如 `game.started`、`score.changed`）。
 - CI 集成（Windows）：
-  - 通过 `scripts/python/run_dotnet.py` / `scripts/python/ci_pipeline.py` 调用 `dotnet test` 并收集 coverlet 覆盖率；
+  - 早期通过 `scripts/python/run_dotnet.py` / `scripts/python/ci_pipeline.py` 调用 `dotnet test` 并收集 coverlet 覆盖率；当前主线建议直接使用 `scripts/python/run_dotnet.py`，并将其与 `scripts/python/run_gate_bundle.py` 按 workflow 组合。
   - 覆盖率与测试结果落盘至 `logs/unit/<YYYY-MM-DD>/`，具体阈值与门禁见 `docs/testing-framework.md`。
 
 ### Test-Refs（当前模板样板用例）

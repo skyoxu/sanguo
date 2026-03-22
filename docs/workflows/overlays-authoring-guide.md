@@ -1,25 +1,14 @@
 # overlays 编写与维护指南（本项目口径）
 
-本指南面向当前仓库（Windows-only Godot 4.5 + C#）。目标是让 overlays 成为“可执行规范”的载体：在默认“严格门禁模式”下可被任务视图引用并通过脚本确定性校验；在“宽松文档模式”下仍能自证边界与口径，避免漂移。
+本指南面向当前仓库（Windows-only Godot 4.5 + C#）。目标是让 overlays 成为“可执行规范”的载体：能被任务视图引用、能被脚本确定性校验、能与 Contracts/测试证据链对齐，并且避免口径漂移。
 
 ## 0. 核心结论（先记住这几条）
 
 1) overlays 不是 PRD 的复制粘贴，也不是 Tasks 的替代；它是“功能纵切（08）”的落点，强调边界、事件、验收与测试证据链。
 2) 08 章只写在 overlays：`docs/architecture/overlays/<PRD-ID>/08/`；Base 不写具体模块内容。
 3) 合约（Contracts）SSoT 在代码：`Game.Core/Contracts/**`；文档只引用路径与 EventType，不复制字段定义。
-4) 任务语义 SSoT 在任务视图：`.taskmaster/tasks/tasks_back.json`、`.taskmaster/tasks/tasks_gameplay.json`；默认“严格门禁模式”下 overlays 需要可被这些文件回链引用并通过脚本校验（否则 CI/门禁会失败）。
+4) 任务语义 SSoT 在任务视图：`.taskmaster/tasks/tasks_back.json`、`.taskmaster/tasks/tasks_gameplay.json`；overlays 必须可被这些文件回链引用并通过脚本校验。
 5) 阈值/策略（安全、可观测性、质量门禁）以 Base + Accepted ADR 为准；overlays 只引用，不复制。
-
-### 0.1 两种工作模式（先选模式，避免口径打架）
-
-- 严格门禁模式（本仓库默认）：
-  - 目的：把 overlays 当作“可执行规范”，必须能被任务视图回链、必须能被脚本校验。
-  - 代价：需要维护 tasks_* 视图的 `overlay_refs`、`test_refs`、`contractRefs` 等引用关系。
-  - 适用：要上 CI、要做确定性验收、多人协作频繁变更时。
-- 宽松文档模式（仅做文档防漂移）：
-  - 目的：overlays 自证边界、事件触发点、验收条款；不强制与任务视图/PRD 强绑定。
-  - 代价：如果你仍启用本仓库的严格校验脚本，门禁会失败；要么关闭相应门禁，要么回到严格模式。
-  - 适用：早期探索、单人离线整理、尚未接入任务流水线时。
 
 ## 1. overlays 的目录结构（固定）
 
@@ -132,7 +121,7 @@ overlays 的价值是“能落地且可审计”。建议每页只写以下 4 �
 
 事件命名遵循 ADR-0004（CloudEvents-like `type`）：
 
-- 领域事件：`core.sanguo.*`
+- 领域事件：`${DOMAIN_PREFIX}.*`（模板默认 `${DOMAIN_PREFIX}=core`）
 - UI 事件：`ui.*`
 - Screen/状态切换：`screen.*`
 
@@ -146,7 +135,7 @@ overlays 只做引用：
 
 - 写 `EventType`
 - 写触发点
-- 写契约文件路径（例如 `Game.Core/Contracts/Sanguo/EconomyEvents.cs`）
+- 写契约文件路径（例如 `Game.Core/Contracts/<Module>/EconomyEvents.cs`）
 
 ### 4.3 契约口径（SSoT 摘要版）
 
@@ -167,7 +156,7 @@ overlays 只做引用：
 **分层与依赖**
 
 - Contracts 不得依赖 `Godot.*` 命名空间，保持纯 .NET 可单测；与 Godot 交互只发生在 Adapter/Scene 层。
-- UI 相关事件（`ui.*`、`screen.*`）不进入领域 Contracts 的 “core.*” 范畴；领域事件只用 `core.sanguo.*`。
+- UI 相关事件（`ui.*`、`screen.*`）不进入领域 Contracts 的 “${DOMAIN_PREFIX}.*” 范畴；领域事件只用 `${DOMAIN_PREFIX}.*`。
 
 **验收与证据链**
 
@@ -182,11 +171,11 @@ overlays 只做引用：
 
 1) 口径文档（引用型）：
    - `docs/adr/ADR-0004-event-bus-and-contracts.md`
-   - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md`
-   - `docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md`
-2) 契约目录（脚本生成，用于开工前对齐，非 SSoT）：
-   - `docs/workflows/contracts-catalog-prd-sanguo-t2.md`
-   - 生成脚本：`py -3 scripts/python/generate_contracts_catalog_prd_sanguo_t2.py`
+   - `docs/architecture/overlays/<PRD-ID>/08/08-Contracts-CloudEvent.md`（示例见 `PRD-Guild-Manager`）
+   - `docs/architecture/overlays/<PRD-ID>/08/08-Contracts-CloudEvents-Core.md`（示例见 `PRD-Guild-Manager`）
+2) 契约自检（脚本生成报告，用于开工前对齐，非 SSoT）：
+   - `py -3 scripts/python/check_domain_contracts.py`（输出到 `logs/ci/<YYYY-MM-DD>/domain-contracts-check/summary.json`）
+   - `py -3 scripts/python/generate_contracts_catalog.py --prd-id <PRD-ID>`（输出到 `logs/ci/<YYYY-MM-DD>/contracts-catalog/`；说明见 `docs/workflows/contracts-catalog-guide.md`）
 3) 确定性校验（防漂移）：
    - `py -3 scripts/python/validate_contracts.py`
    - `py -3 scripts/python/task_links_validate.py`
@@ -225,6 +214,21 @@ overlays 只做引用：
 5) 回填任务视图（最关键）：
    - 把每个 Task 的 `overlay_refs` 指到 `_index.md`、`ACCEPTANCE_CHECKLIST.md`、以及该任务对应页。
 6) 跑确定性校验（见下一节），确保回链不漂移。
+
+### 6.1 Overlay Generator Bootstrap
+
+When a new PRD wave first lands, do not hand-write the whole `08/` tree. Generate candidate pages first, then review and apply in small batches.
+
+- Quickstart: `docs/workflows/overlay-generation-quickstart.md`
+- SOP: `docs/workflows/overlay-generation-sop.md`
+- Batch entry: `py -3 scripts/sc/llm_generate_overlays_batch.py`
+- Single-page repair: `py -3 scripts/sc/llm_generate_overlays_from_prd.py`
+
+Stop-loss rules:
+
+- Every path listed in `--prd-docs` is treated as required input; a missing file hard-fails the run.
+- If `docs/architecture/overlays/<PRD-ID>/08/` already exists, the generator reuses the current page profile instead of forcing a rewrite.
+- First pass should be `dry-run -> simulate`; do not start with full `--apply`.
 
 ## 7. 推荐的确定性校验（Windows）
 
