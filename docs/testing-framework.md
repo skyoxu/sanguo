@@ -20,10 +20,26 @@ PowerShell 示例：
 setx GODOT_BIN "C:\Godot\Godot_v4.5.1-stable_mono_win64_console.exe"
 ```
 
-### 一键门禁（推荐）
+### 推荐完整硬验证入口（本仓当前口径）
 
 ```powershell
-py -3 scripts/python/quality_gates.py all --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --smoke --validate-audit
+# 完整本地硬验证（含 gate bundle、dotnet、GdUnit4 hard、strict smoke）
+py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin $env:GODOT_BIN
+```
+
+详见：`docs/workflows/local-hard-checks.md`
+
+如需拆开执行，等价顺序为：
+
+```powershell
+# 语义 / 契约 / 文档硬门主链
+py -3 scripts/python/run_gate_bundle.py --mode hard --task-files .taskmaster/tasks/tasks_back.json .taskmaster/tasks/tasks_gameplay.json
+
+# 领域单测 + 覆盖率
+py -3 scripts/python/run_dotnet.py --solution Game.sln --configuration Debug
+
+# 追加引擎侧小集（GdUnit4 + strict smoke）
+py -3 scripts/python/quality_gates.py all --godot-bin $env:GODOT_BIN --gdunit-hard --smoke
 ```
 
 ### 产物目录（SSoT）
@@ -231,8 +247,8 @@ py -3 scripts/python/godot_selfcheck.py run --godot-bin "$env:GODOT_BIN" --proje
 # GdUnit4（归档到 logs/e2e/<YYYY-MM-DD>/；CI 常用 --rd 指定到 logs/e2e/<run_id>/...）
 py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --project Tests.Godot --add tests/Security/Hard --timeout-sec 480
 
-# Headless smoke（严格模式；归档到 logs/ci/<YYYY-MM-DD>/smoke/<run_id>/）
-py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project-path . --scene "res://Game.Godot/Scenes/Main.tscn" --timeout-sec 5 --mode strict
+# Headless smoke（严格模式；归档到 logs/ci/<run_id>/smoke/）
+py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project . --scene "res://Game.Godot/Scenes/Main.tscn" --timeout-sec 5 --mode strict
 
 # 直接 dotnet（不推荐作为 CI/取证入口）
 dotnet test Game.sln -c Debug
@@ -249,8 +265,9 @@ dotnet test Game.sln -c Debug --logger "console;verbosity=detailed"
   - `COVERAGE_BRANCHES_MIN=85`
 
 **门禁规则：**
-- `scripts/python/ci_pipeline.py` 当前将“覆盖率不足”视为**软门禁**（不会阻断，但会落盘摘要，便于 review）。
-- 若你的项目需要将覆盖率升级为**硬门禁**，建议在 CI 中显式将 `run_dotnet.py` 的 `coverage_failed` 视为失败（或调整 `ci_pipeline.py` 的 hard gate 判定）。
+- `scripts/python/run_dotnet.py` 会把覆盖率结果与 `coverage_failed` 摘要落盘到 `logs/unit/<YYYY-MM-DD>/summary.json`。
+- `scripts/python/ci_pipeline.py` 仅保留为 legacy/preflight helper；当前主链门禁请以 `scripts/python/run_gate_bundle.py` 为准。
+- 若你的项目需要将覆盖率升级为**硬门禁**，建议在 CI 或包装脚本中显式把 `run_dotnet.py` 的 `coverage_failed` 视为失败。
 
 ## 场景测试：GdUnit4
 
@@ -437,16 +454,27 @@ func test_start_game_loads_first_level():
 - `.github/workflows/windows-quality-gate.yml`
 - `.github/workflows/ci-windows.yml`
 
-**最小硬门禁（本地等价命令）**
+**完整本地硬验证（推荐）**
 
 ```powershell
-py -3 scripts/python/ci_pipeline.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions
+py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin $env:GODOT_BIN
+```
+
+**最小硬门禁（语义 / 契约主链，本地等价命令）**
+
+```powershell
+py -3 scripts/python/run_gate_bundle.py --mode hard --task-files .taskmaster/tasks/tasks_back.json .taskmaster/tasks/tasks_gameplay.json
 ```
 
 该命令会：
-- 调用 `scripts/python/run_dotnet.py`（单测 + 覆盖率 + `logs/unit/<YYYY-MM-DD>/summary.json`）
-- 调用 `scripts/python/godot_selfcheck.py`（自检 + `logs/e2e/<YYYY-MM-DD>/selfcheck-summary.json`）
-- 调用 `scripts/python/check_encoding.py`（编码扫描 + `logs/ci/<YYYY-MM-DD>/encoding/**`）
+- 执行 `docs/workflows/gate-bundle.md` 定义的 hard bundle（文档编码、契约、任务回链、恢复文档、LLM 自检等）
+- 统一把摘要与各 gate 日志落盘到 `logs/ci/<YYYY-MM-DD>/gate-bundle/runs/<run-id>/hard/`
+
+**可选引擎侧追加验证**
+
+```powershell
+py -3 scripts/python/quality_gates.py all --godot-bin $env:GODOT_BIN --gdunit-hard --smoke
+```
 
 **可选软门禁（CI 里通常 `continue-on-error: true`）**
 
@@ -551,7 +579,7 @@ Tests.Godot/tests/                    # GdUnit4: Godot headless（依赖场景�
 示例（xUnit）：
 
 ```
-- When treasury deposits, non-negative amount is enforced. Refs: Game.Core.Tests/Domain/SanguoTreasuryTests.cs
+- When treasury deposits, non-negative amount is enforced. Refs: Game.Core.Tests/Domain/DomainTreasuryTests.cs
 ```
 
 示例（GdUnit4）：

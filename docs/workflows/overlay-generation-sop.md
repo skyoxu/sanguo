@@ -3,7 +3,7 @@
 ## Purpose
 
 This document defines the standard operating procedure for generating or updating
-`docs/architecture/overlays/<PRD-ID>/08/` when a new PRD arrives.
+`docs/architecture/overlays/<PRD-ID>/08/` when a new PRD wave arrives.
 
 Use these rules unless there is a strong reason to override them:
 
@@ -14,6 +14,7 @@ Use these rules unless there is a strong reason to override them:
 - Default timeout: `--timeout-sec 1200`
 - Retry timeout for routing or dense contracts pages: `--timeout-sec 1800`
 - Do not start with full `--apply`
+- Every path listed in `--prd-docs` must exist; the script treats that list as required input
 
 ## Entry Selection
 
@@ -46,11 +47,11 @@ Use it when:
 
 Before running overlay generation, confirm these inputs are ready:
 
-1. Main PRD file exists, for example `prd_v4.md`
-2. Companion PRD files exist, for example:
-   - `PRD_V4_TRACEABILITY_MATRIX.md`
-   - `PRD_V4_RULES_FREEZE.md`
-   - `PRD_V4_ACCEPTANCE_ASSERTIONS.md`
+1. Main PRD file exists, for example `docs/prd/<prd-main>.md`
+2. Companion PRD files listed in `--prd-docs` all exist, for example:
+   - `docs/prd/<prd-doc-a>.md`
+   - `docs/prd/<prd-doc-b>.md`
+   - `docs/prd/<prd-doc-c>.md`
 3. Task triplet is already aligned with the new PRD:
    - `.taskmaster/tasks/tasks.json`
    - `.taskmaster/tasks/tasks_back.json`
@@ -59,6 +60,24 @@ Before running overlay generation, confirm these inputs are ready:
 If the task triplet is not aligned first, the scripts may still run, but page
 routing, task coverage, and overlay intent will drift.
 
+## Default Page Profile
+
+If `docs/architecture/overlays/<PRD-ID>/08/` already exists, the generator uses
+that directory as the current page profile.
+
+If the directory does not exist yet, the template generator scaffolds a default
+profile with these pages:
+
+- `_index.md`
+- `ACCEPTANCE_CHECKLIST.md`
+- `08-rules-freeze-and-assertion-routing.md`
+- `08-business-acceptance-scenarios.md`
+- `08-Contracts-Core-Events.md`
+- `08-Contracts-Security.md`
+- `08-Contracts-Quality-Metrics.md`
+- `08-feature-slice-main-loop.md`
+- `08-governance-freeze-change-control.md`
+
 ## Recommended Workflow
 
 ### Step 1: Core Dry-Run
@@ -66,7 +85,7 @@ routing, task coverage, and overlay intent will drift.
 Start with the `core` family instead of all pages.
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-family core --page-mode scaffold --timeout-sec 1200 --dry-run --batch-suffix v4-core-dryrun
+py -3 scripts/sc/llm_generate_overlays_batch.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --page-family core --page-mode scaffold --timeout-sec 1200 --dry-run --batch-suffix <wave>-core-dryrun
 ```
 
 Goal:
@@ -79,7 +98,7 @@ Goal:
 ### Step 2: Core Simulate
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-family core --page-mode scaffold --timeout-sec 1200 --batch-suffix v4-core-sim
+py -3 scripts/sc/llm_generate_overlays_batch.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --page-family core --page-mode scaffold --timeout-sec 1200 --batch-suffix <wave>-core-sim
 ```
 
 Goal:
@@ -100,7 +119,7 @@ Recommended order:
 Example:
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-family contracts --page-mode scaffold --timeout-sec 1200 --batch-suffix v4-contracts-sim
+py -3 scripts/sc/llm_generate_overlays_batch.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --page-family contracts --page-mode scaffold --timeout-sec 1200 --batch-suffix <wave>-contracts-sim
 ```
 
 ### Step 4: Repair Outlier Pages
@@ -108,7 +127,7 @@ py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SAN
 If one page is unstable, use the single-page entry.
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --page-filter 08-Contracts-Sanguo-GameLoop-Events.md --page-mode scaffold --timeout-sec 1800 --run-suffix v4-contracts-fix1
+py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --page-filter 08-Contracts-Domain-Events.md --page-mode scaffold --timeout-sec 1800 --run-suffix <wave>-contracts-fix1
 ```
 
 Use the single-page path when:
@@ -122,7 +141,7 @@ Use the single-page path when:
 Only apply pages after simulate results are reviewed.
 
 ```powershell
-py -3 scripts/sc/llm_generate_overlays_batch.py --prd prd_v4.md --prd-id PRD-SANGUO-V4 --prd-docs PRD_V4_TRACEABILITY_MATRIX.md,PRD_V4_RULES_FREEZE.md,PRD_V4_ACCEPTANCE_ASSERTIONS.md --pages _index.md,ACCEPTANCE_CHECKLIST.md,08-rules-freeze-and-assertion-routing.md --page-mode scaffold --timeout-sec 1200 --apply --batch-suffix v4-apply-core
+py -3 scripts/sc/llm_generate_overlays_batch.py --prd docs/prd/<prd-main>.md --prd-id PRD-<PRODUCT>-V1 --prd-docs docs/prd/<prd-doc-a>.md,docs/prd/<prd-doc-b>.md,docs/prd/<prd-doc-c>.md --pages _index.md,ACCEPTANCE_CHECKLIST.md,08-rules-freeze-and-assertion-routing.md --page-mode scaffold --timeout-sec 1200 --apply --batch-suffix <wave>-apply-core
 ```
 
 ## Parameter Recommendations
@@ -137,8 +156,7 @@ Guidance:
 
 - `scaffold`: default path; preserves current page structure where possible
 - `patch`: keep only for debug or compatibility checks
-- `replace`: use only when there is no stable overlay structure to reuse or a
-  full rewrite is intentional
+- `replace`: use only when there is no stable overlay structure to reuse or a full rewrite is intentional
 
 ### `--timeout-sec`
 
@@ -157,9 +175,9 @@ Reason:
 
 Always prefer explicit suffixes such as:
 
-- `v4-core-sim`
-- `v4-contracts-fix1`
-- `v4-routing-apply`
+- `<wave>-core-sim`
+- `<wave>-contracts-fix1`
+- `<wave>-routing-apply`
 
 Reason:
 
@@ -180,7 +198,7 @@ Use:
 
 Batch output example:
 
-- `logs/ci/<date>/sc-llm-overlay-gen-batch-prd-sanguo-v4--v4-core-sim/`
+- `logs/ci/<date>/sc-llm-overlay-gen-batch-prd-<product>-v1--<wave>-core-sim/`
 
 Important files:
 
@@ -199,7 +217,7 @@ Read `report.md` first. It contains:
 
 Single-page output example:
 
-- `logs/ci/<date>/sc-llm-overlay-gen-prd-sanguo-v4--v4-contracts-fix1/`
+- `logs/ci/<date>/sc-llm-overlay-gen-prd-<product>-v1--<wave>-contracts-fix1/`
 
 Important files:
 

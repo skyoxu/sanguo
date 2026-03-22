@@ -1,5 +1,7 @@
 # Phase 13: 质量门禁脚本与自动化
 
+> 历史说明（2026-03 校订）：本文件保留 Phase 13 当时的实现脉络；当前仓库的真实主链已切到 `scripts/python/run_gate_bundle.py`，`quality_gates.py` 现为 gate bundle + 可选 `--gdunit-hard` / `--smoke` 的包装入口，`ci_pipeline.py` 仅保留为 legacy/preflight helper。
+
 > **核心目标**：统一 xUnit + GdUnit4 的质量门禁，建立 `guard:ci` 脚本入口，确保所有构建通过 10 项强制门禁检查。  
 > **工作量**：4-5 人天  
 > **依赖**：Phase 10（xUnit 框架）、Phase 11（GdUnit4 框架）、Phase 12（烟测 & 性能采集）  
@@ -54,14 +56,15 @@
 
 ### 2.2 Godot+C# 变体（当前模板实现）
 
-> 本节描述的是 **当前 godotgame 模板已经落地的质量门禁实现**，用于对齐脚本/CI 的真实行为。上面的 10 项门禁表视为长期蓝图，尚未全部在本仓库中实现，对应增强统一收敛到 Phase-13 Backlog。
+> 本节下面对 `quality_gates.py -> ci_pipeline.py` 的描述，表示该 Phase 落地时的实现快照。
+> 当前口径请以 `docs/workflows/gate-bundle.md` 为准：`quality_gates.py all` 默认先执行 `run_gate_bundle.py --mode hard`，再按需追加 `--gdunit-hard` / `--smoke`。
 
-- 统一入口（Python）：
+- 当时的统一入口（Python）：
   - `scripts/python/quality_gates.py` 提供单一入口：
     - `py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "C:\Godot\Godot_v4.5.1-stable_mono_win64_console.exe" --build-solutions`
-  - 内部委托给 `scripts/python/ci_pipeline.py all` 执行当前已实现的门禁。
+  - 在该阶段，内部委托给 `scripts/python/ci_pipeline.py all` 执行当时已实现的门禁。
 
-- 当前已实现的门禁集合：
+- 当时已实现的门禁集合：
   1. **dotnet 测试 + 覆盖率（硬门禁：测试通过；软门禁：覆盖率阈值）**
      - 脚本：`scripts/python/run_dotnet.py`，由 `ci_pipeline.py` 调用。
      - 行/分支覆盖率阈值：在 run_dotnet.py 中配置为软门禁（当前模板为较低阈值，方便扩展），不直接阻断构建。
@@ -77,7 +80,7 @@
      - 作用：扫描本次改动的文件是否存在非 UTF-8 或可疑编码问题，结果写入 `logs/ci/<date>/encoding/`。
      - 编码异常目前作为软门禁：仅在 CI 日志中标黄提醒，不直接阻断构建（可在后续 Phase 提升为硬门禁）。
 
-- CI 工作流对接：
+- CI 工作流对接（该 Phase 落地时）：
   - `.github/workflows/ci-windows.yml`
     - 使用 PowerShell 封装脚本 `scripts/ci/quality_gate.ps1` 作为主入口；
     - `quality_gate.ps1` 的第一个步骤调用：

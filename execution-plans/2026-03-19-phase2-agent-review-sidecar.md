@@ -1,0 +1,21 @@
+# Phase 2 Agent Review Sidecar
+
+- Title: phase2-agent-review-sidecar
+- Status: done
+- Branch: main
+- Git Head: 9527f5bbb08d2b1cbe9d58ef336fb1d3f917689a
+- Goal: add a deterministic reviewer sidecar that consumes pipeline artifacts and survives context resets
+- Scope: `scripts/sc/_agent_review_contract.py`, `scripts/sc/agent_to_agent_review.py`, `scripts/sc/tests/test_agent_review_contract.py`, `scripts/sc/tests/test_agent_to_agent_review.py`, `docs/agents/`, `execution-plans/`, `decision-logs/`
+- Current step: archived after phase 2 verification and regression
+- Last completed step: implemented `agent-review.json/md` generation and task-scoped `latest.json` updates
+- Stop-loss: do not change the existing `summary.json` producer schema in phase 2
+- Next action: decide whether phase 3 should invoke agent review automatically from the broader harness
+- Recovery command: `py -3 scripts/sc/agent_to_agent_review.py --task-id 1 --run-id 15bcd36f5d344225a3fe0dd470752c88` (works only if the referenced local artifacts still exist)
+- Open questions: should the broader harness invoke agent review automatically after producer steps complete, and if so under which delivery profiles?
+- Exit criteria: `agent-review.json/md` are generated from producer sidecars, `latest.json` points to reviewer artifacts, and the regression tests for the reviewer contract are green
+- Related ADRs: pending future ADR for agent recovery and reviewer contracts
+- Related decision logs: `decision-logs/2026-03-19-agents-index-and-persistent-harness.md`, `decision-logs/2026-03-19-agent-review-sidecar-contract.md`
+- Related task id(s): `1`
+- Related run id: `15bcd36f5d344225a3fe0dd470752c88`
+- Related latest.json: `logs/ci/2026-03-19/sc-review-pipeline-task-1/latest.json` (mutable pointer)
+- Related pipeline artifacts: `logs/ci/2026-03-19/sc-review-pipeline-task-1-15bcd36f5d344225a3fe0dd470752c88/`

@@ -33,12 +33,13 @@ This file provides guidance to Codex Cli when working with code in this reposito
 **Starting a fresh session? Read these in order:**
 
 1. **This file** (`AGENTS.md`) - You're already here ✓
-2. **Project indexes** - Context entry points:
+2. **Agents knowledge map** - docs/agents/00-index.md and docs/workflows/run-protocol.md
+3. **Project indexes** - Context entry points:
    - `architecture_base.index` - Architecture docs (CH01-CH12 + ADRs)
    - `prd_chunks.index` - PRD fragments index
    - `shards/flattened-adr.xml` - All ADRs in single XML
    - `shards/flattened-prd.xml` - All PRD in single XML
-3. **Test framework** - `docs/testing-framework.md` (critical for TDD)
+4. **Test framework** - `docs/testing-framework.md` (critical for TDD)
 
 **File locations quick reference:**
 - PRD input: `.taskmaster/docs/prd.txt` (auto-generated from prd_chunks)

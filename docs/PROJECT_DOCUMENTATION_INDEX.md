@@ -1,8 +1,8 @@
-# 项目文档索引（godotgame）
+# 项目文档索引（sanguo）
 
-> 最后更新：2025-12-16  
-> 项目定位：Godot 4.5 + C#/.NET 8（Windows-only）开箱即用模板  
-> 迁移说明：本仓库已完成从旧项目到 Godot 模板的迁移；当前运行时不包含旧 Web 前端栈与旧桌面壳依赖。迁移历史材料在 `docs/migration/**`，仅用于历史对照。
+> 最后更新：2026-03-22
+> 项目定位：skyoxu/sanguo，基于 Godot 4.5 + C#/.NET 8（Windows-only）模板能力演进的三国主题项目
+> 迁移说明：本仓库继承上游 Godot 模板能力，但当前运行时、任务编排与文档入口均以 `skyoxu/sanguo` 为准；迁移历史材料在 `docs/migration/**`，仅用于历史对照。
 
 ---
 
@@ -14,6 +14,7 @@
 - 测试框架与门禁说明：`docs/testing-framework.md`
 - 文档导航（Base 骨干）：`docs/architecture/base/00-README.md`
 - Release/CI 工作流说明（含 Sentry 软门禁）：`docs/workflows/GM-NG-T2-playable-guide.md`
+- Overlay Generation Docs: `docs/workflows/overlay-generation-quickstart.md`, `docs/workflows/overlay-generation-sop.md`, `docs/workflows/overlays-authoring-guide.md`
 
 ---
 
@@ -70,6 +71,9 @@
 - `docs/workflows/serena-mcp-command-reference.md`：Serena / Codex CLI 常用命令
 - `docs/workflows/superclaude-command-reference.md`：SuperClaude 工作流说明
 - `docs/workflows/task-master-superclaude-integration.md`：Taskmaster + SuperClaude 集成（如仅做 Godot 桌面模板，可先跳过 Web/旧桌面壳 相关段落）
+- `docs/workflows/overlay-generation-quickstart.md`：overlay generation 的最小安全命令集
+- `docs/workflows/overlay-generation-sop.md`：generate / repair / small-batch apply 的标准流程
+- `docs/workflows/overlays-authoring-guide.md`：目录、front matter、task backlinks 与 contract refs 规则
 
 ---
 
@@ -112,3 +116,8 @@
 
 - 统一目录：`logs/**`（单元/引擎冒烟/CI/性能/审计）
 - 建议先看：`logs/ci/<YYYY-MM-DD>/`（门禁与扫描报告）
+
+## Additional Workflow Links (2026-02)
+
+- `docs/workflows/task-semantics-gates-evolution.md`
+- `docs/workflows/acceptance-check-and-llm-review.md`
