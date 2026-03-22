@@ -17,23 +17,60 @@ import os
 import sys
 from pathlib import Path
 
+from _delivery_profile import default_security_profile_for_delivery, known_delivery_profiles, profile_build_defaults, resolve_delivery_profile
+from _repo_targets import resolve_build_target
+from _security_profile import resolve_security_profile
 from _util import ci_dir, repo_root, run_cmd, write_json, write_text
+
+
+DELIVERY_PROFILE_CHOICES = tuple(sorted(known_delivery_profiles()))
+
+
+def resolve_build_runtime(*, delivery_profile: str | None, security_profile: str | None) -> dict[str, object]:
+    resolved_delivery_profile = resolve_delivery_profile(delivery_profile)
+    resolved_security_profile = resolve_security_profile(
+        security_profile or default_security_profile_for_delivery(resolved_delivery_profile)
+    )
+    defaults = profile_build_defaults(resolved_delivery_profile)
+    return {
+        "delivery_profile": resolved_delivery_profile,
+        "security_profile": resolved_security_profile,
+        "warn_as_error": bool(defaults.get("warn_as_error", True)),
+    }
+
+
+def build_dotnet_build_cmd(*, target: str, config: str, verbose: bool, warn_as_error: bool) -> list[str]:
+    cmd = ["dotnet", "build", str(target), "-c", config]
+    if warn_as_error:
+        cmd.append("-warnaserror")
+    if verbose:
+        cmd += ["-v", "normal"]
+    return cmd
 
 
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="sc-build (build shim)")
-    ap.add_argument("target", nargs="?", default="GodotGame.csproj", help="build target (.csproj/.sln)")
+    ap.add_argument("target", nargs="?", default=None, help="build target (.csproj/.sln); auto-resolved when omitted")
     ap.add_argument("--type", choices=["dev", "prod", "test"], default="dev")
     ap.add_argument("--clean", action="store_true")
     ap.add_argument("--optimize", action="store_true")
     ap.add_argument("--verbose", action="store_true")
+    ap.add_argument(
+        "--delivery-profile",
+        default=None,
+        choices=DELIVERY_PROFILE_CHOICES,
+        help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).",
+    )
+    ap.add_argument(
+        "--security-profile",
+        default=None,
+        choices=["strict", "host-safe"],
+        help="Security profile override (default derives from delivery profile).",
+    )
     return ap
 
 
 def main() -> int:
-    # Keep local runs aligned with CI default security posture.
-    os.environ.setdefault("SECURITY_PROFILE", "host-safe")
-
     # Lightweight subcommand routing (keeps backward compatibility):
     #   py -3 scripts/sc/build.py tdd ...
     if len(sys.argv) > 1 and sys.argv[1] == "tdd":
@@ -48,13 +85,21 @@ def main() -> int:
         return 0 if rc == 0 else rc
 
     args = build_parser().parse_args()
+    runtime = resolve_build_runtime(delivery_profile=args.delivery_profile, security_profile=args.security_profile)
+    os.environ["DELIVERY_PROFILE"] = str(runtime["delivery_profile"])
+    os.environ["SECURITY_PROFILE"] = str(runtime["security_profile"])
     out_dir = ci_dir("sc-build")
 
     config = "Debug"
     if args.type == "prod" or args.optimize:
         config = "Release"
 
-    target = repo_root() / args.target
+    root = repo_root()
+    if args.target:
+        target = root / args.target
+    else:
+        resolved = resolve_build_target(root)
+        target = resolved if resolved is not None else (root / "Game.sln")
     if not target.exists():
         print(f"[sc-build] ERROR: target not found: {target}")
         return 2
@@ -81,9 +126,12 @@ def main() -> int:
             print(f"SC_BUILD status=fail out={out_dir}")
             return rc
 
-    cmd = ["dotnet", "build", str(target), "-c", config, "-warnaserror"]
-    if args.verbose:
-        cmd += ["-v", "normal"]
+    cmd = build_dotnet_build_cmd(
+        target=str(target),
+        config=config,
+        verbose=bool(args.verbose),
+        warn_as_error=bool(runtime["warn_as_error"]),
+    )
 
     rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=1_800)
     log_path = out_dir / "dotnet-build.log"

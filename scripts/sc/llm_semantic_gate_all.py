@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from _delivery_profile import build_delivery_profile_context, profile_llm_semantic_gate_all_defaults, resolve_delivery_profile
 from _garbled_gate import parse_task_ids_csv, render_top_hits, scan_task_text_integrity
 from _semantic_gate_all_contract import (
     evaluate_semantic_gate_exit,
@@ -24,6 +26,27 @@ class SemanticFinding:
     task_id: int
     verdict: str  # OK | Needs Fix | Unknown
     reason: str
+
+
+def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namespace:
+    delivery_profile = resolve_delivery_profile(getattr(args, "delivery_profile", None))
+    defaults = profile_llm_semantic_gate_all_defaults(delivery_profile)
+    args.delivery_profile = delivery_profile
+    if args.timeout_sec is None:
+        args.timeout_sec = int(defaults.get("timeout_sec", 900) or 900)
+    if args.consensus_runs is None:
+        args.consensus_runs = int(defaults.get("consensus_runs", 1) or 1)
+    if not str(args.model_reasoning_effort or "").strip():
+        args.model_reasoning_effort = str(defaults.get("model_reasoning_effort") or "low")
+    if args.max_prompt_chars is None:
+        args.max_prompt_chars = int(defaults.get("max_prompt_chars", 60_000) or 60_000)
+    if args.max_needs_fix is None:
+        args.max_needs_fix = int(defaults.get("max_needs_fix", 0) or 0)
+    if args.max_unknown is None:
+        args.max_unknown = int(defaults.get("max_unknown", 0) or 0)
+    if not str(args.garbled_gate or "").strip():
+        args.garbled_gate = str(defaults.get("garbled_gate") or "on")
+    return args
 
 
 def _run_codex_exec(*, prompt: str, out_path: Path, timeout_sec: int, model_reasoning_effort: str) -> tuple[int, str]:
@@ -101,19 +124,26 @@ def _parse_tsv_output(text: str) -> list[SemanticFinding]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="sc semantic equivalence gate (batch) for all tasks")
+    ap.add_argument(
+        "--delivery-profile",
+        default=None,
+        choices=["playable-ea", "fast-ship", "standard"],
+        help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).",
+    )
     ap.add_argument("--task-ids", default="", help="Optional CSV ids, e.g. 1,14,22")
     ap.add_argument("--batch-size", type=int, default=8, help="Task ids per LLM call")
-    ap.add_argument("--timeout-sec", type=int, default=900, help="Per-batch timeout seconds")
-    ap.add_argument("--consensus-runs", type=int, default=1, help="Run each batch N times for majority verdict")
-    ap.add_argument("--model-reasoning-effort", default="low", choices=["low", "medium", "high"], help="Codex model_reasoning_effort")
+    ap.add_argument("--timeout-sec", type=int, default=None, help="Per-batch timeout seconds (default: profile)")
+    ap.add_argument("--consensus-runs", type=int, default=None, help="Run each batch N times for majority verdict (default: profile)")
+    ap.add_argument("--model-reasoning-effort", default=None, choices=["low", "medium", "high"], help="Codex model_reasoning_effort")
     ap.add_argument("--max-acceptance-items", type=int, default=12, help="Max acceptance items per view in prompt")
-    ap.add_argument("--max-prompt-chars", type=int, default=60_000, help="Max prompt size after task brief budgeting")
+    ap.add_argument("--max-prompt-chars", type=int, default=None, help="Max prompt size after task brief budgeting (default: profile)")
     ap.add_argument("--max-tasks", type=int, default=0, help="Limit total tasks (0=all)")
-    ap.add_argument("--max-needs-fix", type=int, default=0, help="Fail when Needs Fix count exceeds this limit")
-    ap.add_argument("--max-unknown", type=int, default=0, help="Fail when Unknown count exceeds this limit")
-    ap.add_argument("--garbled-gate", default="on", choices=["on", "off"], help="Hard precheck for garbled task/acceptance text")
+    ap.add_argument("--max-needs-fix", type=int, default=None, help="Fail when Needs Fix count exceeds this limit (default: profile)")
+    ap.add_argument("--max-unknown", type=int, default=None, help="Fail when Unknown count exceeds this limit (default: profile)")
+    ap.add_argument("--garbled-gate", default=None, choices=["on", "off"], help="Hard precheck for garbled task/acceptance text (default: profile)")
     ap.add_argument("--self-check", action="store_true", help="Run deterministic local self-check only")
-    args = ap.parse_args()
+    args = apply_delivery_profile_defaults(ap.parse_args())
+    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
 
     if bool(args.self_check):
         out_dir = ci_dir("sc-semantic-gate-all-self-check")
@@ -158,6 +188,7 @@ def main() -> int:
             return 2
 
     all_ids, master_by_id, back_by_id, gameplay_by_id = load_task_maps()
+    delivery_profile_context = build_delivery_profile_context(args.delivery_profile)
     if str(args.task_ids or "").strip():
         all_ids = [tid for tid in all_ids if tid in task_filter]
     if int(args.max_tasks) > 0:
@@ -171,6 +202,7 @@ def main() -> int:
             batch=batch,
             max_acceptance_items=int(args.max_acceptance_items),
             max_prompt_chars=max_prompt_chars,
+            delivery_profile_context=delivery_profile_context,
             master_by_id=master_by_id,
             back_by_id=back_by_id,
             gameplay_by_id=gameplay_by_id,
@@ -277,4 +309,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
