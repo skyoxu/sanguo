@@ -9,7 +9,6 @@ from typing import Any
 from _overlay_generator_contract import REQUIRED_CHECKLIST_HEADINGS
 from _overlay_generator_support import extract_json_object
 
-
 def truncate(text: str, *, max_chars: int) -> str:
     if len(text) <= max_chars:
         return text
@@ -26,7 +25,6 @@ def compact_companion_docs(companion_docs: list[dict[str, str]], *, excerpt_char
             }
         )
     return compacted
-
 
 def compact_task_digest(task_digest: dict[str, Any], *, max_tasks: int = 24, max_titles_per_cluster: int = 3) -> dict[str, Any]:
     master_tasks = []
@@ -66,7 +64,6 @@ def compact_task_digest(task_digest: dict[str, Any], *, max_tasks: int = 24, max
         "overlay_clusters": overlay_clusters,
     }
 
-
 def compact_profile(profile: list[dict[str, Any]]) -> list[dict[str, Any]]:
     compacted: list[dict[str, Any]] = []
     for item in profile:
@@ -79,7 +76,6 @@ def compact_profile(profile: list[dict[str, Any]]) -> list[dict[str, Any]]:
             }
         )
     return compacted
-
 
 def build_overlay_prompt(
     *,

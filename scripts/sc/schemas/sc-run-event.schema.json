@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sc-run-event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ts",
+    "event",
+    "task_id",
+    "run_id",
+    "delivery_profile",
+    "security_profile",
+    "step_name",
+    "status",
+    "details"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ts": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "delivery_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "security_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "step_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "details": {
+      "type": "object"
+    }
+  }
+}

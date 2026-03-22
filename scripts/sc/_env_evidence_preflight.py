@@ -11,106 +11,61 @@ from __future__ import annotations
 
 import os
 import platform
-import re
-import subprocess
 from pathlib import Path
 from typing import Any
 
+import _env_evidence_helpers as _helpers
+from _repo_targets import resolve_acceptance_checklist, resolve_solution_file
 from _step_result import StepResult
 from _util import repo_root, today_str, write_json, write_text
 
 
-def _run_command(
-    cmd: list[str],
-    *,
-    cwd: Path | None = None,
-    env: dict[str, str] | None = None,
-    timeout_sec: int = 120,
-) -> tuple[int, str]:
-    try:
-        proc = subprocess.run(
-            cmd,
-            cwd=str(cwd) if cwd else None,
-            env=env,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="ignore",
-            timeout=timeout_sec,
-        )
-        out = (proc.stdout or "") + (("\n" + proc.stderr) if proc.stderr else "")
-        return proc.returncode, out
-    except Exception as exc:  # noqa: BLE001
-        return 1, f"failed to run {' '.join(cmd)}: {exc}"
+def _run_command(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None, timeout_sec: int = 120) -> tuple[int, str]:
+    return _helpers.run_command(cmd, cwd=cwd, env=env, timeout_sec=timeout_sec)
 
 
 def _first_non_empty_line(text: str) -> str:
-    for line in (text or "").splitlines():
-        s = line.strip()
-        if s:
-            return s
-    return ""
+    return _helpers.first_non_empty_line(text)
 
 
 def _contains_token(text: str, token: str) -> bool:
-    return token.lower() in (text or "").lower()
+    return _helpers.contains_token(text, token)
 
 
 def _parse_dotnet_sdk_versions(text: str) -> list[str]:
-    versions: list[str] = []
-    for raw_line in (text or "").splitlines():
-        line = raw_line.strip()
-        if not line:
-            continue
-        first = line.split(" ", 1)[0].strip()
-        if first and first[0].isdigit():
-            versions.append(first)
-    return versions
+    return _helpers.parse_dotnet_sdk_versions(text)
 
 
 def _parse_major_from_version_text(text: str) -> int | None:
-    first_line = _first_non_empty_line(text)
-    if not first_line:
-        return None
-    match = re.search(r"(\d+)\.\d+\.\d+", first_line)
-    if not match:
-        return None
-    try:
-        return int(match.group(1))
-    except Exception:  # noqa: BLE001
-        return None
+    return _helpers.parse_major_from_version_text(text)
 
 
 def _write_utf8_file(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+    _helpers.write_utf8_file(path, content)
 
 
 def _strict_utf8_read(path: Path) -> tuple[bool, str]:
-    try:
-        path.read_bytes().decode("utf-8", errors="strict")
-        return True, ""
-    except Exception as exc:  # noqa: BLE001
-        return False, str(exc)
+    return _helpers.strict_utf8_read(path)
 
 
 def _rel(root: Path, path: Path) -> str:
-    return str(path.relative_to(root)).replace("\\", "/")
+    return _helpers.rel(root, path)
+
+
+def _discover_packages_lock_files(root: Path) -> list[Path]:
+    return _helpers.discover_packages_lock_files(root)
 
 
 def _normalize_task_id(task_id: str | int | None) -> str:
-    raw = str(task_id or "").strip()
-    if not raw:
-        return "1"
-    if raw.isdigit():
-        return str(int(raw))
-    return re.sub(r"[^0-9A-Za-z_-]+", "-", raw)
+    return _helpers.normalize_task_id(task_id)
 
 
 def _task_json_filename(task_id: str) -> str:
-    if task_id.isdigit():
-        return f"task-{int(task_id):04d}.json"
-    return f"task-{task_id}.json"
+    return _helpers.task_json_filename(task_id)
+
+
+def _build_utf8_checked_files(*, task_json_rel: str, checklist_rel: str, date: str, errors: list[str]) -> list[str]:
+    return _helpers.build_utf8_checked_files(task_json_rel=task_json_rel, checklist_rel=checklist_rel, date=date, errors=errors)
 
 
 def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id: str | int | None = None) -> StepResult:
@@ -187,17 +142,31 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
     dotnet_sdk_versions = _parse_dotnet_sdk_versions(out_dotnet_sdks)
     details["commands"]["dotnet_list_sdks_command"] = {"rc": rc_dotnet_sdks}
 
-    # dotnet restore .\Game.sln
+    solution_file = resolve_solution_file(root)
+    restore_target = solution_file if solution_file is not None else (root / "Game.sln")
+    restore_arg = f".\\{restore_target.name}"
+
+    # dotnet restore <solution>
     # Run once to warm caches, then persist the second (steady-state) output.
-    _run_command(["dotnet", "restore", ".\\Game.sln"], cwd=root, timeout_sec=240)
-    rc_restore, out_restore = _run_command(["dotnet", "restore", ".\\Game.sln"], cwd=root, timeout_sec=240)
+    _run_command(["dotnet", "restore", restore_arg], cwd=root, timeout_sec=240)
+    rc_restore, out_restore = _run_command(["dotnet", "restore", restore_arg], cwd=root, timeout_sec=240)
     _write_utf8_file(evidence_dir / "dotnet-restore.txt", out_restore)
-    details["commands"]["dotnet_restore_command"] = {"rc": rc_restore}
+    details["commands"]["dotnet_restore_command"] = {"rc": rc_restore, "target": restore_arg}
 
     # lockfile evidence
-    lock_exists = (root / "packages.lock.json").exists()
-    _write_utf8_file(evidence_dir / "packages-lock-exists.txt", f"packages.lock.json exists={lock_exists}\n")
+    lock_files = _discover_packages_lock_files(root)
+    lock_rel_paths = [_rel(root, p) for p in lock_files]
+    lock_exists = len(lock_rel_paths) > 0
+    lock_report_lines = [
+        f"packages.lock.json exists={lock_exists}",
+        f"count={len(lock_rel_paths)}",
+    ]
+    if lock_rel_paths:
+        lock_report_lines.append("paths:")
+        lock_report_lines.extend(f"- {rel}" for rel in lock_rel_paths)
+    _write_utf8_file(evidence_dir / "packages-lock-exists.txt", "\n".join(lock_report_lines) + "\n")
     details["checks"]["packages_lock_exists"] = lock_exists
+    details["packages_lock_files"] = lock_rel_paths
 
     # windows-only evidence
     system_name = platform.system()
@@ -229,6 +198,7 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
         "dotnet_sdk_versions": dotnet_sdk_versions,
         "os_platform": os_platform,
         "packages_lock_exists": lock_exists,
+        "packages_lock_files": lock_rel_paths,
         "evidence_paths": evidence_paths,
         "godot_bin": str(godot_bin_path),
         "godot_bin_env": {
@@ -258,7 +228,7 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
             },
         },
         "dotnet_restore": {
-            "command": "dotnet restore .\\Game.sln",
+            "command": f"dotnet restore {restore_arg}",
             "exit_code": rc_restore,
             "evidence_file": f"logs/ci/{date}/env-evidence/dotnet-restore.txt",
         },
@@ -280,24 +250,24 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
             "evidence_file": f"logs/ci/{date}/env-evidence/utf8-check.txt",
             "reason": "",
         },
-        "adr_refs": ["ADR-0005", "ADR-0011", "ADR-0018"],
+        "adr_refs": ["ADR-0031", "ADR-0011"],
+    }
+
+    checklist_path = resolve_acceptance_checklist(root)
+    checklist_rel = _rel(root, checklist_path) if checklist_path else ""
+    task_payload["acceptance_checklist"] = {
+        "path": checklist_rel,
+        "exists": bool(checklist_path and checklist_path.is_file()),
     }
 
     write_json(task_json_path, task_payload)
 
-    checklist_path = root / "docs" / "architecture" / "overlays" / "PRD-SANGUO-T2" / "08" / "ACCEPTANCE_CHECKLIST.md"
-    utf8_checked_files: list[str] = [
-        _rel(root, task_json_path),
-        _rel(root, checklist_path),
-        f"logs/ci/{date}/env-evidence/godot-bin-env.txt",
-        f"logs/ci/{date}/env-evidence/godot-version.txt",
-        f"logs/ci/{date}/env-evidence/godot-bin-version.txt",
-        f"logs/ci/{date}/env-evidence/dotnet-version.txt",
-        f"logs/ci/{date}/env-evidence/dotnet-sdks.txt",
-        f"logs/ci/{date}/env-evidence/dotnet-restore.txt",
-        f"logs/ci/{date}/env-evidence/packages-lock-exists.txt",
-        f"logs/ci/{date}/env-evidence/windows-only-check.txt",
-    ]
+    utf8_checked_files = _build_utf8_checked_files(
+        task_json_rel=_rel(root, task_json_path),
+        checklist_rel=checklist_rel,
+        date=date,
+        errors=details["errors"],
+    )
     utf8_results: list[dict[str, Any]] = []
     for rel_path in utf8_checked_files:
         abs_path = root / rel_path.replace("/", "\\")
@@ -349,6 +319,7 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
         "dotnet_version_ok",
         "dotnet_sdk_8_present",
         "dotnet_restore_ok",
+        "packages_lock_exists",
         "windows_only",
         "os_platform_windows",
         "utf8_ok",

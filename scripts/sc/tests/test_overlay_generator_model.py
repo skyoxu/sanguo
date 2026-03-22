@@ -13,7 +13,7 @@ import _overlay_generator_model as modelmod
 class OverlayGeneratorModelTests(unittest.TestCase):
     def test_parse_existing_page_markdown_should_extract_front_matter_purpose_and_sections(self) -> None:
         text = """---
-PRD-ID: PRD-SANGUO-V3
+PRD-ID: PRD-TEMPLATE-V1
 Title: Sample Page
 Status: Accepted
 ADR-Refs:

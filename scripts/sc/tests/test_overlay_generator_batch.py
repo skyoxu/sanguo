@@ -24,9 +24,9 @@ class OverlayGeneratorBatchTests(unittest.TestCase):
         args = parser.parse_args(
             [
                 "--prd",
-                "prd_v3.md",
+                "prd_template.md",
                 "--prd-docs",
-                "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
                 "--pages",
                 "_index.md,ACCEPTANCE_CHECKLIST.md",
                 "--batch-suffix",
@@ -45,7 +45,7 @@ class OverlayGeneratorBatchTests(unittest.TestCase):
     def test_render_batch_report_markdown_should_include_table_rows(self) -> None:
         summary = {
             "status": "ok",
-            "prd_id": "PRD-SANGUO-V3",
+            "prd_id": "PRD-TEMPLATE-V1",
             "page_count": 2,
             "success_count": 2,
             "failure_count": 0,

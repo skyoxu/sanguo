@@ -13,6 +13,7 @@ from _acceptance_evidence_steps import (
     step_post_evidence_integration,
     step_security_audit_evidence,
 )
+from _post_evidence_config import has_post_evidence_integration
 from _acceptance_steps import (
     StepResult,
     step_acceptance_anchors_validate,
@@ -107,13 +108,18 @@ def build_step_plan(
         "hard",
         None if (tests_enabled and require_headless_e2e) else ("not_required" if tests_enabled else "tests_disabled"),
     )
+    post_evidence_enabled = tests_enabled and require_headless_e2e and has_post_evidence_integration(task_id)
     add(
         "post-evidence-integration",
-        tests_enabled and require_headless_e2e and task_id == 1,
+        post_evidence_enabled,
         "hard",
         None
-        if (tests_enabled and require_headless_e2e and task_id == 1)
-        else ("task_not_targeted" if tests_enabled and require_headless_e2e else ("not_required" if tests_enabled else "tests_disabled")),
+        if post_evidence_enabled
+        else (
+            "post_evidence_not_configured"
+            if tests_enabled and require_headless_e2e
+            else ("not_required" if tests_enabled else "tests_disabled")
+        ),
     )
     add(
         "acceptance-executed-refs",
@@ -225,30 +231,30 @@ def run_tests_bundle(
         steps.append(StepResult(name="tests-all", status="fail", rc=2, details={"error": "missing_godot_bin", "hint": "set --godot-bin or env GODOT_BIN"}))
         return steps
 
-    no_coverage_gate = bool(require_headless_e2e) and int(triplet.task_id) == 1
-    steps.append(step_tests_all(out_dir, godot_bin, run_id=run_id, test_type=test_type, task_id=str(triplet.task_id), no_coverage_gate=no_coverage_gate))
+    steps.append(step_tests_all(out_dir, godot_bin, run_id=run_id, test_type=test_type, task_id=str(triplet.task_id)))
 
     if require_headless_e2e:
         headless_step = step_headless_e2e_evidence(out_dir, expected_run_id=run_id)
         steps.append(headless_step)
-        if headless_step.status == "ok":
-            steps.append(
-                step_post_evidence_integration(
-                    out_dir,
-                    task_id=int(triplet.task_id),
-                    expected_run_id=run_id,
-                    godot_bin=godot_bin,
+        if has_post_evidence_integration(triplet.task_id):
+            if headless_step.status == "ok":
+                steps.append(
+                    step_post_evidence_integration(
+                        out_dir,
+                        task_id=int(triplet.task_id),
+                        expected_run_id=run_id,
+                        godot_bin=godot_bin,
+                    )
                 )
-            )
-        else:
-            steps.append(
-                StepResult(
-                    name="post-evidence-integration",
-                    status="skipped",
-                    rc=0,
-                    details={"reason": "headless_e2e_evidence_failed"},
+            else:
+                steps.append(
+                    StepResult(
+                        name="post-evidence-integration",
+                        status="skipped",
+                        rc=0,
+                        details={"reason": "headless_e2e_evidence_failed"},
+                    )
                 )
-            )
     if require_executed_refs:
         steps.append(step_acceptance_executed_refs(out_dir, task_id=int(triplet.task_id), expected_run_id=run_id))
 

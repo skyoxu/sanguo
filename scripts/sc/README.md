@@ -9,7 +9,7 @@
 
 ## “当前任务”从哪里来
 
-- 默认读取 `.taskmaster/tasks/tasks.json` 中第一个 `status == "in-progress"` 的任务。
+- 默认优先读取 `.taskmaster/tasks/tasks.json` 中第一个 `status == "in-progress"` 的任务；模板仓缺少真实 triplet 时回退到 `examples/taskmaster/tasks.json`。
 - 可用 `--task-id <n>` 显式指定。
 - 三文件关联映射口径：
   - `tasks.json.master.tasks[].id` → `tasks_back[].taskmaster_id` → `tasks_gameplay[].taskmaster_id`
@@ -23,6 +23,7 @@
 - `sc-git`：`logs/ci/<YYYY-MM-DD>/sc-git/`
 - `sc-acceptance-check`：`logs/ci/<YYYY-MM-DD>/sc-acceptance-check/`
 - `sc-llm-review`：`logs/ci/<YYYY-MM-DD>/sc-llm-review/`（可选，本地 LLM 口头审查）
+- `sc-review-pipeline` also writes `run-events.jsonl`, `harness-capabilities.json`, and supports on-demand `approval-request.json` / `approval-response.json` protocol files.
 
 单元测试与覆盖率固定落盘到：`logs/unit/<YYYY-MM-DD>/`（由 `scripts/python/run_dotnet.py` 生成）。
 
@@ -37,6 +38,37 @@
 契约护栏（强制止损）：
 - `tdd` 会快照 `Game.Core/Contracts/**/*.cs`；若检测到新增/修改契约文件会直接失败
 - 若确实需要新增契约：应先补齐 ADR/Overlay/Test-Refs，再继续 TDD
+
+## Generate Tests From Acceptance Refs
+
+`scripts/sc/llm_generate_tests_from_acceptance_refs.py` generates missing test files from task acceptance `Refs:` entries and only allows repo-relative `.cs` / `.gd` test paths.
+
+- Every generated file must include the matching `ACC:T<id>.<n>` anchors.
+- C# anchors must appear within 5 lines above `[Fact]` / `[Theory]`; GDScript anchors must appear within 5 lines above `func test_...`.
+- `--tdd-stage red-first` is a strict red mode.
+  - If the run creates any new `.cs` tests, it forces task-scoped unit verification.
+  - If the run creates any new `.gd` tests, it forces task-scoped `all --skip-smoke` verification.
+  - Unexpected green runs or compile errors fail the whole generation step.
+- Generated C# content is checked deterministically before write:
+  - file name must be `PascalCase + Tests.cs`
+  - class name must be PascalCase and match the file stem
+  - test methods must use `ShouldX_WhenY`
+  - local variables must use camelCase
+- Internal helper ownership:
+  - `_acceptance_testgen_llm.py`: prompt building and primary-ref selection
+  - `_acceptance_testgen_flow.py`: task context / refs collection and verify orchestration
+  - `_acceptance_testgen_quality.py`: deterministic naming and content validation
+  - `_acceptance_testgen_red.py`: strict-red outcome classification (`unexpected_green`, `compile_error`, real red)
+
+Examples:
+
+```powershell
+# Normal scaffold generation
+py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id 11 --verify unit
+
+# Strict red-first generation for new tests
+py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id 11 --tdd-stage red-first --verify auto --godot-bin "$env:GODOT_BIN"
+```
 
 ## Acceptance Check（等价于 Claude Code 的 /acceptance-check）
 
@@ -54,16 +86,35 @@
 - 性能门禁（可选硬门）：解析最新 `logs/ci/**/headless.log` 的 `[PERF] ... p95_ms=...` 并与阈值比较
   - 启用方式：`--perf-p95-ms <ms>` 或设置环境变量 `PERF_P95_THRESHOLD_MS=<ms>`
   - 快捷方式：`--require-perf`（legacy）：等价于启用性能硬门禁，阈值取 `PERF_P95_THRESHOLD_MS`，否则默认 20ms（口径见 ADR-0015）
-- 安全档位（建议显式）：
-  - `--security-profile host-safe`：默认推荐，保持主机边界硬门，反篡改默认降级
-  - `--security-profile strict`：发布收口/高风险改动，安全项全部硬门
-  - 解析顺序：CLI > `SECURITY_PROFILE` > 默认 `host-safe`
+- 交付档位（建议显式）：
+  - `--delivery-profile playable-ea`：最轻门禁，优先验证可玩性；默认派生 `security-profile=host-safe`；`agent_review.mode=skip`
+  - `--delivery-profile fast-ship`：快速交付档位；默认派生 `security-profile=host-safe`；`agent_review.mode=warn`
+  - `--delivery-profile standard`：标准收口档位；默认派生 `security-profile=strict`；`agent_review.mode=require`
+  - 解析顺序：CLI `--delivery-profile` > `DELIVERY_PROFILE` > `scripts/sc/config/delivery_profiles.json` 中的 `default_profile`（当前为 `fast-ship`）
+  - `--security-profile` 仅用于显式覆写派生结果；解析顺序：CLI > `SECURITY_PROFILE` > 由 `delivery-profile` 派生
 
+  - `run_review_pipeline.py` normalizes agent-review verdicts into marathon guidance: isolated `needs-fix` -> `resume`, cross-step `needs-fix` -> `refresh`, and cross-step `block` or high-severity integrity issues -> `fork`; these hints only update sidecars and do not rewrite `summary.json`.
+  - Noise guard: a single `medium` structural finding does not escalate by itself; escalation to `refresh` requires cross-step or cross-axis spread, or the structural category reaching `high`; `artifact-integrity`, `summary-integrity`, and `schema-integrity` prefer `fork`.
 可选：如果你仍希望保留“LLM 口头审查”的等价体验（但不建议作为硬门禁），使用：
 `scripts/sc/llm_review.py` writes outputs to `logs/ci/<YYYY-MM-DD>/sc-llm-review/`; prefer calling it via the unified pipeline.
+- `agent-review.json` now includes top-level `explain` fields so a later agent can read the recommended action and rationale without re-deriving the category rules.
 - 默认会尝试加载：
   - 仓库内：`.claude/agents/*.md`
   - 用户目录：`%USERPROFILE%\\.claude\\agents\\lst97\\*.md`（可用 `--claude-agents-root` 或 `CLAUDE_AGENTS_ROOT` 覆盖）
+
+## Overlay Generation (PRD -> Overlay 08)
+
+Use the overlay generator to turn one PRD wave into candidate pages under `docs/architecture/overlays/<PRD-ID>/08/`, with prompts, outputs, and diffs written to `logs/ci/<YYYY-MM-DD>/`.
+
+Entry points:
+- `py -3 scripts/sc/llm_generate_overlays_batch.py --prd <path> --prd-id <PRD-ID> --prd-docs <csv> --page-family core --page-mode scaffold --dry-run --batch-suffix <wave>-core-dryrun`
+- `py -3 scripts/sc/llm_generate_overlays_from_prd.py --prd <path> --prd-id <PRD-ID> --prd-docs <csv> --page-filter <page>.md --page-mode scaffold --run-suffix <wave>-fix1`
+
+Rules:
+- Every path listed in `--prd-docs` is treated as required input; missing files hard-fail the run.
+- Use `batch` for family-level review and `single-page` for repair/debug.
+- Default flow is `dry-run -> simulate -> single-page repair -> batch apply`.
+- Detailed guidance lives in `docs/workflows/overlay-generation-quickstart.md` and `docs/workflows/overlay-generation-sop.md`.
 
 ## Artifact Assertion Guardrails（防误判）
 
@@ -73,6 +124,8 @@
   - 必需步骤完整性校验（例如 `headless-e2e-evidence` 与 `acceptance-executed-refs` 已成功且可追溯）。
 - 若守卫未通过，测试应按“上下文不完整”路径退出，不得把历史工件或半成品工件当作失败依据。
 - 依赖真实工件的硬断言，统一放在 `post-evidence-integration` 阶段执行，不放在纯单元测试中。
+- 模板仓默认提供 Task 1 的环境证据后置硬门；复制到新项目后，如任务号或测试类名不同，可通过 `SC_POST_EVIDENCE_FILTER_TASK_<id>` 覆盖过滤器，或调整 `scripts/sc/_post_evidence_config.py`。
+- `ci-windows.yml` 在模板仓缺少真实 `.taskmaster/tasks/*.json` 时会显式 skip 这层门禁；业务仓补齐真实 Taskmaster triplet 后即自动启用。
 - 如新增工件型断言，同步更新：
   - `scripts/sc/_acceptance_orchestration.py`
   - `scripts/sc/_acceptance_evidence_steps.py`
@@ -85,23 +138,45 @@
 py -3 scripts/sc/analyze.py --format report
 
 # 构建（warn as error）
-py -3 scripts/sc/build.py NewRouge.csproj --type dev --clean
+py -3 scripts/sc/build.py GodotGame.csproj --type dev --clean
 
 # TDD 门禁编排
 py -3 scripts/sc/build.py tdd --stage red --generate-red-test
 py -3 scripts/sc/build.py tdd --stage green
-py -3 scripts/sc/build.py tdd --stage refactor
+# Unified task-level entry (test + acceptance + llm review + profile-aware agent-review sidecar)
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
 
-# Unified task-level entry (test + acceptance + llm review)
-py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --security-profile host-safe
+# Standard profile for release hardening
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --delivery-profile standard
 
-# Strict profile for release hardening
-py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --security-profile strict
+# Optional: explicit security override when you intentionally break the default mapping
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --security-profile strict
 
 # Optional: skip llm review (deterministic gates only)
 py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --skip-llm-review
 
-# Git（智能提交，脚本会读取 .superclaude/commit-template.txt）
+# Retry a failing step once inside the same invocation
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --max-step-retries 1
+
+# Bound one run with a wall-time stop-loss
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --max-wall-time-sec 1800
+
+# Tighten or relax the context-refresh heuristic thresholds
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --context-refresh-after-failures 2 --context-refresh-after-resumes 2 --context-refresh-after-diff-lines 200 --context-refresh-after-diff-categories 2
+
+# Resume the latest task-scoped run after fixing the first blocking issue
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --resume
+
+# Fork the latest task-scoped run into a new run id while keeping the old artifacts immutable
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --fork
+
+# Fork from a specific source run id when you do not want the latest pointer
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --fork --fork-from-run-id <old_run_id> --run-id <new_run_id>
+
+# Abort the latest task-scoped run without executing more steps
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --abort
+
+# Git smart commit (reads .superclaude/commit-template.txt)
 py -3 scripts/sc/git.py commit --smart-commit --task-ref "#10.1"
 ```
 
@@ -124,6 +199,6 @@ py -3 scripts/sc/git.py commit --smart-commit --task-ref "#10.1"
 
 ## Lightweight Convention (Single Developer)
 
-- If any summary field/structure changes under `scripts/sc`, update the matching schema in `scripts/sc/schemas/*.schema.json` in the same change set.
+- If any summary field/structure or sidecar protocol changes under `scripts/sc`, update the matching schema in `scripts/sc/schemas/*.schema.json` in the same change set.
 - After this type of change, run at least once: `py -3 scripts/sc/run_review_pipeline.py --task-id 1 --dry-run --skip-llm-review`.
-- Do not commit summary-contract changes if this minimal self-check fails.
+- Do not commit summary-contract or sidecar-contract changes if this minimal self-check fails.

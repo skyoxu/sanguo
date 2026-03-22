@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-local-hard-checks-execution-context.schema.json",
+  "title": "local-hard-checks execution-context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cmd",
+    "task_id",
+    "run_id",
+    "status",
+    "failed_step",
+    "artifacts"
+  ],
+  "properties": {
+    "cmd": {
+      "const": "local-hard-checks"
+    },
+    "task_id": {
+      "const": "repo"
+    },
+    "requested_run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "delivery_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "security_profile": {
+      "type": "string",
+      "enum": [
+        "strict",
+        "host-safe"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "fail"
+      ]
+    },
+    "failed_step": {
+      "type": "string"
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary_json",
+        "execution_context_json",
+        "repair_guide_json",
+        "repair_guide_md",
+        "run_events_jsonl",
+        "harness_capabilities_json",
+        "run_id_txt"
+      ],
+      "properties": {
+        "summary_json": {
+          "type": "string"
+        },
+        "execution_context_json": {
+          "type": "string"
+        },
+        "repair_guide_json": {
+          "type": "string"
+        },
+        "repair_guide_md": {
+          "type": "string"
+        },
+        "run_events_jsonl": {
+          "type": "string"
+        },
+        "harness_capabilities_json": {
+          "type": "string"
+        },
+        "run_id_txt": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

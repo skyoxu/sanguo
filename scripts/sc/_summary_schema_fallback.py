@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from _summary_schema_local_hard_checks import validate_local_hard_checks_without_jsonschema as _validate_local_hard_checks_impl
+
 RUN_ID_RE = re.compile(r"^[A-Fa-f0-9]{32}$")
 TASK_ID_RE = re.compile(r"^[0-9]+$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -19,28 +21,18 @@ SC_ACCEPTANCE_MODES = {"self-check", "dry-run-plan", "run"}
 SC_ACCEPTANCE_STATUS = {"ok", "fail"}
 SC_ACCEPTANCE_SUBTASKS_MODE = {"skip", "warn", "require"}
 GATE_MODE = {"skip", "warn", "require"}
-
-
 def _is_int_not_bool(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
-
-
 def _is_optional_int_not_bool(value: Any) -> bool:
     return value is None or _is_int_not_bool(value)
-
-
 def _is_non_empty_string(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
-
-
 def _is_string_list(value: Any, *, allow_empty: bool) -> bool:
     if not isinstance(value, list):
         return False
     if not allow_empty and len(value) == 0:
         return False
     return all(_is_non_empty_string(x) for x in value)
-
-
 def _validate_gate_mode_map(value: Any, *, base_path: str) -> list[str]:
     errors: list[str] = []
     required = {
@@ -64,8 +56,6 @@ def _validate_gate_mode_map(value: Any, *, base_path: str) -> list[str]:
         if not isinstance(gate_value, str) or gate_value not in GATE_MODE:
             errors.append(f"{base_path}.{key}: must be one of {sorted(GATE_MODE)}")
     return errors
-
-
 def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     if not isinstance(payload, dict):
@@ -396,3 +386,12 @@ def validate_sc_acceptance_without_jsonschema(payload: dict[str, Any]) -> list[s
                 errors.append(f"$.{key}: required when mode=dry-run-plan")
 
     return errors
+
+
+def validate_local_hard_checks_without_jsonschema(payload: dict[str, Any]) -> list[str]:
+    return _validate_local_hard_checks_impl(
+        payload,
+        is_non_empty_string=_is_non_empty_string,
+        is_string_list=_is_string_list,
+        is_int_not_bool=_is_int_not_bool,
+    )

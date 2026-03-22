@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-review-repair-guide.schema.json",
+  "title": "sc-review repair-guide",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "recommendations"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not-needed",
+        "needs-fix"
+      ]
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "summary_status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "fail"
+      ]
+    },
+    "failed_step": {
+      "type": "string"
+    },
+    "approval": {
+      "$ref": "#/$defs/approval"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "commands": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "generated_from": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "summary_json": {
+          "type": "string"
+        },
+        "step_log": {
+          "type": "string"
+        },
+        "step_summary_file": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "soft_gate": {
+          "type": "boolean"
+        },
+        "required_action": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "request_path": {
+          "type": "string"
+        },
+        "response_path": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

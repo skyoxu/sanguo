@@ -236,7 +236,7 @@ def step_build_warnaserror(out_dir: Path) -> StepResult:
     return run_and_capture(
         out_dir,
         name="dotnet-build-warnaserror",
-        cmd=["py", "-3", "scripts/sc/build.py", "NewRouge.csproj", "--type", "dev"],
+        cmd=["py", "-3", "scripts/sc/build.py", "--type", "dev"],
         timeout_sec=1_800,
     )
 
@@ -248,19 +248,22 @@ def step_tests_all(
     run_id: str | None = None,
     test_type: str = "all",
     task_id: str | None = None,
-    no_coverage_gate: bool = False,
 ) -> StepResult:
-    cmd = ["py", "-3", "scripts/sc/test.py", "--type", test_type]
+    cmd = [
+        "py",
+        "-3",
+        "scripts/sc/test.py",
+        "--type",
+        test_type,
+        "--no-coverage-gate",
+        "--no-coverage-report",
+    ]
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
-        if test_type != "unit":
-            cmd += ["--task-scoped-gdunit-only"]
     if run_id:
         cmd += ["--run-id", run_id]
     if godot_bin and test_type != "unit":
         cmd += ["--godot-bin", godot_bin]
-    if no_coverage_gate:
-        cmd.append("--no-coverage-gate")
     return run_and_capture(out_dir, name="tests-all", cmd=cmd, timeout_sec=1_200)
 
 

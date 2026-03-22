@@ -26,15 +26,15 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
         args = parser.parse_args(
             [
                 "--prd",
-                "prd_v3.md",
+                "prd_template.md",
                 "--prd-docs",
-                "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
             ]
         )
 
-        self.assertEqual("prd_v3.md", args.prd)
+        self.assertEqual("prd_template.md", args.prd)
         self.assertEqual(
-            "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+            "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
             args.prd_docs,
         )
 
@@ -44,9 +44,9 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
         args = parser.parse_args(
             [
                 "--prd",
-                "prd_v3.md",
+                "prd_template.md",
                 "--prd-docs",
-                "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
                 "--dry-run",
             ]
         )
@@ -59,9 +59,9 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
         args = parser.parse_args(
             [
                 "--prd",
-                "prd_v3.md",
+                "prd_template.md",
                 "--prd-docs",
-                "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
                 "--page-filter",
                 "_index.md,ACCEPTANCE_CHECKLIST.md",
             ]
@@ -75,9 +75,9 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
         args = parser.parse_args(
             [
                 "--prd",
-                "prd_v3.md",
+                "prd_template.md",
                 "--prd-docs",
-                "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
                 "--page-mode",
                 "patch",
             ]
@@ -91,9 +91,9 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
         args = parser.parse_args(
             [
                 "--prd",
-                "prd_v3.md",
+                "prd_template.md",
                 "--prd-docs",
-                "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
             ]
         )
 
@@ -105,9 +105,9 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
         args = parser.parse_args(
             [
                 "--prd",
-                "prd_v3.md",
+                "prd_template.md",
                 "--prd-docs",
-                "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
                 "--page-family",
                 "core",
             ]
@@ -121,9 +121,9 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
         args = parser.parse_args(
             [
                 "--prd",
-                "prd_v3.md",
+                "prd_template.md",
                 "--prd-docs",
-                "PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md,PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md,PRD_ACCEPTANCE_ASSERTIONS.md",
                 "--run-suffix",
                 "batch-a",
             ]
@@ -132,15 +132,15 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
         self.assertEqual("batch-a", args.run_suffix)
 
     def test_build_output_dir_name_should_use_explicit_run_suffix(self) -> None:
-        name = SCRIPT_MODULE._build_output_dir_name("PRD-SANGUO-V3", "batch-a")
+        name = SCRIPT_MODULE._build_output_dir_name("PRD-TEMPLATE-V1", "batch-a")
 
-        self.assertEqual("sc-llm-overlay-gen-prd-sanguo-v3--batch-a", name)
+        self.assertEqual("sc-llm-overlay-gen-prd-template-v1--batch-a", name)
 
     def test_build_output_dir_name_should_generate_default_unique_suffix(self) -> None:
         with patch.object(SCRIPT_MODULE, "_default_run_suffix", return_value="auto-123456"):
-            name = SCRIPT_MODULE._build_output_dir_name("PRD-SANGUO-V3", "")
+            name = SCRIPT_MODULE._build_output_dir_name("PRD-TEMPLATE-V1", "")
 
-        self.assertEqual("sc-llm-overlay-gen-prd-sanguo-v3--auto-123456", name)
+        self.assertEqual("sc-llm-overlay-gen-prd-template-v1--auto-123456", name)
 
     def test_reset_dir_should_remove_stale_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -156,16 +156,16 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
     def test_discover_profile_and_compare_should_report_expected_overlap(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
-            existing_dir = root / "docs" / "architecture" / "overlays" / "PRD-SANGUO-V3" / "08"
+            existing_dir = root / "docs" / "architecture" / "overlays" / "PRD-TEMPLATE-V1" / "08"
             existing_dir.mkdir(parents=True, exist_ok=True)
             (existing_dir / "_index.md").write_text("# Existing Index\n", encoding="utf-8")
             (existing_dir / "ACCEPTANCE_CHECKLIST.md").write_text("# Existing Checklist\n", encoding="utf-8")
 
-            profile = support.discover_existing_overlay_profile(root, "PRD-SANGUO-V3")
+            profile = support.discover_existing_overlay_profile(root, "PRD-TEMPLATE-V1")
 
             self.assertEqual(["ACCEPTANCE_CHECKLIST.md", "_index.md"], sorted(item["filename"] for item in profile))
 
-            generated_dir = root / "logs" / "generated" / "PRD-SANGUO-V3" / "08"
+            generated_dir = root / "logs" / "generated" / "PRD-TEMPLATE-V1" / "08"
             generated_dir.mkdir(parents=True, exist_ok=True)
             for page in [
                 {
@@ -197,7 +197,7 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
                 },
             ]:
                 (generated_dir / page["filename"]).write_text(
-                    support.render_page_markdown(page, prd_id="PRD-SANGUO-V3"),
+                    support.render_page_markdown(page, prd_id="PRD-TEMPLATE-V1"),
                     encoding="utf-8",
                 )
 
@@ -234,7 +234,7 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
     def test_prepare_page_runtime_state_should_keep_distinct_current_page_text_per_filename(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
-            current_dir = root / "docs" / "architecture" / "overlays" / "PRD-SANGUO-V3" / "08"
+            current_dir = root / "docs" / "architecture" / "overlays" / "PRD-TEMPLATE-V1" / "08"
             current_dir.mkdir(parents=True, exist_ok=True)
             (current_dir / "_index.md").write_text("# Index Page\n", encoding="utf-8")
             (current_dir / "ACCEPTANCE_CHECKLIST.md").write_text("# Checklist Page\n", encoding="utf-8")

@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import json
-import re
-import shutil
 import sys
 from pathlib import Path
 
@@ -14,7 +11,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _overlay_generator_diff import build_diff_summary, render_diff_summary_markdown
 from _overlay_generator_markdown_patch import apply_scaffold_update_to_existing_markdown
-from _overlay_generator_model import parse_existing_page_markdown
 from _overlay_generator_patch import build_base_page_from_profile, merge_page_patch
 from _overlay_generator_prompting import (
     build_overlay_page_patch_prompt,
@@ -23,7 +19,14 @@ from _overlay_generator_prompting import (
     parse_and_validate_page_patch,
     run_codex_exec,
 )
-from _overlay_generator_scaffold import build_scaffold_base_page, merge_scaffold_update, select_pages_by_family
+from _overlay_generator_runtime import (
+    artifact_name as _artifact_name,
+    copy_generated_to_target as _copy_generated_to_target,
+    prepare_page_runtime_state as _prepare_page_runtime_state,
+    reset_dir as _reset_dir,
+    select_pages as _select_pages,
+)
+from _overlay_generator_scaffold import merge_scaffold_update, select_pages_by_family
 from _overlay_generator_scaffold_prompting import (
     build_overlay_page_scaffold_prompt,
     parse_and_validate_scaffold_update,
@@ -76,94 +79,16 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _copy_generated_to_target(generated_dir: Path, target_dir: Path) -> None:
-    target_dir.mkdir(parents=True, exist_ok=True)
-    for path in generated_dir.glob("*.md"):
-        shutil.copyfile(path, target_dir / path.name)
-
-
-def _reset_dir(path: Path) -> None:
-    if path.exists():
-        shutil.rmtree(path)
-    path.mkdir(parents=True, exist_ok=True)
-
-
-def _artifact_name(filename: str) -> str:
-    return filename.replace("\\", "_").replace("/", "_").replace(":", "_")
-
-
-def _select_pages(profile: list[dict[str, object]], page_filter_csv: str) -> list[dict[str, object]]:
-    selected_names = set(parse_prd_docs_csv(page_filter_csv))
-    if not selected_names:
-        return list(profile)
-    return [page for page in profile if str(page.get("filename") or "") in selected_names]
-
-
-def _slugify_run_suffix(value: str) -> str:
-    slug = re.sub(r"[^a-z0-9._-]+", "-", str(value).strip().lower())
-    slug = re.sub(r"-{2,}", "-", slug).strip("-")
-    return slug or "run"
-
-
 def _default_run_suffix() -> str:
-    return dt.datetime.now().strftime("run-%H%M%S-%f")
+    from _overlay_generator_runtime import default_run_suffix
+
+    return default_run_suffix()
 
 
 def _build_output_dir_name(prd_id: str, run_suffix: str) -> str:
-    prd_slug = str(prd_id).strip().lower().replace("/", "-").replace(" ", "-")
-    suffix = _slugify_run_suffix(run_suffix) if str(run_suffix).strip() else _default_run_suffix()
-    return f"sc-llm-overlay-gen-{prd_slug}--{suffix}"
+    from _overlay_generator_runtime import build_output_dir_name
 
-
-def _build_page_context(task_digest: dict[str, object], page: dict[str, object]) -> dict[str, object]:
-    target_path = str(page.get("path") or "")
-    target_filename = str(page.get("filename") or "")
-    overlay_clusters = list(task_digest.get("overlay_clusters") or [])
-    for cluster in overlay_clusters:
-        if not isinstance(cluster, dict):
-            continue
-        overlay_path = str(cluster.get("overlay_path") or "")
-        if overlay_path == target_path or overlay_path.endswith("/" + target_filename):
-            return cluster
-    return {
-        "overlay_path": target_path,
-        "master_task_ids": [],
-        "back_task_ids": [],
-        "gameplay_task_ids": [],
-        "titles": [],
-    }
-
-
-def _prepare_page_runtime_state(
-    *,
-    selected_pages: list[dict[str, object]],
-    current_dir: Path,
-    task_digest: dict[str, object],
-) -> dict[str, dict[str, object]]:
-    state: dict[str, dict[str, object]] = {}
-    for page in selected_pages:
-        filename = str(page.get("filename") or "")
-        current_page_path = current_dir / filename
-        current_page_text = current_page_path.read_text(encoding="utf-8") if current_page_path.exists() else ""
-        page_context = _build_page_context(task_digest, page)
-        current_page_model = (
-            parse_existing_page_markdown(
-                filename=filename,
-                page_kind=str(page.get("page_kind") or ""),
-                markdown_text=current_page_text,
-            )
-            if current_page_text.strip()
-            else None
-        )
-        scaffold_base_page = build_scaffold_base_page(page, page_context, current_page=current_page_model)
-        state[filename] = {
-            "current_page_path": current_page_path,
-            "current_page_text": current_page_text,
-            "page_context": page_context,
-            "current_page_model": current_page_model,
-            "scaffold_base_page": scaffold_base_page,
-        }
-    return state
+    return build_output_dir_name(prd_id, run_suffix, default_suffix=_default_run_suffix())
 
 
 def main() -> int:
@@ -185,7 +110,11 @@ def main() -> int:
         repo_root=root,
         explicit_paths=parse_prd_docs_csv(args.prd_docs),
     )
-    missing_required_docs = validate_required_prd_docs(prd_id=prd_id, companion_paths=companion_paths)
+    missing_required_docs = validate_required_prd_docs(
+        prd_id=prd_id,
+        companion_paths=companion_paths,
+        expected_doc_names=parse_prd_docs_csv(args.prd_docs),
+    )
     if missing_required_docs:
         write_json(
             out_dir / "summary.json",

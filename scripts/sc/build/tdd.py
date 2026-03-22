@@ -13,7 +13,6 @@ Usage (Windows):
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 from pathlib import Path
@@ -21,20 +20,46 @@ from typing import Any
 
 
 def _bootstrap_imports() -> None:
-    # scripts/sc/build/tdd.py -> scripts/sc/build -> scripts/sc
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 _bootstrap_imports()
 
+from _delivery_profile import default_security_profile_for_delivery, known_delivery_profiles, profile_test_defaults, resolve_delivery_profile  # noqa: E402
+from _security_profile import resolve_security_profile  # noqa: E402
 from _taskmaster import resolve_triplet  # noqa: E402
-from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text  # noqa: E402
-from _tdd_shared import (  # noqa: E402
-    assert_no_new_contract_files,
-    check_no_task_red_test_skeletons,
-    snapshot_contract_files,
-    write_coverage_hotspots,
+from _util import ci_dir  # noqa: E402
+from _tdd_shared import assert_no_new_contract_files, snapshot_contract_files, write_coverage_hotspots  # noqa: E402
+from _tdd_steps import (  # noqa: E402
+    build_summary,
+    default_task_test_path as _default_task_test_path_impl,
+    ensure_red_test_exists as _ensure_red_test_exists_impl,
+    print_refactor_failure_hints,
+    run_dotnet_test_filtered as _run_dotnet_test_filtered_impl,
+    run_green_gate as _run_green_gate_impl,
+    run_refactor_checks as _run_refactor_checks_impl,
+    run_sc_analyze_task_context as _run_sc_analyze_task_context_impl,
+    validate_task_context_required_fields as _validate_task_context_required_fields_impl,
+    write_summary,
 )
+
+
+DELIVERY_PROFILE_CHOICES = tuple(sorted(known_delivery_profiles()))
+
+
+def resolve_tdd_runtime(*, delivery_profile: str | None, security_profile: str | None, no_coverage_gate: bool) -> dict[str, Any]:
+    resolved_delivery_profile = resolve_delivery_profile(delivery_profile)
+    resolved_security_profile = resolve_security_profile(
+        security_profile or default_security_profile_for_delivery(resolved_delivery_profile)
+    )
+    test_defaults = profile_test_defaults(resolved_delivery_profile)
+    return {
+        "delivery_profile": resolved_delivery_profile,
+        "security_profile": resolved_security_profile,
+        "coverage_gate": bool(test_defaults.get("coverage_gate", True)) and not bool(no_coverage_gate),
+        "coverage_lines_min": max(0, int(test_defaults.get("coverage_lines_min", 90) or 0)),
+        "coverage_branches_min": max(0, int(test_defaults.get("coverage_branches_min", 85) or 0)),
+    }
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -43,369 +68,151 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--task-id", default=None, help="task id; defaults to first status=in-progress in tasks.json")
     ap.add_argument("--solution", default="Game.sln")
     ap.add_argument("--configuration", default="Debug")
+    ap.add_argument("--delivery-profile", default=None, choices=DELIVERY_PROFILE_CHOICES, help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).")
+    ap.add_argument("--security-profile", default=None, choices=["strict", "host-safe"], help="Security profile override (default derives from delivery profile).")
     ap.add_argument("--generate-red-test", action="store_true", help="create a failing test skeleton if missing")
     ap.add_argument("--no-coverage-gate", action="store_true", help="do not enforce default coverage thresholds")
-    ap.add_argument(
-        "--allow-contract-changes",
-        action="store_true",
-        help="allow creating new files under Game.Core/Contracts during this TDD stage",
-    )
+    ap.add_argument("--allow-contract-changes", action="store_true", help="allow creating new files under Game.Core/Contracts during this TDD stage")
     return ap
 
 
 def default_task_test_path(task_id: str) -> Path:
-    return repo_root() / "Game.Core.Tests" / "Tasks" / f"Task{task_id}RedTests.cs"
+    return _default_task_test_path_impl(task_id)
 
 
 def ensure_red_test_exists(task_id: str, title: str, *, allow_create: bool, out_dir: Path) -> Path | None:
-    target = default_task_test_path(task_id)
-    if target.exists():
-        return target
-    if not allow_create:
-        return None
-
-    target.parent.mkdir(parents=True, exist_ok=True)
-    class_name = f"Task{task_id}RedTests"
-    safe_title = " ".join(str(title).split())
-    content = f"""using FluentAssertions;
-using Xunit;
-
-namespace Game.Core.Tests.Tasks;
-
-public class {class_name}
-{{
-    [Fact]
-    public void Red_IsFailingUntilTaskIsImplemented()
-    {{
-        // This test is intentionally failing to start a TDD cycle.
-        true.Should().BeFalse(\"Task {task_id} not implemented yet: {safe_title}\");
-    }}
-}}
-"""
-    target.write_text(content, encoding="utf-8")
-    write_text(out_dir / "generated-red-test.txt", str(target))
-    return target
+    return _ensure_red_test_exists_impl(task_id, title, allow_create=allow_create, out_dir=out_dir)
 
 
 def run_dotnet_test_filtered(task_id: str, *, solution: str, configuration: str, out_dir: Path) -> dict[str, Any]:
-    # Best-effort filter to keep the red stage scoped.
-    filter_expr = f"FullyQualifiedName~Game.Core.Tests.Tasks.Task{task_id}"
-    cmd = ["dotnet", "test", solution, "-c", configuration, "--filter", filter_expr]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=900)
-    log_path = out_dir / "dotnet-test-filtered.log"
-    write_text(log_path, out)
-    return {"name": "dotnet-test-filtered", "cmd": cmd, "rc": rc, "log": str(log_path), "filter": filter_expr}
+    return _run_dotnet_test_filtered_impl(task_id, solution=solution, configuration=configuration, out_dir=out_dir)
 
 
 def run_sc_analyze_task_context(*, task_id: str, out_dir: Path) -> dict[str, Any]:
-    # Ensure logs/ci/<date>/sc-analyze/task_context.json exists and is fresh enough for this TDD stage.
-    # We intentionally use the repo's deterministic analyzer (no LLM).
-    cmd = [
-        "py",
-        "-3",
-        "scripts/sc/analyze.py",
-        "--task-id",
-        str(task_id),
-        "--focus",
-        "all",
-        "--depth",
-        "quick",
-        "--format",
-        "json",
-    ]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=900)
-    log_path = out_dir / "sc-analyze.log"
-    write_text(log_path, out)
-    return {"name": "sc-analyze", "cmd": cmd, "rc": rc, "log": str(log_path), "status": "ok" if rc == 0 else "fail"}
+    return _run_sc_analyze_task_context_impl(task_id=task_id, out_dir=out_dir)
 
 
 def validate_task_context_required_fields(*, task_id: str, stage: str, out_dir: Path) -> dict[str, Any]:
-    # Hard gate: TDD stages MUST use the full triplet semantics (master/back/gameplay) captured by sc-analyze.
-    ctx_path = repo_root() / "logs" / "ci" / today_str() / "sc-analyze" / f"task_context.{task_id}.json"
-
-    cmd = [
-        "py",
-        "-3",
-        "scripts/python/validate_task_context_required_fields.py",
-        "--task-id",
-        str(task_id),
-        "--stage",
-        str(stage),
-        "--context",
-        str(ctx_path),
-        "--out",
-        str(out_dir / "task-context-required.json"),
-    ]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=60)
-    log_path = out_dir / "validate-task-context-required.log"
-    write_text(log_path, out)
-    return {"name": "validate_task_context_required_fields", "cmd": cmd, "rc": rc, "log": str(log_path), "status": "ok" if rc == 0 else "fail"}
+    return _validate_task_context_required_fields_impl(task_id=task_id, stage=stage, out_dir=out_dir)
 
 
-def run_green_gate(*, solution: str, configuration: str, out_dir: Path, no_coverage_gate: bool) -> dict[str, Any]:
-    if not no_coverage_gate:
-        os.environ.setdefault("COVERAGE_LINES_MIN", "90")
-        os.environ.setdefault("COVERAGE_BRANCHES_MIN", "85")
-
-    cmd = ["py", "-3", "scripts/python/run_dotnet.py", "--solution", solution, "--configuration", configuration]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=1_800)
-    log_path = out_dir / "run_dotnet.log"
-    write_text(log_path, out)
-    return {"name": "run_dotnet", "cmd": cmd, "rc": rc, "log": str(log_path), "stdout": out}
+def run_green_gate(
+    *,
+    solution: str,
+    configuration: str,
+    out_dir: Path,
+    coverage_gate: bool,
+    coverage_lines_min: int,
+    coverage_branches_min: int,
+) -> dict[str, Any]:
+    return _run_green_gate_impl(
+        solution=solution,
+        configuration=configuration,
+        out_dir=out_dir,
+        coverage_gate=coverage_gate,
+        coverage_lines_min=coverage_lines_min,
+        coverage_branches_min=coverage_branches_min,
+    )
 
 
 def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
-    steps: list[dict[str, Any]] = []
-    steps.append(check_no_task_red_test_skeletons(out_dir))
-    # Hard gate: every task must have non-empty test_refs evidence in both task views.
-    # This is enforced at refactor stage, when test files are expected to be stable.
-    test_refs_script = repo_root() / "scripts" / "python" / "validate_task_test_refs.py"
-    test_refs_log = out_dir / "validate_task_test_refs.log"
-    if not test_refs_script.exists():
-        write_text(
-            test_refs_log,
-            "FAIL: missing scripts/python/validate_task_test_refs.py\n"
-            "Fix:\n"
-            "  - git pull (or restore the file)\n",
-        )
-        steps.append(
-            {
-                "name": "validate_task_test_refs",
-                "cmd": ["py", "-3", "scripts/python/validate_task_test_refs.py"],
-                "rc": 1,
-                "log": str(test_refs_log),
-                "status": "fail",
-                "reason": "missing:validate_task_test_refs.py",
-            }
-        )
-    else:
-        cmd = [
-            "py",
-            "-3",
-            "scripts/python/validate_task_test_refs.py",
-            "--task-id",
-            str(task_id),
-            "--out",
-            str(out_dir / "task-test-refs.json"),
-            "--require-non-empty",
-        ]
-        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=60)
-        write_text(test_refs_log, out)
-        steps.append(
-            {
-                "name": "validate_task_test_refs",
-                "cmd": cmd,
-                "rc": rc,
-                "log": str(test_refs_log),
-                "status": "ok" if rc == 0 else "fail",
-            }
-        )
+    return _run_refactor_checks_impl(out_dir, task_id=task_id)
 
-    # Hard gate: acceptance items must map to deterministic evidence via "Refs:" and be included in test_refs.
-    acceptance_cmd = [
-        "py",
-        "-3",
-        "scripts/python/validate_acceptance_refs.py",
-        "--task-id",
-        str(task_id),
-        "--stage",
-        "refactor",
-        "--out",
-        str(out_dir / "acceptance-refs.json"),
-    ]
-    acceptance_rc, acceptance_out = run_cmd(acceptance_cmd, cwd=repo_root(), timeout_sec=60)
-    acceptance_log = out_dir / "validate_acceptance_refs.log"
-    write_text(acceptance_log, acceptance_out)
-    steps.append(
-        {
-            "name": "validate_acceptance_refs",
-            "cmd": acceptance_cmd,
-            "rc": acceptance_rc,
-            "log": str(acceptance_log),
-            "status": "ok" if acceptance_rc == 0 else "fail",
-        }
+
+def _run_context_gate(*, stage: str, task_id: str, out_dir: Path, summary: dict[str, Any]) -> bool:
+    summary["steps"].append(run_sc_analyze_task_context(task_id=task_id, out_dir=out_dir))
+    ctx_step = validate_task_context_required_fields(task_id=task_id, stage=stage, out_dir=out_dir)
+    summary["steps"].append(ctx_step)
+    return ctx_step["rc"] == 0
+
+
+def _handle_red_stage(*, args: argparse.Namespace, triplet: Any, out_dir: Path, summary: dict[str, Any]) -> int:
+    if not _run_context_gate(stage="red", task_id=triplet.task_id, out_dir=out_dir, summary=summary):
+        write_summary(out_dir, summary)
+        print(f"SC_BUILD_TDD status=fail out={out_dir}")
+        return 1
+    test_path = ensure_red_test_exists(
+        triplet.task_id,
+        str(triplet.master.get("title") or ""),
+        allow_create=args.generate_red_test,
+        out_dir=out_dir,
     )
+    if not test_path:
+        write_summary(out_dir, summary)
+        print("[sc-build-tdd] ERROR: no task-scoped test found. Use --generate-red-test to create one.")
+        return 2
+    step = run_dotnet_test_filtered(triplet.task_id, solution=args.solution, configuration=args.configuration, out_dir=out_dir)
+    summary["steps"].append(step)
+    summary["status"] = "ok" if step["rc"] != 0 else "unexpected_green"
+    write_summary(out_dir, summary)
+    print(f"SC_BUILD_TDD status={summary['status']} out={out_dir}")
+    return 0 if summary["status"] == "ok" else 1
 
-    # Hard gate: referenced tests must contain ACC:T<id>.<n> anchors for each acceptance item.
-    anchors_cmd = [
-        "py",
-        "-3",
-        "scripts/python/validate_acceptance_anchors.py",
-        "--task-id",
-        str(task_id),
-        "--stage",
-        "refactor",
-        "--out",
-        str(out_dir / "acceptance-anchors.json"),
-    ]
-    anchors_rc, anchors_out = run_cmd(anchors_cmd, cwd=repo_root(), timeout_sec=60)
-    anchors_log = out_dir / "validate_acceptance_anchors.log"
-    write_text(anchors_log, anchors_out)
-    steps.append(
-        {
-            "name": "validate_acceptance_anchors",
-            "cmd": anchors_cmd,
-            "rc": anchors_rc,
-            "log": str(anchors_log),
-            "status": "ok" if anchors_rc == 0 else "fail",
-        }
+
+def _handle_green_stage(*, args: argparse.Namespace, runtime: dict[str, Any], triplet: Any, out_dir: Path, summary: dict[str, Any]) -> int:
+    if not _run_context_gate(stage="green", task_id=triplet.task_id, out_dir=out_dir, summary=summary):
+        write_summary(out_dir, summary)
+        print(f"SC_BUILD_TDD status=fail out={out_dir}")
+        return 1
+    step = run_green_gate(
+        solution=args.solution,
+        configuration=args.configuration,
+        out_dir=out_dir,
+        coverage_gate=bool(runtime["coverage_gate"]),
+        coverage_lines_min=int(runtime["coverage_lines_min"]),
+        coverage_branches_min=int(runtime["coverage_branches_min"]),
     )
-    candidates = [
-        ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py", "--task-id", str(task_id), "--style", "should_when"], "scripts/python/check_test_naming.py"),
-        ("check_tasks_all_refs", ["py", "-3", "scripts/python/check_tasks_all_refs.py"], "scripts/python/check_tasks_all_refs.py"),
-        ("validate_contracts", ["py", "-3", "scripts/python/validate_contracts.py"], "scripts/python/validate_contracts.py"),
-    ]
-    for name, cmd, requires in candidates:
-        log_path = out_dir / f"{name}.log"
-        if not (repo_root() / requires).exists():
-            write_text(log_path, f"SKIP missing: {requires}\n")
-            steps.append({"name": name, "cmd": cmd, "rc": 0, "log": str(log_path), "status": "skipped", "reason": f"missing:{requires}"})
-            continue
+    summary["steps"].append(step)
+    if step["rc"] == 2:
+        summary["steps"].append(write_coverage_hotspots(ci_out_dir=out_dir, run_dotnet_output=step.get("stdout") or ""))
+    summary["status"] = "ok" if step["rc"] == 0 else "fail"
+    write_summary(out_dir, summary)
+    print(f"SC_BUILD_TDD status={summary['status']} out={out_dir}")
+    return 0 if step["rc"] == 0 else 1
 
-        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=900)
-        write_text(log_path, out)
-        steps.append({"name": name, "cmd": cmd, "rc": rc, "log": str(log_path), "status": "ok" if rc == 0 else "fail"})
-    return steps
+
+def _handle_refactor_stage(*, triplet: Any, out_dir: Path, summary: dict[str, Any]) -> int:
+    if not _run_context_gate(stage="refactor", task_id=triplet.task_id, out_dir=out_dir, summary=summary):
+        write_summary(out_dir, summary)
+        print(f"SC_BUILD_TDD status=fail out={out_dir}")
+        return 1
+    steps = run_refactor_checks(out_dir, task_id=triplet.task_id)
+    summary["steps"].extend(steps)
+    summary["status"] = "ok" if all(step["rc"] == 0 for step in steps) else "fail"
+    write_summary(out_dir, summary)
+    if summary["status"] != "ok":
+        failed = [step for step in steps if step.get("rc") != 0]
+        print_refactor_failure_hints(out_dir=out_dir, failed_count=len(failed))
+        return 1
+    print(f"SC_BUILD_TDD status=ok out={out_dir}")
+    return 0
 
 
 def main() -> int:
-    # Keep local TDD loop aligned with CI default security posture.
-    os.environ.setdefault("SECURITY_PROFILE", "host-safe")
-
     args = build_parser().parse_args()
+    runtime = resolve_tdd_runtime(
+        delivery_profile=args.delivery_profile,
+        security_profile=args.security_profile,
+        no_coverage_gate=bool(args.no_coverage_gate),
+    )
+    os.environ["DELIVERY_PROFILE"] = str(runtime["delivery_profile"])
+    os.environ["SECURITY_PROFILE"] = str(runtime["security_profile"])
     out_dir = ci_dir("sc-build-tdd")
-
     before_contracts = snapshot_contract_files()
-
-    summary: dict[str, Any] = {
-        "cmd": "sc-build-tdd",
-        "stage": args.stage,
-        "allow_contract_changes": bool(args.allow_contract_changes),
-        "status": "fail",
-        "steps": [],
-    }
-
     triplet = resolve_triplet(task_id=args.task_id)
-    summary["task"] = {
-        "task_id": triplet.task_id,
-        "title": triplet.master.get("title"),
-        "status": triplet.master.get("status"),
-        "adrRefs": triplet.adr_refs(),
-        "archRefs": triplet.arch_refs(),
-        "overlay": triplet.overlay(),
-        "taskdoc": triplet.taskdoc_path,
-    }
+    summary = build_summary(stage=args.stage, allow_contract_changes=bool(args.allow_contract_changes), triplet=triplet)
 
-    if args.stage == "red":
-        summary["steps"].append(run_sc_analyze_task_context(task_id=triplet.task_id, out_dir=out_dir))
-        ctx_step = validate_task_context_required_fields(task_id=triplet.task_id, stage="red", out_dir=out_dir)
-        summary["steps"].append(ctx_step)
-        if ctx_step["rc"] != 0:
-            write_json(out_dir / "summary.json", summary)
-            print(f"SC_BUILD_TDD status=fail out={out_dir}")
-            assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
-            return 1
-
-        test_path = ensure_red_test_exists(
-            triplet.task_id,
-            str(triplet.master.get("title") or ""),
-            allow_create=args.generate_red_test,
-            out_dir=out_dir,
-        )
-        if not test_path:
-            write_json(out_dir / "summary.json", summary)
-            print("[sc-build-tdd] ERROR: no task-scoped test found. Use --generate-red-test to create one.")
-            return 2
-
-        step = run_dotnet_test_filtered(
-            triplet.task_id,
-            solution=args.solution,
-            configuration=args.configuration,
-            out_dir=out_dir,
-        )
-        summary["steps"].append(step)
-
-        # In red stage, we EXPECT a failure.
-        summary["status"] = "ok" if step["rc"] != 0 else "unexpected_green"
-        write_json(out_dir / "summary.json", summary)
-        print(f"SC_BUILD_TDD status={summary['status']} out={out_dir}")
+    try:
+        if args.stage == "red":
+            return _handle_red_stage(args=args, triplet=triplet, out_dir=out_dir, summary=summary)
+        if args.stage == "green":
+            return _handle_green_stage(args=args, runtime=runtime, triplet=triplet, out_dir=out_dir, summary=summary)
+        if args.stage == "refactor":
+            return _handle_refactor_stage(triplet=triplet, out_dir=out_dir, summary=summary)
+        write_summary(out_dir, summary)
+        return 1
+    finally:
         assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
-        return 0 if summary["status"] == "ok" else 1
-
-    if args.stage == "green":
-        summary["steps"].append(run_sc_analyze_task_context(task_id=triplet.task_id, out_dir=out_dir))
-        ctx_step = validate_task_context_required_fields(task_id=triplet.task_id, stage="green", out_dir=out_dir)
-        summary["steps"].append(ctx_step)
-        if ctx_step["rc"] != 0:
-            write_json(out_dir / "summary.json", summary)
-            print(f"SC_BUILD_TDD status=fail out={out_dir}")
-            assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
-            return 1
-
-        step = run_green_gate(
-            solution=args.solution,
-            configuration=args.configuration,
-            out_dir=out_dir,
-            no_coverage_gate=args.no_coverage_gate,
-        )
-        summary["steps"].append(step)
-        if step["rc"] == 2:
-            summary["steps"].append(write_coverage_hotspots(ci_out_dir=out_dir, run_dotnet_output=step.get("stdout") or ""))
-        summary["status"] = "ok" if step["rc"] == 0 else "fail"
-        write_json(out_dir / "summary.json", summary)
-        print(f"SC_BUILD_TDD status={summary['status']} out={out_dir}")
-        assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
-        return 0 if step["rc"] == 0 else 1
-
-    if args.stage == "refactor":
-        summary["steps"].append(run_sc_analyze_task_context(task_id=triplet.task_id, out_dir=out_dir))
-        ctx_step = validate_task_context_required_fields(task_id=triplet.task_id, stage="refactor", out_dir=out_dir)
-        summary["steps"].append(ctx_step)
-        if ctx_step["rc"] != 0:
-            write_json(out_dir / "summary.json", summary)
-            print(f"SC_BUILD_TDD status=fail out={out_dir}")
-            assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
-            return 1
-
-        steps = run_refactor_checks(out_dir, task_id=triplet.task_id)
-        summary["steps"].extend(steps)
-        summary["status"] = "ok" if all(s["rc"] == 0 for s in steps) else "fail"
-        write_json(out_dir / "summary.json", summary)
-
-        if summary["status"] != "ok":
-            failed = [s for s in steps if s.get("rc") != 0]
-            print(f"SC_BUILD_TDD status=fail out={out_dir} failed_steps={len(failed)}")
-
-            def _print_top_errors(json_path: Path, *, label: str, max_items: int = 12) -> None:
-                if not json_path.exists():
-                    return
-                try:
-                    payload = json.loads(json_path.read_text(encoding="utf-8"))
-                except Exception:
-                    return
-                errs = payload.get("errors")
-                if not isinstance(errs, list) or not errs:
-                    return
-                print(f"{label}:")
-                for e in [str(x) for x in errs[:max_items]]:
-                    print(f"  - {e}")
-                if len(errs) > max_items:
-                    print(f"  ... ({len(errs) - max_items} more)")
-
-            _print_top_errors(out_dir / "acceptance-refs.json", label="ACCEPTANCE_REFS_TOP_ERRORS")
-            _print_top_errors(out_dir / "task-test-refs.json", label="TASK_TEST_REFS_TOP_ERRORS")
-            print("Fix hints:")
-            print(f"  - Check logs: {out_dir}")
-            print(f"  - Ensure every acceptance item has 'Refs:' and referenced files exist")
-            print(f"  - Ensure refs are included in test_refs (or run update_task_test_refs_from_acceptance_refs.py)")
-        else:
-            print(f"SC_BUILD_TDD status=ok out={out_dir}")
-
-        assert_no_new_contract_files(before_contracts, allow_changes=bool(args.allow_contract_changes))
-        return 0 if summary["status"] == "ok" else 1
-
-    write_json(out_dir / "summary.json", summary)
-    return 1
 
 
 if __name__ == "__main__":

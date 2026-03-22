@@ -184,7 +184,7 @@ def render_task_context(
     return "\n".join(lines).strip() + "\n"
 
 
-def build_prompt(task_context: str) -> str:
+def build_prompt(task_context: str, delivery_profile_context: str = "") -> str:
     blocks: list[str] = []
     blocks.append("Role: acceptance-semantics-aligner")
     blocks.append("")
@@ -209,6 +209,10 @@ def build_prompt(task_context: str) -> str:
     blocks.append('  "notes": [<string>...]')
     blocks.append("}")
     blocks.append("")
+    if str(delivery_profile_context or "").strip():
+        blocks.append("Delivery profile context:")
+        blocks.append(str(delivery_profile_context).strip())
+        blocks.append("")
     blocks.append("Task context:")
     blocks.append(task_context)
     return "\n".join(blocks).strip() + "\n"
@@ -344,4 +348,3 @@ def load_semantic_hints(path: str | None) -> dict[int, str]:
             if reason:
                 out[tid_i] = reason
     return out
-

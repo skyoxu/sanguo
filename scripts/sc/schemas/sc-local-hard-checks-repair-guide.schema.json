@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-local-hard-checks-repair-guide.schema.json",
+  "title": "local-hard-checks repair-guide",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cmd",
+    "task_id",
+    "run_id",
+    "status",
+    "failed_step",
+    "artifacts",
+    "next_actions",
+    "rerun_command"
+  ],
+  "properties": {
+    "cmd": {
+      "const": "local-hard-checks"
+    },
+    "task_id": {
+      "const": "repo"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "fail"
+      ]
+    },
+    "failed_step": {
+      "type": "string"
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary_json",
+        "execution_context_json"
+      ],
+      "properties": {
+        "summary_json": {
+          "type": "string"
+        },
+        "execution_context_json": {
+          "type": "string"
+        }
+      }
+    },
+    "next_actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "rerun_command": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

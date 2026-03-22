@@ -1,51 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 import re
 from typing import Any
+
 from _obligations_prompt_acceptance import build_acceptance_prompt_blocks
-_ANTI_TAMPER_TERMS: tuple[str, ...] = (
-    "anti tamper",
-    "anti-tamper",
-    "tamper",
-    "hmac",
-    "signature",
-    "checksum",
-    "hash chain",
-    "chain-hash",
-    "integrity",
-    "trusted publisher",
-    "anti cheat",
-    "anti-cheat",
-    "防篡改",
-    "篡改",
-    "签名",
-    "完整性",
-    "校验",
-    "哈希链",
-    "链式哈希",
+from _obligations_text_rules import (
+    contains_excerpt,
+    count_uncovered,
+    dedupe_keep_order,
+    is_anti_tamper_only,
+    normalize_ws,
+    passes_stripped_excerpt_quality,
+    strip_prompt_prefix,
 )
-
-_HOST_SAFETY_TERMS: tuple[str, ...] = (
-    "res://",
-    "user://",
-    "path traversal",
-    "absolute path",
-    "sql injection",
-    "allowlist",
-    "https",
-    "os.execute",
-    "dynamic load",
-    "remote debug",
-    "路径越权",
-    "绝对路径",
-    "注入",
-    "白名单",
-)
-
-_MIN_STRIPPED_EXCERPT_LEN = 12
-_MIN_STRIPPED_EN_WORDS = 3
-_MIN_STRIPPED_ZH_CHARS = 6
 
 
 def normalize_model_status(value: Any) -> str:
@@ -71,101 +40,35 @@ def safe_prompt_truncate(prompt: str, *, max_chars: int) -> str:
     head_keep = max(200, limit - tail_keep - 64)
     if head_keep + tail_keep >= limit:
         return text[:limit]
-    return (
-        text[:head_keep]
-        + "\n\n...[PROMPT_TRUNCATED_FOR_BUDGET]...\n\n"
-        + text[-tail_keep:]
-    )
+    return text[:head_keep] + "\n\n...[PROMPT_TRUNCATED_FOR_BUDGET]...\n\n" + text[-tail_keep:]
 
 
 def _normalize_ws(text: str) -> str:
-    return re.sub(r"\s+", " ", str(text or "")).strip()
+    return normalize_ws(text)
 
 
 def _strip_prompt_prefix(text: str) -> str:
-    s = str(text or "").strip()
-    if not s:
-        return s
-    patterns = (
-        r"^Task:\s*T\d+\s*[:：\-]?\s*",
-        r"^Master\s+title:\s*",
-        r"^任务[:：]\s*T?\d+\s*[:：\-]?\s*",
-        r"^主标题[:：]\s*",
-    )
-    for pat in patterns:
-        s2 = re.sub(pat, "", s, flags=re.IGNORECASE).strip()
-        if s2 != s:
-            s = s2
-    return s
+    return strip_prompt_prefix(text)
 
 
 def _passes_stripped_excerpt_quality(norm_text: str) -> bool:
-    text = str(norm_text or "").strip()
-    if not text:
-        return False
-    en_words = len(re.findall(r"[A-Za-z]{2,}", text))
-    zh_chars = len(re.findall(r"[\u4e00-\u9fff]", text))
-    return en_words >= _MIN_STRIPPED_EN_WORDS or zh_chars >= _MIN_STRIPPED_ZH_CHARS
+    return passes_stripped_excerpt_quality(norm_text)
 
 
 def _contains_excerpt(excerpt: str, raw_corpus: str, norm_corpus: str) -> tuple[bool, bool]:
-    """Return (matched, matched_after_prefix_strip)."""
-    if not excerpt:
-        return False, False
-
-    def _match(candidate: str) -> bool:
-        if not candidate:
-            return False
-        if candidate in raw_corpus:
-            return True
-        norm_candidate = _normalize_ws(candidate)
-        return bool(norm_candidate and norm_candidate in norm_corpus)
-
-    if _match(excerpt):
-        return True, False
-
-    stripped = _strip_prompt_prefix(excerpt)
-    norm_stripped = _normalize_ws(stripped)
-    if (
-        stripped
-        and stripped != excerpt
-        and len(norm_stripped) >= _MIN_STRIPPED_EXCERPT_LEN
-        and _passes_stripped_excerpt_quality(norm_stripped)
-        and _match(stripped)
-    ):
-        return True, True
-
-    return False, False
+    return contains_excerpt(excerpt, raw_corpus, norm_corpus)
 
 
 def _is_anti_tamper_only(text: str) -> bool:
-    lower = str(text or "").lower()
-    if not lower:
-        return False
-    has_anti_tamper = any(term in lower for term in _ANTI_TAMPER_TERMS)
-    if not has_anti_tamper:
-        return False
-    has_host_safety = any(term in lower for term in _HOST_SAFETY_TERMS)
-    return not has_host_safety
+    return is_anti_tamper_only(text)
 
 
 def _dedupe_keep_order(items: list[str]) -> list[str]:
-    out: list[str] = []
-    seen: set[str] = set()
-    for raw in items:
-        value = str(raw or "").strip()
-        if not value or value in seen:
-            continue
-        seen.add(value)
-        out.append(value)
-    return out
+    return dedupe_keep_order(items)
 
 
 def _count_uncovered(obj: dict[str, Any]) -> int:
-    raw = obj.get("uncovered_obligation_ids") or []
-    if not isinstance(raw, list):
-        return 0
-    return len([x for x in raw if str(x or "").strip()])
+    return count_uncovered(obj)
 
 
 def pick_consensus_verdict(
@@ -176,7 +79,7 @@ def pick_consensus_verdict(
     if not run_verdicts:
         return None
     target = "ok" if str(target_status).strip().lower() == "ok" else "fail"
-    candidates = [x for x in run_verdicts if normalize_model_status(x.get("status")) == target]
+    candidates = [item for item in run_verdicts if normalize_model_status(item.get("status")) == target]
     if not candidates:
         return run_verdicts[0]
 
@@ -213,14 +116,14 @@ def apply_deterministic_guards(
     if int(min_obligations) > 0 and len(obligations) < int(min_obligations):
         det_issues.append(f"DET_MIN_OBLIGATIONS<{int(min_obligations)}")
 
-    subtask_ids = [str(s.get("id") or "").strip() for s in subtasks if str(s.get("id") or "").strip()]
+    subtask_ids = [str(item.get("id") or "").strip() for item in subtasks if str(item.get("id") or "").strip()]
     subtask_id_set = set(subtask_ids)
     covered_sources: set[str] = set()
 
-    raw_corpus = "\n".join([str(x or "") for x in source_text_blocks if str(x or "").strip()])
+    raw_corpus = "\n".join([str(item or "") for item in source_text_blocks if str(item or "").strip()])
     norm_corpus = _normalize_ws(raw_corpus)
-
     expected_hard_uncovered: list[str] = []
+
     for index, obligation in enumerate(obligations, start=1):
         if not isinstance(obligation, dict):
             det_issues.append(f"DET_OBLIGATION_NOT_OBJECT:{index}")
@@ -266,7 +169,7 @@ def apply_deterministic_guards(
             det_issues.append(f"DET_SUBTASK_SOURCE:{sid}")
 
     declared_uncovered = obj.get("uncovered_obligation_ids") or []
-    declared_uncovered_ids = _dedupe_keep_order([str(x or "") for x in declared_uncovered]) if isinstance(declared_uncovered, list) else []
+    declared_uncovered_ids = _dedupe_keep_order([str(item or "") for item in declared_uncovered]) if isinstance(declared_uncovered, list) else []
     for oid in expected_hard_uncovered:
         if oid not in declared_uncovered_ids:
             det_issues.append(f"DET_UNCOVERED_MISSING:{oid}")
@@ -276,28 +179,23 @@ def apply_deterministic_guards(
 
     if status == "ok" and hard_uncovered:
         det_issues.append("DET_STATUS_OK_WITH_HARD_UNCOVERED")
-
     if status == "fail" and not hard_uncovered and advisory_uncovered and not det_issues:
         status = "ok"
-
     if hard_uncovered or det_issues:
         status = "fail"
 
     notes = obj.get("notes") or []
     if not isinstance(notes, list):
         notes = []
-    notes.extend([f"deterministic_hard_gate: {x}" for x in det_issues])
+    notes.extend([f"deterministic_hard_gate: {issue}" for issue in det_issues])
     if advisory_uncovered:
-        notes.append(
-            "host_safe_advisory: anti-tamper-only uncovered obligations are advisory under host-safe profile."
-        )
+        notes.append("host_safe_advisory: anti-tamper-only uncovered obligations are advisory under host-safe profile.")
 
     obj["notes"] = notes
     obj["status"] = status
     obj["uncovered_obligation_ids"] = hard_uncovered
     obj["advisory_uncovered_obligation_ids"] = advisory_uncovered
     obj["source_excerpt_prefix_stripped_matches"] = prefix_stripped_match_count
-
     return obj, det_issues, hard_uncovered, advisory_uncovered
 
 
@@ -307,18 +205,18 @@ def render_obligations_report(obj: dict[str, Any]) -> str:
     uncovered = obj.get("uncovered_obligation_ids") or []
     advisory = obj.get("advisory_uncovered_obligation_ids") or []
     obligations = obj.get("obligations") or []
-    lines: list[str] = []
-    lines.append("# sc-llm-extract-task-obligations report")
-    lines.append("")
-    lines.append(f"- task_id: {task_id}")
-    lines.append(f"- status: {status}")
-    lines.append(f"- uncovered(hard): {len(uncovered) if isinstance(uncovered, list) else 'unknown'}")
-    lines.append(f"- uncovered(advisory): {len(advisory) if isinstance(advisory, list) else 'unknown'}")
-    lines.append(f"- excerpt_prefix_stripped_matches: {int(obj.get('source_excerpt_prefix_stripped_matches') or 0)}")
-    lines.append("")
+    lines: list[str] = [
+        "# sc-llm-extract-task-obligations report",
+        "",
+        f"- task_id: {task_id}",
+        f"- status: {status}",
+        f"- uncovered(hard): {len(uncovered) if isinstance(uncovered, list) else 'unknown'}",
+        f"- uncovered(advisory): {len(advisory) if isinstance(advisory, list) else 'unknown'}",
+        f"- excerpt_prefix_stripped_matches: {int(obj.get('source_excerpt_prefix_stripped_matches') or 0)}",
+        "",
+    ]
     if isinstance(obligations, list) and obligations:
-        lines.append("## Obligations")
-        lines.append("")
+        lines.extend(["## Obligations", ""])
         for raw in obligations:
             if not isinstance(raw, dict):
                 continue
@@ -333,9 +231,7 @@ def render_obligations_report(obj: dict[str, Any]) -> str:
                 lines.append(f"  - excerpt: {excerpt}")
     notes = obj.get("notes") or []
     if isinstance(notes, list) and notes:
-        lines.append("")
-        lines.append("## Notes")
-        lines.append("")
+        lines.extend(["", "## Notes", ""])
         for note in notes:
             text = str(note or "").strip()
             if text:
@@ -359,6 +255,7 @@ def build_obligation_prompt(
     acceptance_by_view: dict[str, list[Any]],
     security_profile: str,
     security_profile_context: str,
+    delivery_profile_context: str = "",
 ) -> str:
     subtask_lines: list[str] = []
     for item in subtasks:
@@ -375,7 +272,6 @@ def build_obligation_prompt(
                 subtask_lines.append(f"  testStrategy: {sub_test_strategy}")
 
     acceptance_blocks = build_acceptance_prompt_blocks(acceptance_by_view)
-
     schema = """
 Return JSON only (no Markdown).
 Schema:
@@ -421,7 +317,6 @@ Security profile rules:
 
     details_block = _truncate(master_details or "", max_chars=8_000)
     test_strategy_block = _truncate(master_test_strategy or "", max_chars=4_000)
-
     return "\n".join(
         [
             "You are a strict reviewer for a Godot + C# repo.",
@@ -434,6 +329,9 @@ Security profile rules:
             "",
             "Security profile context:",
             security_profile_context.strip() or f"- profile: {security_profile}",
+            "",
+            "Delivery profile context:",
+            delivery_profile_context.strip() or "- profile: standard",
             "",
             "Master details:",
             details_block or "(empty)",
