@@ -13,13 +13,13 @@ import _overlay_generator_support as support
 
 class OverlayGeneratorSupportTests(unittest.TestCase):
     def test_parse_prd_docs_csv_should_split_and_trim(self) -> None:
-        result = support.parse_prd_docs_csv(" PRD_V3_TRACEABILITY_MATRIX.md,PRD_V3_RULES_FREEZE.md , ,PRD_V3_ACCEPTANCE_ASSERTIONS.md ")
+        result = support.parse_prd_docs_csv(" PRD_TRACEABILITY_MATRIX.md,PRD_RULES_FREEZE.md , ,PRD_ACCEPTANCE_ASSERTIONS.md ")
 
         self.assertEqual(
             [
-                "PRD_V3_TRACEABILITY_MATRIX.md",
-                "PRD_V3_RULES_FREEZE.md",
-                "PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                "PRD_TRACEABILITY_MATRIX.md",
+                "PRD_RULES_FREEZE.md",
+                "PRD_ACCEPTANCE_ASSERTIONS.md",
             ],
             result,
         )
@@ -30,11 +30,11 @@ class OverlayGeneratorSupportTests(unittest.TestCase):
                 "tasks": [
                     {
                         "id": 66,
-                        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+                        "overlay": "docs/architecture/overlays/PRD-TEMPLATE-V1/08/_index.md",
                     },
                     {
                         "id": 67,
-                        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md",
+                        "overlay": "docs/architecture/overlays/PRD-TEMPLATE-V1/08/08-rules-freeze-and-assertion-routing.md",
                     },
                     {
                         "id": 1,
@@ -47,8 +47,8 @@ class OverlayGeneratorSupportTests(unittest.TestCase):
             {
                 "taskmaster_id": 66,
                 "overlay_refs": [
-                    "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
-                    "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md",
+                    "docs/architecture/overlays/PRD-TEMPLATE-V1/08/_index.md",
+                    "docs/architecture/overlays/PRD-TEMPLATE-V1/08/ACCEPTANCE_CHECKLIST.md",
                 ],
             }
         ]
@@ -56,32 +56,32 @@ class OverlayGeneratorSupportTests(unittest.TestCase):
             {
                 "taskmaster_id": 67,
                 "overlay_refs": [
-                    "docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md"
+                    "docs/architecture/overlays/PRD-TEMPLATE-V1/08/08-rules-freeze-and-assertion-routing.md"
                 ],
             }
         ]
 
         result = support.infer_prd_id(None, tasks_json, tasks_back, tasks_gameplay)
 
-        self.assertEqual("PRD-SANGUO-V3", result)
+        self.assertEqual("PRD-TEMPLATE-V1", result)
 
     def test_discover_companion_docs_should_use_explicit_paths_and_stage_doc(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
-            prd_path = root / "prd_v3.md"
+            prd_path = root / "prd_template.md"
             prd_path.write_text("# PRD\n", encoding="utf-8")
-            (root / "PRD_V3_TRACEABILITY_MATRIX.md").write_text("# Traceability\n", encoding="utf-8")
-            (root / "PRD_V3_RULES_FREEZE.md").write_text("# Freeze\n", encoding="utf-8")
-            (root / "PRD_V3_ACCEPTANCE_ASSERTIONS.md").write_text("# Assertions\n", encoding="utf-8")
+            (root / "PRD_TRACEABILITY_MATRIX.md").write_text("# Traceability\n", encoding="utf-8")
+            (root / "PRD_RULES_FREEZE.md").write_text("# Freeze\n", encoding="utf-8")
+            (root / "PRD_ACCEPTANCE_ASSERTIONS.md").write_text("# Assertions\n", encoding="utf-8")
             (root / "CURRENT_STAGE_FOR_BMAD.md").write_text("# Stage\n", encoding="utf-8")
 
             result = support.discover_companion_docs(
                 prd_path,
                 repo_root=root,
                 explicit_paths=[
-                    "PRD_V3_TRACEABILITY_MATRIX.md",
-                    "PRD_V3_RULES_FREEZE.md",
-                    "PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                    "PRD_TRACEABILITY_MATRIX.md",
+                    "PRD_RULES_FREEZE.md",
+                    "PRD_ACCEPTANCE_ASSERTIONS.md",
                 ],
             )
 
@@ -89,51 +89,61 @@ class OverlayGeneratorSupportTests(unittest.TestCase):
             self.assertEqual(
                 [
                     "CURRENT_STAGE_FOR_BMAD.md",
-                    "PRD_V3_ACCEPTANCE_ASSERTIONS.md",
-                    "PRD_V3_RULES_FREEZE.md",
-                    "PRD_V3_TRACEABILITY_MATRIX.md",
+                    "PRD_ACCEPTANCE_ASSERTIONS.md",
+                    "PRD_RULES_FREEZE.md",
+                    "PRD_TRACEABILITY_MATRIX.md",
                 ],
                 relpaths,
             )
 
-    def test_validate_required_prd_docs_should_fail_when_v3_docs_missing(self) -> None:
+    def test_validate_required_prd_docs_should_fail_when_explicit_required_docs_missing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
             docs = [
-                root / "PRD_V3_TRACEABILITY_MATRIX.md",
+                root / "PRD_TRACEABILITY_MATRIX.md",
                 root / "CURRENT_STAGE_FOR_BMAD.md",
             ]
             for path in docs:
                 path.write_text("# Doc\n", encoding="utf-8")
 
             missing = support.validate_required_prd_docs(
-                prd_id="PRD-SANGUO-V3",
+                prd_id="PRD-TEMPLATE-V1",
                 companion_paths=docs,
+                expected_doc_names=[
+                    "PRD_TRACEABILITY_MATRIX.md",
+                    "PRD_RULES_FREEZE.md",
+                    "PRD_ACCEPTANCE_ASSERTIONS.md",
+                ],
             )
 
             self.assertEqual(
                 [
-                    "PRD_V3_RULES_FREEZE.md",
-                    "PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                    "PRD_RULES_FREEZE.md",
+                    "PRD_ACCEPTANCE_ASSERTIONS.md",
                 ],
                 missing,
             )
 
-    def test_validate_required_prd_docs_should_pass_when_v3_docs_present(self) -> None:
+    def test_validate_required_prd_docs_should_pass_when_explicit_required_docs_present(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
             docs = [
-                root / "PRD_V3_TRACEABILITY_MATRIX.md",
-                root / "PRD_V3_RULES_FREEZE.md",
-                root / "PRD_V3_ACCEPTANCE_ASSERTIONS.md",
+                root / "PRD_TRACEABILITY_MATRIX.md",
+                root / "PRD_RULES_FREEZE.md",
+                root / "PRD_ACCEPTANCE_ASSERTIONS.md",
                 root / "CURRENT_STAGE_FOR_BMAD.md",
             ]
             for path in docs:
                 path.write_text("# Doc\n", encoding="utf-8")
 
             missing = support.validate_required_prd_docs(
-                prd_id="PRD-SANGUO-V3",
+                prd_id="PRD-TEMPLATE-V1",
                 companion_paths=docs,
+                expected_doc_names=[
+                    "PRD_TRACEABILITY_MATRIX.md",
+                    "PRD_RULES_FREEZE.md",
+                    "PRD_ACCEPTANCE_ASSERTIONS.md",
+                ],
             )
 
             self.assertEqual([], missing)
@@ -156,9 +166,9 @@ class OverlayGeneratorSupportTests(unittest.TestCase):
             ],
         }
 
-        text = support.render_page_markdown(page, prd_id="PRD-SANGUO-V3")
+        text = support.render_page_markdown(page, prd_id="PRD-TEMPLATE-V1")
 
-        self.assertIn("PRD-ID: PRD-SANGUO-V3", text)
+        self.assertIn("PRD-ID: PRD-TEMPLATE-V1", text)
         self.assertIn("一、文档完整性验收", text)
         self.assertIn("二、架构设计验收", text)
         self.assertIn("三、代码实现验收", text)

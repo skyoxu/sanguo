@@ -14,7 +14,7 @@ class OverlayGeneratorMarkdownPatchTests(unittest.TestCase):
     def test_apply_scaffold_update_to_existing_markdown_should_preserve_rich_intro_and_nested_sections(self) -> None:
         current_markdown = """---
 
-PRD-ID: PRD-SANGUO-V3
+PRD-ID: PRD-TEMPLATE-V1
 
 Title: 08 Feature Slice Index (V3 Campaign Mode)
 
@@ -26,11 +26,11 @@ ADR-Refs:
 
 ---
 
-# PRD-SANGUO-V3 Feature Slice Index
+# PRD-TEMPLATE-V1 Feature Slice Index
 
 This directory is the V3 campaign overlay root. It is driven by:
 
-- `prd_v3.md`
+- `prd_template.md`
 
 Compatibility note:
 
@@ -72,7 +72,7 @@ Some filenames intentionally keep old T2-oriented names.
 
     def test_apply_scaffold_update_to_existing_markdown_should_replace_simple_task_coverage_block(self) -> None:
         current_markdown = """---
-PRD-ID: PRD-SANGUO-V3
+PRD-ID: PRD-TEMPLATE-V1
 Title: Checklist
 Status: Draft
 ---
@@ -105,7 +105,7 @@ Task coverage:
 
     def test_apply_scaffold_update_to_existing_markdown_should_reject_foreign_section_headings(self) -> None:
         current_markdown = """---
-PRD-ID: PRD-SANGUO-V3
+PRD-ID: PRD-TEMPLATE-V1
 Title: Index
 Status: Accepted
 ---

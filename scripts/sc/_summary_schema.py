@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from _summary_schema_fallback import (
+    validate_local_hard_checks_without_jsonschema,
     validate_pipeline_without_jsonschema,
     validate_sc_acceptance_without_jsonschema,
     validate_sc_test_without_jsonschema,
@@ -35,6 +36,10 @@ def sc_test_summary_schema_path() -> Path:
 
 def sc_acceptance_summary_schema_path() -> Path:
     return _schemas_dir() / "sc-acceptance-check-summary.schema.json"
+
+
+def local_hard_checks_summary_schema_path() -> Path:
+    return _schemas_dir() / "sc-local-hard-checks-summary.schema.json"
 
 
 def _load_schema(path: Path, label: str) -> dict[str, Any]:
@@ -114,4 +119,13 @@ def validate_sc_acceptance_summary(payload: dict[str, Any]) -> None:
         schema_path=sc_acceptance_summary_schema_path(),
         label="sc-acceptance-check summary",
         fallback_validator=validate_sc_acceptance_without_jsonschema,
+    )
+
+
+def validate_local_hard_checks_summary(payload: dict[str, Any]) -> None:
+    _validate_summary(
+        payload=payload,
+        schema_path=local_hard_checks_summary_schema_path(),
+        label="local-hard-checks summary",
+        fallback_validator=validate_local_hard_checks_without_jsonschema,
     )

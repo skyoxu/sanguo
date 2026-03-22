@@ -6,10 +6,13 @@ Evidence-oriented acceptance-check steps.
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
+import os
+
+from _post_evidence_config import get_post_evidence_report_dir, get_post_evidence_test_filter
+from _repo_targets import resolve_solution_file
 from _step_result import StepResult
 from _util import repo_root, run_cmd, today_str, write_json, write_text
 
@@ -128,6 +131,7 @@ def step_security_audit_evidence(out_dir: Path, *, expected_run_id: str) -> Step
     return StepResult(name="security-audit-executed-evidence", status="ok" if rc == 0 else "fail", rc=rc, cmd=cmd, log=str(log_path))
 
 
+
 def step_post_evidence_integration(
     out_dir: Path,
     *,
@@ -135,28 +139,26 @@ def step_post_evidence_integration(
     expected_run_id: str,
     godot_bin: str | None,
 ) -> StepResult:
-    if task_id != 1:
+    test_filter = get_post_evidence_test_filter(task_id)
+    if not test_filter:
         return StepResult(
             name="post-evidence-integration",
             status="skipped",
             rc=0,
-            details={"reason": "task_not_targeted"},
+            details={"reason": "post_evidence_not_configured"},
         )
 
     root = repo_root()
-    report_dir_rel = Path("logs") / "unit" / today_str() / "sc-acceptance-post-evidence-task-1"
+    report_dir_rel = get_post_evidence_report_dir(task_id)
     report_dir = root / report_dir_rel
-    test_filter = (
-        "FullyQualifiedName~Task1EnvironmentEvidencePersistenceTests"
-        "|FullyQualifiedName~Task1WindowsPlatformGateTests"
-        "|FullyQualifiedName~Task1ToolchainVersionChecksTests"
-    )
+    solution_file = resolve_solution_file(root)
+    solution_arg = solution_file.name if solution_file is not None else "Game.sln"
     cmd = [
         "py",
         "-3",
         "scripts/python/run_dotnet.py",
         "--solution",
-        "Game.sln",
+        solution_arg,
         "--configuration",
         "Debug",
         "--filter",
@@ -165,21 +167,15 @@ def step_post_evidence_integration(
         str(report_dir),
     ]
 
-    previous_flag = os.environ.get("TASK1_PREFLIGHT_REQUIRED")
-    previous_coverage_flag = os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE")
+    previous_required = os.environ.get("TASK1_PREFLIGHT_REQUIRED")
     os.environ["TASK1_PREFLIGHT_REQUIRED"] = "1"
-    os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = "1"
     try:
         rc, out = run_cmd(cmd, cwd=root, timeout_sec=900)
     finally:
-        if previous_flag is None:
+        if previous_required is None:
             os.environ.pop("TASK1_PREFLIGHT_REQUIRED", None)
         else:
-            os.environ["TASK1_PREFLIGHT_REQUIRED"] = previous_flag
-        if previous_coverage_flag is None:
-            os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
-        else:
-            os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = previous_coverage_flag
+            os.environ["TASK1_PREFLIGHT_REQUIRED"] = previous_required
 
     log_path = out_dir / "post-evidence-integration.log"
     write_text(log_path, out)

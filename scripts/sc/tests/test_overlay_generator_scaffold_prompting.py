@@ -17,7 +17,7 @@ class OverlayGeneratorScaffoldPromptingTests(unittest.TestCase):
             "page_kind": "index",
             "current_title": "Current Index",
             "headings": ["Directory Role", "Document Groups"],
-            "path": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+            "path": "docs/architecture/overlays/PRD-TEMPLATE-V1/08/_index.md",
         }
         base_page = {
             "filename": "_index.md",
@@ -32,10 +32,10 @@ class OverlayGeneratorScaffoldPromptingTests(unittest.TestCase):
         }
 
         prompt = scaffold_prompting.build_overlay_page_scaffold_prompt(
-            prd_path=Path("prd_v3.md"),
+            prd_path=Path("prd_template.md"),
             prd_text="Primary PRD body",
-            prd_id="PRD-SANGUO-V3",
-            companion_docs=[{"path": "PRD_V3_RULES_FREEZE.md", "excerpt": "Freeze body"}],
+            prd_id="PRD-TEMPLATE-V1",
+            companion_docs=[{"path": "PRD_RULES_FREEZE.md", "excerpt": "Freeze body"}],
             page=page,
             page_context={"master_task_ids": ["66"], "titles": ["Index routing"]},
             base_page=base_page,

@@ -1,0 +1,164 @@
+{
+  "default_profile": "fast-ship",
+  "profiles": {
+    "playable-ea": {
+      "security_profile_default": "host-safe",
+      "build": {
+        "warn_as_error": false
+      },
+      "test": {
+        "coverage_gate": false,
+        "coverage_lines_min": 0,
+        "coverage_branches_min": 0,
+        "smoke_strict": true
+      },
+      "acceptance": {
+        "strict_adr_status": false,
+        "strict_test_quality": false,
+        "strict_quality_rules": false,
+        "require_task_test_refs": false,
+        "require_executed_refs": false,
+        "require_headless_e2e": false,
+        "subtasks_coverage": "skip",
+        "perf_p95_ms": 0
+      },
+      "gate_bundle": {
+        "stability_template_hard": false,
+        "task_links_max_warnings": 300
+      },
+      "agent_review": {
+        "mode": "skip"
+      },
+      "llm_review": {
+        "semantic_gate": "skip",
+        "prompt_budget_gate": "skip",
+        "agents": "architect-reviewer,code-reviewer",
+        "timeout_sec": 300,
+        "agent_timeout_sec": 120,
+        "strict": false,
+        "model_reasoning_effort": "low"
+      },
+      "llm_obligations": {
+        "consensus_runs": 1,
+        "timeout_sec": 180,
+        "garbled_gate": "off",
+        "max_prompt_chars": 40000
+      },
+      "llm_semantic_gate_all": {
+        "consensus_runs": 1,
+        "timeout_sec": 300,
+        "model_reasoning_effort": "low",
+        "max_prompt_chars": 40000,
+        "max_needs_fix": 999,
+        "max_unknown": 999,
+        "garbled_gate": "off"
+      }
+    },
+    "fast-ship": {
+      "security_profile_default": "host-safe",
+      "build": {
+        "warn_as_error": true
+      },
+      "test": {
+        "coverage_gate": true,
+        "coverage_lines_min": 70,
+        "coverage_branches_min": 60,
+        "smoke_strict": true
+      },
+      "acceptance": {
+        "strict_adr_status": false,
+        "strict_test_quality": false,
+        "strict_quality_rules": false,
+        "require_task_test_refs": true,
+        "require_executed_refs": false,
+        "require_headless_e2e": false,
+        "subtasks_coverage": "warn",
+        "perf_p95_ms": 33
+      },
+      "gate_bundle": {
+        "stability_template_hard": false,
+        "task_links_max_warnings": 200
+      },
+      "agent_review": {
+        "mode": "warn"
+      },
+      "llm_review": {
+        "semantic_gate": "warn",
+        "prompt_budget_gate": "warn",
+        "agents": "architect-reviewer,code-reviewer",
+        "timeout_sec": 600,
+        "agent_timeout_sec": 180,
+        "strict": false,
+        "model_reasoning_effort": "low"
+      },
+      "llm_obligations": {
+        "consensus_runs": 1,
+        "timeout_sec": 240,
+        "garbled_gate": "on",
+        "max_prompt_chars": 60000
+      },
+      "llm_semantic_gate_all": {
+        "consensus_runs": 1,
+        "timeout_sec": 480,
+        "model_reasoning_effort": "low",
+        "max_prompt_chars": 50000,
+        "max_needs_fix": 10,
+        "max_unknown": 10,
+        "garbled_gate": "on"
+      }
+    },
+    "standard": {
+      "security_profile_default": "strict",
+      "build": {
+        "warn_as_error": true
+      },
+      "test": {
+        "coverage_gate": true,
+        "coverage_lines_min": 90,
+        "coverage_branches_min": 85,
+        "smoke_strict": true
+      },
+      "acceptance": {
+        "strict_adr_status": true,
+        "strict_test_quality": true,
+        "strict_quality_rules": true,
+        "require_task_test_refs": true,
+        "require_executed_refs": true,
+        "require_headless_e2e": true,
+        "subtasks_coverage": "require",
+        "perf_p95_ms": 20
+      },
+      "gate_bundle": {
+        "stability_template_hard": true,
+        "task_links_max_warnings": 100
+      },
+      "agent_review": {
+        "mode": "require"
+      },
+      "llm_review": {
+        "semantic_gate": "require",
+        "prompt_budget_gate": "warn",
+        "agents": "all",
+        "timeout_sec": 900,
+        "agent_timeout_sec": 300,
+        "strict": true,
+        "model_reasoning_effort": "low"
+      },
+      "llm_obligations": {
+        "consensus_runs": 3,
+        "timeout_sec": 360,
+        "garbled_gate": "on",
+        "max_prompt_chars": 80000
+      },
+      "llm_semantic_gate_all": {
+        "consensus_runs": 1,
+        "timeout_sec": 900,
+        "model_reasoning_effort": "low",
+        "max_prompt_chars": 60000,
+        "max_needs_fix": 0,
+        "max_unknown": 0,
+        "garbled_gate": "on"
+      }
+    }
+  }
+}

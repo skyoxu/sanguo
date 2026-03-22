@@ -158,6 +158,7 @@ def run_alignment_tasks(
     out_dir: Path,
     apply: bool,
     timeout_sec: int,
+    delivery_profile_context: str,
     max_failures: int,
     structural_for_not_done: bool,
     append_only_for_done: bool,
@@ -198,7 +199,7 @@ def run_alignment_tasks(
             align_view_descriptions=bool(align_view_descriptions_to_master),
             semantic_hint=semantic_hints.get(tid),
         )
-        prompt = build_prompt(task_context)
+        prompt = build_prompt(task_context, delivery_profile_context)
         write_text(task_out / "prompt.md", prompt)
 
         reason, out_obj, attempts = _run_model_with_retry(

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-local-hard-checks-summary.schema.json",
+  "title": "local-hard-checks summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_version",
+    "cmd",
+    "task_id",
+    "requested_run_id",
+    "run_id",
+    "delivery_profile",
+    "security_profile",
+    "status",
+    "failed_step",
+    "started_at",
+    "finished_at",
+    "out_dir",
+    "steps"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "protocol_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "cmd": {
+      "const": "local-hard-checks"
+    },
+    "task_id": {
+      "const": "repo"
+    },
+    "requested_run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "delivery_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "security_profile": {
+      "type": "string",
+      "enum": [
+        "strict",
+        "host-safe"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "fail"
+      ]
+    },
+    "failed_step": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "finished_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "out_dir": {
+      "type": "string",
+      "minLength": 1
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "cmd",
+        "rc",
+        "status",
+        "log"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "gate-bundle-hard",
+            "run-dotnet",
+            "gdunit-hard",
+            "smoke-strict"
+          ]
+        },
+        "cmd": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rc": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "fail"
+          ]
+        },
+        "log": {
+          "type": "string"
+        },
+        "reported_out_dir": {
+          "type": "string"
+        },
+        "summary_file": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

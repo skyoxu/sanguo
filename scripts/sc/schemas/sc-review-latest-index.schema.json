@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-review-latest-index.schema.json",
+  "title": "sc-review latest-index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "run_id",
+    "latest_out_dir"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "fail",
+        "running",
+        "aborted"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "latest_out_dir": {
+      "type": "string"
+    },
+    "summary_path": {
+      "type": "string"
+    },
+    "execution_context_path": {
+      "type": "string"
+    },
+    "repair_guide_json_path": {
+      "type": "string"
+    },
+    "repair_guide_md_path": {
+      "type": "string"
+    },
+    "marathon_state_path": {
+      "type": "string"
+    },
+    "run_events_path": {
+      "type": "string"
+    },
+    "harness_capabilities_path": {
+      "type": "string"
+    },
+    "approval_request_path": {
+      "type": "string"
+    },
+    "approval_response_path": {
+      "type": "string"
+    },
+    "agent_review_json_path": {
+      "type": "string"
+    },
+    "agent_review_md_path": {
+      "type": "string"
+    }
+  }
+}

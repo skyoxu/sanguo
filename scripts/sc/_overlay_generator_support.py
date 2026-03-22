@@ -14,7 +14,6 @@ from _overlay_generator_contract import (
 
 OVERLAY_ROOT_RE = re.compile(r"docs/architecture/overlays/([^/]+)/08", re.IGNORECASE)
 
-
 def read_text(path: Path, *, max_chars: int | None = None) -> str:
     text = path.read_text(encoding="utf-8", errors="ignore")
     if max_chars is not None and len(text) > max_chars:
@@ -25,7 +24,6 @@ def read_text(path: Path, *, max_chars: int | None = None) -> str:
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)

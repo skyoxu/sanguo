@@ -16,11 +16,11 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
     def test_compact_companion_docs_should_preserve_paths_and_shrink_excerpts(self) -> None:
         companion_docs = [
             {
-                "path": "PRD_V3_TRACEABILITY_MATRIX.md",
+                "path": "PRD_TRACEABILITY_MATRIX.md",
                 "excerpt": "A" * 5000,
             },
             {
-                "path": "PRD_V3_RULES_FREEZE.md",
+                "path": "PRD_RULES_FREEZE.md",
                 "excerpt": "B" * 5000,
             },
         ]
@@ -28,13 +28,13 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
         compacted = prompting.compact_companion_docs(companion_docs, excerpt_chars=120)
 
         self.assertEqual(2, len(compacted))
-        self.assertEqual("PRD_V3_TRACEABILITY_MATRIX.md", compacted[0]["path"])
+        self.assertEqual("PRD_TRACEABILITY_MATRIX.md", compacted[0]["path"])
         self.assertLessEqual(len(compacted[0]["excerpt"]), 120)
         self.assertLessEqual(len(compacted[1]["excerpt"]), 120)
 
     def test_compact_task_digest_should_keep_clusters_and_reduce_noise(self) -> None:
         task_digest = {
-            "prd_id": "PRD-SANGUO-V3",
+            "prd_id": "PRD-TEMPLATE-V1",
             "master_tasks": [
                 {
                     "id": "66",
@@ -42,7 +42,7 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
                     "status": "pending",
                     "priority": "high",
                     "complexity": 8,
-                    "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/08-a.md",
+                    "overlay": "docs/architecture/overlays/PRD-TEMPLATE-V1/08/08-a.md",
                     "adr_refs": ["ADR-0004"],
                     "arch_refs": ["CH04"],
                     "subtasks_count": 3,
@@ -52,7 +52,7 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
             "tasks_gameplay": [{"id": "GM-0001", "taskmaster_id": "66", "title": "Gameplay 66"}],
             "overlay_clusters": [
                 {
-                    "overlay_path": "docs/architecture/overlays/PRD-SANGUO-V3/08/08-a.md",
+                    "overlay_path": "docs/architecture/overlays/PRD-TEMPLATE-V1/08/08-a.md",
                     "master_task_ids": ["66"],
                     "back_task_ids": ["66"],
                     "gameplay_task_ids": ["66"],
@@ -63,7 +63,7 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
 
         compacted = prompting.compact_task_digest(task_digest)
 
-        self.assertEqual("PRD-SANGUO-V3", compacted["prd_id"])
+        self.assertEqual("PRD-TEMPLATE-V1", compacted["prd_id"])
         self.assertIn("overlay_clusters", compacted)
         self.assertEqual(1, len(compacted["overlay_clusters"]))
         self.assertNotIn("tasks_back", compacted)
@@ -76,7 +76,7 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
                 "page_kind": "feature",
                 "current_title": f"Page {index}",
                 "headings": [f"Heading {index}-1", f"Heading {index}-2"],
-                "path": f"docs/architecture/overlays/PRD-SANGUO-V3/08/08-page-{index:02d}.md",
+                "path": f"docs/architecture/overlays/PRD-TEMPLATE-V1/08/08-page-{index:02d}.md",
             }
             for index in range(25)
         ]
@@ -85,7 +85,7 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
             for index in range(4)
         ]
         task_digest = {
-            "prd_id": "PRD-SANGUO-V3",
+            "prd_id": "PRD-TEMPLATE-V1",
             "master_tasks": [
                 {
                     "id": str(index),
@@ -113,9 +113,9 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
         }
 
         prompt = prompting.build_overlay_prompt(
-            prd_path=Path("prd_v3.md"),
+            prd_path=Path("prd_template.md"),
             prd_text="P" * 40000,
-            prd_id="PRD-SANGUO-V3",
+            prd_id="PRD-TEMPLATE-V1",
             companion_docs=companion_docs,
             task_digest=task_digest,
             profile=profile,
@@ -130,14 +130,14 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
             "page_kind": "feature",
             "current_title": "Turn Window",
             "headings": ["Scope", "Task Binding"],
-            "path": "docs/architecture/overlays/PRD-SANGUO-V3/08/08-t52-turn-window-and-event-ordering.md",
+            "path": "docs/architecture/overlays/PRD-TEMPLATE-V1/08/08-t52-turn-window-and-event-ordering.md",
         }
         prompt = prompting.build_overlay_page_prompt(
-            prd_path=Path("prd_v3.md"),
+            prd_path=Path("prd_template.md"),
             prd_text="Primary PRD body",
-            prd_id="PRD-SANGUO-V3",
+            prd_id="PRD-TEMPLATE-V1",
             companion_docs=[
-                {"path": "PRD_V3_RULES_FREEZE.md", "excerpt": "Freeze body"},
+                {"path": "PRD_RULES_FREEZE.md", "excerpt": "Freeze body"},
             ],
             page=page,
             page_context={
@@ -187,13 +187,13 @@ class OverlayGeneratorPromptingTests(unittest.TestCase):
             "page_kind": "index",
             "current_title": "Index",
             "headings": ["Directory Role"],
-            "path": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+            "path": "docs/architecture/overlays/PRD-TEMPLATE-V1/08/_index.md",
         }
         prompt = prompting.build_overlay_page_patch_prompt(
-            prd_path=Path("prd_v3.md"),
+            prd_path=Path("prd_template.md"),
             prd_text="Primary PRD body",
-            prd_id="PRD-SANGUO-V3",
-            companion_docs=[{"path": "PRD_V3_TRACEABILITY_MATRIX.md", "excerpt": "Trace"}],
+            prd_id="PRD-TEMPLATE-V1",
+            companion_docs=[{"path": "PRD_TRACEABILITY_MATRIX.md", "excerpt": "Trace"}],
             page=page,
             page_context={"titles": ["Index task"]},
             current_page_text="# Existing Index\n",

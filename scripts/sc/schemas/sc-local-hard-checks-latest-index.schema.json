@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-local-hard-checks-latest-index.schema.json",
+  "title": "local-hard-checks latest-index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cmd",
+    "task_id",
+    "run_id",
+    "out_dir"
+  ],
+  "properties": {
+    "cmd": {
+      "const": "local-hard-checks"
+    },
+    "task_id": {
+      "const": "repo"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "fail",
+        "running"
+      ]
+    },
+    "out_dir": {
+      "type": "string"
+    },
+    "summary_path": {
+      "type": "string"
+    },
+    "execution_context_path": {
+      "type": "string"
+    },
+    "repair_guide_json_path": {
+      "type": "string"
+    },
+    "repair_guide_md_path": {
+      "type": "string"
+    },
+    "run_events_path": {
+      "type": "string"
+    }
+  }
+}
