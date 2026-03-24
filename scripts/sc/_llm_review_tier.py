@@ -8,19 +8,94 @@ from _taskmaster import TaskmasterTriplet
 
 _TIER_ORDER = {"minimal": 0, "targeted": 1, "full": 2}
 _ALLOWED_TIERS = {"auto", *tuple(_TIER_ORDER.keys())}
-_FULL_KEYWORD_TERMS = (
-    "security",
-    "contract",
-    "workflow",
-    "pipeline",
-    "ci",
-    "release",
-    "adr",
-    "architecture",
-    "gate",
-    "sentry",
-    "performance",
-)
+_FULL_RISK_KEYWORD_ALIASES = {
+    "security": (
+        "security",
+        "secure",
+        "auth",
+        "authentication",
+        "authorization",
+        "permission",
+        "permissions",
+        "privacy",
+        "secret",
+        "secrets",
+        "credential",
+        "credentials",
+        "token",
+        "tokens",
+        "encryption",
+        "audit",
+        "compliance",
+    ),
+    "contract": (
+        "contract",
+        "contracts",
+        "contractref",
+        "contractrefs",
+        "contract_ref",
+        "contract_refs",
+        "eventtype",
+        "eventtypes",
+        "dto",
+        "dtos",
+        "schema",
+        "schemas",
+    ),
+    "workflow": (
+        "workflow",
+        "workflows",
+        "github actions",
+    ),
+    "pipeline": (
+        "pipeline",
+        "pipelines",
+    ),
+    "ci": (
+        "ci",
+        "continuous integration",
+    ),
+    "release": (
+        "release",
+        "releases",
+        "deploy",
+        "deployment",
+        "rollback",
+    ),
+    "adr": (
+        "adr",
+        "adrs",
+    ),
+    "architecture": (
+        "architecture",
+        "architect",
+        "architectural",
+    ),
+    "gate": (
+        "gate",
+        "gates",
+        "gating",
+        "quality gate",
+        "quality gates",
+    ),
+    "sentry": (
+        "sentry",
+        "observability",
+        "telemetry",
+        "crash free",
+        "crash-free",
+    ),
+    "performance": (
+        "performance",
+        "perf",
+        "latency",
+        "p95",
+        "p99",
+        "budget",
+        "budgets",
+    ),
+}
+_ALLOWED_WRITEBACK_MODES = {"conservative", "materialize"}
 
 
 def _normalize_tier(value: Any) -> str | None:
@@ -103,11 +178,11 @@ def _text_blob(triplet: TaskmasterTriplet | None) -> str:
     for entry in (triplet.master, triplet.back or {}, triplet.gameplay or {}):
         if not isinstance(entry, dict):
             continue
-        for key in ("title", "details", "description", "layer", "owner"):
+        for key in ("title", "details", "description"):
             value = entry.get(key)
             if isinstance(value, str) and value.strip():
                 parts.append(value.strip().lower())
-        for key in ("labels", "tags", "chapter_refs", "adr_refs", "overlay_refs"):
+        for key in ("labels", "tags"):
             parts.extend(x.lower() for x in _string_list(entry.get(key)))
     return "\n".join(parts)
 
@@ -125,10 +200,14 @@ def _priority(triplet: TaskmasterTriplet | None) -> str:
 
 def _is_full_risk(triplet: TaskmasterTriplet | None) -> tuple[bool, list[str]]:
     reasons: list[str] = []
-    if _has_contract_refs(triplet):
-        reasons.append("contract_refs_present")
     blob = _text_blob(triplet)
-    keyword_hits = sorted({term for term in _FULL_KEYWORD_TERMS if _has_keyword(blob, term)})
+    keyword_hits = sorted(
+        {
+            canonical
+            for canonical, aliases in _FULL_RISK_KEYWORD_ALIASES.items()
+            if any(_has_keyword(blob, alias) for alias in aliases)
+        }
+    )
     if keyword_hits:
         reasons.append(f"high_risk_keywords({','.join(keyword_hits)})")
     if _priority(triplet) == "P0":
@@ -183,6 +262,12 @@ def resolve_llm_review_tier_plan(
         effective_tier = "targeted"
         escalation_reasons.append("priority_p1")
 
+    if _has_contract_refs(triplet) and effective_tier == "minimal":
+        effective_tier = "targeted"
+        escalation_reasons.append("contract_refs_present")
+    elif _has_contract_refs(triplet):
+        escalation_reasons.append("contract_refs_present")
+
     full_risk, risk_reasons = _is_full_risk(triplet)
     if full_risk and effective_tier != "full":
         effective_tier = "full"
@@ -196,4 +281,73 @@ def resolve_llm_review_tier_plan(
         "effective_tier": effective_tier,
         "escalation_reasons": escalation_reasons,
         **config,
+    }
+
+
+def _clone_entry_without_requested_tier(entry: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(entry, dict):
+        return None
+    cloned = dict(entry)
+    cloned.pop("semantic_review_tier", None)
+    cloned.pop("semanticReviewTier", None)
+    return cloned
+
+
+def _sanitize_triplet_for_writeback(triplet: TaskmasterTriplet | None) -> TaskmasterTriplet | None:
+    if triplet is None:
+        return None
+    return TaskmasterTriplet(
+        task_id=triplet.task_id,
+        master=_clone_entry_without_requested_tier(triplet.master) or {},
+        back=_clone_entry_without_requested_tier(triplet.back),
+        gameplay=_clone_entry_without_requested_tier(triplet.gameplay),
+        tasks_json_path=triplet.tasks_json_path,
+        tasks_back_path=triplet.tasks_back_path,
+        tasks_gameplay_path=triplet.tasks_gameplay_path,
+        taskdoc_path=triplet.taskdoc_path,
+    )
+
+
+def suggest_llm_review_tier_writeback(
+    *,
+    delivery_profile: str,
+    triplet: TaskmasterTriplet | None,
+    mode: str = "conservative",
+) -> dict[str, Any]:
+    normalized_mode = str(mode or "").strip().lower()
+    if normalized_mode not in _ALLOWED_WRITEBACK_MODES:
+        raise ValueError(f"Unsupported writeback mode: {mode}")
+
+    sanitized_triplet = _sanitize_triplet_for_writeback(triplet)
+    preview = resolve_llm_review_tier_plan(
+        delivery_profile=delivery_profile,
+        triplet=sanitized_triplet,
+        profile_defaults={},
+    )
+    full_risk, full_reasons = _is_full_risk(sanitized_triplet)
+
+    if normalized_mode == "materialize":
+        return {
+            "mode": normalized_mode,
+            "tier": preview["effective_tier"],
+            "reason": "materialized_effective_tier",
+            "preview_effective_tier": preview["effective_tier"],
+            "preview_profile_default_tier": preview["profile_default_tier"],
+            "escalation_reasons": list(preview["escalation_reasons"]),
+        }
+
+    reason = "defer_to_runtime_profile"
+    escalation_reasons: list[str] = []
+    tier = "auto"
+    if full_risk:
+        tier = "full"
+        reason = "full_risk_floor"
+        escalation_reasons = list(full_reasons)
+    return {
+        "mode": normalized_mode,
+        "tier": tier,
+        "reason": reason,
+        "preview_effective_tier": preview["effective_tier"],
+        "preview_profile_default_tier": preview["profile_default_tier"],
+        "escalation_reasons": escalation_reasons,
     }

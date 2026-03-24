@@ -41,7 +41,7 @@ public partial class MainMenu : Control
     private const string MenuErrorCharacterMissingKey = "ui.menu.error.character_missing";
     private const string MenuErrorPlayersInvalidKey = "ui.menu.error.players_invalid";
 
-    private const string TurnStarted = "core.sanguo.game.turn.started";
+    private const string TurnStarted = SanguoGameTurnStarted.EventType;
     private const string GameLoaded = SanguoGameLoaded.EventType;
     private const string HelpTutorialGroup = "help_tutorial";
     private const string HelpTutorialScenePath = "res://Game.Godot/Scenes/UI/HelpTutorial.tscn";

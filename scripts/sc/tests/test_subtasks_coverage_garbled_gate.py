@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+import io
+import sys
+import unittest
+from contextlib import redirect_stdout
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+
+from scripts.sc.tests._repo_test_temp import repo_temp_dir
+
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SC_DIR = REPO_ROOT / "scripts" / "sc"
+sys.path.insert(0, str(SC_DIR))
+
+import llm_check_subtasks_coverage as subtasks_script  # noqa: E402
+
+
+class SubtasksCoverageGarbledGateTests(unittest.TestCase):
+    def test_should_fail_before_llm_when_garbled_precheck_hits(self) -> None:
+        with repo_temp_dir("subtasks-coverage-garbled") as root:
+            out_dir = root / "subtasks-coverage"
+            triplet = SimpleNamespace(
+                task_id="17",
+                master={"title": "Task17", "subtasks": [{"id": "17.1", "title": "Subtask A"}]},
+                back={"acceptance": ["ACC:T17.1 something"]},
+                gameplay=None,
+            )
+            with (
+                patch.object(subtasks_script, "resolve_triplet", return_value=triplet),
+                patch.object(subtasks_script, "ci_dir", return_value=out_dir),
+                patch.object(subtasks_script, "run_subtasks_coverage_garbled_precheck", return_value=(False, {"error": "garbled_precheck_failed"})),
+                patch.object(
+                    sys,
+                    "argv",
+                    ["llm_check_subtasks_coverage.py", "--task-id", "17", "--garbled-gate", "on"],
+                ),
+            ):
+                buf = io.StringIO()
+                with redirect_stdout(buf):
+                    rc = subtasks_script.main()
+
+            self.assertEqual(1, rc)
+            self.assertIn("garbled_precheck_failed", buf.getvalue())
+
+
+if __name__ == "__main__":
+    unittest.main()

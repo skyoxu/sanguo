@@ -90,8 +90,13 @@ def main() -> int:
     try:
         allowlist = _load_allowlist(repo_root, Path(args.allowlist))
         module = _load_bundle_module(repo_root)
-        hard_commands = module._hard_gate_commands_with_options(list(DEFAULT_TASK_FILES), -1)
-        soft_commands = module._soft_gate_commands(list(DEFAULT_TASK_FILES))
+        runtime = module.resolve_gate_bundle_runtime(delivery_profile=None)
+        hard_commands = module._hard_gate_commands_with_options(
+            list(DEFAULT_TASK_FILES),
+            bool(runtime['stability_template_hard']),
+            int(runtime['task_links_max_warnings']),
+        )
+        soft_commands = module._soft_gate_commands(list(DEFAULT_TASK_FILES), bool(runtime['stability_template_hard']))
     except Exception as exc:
         print(f'WORKFLOW_GATE_ENFORCEMENT status=fail reason=load_error msg={exc}')
         return 1

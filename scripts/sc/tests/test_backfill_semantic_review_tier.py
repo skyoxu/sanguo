@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import shutil
+import sys
+import unittest
+import uuid
+from pathlib import Path
+
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+PYTHON_DIR = REPO_ROOT / "scripts" / "python"
+if str(PYTHON_DIR) not in sys.path:
+    sys.path.insert(0, str(PYTHON_DIR))
+TEST_TMP_ROOT = REPO_ROOT / "logs" / "test-temp"
+TEST_TMP_ROOT.mkdir(parents=True, exist_ok=True)
+
+import backfill_semantic_review_tier as backfill_module  # noqa: E402
+
+
+def _write_json(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+
+class BackfillSemanticReviewTierTests(unittest.TestCase):
+    def _fresh_root(self, name: str) -> Path:
+        root = TEST_TMP_ROOT / f"{name}-{uuid.uuid4().hex}"
+        if root.exists():
+            shutil.rmtree(root, ignore_errors=True)
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def _create_repo(self, root: Path) -> tuple[Path, Path, Path]:
+        tasks_json_path = root / "taskmaster" / "tasks" / "tasks.json"
+        tasks_back_path = root / "taskmaster" / "tasks" / "tasks_back.json"
+        tasks_gameplay_path = root / "taskmaster" / "tasks" / "tasks_gameplay.json"
+
+        tasks_json = {
+            "master": {
+                "tasks": [
+                    {
+                        "id": 1,
+                        "title": "Tune camp reward values",
+                        "priority": "P1",
+                        "details": "Balance gameplay rewards and round pacing.",
+                    },
+                    {
+                        "id": 2,
+                        "title": "Harden workflows and pipelines",
+                        "priority": "P2",
+                        "details": "Improve observability, rollback handling, and release safety.",
+                    },
+                ]
+            }
+        }
+        tasks_back = [
+            {
+                "taskmaster_id": 1,
+                "title": "Tune camp reward values",
+                "priority": "P1",
+                "layer": "gameplay",
+            },
+            {
+                "taskmaster_id": 2,
+                "title": "Harden workflows and pipelines",
+                "priority": "P2",
+                "layer": "ci",
+                "semanticReviewTier": "minimal",
+                "contractRefs": ["core.sanguo.task.updated"],
+            },
+        ]
+        tasks_gameplay = [
+            {
+                "taskmaster_id": 1,
+                "title": "Tune camp reward values",
+                "priority": "P1",
+                "layer": "gameplay",
+            },
+            {
+                "taskmaster_id": 2,
+                "title": "Harden workflows and pipelines",
+                "priority": "P2",
+                "layer": "ci",
+                "contractRefs": ["core.sanguo.task.updated"],
+            },
+        ]
+        _write_json(tasks_json_path, tasks_json)
+        _write_json(tasks_back_path, tasks_back)
+        _write_json(tasks_gameplay_path, tasks_gameplay)
+        return tasks_json_path, tasks_back_path, tasks_gameplay_path
+
+    def test_dry_run_should_report_suggested_tiers_without_writing_files(self) -> None:
+        root = self._fresh_root("dry-run")
+        tasks_json_path, tasks_back_path, tasks_gameplay_path = self._create_repo(root)
+        summary_path = root / "summary.json"
+
+        rc = backfill_module.main(
+            [
+                "--tasks-json-path",
+                str(tasks_json_path),
+                "--tasks-back-path",
+                str(tasks_back_path),
+                "--tasks-gameplay-path",
+                str(tasks_gameplay_path),
+                "--summary-path",
+                str(summary_path),
+            ]
+        )
+
+        self.assertEqual(0, rc)
+        back_payload = json.loads(tasks_back_path.read_text(encoding="utf-8"))
+        gameplay_payload = json.loads(tasks_gameplay_path.read_text(encoding="utf-8"))
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+
+        self.assertNotIn("semantic_review_tier", back_payload[0])
+        self.assertNotIn("semantic_review_tier", gameplay_payload[0])
+        self.assertEqual("auto", summary["evaluations"][0]["suggested_tier"])
+        self.assertEqual("full", summary["evaluations"][1]["suggested_tier"])
+        self.assertEqual(2, summary["tasks_updated"])
+
+    def test_write_should_fill_missing_fields_and_normalize_camel_case(self) -> None:
+        root = self._fresh_root("write")
+        tasks_json_path, tasks_back_path, tasks_gameplay_path = self._create_repo(root)
+        summary_path = root / "summary.json"
+
+        rc = backfill_module.main(
+            [
+                "--tasks-json-path",
+                str(tasks_json_path),
+                "--tasks-back-path",
+                str(tasks_back_path),
+                "--tasks-gameplay-path",
+                str(tasks_gameplay_path),
+                "--summary-path",
+                str(summary_path),
+                "--write",
+            ]
+        )
+
+        self.assertEqual(0, rc)
+        back_payload = json.loads(tasks_back_path.read_text(encoding="utf-8"))
+        gameplay_payload = json.loads(tasks_gameplay_path.read_text(encoding="utf-8"))
+
+        self.assertEqual("auto", back_payload[0]["semantic_review_tier"])
+        self.assertEqual("auto", gameplay_payload[0]["semantic_review_tier"])
+        self.assertEqual("full", back_payload[1]["semantic_review_tier"])
+        self.assertEqual("full", gameplay_payload[1]["semantic_review_tier"])
+        self.assertNotIn("semanticReviewTier", back_payload[1])
+
+    def test_materialize_mode_should_write_profile_effective_tier(self) -> None:
+        root = self._fresh_root("materialize")
+        tasks_json_path, tasks_back_path, tasks_gameplay_path = self._create_repo(root)
+        summary_path = root / "summary.json"
+
+        rc = backfill_module.main(
+            [
+                "--tasks-json-path",
+                str(tasks_json_path),
+                "--tasks-back-path",
+                str(tasks_back_path),
+                "--tasks-gameplay-path",
+                str(tasks_gameplay_path),
+                "--summary-path",
+                str(summary_path),
+                "--delivery-profile",
+                "fast-ship",
+                "--mode",
+                "materialize",
+                "--task-ids",
+                "1",
+                "--write",
+            ]
+        )
+
+        self.assertEqual(0, rc)
+        back_payload = json.loads(tasks_back_path.read_text(encoding="utf-8"))
+        gameplay_payload = json.loads(tasks_gameplay_path.read_text(encoding="utf-8"))
+
+        self.assertEqual("targeted", back_payload[0]["semantic_review_tier"])
+        self.assertEqual("targeted", gameplay_payload[0]["semantic_review_tier"])
+
+
+if __name__ == "__main__":
+    unittest.main()

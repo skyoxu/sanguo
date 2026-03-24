@@ -168,6 +168,10 @@ def main() -> int:
         print(f"SC_LLM_ACCEPTANCE_REFS_SELF_CHECK status={'ok' if ok else 'fail'} out={out_dir}")
         return 0 if ok else 1
 
+    if not str(args.task_id or "").strip() and not bool(args.all):
+        print("SC_LLM_ACCEPTANCE_REFS ERROR: specify --task-id <n> or --all")
+        return 2
+
     root = repo_root()
     out_dir = ci_dir("sc-llm-acceptance-refs")
     tasks_json_p, back_p, gameplay_p = default_paths()
