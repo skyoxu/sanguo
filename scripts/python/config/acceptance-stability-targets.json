@@ -1,0 +1,10 @@
+{
+  "taskmaster_ids": [],
+  "required_markers": [
+    "`adr_refs=",
+    "`chapter_refs=",
+    "`test_refs`",
+    "`executed=false`",
+    "fail-closed"
+  ]
+}

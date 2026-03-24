@@ -1,14 +1,15 @@
 using System;
 using System.Text.Json;
 using Godot;
+using Game.Core.Contracts.Sanguo;
 using Game.Godot.Adapters;
 
 namespace Game.Godot.Scripts.Sanguo;
 
 public sealed partial class SanguoBattleView : Control
 {
-    private const string CombatStarted = "core.sanguo.combat.started";
-    private const string CombatEnded = "core.sanguo.combat.ended";
+    private const string CombatStarted = SanguoCombatStarted.EventType;
+    private const string CombatEnded = SanguoCombatEnded.EventType;
     private static readonly JsonDocumentOptions JsonOptions = new() { MaxDepth = 32 };
 
     private Label? _title;
@@ -219,4 +220,3 @@ public sealed partial class SanguoBattleView : Control
     private static bool IsAiPlayerId(string playerId)
         => (playerId ?? string.Empty).Trim().StartsWith("ai-", StringComparison.OrdinalIgnoreCase);
 }
-

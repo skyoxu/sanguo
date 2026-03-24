@@ -41,6 +41,8 @@ except ImportError:
 TASK_FILE_DEPENDENT_GATES = {
     "overlay_task_drift",
     "task_contract_refs_gate",
+    "validate_semantic_review_tier",
+    "check_acceptance_garbled",
     "obligations_reuse_regression",
     "task_contract_test_matrix",
     "acceptance_stability_template",
@@ -50,6 +52,7 @@ TASK_FILE_DEPENDENT_GATES = {
 
 CONTRACT_INTERFACES_DIR = Path("Game.Core/Contracts/Interfaces")
 PRD_GDD_CONSISTENCY_CONFIG = Path("scripts/python/config/prd-gdd-consistency-rules.json")
+DEFAULT_OVERLAY_TASK_DRIFT_INDEX = Path("docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md")
 DELIVERY_PROFILE_CHOICES = tuple(sorted(known_delivery_profiles()))
 
 
@@ -146,6 +149,10 @@ def _resolve_gate_command(name: str, cmd: list[str], out_dir: Path) -> list[str]
             resolved.extend(["--out-json", out_json])
         if "--out-md" not in resolved:
             resolved.extend(["--out-md", out_md])
+    if name == "overlay_task_drift":
+        overlay_index = DEFAULT_OVERLAY_TASK_DRIFT_INDEX
+        if overlay_index.exists() and "--overlay-index" not in resolved:
+            resolved.extend(["--overlay-index", overlay_index.as_posix()])
     if name == "check_tasks_all_refs_warning_budget":
         out_json = str((out_dir / "check-tasks-all-refs-summary.json")).replace("\\", "/")
         if "--summary-out" not in resolved:
@@ -201,6 +208,14 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
                 "--task-files",
                 *task_files,
             ],
+        },
+        {
+            "name": "validate_semantic_review_tier",
+            "cmd": ["py", "-3", "scripts/python/validate_semantic_review_tier.py"],
+        },
+        {
+            "name": "check_acceptance_garbled",
+            "cmd": ["py", "-3", "scripts/sc/check_acceptance_garbled.py"],
         },
         {
             "name": "no_hardcoded_core_events",

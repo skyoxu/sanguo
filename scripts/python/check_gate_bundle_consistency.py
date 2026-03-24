@@ -21,6 +21,7 @@ ALLOWLIST_PATH = Path('scripts/python/config/workflow-gate-allowlist.json')
 DEFAULT_TASK_FILES = ['.taskmaster/tasks/tasks_back.json', '.taskmaster/tasks/tasks_gameplay.json']
 REQUIRED_GATE_SCRIPTS = {
     'scripts/python/check_task_contract_refs.py',
+    'scripts/python/validate_semantic_review_tier.py',
     'scripts/python/check_tasks_all_refs.py',
     'scripts/python/check_gate_bundle_consistency.py',
     'scripts/python/check_workflow_gate_enforcement.py',
@@ -94,8 +95,13 @@ def main() -> int:
 
     try:
         module = _load_bundle_module(repo_root)
-        hard_commands = module._hard_gate_commands_with_options(list(DEFAULT_TASK_FILES), -1)
-        soft_commands = module._soft_gate_commands(list(DEFAULT_TASK_FILES))
+        runtime = module.resolve_gate_bundle_runtime(delivery_profile=None)
+        hard_commands = module._hard_gate_commands_with_options(
+            list(DEFAULT_TASK_FILES),
+            bool(runtime['stability_template_hard']),
+            int(runtime['task_links_max_warnings']),
+        )
+        soft_commands = module._soft_gate_commands(list(DEFAULT_TASK_FILES), bool(runtime['stability_template_hard']))
         allowlist = _load_allowlist(repo_root, Path(args.allowlist))
     except Exception as exc:
         print(f'GATE_BUNDLE_CONSISTENCY status=fail reason=load_error msg={exc}')

@@ -6,13 +6,16 @@ Engine for sc-llm-review.
 from __future__ import annotations
 
 import argparse
+import os
 import time
 from typing import Any
 
 from _acceptance_artifacts import build_acceptance_evidence
+from _delivery_profile import default_security_profile_for_delivery
 from _deterministic_review import DETERMINISTIC_AGENTS, build_deterministic_review
 from _llm_review_acceptance import build_acceptance_semantic_context, read_text, strip_emoji, truncate
 from _llm_review_cli import (
+    apply_delivery_profile_defaults,
     apply_prompt_budget,
     build_parser,
     parse_agent_timeout_overrides,
@@ -38,7 +41,9 @@ from _util import ci_dir, repo_root, write_json, write_text
 
 def _run_self_check(args: argparse.Namespace) -> int:
     out_dir = ci_dir("sc-llm-review-self-check")
-    security_profile = resolve_security_profile(args.security_profile)
+    security_profile = resolve_security_profile(args.security_profile or default_security_profile_for_delivery(args.delivery_profile))
+    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
+    os.environ["SECURITY_PROFILE"] = str(security_profile)
     errors = validate_args(args)
     summary = summary_base(mode="self-check", out_dir=out_dir, args=args, security_profile=security_profile, status="fail" if errors else "ok")
     summary["arg_validation"] = {"valid": len(errors) == 0, "errors": errors}
@@ -50,7 +55,9 @@ def _run_self_check(args: argparse.Namespace) -> int:
 
 
 def _run_dry_plan(args: argparse.Namespace) -> int:
-    security_profile = resolve_security_profile(args.security_profile)
+    security_profile = resolve_security_profile(args.security_profile or default_security_profile_for_delivery(args.delivery_profile))
+    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
+    os.environ["SECURITY_PROFILE"] = str(security_profile)
     errors = validate_args(args)
     if errors:
         for e in errors:
@@ -92,6 +99,7 @@ def _run_dry_plan(args: argparse.Namespace) -> int:
 
 def main() -> int:
     args = build_parser().parse_args()
+    args = apply_delivery_profile_defaults(args)
     if bool(args.self_check):
         return _run_self_check(args)
     if bool(args.dry_run_plan):
@@ -124,7 +132,9 @@ def main() -> int:
 
     out_dir = ci_dir(f"sc-llm-review-task-{triplet.task_id}") if triplet else ci_dir("sc-llm-review")
     claude_agents_root = resolve_claude_agents_root(args.claude_agents_root)
-    security_profile = resolve_security_profile(args.security_profile)
+    security_profile = resolve_security_profile(args.security_profile or default_security_profile_for_delivery(args.delivery_profile))
+    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
+    os.environ["SECURITY_PROFILE"] = str(security_profile)
     agents = resolve_agents(args.agents, str(args.semantic_gate or "skip").strip().lower())
     per_agent_overrides = parse_agent_timeout_overrides(args.agent_timeouts)
     total_timeout_sec = int(args.timeout_sec)

@@ -4,6 +4,7 @@
     "scripts/python/ci_pipeline.py",
     "scripts/python/ensure_gdunit_plugin.py",
     "scripts/python/quality_gates.py",
+    "scripts/python/check_line_endings.py",
     "scripts/python/run_gdunit.py",
     "scripts/python/check_a11y.py",
     "scripts/python/db_schema_dump.py",

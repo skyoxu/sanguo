@@ -49,7 +49,8 @@
       "- 原条款“脚本可运行/不破坏 CI”以 CI/验收脚本的可重复证据链为准，不再作为单测锚点验收。"
     ],
     "taskmaster_id": 1,
-    "taskmaster_exported": true
+    "taskmaster_exported": true,
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0002",
@@ -112,7 +113,8 @@
     "contractRefs": [
       "core.sanguo.board.token.moved",
       "core.sanguo.city.toll.paid"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0003",
@@ -171,7 +173,8 @@
       "- 符合学习模块一（棋盘 / 城池 / 环形路线）的任务分解：在棋盘与场景结构上参考 Godot 官方演示项目 2d/hexagonal_map、2d/dynamic_tilemap_layers，只借鉴结构与模式，不直接复制代码。 Refs: Game.Core.Tests/Domain/CityTests.cs"
     ],
     "taskmaster_id": 3,
-    "taskmaster_exported": true
+    "taskmaster_exported": true,
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0004",
@@ -228,7 +231,8 @@
       "- 对应任务的 xUnit 测试用例存在并通过（见 test_refs 占位路径）。 Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs"
     ],
     "taskmaster_id": 4,
-    "taskmaster_exported": true
+    "taskmaster_exported": true,
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0005",
@@ -291,7 +295,8 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.dice.rolled"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0006",
@@ -366,7 +371,8 @@
       "core.sanguo.game.turn.ended",
       "core.sanguo.player.eliminated",
       "core.sanguo.city.toll.paid"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0007",
@@ -434,7 +440,8 @@
     "contractRefs": [
       "core.sanguo.economy.month.settled",
       "core.sanguo.economy.year.price.adjusted"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0008",
@@ -507,7 +514,8 @@
     "contractRefs": [
       "core.sanguo.economy.season.event.applied",
       "core.sanguo.player.eliminated"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0009",
@@ -563,7 +571,8 @@
       "Optional: Local demo references: C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\control_gallery ; C:\\buildgame\\godotdemo\\demo\\godot-demo-projects\\gui\\accessibility Refs: Tests.Godot/tests/UI/test_hud_scene.gd"
     ],
     "taskmaster_id": 9,
-    "taskmaster_exported": true
+    "taskmaster_exported": true,
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0010",
@@ -625,7 +634,8 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.board.token.moved"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0011",
@@ -694,7 +704,8 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.ai.decision.made"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0012",
@@ -780,7 +791,8 @@
     "contractRefs": [
       "core.sanguo.city.bought",
       "core.sanguo.player.eliminated"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0013",
@@ -856,7 +868,8 @@
     "contractRefs": [
       "core.sanguo.city.toll.paid",
       "core.sanguo.player.eliminated"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0014",
@@ -920,7 +933,8 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.economy.month.settled"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0015",
@@ -986,7 +1000,8 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.economy.season.event.applied"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0016",
@@ -1051,7 +1066,8 @@
       "core.sanguo.economy.year.price.adjusted",
       "core.sanguo.player.eliminated",
       "core.sanguo.city.toll.paid"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0017",
@@ -1142,7 +1158,8 @@
     "contractRefs": [
       "core.sanguo.game.turn.advanced",
       "core.sanguo.player.eliminated"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0018",
@@ -1208,7 +1225,8 @@
     "contractRefs": [
       "core.sanguo.game.saved",
       "core.sanguo.game.loaded"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0019",
@@ -1270,7 +1288,8 @@
       "core.sanguo.economy.month.settled",
       "core.sanguo.economy.season.event.applied",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0020",
@@ -1324,7 +1343,8 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.player.state.changed"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0021",
@@ -1381,7 +1401,8 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.game.turn.advanced"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0022",
@@ -1436,7 +1457,8 @@
     "taskmaster_exported": true,
     "contractRefs": [
       "core.sanguo.dice.rolled"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0023",
@@ -1497,7 +1519,8 @@
       "core.sanguo.city.bought",
       "core.sanguo.city.toll.paid",
       "core.sanguo.economy.season.event.applied"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0024",
@@ -1565,7 +1588,8 @@
       "core.sanguo.economy.year.price.adjusted",
       "core.sanguo.game.turn.advanced",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0025",
@@ -1625,7 +1649,8 @@
     ],
     "contractRefs": [
       "core.sanguo.ai.decision.made"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0050",
@@ -1678,7 +1703,8 @@
     "test_strategy": [
       "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。",
       "GdUnit4：走一遍新游戏配置界面并断言 started 事件被发布。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0051",
@@ -1734,7 +1760,8 @@
     "test_strategy": [
       "xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。",
       "GdUnit4：UI 仅展示，不做计算回归。"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0052",
@@ -1788,7 +1815,8 @@
     ],
     "test_strategy": [
       "xUnit：状态机窗口与乱序事件回归。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0053",
@@ -1842,7 +1870,8 @@
     ],
     "test_strategy": [
       "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0054",
@@ -1902,7 +1931,8 @@
     ],
     "test_strategy": [
       "GdUnit4：走 UI 配置→开始游戏；xUnit：角色分配唯一性。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0055",
@@ -1957,7 +1987,8 @@
     ],
     "test_strategy": [
       "xUnit：解析/口径/事件快照测试。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0056",
@@ -2010,7 +2041,8 @@
     ],
     "test_strategy": [
       "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0057",
@@ -2070,7 +2102,8 @@
     ],
     "test_strategy": [
       "xUnit：策略与窗口；GdUnit4：最小 UI 流程。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0058",
@@ -2121,7 +2154,8 @@
     ],
     "test_strategy": [
       "xUnit：配置/窗口；GdUnit4：actions 与 owner label。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0059",
@@ -2176,7 +2210,8 @@
     ],
     "test_strategy": [
       "xUnit：触发/回归/确定性；GdUnit4：场景往返。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0060",
@@ -2227,7 +2262,8 @@
     ],
     "test_strategy": [
       "xUnit：事件契约；GdUnit4：结算 UI。"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0061",
@@ -2284,7 +2320,8 @@
     "priority": "P3",
     "status": "deferred",
     "layer": "core",
-    "owner": "gameplay"
+    "owner": "gameplay",
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0062",
@@ -2343,7 +2380,8 @@
     "priority": "P3",
     "status": "done",
     "layer": "core",
-    "owner": "gameplay"
+    "owner": "gameplay",
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0063",
@@ -2396,7 +2434,8 @@
     "priority": "P3",
     "status": "done",
     "layer": "core",
-    "owner": "gameplay"
+    "owner": "gameplay",
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0064",
@@ -2452,7 +2491,8 @@
     "priority": "P3",
     "status": "done",
     "layer": "core",
-    "owner": "gameplay"
+    "owner": "gameplay",
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0065",
@@ -2509,7 +2549,8 @@
     "priority": "P3",
     "status": "done",
     "layer": "core",
-    "owner": "gameplay"
+    "owner": "gameplay",
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0066",
@@ -2563,7 +2604,8 @@
     ],
     "contractRefs": [
       "core.sanguo.boss.challenge.prompted"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0067",
@@ -2618,7 +2660,8 @@
     ],
     "contractRefs": [
       "core.sanguo.boss.challenge.prompted"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0068",
@@ -2678,7 +2721,8 @@
       "core.sanguo.loot.granted",
       "core.sanguo.objective.skipped",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0069",
@@ -2735,7 +2779,8 @@
       "core.sanguo.loot.granted",
       "core.sanguo.objective.skipped",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0070",
@@ -2794,7 +2839,8 @@
       "core.sanguo.game.turn.advanced",
       "core.sanguo.boss.challenge.prompted",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0071",
@@ -2842,7 +2888,8 @@
     "test_strategy": [
       "Integration closure check from split-task evidence."
     ],
-    "contractRefs": []
+    "contractRefs": [],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0072",
@@ -2892,7 +2939,8 @@
     "test_strategy": [
       "Integration closure check from split-task evidence."
     ],
-    "contractRefs": []
+    "contractRefs": [],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0073",
@@ -2944,7 +2992,8 @@
       "core.sanguo.random_event.applied",
       "core.sanguo.loot.granted",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0074",
@@ -3000,7 +3049,8 @@
       "core.sanguo.game.started",
       "core.sanguo.game.ended",
       "core.sanguo.player.eliminated"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0075",
@@ -3058,7 +3108,8 @@
       "core.sanguo.game.saved",
       "core.sanguo.game.turn.advanced",
       "core.sanguo.boss.challenge.prompted"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0076",
@@ -3116,7 +3167,8 @@
       "core.sanguo.boss.challenge.prompted",
       "core.sanguo.combat.started",
       "core.sanguo.combat.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0077",
@@ -3167,7 +3219,8 @@
       "core.sanguo.random_event.applied",
       "core.sanguo.objective.skipped",
       "core.sanguo.loot.granted"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0078",
@@ -3218,7 +3271,8 @@
       "core.sanguo.relic.applied",
       "core.sanguo.action_card.played",
       "core.sanguo.action_card.play.rejected"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0079",
@@ -3269,7 +3323,8 @@
     ],
     "contractRefs": [
       "core.sanguo.ai.decision.made"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0080",
@@ -3328,7 +3383,8 @@
       "core.sanguo.action_card.played",
       "core.sanguo.loot.granted",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0081",
@@ -3383,7 +3439,8 @@
       "core.sanguo.building.built",
       "core.sanguo.loot.granted",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0082",
@@ -3437,7 +3494,8 @@
       "core.sanguo.loot.granted",
       "core.sanguo.objective.skipped",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0083",
@@ -3490,7 +3548,8 @@
       "core.sanguo.game.started",
       "core.sanguo.game.saved",
       "core.sanguo.game.loaded"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0084",
@@ -3542,7 +3601,8 @@
       "core.sanguo.game.started",
       "core.sanguo.game.loaded",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0085",
@@ -3593,7 +3653,8 @@
     "contractRefs": [
       "core.sanguo.game.started",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0086",
@@ -3644,7 +3705,8 @@
     "contractRefs": [
       "core.sanguo.game.ended",
       "core.sanguo.player.eliminated"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0087",
@@ -3694,7 +3756,8 @@
     ],
     "contractRefs": [
       "core.sanguo.game.turn.advanced"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0088",
@@ -3745,7 +3808,8 @@
     "contractRefs": [
       "core.sanguo.game.saved",
       "core.sanguo.boss.challenge.prompted"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0089",
@@ -3796,7 +3860,8 @@
     "contractRefs": [
       "core.sanguo.game.turn.advanced",
       "core.sanguo.combat.started"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0090",
@@ -3850,7 +3915,8 @@
       "core.sanguo.boss.challenge.prompted",
       "core.sanguo.combat.started",
       "core.sanguo.combat.ended"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0091",
@@ -3905,7 +3971,8 @@
       "core.sanguo.game.loaded",
       "core.sanguo.boss.challenge.prompted",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0092",
@@ -3959,7 +4026,8 @@
       "core.sanguo.loot.granted",
       "core.sanguo.objective.skipped",
       "core.sanguo.game.ended"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0093",
@@ -4014,7 +4082,8 @@
     ],
     "acceptanceRefs": [
       "R1"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0094",
@@ -4065,7 +4134,8 @@
     ],
     "acceptanceRefs": [
       "R1"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0095",
@@ -4121,7 +4191,8 @@
     "acceptanceRefs": [
       "A-011",
       "A-012"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0096",
@@ -4176,7 +4247,8 @@
       "R2",
       "A-001",
       "A-002"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0097",
@@ -4227,7 +4299,8 @@
     ],
     "acceptanceRefs": [
       "R5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0098",
@@ -4281,7 +4354,8 @@
     ],
     "acceptanceRefs": [
       "R5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0099",
@@ -4334,7 +4408,8 @@
     ],
     "acceptanceRefs": [
       "R5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0100",
@@ -4386,7 +4461,8 @@
     "acceptanceRefs": [
       "R3",
       "A-001"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0101",
@@ -4437,7 +4513,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R6"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0102",
@@ -4486,7 +4563,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R6"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0103",
@@ -4539,7 +4617,8 @@
     "acceptanceRefs": [
       "A-006",
       "A-007"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0104",
@@ -4592,7 +4671,8 @@
     ],
     "acceptanceRefs": [
       "R7"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0105",
@@ -4645,7 +4725,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0106",
@@ -4698,7 +4779,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0107",
@@ -4749,7 +4831,8 @@
     ],
     "acceptanceRefs": [
       "R3"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0108",
@@ -4804,7 +4887,8 @@
     ],
     "acceptanceRefs": [
       "R10"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0109",
@@ -4854,7 +4938,8 @@
     "acceptanceRefs": [
       "R9",
       "A-020"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0110",
@@ -4905,7 +4990,8 @@
     "acceptanceRefs": [
       "R9",
       "R11"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0111",
@@ -4953,7 +5039,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "9.1"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0112",
@@ -5017,7 +5104,8 @@
       "A-019",
       "A-020",
       "9.3"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0113",
@@ -5065,7 +5153,8 @@
     ],
     "acceptanceRefs": [
       "A-016"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0114",
@@ -5113,7 +5202,8 @@
     ],
     "acceptanceRefs": [
       "A-017"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0115",
@@ -5162,7 +5252,8 @@
     ],
     "acceptanceRefs": [
       "A-018"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0116",
@@ -5211,7 +5302,8 @@
     ],
     "acceptanceRefs": [
       "A-019"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0117",
@@ -5261,7 +5353,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0118",
@@ -5310,7 +5403,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0119",
@@ -5359,7 +5453,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0120",
@@ -5408,7 +5503,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0121",
@@ -5459,7 +5555,8 @@
     ],
     "acceptanceRefs": [
       "R1"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0122",
@@ -5509,7 +5606,8 @@
     ],
     "acceptanceRefs": [
       "R1"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0123",
@@ -5565,7 +5663,8 @@
     "acceptanceRefs": [
       "R2",
       "A-001"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0124",
@@ -5618,7 +5717,8 @@
     "acceptanceRefs": [
       "R2",
       "A-002"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0125",
@@ -5670,7 +5770,8 @@
     ],
     "acceptanceRefs": [
       "R5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0126",
@@ -5720,7 +5821,8 @@
     ],
     "acceptanceRefs": [
       "R5"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0127",
@@ -5774,7 +5876,8 @@
     ],
     "acceptanceRefs": [
       "R5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0128",
@@ -5826,7 +5929,8 @@
     ],
     "acceptanceRefs": [
       "R5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0129",
@@ -5879,7 +5983,8 @@
     "acceptanceRefs": [
       "R3",
       "A-001"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0130",
@@ -5929,7 +6034,8 @@
     ],
     "acceptanceRefs": [
       "R3"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0131",
@@ -5980,7 +6086,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R6"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0132",
@@ -6030,7 +6137,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R6"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0133",
@@ -6080,7 +6188,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R6"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0134",
@@ -6128,7 +6237,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R6"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0135",
@@ -6182,7 +6292,8 @@
     ],
     "acceptanceRefs": [
       "A-006"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0136",
@@ -6233,7 +6344,8 @@
     ],
     "acceptanceRefs": [
       "A-007"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0137",
@@ -6288,7 +6400,8 @@
     ],
     "acceptanceRefs": [
       "R7"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0138",
@@ -6340,7 +6453,8 @@
     ],
     "acceptanceRefs": [
       "R7"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0139",
@@ -6394,7 +6508,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0140",
@@ -6446,7 +6561,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0141",
@@ -6500,7 +6616,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0142",
@@ -6552,7 +6669,8 @@
     ],
     "acceptanceRefs": [
       "R8"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0143",
@@ -6604,7 +6722,8 @@
     ],
     "acceptanceRefs": [
       "R3"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0144",
@@ -6654,7 +6773,8 @@
     ],
     "acceptanceRefs": [
       "R3"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0145",
@@ -6704,7 +6824,8 @@
     "acceptanceRefs": [
       "R9",
       "A-020"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0146",
@@ -6752,7 +6873,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R9"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0147",
@@ -6802,7 +6924,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R9"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0148",
@@ -6851,7 +6974,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R11"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0149",
@@ -6902,7 +7026,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "9.1"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0150",
@@ -6949,7 +7074,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "9.1"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0151",
@@ -7014,7 +7140,8 @@
       "A-018",
       "A-019",
       "A-020"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0152",
@@ -7070,7 +7197,8 @@
       "A-011",
       "A-012",
       "9.3"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0153",
@@ -7140,7 +7268,8 @@
     ],
     "acceptanceRefs": [
       "R4"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0154",
@@ -7192,7 +7321,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "RF-1.2"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0155",
@@ -7244,7 +7374,8 @@
     "acceptanceRefs": [
       "RF-9",
       "R11"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0156",
@@ -7297,7 +7428,8 @@
       "R9",
       "R11",
       "PH9-B2"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0157",
@@ -7349,7 +7481,8 @@
     "acceptanceRefs": [
       "R11",
       "PH9-B4"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0158",
@@ -7403,7 +7536,8 @@
     "acceptanceRefs": [
       "R11",
       "PH9-B5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0159",
@@ -7459,7 +7593,8 @@
       "A-017",
       "RF-1.2",
       "PH16-B4"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0160",
@@ -7513,7 +7648,8 @@
       "R4",
       "R11",
       "PH16-B5"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0161",
@@ -7564,7 +7700,8 @@
     "acceptanceRefs": [
       "R11",
       "PH20-B3"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0162",
@@ -7615,7 +7752,8 @@
     "acceptanceRefs": [
       "R11",
       "PH9-B4"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0163",
@@ -7666,7 +7804,8 @@
     "acceptanceRefs": [
       "R11",
       "PH9-B4"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0164",
@@ -7719,7 +7858,8 @@
     "acceptanceRefs": [
       "R11",
       "PH9-B5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0165",
@@ -7772,7 +7912,8 @@
     "acceptanceRefs": [
       "R11",
       "PH9-B5"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0166",
@@ -7823,7 +7964,8 @@
     "acceptanceRefs": [
       "R11",
       "PH20-B3"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0167",
@@ -7872,7 +8014,8 @@
     "acceptanceRefs": [
       "R11",
       "PH20-B3"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0168",
@@ -7921,7 +8064,8 @@
     "acceptanceRefs": [
       "R11",
       "PH20-B3"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0169",
@@ -7975,7 +8119,8 @@
     "acceptanceRefs": [
       "R9",
       "A-020"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0170",
@@ -8024,7 +8169,8 @@
     "acceptanceRefs": [
       "R9",
       "A-020"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0171",
@@ -8078,7 +8224,8 @@
     "contractRefs": [],
     "acceptanceRefs": [
       "R9"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0172",
@@ -8128,7 +8275,8 @@
     "acceptanceRefs": [
       "R9",
       "R11"
-    ]
+    ],
+    "semantic_review_tier": "auto"
   },
   {
     "id": "GM-0173",
@@ -8191,7 +8339,8 @@
       "A-013",
       "A-014",
       "A-015"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0174",
@@ -8248,7 +8397,8 @@
       "A-017",
       "A-018",
       "A-019"
-    ]
+    ],
+    "semantic_review_tier": "full"
   },
   {
     "id": "GM-0175",
@@ -8303,6 +8453,7 @@
     "acceptanceRefs": [
       "A-020",
       "R11"
-    ]
+    ],
+    "semantic_review_tier": "full"
   }
 ]
