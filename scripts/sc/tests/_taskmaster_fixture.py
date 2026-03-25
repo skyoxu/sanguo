@@ -55,7 +55,7 @@ def _inject_task1(tasks_json: dict, tasks_back: list, tasks_gameplay: list) -> N
             "id": 1,
             "title": "Template Task1 evidence gate demo",
             "status": "in-progress",
-            "adrRefs": ["ADR-0031", "ADR-0011"],
+            "adrRefs": ["ADR-0005", "ADR-0011", "ADR-0018"],
             "archRefs": ["CH07"],
             "overlay": "docs/architecture/overlays/PRD-Guild-Manager/08/ACCEPTANCE_CHECKLIST.md",
         })

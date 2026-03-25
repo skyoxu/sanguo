@@ -39,7 +39,16 @@ public sealed class Task1ToolchainVersionChecksTests
         restoreEvidence.Should().NotBeNullOrWhiteSpace();
         File.Exists(Path.Combine(artifact.RepoRoot, restoreEvidence!.Replace('/', Path.DirectorySeparatorChar))).Should().BeTrue();
 
-        var lockFileExists = File.Exists(Path.Combine(artifact.RepoRoot, "packages.lock.json"));
-        root.GetProperty("packages_lock_exists").GetBoolean().Should().Be(lockFileExists);
+        var lockFiles = root.GetProperty("packages_lock_files")
+            .EnumerateArray()
+            .Select(x => x.GetString())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Cast<string>()
+            .ToArray();
+
+        root.GetProperty("packages_lock_exists").GetBoolean().Should().Be(lockFiles.Length > 0);
+        lockFiles.Should().NotBeEmpty();
+        lockFiles.Should().OnlyContain(relPath =>
+            File.Exists(Path.Combine(artifact.RepoRoot, relPath.Replace('/', Path.DirectorySeparatorChar))));
     }
 }

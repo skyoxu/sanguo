@@ -250,7 +250,7 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
             "evidence_file": f"logs/ci/{date}/env-evidence/utf8-check.txt",
             "reason": "",
         },
-        "adr_refs": ["ADR-0031", "ADR-0011"],
+        "adr_refs": ["ADR-0005", "ADR-0011", "ADR-0018"],
     }
 
     checklist_path = resolve_acceptance_checklist(root)

@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "Godot.SourceGenerators": {
+        "type": "Direct",
+        "requested": "[4.5.1, )",
+        "resolved": "4.5.1",
+        "contentHash": "HOHYJQO5A/kzf5CUobeTPOX+JawSvjkDE0v/Fyo4EMYEC2MvCTGUvpJFjqQQmHYLNsiiB7RLVilcnup+jiVfdA=="
+      },
+      "GodotSharp": {
+        "type": "Direct",
+        "requested": "[4.5.1, )",
+        "resolved": "4.5.1",
+        "contentHash": "5CFnEHT+FByv5desNHMipz/209SCrWR9CGWFZjGHnXupl1Rw8U8q4nf65/unqZVL97Rx+3J5hskPMoDGaiZL9g=="
+      },
+      "GodotSharpEditor": {
+        "type": "Direct",
+        "requested": "[4.5.1, )",
+        "resolved": "4.5.1",
+        "contentHash": "8CM49047b0Us3qPJo6L7kdldreOvR7JCoXlKoSHzpA0TQP6+Qnoxz/26GZ1ONg2wW4vV9uzor0AHXSGUFP9XSw==",
+        "dependencies": {
+          "GodotSharp": "4.5.1"
+        }
+      },
+      "Microsoft.Data.Sqlite": {
+        "type": "Direct",
+        "requested": "[8.0.8, )",
+        "resolved": "8.0.8",
+        "contentHash": "Ao+kD9lZpZvvvfLHMR4/UviFGXaWhQ9AVT4fYMl62XWgIPuVIhZqLysmDNiXbsz6Pb87iyyElX2xSfigzKNZNg==",
+        "dependencies": {
+          "Microsoft.Data.Sqlite.Core": "8.0.8",
+          "SQLitePCLRaw.bundle_e_sqlite3": "2.1.6"
+        }
+      },
+      "SQLitePCLRaw.bundle_e_sqlite3": {
+        "type": "Direct",
+        "requested": "[2.1.7, )",
+        "resolved": "2.1.7",
+        "contentHash": "Ax90czXWyJ+LT5WGaOBJQbMWPC9UOOnoZPcVbkwDl0S2yIbk1LP+EjLo5fW7xl30VjvH5qEpb5YZ3t9lW0xeqA==",
+        "dependencies": {
+          "SQLitePCLRaw.lib.e_sqlite3": "2.1.7",
+          "SQLitePCLRaw.provider.e_sqlite3": "2.1.7"
+        }
+      },
+      "Microsoft.Data.Sqlite.Core": {
+        "type": "Transitive",
+        "resolved": "8.0.8",
+        "contentHash": "qHInO2EvOcPhjgboP0TGnXM7rASdvWXrw6jAH8Yuz5YP82VTje7d/NKiX1i+dVbE3+G3JuW1kqNVB8yLvsqgYA==",
+        "dependencies": {
+          "SQLitePCLRaw.core": "2.1.6"
+        }
+      },
+      "SQLitePCLRaw.core": {
+        "type": "Transitive",
+        "resolved": "2.1.7",
+        "contentHash": "C1j0zRA2bCueUrGG2TbqDVm0Bdeq/gPf+qs6SweTpoTIOqH1me0/1rhfCHBJkMSQwI9OC1XW6t4Ml8Iux76YSA==",
+        "dependencies": {
+          "System.Memory": "4.5.3"
+        }
+      },
+      "SQLitePCLRaw.lib.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.7",
+        "contentHash": "b3VByUTfSNGtq580yXDH5JAEwOCJru1ZJDS/EHCT+RnqId6pliewb0/xbzxjjiKLF3uDEwslR/9ftz5psv/N/g=="
+      },
+      "SQLitePCLRaw.provider.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.7",
+        "contentHash": "wxZU4CJQbPsQ9l8j4eiB5AW8IZt7PvHC+A1qByO1Rg47CrI0NZNpxV0N8gUdpxexocAwdjUrQEWOFVMAuNbLqw==",
+        "dependencies": {
+          "SQLitePCLRaw.core": "2.1.7"
+        }
+      },
+      "System.Memory": {
+        "type": "Transitive",
+        "resolved": "4.5.3",
+        "contentHash": "3oDzvc/zzetpTKWMShs1AADwZjQ/36HnsufHRPcOjyRAAMLDlu2iD33MBI2opxnezcVUtXyqDXXjoFMOU9c7SA=="
+      },
+      "game.core": {
+        "type": "Project"
+      }
+    }
+  }
+}
