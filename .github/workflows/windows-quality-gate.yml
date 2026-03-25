@@ -196,7 +196,7 @@ jobs:
         shell: pwsh
         run: |
           $date = Get-Date -Format 'yyyy-MM-dd'
-          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --gdunit-ui --smoke --coverage-soft
+          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --smoke
 
           # Step Summary (coverage + GdUnit + Security)
           $sum = "logs/ci/$date/quality-gates-summary.json"
@@ -425,7 +425,7 @@ jobs:
           name: gdunit-reports
           path: |
             logs/e2e/**/gdunit-reports/**
-            logs/e2e/**/quality-gates/gdunit-ui/**
+            logs/e2e/**/quality-gates/gdunit-hard/**
           if-no-files-found: ignore
 
       - name: Schema dump (soft)

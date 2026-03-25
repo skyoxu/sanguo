@@ -112,7 +112,7 @@ jobs:
         run: |
           Write-Host "DeliveryProfile=$env:DELIVERY_PROFILE"
           Write-Host "SecurityProfile=$env:SECURITY_PROFILE"
-          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --smoke --gdunit-ui
+          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --smoke
 
       - name: Acceptance strict headless-e2e gate
         shell: pwsh

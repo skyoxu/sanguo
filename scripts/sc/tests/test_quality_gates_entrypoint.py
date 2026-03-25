@@ -90,6 +90,25 @@ class QualityGatesEntrypointTests(unittest.TestCase):
         gdunit_mock.assert_called_once_with("C:/Godot/Godot.exe")
         smoke_mock.assert_called_once_with("C:/Godot/Godot.exe")
 
+    def test_all_should_accept_legacy_gdunit_ui_and_coverage_soft_flags(self) -> None:
+        with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
+                mock.patch.object(quality_gates, "run_gdunit_hard", return_value=0) as gdunit_mock, \
+                mock.patch.object(quality_gates, "run_smoke_headless") as smoke_mock:
+            rc = quality_gates.main(
+                [
+                    "all",
+                    "--gdunit-ui",
+                    "--coverage-soft",
+                    "--godot-bin",
+                    "C:/Godot/Godot.exe",
+                ]
+            )
+
+        self.assertEqual(0, rc)
+        bundle_mock.assert_called_once()
+        gdunit_mock.assert_called_once_with("C:/Godot/Godot.exe")
+        smoke_mock.assert_not_called()
+
     def test_all_should_require_godot_bin_when_gdunit_or_smoke_is_requested(self) -> None:
         with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
                 mock.patch.object(quality_gates, "run_gdunit_hard") as gdunit_mock, \

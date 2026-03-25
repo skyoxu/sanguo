@@ -75,6 +75,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_all.add_argument("--out-dir", default="")
     p_all.add_argument("--run-id", default="")
     p_all.add_argument("--gdunit-hard", action="store_true", help="run hard GdUnit set (Adapters/Config + Security)")
+    p_all.add_argument("--gdunit-ui", action="store_true", help=argparse.SUPPRESS)
+    p_all.add_argument("--coverage-soft", action="store_true", help=argparse.SUPPRESS)
     p_all.add_argument("--smoke", action="store_true", help="run strict headless smoke after the hard gate bundle")
     return parser
 
@@ -87,7 +89,8 @@ def main(argv: list[str] | None = None) -> int:
         print("Unsupported command", file=sys.stderr)
         return 1
 
-    if (args.gdunit_hard or args.smoke) and not args.godot_bin:
+    gdunit_requested = bool(args.gdunit_hard or args.gdunit_ui)
+    if (gdunit_requested or args.smoke) and not args.godot_bin:
         print("[quality_gates] error: --godot-bin is required when --gdunit-hard or --smoke is enabled", file=sys.stderr)
         return 2
 
@@ -100,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     hard_failed = rc != 0
 
-    if args.gdunit_hard:
+    if gdunit_requested:
         gd_rc = run_gdunit_hard(args.godot_bin)
         if gd_rc != 0:
             hard_failed = True
