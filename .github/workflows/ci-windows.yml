@@ -136,7 +136,7 @@ jobs:
       - name: CI pipeline (Python)
         shell: pwsh
         run: |
-          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --smoke --gdunit-ui --coverage-soft
+          py -3 scripts/python/quality_gates.py all --solution Game.sln --configuration Debug --godot-bin "$env:GODOT_BIN" --build-solutions --gdunit-hard --smoke
 
       - name: Acceptance check post-evidence gate (layer2)
         shell: pwsh
@@ -221,7 +221,7 @@ jobs:
           name: gdunit-reports
           path: |
             logs/e2e/**/gdunit-reports/**
-            logs/e2e/**/quality-gates/gdunit-ui/**
+            logs/e2e/**/quality-gates/gdunit-hard/**
           if-no-files-found: ignore
 
       - name: Schema dump (soft)
