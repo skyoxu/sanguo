@@ -69,6 +69,11 @@
 - Testing Framework：`docs/testing-framework.md`
 - Technical Debt Register：`docs/technical-debt.md`
 
+- Project Health Dashboard: `docs/workflows/project-health-dashboard.md`
+- Stable Public Entrypoints: `docs/workflows/stable-public-entrypoints.md`
+- Script Entrypoints Index: `docs/workflows/script-entrypoints-index.md`
+- Template Upgrade Protocol: `docs/workflows/template-upgrade-protocol.md`
+- Business Repo Upgrade Guide: `docs/workflows/business-repo-upgrade-guide.md`
 ## Main Entrypoints
 
 ### Repo-Scoped Hard Checks
