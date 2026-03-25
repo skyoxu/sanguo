@@ -164,32 +164,51 @@ def main() -> int:
         return 2
 
     if args.type in ("unit", "all"):
+        original_lines_min = os.environ.get("COVERAGE_LINES_MIN")
+        original_branches_min = os.environ.get("COVERAGE_BRANCHES_MIN")
+        original_skip_coverage_gate = os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE")
         if bool(runtime["coverage_gate"]):
             os.environ["COVERAGE_LINES_MIN"] = str(runtime["coverage_lines_min"])
             os.environ["COVERAGE_BRANCHES_MIN"] = str(runtime["coverage_branches_min"])
+            os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
         else:
             os.environ.pop("COVERAGE_LINES_MIN", None)
             os.environ.pop("COVERAGE_BRANCHES_MIN", None)
-        step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id, task_id=args.task_id)
-        summary["steps"].append(step)
-        if not _persist_summary():
-            return 2
-        if step["rc"] != 0:
-            hard_fail = True
-        else:
-            conventions = run_csharp_test_conventions(out_dir, task_id=args.task_id)
-            summary["steps"].append(conventions)
+            os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = "1"
+        try:
+            step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id, task_id=args.task_id)
+            summary["steps"].append(step)
             if not _persist_summary():
                 return 2
-            if conventions["rc"] != 0:
+            if step["rc"] != 0:
                 hard_fail = True
-        if not hard_fail and not args.no_coverage_report:
-            cov = run_coverage_report(out_dir, Path(step["artifacts_dir"]))
-            summary["steps"].append(cov)
-            if not _persist_summary():
-                return 2
-            if cov.get("status") == "fail":
-                hard_fail = True
+            else:
+                conventions = run_csharp_test_conventions(out_dir, task_id=args.task_id)
+                summary["steps"].append(conventions)
+                if not _persist_summary():
+                    return 2
+                if conventions["rc"] != 0:
+                    hard_fail = True
+            if not hard_fail and not args.no_coverage_report:
+                cov = run_coverage_report(out_dir, Path(step["artifacts_dir"]))
+                summary["steps"].append(cov)
+                if not _persist_summary():
+                    return 2
+                if cov.get("status") == "fail":
+                    hard_fail = True
+        finally:
+            if original_lines_min is None:
+                os.environ.pop("COVERAGE_LINES_MIN", None)
+            else:
+                os.environ["COVERAGE_LINES_MIN"] = original_lines_min
+            if original_branches_min is None:
+                os.environ.pop("COVERAGE_BRANCHES_MIN", None)
+            else:
+                os.environ["COVERAGE_BRANCHES_MIN"] = original_branches_min
+            if original_skip_coverage_gate is None:
+                os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
+            else:
+                os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = original_skip_coverage_gate
 
     if args.type in ("integration", "e2e", "all"):
         if not godot_bin:

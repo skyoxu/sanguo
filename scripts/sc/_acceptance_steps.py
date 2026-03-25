@@ -248,6 +248,7 @@ def step_tests_all(
     run_id: str | None = None,
     test_type: str = "all",
     task_id: str | None = None,
+    no_coverage_gate: bool = False,
 ) -> StepResult:
     cmd = [
         "py",
@@ -255,9 +256,10 @@ def step_tests_all(
         "scripts/sc/test.py",
         "--type",
         test_type,
-        "--no-coverage-gate",
         "--no-coverage-report",
     ]
+    if no_coverage_gate:
+        cmd.append("--no-coverage-gate")
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
     if run_id:
