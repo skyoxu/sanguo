@@ -13,6 +13,7 @@ entrypoint now follows the same gate bundle mainline used by current CI.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 
@@ -54,8 +55,21 @@ def run_gdunit_hard(godot_bin: str) -> int:
 
 def run_smoke_headless(godot_bin: str) -> int:
     """Run strict headless smoke against the main scene."""
-
-    return _run(build_smoke_headless_cmd(godot_bin=godot_bin))
+    original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+    original_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
+    os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
+    os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = "0.25"
+    try:
+        return _run(build_smoke_headless_cmd(godot_bin=godot_bin))
+    finally:
+        if original_exit_on_ready is None:
+            os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
+        if original_exit_delay is None:
+            os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
 
 
 def build_parser() -> argparse.ArgumentParser:

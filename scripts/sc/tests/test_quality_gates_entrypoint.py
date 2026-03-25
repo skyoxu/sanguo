@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -29,6 +30,38 @@ quality_gates = _load_module("quality_gates_module", "scripts/python/quality_gat
 
 
 class QualityGatesEntrypointTests(unittest.TestCase):
+    def test_run_smoke_headless_should_enable_exit_on_ready_temporarily(self) -> None:
+        observed = {}
+        original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+        original_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
+        os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+        os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
+
+        def fake_run(cmd):
+            observed["cmd"] = list(cmd)
+            observed["exit_on_ready"] = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+            observed["exit_delay"] = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
+            return 0
+
+        try:
+            with mock.patch.object(quality_gates, "_run", side_effect=fake_run):
+                rc = quality_gates.run_smoke_headless("C:/Godot/Godot.exe")
+        finally:
+            if original_exit_on_ready is None:
+                os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+            else:
+                os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
+            if original_exit_delay is None:
+                os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
+            else:
+                os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
+
+        self.assertEqual(0, rc)
+        self.assertEqual("1", observed.get("exit_on_ready"))
+        self.assertEqual("0.25", observed.get("exit_delay"))
+        self.assertNotIn("GD_SMOKE_EXIT_ON_READY", os.environ)
+        self.assertNotIn("GD_SMOKE_EXIT_DELAY_SEC", os.environ)
+
     def test_all_should_delegate_to_gate_bundle_hard_by_default(self) -> None:
         with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
                 mock.patch.object(quality_gates, "run_gdunit_hard") as gdunit_mock, \
