@@ -98,6 +98,15 @@ Gate-execution owner page for T80, T91~T92, T111~T112, and T151~T175. Semantic g
 
 - `py -3 scripts/python/validate_task_master_triplet.py`
 
+### Extant Contract Anchors
+
+- `Game.Core/Contracts/EventTypes.cs`
+- `Game.Core/Contracts/Sanguo/GameEvents.cs`
+- `Game.Core/Contracts/Sanguo/SanguoBossChallengePrompted.cs`
+- `Game.Core/Contracts/Sanguo/SanguoModuleEvents.cs`
+- `Game.Core/Contracts/Sanguo/SanguoLootEvents.cs`
+- `Game.Core/Contracts/Sanguo/SanguoObjectiveSkipped.cs`
+
 
 
 ## Gate Package Ownership
