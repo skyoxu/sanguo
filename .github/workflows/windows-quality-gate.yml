@@ -333,8 +333,28 @@ jobs:
             Write-Error "Invalid task_id spec '$spec'. Provide numeric ids like 10 / 10.3 / 1-3 / 10,12."
             exit 1
           }
-          "SC_TASK_IDS=$($uniq -join ',')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Write-Host "SC_TASK_IDS=$($uniq -join ',')"
+
+          $candidateCsv = ($uniq -join ',')
+          $env:SC_CANDIDATE_TASK_IDS = $candidateCsv
+          $resolvedCsv = (& py -3 -c "import os,json;from pathlib import Path;raw=[x for x in os.environ.get('SC_CANDIDATE_TASK_IDS','').split(',') if x];p=Path('.taskmaster/tasks/tasks.json');d=json.loads(p.read_text(encoding='utf-8'));ids={str(t.get('id')) for t in (d.get('master',{}).get('tasks') or []) if isinstance(t,dict)};ok=[];[ok.append(x) for x in raw if (x in ids or x.split('.',1)[0] in ids) and x not in ok];print(','.join(ok))").Trim()
+          Remove-Item Env:\SC_CANDIDATE_TASK_IDS -ErrorAction SilentlyContinue
+
+          if ([string]::IsNullOrWhiteSpace($resolvedCsv)) {
+            if ("${{ github.event_name }}" -eq "pull_request") {
+              Write-Warning "No existing task ids found from '$candidateCsv' in .taskmaster/tasks/tasks.json; skip task-scoped acceptance_check."
+              "SC_TASK_IDS=" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+              Write-Host "SC_TASK_IDS=(skip)"
+              exit 0
+            }
+            Write-Error "None of the provided task ids exist in .taskmaster/tasks/tasks.json: '$candidateCsv'"
+            exit 1
+          }
+
+          if ($resolvedCsv -ne $candidateCsv) {
+            Write-Warning "Filtered non-existing task ids: raw='$candidateCsv' resolved='$resolvedCsv'"
+          }
+          "SC_TASK_IDS=$resolvedCsv" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "SC_TASK_IDS=$resolvedCsv"
 
       - name: Acceptance check (sc)
         if: ${{ env.SC_TASK_IDS != '' }}
