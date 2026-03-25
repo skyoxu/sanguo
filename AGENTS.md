@@ -39,6 +39,8 @@ This file provides guidance to Codex Cli when working with code in this reposito
    - `docs/workflows/script-entrypoints-index.md`
    - `docs/workflows/template-upgrade-protocol.md`
    - `docs/workflows/business-repo-upgrade-guide.md`
+   - `docs/workflows/prototype-lane.md`
+   - `docs/agents/16-directory-responsibilities.md`
 3. **Project indexes** - Context entry points:
    - `architecture_base.index` - Architecture docs (CH01-CH12 + ADRs)
    - `prd_chunks.index` - PRD fragments index
@@ -56,6 +58,8 @@ This file provides guidance to Codex Cli when working with code in this reposito
 **Typical workflow:**
 - **Taskmaster**: `npx task-master parse-prd .taskmaster/docs/prd.txt -n 30`
 - **Validate**: `py -3 scripts/python/validate_task_links.py`
+- **Recover task**: `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`
+- **Resume pipeline**: `py -3 scripts/sc/run_review_pipeline.py --task-id <id> --resume`
 
 ---
 

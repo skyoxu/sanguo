@@ -74,6 +74,8 @@
 - Script Entrypoints Index: `docs/workflows/script-entrypoints-index.md`
 - Template Upgrade Protocol: `docs/workflows/template-upgrade-protocol.md`
 - Business Repo Upgrade Guide: `docs/workflows/business-repo-upgrade-guide.md`
+- Prototype Lane: `docs/workflows/prototype-lane.md`
+- Directory Responsibilities: `docs/agents/16-directory-responsibilities.md`
 ## Main Entrypoints
 
 ### Repo-Scoped Hard Checks
@@ -90,6 +92,13 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id>
 ```
 
+
+### Task Recovery
+
+```powershell
+py -3 scripts/python/dev_cli.py resume-task --task-id <id>
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --resume
+```
 ### Acceptance Test Generation / TDD
 
 ```powershell
