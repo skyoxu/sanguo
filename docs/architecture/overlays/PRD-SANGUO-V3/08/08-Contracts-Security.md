@@ -35,6 +35,11 @@ The following generic event constants are already landed and may be used when go
 - `core.traceability.checked`
 - `core.audit.logged`
 
+Concrete contract anchors for this page:
+
+- `Game.Core/Contracts/EventTypes.cs`
+- `Game.Core/Contracts/DomainEvent.cs`
+
 ## When Empty `contractRefs` Are Acceptable
 
 Governance tasks may keep empty `contractRefs` when they do not own runtime event publication or consumption and only operate on files, policies, or schema gates.
