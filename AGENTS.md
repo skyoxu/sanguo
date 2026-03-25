@@ -34,6 +34,11 @@ This file provides guidance to Codex Cli when working with code in this reposito
 
 1. **This file** (`AGENTS.md`) - You're already here ✓
 2. **Agents knowledge map** - docs/agents/00-index.md and docs/workflows/run-protocol.md
+   - `docs/workflows/project-health-dashboard.md`
+   - `docs/workflows/stable-public-entrypoints.md`
+   - `docs/workflows/script-entrypoints-index.md`
+   - `docs/workflows/template-upgrade-protocol.md`
+   - `docs/workflows/business-repo-upgrade-guide.md`
 3. **Project indexes** - Context entry points:
    - `architecture_base.index` - Architecture docs (CH01-CH12 + ADRs)
    - `prd_chunks.index` - PRD fragments index
