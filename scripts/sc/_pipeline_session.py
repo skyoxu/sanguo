@@ -33,6 +33,7 @@ class PipelineSession:
     render_repair_guide_markdown: Callable[[dict[str, Any]], str]
     append_run_event: Callable[..., None]
     write_latest_index: Callable[..., None]
+    write_active_task_sidecar: Callable[..., None]
     record_step_result: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]
     upsert_step: Callable[[dict[str, Any], dict[str, Any]], None]
     append_step_event: Callable[..., None]
@@ -126,6 +127,12 @@ class PipelineSession:
                 details=dict(event_payload.get("details") or {}),
             )
         self.write_latest_index(
+            task_id=self.task_id,
+            run_id=self.run_id,
+            out_dir=self.out_dir,
+            status=str(self.summary.get("status", "fail")),
+        )
+        self.write_active_task_sidecar(
             task_id=self.task_id,
             run_id=self.run_id,
             out_dir=self.out_dir,

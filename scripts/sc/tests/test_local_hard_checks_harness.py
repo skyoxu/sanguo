@@ -51,9 +51,10 @@ class LocalHardChecksHarnessTests(unittest.TestCase):
             )
 
             self.assertEqual(0, rc)
-            self.assertEqual(2, len(commands))
-            self.assertEqual(["py", "-3", "scripts/python/run_gate_bundle.py"], commands[0][:3])
-            self.assertEqual(["py", "-3", "scripts/python/run_dotnet.py"], commands[1][:3])
+            self.assertEqual(3, len(commands))
+            self.assertEqual(["py", "-3", "scripts/python/project_health_scan.py"], commands[0][:3])
+            self.assertEqual(["py", "-3", "scripts/python/run_gate_bundle.py"], commands[1][:3])
+            self.assertEqual(["py", "-3", "scripts/python/run_dotnet.py"], commands[2][:3])
 
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             execution_context = json.loads((out_dir / "execution-context.json").read_text(encoding="utf-8"))
@@ -68,7 +69,10 @@ class LocalHardChecksHarnessTests(unittest.TestCase):
 
             self.assertEqual("ok", summary["status"])
             self.assertEqual("", summary["failed_step"])
-            self.assertEqual(["gate-bundle-hard", "run-dotnet"], [item["name"] for item in summary["steps"]])
+            self.assertEqual(
+                ["project-health-scan", "gate-bundle-hard", "run-dotnet"],
+                [item["name"] for item in summary["steps"]],
+            )
             self.assertEqual("standard", execution_context["delivery_profile"])
             self.assertEqual("strict", execution_context["security_profile"])
             self.assertEqual("ok", repair_guide["status"])
@@ -110,20 +114,43 @@ class LocalHardChecksHarnessTests(unittest.TestCase):
             )
 
             self.assertEqual(0, rc)
-            self.assertEqual(4, len(commands))
-            self.assertEqual(["gate-bundle-hard", "run-dotnet", "gdunit-hard", "smoke-strict"], [
-                item["name"]
-                for item in json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))["steps"]
-            ])
-            self.assertIn("--godot-bin", commands[2])
-            self.assertIn("C:/Godot/Godot.exe", commands[2])
-            self.assertIn("--strict", commands[3])
-            self.assertIn("--timeout-sec", commands[3])
-            self.assertIn("7", commands[3])
+            self.assertEqual(5, len(commands))
+            self.assertEqual(
+                ["project-health-scan", "gate-bundle-hard", "run-dotnet", "gdunit-hard", "smoke-strict"],
+                [item["name"] for item in json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))["steps"]],
+            )
+            self.assertIn("--godot-bin", commands[3])
+            self.assertIn("C:/Godot/Godot.exe", commands[3])
+            self.assertIn("--strict", commands[4])
+            self.assertIn("--timeout-sec", commands[4])
+            self.assertIn("7", commands[4])
+
+    def test_project_health_fail_should_stop_before_other_hard_checks(self) -> None:
+        commands: list[list[str]] = []
+
+        def runner(cmd: list[str]) -> int:
+            commands.append(list(cmd))
+            return 9 if len(commands) == 1 else 0
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "local-hard-checks-demo"
+            rc = local_hard_checks_harness.run_local_hard_checks(
+                delivery_profile="standard",
+                run_id="local-demo",
+                out_dir=str(out_dir),
+                run_fn=runner,
+            )
+
+            self.assertEqual(9, rc)
+            self.assertEqual(1, len(commands))
+            self.assertEqual(["py", "-3", "scripts/python/project_health_scan.py"], commands[0][:3])
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("fail", summary["status"])
+            self.assertEqual("project-health-scan", summary["failed_step"])
 
     def test_failure_should_stop_at_first_failed_step_and_write_failed_latest(self) -> None:
         commands: list[list[str]] = []
-        rc_by_index = [0, 7, 0, 0]
+        rc_by_index = [0, 0, 7, 0, 0]
 
         def runner(cmd: list[str]) -> int:
             commands.append(list(cmd))
@@ -140,7 +167,7 @@ class LocalHardChecksHarnessTests(unittest.TestCase):
             )
 
             self.assertEqual(7, rc)
-            self.assertEqual(2, len(commands))
+            self.assertEqual(3, len(commands))
 
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             latest = json.loads((out_dir.parent / "local-hard-checks-latest.json").read_text(encoding="utf-8"))
@@ -152,7 +179,10 @@ class LocalHardChecksHarnessTests(unittest.TestCase):
 
             self.assertEqual("fail", summary["status"])
             self.assertEqual("run-dotnet", summary["failed_step"])
-            self.assertEqual(["gate-bundle-hard", "run-dotnet"], [item["name"] for item in summary["steps"]])
+            self.assertEqual(
+                ["project-health-scan", "gate-bundle-hard", "run-dotnet"],
+                [item["name"] for item in summary["steps"]],
+            )
             self.assertEqual("fail", latest["status"])
             self.assertEqual("run_failed", events[-1]["event"])
             self.assertEqual("fail", events[-1]["status"])

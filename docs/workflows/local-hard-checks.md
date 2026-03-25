@@ -32,7 +32,7 @@ Core rules:
 - 
 un_gate_bundle.py runs exactly once.
 - quality_gates.py all is intentionally excluded from this chain to avoid re-triggering the hard bundle.
-- Without --godot-bin, the run only executes gate bundle + dotnet.
+- Without --godot-bin, the run executes project health scan + gate bundle + dotnet.
 - Every step writes events and a step log so recovery can start from artifacts instead of memory.
 
 ## Recommended Commands
@@ -104,6 +104,12 @@ The same date directory also gets a repo-scoped pointer:
 
 - logs/ci/<YYYY-MM-DD>/local-hard-checks-latest.json
 
+### Repo Health Prelude
+
+- The run now refreshes `logs/ci/project-health/latest.json` and `logs/ci/project-health/latest.html` before any hard validation step.
+- `warn` from project health does not block the run.
+- `fail` from project health blocks the run immediately because it indicates a repo-level stop-loss issue.
+
 ### Nested Step Artifacts
 
 - Hard gate bundle: nested summary at <run-out-dir>/hard/summary.json
@@ -119,7 +125,7 @@ This run currently supports only the minimal recovery actions:
 erun
 - inspect-failed-step
 
-It does not produce pproval-request.json, pproval-response.json, marathon-state.json, or gent-review.json. Those sidecars remain part of the task-scoped 
+It does not produce approval-request.json, approval-response.json, marathon-state.json, or agent-review.json. Those sidecars remain part of the task-scoped 
 un_review_pipeline.py protocol.
 
 ## Stop-Loss Rules

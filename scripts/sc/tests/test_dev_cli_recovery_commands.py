@@ -78,6 +78,34 @@ class DevCliRecoveryCommandsTests(unittest.TestCase):
         self.assertIn("--execution-plan", cmd)
         self.assertIn("execution-plans/2026-03-21-demo.md", cmd)
 
+    def test_resume_task_should_forward_arguments(self) -> None:
+        with mock.patch.object(dev_cli, "run", return_value=0) as run_mock:
+            rc = dev_cli.main(
+                [
+                    "resume-task",
+                    "--task-id",
+                    "7",
+                    "--run-id",
+                    "abc123",
+                    "--latest",
+                    "logs/ci/2026-03-21/sc-review-pipeline-task-7/latest.json",
+                    "--out-json",
+                    "logs/ci/2026-03-21/task-resume/task-7.json",
+                    "--out-md",
+                    "logs/ci/2026-03-21/task-resume/task-7.md",
+                ]
+            )
+        self.assertEqual(0, rc)
+        cmd = run_mock.call_args[0][0]
+        self.assertEqual(["py", "-3", "scripts/python/resume_task.py"], cmd[:3])
+        self.assertIn("--task-id", cmd)
+        self.assertIn("7", cmd)
+        self.assertIn("--run-id", cmd)
+        self.assertIn("abc123", cmd)
+        self.assertIn("--latest", cmd)
+        self.assertIn("--out-json", cmd)
+        self.assertIn("--out-md", cmd)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 
-LOCAL_HARD_CHECKS_STEP_NAMES = {"gate-bundle-hard", "run-dotnet", "gdunit-hard", "smoke-strict"}
+LOCAL_HARD_CHECKS_STEP_NAMES = {"project-health-scan", "gate-bundle-hard", "run-dotnet", "gdunit-hard", "smoke-strict"}
 LOCAL_HARD_CHECKS_STATUS = {"ok", "fail"}
 
 

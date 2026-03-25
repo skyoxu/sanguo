@@ -261,3 +261,87 @@ def build_new_decision_log_cmd(args) -> list[str]:
     if args.output:
         cmd += ["--output", args.output]
     return cmd
+
+
+def build_resume_task_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/resume_task.py",
+    ]
+    if args.repo_root:
+        cmd += ["--repo-root", args.repo_root]
+    if args.task_id:
+        cmd += ["--task-id", args.task_id]
+    if args.run_id:
+        cmd += ["--run-id", args.run_id]
+    if args.latest:
+        cmd += ["--latest", args.latest]
+    if args.out_json:
+        cmd += ["--out-json", args.out_json]
+    if args.out_md:
+        cmd += ["--out-md", args.out_md]
+    return cmd
+
+
+def build_detect_project_stage_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/detect_project_stage.py",
+    ]
+    if args.repo_root:
+        cmd += ["--repo-root", args.repo_root]
+    return cmd
+
+
+def build_doctor_project_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/doctor_project.py",
+    ]
+    if args.repo_root:
+        cmd += ["--repo-root", args.repo_root]
+    return cmd
+
+
+def build_check_directory_boundaries_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/check_directory_boundaries.py",
+    ]
+    if args.repo_root:
+        cmd += ["--repo-root", args.repo_root]
+    return cmd
+
+
+def build_project_health_scan_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/project_health_scan.py",
+    ]
+    if args.repo_root:
+        cmd += ["--repo-root", args.repo_root]
+    if getattr(args, "serve", False):
+        cmd.append("--serve")
+    port = int(getattr(args, "port", 0) or 0)
+    if port > 0:
+        cmd += ["--port", str(port)]
+    return cmd
+
+
+def build_serve_project_health_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/serve_project_health.py",
+    ]
+    if args.repo_root:
+        cmd += ["--repo-root", args.repo_root]
+    port = int(getattr(args, "port", 0) or 0)
+    if port > 0:
+        cmd += ["--port", str(port)]
+    return cmd

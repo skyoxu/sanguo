@@ -67,6 +67,7 @@ from _technical_debt import write_low_priority_debt_artifacts
 from _llm_review_tier import resolve_llm_review_tier_plan
 from _summary_schema import SummarySchemaError, validate_pipeline_summary
 from _util import write_json, write_text
+from _active_task_sidecar import write_active_task_sidecar as _write_active_task_sidecar_impl
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -96,6 +97,16 @@ def _write_latest_index(*, task_id: str, run_id: str, out_dir: Path, status: str
         out_dir=out_dir,
         status=status,
         latest_index_path_fn=_pipeline_latest_index_path,
+    )
+
+
+def _write_active_task_sidecar(*, task_id: str, run_id: str, out_dir: Path, status: str) -> None:
+    _write_active_task_sidecar_impl(
+        task_id=task_id,
+        run_id=run_id,
+        out_dir=out_dir,
+        status=status,
+        latest_json_path=_pipeline_latest_index_path(task_id),
     )
 
 
@@ -295,6 +306,7 @@ def main() -> int:
         )
         save_marathon_state(out_dir, mark_aborted(marathon_state, reason="operator_requested"))
         _write_latest_index(task_id=task_id, run_id=run_id, out_dir=out_dir, status="aborted")
+        _write_active_task_sidecar(task_id=task_id, run_id=run_id, out_dir=out_dir, status="aborted")
         print(f"SC_REVIEW_PIPELINE status=aborted out={out_dir}")
         return 0
     if args.resume:
@@ -354,6 +366,7 @@ def main() -> int:
         render_repair_guide_markdown=render_repair_guide_markdown,
         append_run_event=append_run_event,
         write_latest_index=_write_latest_index,
+        write_active_task_sidecar=_write_active_task_sidecar,
         record_step_result=record_step_result,
         upsert_step=_upsert_step,
         append_step_event=_append_step_event,

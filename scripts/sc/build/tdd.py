@@ -39,6 +39,7 @@ from _tdd_steps import (  # noqa: E402
     run_green_gate as _run_green_gate_impl,
     run_refactor_checks as _run_refactor_checks_impl,
     run_sc_analyze_task_context as _run_sc_analyze_task_context_impl,
+    run_task_preflight as _run_task_preflight_impl,
     validate_task_context_required_fields as _validate_task_context_required_fields_impl,
     write_summary,
 )
@@ -96,6 +97,10 @@ def validate_task_context_required_fields(*, task_id: str, stage: str, out_dir: 
     return _validate_task_context_required_fields_impl(task_id=task_id, stage=stage, out_dir=out_dir)
 
 
+def run_task_preflight(*, triplet: Any, out_dir: Path) -> dict[str, Any]:
+    return _run_task_preflight_impl(triplet=triplet, out_dir=out_dir)
+
+
 def run_green_gate(
     *,
     solution: str,
@@ -119,7 +124,11 @@ def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
     return _run_refactor_checks_impl(out_dir, task_id=task_id)
 
 
-def _run_context_gate(*, stage: str, task_id: str, out_dir: Path, summary: dict[str, Any]) -> bool:
+def _run_context_gate(*, stage: str, task_id: str, triplet: Any, out_dir: Path, summary: dict[str, Any]) -> bool:
+    preflight_step = run_task_preflight(triplet=triplet, out_dir=out_dir)
+    summary["steps"].append(preflight_step)
+    if preflight_step["rc"] != 0:
+        return False
     summary["steps"].append(run_sc_analyze_task_context(task_id=task_id, out_dir=out_dir))
     ctx_step = validate_task_context_required_fields(task_id=task_id, stage=stage, out_dir=out_dir)
     summary["steps"].append(ctx_step)
@@ -127,7 +136,7 @@ def _run_context_gate(*, stage: str, task_id: str, out_dir: Path, summary: dict[
 
 
 def _handle_red_stage(*, args: argparse.Namespace, triplet: Any, out_dir: Path, summary: dict[str, Any]) -> int:
-    if not _run_context_gate(stage="red", task_id=triplet.task_id, out_dir=out_dir, summary=summary):
+    if not _run_context_gate(stage="red", task_id=triplet.task_id, triplet=triplet, out_dir=out_dir, summary=summary):
         write_summary(out_dir, summary)
         print(f"SC_BUILD_TDD status=fail out={out_dir}")
         return 1
@@ -150,7 +159,7 @@ def _handle_red_stage(*, args: argparse.Namespace, triplet: Any, out_dir: Path, 
 
 
 def _handle_green_stage(*, args: argparse.Namespace, runtime: dict[str, Any], triplet: Any, out_dir: Path, summary: dict[str, Any]) -> int:
-    if not _run_context_gate(stage="green", task_id=triplet.task_id, out_dir=out_dir, summary=summary):
+    if not _run_context_gate(stage="green", task_id=triplet.task_id, triplet=triplet, out_dir=out_dir, summary=summary):
         write_summary(out_dir, summary)
         print(f"SC_BUILD_TDD status=fail out={out_dir}")
         return 1
@@ -172,7 +181,7 @@ def _handle_green_stage(*, args: argparse.Namespace, runtime: dict[str, Any], tr
 
 
 def _handle_refactor_stage(*, triplet: Any, out_dir: Path, summary: dict[str, Any]) -> int:
-    if not _run_context_gate(stage="refactor", task_id=triplet.task_id, out_dir=out_dir, summary=summary):
+    if not _run_context_gate(stage="refactor", task_id=triplet.task_id, triplet=triplet, out_dir=out_dir, summary=summary):
         write_summary(out_dir, summary)
         print(f"SC_BUILD_TDD status=fail out={out_dir}")
         return 1

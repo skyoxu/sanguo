@@ -98,6 +98,7 @@
         "name": {
           "type": "string",
           "enum": [
+            "project-health-scan",
             "gate-bundle-hard",
             "run-dotnet",
             "gdunit-hard",
