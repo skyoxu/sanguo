@@ -100,6 +100,17 @@ def build_step_plan(
     unit_dir = repo_root() / "logs" / "unit" / today_str()
     steps: list[dict[str, Any]] = [
         {
+            "name": "project-health-scan",
+            "cmd": ["py", "-3", "scripts/python/project_health_scan.py", "--repo-root", "."],
+            "artifacts": {
+                "reported_out_dir": str((repo_root() / "logs" / "ci" / "project-health")).replace("\\", "/"),
+                "summary_file": str((repo_root() / "logs" / "ci" / "project-health" / "latest.json")).replace(
+                    "\\",
+                    "/",
+                ),
+            },
+        },
+        {
             "name": "gate-bundle-hard",
             "cmd": build_gate_bundle_hard_cmd(
                 delivery_profile=delivery_profile,

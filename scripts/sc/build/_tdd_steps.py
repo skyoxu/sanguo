@@ -11,6 +11,122 @@ from _util import repo_root, run_cmd, today_str, write_json, write_text
 from _tdd_shared import check_no_task_red_test_skeletons
 
 
+def _normalize_optional_str_list(value: Any) -> tuple[list[str], bool]:
+    if value is None:
+        return [], False
+    if not isinstance(value, list):
+        raise TypeError("must be an array")
+    items: list[str] = []
+    for raw in value:
+        text = str(raw or "").strip()
+        if text:
+            items.append(text)
+    return items, True
+
+
+def _is_contract_path(ref: str) -> bool:
+    value = str(ref or "").strip().replace("\\", "/")
+    return value.startswith("Game.Core/Contracts/") or value.endswith(".cs")
+
+
+def run_task_preflight(*, triplet: Any, out_dir: Path) -> dict[str, Any]:
+    root = repo_root()
+    errors: list[str] = []
+    warnings: list[str] = []
+    resolved_overlay_refs: dict[str, list[str]] = {}
+    resolved_contract_refs: dict[str, list[str]] = {}
+    missing_contract_refs: list[str] = []
+
+    master_overlay = str(triplet.overlay() or "").strip()
+    if not master_overlay:
+        errors.append("master.overlay missing/empty")
+    else:
+        master_overlay_path = root / master_overlay
+        if not master_overlay_path.exists():
+            errors.append(f"master.overlay path missing on disk: {master_overlay}")
+
+    for view_name, view in (("back", triplet.back), ("gameplay", triplet.gameplay)):
+        if not isinstance(view, dict):
+            continue
+
+        overlay_value = view.get("overlay_refs")
+        try:
+            overlay_refs, overlay_present = _normalize_optional_str_list(overlay_value)
+        except TypeError:
+            errors.append(f"{view_name}.overlay_refs must be an array")
+            overlay_refs = []
+            overlay_present = True
+        resolved_overlay_refs[view_name] = overlay_refs
+        if overlay_present and not overlay_refs:
+            errors.append(f"{view_name}.overlay_refs missing/empty")
+        for rel in overlay_refs:
+            candidate = root / rel
+            if not candidate.exists():
+                errors.append(f"{view_name}.overlay_refs path missing on disk: {rel}")
+
+        contract_value = view.get("contractRefs")
+        try:
+            contract_refs, contract_present = _normalize_optional_str_list(contract_value)
+        except TypeError:
+            errors.append(f"{view_name}.contractRefs must be an array")
+            contract_refs = []
+            contract_present = True
+        resolved_contract_refs[view_name] = contract_refs
+        if contract_present and not contract_refs:
+            missing_contract_refs.append(view_name)
+        for rel in contract_refs:
+            if not _is_contract_path(rel):
+                warnings.append(f"{view_name}.contractRefs uses non-path token: {rel}")
+                continue
+            candidate = root / rel
+            if not candidate.exists():
+                errors.append(f"{view_name}.contractRefs path missing on disk: {rel}")
+
+    report = {
+        "task_id": str(triplet.task_id),
+        "master_overlay": master_overlay,
+        "overlay_refs": resolved_overlay_refs,
+        "contract_refs": resolved_contract_refs,
+        "missing_contract_refs": missing_contract_refs,
+        "warnings": warnings,
+        "errors": errors,
+    }
+    report_path = out_dir / "task-preflight.json"
+    write_json(report_path, report)
+
+    log_lines = [
+        f"task_id: {triplet.task_id}",
+        f"master_overlay: {master_overlay or '(missing)'}",
+        f"back.overlay_refs: {resolved_overlay_refs.get('back', [])}",
+        f"gameplay.overlay_refs: {resolved_overlay_refs.get('gameplay', [])}",
+        f"back.contractRefs: {resolved_contract_refs.get('back', [])}",
+        f"gameplay.contractRefs: {resolved_contract_refs.get('gameplay', [])}",
+    ]
+    if missing_contract_refs:
+        log_lines.append(f"missing_contract_refs: {missing_contract_refs}")
+    if warnings:
+        log_lines.append("warnings:")
+        log_lines.extend([f"- {item}" for item in warnings])
+    if errors:
+        log_lines.append("errors:")
+        log_lines.extend([f"- {item}" for item in errors])
+    else:
+        log_lines.append("errors: []")
+    log_path = out_dir / "task-preflight.log"
+    write_text(log_path, "\n".join(log_lines) + "\n")
+
+    return {
+        "name": "task_preflight",
+        "rc": 1 if errors else 0,
+        "status": "fail" if errors else "ok",
+        "log": str(log_path),
+        "report": str(report_path),
+        "warnings": len(warnings),
+        "errors": len(errors),
+        "missing_contract_refs": missing_contract_refs,
+    }
+
+
 def default_task_test_path(task_id: str) -> Path:
     return repo_root() / "Game.Core.Tests" / "Tasks" / f"Task{task_id}RedTests.cs"
 
