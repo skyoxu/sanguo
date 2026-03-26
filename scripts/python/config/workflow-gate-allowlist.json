@@ -11,6 +11,7 @@
     "scripts/python/run_dotnet.py",
     "scripts/python/check_data_versions_bumped.py",
     "scripts/python/validate_data_catalog.py",
+    "scripts/python/validate_perf.py",
     "scripts/python/smoke_headless.py",
     "scripts/python/build_windows.py",
     "scripts/python/check_sentry_secrets.py",
