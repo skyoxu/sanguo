@@ -44,7 +44,7 @@ EVENT_TYPES_MEMBER_RE = re.compile(
     r"\bpublic\s+const\s+string\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\"([^\"]+)\"\s*;",
     re.MULTILINE,
 )
-DOC_DOMAIN_EVENT_RE = re.compile(r"\bDomain\s+event:\s*([a-z0-9.]+)\b", re.IGNORECASE)
+DOC_DOMAIN_EVENT_RE = re.compile(r"\bDomain\s+event:\s*([a-z0-9._]+)\b", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -116,6 +116,16 @@ def _validate_event_type(value: str, *, domain_prefix: str) -> list[str]:
     return issues
 
 
+def _doc_value_for_position(doc_matches: list[re.Match[str]], position: int) -> str | None:
+    """Return the nearest preceding `Domain event:` value for a source position."""
+    nearest: str | None = None
+    for m in doc_matches:
+        if m.start() > position:
+            break
+        nearest = m.group(1).strip()
+    return nearest
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Domain contracts check (template-friendly).")
     ap.add_argument("--contracts-dir", default="Game.Core/Contracts", help="Contracts root directory (relative to repo root).")
@@ -149,18 +159,17 @@ def main() -> int:
 
     for cs in _iter_contract_files(contracts_dir):
         text = cs.read_text(encoding="utf-8", errors="ignore")
-        literal_values = EVENT_TYPE_LITERAL_RE.findall(text)
-        symbol_values = EVENT_TYPE_SYMBOL_RE.findall(text)
-        doc_values = DOC_DOMAIN_EVENT_RE.findall(text)
-        doc_value = doc_values[0].strip() if doc_values else None
+        doc_matches = list(DOC_DOMAIN_EVENT_RE.finditer(text))
 
-        resolved_values: list[tuple[str, str]] = []
-        for value in literal_values:
-            resolved_values.append((value, value))
+        resolved_values: list[tuple[int, str, str]] = []
+        for m in EVENT_TYPE_LITERAL_RE.finditer(text):
+            value = m.group(1)
+            resolved_values.append((m.start(), value, value))
 
-        for symbol in symbol_values:
+        for m in EVENT_TYPE_SYMBOL_RE.finditer(text):
+            symbol = m.group(1)
             if symbol in event_type_map:
-                resolved_values.append((f"EventTypes.{symbol}", event_type_map[symbol]))
+                resolved_values.append((m.start(), f"EventTypes.{symbol}", event_type_map[symbol]))
             else:
                 rel = _to_posix(cs.relative_to(root))
                 findings.append(
@@ -173,9 +182,10 @@ def main() -> int:
                     )
                 )
 
-        for source_expr, event_type in resolved_values:
+        for source_pos, source_expr, event_type in resolved_values:
             issues = _validate_event_type(event_type, domain_prefix=args.domain_prefix)
             warnings: list[str] = []
+            doc_value = _doc_value_for_position(doc_matches, source_pos)
             if doc_value and doc_value.lower() != event_type.strip().lower():
                 warnings.append(f"doc 'Domain event' mismatch: doc={doc_value!r} const={event_type!r}")
 
@@ -222,4 +232,3 @@ if __name__ == "__main__":
     except Exception as exc:  # noqa: BLE001
         print(f"DOMAIN_CONTRACTS_CHECK status=fail error={exc}")
         raise SystemExit(2)
-
