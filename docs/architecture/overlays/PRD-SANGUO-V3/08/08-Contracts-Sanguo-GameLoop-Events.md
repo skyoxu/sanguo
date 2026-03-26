@@ -145,7 +145,7 @@ This rule prevents a fake sense of completeness where overlays mention a contrac
 
 ## Contract Hygiene Rule
 
-- Task-view `contractRefs` may cite landed `EventType` constants from either `Game.Core/Contracts/Sanguo/**` or `Game.Core/Contracts/EventTypes.cs`.
+- Task-view `contractRefs` may cite landed `EventType` constants from either `Game.Core/Contracts/Sanguo` or `Game.Core/Contracts/EventTypes.cs`.
 - Planned names stay in overlay text only until the matching C# contract surface lands.
 - T109, T145, T146, T151, T152, T156, T169, T170, and T173 intentionally keep empty `contractRefs` until they consume or publish a landed runtime event family.
 - If a task starts consuming or publishing a different runtime event family, the owner overlay and task views must be updated together.
