@@ -165,6 +165,14 @@ public sealed record SanguoCityTollSynergyPaidBreakdownItem(
     AppliedMultipliers AppliedMultipliers
 );
 
+/// <summary>
+/// Domain event: core.sanguo.city.toll.synergy.paid
+/// Description: Emitted when region synergy toll is charged across multiple owned cities in one settlement.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004, ADR-0005, ADR-0024.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md.
+/// </remarks>
 public sealed record SanguoCityTollSynergyPaid(
     string GameId,
     int TurnNumber,
