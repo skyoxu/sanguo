@@ -372,7 +372,7 @@ Some filenames intentionally keep old T2-oriented names so the task triplet can 
 
 - `contractRefs` in task views list only landed `EventType` constants.
 
-- Those constants may come from either `Game.Core/Contracts/Sanguo/**` or `Game.Core/Contracts/EventTypes.cs`, but they must already exist in C#.
+- Those constants may come from either `Game.Core/Contracts/Sanguo` or `Game.Core/Contracts/EventTypes.cs`, but they must already exist in C#.
 
 - Planned V3 names such as `core.sanguo.camp.entered` or `core.sanguo.objective.published` belong in overlay text only until contract files land.
 

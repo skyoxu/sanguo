@@ -317,7 +317,7 @@ A hard-gate failure is invalid if it only reports a generic `fail` without enoug
 
 - A post-evidence gate runs after headless evidence already failed.
 
-- A quality summary points to an event family that does not exist in `Game.Core/Contracts/**`.
+- A quality summary points to an event family that does not exist in `Game.Core/Contracts`.
 
 - A task view claims assertion coverage but omits the extant event surface it is gating.
 

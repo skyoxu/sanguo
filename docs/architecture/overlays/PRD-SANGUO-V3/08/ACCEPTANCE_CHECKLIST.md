@@ -108,7 +108,7 @@ This page closes the loop between `prd_v3.md`, `PRD_V3_RULES_FREEZE.md`, `PRD_V3
 
 - [ ] New events and DTOs obey ADR-0004 naming and additive-only evolution.
 
-- [ ] Contracts stay under `Game.Core/Contracts/**`; UI does not branch on raw JSON.
+- [ ] Contracts stay under `Game.Core/Contracts`; UI does not branch on raw JSON.
 
 - [ ] Content schema covers commander, strategem, camp building, boss, and objective.
 
@@ -202,7 +202,7 @@ This page closes the loop between `prd_v3.md`, `PRD_V3_RULES_FREEZE.md`, `PRD_V3
 
 | T143~T144 | section three: non-terminal Boss wins return to camp, final Boss victory ends the run, and camp-failure defeat remains terminal | endgame adjudication stays split cleanly between victory and camp-failure defeat branches |
 
-| T145~T146 | section three: contracts stay under `Game.Core/Contracts/**`; UI does not branch on raw JSON | contract-set completion and HUD DTO mapping close under the same contract-boundary rule |
+| T145~T146 | section three: contracts stay under `Game.Core/Contracts`; UI does not branch on raw JSON | contract-set completion and HUD DTO mapping close under the same contract-boundary rule |
 
 | T147~T148 | section three: content schema covers commander, strategem, camp building, Boss, and objective | schema extension and quality-gate closure are checked as one content-governance family |
 

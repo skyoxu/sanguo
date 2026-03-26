@@ -45,6 +45,7 @@ class FileSyncResult:
     total_tasks: int
     changed_tasks: int
     changed_ids: list[str]
+    skipped_done_tasks: int
 
 
 def _repo_root() -> Path:
@@ -135,6 +136,47 @@ def _extract_prd_ids_from_view_tasks(payload: Any) -> set[str]:
         refs = _normalize_refs(task.get("overlay_refs"))
         found.update(_extract_prd_ids_from_values(refs))
     return found
+
+
+def _canonical_taskmaster_id(value: object) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        if value.is_integer():
+            return str(int(value))
+        return str(value)
+    raw = str(value).strip()
+    if not raw:
+        return None
+    if re.fullmatch(r"^\d+(\.\d+)?$", raw):
+        return raw.split(".", 1)[0]
+    return raw
+
+
+def _done_master_task_ids(payload: Any) -> set[str]:
+    out: set[str] = set()
+    if not isinstance(payload, dict):
+        return out
+    master = payload.get("master")
+    if not isinstance(master, dict):
+        return out
+    tasks = master.get("tasks")
+    if not isinstance(tasks, list):
+        return out
+    for task in tasks:
+        if not isinstance(task, dict):
+            continue
+        status = str(task.get("status", "")).strip().lower()
+        if status != "done":
+            continue
+        task_id = _canonical_taskmaster_id(task.get("id"))
+        if task_id:
+            out.add(task_id)
+    return out
 
 
 def _auto_detect_prd_id(root: Path, tasks_dir: Path) -> str:
@@ -299,7 +341,12 @@ def _refs_for_task(paths: OverlayPaths) -> list[str]:
     return out
 
 
-def sync_master(tasks_json_path: Path, paths: OverlayPaths) -> tuple[dict[str, Any], FileSyncResult]:
+def sync_master(
+    tasks_json_path: Path,
+    paths: OverlayPaths,
+    *,
+    skip_done: bool,
+) -> tuple[dict[str, Any], FileSyncResult]:
     payload = _load_json(tasks_json_path)
     master = payload.get("master")
     if not isinstance(master, dict):
@@ -309,8 +356,12 @@ def sync_master(tasks_json_path: Path, paths: OverlayPaths) -> tuple[dict[str, A
         raise ValueError("tasks.json missing 'master.tasks' list.")
 
     changed_ids: list[str] = []
+    skipped_done = 0
     for task in tasks:
         if not isinstance(task, dict):
+            continue
+        if skip_done and str(task.get("status", "")).strip().lower() == "done":
+            skipped_done += 1
             continue
         task_id = str(task.get("id", "")).strip()
         expected = paths.index
@@ -324,19 +375,33 @@ def sync_master(tasks_json_path: Path, paths: OverlayPaths) -> tuple[dict[str, A
         total_tasks=len(tasks),
         changed_tasks=len(changed_ids),
         changed_ids=changed_ids,
+        skipped_done_tasks=skipped_done,
     )
 
 
-def sync_view(view_path: Path, paths: OverlayPaths) -> tuple[list[dict[str, Any]], FileSyncResult]:
+def sync_view(
+    view_path: Path,
+    paths: OverlayPaths,
+    *,
+    skip_done: bool,
+    master_done_task_ids: set[str],
+) -> tuple[list[dict[str, Any]], FileSyncResult]:
     tasks = _load_json(view_path)
     if not isinstance(tasks, list):
         raise ValueError(f"{view_path.name} must be a JSON array.")
 
     changed_ids: list[str] = []
+    skipped_done = 0
     expected = _refs_for_task(paths)
     for task in tasks:
         if not isinstance(task, dict):
             continue
+        if skip_done:
+            status = str(task.get("status", "")).strip().lower()
+            taskmaster_id = _canonical_taskmaster_id(task.get("taskmaster_id"))
+            if status == "done" or (taskmaster_id and taskmaster_id in master_done_task_ids):
+                skipped_done += 1
+                continue
         task_id = str(task.get("id", "")).strip()
         current = _normalize_refs(task.get("overlay_refs"))
         if current != expected:
@@ -348,6 +413,7 @@ def sync_view(view_path: Path, paths: OverlayPaths) -> tuple[list[dict[str, Any]
         total_tasks=len(tasks),
         changed_tasks=len(changed_ids),
         changed_ids=changed_ids,
+        skipped_done_tasks=skipped_done,
     )
 
 
@@ -380,6 +446,7 @@ def _write_summary(
                 "total_tasks": item.total_tasks,
                 "changed_tasks": item.changed_tasks,
                 "changed_ids": item.changed_ids,
+                "skipped_done_tasks": item.skipped_done_tasks,
             }
             for item in results
         ],
@@ -407,6 +474,14 @@ def main() -> int:
         type=str,
         default="",
         help="Taskmaster tasks directory. Auto-resolve .taskmaster/tasks then examples/taskmaster when omitted.",
+    )
+    parser.add_argument(
+        "--skip-done",
+        action="store_true",
+        help=(
+            "Do not rewrite status=done tasks in tasks.json and do not rewrite "
+            "their corresponding taskmaster_id entries in tasks_back/tasks_gameplay."
+        ),
     )
     args = parser.parse_args()
 
@@ -453,9 +528,21 @@ def main() -> int:
             print(f"- missing overlay file: {rel}")
         return 2
 
-    master_payload, master_result = sync_master(tasks_json_path, paths)
-    back_payload, back_result = sync_view(tasks_back_path, paths)
-    gameplay_payload, gameplay_result = sync_view(tasks_gameplay_path, paths)
+    master_payload_for_done = _load_json(tasks_json_path)
+    master_done_ids = _done_master_task_ids(master_payload_for_done)
+    master_payload, master_result = sync_master(tasks_json_path, paths, skip_done=bool(args.skip_done))
+    back_payload, back_result = sync_view(
+        tasks_back_path,
+        paths,
+        skip_done=bool(args.skip_done),
+        master_done_task_ids=master_done_ids,
+    )
+    gameplay_payload, gameplay_result = sync_view(
+        tasks_gameplay_path,
+        paths,
+        skip_done=bool(args.skip_done),
+        master_done_task_ids=master_done_ids,
+    )
     results = [master_result, back_result, gameplay_result]
 
     do_write = bool(args.write)
@@ -476,4 +563,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
