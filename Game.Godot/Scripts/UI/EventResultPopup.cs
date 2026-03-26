@@ -9,11 +9,15 @@ public partial class EventResultPopup : Control
     [Export(PropertyHint.Range, "0,10,0.1,or_greater")]
     public double AutoHideSeconds { get; set; } = 3.0;
 
+    [Export(PropertyHint.Range, "0,3,0.05,or_greater")]
+    public double QueueDrainAutoHideSeconds { get; set; } = 0.35;
+
     private Label _message = default!;
     private Button _closeButton = default!;
     private SceneTreeTimer? _hideTimer;
     private readonly Queue<ResultMessage> _queue = new();
     private bool _resumeOnHide;
+    private double _currentAutoHideSeconds;
 
     public override void _Ready()
     {
@@ -36,30 +40,35 @@ public partial class EventResultPopup : Control
         if (Visible)
         {
             _queue.Enqueue(entry);
+            TryAccelerateCurrentAutoHideForQueueDrain();
             return;
         }
 
-        Display(entry);
+        Display(entry, fromQueue: false);
     }
 
-    private void Display(ResultMessage entry)
+    private void Display(ResultMessage entry, bool fromQueue)
     {
         _message.Text = entry.Text;
         PauseGameIfNeeded();
         Visible = true;
-        RestartTimer(entry.AutoHideSeconds ?? AutoHideSeconds);
+        var requestedSeconds = entry.AutoHideSeconds ?? AutoHideSeconds;
+        var effectiveSeconds = ResolveEffectiveAutoHideSeconds(requestedSeconds, fromQueue);
+        RestartTimer(effectiveSeconds);
     }
 
     private void RestartTimer(double seconds)
     {
         _hideTimer?.Dispose();
         _hideTimer = null;
+        _currentAutoHideSeconds = 0;
 
         if (seconds <= 0)
         {
             return;
         }
 
+        _currentAutoHideSeconds = seconds;
         _hideTimer = GetTree().CreateTimer(seconds, true);
         _hideTimer.Timeout += OnAutoHideTimeout;
     }
@@ -79,6 +88,7 @@ public partial class EventResultPopup : Control
         Visible = false;
         _hideTimer?.Dispose();
         _hideTimer = null;
+        _currentAutoHideSeconds = 0;
 
         if (_queue.Count == 0)
         {
@@ -86,7 +96,42 @@ public partial class EventResultPopup : Control
             return;
         }
 
-        Display(_queue.Dequeue());
+        Display(_queue.Dequeue(), fromQueue: true);
+    }
+
+    private void TryAccelerateCurrentAutoHideForQueueDrain()
+    {
+        if (_hideTimer == null || _currentAutoHideSeconds <= 0)
+        {
+            return;
+        }
+
+        if (QueueDrainAutoHideSeconds <= 0)
+        {
+            return;
+        }
+
+        if (_currentAutoHideSeconds <= QueueDrainAutoHideSeconds)
+        {
+            return;
+        }
+
+        RestartTimer(QueueDrainAutoHideSeconds);
+    }
+
+    private double ResolveEffectiveAutoHideSeconds(double requestedSeconds, bool fromQueue)
+    {
+        if (requestedSeconds <= 0)
+        {
+            return requestedSeconds;
+        }
+
+        if (!fromQueue || QueueDrainAutoHideSeconds <= 0)
+        {
+            return requestedSeconds;
+        }
+
+        return Math.Min(requestedSeconds, QueueDrainAutoHideSeconds);
     }
 
     private void PauseGameIfNeeded()
