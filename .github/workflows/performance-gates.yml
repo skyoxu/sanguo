@@ -1,0 +1,39 @@
+name: Performance Gates
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  performance:
+    runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: "utf-8"
+      PYTHONUTF8: "1"
+      PERF_P95_THRESHOLD_MS: "16.6"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Validate performance summary
+        shell: pwsh
+        run: |
+          $date = Get-Date -Format 'yyyy-MM-dd'
+          New-Item -ItemType Directory -Force -Path "logs/ci/$date" | Out-Null
+          py -3 scripts/python/validate_perf.py --date "$date" --out "logs/ci/$date/performance-gates-summary.json" --max-p95-ms "$env:PERF_P95_THRESHOLD_MS"
+
+      - name: Upload performance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-gates-logs
+          path: |
+            logs/ci/**/performance-gates-summary.json
+            logs/perf/**/summary.json
+          if-no-files-found: ignore
