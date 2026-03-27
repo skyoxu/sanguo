@@ -18,10 +18,12 @@ This script intentionally does NOT create tests and does NOT fill refs.
 from __future__ import annotations
 
 import argparse
+import os
 
 from _taskmaster import default_paths, load_json  # type: ignore
 from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text  # type: ignore
 from _garbled_gate import render_top_hits, scan_task_text_integrity  # type: ignore
+from _delivery_profile import build_delivery_profile_context, profile_llm_semantic_gate_all_defaults, resolve_delivery_profile  # type: ignore
 
 from _acceptance_semantics_align import (  # noqa: E402
     load_master_index,
@@ -30,10 +32,27 @@ from _acceptance_semantics_align import (  # noqa: E402
 from _acceptance_semantics_runtime import run_alignment_tasks  # noqa: E402
 
 
+def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namespace:
+    delivery_profile = resolve_delivery_profile(getattr(args, "delivery_profile", None))
+    defaults = profile_llm_semantic_gate_all_defaults(delivery_profile)
+    args.delivery_profile = delivery_profile
+    if args.timeout_sec is None:
+        args.timeout_sec = int(defaults.get("timeout_sec", 240) or 240)
+    if not str(args.garbled_gate or "").strip():
+        args.garbled_gate = str(defaults.get("garbled_gate") or "on")
+    return args
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Align acceptance semantics (acceptance-only phase).")
     ap.add_argument("--scope", default="all", choices=["all", "done", "not-done"])
     ap.add_argument("--task-ids", default="", help="Optional CSV task ids override.")
+    ap.add_argument(
+        "--delivery-profile",
+        default=None,
+        choices=["playable-ea", "fast-ship", "standard"],
+        help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).",
+    )
     ap.add_argument(
         "--fail-on-missing-task-ids",
         action="store_true",
@@ -69,17 +88,19 @@ def main() -> int:
     )
     ap.add_argument("--align-view-descriptions-to-master", action="store_true")
     ap.add_argument("--semantic-findings-json", default="", help="Optional sc-semantic-gate-all/summary.json for hints.")
-    ap.add_argument("--timeout-sec", type=int, default=240)
+    ap.add_argument("--timeout-sec", type=int, default=None)
     ap.add_argument("--max-failures", type=int, default=0, help="Stop early when failures reach threshold (0 = unlimited).")
     ap.add_argument(
         "--garbled-gate",
-        default="on",
+        default=None,
         choices=["on", "off"],
-        help="Hard gate for garbled task/acceptance text before and after apply (default: on).",
+        help="Hard gate for garbled task/acceptance text before and after apply (default: profile).",
     )
     ap.add_argument("--self-check", action="store_true", help="Run deterministic local self-check only (no LLM calls).")
-    args = ap.parse_args()
+    args = apply_delivery_profile_defaults(ap.parse_args())
+    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
     max_failures = max(0, int(args.max_failures))
+    delivery_profile_context = build_delivery_profile_context(args.delivery_profile)
 
     def _parse_task_ids_strict(raw: str) -> tuple[list[int], list[str]]:
         ids: list[int] = []
@@ -220,6 +241,7 @@ def main() -> int:
         out_dir=out_dir,
         apply=bool(args.apply),
         timeout_sec=int(args.timeout_sec),
+        delivery_profile_context=delivery_profile_context,
         max_failures=max_failures,
         structural_for_not_done=bool(args.structural_for_not_done),
         append_only_for_done=bool(args.append_only_for_done),
@@ -296,4 +318,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
