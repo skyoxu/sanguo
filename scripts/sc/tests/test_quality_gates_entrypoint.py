@@ -4,6 +4,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -27,6 +28,20 @@ def _load_module(name: str, relative_path: str):
 
 
 quality_gates = _load_module("quality_gates_module", "scripts/python/quality_gates.py")
+
+
+def _ok_dotnet_summary() -> dict:
+    return {
+        "status": "ok",
+        "threshold_ok": True,
+        "coverage": {
+            "line_pct": 95.0,
+            "branch_pct": 90.0,
+            "lines_min": 90.0,
+            "branches_min": 85.0,
+        },
+        "summary_path": "mock",
+    }
 
 
 class QualityGatesEntrypointTests(unittest.TestCase):
@@ -64,6 +79,7 @@ class QualityGatesEntrypointTests(unittest.TestCase):
 
     def test_all_should_delegate_to_gate_bundle_hard_by_default(self) -> None:
         with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
+                mock.patch.object(quality_gates, "_normalize_dotnet_summary", return_value=_ok_dotnet_summary()), \
                 mock.patch.object(quality_gates, "run_gdunit_hard") as gdunit_mock, \
                 mock.patch.object(quality_gates, "run_smoke_headless") as smoke_mock:
             rc = quality_gates.main(["all"])
@@ -79,7 +95,8 @@ class QualityGatesEntrypointTests(unittest.TestCase):
         smoke_mock.assert_not_called()
 
     def test_all_should_forward_gate_bundle_runtime_options(self) -> None:
-        with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock:
+        with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
+                mock.patch.object(quality_gates, "_normalize_dotnet_summary", return_value=_ok_dotnet_summary()):
             rc = quality_gates.main(
                 [
                     "all",
@@ -106,6 +123,7 @@ class QualityGatesEntrypointTests(unittest.TestCase):
 
     def test_all_should_append_gdunit_and_smoke_when_enabled(self) -> None:
         with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
+                mock.patch.object(quality_gates, "_normalize_dotnet_summary", return_value=_ok_dotnet_summary()), \
                 mock.patch.object(quality_gates, "run_gdunit_hard", return_value=0) as gdunit_mock, \
                 mock.patch.object(quality_gates, "run_smoke_headless", return_value=0) as smoke_mock:
             rc = quality_gates.main(
@@ -125,6 +143,7 @@ class QualityGatesEntrypointTests(unittest.TestCase):
 
     def test_all_should_accept_legacy_gdunit_ui_and_coverage_soft_flags(self) -> None:
         with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
+                mock.patch.object(quality_gates, "_normalize_dotnet_summary", return_value=_ok_dotnet_summary()), \
                 mock.patch.object(quality_gates, "run_gdunit_hard", return_value=0) as gdunit_mock, \
                 mock.patch.object(quality_gates, "run_smoke_headless") as smoke_mock:
             rc = quality_gates.main(
@@ -152,6 +171,30 @@ class QualityGatesEntrypointTests(unittest.TestCase):
         bundle_mock.assert_not_called()
         gdunit_mock.assert_not_called()
         smoke_mock.assert_not_called()
+
+    def test_all_should_record_resolved_solution_in_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            out_dir = tmp_path / "out"
+            dotnet_summary = tmp_path / "dotnet-summary.json"
+            dotnet_summary.write_text(
+                '{"status":"ok","threshold_ok":true,"coverage":{"line_pct":95.0,"branch_pct":90.0,"lines_min":90.0,"branches_min":85.0}}',
+                encoding="utf-8",
+            )
+
+            env = {
+                quality_gates.QUALITY_GATES_TEST_MODE_ENV: "1",
+                quality_gates.QUALITY_GATES_TEST_OUT_DIR_ENV: str(out_dir),
+                quality_gates.QUALITY_GATES_TEST_DOTNET_SUMMARY_JSON_ENV: str(dotnet_summary),
+            }
+            with mock.patch.dict(os.environ, env, clear=False), \
+                    mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0):
+                rc = quality_gates.main(["all"])
+
+            self.assertEqual(0, rc)
+            summary = (out_dir / quality_gates.QUALITY_GATES_SUMMARY_FILE).read_text(encoding="utf-8")
+            self.assertIn('"solution_requested": "auto"', summary)
+            self.assertIn('"solution": "GodotGame.sln"', summary)
 
 
 if __name__ == "__main__":

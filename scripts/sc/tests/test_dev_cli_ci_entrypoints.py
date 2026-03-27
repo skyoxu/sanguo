@@ -158,7 +158,38 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
         self.assertIn("--godot-bin", cmd)
         self.assertIn("C:/Godot/Godot.exe", cmd)
 
+    def test_run_quality_gates_should_resolve_solution_automatically_when_not_provided(self) -> None:
+        expected_solution = dev_cli.resolve_solution_path("auto")
+        with mock.patch.object(dev_cli, "run", return_value=0) as run_mock:
+            rc = dev_cli.main(["run-quality-gates"])
+
+        self.assertEqual(0, rc)
+        cmd = run_mock.call_args[0][0]
+        self.assertIn("--solution", cmd)
+        solution_idx = cmd.index("--solution")
+        self.assertEqual(expected_solution, cmd[solution_idx + 1])
+
+    def test_run_ci_basic_legacy_preflight_should_resolve_solution_automatically_when_not_provided(self) -> None:
+        expected_solution = dev_cli.resolve_solution_path("auto")
+        with mock.patch.object(dev_cli, "run", side_effect=[0, 0]) as run_mock:
+            rc = dev_cli.main(
+                [
+                    "run-ci-basic",
+                    "--legacy-preflight",
+                    "--godot-bin",
+                    "C:/Godot/Godot.exe",
+                ]
+            )
+
+        self.assertEqual(0, rc)
+        self.assertEqual(2, run_mock.call_count)
+        legacy_cmd = run_mock.call_args_list[1][0][0]
+        self.assertIn("--solution", legacy_cmd)
+        solution_idx = legacy_cmd.index("--solution")
+        self.assertEqual(expected_solution, legacy_cmd[solution_idx + 1])
+
     def test_run_local_hard_checks_should_delegate_to_protocol_harness(self) -> None:
+        expected_solution = dev_cli.resolve_solution_path("auto")
         with mock.patch.object(dev_cli, "run_local_hard_checks", create=True, return_value=0) as harness_mock, \
             mock.patch.object(dev_cli, "run") as run_mock:
             rc = dev_cli.main(
@@ -182,7 +213,7 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
         self.assertEqual(0, rc)
         run_mock.assert_not_called()
         harness_mock.assert_called_once_with(
-            solution="Game.sln",
+            solution=expected_solution,
             configuration="Debug",
             godot_bin="C:/Godot/Godot.exe",
             delivery_profile="standard",
@@ -194,12 +225,13 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
         )
 
     def test_run_local_hard_checks_should_return_harness_failure_code(self) -> None:
+        expected_solution = dev_cli.resolve_solution_path("auto")
         with mock.patch.object(dev_cli, "run_local_hard_checks", create=True, return_value=7) as harness_mock:
             rc = dev_cli.main(["run-local-hard-checks"])
 
         self.assertEqual(7, rc)
         harness_mock.assert_called_once_with(
-            solution="Game.sln",
+            solution=expected_solution,
             configuration="Debug",
             godot_bin="",
             delivery_profile="",
