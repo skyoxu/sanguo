@@ -3956,11 +3956,11 @@
       "A-006"
     ],
     "acceptance": [
-      "A GdUnit integration test verifies the full prompted UI chain (event publish -> UI mapping -> dialog render -> confirm-readiness): when core.sanguo.boss.challenge.prompted is published, UI maps contract fields into transport-independent HUD/dialog view data, shows the dialog, exposes actionable confirm control state, and renders PreChallengePrompt, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence; if any required field is missing, the test must fail (no silent fallback). Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
-      "GdUnit assertions pin default prompt copy, win-rate tier text, and fail-consequence semantics to contract constants (including return_to_camp_end_round), verify an observable i18n fallback path, and emit deterministic gate evidence that includes A-006 in test naming and summary outputs. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
-      "A dedicated mapper-level GdUnit test verifies each prompted contract field (PreChallengePrompt, WinRateTier, NextRoundPressureForecast, KeyLossSummary, FailConsequence, and confirm affordance) is translated into stable UI DTO/view data so UI assertions remain transport-shape-independent. Refs: Tests.Godot/tests/Adapters/test_boss_challenge_prompt_mapper_view_data.gd",
-      "Gate-facing evidence fails closed: if mapper evidence or A-006 anchor evidence is missing, malformed, or inconsistent with contract constants, the task outcome is fail and cannot be marked passed or advanced by semantic gates. Refs: Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
-      "Deferred scope is enforced: acceptance passes only when dedicated GdUnit tests and A-006 anchors are added for this flow, and fails if changes promote non-deferred runtime implementation beyond the test-only boundary. Refs: Tests.Godot/tests/Integration/test_boss_challenge_prompt_deferred_scope_guard.gd Tests.Godot/tests/Adapters/test_boss_challenge_prompt_mapper_view_data.gd"
+      "A dedicated GdUnit integration test covers the prompted UI flow end to end (event publish -> UI mapping -> dialog render -> confirm-readiness): publishing core.sanguo.boss.challenge.prompted must produce transport-independent HUD/dialog view data, show the dialog, expose actionable confirm state, and render PreChallengePrompt, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence; if any required field is absent, the test fails with no silent fallback. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
+      "GdUnit assertions lock default prompt copy, win-rate tier text, and fail-consequence meaning to contract constants (including return_to_camp_end_round), verify an observable i18n fallback behavior, and emit deterministic gate evidence that includes A-006 in test names and summary output. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
+      "A mapper-focused GdUnit test verifies that each prompted contract field (PreChallengePrompt, WinRateTier, NextRoundPressureForecast, KeyLossSummary, FailConsequence, and confirm affordance) is translated into stable UI DTO/view data so UI assertions stay independent of transport payload shape. Refs: Tests.Godot/tests/Adapters/test_boss_challenge_prompt_mapper_view_data.gd",
+      "Gate evidence is fail-closed: if mapper evidence or A-006 anchor evidence is missing, malformed, or inconsistent with contract constants, the task result is fail and cannot be marked pass or promoted by semantic gates. Refs: Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "Deferred scope is enforced: the task passes only when this flow adds dedicated GdUnit tests plus A-006 anchors, and it fails if changes introduce non-deferred runtime implementation outside the test-only boundary. Refs: Tests.Godot/tests/Integration/test_boss_challenge_prompt_deferred_scope_guard.gd Tests.Godot/tests/Adapters/test_boss_challenge_prompt_mapper_view_data.gd"
     ],
     "test_refs": [
       "Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
@@ -4198,7 +4198,7 @@
       "A-015"
     ],
     "acceptance": [
-      "Integration closure is complete only when reviewable evidence from both split tasks 83 and 84 is present and supports the closure result. Refs: Tests.Godot/tests/Integration/test_backup_integrity_wal.gd Tests.Godot/tests/Integration/test_backup_restore_savegame.gd"
+      "Integration closure is accepted only when reviewable evidence for both split tasks 83 and 84 is present and supports the closure result; if evidence for either split task is missing or does not support closure, the integration closure remains incomplete. Refs: Tests.Godot/tests/Integration/test_backup_integrity_wal.gd Tests.Godot/tests/Integration/test_backup_restore_savegame.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task70ReplayIntegrityTrustTests.cs",
@@ -4417,7 +4417,7 @@
       "R3"
     ],
     "acceptance": [
-      "Task 74 is complete only when integration-closure evidence from both split tasks 85 and 86 is present and verifiable; if evidence for either task is missing or cannot be verified, Task 74 is incomplete. Refs: Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
+      "Task 74 is complete only when integration-closure evidence for both split tasks 85 and 86 exists and is verifiable; if evidence for either task is missing or cannot be verified, Task 74 is incomplete. Refs: Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task74CampaignRuleEngineTests.cs",
@@ -4539,7 +4539,7 @@
       "A-007"
     ],
     "acceptance": [
-      "Integration closure is accepted only when task-scoped evidence explicitly confirms completion outcomes for split task 89 and split task 90; if evidence for either task is missing, closure remains deferred. Refs: Game.Core.Tests/Tasks/Task89SplitTests.cs Game.Core.Tests/Tasks/Task90SplitTests.cs"
+      "Integration closure passes only when task-scoped evidence shows completion outcomes for both split task 89 and split task 90; if either outcome is absent, task 76 remains deferred and is not closed. Refs: Game.Core.Tests/Tasks/Task89SplitTests.cs Game.Core.Tests/Tasks/Task90SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task76BossPressureEngineTests.cs",
@@ -4705,7 +4705,7 @@
       "R10"
     ],
     "acceptance": [
-      "xUnit: When AI decision entry points are invoked in campaign mode, no AI decision path is executed and AI causes no game-state change; when invoked in non-campaign mode, existing AI decision behavior remains available. Refs: Game.Core.Tests/Tasks/Task79CampaignAiDisabledGuardTests.cs"
+      "xUnit: If an AI decision entry point is invoked in campaign mode, the invocation is refused (no AI decision path executes) and AI produces no game-state change; if invoked in non-campaign mode, existing AI decision behavior remains available. Refs: Game.Core.Tests/Tasks/Task79CampaignAiDisabledGuardTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task79CampaignAiDisabledGuardTests.cs"
@@ -6914,10 +6914,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task120SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task120SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
+      "Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence."
+      "Committing a reward draft must select exactly one reward per commit and produce source-tag explainability output, verified against R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6932,7 +6934,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0121",
