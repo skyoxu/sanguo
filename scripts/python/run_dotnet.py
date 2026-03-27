@@ -21,6 +21,9 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
+from pathlib import Path
+
+from solution_resolver import resolve_solution_path
 
 
 def resolve_dotnet_exe(repo_root: str) -> str:
@@ -163,20 +166,22 @@ def pick_latest_existing(paths):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--solution', default='Game.sln')
+    ap.add_argument('--solution', default='auto')
     ap.add_argument('--configuration', default='Debug')
     ap.add_argument('--filter', default=None, help='Optional dotnet test filter expression.')
     ap.add_argument('--out-dir', default=None)
     args = ap.parse_args()
 
     root = os.getcwd()
+    resolved_solution = resolve_solution_path(args.solution, repo_root=Path(root))
     dotnet = resolve_dotnet_exe(root)
     date = dt.date.today().strftime('%Y-%m-%d')
     out_dir = args.out_dir or os.path.join(root, 'logs', 'unit', date)
     ensure_dir(out_dir)
 
     summary = {
-        'solution': args.solution,
+        'solution': resolved_solution,
+        'solution_requested': args.solution,
         'configuration': args.configuration,
         'filter': args.filter or '',
         'out_dir': out_dir,
@@ -193,7 +198,7 @@ def main():
     rc = 1
     out = ""
     for attempt in range(1, restore_retries + 1):
-        rc, out = run_cmd([dotnet, "restore", args.solution], cwd=root)
+        rc, out = run_cmd([dotnet, "restore", resolved_solution], cwd=root)
         restore_attempts.append({"attempt": attempt, "rc": rc})
         with io.open(os.path.join(out_dir, f"dotnet-restore-attempt{attempt}.log"), "w", encoding="utf-8") as f:
             f.write(out)
@@ -222,7 +227,7 @@ def main():
         return 1
 
     # Test with coverage
-    test_cmd = [dotnet, 'test', args.solution,
+    test_cmd = [dotnet, 'test', resolved_solution,
                 f'-c', args.configuration,
                 '--collect:XPlat Code Coverage',
                 '--logger', 'trx;LogFileName=tests.trx']

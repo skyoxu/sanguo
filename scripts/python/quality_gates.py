@@ -27,6 +27,7 @@ from quality_gates_builders import (
     build_gdunit_hard_cmd,
     build_smoke_headless_cmd,
 )
+from solution_resolver import resolve_solution_path
 
 
 QUALITY_GATES_SUMMARY_FILE = "quality-gates-summary.json"
@@ -286,7 +287,7 @@ def build_parser() -> argparse.ArgumentParser:
         "all",
         help="run hard gate bundle with optional GdUnit hard and smoke follow-up steps",
     )
-    p_all.add_argument("--solution", default="Game.sln")
+    p_all.add_argument("--solution", default="auto")
     p_all.add_argument("--configuration", default="Debug")
     p_all.add_argument("--build-solutions", action="store_true")
     p_all.add_argument("--godot-bin", default="")
@@ -314,6 +315,7 @@ def main(argv: list[str] | None = None) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     summary_path = out_dir / QUALITY_GATES_SUMMARY_FILE
     date = _today_str()
+    resolved_solution = resolve_solution_path(args.solution, repo_root=Path.cwd())
 
     gdunit_requested = bool(args.gdunit_hard or args.gdunit_ui)
     if (gdunit_requested or args.smoke) and not args.godot_bin:
@@ -426,6 +428,8 @@ def main(argv: list[str] | None = None) -> int:
 
     summary: dict[str, Any] = {
         "status": status,
+        "solution": resolved_solution,
+        "solution_requested": args.solution,
         "coverage_mode": coverage_mode,
         "dotnet": dotnet,
         "gdunit_hard": {
