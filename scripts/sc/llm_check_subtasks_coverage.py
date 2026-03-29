@@ -23,7 +23,7 @@ def _bootstrap_imports() -> None:
 _bootstrap_imports()
 
 from _delivery_profile import build_delivery_profile_context, profile_llm_semantic_gate_all_defaults, resolve_delivery_profile  # noqa: E402
-from _subtasks_coverage_llm import build_prompt, extract_json_object, format_acceptance, normalize_model_status, run_codex_exec  # noqa: E402
+from _subtasks_coverage_llm import build_prompt, extract_json_object, format_acceptance, normalize_model_status, run_codex_exec, truncate_keep_ends  # noqa: E402
 from _taskmaster import resolve_triplet  # noqa: E402
 from _util import ci_dir, repo_root, write_json, write_text  # noqa: E402
 from _obligations_extract_helpers import (  # noqa: E402
@@ -191,7 +191,7 @@ def main() -> int:
             truncate_fn=lambda text, max_chars: truncate(text, max_chars=max_chars),
         ),
     )
-    prompt = truncate(prompt, max_chars=int(args.max_prompt_chars))
+    prompt = truncate_keep_ends(prompt, max_chars=int(args.max_prompt_chars))
     prompt_path = out_dir / "prompt.md"
     write_text(prompt_path, prompt)
 

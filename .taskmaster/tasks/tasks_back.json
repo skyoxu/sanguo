@@ -3956,7 +3956,7 @@
       "A-006"
     ],
     "acceptance": [
-      "A dedicated GdUnit integration test covers the prompted UI flow end to end (event publish -> UI mapping -> dialog render -> confirm-readiness): publishing core.sanguo.boss.challenge.prompted must produce transport-independent HUD/dialog view data, show the dialog, expose actionable confirm state, and render PreChallengePrompt, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence; if any required field is absent, the test fails with no silent fallback. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
+      "A dedicated GdUnit integration test covers the prompted UI flow end to end (event publish -> UI mapping -> dialog render -> confirm-action): publishing core.sanguo.boss.challenge.prompted must produce transport-independent HUD/dialog view data, show the dialog, expose actionable confirm state, and render PreChallengePrompt, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence; when confirm input is performed, the test must assert a concrete post-confirm observable result (event emission or state transition), not only control readiness; if any required field is absent or confirm result is not observable, the test fails with no silent fallback. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
       "GdUnit assertions lock default prompt copy, win-rate tier text, and fail-consequence meaning to contract constants (including return_to_camp_end_round), verify an observable i18n fallback behavior, and emit deterministic gate evidence that includes A-006 in test names and summary output. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
       "A mapper-focused GdUnit test verifies that each prompted contract field (PreChallengePrompt, WinRateTier, NextRoundPressureForecast, KeyLossSummary, FailConsequence, and confirm affordance) is translated into stable UI DTO/view data so UI assertions stay independent of transport payload shape. Refs: Tests.Godot/tests/Adapters/test_boss_challenge_prompt_mapper_view_data.gd",
       "Gate evidence is fail-closed: if mapper evidence or A-006 anchor evidence is missing, malformed, or inconsistent with contract constants, the task result is fail and cannot be marked pass or promoted by semantic gates. Refs: Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
@@ -4077,11 +4077,13 @@
       "A-010"
     ],
     "acceptance": [
-      "Integration closure uses split-task evidence from 81, 82."
+      "Integration closure uses split-task evidence from 81, 82. Refs: Tests.Godot/tests/Integration/test_hud_integration.gd Tests.Godot/tests/UI/test_orphan_hud_isolation.gd"
     ],
     "test_refs": [
       "Tests.Godot/tests/UI/test_task68_hud_popup_log_transaction.gd",
-      "Tests.Godot/tests/UI/test_task68_hud_log_window_lazy_load.gd"
+      "Tests.Godot/tests/UI/test_task68_hud_log_window_lazy_load.gd",
+      "Tests.Godot/tests/Integration/test_hud_integration.gd",
+      "Tests.Godot/tests/UI/test_orphan_hud_isolation.gd"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
@@ -4094,7 +4096,8 @@
       "core.sanguo.objective.skipped",
       "core.sanguo.game.ended"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0069",
@@ -4481,10 +4484,12 @@
       "A-005"
     ],
     "acceptance": [
-      "Integration closure uses split-task evidence from 87, 88."
+      "Integration closure uses split-task evidence from 87, 88. Refs: Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task75CampLifecycleEngineTests.cs"
+      "Game.Core.Tests/Tasks/Task75CampLifecycleEngineTests.cs",
+      "Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs",
+      "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
@@ -4494,7 +4499,8 @@
       "core.sanguo.game.turn.advanced",
       "core.sanguo.boss.challenge.prompted"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0076",
@@ -4759,10 +4765,12 @@
       "A-020"
     ],
     "acceptance": [
-      "Integration closure uses split-task evidence from 91, 92."
+      "Integration closure uses split-task evidence from 91, 92. Refs: Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs",
+      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
@@ -4776,7 +4784,8 @@
       "core.sanguo.loot.granted",
       "core.sanguo.game.ended"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0081",
@@ -4818,10 +4827,12 @@
       "A-008"
     ],
     "acceptance": [
-      "Task verifies A-008 with deterministic evidence."
+      "Task verifies A-008 with deterministic evidence. Refs: Tests.Godot/tests/UI/test_event_result_popup.gd Tests.Godot/tests/UI/test_event_log_details_panel.gd"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task81SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task81SplitTests.cs",
+      "Tests.Godot/tests/UI/test_event_result_popup.gd",
+      "Tests.Godot/tests/UI/test_event_log_details_panel.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -4833,7 +4844,8 @@
       "core.sanguo.loot.granted",
       "core.sanguo.game.ended"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0082",
@@ -4873,10 +4885,12 @@
       "A-009~A-010"
     ],
     "acceptance": [
-      "Task verifies A-009~A-010 with deterministic evidence."
+      "Task verifies A-009~A-010 with deterministic evidence. Refs: Tests.Godot/tests/UI/test_event_log_details_panel.gd Tests.Godot/tests/UI/test_event_log_additional_details.gd"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task82SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task82SplitTests.cs",
+      "Tests.Godot/tests/UI/test_event_log_details_panel.gd",
+      "Tests.Godot/tests/UI/test_event_log_additional_details.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -4889,7 +4903,8 @@
       "core.sanguo.objective.skipped",
       "core.sanguo.game.ended"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0083",
@@ -4931,10 +4946,12 @@
       "A-013~A-014"
     ],
     "acceptance": [
-      "Task verifies A-013~A-014 with deterministic evidence."
+      "Task verifies A-013~A-014 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task83SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task83SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs",
+      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -4944,7 +4961,8 @@
       "core.sanguo.game.saved",
       "core.sanguo.game.loaded"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0084",
@@ -4985,10 +5003,12 @@
       "A-015"
     ],
     "acceptance": [
-      "Task verifies A-015 with deterministic evidence."
+      "Task verifies A-015 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeStrictModeTests.cs Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task84SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task84SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task46HeadlessSmokeStrictModeTests.cs",
+      "Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -4998,7 +5018,8 @@
       "core.sanguo.game.loaded",
       "core.sanguo.game.ended"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0085",
@@ -5039,10 +5060,11 @@
       "R1"
     ],
     "acceptance": [
-      "Task verifies R1 with deterministic evidence."
+      "Task verifies R1 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task85SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task85SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5051,7 +5073,8 @@
       "core.sanguo.game.started",
       "core.sanguo.game.ended"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0086",
@@ -5092,10 +5115,11 @@
       "R3"
     ],
     "acceptance": [
-      "Task verifies R3 with deterministic evidence."
+      "Task verifies R3 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task86SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task86SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5104,7 +5128,8 @@
       "core.sanguo.game.ended",
       "core.sanguo.player.eliminated"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0087",
@@ -5145,10 +5170,12 @@
       "R2/R5"
     ],
     "acceptance": [
-      "Task verifies R2/R5 with deterministic evidence."
+      "Task verifies R2/R5 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task87SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task87SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5156,7 +5183,8 @@
     "contractRefs": [
       "core.sanguo.game.turn.advanced"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0088",
@@ -5197,10 +5225,12 @@
       "A-003~A-005"
     ],
     "acceptance": [
-      "Task verifies A-003~A-005 with deterministic evidence."
+      "Task verifies A-003~A-005 with deterministic evidence. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task88SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task88SplitTests.cs",
+      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5209,7 +5239,8 @@
       "core.sanguo.game.saved",
       "core.sanguo.boss.challenge.prompted"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0089",
@@ -5250,10 +5281,11 @@
       "R6"
     ],
     "acceptance": [
-      "Task verifies R6 with deterministic evidence."
+      "Task verifies R6 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task89BossPressureTimelineTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task89SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task89SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task89BossPressureTimelineTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5262,7 +5294,8 @@
       "core.sanguo.game.turn.advanced",
       "core.sanguo.combat.started"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0090",
@@ -5305,10 +5338,11 @@
       "A-006~A-007"
     ],
     "acceptance": [
-      "Task verifies A-006~A-007 with deterministic evidence."
+      "Task verifies A-006~A-007 with deterministic evidence. Refs: Game.Core.Tests/Services/ForcedChallengePreemptionTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task90SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task90SplitTests.cs",
+      "Game.Core.Tests/Services/ForcedChallengePreemptionTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5318,7 +5352,8 @@
       "core.sanguo.combat.started",
       "core.sanguo.combat.ended"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0091",
@@ -5359,10 +5394,12 @@
       "A-013~A-020"
     ],
     "acceptance": [
-      "Task verifies A-013~A-020 with deterministic evidence."
+      "Task verifies A-013~A-020 with deterministic evidence. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task91SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task91SplitTests.cs",
+      "Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs",
+      "Game.Core.Tests/Contracts/SanguoEventContractsTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5374,7 +5411,8 @@
       "core.sanguo.boss.challenge.prompted",
       "core.sanguo.game.ended"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0092",
@@ -5413,10 +5451,12 @@
       "A-008~A-012"
     ],
     "acceptance": [
-      "Task verifies A-008~A-012 with deterministic evidence."
+      "Task verifies A-008~A-012 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_additional_details.gd"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task92SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task92SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs",
+      "Tests.Godot/tests/UI/test_event_log_additional_details.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5429,7 +5469,8 @@
       "core.sanguo.objective.skipped",
       "core.sanguo.game.ended"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0093",
@@ -5469,10 +5510,12 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task93V3Tests.cs",
-      "Tests.Godot/tests/UI/test_task93_campaign_ui_visibility.gd"
+      "Tests.Godot/tests/UI/test_task93_campaign_ui_visibility.gd",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs"
     ],
     "acceptance": [
-      "Campaign run start payload is deterministic and replay-addressable."
+      "Campaign run start payload is deterministic and replay-addressable. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs"
     ],
     "test_strategy": [
       "xUnit validates payload mapping and defaults; GdUnit validates NewGameConfig serialization and start handoff."
@@ -5486,7 +5529,8 @@
     "acceptanceRefs": [
       "R1"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0094",
@@ -5523,10 +5567,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task94SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task94SplitIntegrationTests.cs",
+      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd",
+      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "Campaign start blocks until commander and strategem picks are complete."
+      "Campaign start blocks until commander and strategem picks are complete. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5539,7 +5585,8 @@
     "acceptanceRefs": [
       "R1"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0095",
@@ -5579,10 +5626,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/UI/test_task95_campaign_integration.gd"
+      "Tests.Godot/tests/UI/test_task95_campaign_integration.gd",
+      "Tests.Godot/tests/Integration/test_hud_integration.gd",
+      "Tests.Godot/tests/UI/test_hud_scene.gd"
     ],
     "acceptance": [
-      "HUD shows campaign context in localized text without raw keys in release mode."
+      "HUD shows campaign context in localized text without raw keys in release mode. Refs: Tests.Godot/tests/Integration/test_hud_integration.gd Tests.Godot/tests/UI/test_hud_scene.gd"
     ],
     "test_strategy": [
       "GdUnit locks localized HUD summary rendering for campaign key fields in release mode."
@@ -5597,7 +5646,8 @@
       "A-011",
       "A-012"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0096",
@@ -5634,10 +5684,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs",
+      "Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs",
+      "Game.Core.Tests/State/GameStateMachineTests.cs"
     ],
     "acceptance": [
-      "Round order remains deterministic and replay-stable under multi-event collisions."
+      "Round order remains deterministic and replay-stable under multi-event collisions. Refs: Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs Game.Core.Tests/State/GameStateMachineTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5654,7 +5706,8 @@
       "A-001",
       "A-002"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0097",
@@ -5690,10 +5743,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task97SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task97SplitIntegrationTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "acceptance": [
-      "Five camp building slots are persisted and degrade deterministically."
+      "Five camp building slots are persisted and degrade deterministically. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5707,7 +5762,8 @@
     "acceptanceRefs": [
       "R5"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0098",
@@ -5746,10 +5802,12 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task98V3Tests.cs",
-      "Tests.Godot/tests/UI/test_task98_campaign_ui_visibility.gd"
+      "Tests.Godot/tests/UI/test_task98_campaign_ui_visibility.gd",
+      "Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnTileActionTests.cs"
     ],
     "acceptance": [
-      "Camp allows at most one action per round, with stable blocked reason reporting."
+      "Camp allows at most one action per round, with stable blocked reason reporting. Refs: Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs Game.Core.Tests/Services/SanguoTurnTileActionTests.cs"
     ],
     "test_strategy": [
       "xUnit validates guard; GdUnit validates blocked action message and unchanged camp state."
@@ -5763,7 +5821,8 @@
     "acceptanceRefs": [
       "R5"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0099",
@@ -5800,10 +5859,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task99SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task99SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "acceptance": [
-      "Each camp building produces explainable and deterministic effects."
+      "Each camp building produces explainable and deterministic effects. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5818,7 +5878,8 @@
     "acceptanceRefs": [
       "R5"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0100",
@@ -5855,10 +5916,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task100SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task100SplitIntegrationTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnEliminationFlowTests.cs"
     ],
     "acceptance": [
-      "Camp durability zero produces immediate deterministic defeat and exits round safely."
+      "Camp durability zero produces immediate deterministic defeat and exits round safely. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnEliminationFlowTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5872,7 +5935,8 @@
       "R3",
       "A-001"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0101",
@@ -5911,10 +5975,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs",
+      "Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
     ],
     "acceptance": [
-      "Difficulty profiles map to configured boss counts and pressure pacing constraints."
+      "Difficulty profiles map to configured boss counts and pressure pacing constraints. Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5925,7 +5990,8 @@
     "acceptanceRefs": [
       "R6"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0102",
@@ -5962,10 +6028,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task102SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task102SplitIntegrationTests.cs",
+      "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs",
+      "Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "acceptance": [
-      "Pressure entries include trigger source, numeric impact, and duration for replay and HUD explainability."
+      "Pressure entries include trigger source, numeric impact, and duration for replay and HUD explainability. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5976,7 +6044,8 @@
     "acceptanceRefs": [
       "R6"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0103",
@@ -6013,10 +6082,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Hard-cap challenge preempts board flow and follows forced challenge prompt policy."
+      "Hard-cap challenge preempts board flow and follows forced challenge prompt policy. Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6031,7 +6102,8 @@
       "A-006",
       "A-007"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0104",
@@ -6068,10 +6140,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs",
+      "Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs"
     ],
     "acceptance": [
-      "Skip remains a rule-blocked fallback only and event tiles auto-trigger."
+      "Skip remains a rule-blocked fallback only and event tiles auto-trigger. Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6086,7 +6160,8 @@
     "acceptanceRefs": [
       "R7"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0105",
@@ -6123,10 +6198,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task105SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task105SplitIntegrationTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Objective timeline is deterministic: settle at camp, publish after boss branch, and suppress on game end."
+      "Objective timeline is deterministic: settle at camp, publish after boss branch, and suppress on game end. Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6141,7 +6218,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0106",
@@ -6178,10 +6256,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
+      "Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "acceptance": [
-      "Objective reward pipeline is deterministic and explains reward source at commit time."
+      "Objective reward pipeline is deterministic and explains reward source at commit time. Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6196,7 +6276,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0107",
@@ -6233,10 +6314,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task107SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task107SplitIntegrationTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Campaign win/lose adjudication matches final boss and camp durability rules exactly."
+      "Campaign win/lose adjudication matches final boss and camp durability rules exactly. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6249,7 +6331,8 @@
     "acceptanceRefs": [
       "R3"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0108",
@@ -6289,10 +6372,12 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task108V3Tests.cs",
-      "Tests.Godot/tests/UI/test_task108_campaign_ui_visibility.gd"
+      "Tests.Godot/tests/UI/test_task108_campaign_ui_visibility.gd",
+      "Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
+      "Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
     ],
     "acceptance": [
-      "Campaign mode never executes AI decisions and keeps deterministic diagnostics."
+      "Campaign mode never executes AI decisions and keeps deterministic diagnostics. Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
     ],
     "test_strategy": [
       "xUnit validates AI entrypoint guard by run mode; integration validates no AI action events in campaign rounds."
@@ -6306,7 +6391,8 @@
     "acceptanceRefs": [
       "R10"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0109",
@@ -6343,10 +6429,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task109SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task109SplitIntegrationTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs"
     ],
     "acceptance": [
-      "Campaign events are contract-first and consumed through DTO mapper registry."
+      "Campaign events are contract-first and consumed through DTO mapper registry. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6358,7 +6446,8 @@
       "R9",
       "A-020"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0110",
@@ -6396,10 +6485,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task110SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task110SplitIntegrationTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "acceptance": [
-      "Campaign data packs are rejected by gate when schema or reference constraints are violated."
+      "Campaign data packs are rejected by gate when schema or reference constraints are violated. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6411,7 +6502,8 @@
       "R9",
       "R11"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0111",
@@ -6446,10 +6538,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd"
     ],
     "acceptance": [
-      "Campaign business flow passes deterministic integration acceptance scenarios."
+      "Campaign business flow passes deterministic integration acceptance scenarios. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6460,7 +6554,8 @@
     "acceptanceRefs": [
       "9.1"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0112",
@@ -6501,10 +6596,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task112SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task112SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs",
+      "Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
     ],
     "acceptance": [
-      "PRD v3 assertion set is fully hard-gated with deterministic pass/fail summaries."
+      "PRD v3 assertion set is fully hard-gated with deterministic pass/fail summaries. Refs: Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6525,7 +6622,8 @@
       "A-020",
       "9.3"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0113",
@@ -6558,10 +6656,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task113SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task113SplitTests.cs",
+      "Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-016 with deterministic evidence."
+      "Task verifies A-016 with deterministic evidence. Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6575,7 +6674,8 @@
     "acceptanceRefs": [
       "A-016"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0114",
@@ -6608,10 +6708,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task114SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task114SplitTests.cs",
+      "Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-017 with deterministic evidence."
+      "Task verifies A-017 with deterministic evidence. Refs: Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6625,7 +6726,8 @@
     "acceptanceRefs": [
       "A-017"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0115",
@@ -6660,10 +6762,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task115SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task115SplitTests.cs",
+      "Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-018 with deterministic evidence."
+      "Task verifies A-018 with deterministic evidence. Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6676,7 +6779,8 @@
     "acceptanceRefs": [
       "A-018"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0116",
@@ -6711,10 +6815,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task116SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task116SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-019 with deterministic evidence."
+      "Task verifies A-019 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6727,7 +6832,8 @@
     "acceptanceRefs": [
       "A-019"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0117",
@@ -6761,10 +6867,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task117SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task117SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence."
+      "Task verifies R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6779,7 +6886,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0118",
@@ -6863,10 +6971,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task119SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task119SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task119RewardDraftCandidateDeterminismTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence."
+      "Task verifies R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task119RewardDraftCandidateDeterminismTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6881,7 +6990,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0120",
@@ -6972,10 +7082,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task121SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task121SplitTests.cs",
+      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd",
+      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "Task verifies R1 with deterministic evidence."
+      "Task verifies R1 with deterministic evidence. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6988,7 +7100,8 @@
     "acceptanceRefs": [
       "R1"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0122",
@@ -7024,10 +7137,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task122SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task122SplitTests.cs",
+      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd",
+      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "Task verifies R1 with deterministic evidence."
+      "Task verifies R1 with deterministic evidence. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7040,7 +7155,8 @@
     "acceptanceRefs": [
       "R1"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0123",
@@ -7079,10 +7195,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task123SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task123SplitTests.cs",
+      "Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs"
     ],
     "acceptance": [
-      "Task verifies R2, A-001 with deterministic evidence."
+      "Task verifies R2, A-001 with deterministic evidence. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7098,7 +7215,8 @@
       "R2",
       "A-001"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0124",
@@ -7134,10 +7252,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task124SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task124SplitTests.cs",
+      "Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs",
+      "Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs"
     ],
     "acceptance": [
-      "Task verifies R2, A-002 with deterministic evidence."
+      "Task verifies R2, A-002 with deterministic evidence. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7153,7 +7273,8 @@
       "R2",
       "A-002"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0125",
@@ -7242,10 +7363,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task126SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task126SplitTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs",
+      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "acceptance": [
-      "Task verifies R5 with deterministic evidence."
+      "Task verifies R5 with deterministic evidence. Refs: Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7259,7 +7382,8 @@
     "acceptanceRefs": [
       "R5"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0127",
@@ -7351,10 +7475,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task128SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task128SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
+      "Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs"
     ],
     "acceptance": [
-      "Task verifies R5 with deterministic evidence."
+      "Task verifies R5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7369,7 +7495,8 @@
     "acceptanceRefs": [
       "R5"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0129",
@@ -7515,10 +7642,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task131SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task131SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "acceptance": [
-      "Task verifies R6 with deterministic evidence."
+      "Task verifies R6 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7529,7 +7657,8 @@
     "acceptanceRefs": [
       "R6"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "SG-0132",
@@ -7669,10 +7798,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task134SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task134SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs"
     ],
     "acceptance": [
-      "Task verifies R6 with deterministic evidence."
+      "Task verifies R6 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7683,7 +7813,8 @@
     "acceptanceRefs": [
       "R6"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0135",
@@ -7722,10 +7853,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task135SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task135SplitTests.cs",
+      "Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
     ],
     "acceptance": [
-      "Task verifies A-006 with deterministic evidence."
+      "Task verifies A-006 with deterministic evidence. Refs: Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7739,7 +7871,8 @@
     "acceptanceRefs": [
       "A-006"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0136",
@@ -7885,10 +8018,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task138SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task138SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
+      "Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
     ],
     "acceptance": [
-      "Task verifies R7 with deterministic evidence."
+      "Task verifies R7 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7903,7 +8038,8 @@
     "acceptanceRefs": [
       "R7"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0139",
@@ -7944,7 +8080,7 @@
       "Game.Core.Tests/Tasks/Task139SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence."
+      "Task verifies R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task139SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7959,7 +8095,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "SG-0140",

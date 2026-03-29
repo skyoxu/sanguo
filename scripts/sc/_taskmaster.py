@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from _taskmaster_paths import resolve_default_task_triplet_paths
 from _util import repo_root
 
 
@@ -37,12 +38,7 @@ def load_json(path: Path) -> Any:
 
 
 def default_paths() -> tuple[Path, Path, Path]:
-    root = repo_root()
-    return (
-        root / ".taskmaster" / "tasks" / "tasks.json",
-        root / ".taskmaster" / "tasks" / "tasks_back.json",
-        root / ".taskmaster" / "tasks" / "tasks_gameplay.json",
-    )
+    return resolve_default_task_triplet_paths(repo_root())
 
 
 def iter_master_tasks(tasks_json: dict[str, Any]) -> list[dict[str, Any]]:
