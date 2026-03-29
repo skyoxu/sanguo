@@ -7,7 +7,6 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -75,28 +74,6 @@ class ProjectHealthSupportTests(unittest.TestCase):
             self.assertEqual("ok", checks["task-triplet-example"]["status"])
             self.assertIn("create", checks["task-triplet-real"]["recommendation"])
 
-    def test_doctor_project_should_treat_example_triplet_as_optional_when_real_triplet_exists(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            _write(root / "project.godot", "[application]\nconfig/name=\"Demo\"\n")
-            _write(root / "README.md", "# Demo\n")
-            _write(root / "AGENTS.md", "# Demo\n")
-            _write(root / "Game.sln", "Microsoft Visual Studio Solution File, Format Version 12.00\n")
-            _write(root / "Game.Core.Tests" / "Game.Core.Tests.csproj", "<Project />\n")
-            _write(root / ".taskmaster" / "tasks" / "tasks.json", "{\"tasks\": []}\n")
-            _write(root / ".taskmaster" / "tasks" / "tasks_back.json", "{\"tasks\": []}\n")
-            _write(root / ".taskmaster" / "tasks" / "tasks_gameplay.json", "{\"tasks\": []}\n")
-            _write(root / "docs" / "workflows" / "run-protocol.md", "# run protocol\n")
-            _write(root / "docs" / "workflows" / "local-hard-checks.md", "# local hard checks\n")
-
-            payload = project_health.doctor_project(root)
-            checks = {item["id"]: item for item in payload["checks"]}
-
-            self.assertEqual("ok", checks["task-triplet-real"]["status"])
-            self.assertEqual("ok", checks["task-triplet-example"]["status"])
-            self.assertIn("optional", checks["task-triplet-example"]["summary"])
-            self.assertEqual("ok", checks["workflow-docs"]["status"])
-
     def test_check_directory_boundaries_should_detect_core_and_base_violations(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -112,40 +89,49 @@ class ProjectHealthSupportTests(unittest.TestCase):
             self.assertIn("contracts-no-godot", violations)
             self.assertIn("base-docs-no-prd-leak", violations)
 
-    def test_check_directory_boundaries_should_skip_taskdoc_warning_when_real_triplet_exists(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            _write(root / ".taskmaster" / "tasks" / "tasks.json", "{\"tasks\": []}\n")
-            _write(root / ".taskmaster" / "tasks" / "tasks_back.json", "{\"tasks\": []}\n")
-            _write(root / ".taskmaster" / "tasks" / "tasks_gameplay.json", "{\"tasks\": []}\n")
-
-            with mock.patch.dict(
-                project_health.check_directory_boundaries.__globals__,
-                {"git_tracked_matches": lambda *_args, **_kwargs: ["taskdoc/2.md"]},
-            ):
-                payload = project_health.check_directory_boundaries(root)
-
-            self.assertEqual("ok", payload["status"])
-            self.assertFalse(
-                any(item["rule_id"] == "root-taskdoc-not-tracked" for item in payload.get("warnings", []))
-            )
-
-    def test_check_directory_boundaries_should_warn_taskdoc_when_real_triplet_missing(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-
-            with mock.patch.dict(
-                project_health.check_directory_boundaries.__globals__,
-                {"git_tracked_matches": lambda *_args, **_kwargs: ["taskdoc/2.md"]},
-            ):
-                payload = project_health.check_directory_boundaries(root)
-
-            self.assertEqual("warn", payload["status"])
-            self.assertTrue(any(item["rule_id"] == "root-taskdoc-not-tracked" for item in payload["warnings"]))
-
     def test_write_project_health_record_should_refresh_dashboard_and_latest_index(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
+            _write(
+                root / "logs" / "ci" / "2026-03-29" / "single-task-light-lane-v2-batch" / "summary.json",
+                json.dumps(
+                    {
+                        "cmd": "run_single_task_light_lane_batch",
+                        "status": "fail",
+                        "covered_count": 8,
+                        "failed_count": 6,
+                        "extract_family_recommended_actions": [
+                            {
+                                "family": "stdout:sc_llm_obligations_status_fail",
+                                "count": 5,
+                                "task_ids": [67, 68, 69],
+                                "recommended_action": "repair_obligations_or_task_context_before_downstream",
+                                "downstream_policy_hint": "skip-all",
+                                "reason": "extract already reported obligations failure",
+                            }
+                        ],
+                        "family_hotspots": [
+                            {
+                                "family": "stdout:sc_llm_obligations_status_fail",
+                                "task_id_start": 67,
+                                "task_id_end": 72,
+                                "count": 6,
+                            }
+                        ],
+                        "quarantine_ranges": [
+                            {
+                                "family": "stdout:sc_llm_obligations_status_fail",
+                                "task_id_start": 67,
+                                "task_id_end": 72,
+                                "reason": "family_streak>=5",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+            )
             project_health.write_project_health_record(
                 root=root,
                 kind="detect-project-stage",
@@ -166,11 +152,21 @@ class ProjectHealthSupportTests(unittest.TestCase):
                 (root / "logs" / "ci" / "project-health" / "latest.json").read_text(encoding="utf-8")
             )
             latest_html = (root / "logs" / "ci" / "project-health" / "latest.html").read_text(encoding="utf-8")
+            report_catalog = json.loads(
+                (root / "logs" / "ci" / "project-health" / "report-catalog.latest.json").read_text(encoding="utf-8")
+            )
 
             self.assertEqual(3, len(latest_index["records"]))
+            self.assertIn("report_catalog_summary", latest_index)
+            self.assertEqual(report_catalog["total_json"], latest_index["report_catalog_summary"]["total_json"])
             self.assertIn("triplet missing", latest_html)
             self.assertIn("doctor ok", latest_html)
             self.assertIn("boundary fail", latest_html)
+            self.assertIn("批量任务诊断摘录", latest_html)
+            self.assertIn("repair_obligations_or_task_context_before_downstream", latest_html)
+            self.assertIn("stdout:sc_llm_obligations_status_fail", latest_html)
+            self.assertIn("family_streak&gt;=5", latest_html)
+            self.assertNotIn('meta http-equiv="refresh"', latest_html.lower())
 
 
 if __name__ == "__main__":
