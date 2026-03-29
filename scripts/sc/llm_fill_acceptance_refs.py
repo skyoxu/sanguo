@@ -168,7 +168,7 @@ def main() -> int:
         print(f"SC_LLM_ACCEPTANCE_REFS_SELF_CHECK status={'ok' if ok else 'fail'} out={out_dir}")
         return 0 if ok else 1
 
-    if not str(args.task_id or "").strip() and not bool(args.all):
+    if not bool(args.all) and not str(args.task_id or "").strip():
         print("SC_LLM_ACCEPTANCE_REFS ERROR: specify --task-id <n> or --all")
         return 2
 

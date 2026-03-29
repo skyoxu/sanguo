@@ -244,48 +244,115 @@ dotnet test Game.Core.Tests/Game.Core.Tests.csproj
 
 ### 5.1 单任务轻量 lane
 
-抽 obligations：
+这一组脚本的目标不是“把所有语义脚本都再跑一遍”，而是用最小必要的包装，快速判断某个任务或一段任务是否值得继续投入语义修复。
+
+建议把 5.1 理解成三层：`核心必用`、`高级可选`、`内部机制`。日常使用时，只记住核心层即可。
+
+#### 5.1.1 核心必用
+
+1. 单任务或很小的临时批次：直接跑 wrapper
 
 ```powershell
-py -3 scripts/sc/llm_extract_task_obligations.py --task-id <id> --delivery-profile fast-ship --reuse-last-ok --explain-reuse-miss
+py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile fast-ship
 ```
 
-对齐 acceptance semantics：
+2. 长区间、多任务、需要隔离 `out-dir` 时：优先跑 batch coordinator
 
 ```powershell
-py -3 scripts/sc/llm_align_acceptance_semantics.py --task-ids <id> --apply --strict-task-selection
+py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start 101 --task-id-end 180 --batch-preset stable-batch --delivery-profile fast-ship --max-tasks-per-shard 12
 ```
 
-检查 subtasks coverage：
+3. 默认建议
+
+- 普通长区间：`--batch-preset stable-batch`
+- 更保守、希望更早停下：`--batch-preset long-batch`
+- 单任务默认不要先调高级参数，先看 `summary.json` 和 dashboard
+
+4. 默认行为口径
+
+- `extract` 是第一判断点；如果它已经失败，后续步骤默认会自动降载
+- 单任务下：`--downstream-on-extract-fail auto` 默认更偏保守续跑
+- 多任务 batch 下：`auto` 默认更偏向尽快止损
+- family-aware 策略已经接入；遇到 `timeout` 或 `SC_LLM_OBLIGATIONS status=fail` 这类高置信失败，会直接短路当前任务的低价值后续步骤
+
+5. 恢复口径
+
+- 同一个 `out-dir` 只适合同一批任务、同一 `delivery-profile`、同一 `align --apply` 模式
+- 跨区间重跑时，换新的 `out-dir`，或者显式传 `--no-resume`
+- 如果上次只是在后半段失败，而前缀步骤已经成功，可以用：
 
 ```powershell
-py -3 scripts/sc/llm_check_subtasks_coverage.py --task-id <id> --strict-view-selection
+py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile fast-ship --resume-failed-task-from first-failed-step
 ```
 
-对小范围 task 运行 batch semantic gate：
+#### 5.1.2 高级可选
 
-```powershell
-py -3 scripts/sc/llm_semantic_gate_all.py --task-ids <id> --max-needs-fix 0 --max-unknown 3
-```
+只有在以下场景明显出现时，再动这些参数：
 
-先 dry-run 填 acceptance refs：
+- 长批次经常在中后段整体恶化
+- `extract` 超时明显堆积
+- 同一种 extract 失败 family 连续出现
+- 你需要做“只读诊断”而不是继续写回 refs
 
-```powershell
-py -3 scripts/sc/llm_fill_acceptance_refs.py --task-id <id>
-```
+可选能力：
 
-确认后写回 refs：
+- `--rolling-extract-policy warn|degrade|stop`
+  - `warn`：只提示
+  - `degrade`：后续 shard 自动切到更保守模式
+  - `stop`：达到阈值后直接停止剩余 shard
+- `--rolling-family-policy off|warn|stop`
+  - 用于连续相同 extract failure family 的止损
+- `--rolling-timeout-backoff-*`
+  - 当前一个 shard 的 extract timeout 明显升高时，自动增大下一个 shard 的 LLM timeout，并缩小 shard size
+- `--fill-refs-mode none|dry|write-verify`
+  - 长批次一般保持 `none`
+  - 真正需要看 refs 写回效果时，才切到 `dry` 或 `write-verify`
+- `--no-align-apply`
+  - 用于只读诊断，不做对齐写回
 
-```powershell
-py -3 scripts/sc/llm_fill_acceptance_refs.py --task-id <id> --write
-```
+建议：如果你不是在跑长批次，不要先动这些参数。
 
-再验证收敛：
+#### 5.1.3 内部机制
 
-```powershell
-py -3 scripts/sc/llm_fill_acceptance_refs.py --task-id <id>
-```
+以下内容保留在实现里，但不需要成为日常操作负担。
 
+1. 单任务 wrapper 会：
+
+- 把共享 inner artifacts 快照到 `tNNNN--<step>.artifacts/`
+- 在顶层 `summary.json` 里聚合：
+  - `failure_category_*`
+  - `extract_fail_bucket_*`
+  - `extract_fail_signature_*`
+  - `extract_fail_family_*`
+  - `prompt_trimmed_task_ids`
+  - `semantic_gate_budget_hits`
+
+2. batch coordinator 会：
+
+- 把每个 shard 的结果写到 `shards/`
+- 把任务级合并结果写到 `merged/summary.json`
+- 把顶层 `summary.json` 当作一页式 batch dashboard
+- 输出：
+  - `family_hotspots`
+  - `quarantine_ranges`
+  - `extract_family_recommended_actions`
+
+3. 现在最重要的诊断口径是 `family`，不是单条 `signature`
+
+- `signature` 适合看“这一条到底报了什么”
+- `family` 适合看“这一批任务为什么整体失败”
+- dashboard 和批量排障时，优先看 family + recommended action
+
+#### 5.1.4 何时不该继续加复杂度
+
+如果一轮全量 5.1 日志里，绝大多数任务都还是 `first_failed_step = extract`，而且没有稳定出现第二类瓶颈，那么不要继续给 5.1 增加新 stop-loss。
+
+这时更值钱的动作是：
+
+- 修 obligations / task context
+- 调整 extract prompt 或范围
+- 调整 timeout / shard size
+- 用 dashboard 看 `extract_family_recommended_actions`，而不是继续往 5.1 里堆逻辑
 ### 5.2 Batch instability lane
 
 只有当多个任务都表现出 obligations extraction 不稳定时才使用。

@@ -20,10 +20,11 @@ from __future__ import annotations
 import argparse
 import os
 
+from _delivery_profile import build_delivery_profile_context, profile_llm_semantic_gate_all_defaults, resolve_delivery_profile
+
 from _taskmaster import default_paths, load_json  # type: ignore
 from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text  # type: ignore
 from _garbled_gate import render_top_hits, scan_task_text_integrity  # type: ignore
-from _delivery_profile import build_delivery_profile_context, profile_llm_semantic_gate_all_defaults, resolve_delivery_profile  # type: ignore
 
 from _acceptance_semantics_align import (  # noqa: E402
     load_master_index,
@@ -45,14 +46,14 @@ def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namesp
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Align acceptance semantics (acceptance-only phase).")
-    ap.add_argument("--scope", default="all", choices=["all", "done", "not-done"])
-    ap.add_argument("--task-ids", default="", help="Optional CSV task ids override.")
     ap.add_argument(
         "--delivery-profile",
         default=None,
         choices=["playable-ea", "fast-ship", "standard"],
         help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).",
     )
+    ap.add_argument("--scope", default="all", choices=["all", "done", "not-done"])
+    ap.add_argument("--task-ids", default="", help="Optional CSV task ids override.")
     ap.add_argument(
         "--fail-on-missing-task-ids",
         action="store_true",

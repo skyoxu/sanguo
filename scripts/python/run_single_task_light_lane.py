@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Run workflow.md 5.1 single-task light lane with full-step execution.
+"""Run workflow 5.1 single-task light lane with resilient full-step execution.
 
 Key behavior:
-- Always executes all 7 steps per task by default (no early-stop on step failure).
+- Runs all configured steps for each task by default (does not stop on step failure).
 - Supports resume from summary.json.
-- Writes per-step logs and rolling summary for stable long runs on Windows.
+- Writes per-step logs and rolling summary under logs/ci/<YYYY-MM-DD>/.
 """
 
 from __future__ import annotations
@@ -13,9 +13,39 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
+import re
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
+
+_FILL_REFS_TIMEOUT_SEC = 300
+_TIMEOUT_BUFFER_SEC = 120
+_RETRY_TIMEOUT_BOOST_SEC = 240
+_RETRYABLE_TIMEOUT_STEPS = {"extract", "align"}
+_FILL_REF_STEP_NAMES = {"fill_refs_dry", "fill_refs_write", "fill_refs_verify"}
+_SKIP_SOFT_STEP_NAMES = {"coverage", "semantic_gate", *_FILL_REF_STEP_NAMES}
+_EXTRACT_FAIL_FAMILY_AUTO_SKIP_ALL = {
+    "timeout",
+    "stdout:sc_llm_obligations_status_fail",
+    "stderr:sc_llm_obligations_status_fail",
+}
+_EXTRACT_FAIL_FAMILY_AUTO_SKIP_SOFT = {
+    "stdout:model_output_invalid",
+    "stderr:model_output_invalid",
+    "error:model_output_invalid",
+}
+_SNAPSHOT_PATTERNS = (
+    "summary.json",
+    "report.md",
+    "verdict.json",
+    "prompt.md",
+    "output-last-message*.txt",
+    "batch-*.tsv",
+    "batch-*.trace.log",
+    "trace-run-*.log",
+)
 
 
 def _repo_root() -> Path:
@@ -33,32 +63,220 @@ def _default_out_dir(root: Path) -> Path:
 def _parse_task_ids_csv(raw: str) -> list[int]:
     out: list[int] = []
     for token in str(raw or "").split(","):
-        s = token.strip()
-        if not s:
+        value = token.strip()
+        if not value.isdigit():
             continue
-        if not s.isdigit():
-            continue
-        n = int(s)
-        if n > 0:
-            out.append(n)
+        task_id = int(value)
+        if task_id > 0:
+            out.append(task_id)
     return sorted(set(out))
 
 
+def _taskmaster_tasks_path(root: Path) -> Path:
+    candidates = [
+        root / ".taskmaster" / "tasks" / "tasks.json",
+        root / "examples" / "taskmaster" / "tasks.json",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+def _load_master_tasks(root: Path) -> list[dict[str, Any]]:
+    path = _taskmaster_tasks_path(root)
+    if not path.exists():
+        return []
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data.get("master"), dict) and isinstance(data["master"].get("tasks"), list):
+        return [item for item in data["master"]["tasks"] if isinstance(item, dict)]
+    if isinstance(data.get("tasks"), list):
+        return [item for item in data["tasks"] if isinstance(item, dict)]
+    return []
+
+
 def _load_master_task_ids(root: Path) -> list[int]:
-    p = root / ".taskmaster" / "tasks" / "tasks.json"
-    data = json.loads(p.read_text(encoding="utf-8"))
-    tasks = ((data or {}).get("master") or {}).get("tasks") or []
-    ids: list[int] = []
-    for item in tasks:
-        if not isinstance(item, dict):
-            continue
+    task_ids: list[int] = []
+    for item in _load_master_tasks(root):
         raw = str(item.get("id") or "").strip()
         if raw.isdigit():
-            ids.append(int(raw))
-    return sorted(set(ids))
+            task_ids.append(int(raw))
+    return sorted(set(task_ids))
 
 
-def _steps(*, align_apply: bool) -> list[tuple[str, list[str]]]:
+def _load_in_progress_task_ids(root: Path) -> list[int]:
+    task_ids: list[int] = []
+    for item in _load_master_tasks(root):
+        raw_id = str(item.get("id") or "").strip()
+        if not raw_id.isdigit():
+            continue
+        status = str(item.get("status") or "").strip().lower().replace("-", "_")
+        if status in {"in_progress", "active", "working"}:
+            task_ids.append(int(raw_id))
+    return sorted(set(task_ids))
+
+
+def _delivery_profile_defaults(root: Path, delivery_profile: str) -> dict[str, Any]:
+    config_path = root / "scripts" / "sc" / "config" / "delivery_profiles.json"
+    if not config_path.exists():
+        return {}
+    data = json.loads(config_path.read_text(encoding="utf-8"))
+    profiles = data.get("profiles") or {}
+    payload = profiles.get(str(delivery_profile)) or {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _profile_step_llm_timeout_sec(root: Path, *, step_name: str, delivery_profile: str) -> int:
+    profile = _delivery_profile_defaults(root, delivery_profile)
+    if step_name == "extract":
+        llm_obligations = profile.get("llm_obligations") or {}
+        return int(llm_obligations.get("timeout_sec", 240) or 240)
+    if step_name in {"align", "coverage", "semantic_gate"}:
+        llm_semantic_gate_all = profile.get("llm_semantic_gate_all") or {}
+        return int(llm_semantic_gate_all.get("timeout_sec", 480) or 480)
+    return _FILL_REFS_TIMEOUT_SEC
+
+
+def _resolve_step_timeout_sec(
+    step_name: str,
+    *,
+    delivery_profile: str,
+    explicit_timeout_sec: int | None,
+    llm_timeout_sec: int | None = None,
+    root: Path | None = None,
+) -> int:
+    if explicit_timeout_sec is not None:
+        return max(1, int(explicit_timeout_sec))
+    inner_timeout = max(
+        1,
+        int(
+            llm_timeout_sec
+            if llm_timeout_sec is not None
+            else _profile_step_llm_timeout_sec(root or _repo_root(), step_name=step_name, delivery_profile=delivery_profile)
+        ),
+    )
+    return inner_timeout + _TIMEOUT_BUFFER_SEC
+
+
+def _step_supports_inner_timeout(step_name: str) -> bool:
+    return step_name in {
+        "extract",
+        "align",
+        "coverage",
+        "semantic_gate",
+        "fill_refs_dry",
+        "fill_refs_write",
+        "fill_refs_verify",
+    }
+
+
+def _replace_or_append_timeout_arg(cmd: list[str], *, timeout_sec: int) -> list[str]:
+    updated: list[str] = []
+    idx = 0
+    replaced = False
+    while idx < len(cmd):
+        part = cmd[idx]
+        if part == "--timeout-sec":
+            updated.extend(["--timeout-sec", str(int(timeout_sec))])
+            idx += 2
+            replaced = True
+            continue
+        updated.append(part)
+        idx += 1
+    if not replaced:
+        updated.extend(["--timeout-sec", str(int(timeout_sec))])
+    return updated
+
+
+def _retry_inner_timeout_sec(
+    step_name: str,
+    *,
+    delivery_profile: str,
+    llm_timeout_sec: int | None,
+    root: Path,
+) -> int:
+    base_inner = max(
+        1,
+        int(
+            llm_timeout_sec
+            if llm_timeout_sec is not None
+            else _profile_step_llm_timeout_sec(root, step_name=step_name, delivery_profile=delivery_profile)
+        ),
+    )
+    return max(base_inner + _RETRY_TIMEOUT_BOOST_SEC, int(base_inner * 2))
+
+
+def _run_step_with_retry(
+    *,
+    root: Path,
+    cmd: list[str],
+    step_name: str,
+    delivery_profile: str,
+    explicit_timeout_sec: int | None,
+    llm_timeout_sec: int | None,
+) -> tuple[int, str, str, dict[str, Any]]:
+    timeout_sec = _resolve_step_timeout_sec(
+        step_name,
+        delivery_profile=delivery_profile,
+        explicit_timeout_sec=explicit_timeout_sec,
+        llm_timeout_sec=llm_timeout_sec,
+        root=root,
+    )
+    rc, stdout, stderr = _run_step(root, cmd, timeout_sec=timeout_sec)
+    attempts: list[dict[str, Any]] = [
+        {
+            "attempt": 1,
+            "rc": int(rc),
+            "timeout_sec": int(timeout_sec),
+            "cmd": list(cmd),
+            "stdout": stdout,
+            "stderr": stderr,
+        }
+    ]
+
+    if int(rc) == 124 and step_name in _RETRYABLE_TIMEOUT_STEPS:
+        retry_cmd = list(cmd)
+        retry_inner_timeout = llm_timeout_sec
+        if _step_supports_inner_timeout(step_name):
+            retry_inner_timeout = _retry_inner_timeout_sec(
+                step_name,
+                delivery_profile=delivery_profile,
+                llm_timeout_sec=llm_timeout_sec,
+                root=root,
+            )
+            retry_cmd = _replace_or_append_timeout_arg(retry_cmd, timeout_sec=retry_inner_timeout)
+        retry_wrapper_timeout = max(
+            int(timeout_sec),
+            _resolve_step_timeout_sec(
+                step_name,
+                delivery_profile=delivery_profile,
+                explicit_timeout_sec=None,
+                llm_timeout_sec=retry_inner_timeout,
+                root=root,
+            ),
+        )
+        rc, stdout, stderr = _run_step(root, retry_cmd, timeout_sec=retry_wrapper_timeout)
+        attempts.append(
+            {
+                "attempt": 2,
+                "rc": int(rc),
+                "timeout_sec": int(retry_wrapper_timeout),
+                "cmd": list(retry_cmd),
+                "stdout": stdout,
+                "stderr": stderr,
+            }
+        )
+
+    metadata = {
+        "retry_count": max(0, len(attempts) - 1),
+        "retry_rcs": [int(item["rc"]) for item in attempts],
+        "attempt_count": len(attempts),
+        "attempts": attempts,
+    }
+    return int(rc), stdout, stderr, metadata
+
+
+def _steps(*, align_apply: bool, delivery_profile: str, llm_timeout_sec: int | None) -> list[tuple[str, list[str]]]:
     align_cmd = [
         "py",
         "-3",
@@ -66,11 +284,15 @@ def _steps(*, align_apply: bool) -> list[tuple[str, list[str]]]:
         "--task-ids",
         "{id}",
         "--strict-task-selection",
+        "--delivery-profile",
+        delivery_profile,
     ]
-    if bool(align_apply):
+    if llm_timeout_sec is not None:
+        align_cmd.extend(["--timeout-sec", str(int(llm_timeout_sec))])
+    if align_apply:
         align_cmd.append("--apply")
 
-    return [
+    steps: list[tuple[str, list[str]]] = [
         (
             "extract",
             [
@@ -80,7 +302,7 @@ def _steps(*, align_apply: bool) -> list[tuple[str, list[str]]]:
                 "--task-id",
                 "{id}",
                 "--delivery-profile",
-                "fast-ship",
+                delivery_profile,
                 "--reuse-last-ok",
                 "--explain-reuse-miss",
             ],
@@ -95,6 +317,8 @@ def _steps(*, align_apply: bool) -> list[tuple[str, list[str]]]:
                 "--task-id",
                 "{id}",
                 "--strict-view-selection",
+                "--delivery-profile",
+                delivery_profile,
             ],
         ),
         (
@@ -109,6 +333,8 @@ def _steps(*, align_apply: bool) -> list[tuple[str, list[str]]]:
                 "0",
                 "--max-unknown",
                 "3",
+                "--delivery-profile",
+                delivery_profile,
             ],
         ),
         (
@@ -143,9 +369,90 @@ def _steps(*, align_apply: bool) -> list[tuple[str, list[str]]]:
             ],
         ),
     ]
+    if llm_timeout_sec is not None:
+        llm_timeout_parts = ["--timeout-sec", str(int(llm_timeout_sec))]
+        step_names = {"extract", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"}
+        steps = [
+            (name, command + llm_timeout_parts if name in step_names else command)
+            for name, command in steps
+        ]
+    return steps
 
 
-def _run_step(root: Path, cmd: list[str], timeout_sec: int) -> tuple[int, str, str]:
+def _resolve_fill_refs_mode(mode: str, *, selected_count: int) -> str:
+    if str(mode) == "auto":
+        return "none" if int(selected_count) > 1 else "write-verify"
+    return str(mode)
+
+
+def _apply_fill_refs_mode(
+    steps: list[tuple[str, list[str]]],
+    *,
+    fill_refs_mode: str,
+) -> list[tuple[str, list[str]]]:
+    if fill_refs_mode == "write-verify":
+        return list(steps)
+    if fill_refs_mode == "dry":
+        return [(name, cmd) for name, cmd in steps if name not in {"fill_refs_write", "fill_refs_verify"}]
+    if fill_refs_mode == "none":
+        return [(name, cmd) for name, cmd in steps if name not in _FILL_REF_STEP_NAMES]
+    return list(steps)
+
+
+def _resolve_downstream_on_extract_fail(policy: str, *, selected_count: int) -> str:
+    if str(policy) == "auto":
+        return "skip-soft" if int(selected_count) > 1 else "continue"
+    return str(policy)
+
+
+def _resolve_downstream_on_extract_family_fail(policy: str, *, extract_fail_family: str) -> str:
+    family = str(extract_fail_family or "").strip().lower()
+    value = str(policy or "").strip().lower()
+    if not family or value in {"", "off", "continue"}:
+        return ""
+    if value in {"skip-soft", "skip-all"}:
+        return value
+    if value != "auto":
+        return ""
+    if family in _EXTRACT_FAIL_FAMILY_AUTO_SKIP_ALL:
+        return "skip-all"
+    if family in _EXTRACT_FAIL_FAMILY_AUTO_SKIP_SOFT:
+        return "skip-soft"
+    return ""
+
+
+def _resolve_batch_lane(mode: str, *, selected_count: int) -> str:
+    if str(mode) == "auto":
+        return "extract-first" if int(selected_count) > 1 else "standard"
+    return str(mode)
+
+
+def _skip_reason_for_step_after_extract_fail(
+    step_name: str,
+    *,
+    fill_refs_after_extract_fail: str,
+    downstream_on_extract_fail: str,
+    downstream_on_extract_family_fail: str,
+    extract_fail_family: str,
+) -> str:
+    family_policy = _resolve_downstream_on_extract_family_fail(
+        downstream_on_extract_family_fail,
+        extract_fail_family=extract_fail_family,
+    )
+    if family_policy == "skip-all" and step_name != "extract":
+        return "extract_failed_family_policy_skip_all"
+    if family_policy == "skip-soft" and step_name in _SKIP_SOFT_STEP_NAMES:
+        return "extract_failed_family_policy_skip_soft"
+    if downstream_on_extract_fail == "skip-all" and step_name != "extract":
+        return "extract_failed_downstream_policy_skip_all"
+    if downstream_on_extract_fail == "skip-soft" and step_name in _SKIP_SOFT_STEP_NAMES:
+        return "extract_failed_downstream_policy_skip_soft"
+    if step_name in _FILL_REF_STEP_NAMES and str(fill_refs_after_extract_fail) == "skip":
+        return "extract_failed_fill_refs_policy"
+    return ""
+
+
+def _run_step(root: Path, cmd: list[str], *, timeout_sec: int) -> tuple[int, str, str]:
     try:
         proc = subprocess.run(
             cmd,
@@ -158,8 +465,8 @@ def _run_step(root: Path, cmd: list[str], timeout_sec: int) -> tuple[int, str, s
         )
         return int(proc.returncode), proc.stdout or "", proc.stderr or ""
     except subprocess.TimeoutExpired as exc:
-        stdout = (exc.stdout or "") if isinstance(exc.stdout, str) else ""
-        stderr = (exc.stderr or "") if isinstance(exc.stderr, str) else ""
+        stdout = str(exc.stdout or "") if exc.stdout is not None else ""
+        stderr = str(exc.stderr or "") if exc.stderr is not None else ""
         return 124, stdout, stderr
 
 
@@ -167,129 +474,643 @@ def _load_summary(path: Path) -> dict[str, Any] | None:
     if not path.exists():
         return None
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return None
-    return data if isinstance(data, dict) else None
+    return payload if isinstance(payload, dict) else None
 
 
 def _index_results(results: list[dict[str, Any]]) -> dict[int, dict[str, Any]]:
-    out: dict[int, dict[str, Any]] = {}
+    indexed: dict[int, dict[str, Any]] = {}
     for row in results:
-        if not isinstance(row, dict):
-            continue
-        tid_raw = str(row.get("task_id") or "").strip()
-        if tid_raw.isdigit():
-            out[int(tid_raw)] = row
-    return out
+        task_raw = str(row.get("task_id") or "").strip()
+        if task_raw.isdigit():
+            indexed[int(task_raw)] = row
+    return indexed
 
 
 def _rebuild_counts(summary: dict[str, Any]) -> None:
-    results = [r for r in summary.get("results", []) if isinstance(r, dict)]
+    results = [row for row in summary.get("results", []) if isinstance(row, dict)]
     failed_step_counts: dict[str, int] = {}
-    passed = 0
-    failed = 0
+    timeout_step_counts: dict[str, int] = {}
+    failure_category_counts: dict[str, int] = {}
+    failure_category_task_ids: dict[str, list[int]] = {}
+    failure_category_by_task: dict[str, str] = {}
+    extract_fail_bucket_counts: dict[str, int] = {}
+    extract_fail_bucket_task_ids: dict[str, list[int]] = {}
+    extract_fail_bucket_by_task: dict[str, str] = {}
+    extract_fail_signature_counts: dict[str, int] = {}
+    extract_fail_signature_task_ids: dict[str, list[int]] = {}
+    extract_fail_signature_by_task: dict[str, str] = {}
+    extract_fail_family_counts: dict[str, int] = {}
+    extract_fail_family_task_ids: dict[str, list[int]] = {}
+    extract_fail_family_by_task: dict[str, str] = {}
+    prompt_trimmed_task_ids: list[int] = []
+    semantic_gate_budget_hits: list[dict[str, Any]] = []
+    skipped_step_counts: dict[str, int] = {}
+    skipped_step_reason_counts: dict[str, int] = {}
+    passed_tasks = 0
+    failed_tasks = 0
     for row in results:
+        task_raw = str(row.get("task_id") or "").strip()
+        for step in row.get("steps", []) or []:
+            if not isinstance(step, dict):
+                continue
+            if bool(step.get("skipped")):
+                key = str(step.get("step") or "").strip()
+                reason = str(step.get("skip_reason") or "").strip()
+                if key:
+                    skipped_step_counts[key] = skipped_step_counts.get(key, 0) + 1
+                if reason:
+                    skipped_step_reason_counts[reason] = skipped_step_reason_counts.get(reason, 0) + 1
+            if int(step.get("rc") or 0) == 124:
+                key = str(step.get("step") or "").strip()
+                if key:
+                    timeout_step_counts[key] = timeout_step_counts.get(key, 0) + 1
+            if str(step.get("step") or "").strip() == "semantic_gate":
+                inner_summary = step.get("inner_summary")
+                if isinstance(inner_summary, dict) and bool(inner_summary.get("prompt_trimmed")) and task_raw.isdigit():
+                    task_id = int(task_raw)
+                    if task_id not in prompt_trimmed_task_ids:
+                        prompt_trimmed_task_ids.append(task_id)
+                        semantic_gate_budget_hits.append(
+                            {
+                                "task_id": task_id,
+                                "prompt_trimmed": True,
+                                "task_brief_budget": inner_summary.get("task_brief_budget"),
+                                "prompt_chars": inner_summary.get("prompt_chars"),
+                            }
+                        )
+            if str(step.get("step") or "").strip() == "extract" and int(step.get("rc") or 0) != 0 and task_raw.isdigit():
+                bucket = _classify_extract_fail_bucket(step)
+                if bucket:
+                    extract_fail_bucket_counts[bucket] = extract_fail_bucket_counts.get(bucket, 0) + 1
+                    extract_fail_bucket_task_ids.setdefault(bucket, []).append(int(task_raw))
+                    extract_fail_bucket_by_task[task_raw] = bucket
+                signature = _extract_fail_signature(step)
+                if signature:
+                    extract_fail_signature_counts[signature] = extract_fail_signature_counts.get(signature, 0) + 1
+                    extract_fail_signature_task_ids.setdefault(signature, []).append(int(task_raw))
+                    extract_fail_signature_by_task[task_raw] = signature
+                    family = _extract_fail_signature_family(signature)
+                    if family:
+                        extract_fail_family_counts[family] = extract_fail_family_counts.get(family, 0) + 1
+                        extract_fail_family_task_ids.setdefault(family, []).append(int(task_raw))
+                        extract_fail_family_by_task[task_raw] = family
         if bool(row.get("ok")):
-            passed += 1
+            passed_tasks += 1
             continue
-        failed += 1
+        failed_tasks += 1
+        category = _classify_failed_task(row)
+        if category and task_raw.isdigit():
+            failure_category_counts[category] = failure_category_counts.get(category, 0) + 1
+            failure_category_task_ids.setdefault(category, []).append(int(task_raw))
+            failure_category_by_task[task_raw] = category
         for step in row.get("failed_steps", []) or []:
-            key = str(step)
+            key = str(step).strip()
+            if not key:
+                continue
             failed_step_counts[key] = failed_step_counts.get(key, 0) + 1
     summary["processed_tasks"] = len(results)
-    summary["passed_tasks"] = passed
-    summary["failed_tasks"] = failed
+    summary["passed_tasks"] = passed_tasks
+    summary["failed_tasks"] = failed_tasks
     summary["failed_step_counts"] = failed_step_counts
+    summary["timeout_step_counts"] = timeout_step_counts
+    summary["failure_category_counts"] = failure_category_counts
+    summary["failure_category_task_ids"] = failure_category_task_ids
+    summary["failure_category_by_task"] = failure_category_by_task
+    summary["extract_fail_bucket_counts"] = extract_fail_bucket_counts
+    summary["extract_fail_bucket_task_ids"] = extract_fail_bucket_task_ids
+    summary["extract_fail_bucket_by_task"] = extract_fail_bucket_by_task
+    summary["extract_fail_signature_counts"] = extract_fail_signature_counts
+    summary["extract_fail_signature_task_ids"] = extract_fail_signature_task_ids
+    summary["extract_fail_signature_by_task"] = extract_fail_signature_by_task
+    summary["extract_fail_family_counts"] = extract_fail_family_counts
+    summary["extract_fail_family_task_ids"] = extract_fail_family_task_ids
+    summary["extract_fail_family_by_task"] = extract_fail_family_by_task
+    summary["extract_fail_top_signatures"] = [
+        {
+            "signature": signature,
+            "count": int(count),
+            "task_ids": list(extract_fail_signature_task_ids.get(signature) or []),
+        }
+        for signature, count in sorted(
+            extract_fail_signature_counts.items(),
+            key=lambda item: (-int(item[1]), str(item[0])),
+        )[:10]
+    ]
+    summary["extract_fail_top_families"] = [
+        {
+            "family": family,
+            "count": int(count),
+            "task_ids": list(extract_fail_family_task_ids.get(family) or []),
+        }
+        for family, count in sorted(
+            extract_fail_family_counts.items(),
+            key=lambda item: (-int(item[1]), str(item[0])),
+        )[:10]
+    ]
+    summary["prompt_trimmed_task_ids"] = prompt_trimmed_task_ids
+    summary["prompt_trimmed_count"] = len(prompt_trimmed_task_ids)
+    summary["semantic_gate_budget_hits"] = semantic_gate_budget_hits
+    summary["skipped_step_counts"] = skipped_step_counts
+    summary["skipped_step_reason_counts"] = skipped_step_reason_counts
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="Run workflow.md 5.1 single-task light lane with full-step execution.")
-    ap.add_argument("--task-ids", default="", help="Optional CSV task ids override (e.g. 66,67,70).")
-    ap.add_argument("--task-id-start", type=int, default=66)
-    ap.add_argument("--task-id-end", type=int, default=0, help="0 means until max task id.")
-    ap.add_argument("--max-tasks", type=int, default=0, help="0 means all selected tasks.")
-    ap.add_argument("--timeout-sec", type=int, default=420, help="Per-step timeout in seconds.")
-    ap.add_argument("--out-dir", default="", help="Output directory. Default: logs/ci/<date>/single-task-light-lane-v2")
-    ap.add_argument("--no-resume", action="store_true", help="Ignore existing summary.json and rerun from scratch.")
-    ap.add_argument("--stop-on-step-failure", action="store_true", help="Stop remaining steps in a task when one step fails.")
-    ap.add_argument("--no-align-apply", action="store_true", help="Do not pass --apply to align step (read-only triage mode).")
-    ap.add_argument("--self-check", action="store_true", help="Print resolved task range and exit.")
-    args = ap.parse_args()
-
-    root = _repo_root()
+def _select_task_ids(root: Path, args: argparse.Namespace) -> list[int]:
     all_ids = _load_master_task_ids(root)
     if not all_ids:
-        print("SINGLE_TASK_LIGHT_LANE status=fail reason=no_tasks")
-        return 2
-
+        return []
     if str(args.task_ids).strip():
-        selected = [tid for tid in _parse_task_ids_csv(args.task_ids) if tid in set(all_ids)]
+        selected = [task_id for task_id in _parse_task_ids_csv(args.task_ids) if task_id in set(all_ids)]
     else:
-        start = max(1, int(args.task_id_start))
-        end = int(args.task_id_end) if int(args.task_id_end) > 0 else max(all_ids)
-        selected = [tid for tid in all_ids if start <= tid <= end]
+        in_progress = _load_in_progress_task_ids(root)
+        if in_progress:
+            selected = in_progress
+        else:
+            start = max(1, int(args.task_id_start))
+            end = int(args.task_id_end) if int(args.task_id_end) > 0 else max(all_ids)
+            selected = [task_id for task_id in all_ids if start <= task_id <= end]
     if int(args.max_tasks) > 0:
         selected = selected[: int(args.max_tasks)]
-    if not selected:
-        print("SINGLE_TASK_LIGHT_LANE status=fail reason=no_selected_tasks")
-        return 2
+    return selected
 
-    out_dir = Path(args.out_dir) if str(args.out_dir).strip() else _default_out_dir(root)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    summary_path = out_dir / "summary.json"
-    steps = _steps(align_apply=(not bool(args.no_align_apply)))
 
-    if bool(args.self_check):
-        payload = {
-            "status": "ok",
-            "task_count": len(selected),
-            "task_id_start": selected[0],
-            "task_id_end": selected[-1],
-            "steps": [name for name, _ in steps],
-            "out_dir": str(out_dir).replace("\\", "/"),
-        }
-        summary_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(
-            f"SINGLE_TASK_LIGHT_LANE_SELF_CHECK status=ok tasks={len(selected)} "
-            f"range=T{selected[0]}-T{selected[-1]} out={str(summary_path).replace('\\', '/')}"
+def _write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _extract_inner_out_dir(stdout: str, stderr: str) -> Path | None:
+    lines: list[str] = []
+    for blob in (stdout, stderr):
+        lines.extend(str(blob or "").splitlines())
+    for line in reversed(lines):
+        if "out=" not in line:
+            continue
+        raw = line.split("out=", 1)[1].strip().strip("\"'")
+        if raw:
+            return Path(raw)
+    return None
+
+
+def _copy_file_set(source_dir: Path, artifact_dir: Path) -> list[str]:
+    copied: list[str] = []
+    for pattern in _SNAPSHOT_PATTERNS:
+        for path in sorted(source_dir.glob(pattern)):
+            if not path.is_file():
+                continue
+            target = artifact_dir / path.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
+            copied.append(str(target.name))
+    return copied
+
+
+def _summarize_inner_summary(step_name: str, payload: dict[str, Any]) -> dict[str, Any]:
+    summary: dict[str, Any] = {}
+    for key in ("cmd", "status", "error", "schema_version"):
+        value = payload.get(key)
+        if value is not None:
+            summary[key] = value
+    if step_name == "semantic_gate":
+        batch_meta = payload.get("batch_meta")
+        if isinstance(batch_meta, list) and batch_meta:
+            first = batch_meta[0]
+            if isinstance(first, dict):
+                for key in ("prompt_chars", "prompt_trimmed", "task_brief_budget", "task_count"):
+                    value = first.get(key)
+                    if value is not None:
+                        summary[key] = value
+    elif step_name == "coverage":
+        summary["uncovered_subtask_ids"] = list(payload.get("uncovered_subtask_ids") or [])
+        votes = payload.get("consensus_votes")
+        if isinstance(votes, dict):
+            summary["consensus_votes"] = votes
+    elif step_name == "extract":
+        for key in ("hard_uncovered_count", "advisory_uncovered_count", "excerpt_prefix_stripped_matches", "schema_error_count"):
+            value = payload.get(key)
+            if value is not None:
+                summary[key] = value
+        auto_escalate = payload.get("auto_escalate")
+        if isinstance(auto_escalate, dict):
+            summary["auto_escalate"] = {
+                "triggered": bool(auto_escalate.get("triggered")),
+                "reasons": list(auto_escalate.get("reasons") or []),
+            }
+    elif step_name.startswith("fill_refs"):
+        for key in ("task_count", "changed_tasks", "written_tasks", "skipped_tasks"):
+            value = payload.get(key)
+            if value is not None:
+                summary[key] = value
+    return summary
+
+
+def _snapshot_inner_artifacts(
+    *,
+    root: Path,
+    wrapper_out_dir: Path,
+    task_id: int,
+    step_name: str,
+    stdout: str,
+    stderr: str,
+) -> dict[str, Any]:
+    inner_out_dir = _extract_inner_out_dir(stdout, stderr)
+    if inner_out_dir is None:
+        return {}
+    source_dir = inner_out_dir if inner_out_dir.is_absolute() else (root / inner_out_dir)
+    if not source_dir.exists():
+        return {"inner_out_dir": str(inner_out_dir).replace("\\", "/"), "inner_artifacts_missing": True}
+
+    artifact_dir = wrapper_out_dir / f"t{task_id:04d}--{step_name}.artifacts"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    copied = _copy_file_set(source_dir, artifact_dir)
+
+    task_subdir_names = [f"task-{task_id}", f"task-{task_id:04d}"]
+    copied_task_dirs: list[str] = []
+    for name in task_subdir_names:
+        source_task_dir = source_dir / name
+        if not source_task_dir.is_dir():
+            continue
+        target_task_dir = artifact_dir / name
+        shutil.copytree(source_task_dir, target_task_dir, dirs_exist_ok=True)
+        copied_task_dirs.append(name)
+
+    metadata: dict[str, Any] = {
+        "inner_out_dir": str(source_dir).replace("\\", "/"),
+        "artifact_dir": str(artifact_dir.relative_to(root)).replace("\\", "/"),
+        "artifacts_copied": copied,
+    }
+    if copied_task_dirs:
+        metadata["task_dirs_copied"] = copied_task_dirs
+    summary_path = source_dir / "summary.json"
+    if summary_path.is_file():
+        try:
+            payload = json.loads(summary_path.read_text(encoding="utf-8"))
+        except Exception:
+            payload = None
+        if isinstance(payload, dict):
+            metadata["inner_summary"] = _summarize_inner_summary(step_name, payload)
+    return metadata
+
+
+def _classify_failed_task(row: dict[str, Any]) -> str | None:
+    steps = row.get("steps")
+    if not isinstance(steps, list):
+        return None
+
+    for step in steps:
+        if isinstance(step, dict) and int(step.get("rc") or 0) == 124:
+            return "timeout"
+
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        if str(step.get("step") or "").strip() != "coverage" or int(step.get("rc") or 0) == 0:
+            continue
+        inner_summary = step.get("inner_summary")
+        if isinstance(inner_summary, dict):
+            uncovered = inner_summary.get("uncovered_subtask_ids") or []
+            if isinstance(uncovered, list):
+                return "coverage-gap"
+        return "coverage-gap"
+
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        if str(step.get("step") or "").strip() == "semantic_gate" and int(step.get("rc") or 0) != 0:
+            return "semantic-needs-fix"
+
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        if int(step.get("rc") or 0) != 0:
+            return "model-fail"
+    return None
+
+
+def _classify_extract_fail_bucket(step: dict[str, Any]) -> str | None:
+    rc = int(step.get("rc") or 0)
+    if rc == 0:
+        return None
+    if rc == 124:
+        return "timeout"
+    inner_summary = step.get("inner_summary")
+    if isinstance(inner_summary, dict):
+        if int(inner_summary.get("schema_error_count") or 0) > 0:
+            return "schema_error"
+        schema_errors = inner_summary.get("schema_errors")
+        if isinstance(schema_errors, list) and schema_errors:
+            return "schema_error"
+        if int(inner_summary.get("hard_uncovered_count") or 0) > 0:
+            return "hard_uncovered"
+    return "model_fail"
+
+
+def _normalize_extract_signature_text(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    if not text:
+        return ""
+    text = text.replace("\\", "/")
+    text = re.sub(r"[a-z]:/[^\s'\"]+", "<path>", text)
+    text = re.sub(r"https?://\S+", "<url>", text)
+    text = re.sub(r"\b\d+\b", "<num>", text)
+    text = re.sub(r"\s+", " ", text).strip(" .,:;|/-")
+    if len(text) > 96:
+        text = text[:96].rstrip()
+    return text
+
+
+def _extract_fail_signature_family(signature: str) -> str:
+    value = str(signature or "").strip().lower()
+    if not value:
+        return ""
+    if value in {"timeout", "schema_error", "hard_uncovered"}:
+        return value
+    if value.startswith("error:"):
+        return value
+    if value.startswith("auto_escalate:"):
+        return "auto_escalate"
+    if value == "auto_escalate":
+        return value
+    if value.startswith("rc:"):
+        return value
+    if value.startswith("stdout:") or value.startswith("stderr:"):
+        channel, raw = value.split(":", 1)
+        text = str(raw or "").strip()
+        text = re.sub(r"\bout=<path>\b", "", text).strip()
+        text = re.sub(r"\btask[-_/]<num>\b", "task", text)
+        text = re.sub(r"\s+", " ", text).strip(" .,:;|/-")
+        if text.startswith("sc_llm_obligations status=fail"):
+            return f"{channel}:sc_llm_obligations_status_fail"
+        if text.startswith("sc_llm_obligations status=ok"):
+            return f"{channel}:sc_llm_obligations_status_ok"
+        if "model output invalid" in text:
+            return f"{channel}:model_output_invalid"
+        if "schema error" in text:
+            return f"{channel}:schema_error"
+        if "hard uncovered" in text:
+            return f"{channel}:hard_uncovered"
+        head = text[:48].strip() if text else "unknown"
+        return f"{channel}:{head}"
+    return value
+
+
+def _extract_fail_signature(step: dict[str, Any]) -> str | None:
+    rc = int(step.get("rc") or 0)
+    if rc == 0:
+        return None
+    if rc == 124:
+        return "timeout"
+    inner_summary = step.get("inner_summary")
+    if isinstance(inner_summary, dict):
+        error_text = _normalize_extract_signature_text(inner_summary.get("error"))
+        if error_text:
+            return f"error:{error_text}"
+        if int(inner_summary.get("schema_error_count") or 0) > 0:
+            return "schema_error"
+        schema_errors = inner_summary.get("schema_errors")
+        if isinstance(schema_errors, list) and schema_errors:
+            return "schema_error"
+        if int(inner_summary.get("hard_uncovered_count") or 0) > 0:
+            return "hard_uncovered"
+        auto_escalate = inner_summary.get("auto_escalate")
+        if isinstance(auto_escalate, dict) and bool(auto_escalate.get("triggered")):
+            reasons = [
+                item
+                for item in (_normalize_extract_signature_text(part) for part in list(auto_escalate.get("reasons") or []))
+                if item
+            ]
+            if reasons:
+                return f"auto_escalate:{'+'.join(sorted(set(reasons))[:2])}"
+            return "auto_escalate"
+    stderr_tail = _normalize_extract_signature_text(step.get("stderr_tail"))
+    if stderr_tail:
+        return f"stderr:{stderr_tail}"
+    stdout_tail = _normalize_extract_signature_text(step.get("stdout_tail"))
+    if stdout_tail:
+        return f"stdout:{stdout_tail}"
+    return f"rc:{rc}"
+
+
+def _build_resume_scope(
+    *,
+    selected: list[int],
+    delivery_profile: str,
+    align_apply: bool,
+    fill_refs_after_extract_fail: str,
+    downstream_on_extract_fail: str,
+    downstream_on_extract_family_fail: str,
+    fill_refs_mode: str,
+    batch_lane: str,
+) -> dict[str, Any]:
+    step_names = [
+        name
+        for name, _ in _apply_fill_refs_mode(
+            _steps(align_apply=align_apply, delivery_profile=delivery_profile, llm_timeout_sec=None),
+            fill_refs_mode=fill_refs_mode,
         )
-        return 0
+    ]
+    return {
+        "task_ids": [int(task_id) for task_id in selected],
+        "delivery_profile": str(delivery_profile),
+        "align_apply": bool(align_apply),
+        "fill_refs_after_extract_fail": str(fill_refs_after_extract_fail),
+        "downstream_on_extract_fail": str(downstream_on_extract_fail),
+        "downstream_on_extract_family_fail": str(downstream_on_extract_family_fail),
+        "fill_refs_mode": str(fill_refs_mode),
+        "batch_lane": str(batch_lane),
+        "step_names": step_names,
+    }
 
-    summary: dict[str, Any]
-    if not bool(args.no_resume):
-        old = _load_summary(summary_path)
-        if old:
-            summary = old
+
+def _summary_scope_matches(summary: dict[str, Any], scope: dict[str, Any]) -> bool:
+    current = summary.get("resume_scope")
+    return bool(isinstance(current, dict) and current == scope)
+
+
+def _row_is_complete(row: dict[str, Any] | None, *, step_names: list[str]) -> bool:
+    if not isinstance(row, dict) or not bool(row.get("ok")):
+        return False
+    steps = row.get("steps")
+    if not isinstance(steps, list):
+        return False
+    actual_names = [str(item.get("step")) for item in steps if isinstance(item, dict)]
+    return actual_names == list(step_names)
+
+
+def _prepare_failed_row_resume(
+    row: dict[str, Any] | None,
+    *,
+    step_names: list[str],
+    resume_failed_task_from: str,
+) -> tuple[dict[str, dict[str, Any]], int, str, list[str]]:
+    if resume_failed_task_from != "first-failed-step" or not isinstance(row, dict) or bool(row.get("ok")):
+        return {}, 0, "", []
+
+    first_failed_step = str(row.get("first_failed_step") or "").strip()
+    if not first_failed_step:
+        for item in row.get("failed_steps", []) or []:
+            first_failed_step = str(item).strip()
+            if first_failed_step:
+                break
+    if not first_failed_step or first_failed_step not in step_names:
+        return {}, 0, "", []
+
+    resume_index = step_names.index(first_failed_step)
+    if resume_index <= 0:
+        return {}, 0, "", []
+
+    prior_names = list(step_names[:resume_index])
+    steps = row.get("steps")
+    if not isinstance(steps, list):
+        return {}, 0, "", []
+
+    existing_by_name: dict[str, dict[str, Any]] = {}
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        name = str(step.get("step") or "").strip()
+        if name and name not in existing_by_name:
+            existing_by_name[name] = dict(step)
+
+    prefix: dict[str, dict[str, Any]] = {}
+    for name in prior_names:
+        existing = existing_by_name.get(name)
+        existing_rc = None if not isinstance(existing, dict) else existing.get("rc")
+        if not isinstance(existing, dict) or existing_rc is None or int(existing_rc) != 0:
+            return {}, 0, "", []
+        prefix[name] = existing
+    return prefix, resume_index, first_failed_step, prior_names
+
+
+def _existing_step_map(row: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+    if not isinstance(row, dict):
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for step in row.get("steps", []) or []:
+        if not isinstance(step, dict):
+            continue
+        name = str(step.get("step") or "").strip()
+        if name:
+            out[name] = dict(step)
+    return out
+
+
+def _prepare_phase_resume(
+    row: dict[str, Any] | None,
+    *,
+    target_step_names: list[str],
+) -> tuple[dict[str, dict[str, Any]], int, list[str], str]:
+    existing_map = _existing_step_map(row)
+    preserved: dict[str, dict[str, Any]] = {}
+    reused: list[str] = []
+    for name, step in existing_map.items():
+        if name not in target_step_names:
+            preserved[name] = dict(step)
+    start_idx = 0
+    for idx, name in enumerate(target_step_names):
+        step = existing_map.get(name)
+        if isinstance(step, dict) and not bool(step.get("skipped")) and int(step.get("rc") or 0) == 0:
+            preserved[name] = dict(step)
+            reused.append(name)
+            start_idx = idx + 1
+            continue
+        break
+    resumed_from = target_step_names[start_idx] if reused and start_idx < len(target_step_names) else ""
+    return preserved, start_idx, reused, resumed_from
+
+
+def _make_skipped_step(step_name: str, *, skip_reason: str) -> dict[str, Any]:
+    return {
+        "step": step_name,
+        "skipped": True,
+        "skip_reason": skip_reason,
+    }
+
+
+def _collect_failed_steps(step_map: dict[str, dict[str, Any]], *, ordered_step_names: list[str]) -> list[str]:
+    failed: list[str] = []
+    for name in ordered_step_names:
+        step = step_map.get(name)
+        if not isinstance(step, dict) or bool(step.get("skipped")):
+            continue
+        if int(step.get("rc") or 0) != 0:
+            failed.append(name)
+    return failed
+
+
+def _run_named_steps_for_task(
+    *,
+    root: Path,
+    out_dir: Path,
+    task_id: int,
+    step_map: dict[str, dict[str, Any]],
+    step_items: list[tuple[str, list[str]]],
+    delivery_profile: str,
+    explicit_timeout_sec: int | None,
+    llm_timeout_sec: int | None,
+    fill_refs_after_extract_fail: str,
+    downstream_on_extract_fail: str,
+    downstream_on_extract_family_fail: str,
+    stop_on_step_failure: bool,
+) -> list[str]:
+    failed_steps: list[str] = []
+    for step_name, template in step_items:
+        extract_step = step_map.get("extract")
+        extract_failed = isinstance(extract_step, dict) and not bool(extract_step.get("skipped")) and int(extract_step.get("rc") or 0) != 0
+        if extract_failed:
+            extract_fail_signature = _extract_fail_signature(extract_step) or ""
+            extract_fail_family = _extract_fail_signature_family(extract_fail_signature)
+            skip_reason = _skip_reason_for_step_after_extract_fail(
+                step_name,
+                fill_refs_after_extract_fail=fill_refs_after_extract_fail,
+                downstream_on_extract_fail=downstream_on_extract_fail,
+                downstream_on_extract_family_fail=downstream_on_extract_family_fail,
+                extract_fail_family=extract_fail_family,
+            )
+            if skip_reason:
+                step_map[step_name] = _make_skipped_step(step_name, skip_reason=skip_reason)
+                if extract_fail_signature:
+                    step_map[step_name]["extract_fail_signature"] = extract_fail_signature
+                if extract_fail_family:
+                    step_map[step_name]["extract_fail_family"] = extract_fail_family
+                continue
+
+        cmd = [part.format(id=task_id) for part in template]
+        rc, stdout, stderr, retry_meta = _run_step_with_retry(
+            root=root,
+            cmd=cmd,
+            step_name=step_name,
+            delivery_profile=delivery_profile,
+            explicit_timeout_sec=explicit_timeout_sec,
+            llm_timeout_sec=llm_timeout_sec,
+        )
+        log_path = out_dir / f"t{task_id:04d}--{step_name}.log"
+        attempts = retry_meta.get("attempts") or []
+        if isinstance(attempts, list) and attempts:
+            log_chunks: list[str] = []
+            for attempt in attempts:
+                if not isinstance(attempt, dict):
+                    continue
+                log_chunks.extend(
+                    [
+                        f"attempt: {int(attempt.get('attempt') or 0)}",
+                        f"cmd: {' '.join(list(attempt.get('cmd') or []))}",
+                        f"timeout_sec: {int(attempt.get('timeout_sec') or 0)}",
+                        f"rc: {int(attempt.get('rc') or 0)}",
+                        "--- stdout ---",
+                        str(attempt.get("stdout") or ""),
+                        "--- stderr ---",
+                        str(attempt.get("stderr") or ""),
+                        "",
+                    ]
+                )
+            log_body = "\n".join(log_chunks).rstrip() + "\n"
+            snapshot_stdout = "\n".join(str(attempt.get("stdout") or "") for attempt in attempts if isinstance(attempt, dict))
+            snapshot_stderr = "\n".join(str(attempt.get("stderr") or "") for attempt in attempts if isinstance(attempt, dict))
         else:
-            summary = {}
-    else:
-        summary = {}
-
-    if "results" not in summary or not isinstance(summary.get("results"), list):
-        summary["results"] = []
-    summary.setdefault("cmd", "run_single_task_light_lane")
-    summary.setdefault("started_at", dt.datetime.now().isoformat(timespec="seconds"))
-    summary["task_id_start"] = selected[0]
-    summary["task_id_end"] = selected[-1]
-    summary["task_count"] = len(selected)
-    summary["out_dir"] = str(out_dir).replace("\\", "/")
-    summary["status"] = "running"
-
-    existing = _index_results(summary["results"])
-    updated: dict[int, dict[str, Any]] = {k: v for k, v in existing.items() if k in set(selected)}
-
-    for idx, tid in enumerate(selected, start=1):
-        row = updated.get(tid, {"task_id": tid, "steps": []})
-        step_map = {str(s.get("step")): s for s in row.get("steps", []) if isinstance(s, dict)}
-
-        print(f"[{idx}/{len(selected)}] run task {tid}")
-        failed_steps: list[str] = []
-        for step_name, tpl in steps:
-            cmd = [part.format(id=tid) for part in tpl]
-            rc, stdout, stderr = _run_step(root, cmd, timeout_sec=int(args.timeout_sec))
-            log_path = out_dir / f"t{tid:04d}--{step_name}.log"
-            body = "\n".join(
+            log_body = "\n".join(
                 [
                     f"cmd: {' '.join(cmd)}",
                     f"rc: {rc}",
@@ -299,39 +1120,354 @@ def main() -> int:
                     stderr or "",
                 ]
             )
-            log_path.write_text(body, encoding="utf-8")
-            step_map[step_name] = {
-                "step": step_name,
-                "rc": rc,
-                "log": str(log_path.relative_to(root)).replace("\\", "/"),
-                "stdout_tail": (stdout.strip().splitlines()[-1] if stdout.strip() else ""),
-                "stderr_tail": (stderr.strip().splitlines()[-1] if stderr.strip() else ""),
-            }
-            if rc != 0:
-                failed_steps.append(step_name)
-                if bool(args.stop_on_step_failure):
-                    break
+            snapshot_stdout = stdout
+            snapshot_stderr = stderr
+        log_path.write_text(log_body, encoding="utf-8")
+        step_map[step_name] = {
+            "step": step_name,
+            "rc": rc,
+            "log": str(log_path.relative_to(root)).replace("\\", "/"),
+            "stdout_tail": stdout.strip().splitlines()[-1] if stdout.strip() else "",
+            "stderr_tail": stderr.strip().splitlines()[-1] if stderr.strip() else "",
+            "retry_count": int(retry_meta.get("retry_count") or 0),
+            "retry_rcs": [int(item) for item in list(retry_meta.get("retry_rcs") or [])],
+            "attempt_count": int(retry_meta.get("attempt_count") or 1),
+        }
+        step_map[step_name].update(
+            _snapshot_inner_artifacts(
+                root=root,
+                wrapper_out_dir=out_dir,
+                task_id=task_id,
+                step_name=step_name,
+                stdout=snapshot_stdout,
+                stderr=snapshot_stderr,
+            )
+        )
+        if rc != 0:
+            failed_steps.append(step_name)
+            if stop_on_step_failure:
+                break
+    return failed_steps
 
-        ordered_steps = [step_map[name] for name, _ in steps if name in step_map]
-        row["steps"] = ordered_steps
-        row["failed_steps"] = failed_steps
-        row["first_failed_step"] = failed_steps[0] if failed_steps else ""
-        row["ok"] = len(failed_steps) == 0 and len(ordered_steps) == len(steps)
-        updated[tid] = row
 
-        summary["results"] = [updated[k] for k in sorted(updated.keys())]
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Run workflow 5.1 single-task light lane with full-step execution.")
+    parser.add_argument("--task-ids", default="", help="Optional CSV task ids override (e.g. 12,14,21).")
+    parser.add_argument("--task-id-start", type=int, default=1)
+    parser.add_argument("--task-id-end", type=int, default=0, help="0 means until max task id.")
+    parser.add_argument("--max-tasks", type=int, default=0, help="0 means all selected tasks.")
+    parser.add_argument("--timeout-sec", type=int, default=None, help="Wrapper timeout per step in seconds (default: auto > inner step timeout).")
+    parser.add_argument("--llm-timeout-sec", type=int, default=None, help="Forwarded inner timeout for LLM-backed 5.1 steps.")
+    parser.add_argument("--out-dir", default="", help="Output directory. Default: logs/ci/<date>/single-task-light-lane-v2")
+    parser.add_argument("--no-resume", action="store_true", help="Ignore existing summary.json and rerun from scratch.")
+    parser.add_argument(
+        "--fill-refs-after-extract-fail",
+        default="skip",
+        choices=["skip", "continue"],
+        help="Whether fill-refs steps should still run after extract fails.",
+    )
+    parser.add_argument(
+        "--fill-refs-mode",
+        default="auto",
+        choices=["auto", "none", "dry", "write-verify"],
+        help="Whether batch runs should skip fill-refs entirely, keep dry only, or run write+verify. 'auto' => none for multi-task and write-verify for single-task.",
+    )
+    parser.add_argument(
+        "--downstream-on-extract-fail",
+        default="auto",
+        choices=["auto", "continue", "skip-soft", "skip-all"],
+        help="How later steps should behave after extract fails. 'auto' resolves to continue for one task and skip-soft for multi-task batches.",
+    )
+    parser.add_argument(
+        "--downstream-on-extract-family-fail",
+        default="auto",
+        choices=["auto", "off", "continue", "skip-soft", "skip-all"],
+        help="Family-aware override after extract fails. 'auto' skip-all for timeout / obligations-fail and skip-soft for model-output-invalid families.",
+    )
+    parser.add_argument(
+        "--batch-lane",
+        default="auto",
+        choices=["auto", "standard", "extract-first"],
+        help="Batch execution style. 'auto' resolves to extract-first for multi-task batches and standard for one task.",
+    )
+    parser.add_argument(
+        "--resume-failed-task-from",
+        default="always-rerun",
+        choices=["always-rerun", "first-failed-step"],
+        help="When resuming a failed task, rerun all steps or reuse the successful prefix and restart from the first failed step.",
+    )
+    parser.add_argument("--stop-on-step-failure", action="store_true", help="Stop remaining steps in one task when one step fails.")
+    parser.add_argument("--no-align-apply", action="store_true", help="Do not pass --apply to align step (read-only mode).")
+    parser.add_argument(
+        "--delivery-profile",
+        default=str(os.environ.get("DELIVERY_PROFILE") or "fast-ship"),
+        choices=["playable-ea", "fast-ship", "standard"],
+        help="Delivery profile for light-lane LLM steps.",
+    )
+    parser.add_argument("--self-check", action="store_true", help="Print resolved task range and step names, then exit.")
+    return parser
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+    root = _repo_root()
+    selected = _select_task_ids(root, args)
+    if not selected:
+        print("SINGLE_TASK_LIGHT_LANE status=fail reason=no_selected_tasks")
+        return 2
+
+    out_dir = Path(args.out_dir) if str(args.out_dir).strip() else _default_out_dir(root)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    summary_path = out_dir / "summary.json"
+    align_apply = not bool(args.no_align_apply)
+    fill_refs_mode_resolved = _resolve_fill_refs_mode(str(args.fill_refs_mode), selected_count=len(selected))
+    batch_lane_resolved = _resolve_batch_lane(str(args.batch_lane), selected_count=len(selected))
+    steps = _apply_fill_refs_mode(
+        _steps(
+            align_apply=align_apply,
+            delivery_profile=str(args.delivery_profile),
+            llm_timeout_sec=args.llm_timeout_sec,
+        ),
+        fill_refs_mode=fill_refs_mode_resolved,
+    )
+    downstream_on_extract_fail_resolved = _resolve_downstream_on_extract_fail(
+        str(args.downstream_on_extract_fail),
+        selected_count=len(selected),
+    )
+    downstream_on_extract_family_fail_resolved = str(args.downstream_on_extract_family_fail)
+    if batch_lane_resolved == "extract-first" and downstream_on_extract_fail_resolved == "continue":
+        downstream_on_extract_fail_resolved = "skip-soft"
+    step_lookup = {name: cmd for name, cmd in steps}
+    phase1_step_names = [name for name in ["extract", "align"] if name in step_lookup]
+    phase2_step_names = [name for name, _cmd in steps if name not in phase1_step_names]
+    step_names = [name for name, _ in steps]
+    resume_scope = _build_resume_scope(
+        selected=selected,
+        delivery_profile=str(args.delivery_profile),
+        align_apply=align_apply,
+        fill_refs_after_extract_fail=str(args.fill_refs_after_extract_fail),
+        downstream_on_extract_fail=downstream_on_extract_fail_resolved,
+        downstream_on_extract_family_fail=downstream_on_extract_family_fail_resolved,
+        fill_refs_mode=fill_refs_mode_resolved,
+        batch_lane=batch_lane_resolved,
+    )
+
+    if bool(args.self_check):
+        payload = {
+            "status": "ok",
+            "task_count": len(selected),
+            "task_id_start": selected[0],
+            "task_id_end": selected[-1],
+            "steps": step_names,
+            "delivery_profile": str(args.delivery_profile),
+            "out_dir": str(out_dir).replace("\\", "/"),
+            "resume_scope": resume_scope,
+            "resume_failed_task_from": str(args.resume_failed_task_from),
+            "fill_refs_after_extract_fail": str(args.fill_refs_after_extract_fail),
+            "fill_refs_mode_requested": str(args.fill_refs_mode),
+            "fill_refs_mode_resolved": fill_refs_mode_resolved,
+            "downstream_on_extract_fail_requested": str(args.downstream_on_extract_fail),
+            "downstream_on_extract_fail_resolved": downstream_on_extract_fail_resolved,
+            "downstream_on_extract_family_fail_requested": str(args.downstream_on_extract_family_fail),
+            "downstream_on_extract_family_fail_resolved": downstream_on_extract_family_fail_resolved,
+            "batch_lane_requested": str(args.batch_lane),
+            "batch_lane_resolved": batch_lane_resolved,
+            "phase1_step_names": phase1_step_names,
+            "phase2_step_names": phase2_step_names,
+        }
+        _write_json(summary_path, payload)
+        print(
+            f"SINGLE_TASK_LIGHT_LANE_SELF_CHECK status=ok tasks={len(selected)} "
+            f"range=T{selected[0]}-T{selected[-1]} out={str(summary_path).replace('\\', '/')}"
+        )
+        return 0
+
+    old_summary = None if bool(args.no_resume) else _load_summary(summary_path)
+    summary: dict[str, Any]
+    if isinstance(old_summary, dict) and _summary_scope_matches(old_summary, resume_scope):
+        summary = old_summary
+    else:
+        summary = {}
+    if not isinstance(summary.get("results"), list):
+        summary["results"] = []
+    summary.setdefault("cmd", "run_single_task_light_lane")
+    summary.setdefault("started_at", dt.datetime.now().isoformat(timespec="seconds"))
+    summary["task_id_start"] = selected[0]
+    summary["task_id_end"] = selected[-1]
+    summary["task_count"] = len(selected)
+    summary["delivery_profile"] = str(args.delivery_profile)
+    summary["align_apply"] = align_apply
+    summary["out_dir"] = str(out_dir).replace("\\", "/")
+    summary["status"] = "running"
+    summary["resume_scope"] = resume_scope
+    summary["resume_failed_task_from"] = str(args.resume_failed_task_from)
+    summary["fill_refs_after_extract_fail"] = str(args.fill_refs_after_extract_fail)
+    summary["fill_refs_mode_requested"] = str(args.fill_refs_mode)
+    summary["fill_refs_mode_resolved"] = fill_refs_mode_resolved
+    summary["downstream_on_extract_fail_requested"] = str(args.downstream_on_extract_fail)
+    summary["downstream_on_extract_fail_resolved"] = downstream_on_extract_fail_resolved
+    summary["downstream_on_extract_family_fail_requested"] = str(args.downstream_on_extract_family_fail)
+    summary["downstream_on_extract_family_fail_resolved"] = downstream_on_extract_family_fail_resolved
+    summary["batch_lane_requested"] = str(args.batch_lane)
+    summary["batch_lane_resolved"] = batch_lane_resolved
+    summary["phase1_step_names"] = phase1_step_names
+    summary["phase2_step_names"] = phase2_step_names
+    summary["llm_timeout_sec"] = int(args.llm_timeout_sec) if args.llm_timeout_sec is not None else None
+    summary["wrapper_timeout_sec"] = int(args.timeout_sec) if args.timeout_sec is not None else None
+    summary["resume_reused"] = bool(isinstance(old_summary, dict) and _summary_scope_matches(old_summary, resume_scope))
+    summary["resume_scope_reset"] = bool(isinstance(old_summary, dict) and not _summary_scope_matches(old_summary, resume_scope))
+
+    existing = _index_results(summary["results"])
+    updated: dict[int, dict[str, Any]] = {task_id: row for task_id, row in existing.items() if task_id in set(selected)}
+    skipped_completed = 0
+    def _flush_summary(*, last_task_id: int) -> None:
+        summary["results"] = [updated[key] for key in sorted(updated.keys())]
         _rebuild_counts(summary)
         summary["remaining_tasks"] = max(0, len(selected) - int(summary.get("processed_tasks", 0)))
-        summary["last_task_id"] = tid
+        summary["last_task_id"] = last_task_id
         summary["last_updated_at"] = dt.datetime.now().isoformat(timespec="seconds")
-        summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        summary["skipped_completed_tasks"] = skipped_completed
+        _write_json(summary_path, summary)
+
+    if batch_lane_resolved == "extract-first" and len(selected) > 1:
+        summary["phase"] = "phase1"
+        phase1_items = [(name, step_lookup[name]) for name in phase1_step_names]
+        for idx, task_id in enumerate(selected, start=1):
+            existing_row = updated.get(task_id)
+            if _row_is_complete(existing_row, step_names=step_names):
+                skipped_completed += 1
+                _flush_summary(last_task_id=task_id)
+                continue
+            print(f"[phase1 {idx}/{len(selected)}] run task {task_id}")
+            row = dict(existing_row) if isinstance(existing_row, dict) else {"task_id": task_id, "steps": []}
+            step_map, phase_start_index, reused_successful_steps, resumed_from_step = _prepare_phase_resume(
+                existing_row,
+                target_step_names=phase1_step_names,
+            )
+            if resumed_from_step:
+                row["phase1_resumed_from_step"] = resumed_from_step
+            if reused_successful_steps:
+                row["phase1_reused_successful_steps"] = list(reused_successful_steps)
+            _run_named_steps_for_task(
+                root=root,
+                out_dir=out_dir,
+                task_id=task_id,
+                step_map=step_map,
+                step_items=phase1_items[phase_start_index:],
+                delivery_profile=str(args.delivery_profile),
+                explicit_timeout_sec=args.timeout_sec,
+                llm_timeout_sec=args.llm_timeout_sec,
+                fill_refs_after_extract_fail=str(args.fill_refs_after_extract_fail),
+                downstream_on_extract_fail=downstream_on_extract_fail_resolved,
+                downstream_on_extract_family_fail=downstream_on_extract_family_fail_resolved,
+                stop_on_step_failure=bool(args.stop_on_step_failure),
+            )
+            ordered = [step_map[name] for name in step_names if name in step_map]
+            failed_steps = _collect_failed_steps(step_map, ordered_step_names=step_names)
+            row["steps"] = ordered
+            row["failed_steps"] = failed_steps
+            row["first_failed_step"] = failed_steps[0] if failed_steps else ""
+            row["ok"] = (len(failed_steps) == 0 and len(ordered) == len(steps))
+            updated[task_id] = row
+            _flush_summary(last_task_id=task_id)
+
+        phase2_candidates: list[int] = []
+        for task_id in selected:
+            row = updated.get(task_id)
+            if _row_is_complete(row, step_names=step_names):
+                continue
+            extract_step = _existing_step_map(row).get("extract")
+            if isinstance(extract_step, dict) and not bool(extract_step.get("skipped")) and int(extract_step.get("rc") or 0) == 0:
+                phase2_candidates.append(task_id)
+        summary["phase"] = "phase2"
+        summary["phase2_candidate_task_ids"] = [int(task_id) for task_id in phase2_candidates]
+        phase2_items = [(name, step_lookup[name]) for name in phase2_step_names]
+        for idx, task_id in enumerate(phase2_candidates, start=1):
+            existing_row = updated.get(task_id)
+            print(f"[phase2 {idx}/{len(phase2_candidates)}] run task {task_id}")
+            row = dict(existing_row) if isinstance(existing_row, dict) else {"task_id": task_id, "steps": []}
+            step_map, phase_start_index, reused_successful_steps, resumed_from_step = _prepare_phase_resume(
+                existing_row,
+                target_step_names=phase2_step_names,
+            )
+            if resumed_from_step:
+                row["phase2_resumed_from_step"] = resumed_from_step
+            if reused_successful_steps:
+                row["phase2_reused_successful_steps"] = list(reused_successful_steps)
+            _run_named_steps_for_task(
+                root=root,
+                out_dir=out_dir,
+                task_id=task_id,
+                step_map=step_map,
+                step_items=phase2_items[phase_start_index:],
+                delivery_profile=str(args.delivery_profile),
+                explicit_timeout_sec=args.timeout_sec,
+                llm_timeout_sec=args.llm_timeout_sec,
+                fill_refs_after_extract_fail=str(args.fill_refs_after_extract_fail),
+                downstream_on_extract_fail=downstream_on_extract_fail_resolved,
+                downstream_on_extract_family_fail=downstream_on_extract_family_fail_resolved,
+                stop_on_step_failure=bool(args.stop_on_step_failure),
+            )
+            ordered = [step_map[name] for name in step_names if name in step_map]
+            failed_steps = _collect_failed_steps(step_map, ordered_step_names=step_names)
+            row["steps"] = ordered
+            row["failed_steps"] = failed_steps
+            row["first_failed_step"] = failed_steps[0] if failed_steps else ""
+            row["ok"] = (len(failed_steps) == 0 and len(ordered) == len(steps))
+            updated[task_id] = row
+            _flush_summary(last_task_id=task_id)
+        summary.pop("phase", None)
+    else:
+        for idx, task_id in enumerate(selected, start=1):
+            existing_row = updated.get(task_id)
+            if _row_is_complete(existing_row, step_names=step_names):
+                skipped_completed += 1
+                _flush_summary(last_task_id=task_id)
+                continue
+
+            print(f"[{idx}/{len(selected)}] run task {task_id}")
+            row = {"task_id": task_id, "steps": []}
+            step_map, resume_start_index, resumed_from_step, reused_successful_steps = _prepare_failed_row_resume(
+                existing_row,
+                step_names=step_names,
+                resume_failed_task_from=str(args.resume_failed_task_from),
+            )
+            if resumed_from_step:
+                row["resumed_from_step"] = resumed_from_step
+                row["reused_successful_steps"] = list(reused_successful_steps)
+            else:
+                resume_start_index = 0
+
+            _run_named_steps_for_task(
+                root=root,
+                out_dir=out_dir,
+                task_id=task_id,
+                step_map=step_map,
+                step_items=steps[resume_start_index:],
+                delivery_profile=str(args.delivery_profile),
+                explicit_timeout_sec=args.timeout_sec,
+                llm_timeout_sec=args.llm_timeout_sec,
+                fill_refs_after_extract_fail=str(args.fill_refs_after_extract_fail),
+                downstream_on_extract_fail=downstream_on_extract_fail_resolved,
+                downstream_on_extract_family_fail=downstream_on_extract_family_fail_resolved,
+                stop_on_step_failure=bool(args.stop_on_step_failure),
+            )
+
+            ordered = [step_map[name] for name in step_names if name in step_map]
+            failed_steps = _collect_failed_steps(step_map, ordered_step_names=step_names)
+            row["steps"] = ordered
+            row["failed_steps"] = failed_steps
+            row["first_failed_step"] = failed_steps[0] if failed_steps else ""
+            row["ok"] = (len(failed_steps) == 0 and len(ordered) == len(steps))
+            updated[task_id] = row
+            _flush_summary(last_task_id=task_id)
 
     _rebuild_counts(summary)
     summary["remaining_tasks"] = max(0, len(selected) - int(summary.get("processed_tasks", 0)))
     summary["status"] = "ok" if int(summary.get("failed_tasks", 0)) == 0 else "fail"
     summary["finished_at"] = dt.datetime.now().isoformat(timespec="seconds")
-    summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
+    summary["skipped_completed_tasks"] = skipped_completed
+    _write_json(summary_path, summary)
     print(
         "SINGLE_TASK_LIGHT_LANE "
         f"status={summary['status']} processed={summary.get('processed_tasks', 0)}/{len(selected)} "

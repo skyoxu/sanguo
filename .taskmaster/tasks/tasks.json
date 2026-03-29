@@ -1983,8 +1983,8 @@
         "id": "66",
         "title": "Module: A-006 Forced Challenge Prompt UI Integration Tests",
         "description": "Complete A-006 with GdUnit integration coverage: pre-challenge prompt copy, win-rate tier, and fail consequence are visible in HUD/dialog and consistent with contracts.",
-        "details": "Goal: extend the UI consumption chain of core.sanguo.boss.challenge.prompted from contract unit tests to integration layer (event publish -> UI render -> user confirm). Keep deferred for now; implementation must add dedicated GdUnit tests and ACC anchors. acceptanceRefs: [A-006] contractRefs: [core.sanguo.boss.challenge.prompted].",
-        "testStrategy": "GdUnit: lock default prompt copy and win-rate tier rendering, aligned with contract constants.",
+        "details": "Goal: extend the UI consumption chain of core.sanguo.boss.challenge.prompted from contract unit tests to integration layer (event publish -> UI render -> user confirm -> observable post-confirm result). Keep deferred for now; implementation must add dedicated GdUnit tests and ACC anchors. acceptanceRefs: [A-006] contractRefs: [core.sanguo.boss.challenge.prompted].",
+        "testStrategy": "GdUnit: lock default prompt copy and win-rate tier rendering, aligned with contract constants, and assert that confirm action triggers an observable post-confirm result (event or state transition).",
         "priority": "medium",
         "dependencies": [
           "59",
@@ -2009,9 +2009,9 @@
             "dependencies": [
               1
             ],
-            "details": "Cover dialog visibility, confirm button state, and localized explanatory copy for release-safe presentation.",
+            "details": "Cover dialog visibility, confirm button state, localized explanatory copy, and a concrete post-confirm observable result for release-safe presentation.",
             "status": "pending",
-            "testStrategy": "Add GdUnit integration tests that assert the dialog appears with localized text and actionable controls.",
+            "testStrategy": "Add GdUnit integration tests that assert the dialog appears with localized text and actionable controls, then assert a concrete post-confirm observable result.",
             "parentId": "66"
           },
           {
