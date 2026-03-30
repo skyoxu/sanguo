@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -309,6 +310,46 @@ def validate_output(
                     return False, f"{key}:unexpected_refs_in_appended_item_{i+1}"
 
     return True, "ok"
+
+
+def restore_existing_refs(
+    *,
+    view_inputs: list[ViewInput],
+    out_obj: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    restored_obj = deepcopy(out_obj)
+    restored_items: list[dict[str, Any]] = []
+    for v in view_inputs:
+        payload = restored_obj.get(v.view)
+        if not isinstance(payload, dict):
+            continue
+        acc = payload.get("acceptance")
+        if not isinstance(acc, list):
+            continue
+        changed = False
+        new_acc = list(acc)
+        for i, new_line in enumerate(new_acc):
+            if i >= len(v.acceptance):
+                break
+            old_line = v.acceptance[i]
+            old_prefix, old_refs = split_refs(old_line)
+            new_prefix, new_refs = split_refs(str(new_line))
+            if old_refs and new_refs != old_refs:
+                prefix = new_prefix or old_prefix
+                restored_line = f"{prefix} {old_refs}".strip() if prefix else old_refs
+                new_acc[i] = restored_line
+                restored_items.append(
+                    {
+                        "view": v.view,
+                        "index": i + 1,
+                        "old_refs": old_refs,
+                        "new_refs": new_refs,
+                    }
+                )
+                changed = True
+        if changed:
+            payload["acceptance"] = new_acc
+    return restored_obj, restored_items
 
 
 def apply_acceptance(entry: dict[str, Any], new_acceptance: list[str]) -> None:

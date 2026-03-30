@@ -4020,8 +4020,9 @@
       "A-007"
     ],
     "acceptance": [
-      "GdUnit: when rejecting from the forced challenge prompt, flow must enter return_to_camp_end_round and end current round; board-phase continuation is not allowed. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd",
-      "GdUnit: fail consequence hint must be visible/replayable (at least one of log or HUD) and aligned with FailConsequence contract field. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd"
+      "GdUnit: clicking reject in the forced challenge UI confirmation flow must execute the real reject interaction path, trigger return_to_camp_end_round semantics, return the run to camp, end the current round, and leave no board actions available afterward. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd",
+      "GdUnit: after the reject path resolves, the UI flow must keep the reject outcome observable with explicit camp-entry or round-end evidence, and the assertion output must explicitly identify A-007 reject-path coverage rather than prompt-only coverage. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd",
+      "GdUnit: clicking reject must also capture and assert the resulting reject event flow, proving the UI confirm interaction actually emits the reject-path transition event(s) that drive return_to_camp_end_round. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd"
     ],
     "test_refs": [
       "Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd"
@@ -4139,8 +4140,12 @@
       "A-012"
     ],
     "acceptance": [
-      "GdUnit: release mode never exposes raw i18n keys in player-facing explanation text. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
-      "GdUnit: dev mode may expose raw i18n keys for diagnostics. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd"
+      "GdUnit: a defined missing-key policy exists for each build mode, and for the same missing localization key release mode returns a player-friendly fallback while dev mode may return the raw i18n key for diagnostics. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
+      "GdUnit: the task-level or CI guard evaluates the same missing-localization case by build mode, failing when release-mode output exposes a raw i18n key and passing when the corresponding dev-mode diagnostic case exposes it as allowed. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
+      "GdUnit: run mode-parameterized tests for the same explanation-text missing-key case under both release and dev modes, and assert the two outputs differ exactly per policy. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
+      "GdUnit: include direct unit coverage for the missing-key mode policy helper, asserting release-friendly fallback and dev diagnostic raw-key exposure as separate expected outcomes. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
+      "GdUnit integration: render the same missing key in release and dev modes through the shared localization path and assert the rendered outputs diverge as specified. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
+      "CI fixture: evaluate the same missing-localization case by build mode, fail the release case when raw key is exposed, and pass the dev diagnostics-enabled case. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd"
     ],
     "test_refs": [
       "Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd"
@@ -4260,8 +4265,8 @@
       "A-017"
     ],
     "acceptance": [
-      "xUnit: diagnostics payload is desensitized with mode-based priority policy. Refs: Game.Core.Tests/Tasks/Task71DiagnosticsRetentionTests.cs",
-      "xUnit: retention keeps latest bounded window only (default 3 runs). Refs: Game.Core.Tests/Tasks/Task71DiagnosticsRetentionTests.cs"
+      "xUnit: integration closure verifies split task 113 remains wired through the module by preserving the delivered diagnostic payload desensitization behavior. Refs: Game.Core.Tests/Tasks/Task71DiagnosticsRetentionTests.cs",
+      "xUnit: integration closure verifies split task 114 remains wired through the module by preserving the delivered retention-window behavior. Refs: Game.Core.Tests/Tasks/Task71DiagnosticsRetentionTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task71SplitIntegrationTests.cs"
@@ -4312,8 +4317,8 @@
       "A-019"
     ],
     "acceptance": [
-      "xUnit/integration: on primary audit write failure, runtime continues and fallback write to user:// is attempted. Refs: Game.Core.Tests/Tasks/Task72AuditFallbackRotationTests.cs",
-      "xUnit/filesystem: fallback files rotate under fixed cap policy. Refs: Game.Core.Tests/Tasks/Task72AuditFallbackRotationTests.cs"
+      "Integration closure confirms split task 115 evidence shows that when the primary audit write fails, runtime continues and a fallback write to user:// is attempted. Refs: Game.Core.Tests/Tasks/Task72AuditFallbackRotationTests.cs",
+      "Integration closure confirms split task 116 evidence shows fallback files rotate under the fixed cap policy rather than growing without bound. Refs: Game.Core.Tests/Tasks/Task72AuditFallbackRotationTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task72SplitIntegrationTests.cs"
@@ -4361,7 +4366,11 @@
       "A-020"
     ],
     "acceptance": [
-      "CI gate rejects remove/rename contract changes without deprecation window and migration notice. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs"
+      "Given synthetic before-and-after contract sets, the CI contract-compatibility gate accepts additive contract changes by default, uses stable identifiers and field-level comparison to classify removals or renames as breaking changes, rejects those breaking changes unless explicit deprecation-window and migration-plan evidence is provided, and on rejection returns a failing CI result plus a summary naming the violating contract and the missing migration evidence. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "Compatibility decisions must not rely on filename or path drift: when stable identifiers and compared fields are unchanged, filename/path-only changes must not flip compatibility outcomes. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "Acceptance requires both script-level and xUnit-wrapper coverage for the compatibility checker and CI summary output paths; missing either layer keeps the task failing. Refs: scripts/python/check_domain_contracts.py Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "Focused tests must cover the compatibility rule evaluator with additive and breaking samples, and regression tests must feed synthetic before/after contract sets directly into the diff checker. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "A breaking-change fixture must verify both CI summary generation and a non-zero process exit code for the gate run. Refs: scripts/python/check_domain_contracts.py Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs"
@@ -4420,7 +4429,7 @@
       "R3"
     ],
     "acceptance": [
-      "Task 74 is complete only when integration-closure evidence for both split tasks 85 and 86 exists and is verifiable; if evidence for either task is missing or cannot be verified, Task 74 is incomplete. Refs: Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
+      "Task 74 remains incomplete unless verifiable integration-closure evidence exists for both split tasks 85 and 86; if either split task lacks verifiable evidence, Task 74 is incomplete. Refs: Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task74CampaignRuleEngineTests.cs",
@@ -4602,8 +4611,8 @@
       "R8"
     ],
     "acceptance": [
-      "xUnit: per-round objective generation and settlement are deterministic under fixed seed. Refs: Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs",
-      "GdUnit: objective publication and settlement hints are visible in HUD/log explain chain. Refs: Tests.Godot/tests/UI/test_task77_random_objective_hud_visibility.gd"
+      "xUnit: Task 77 is accepted only when integration-closure verification confirms the split implementation evidence for task 117 is present and passes the Task 77 backend closure check; if that evidence is missing or fails, Task 77 is not accepted. Refs: Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs",
+      "GdUnit: Task 77 is accepted only when gameplay-facing integration-closure verification confirms the split implementation evidence for task 118 is present and passes the Task 77 UI/explain-chain closure check; if that evidence is missing or fails, Task 77 is not accepted. Refs: Tests.Godot/tests/UI/test_task77_random_objective_hud_visibility.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task77SplitIntegrationTests.cs"
@@ -4655,7 +4664,9 @@
       "R8"
     ],
     "acceptance": [
-      "xUnit: reward draft exposes deterministic 3-choice candidates under fixed seed and commits selected outcome once. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs"
+      "Integration closure verifies that split tasks 119 and 120 supply the RewardDraftEngine implementation evidence required by task 78, and that no remaining implementation work is left on this master task. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs",
+      "Integration closure must explicitly verify deterministic draft behavior: under the same input conditions and seed, RewardDraftEngine evidence from tasks 119 and 120 must produce repeatable draft outcomes; missing deterministic evidence keeps task 78 open. Refs: Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs",
+      "Integration closure must explicitly verify the 3-choice draft requirement: RewardDraftEngine evidence from tasks 119 and 120 must show each draft exposes exactly three candidate options; missing or non-3-choice evidence keeps task 78 open. Refs: Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
@@ -4765,7 +4776,7 @@
       "A-020"
     ],
     "acceptance": [
-      "Integration closure uses split-task evidence from 91, 92. Refs: Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
+      "Task 80 is accepted only when integration closure is confirmed from evidence produced by split tasks 91 and 92, with no new implementation required in this task. Refs: Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs",
@@ -4827,7 +4838,7 @@
       "A-008"
     ],
     "acceptance": [
-      "Task verifies A-008 with deterministic evidence. Refs: Tests.Godot/tests/UI/test_event_result_popup.gd Tests.Godot/tests/UI/test_event_log_details_panel.gd"
+      "The task delivers only the A-008 popup-log atomic commit split scope, and deterministic evidence confirms that scoped behavior. Refs: Tests.Godot/tests/UI/test_event_result_popup.gd Tests.Godot/tests/UI/test_event_log_details_panel.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task81SplitTests.cs",
@@ -4885,7 +4896,8 @@
       "A-009~A-010"
     ],
     "acceptance": [
-      "Task verifies A-009~A-010 with deterministic evidence. Refs: Tests.Godot/tests/UI/test_event_log_details_panel.gd Tests.Godot/tests/UI/test_event_log_additional_details.gd"
+      "The split task is accepted only when HUD log overflow/windowing behavior is explicitly verified: when log volume exceeds the visible window, entries are windowed deterministically (no unbounded growth in the visible panel), and the latest entries remain observable through the intended panel behavior. Refs: Tests.Godot/tests/UI/test_event_log_details_panel.gd Tests.Godot/tests/UI/test_event_log_additional_details.gd",
+      "Acceptance also requires deterministic task-specific evidence for A-009/A-010 that this split implements only overflow/windowing scope and does not include unrelated parent-task behavior. Refs: Game.Core.Tests/Tasks/Task82SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task82SplitTests.cs",
@@ -4946,7 +4958,8 @@
       "A-013~A-014"
     ],
     "acceptance": [
-      "Task verifies A-013~A-014 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
+      "This split task must explicitly deliver replay trust hash and save_untrusted behaviors: deterministic evidence must show replay trust hash is computed and validated as expected, and save_untrusted is produced under the defined trust-failure path. Refs: Game.Core.Tests/Tasks/Task83SplitTests.cs Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Acceptance for A-013/A-014 fails unless task-scoped deterministic tests separately demonstrate both replay trust hash and save_untrusted outcomes (not only generic split completion text). Refs: Game.Core.Tests/Tasks/Task83SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task83SplitTests.cs",
@@ -5003,7 +5016,8 @@
       "A-015"
     ],
     "acceptance": [
-      "Task verifies A-015 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task46HeadlessSmokeStrictModeTests.cs Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
+      "Replay mismatch mode policy must be explicitly verified: mismatch conditions enter the defined mismatch mode with observable state transition, while non-mismatch conditions do not enter mismatch mode and keep normal flow unchanged. Refs: Game.Core.Tests/Tasks/Task84SplitTests.cs Game.Core.Tests/Tasks/Task46HeadlessSmokeStrictModeTests.cs",
+      "Acceptance closes only with deterministic pass/fail evidence for both entry and non-entry branches of mismatch mode, scoped strictly to this A-015 split. Refs: Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task84SplitTests.cs",
@@ -5060,7 +5074,9 @@
       "R1"
     ],
     "acceptance": [
-      "Task verifies R1 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Campaign runmode isolation must be explicitly defined and verified with observable boundaries: entering campaign runmode applies only the intended isolation behavior, and non-campaign paths must not be isolated by this split. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Acceptance also requires explicit split-boundary evidence versus T74: this task is independently shippable for R1 isolation scope and does not depend on unsplit parent responsibilities. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs",
+      "Task-specific deterministic verification is mandatory: under the same inputs and preconditions, campaign runmode isolation outcomes and split-boundary checks must be reproducible; otherwise the task remains open. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task85SplitTests.cs",
@@ -5115,7 +5131,7 @@
       "R3"
     ],
     "acceptance": [
-      "Task verifies R3 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "The campaign endgame adjudicator work is delivered as an independent R3 split from T74, and task-specific deterministic tests provide evidence that the changes did not expand beyond that narrow split scope. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task86SplitTests.cs",
@@ -5170,7 +5186,7 @@
       "R2/R5"
     ],
     "acceptance": [
-      "Task verifies R2/R5 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs"
+      "Deterministic evidence verifies that this split task satisfies both the R2 camp transition obligation and the R5 one-action-rule obligation; if either obligation is missing from verification or fails verification, the task is not accepted. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task87SplitTests.cs",
@@ -5225,7 +5241,9 @@
       "A-003~A-005"
     ],
     "acceptance": [
-      "Task verifies A-003~A-005 with deterministic evidence. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs"
+      "Leave-camp save retry behavior must be explicitly verified: when leave-camp save fails, a retry path is triggered and observable in deterministic evidence instead of being silently skipped. Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Warning behavior must be explicitly verified with trigger and non-trigger conditions for leave-camp save outcomes, and acceptance fails if warning semantics are not auditable. Refs: Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs",
+      "A-003/A-004/A-005 closure requires deterministic evidence for retry + warning + split scope containment, not only generic split completion text. Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task88SplitTests.cs",
@@ -5281,7 +5299,8 @@
       "R6"
     ],
     "acceptance": [
-      "Task verifies R6 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task89BossPressureTimelineTests.cs"
+      "Only the independent R6 boss pressure timeline split from T76 is changed, and task-specific deterministic verification confirms behavior outside this narrow split scope remains unchanged. Refs: Game.Core.Tests/Tasks/Task89BossPressureTimelineTests.cs",
+      "Acceptance fails if scope drifts away from the T76-origin split boundary or mixes in responsibilities from non-T76 workstreams. Refs: Game.Core.Tests/Tasks/Task89SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task89SplitTests.cs",
@@ -5338,7 +5357,9 @@
       "A-006~A-007"
     ],
     "acceptance": [
-      "Task verifies A-006~A-007 with deterministic evidence. Refs: Game.Core.Tests/Services/ForcedChallengePreemptionTests.cs"
+      "Forced challenge preemption must be explicit and auditable: when forced challenge is triggered, the currently active challenge flow is preempted and control switches to the forced-challenge flow (A-006 behavior). Refs: Game.Core.Tests/Services/ForcedChallengePreemptionTests.cs",
+      "After preemption, the preempted challenge flow must not continue advancing or resolving in parallel until explicitly restored or terminated (A-007 behavior). Refs: Game.Core.Tests/Services/ForcedChallengePreemptionTests.cs",
+      "This split task closes only when deterministic task-specific evidence verifies both preemption transition and non-advance guarantees within split scope. Refs: Game.Core.Tests/Tasks/Task90SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task90SplitTests.cs",
@@ -5394,7 +5415,12 @@
       "A-013~A-020"
     ],
     "acceptance": [
-      "Task verifies A-013~A-020 with deterministic evidence. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs"
+      "The runner must map A-013~A-020 assertions to stable gate units and emit summary records with stable IDs, pass/fail/skipped state, and actionable failure messages; acceptance requires deterministic enumeration tests proving all required IDs are registered. Refs: Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs",
+      "Scope must remain narrow to this split: the runner must cover only A-013~A-020 required assertions, and acceptance fails if extra mandatory gate units outside this range are registered for this split. Refs: Game.Core.Tests/Tasks/Task91SplitTests.cs",
+      "Acceptance requires deterministic verification of summary serialization and failing exit behavior when any required assertion fails. Refs: Game.Core.Tests/Tasks/Task91SplitTests.cs",
+      "Check granularity must stay auditable: each assertion (or tightly related pair) maps to a named check, and a monolithic runner that hides failure source is not accepted. Refs: Game.Core.Tests/Tasks/Task91SplitTests.cs",
+      "The runner must reuse existing quality pipeline logs/evidence paths and must not introduce a parallel reporting channel; acceptance requires deterministic verification that existing pipeline entrypoints invoke this runner and produce the expected summary artifact. Refs: Game.Core.Tests/Contracts/SanguoEventContractsTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs",
+      "Acceptance must be proven by task-specific deterministic tests for this split runner itself (not only parent-task or shared-suite indirect evidence). Refs: Game.Core.Tests/Tasks/Task91SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task91SplitTests.cs",

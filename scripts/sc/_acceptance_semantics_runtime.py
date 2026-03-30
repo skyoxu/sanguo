@@ -16,6 +16,7 @@ from _acceptance_semantics_align import (
     find_view_entry,
     normalize_acceptance_lines,
     render_task_context,
+    restore_existing_refs,
     run_codex_exec,
     safe_parse_json,
     validate_output,
@@ -215,6 +216,10 @@ def run_alignment_tasks(
                 break
             continue
 
+        out_obj, refs_restored_items = restore_existing_refs(
+            view_inputs=view_inputs,
+            out_obj=out_obj,
+        )
         ok, validate_reason = validate_output(
             task_id=tid,
             mode=mode,
@@ -224,7 +229,17 @@ def run_alignment_tasks(
         )
         if not ok:
             failed += 1
-            results.append({"task_id": tid, "status": "fail", "reason": validate_reason, "dir": str(task_out), "attempts": attempts})
+            results.append(
+                {
+                    "task_id": tid,
+                    "status": "fail",
+                    "reason": validate_reason,
+                    "dir": str(task_out),
+                    "attempts": attempts,
+                    "refs_restored_count": len(refs_restored_items),
+                    "refs_restored_items": refs_restored_items,
+                }
+            )
             if max_failures > 0 and failed >= max_failures:
                 stopped_early = True
                 break
@@ -243,7 +258,19 @@ def run_alignment_tasks(
             if task_changed:
                 changed += 1
 
-        results.append({"task_id": tid, "status": "ok", "dir": str(task_out), "applied": bool(apply), "mode": mode, "changed": task_changed, "attempts": attempts})
+        results.append(
+            {
+                "task_id": tid,
+                "status": "ok",
+                "dir": str(task_out),
+                "applied": bool(apply),
+                "mode": mode,
+                "changed": task_changed,
+                "attempts": attempts,
+                "refs_restored_count": len(refs_restored_items),
+                "refs_restored_items": refs_restored_items,
+            }
+        )
 
     return {
         "results": results,
