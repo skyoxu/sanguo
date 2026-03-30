@@ -2561,9 +2561,9 @@
       {
         "id": "83",
         "title": "Module: replay trust hash + save_untrusted (split from T70)",
-        "description": "Split task for A-013~A-014.",
-        "details": "Independent split task for A-013~A-014; keep scope narrow to reduce complexity.",
-        "testStrategy": "Task-specific deterministic tests.",
+        "description": "Split task for A-013~A-014 (replay trust hash + save_untrusted).",
+        "details": "Independent split task for A-013~A-014 (replay trust hash + save_untrusted); keep scope narrow to reduce complexity.",
+        "testStrategy": "Task-specific deterministic tests for replay trust hash and save_untrusted.",
         "priority": "high",
         "dependencies": [
           "52",
