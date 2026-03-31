@@ -2915,7 +2915,13 @@
           "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
-        "complexity": 6
+        "complexity": 6,
+        "acceptanceCriteria": [
+          "[A-START-93-001] Campaign start payload includes explicit run mode, commander, strategem list, map id, seed, and difficulty fields with additive/forward-compatible defaults.",
+          "[A-START-93-002] Contract tests assert required campaign start fields and defaults.",
+          "[A-START-93-003] Integration tests start a campaign run and assert runtime state contains all payload fields after bootstrap handoff.",
+          "[A-START-93-004] Save/load regression tests verify campaign header persistence for mode identity, selected commander, and seed reproduction context."
+        ]
       },
       {
         "id": "94",
@@ -3085,7 +3091,12 @@
           "CH07"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
-        "complexity": 5
+        "complexity": 5,
+        "acceptanceCriteria": [
+          "[A-CAMP-98-001] Camp one-action-per-round guard refuses second action attempts in the same round with deterministic blocked reason code and explain entry.",
+          "[A-CAMP-98-002] xUnit validates guard behavior for refused second action attempts.",
+          "[A-CAMP-98-003] GdUnit validates blocked action message and unchanged camp state for the refused second action path."
+        ]
       },
       {
         "id": "99",
@@ -3168,7 +3179,12 @@
           "CH09"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
-        "complexity": 7
+        "complexity": 7,
+        "acceptanceCriteria": [
+          "[A-BOSS-101-001] Integration closure includes difficulty-based boss dice profile wiring and evidence that profile values resolve per configured difficulty tier.",
+          "[A-BOSS-101-002] Integration closure includes duration-target wiring, with run configuration selecting the intended duration target band and linked pressure timeline behavior.",
+          "[A-BOSS-101-003] Task-101 closure references split-task evidence from tasks 131 and 132 and verifies both integrations are auditable in one end-to-end gate."
+        ]
       },
       {
         "id": "102",
@@ -3590,7 +3606,7 @@
         "id": "118",
         "title": "Module: objective settlement timeline closure (split from T77)",
         "description": "Split task for objective settlement and timeline closure.",
-        "details": "Close objective lifecycle with settle timing, skip semantics, and replay-safe ordering.",
+        "details": "Close objective lifecycle with deterministic settle timing, skip semantics, and replay-safe ordering.",
         "testStrategy": "Task-specific deterministic tests.",
         "priority": "medium",
         "dependencies": [
