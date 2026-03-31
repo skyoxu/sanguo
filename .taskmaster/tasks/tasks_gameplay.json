@@ -4115,7 +4115,7 @@
       "A-008~A-012"
     ],
     "acceptance": [
-      "Task verifies A-008~A-012 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_additional_details.gd"
+      "This split must explicitly implement and exercise the UI assertion gate runner (split from T80), scoped to A-008~A-012 only, and completion is shown by task-specific deterministic evidence for this runner path. Refs: Game.Core.Tests/Tasks/Task92SplitTests.cs Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_additional_details.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task92SplitTests.cs",
@@ -4179,7 +4179,12 @@
       "Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs"
     ],
     "acceptance": [
-      "Campaign run start payload is deterministic and replay-addressable. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs"
+      "A campaign run start uses an additive start config and game-start payload that explicitly include campaign run mode, commander, strategems, map, and seed with defined defaults instead of relying on transient UI state. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "The campaign start payload remains additive and forward-compatible so future campaign-only fields do not require a breaking start-flow rewrite. Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs",
+      "Integration tests start a campaign run and assert runtime state contains all start payload fields after bootstrap handoff (including mode, commander, strategems, map, seed, and difficulty). Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs",
+      "Save header remains sufficient to explain and reproduce the run context without inspecting transient UI state after save/load. Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs",
+      "Save/load regression tests verify campaign header persistence keeps mode identity, selected commander, and seed so run context remains reproducible after reload. Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs",
+      "Verification includes task-specific xUnit mapping/default checks and GdUnit NewGameConfig serialization plus start handoff checks for the same payload contract. Refs: Tests.Godot/tests/UI/test_task93_campaign_ui_visibility.gd"
     ],
     "test_strategy": [
       "xUnit validates payload mapping and defaults; GdUnit validates NewGameConfig serialization and start handoff."
@@ -4236,7 +4241,7 @@
       "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "Campaign start blocks until commander and strategem picks are complete. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "This master task is accepted only when the commander roster and strategem pick flow integration is evidenced by the completed outputs of split tasks 121 and 122; without that split-task evidence, the integration closure is not accepted. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4295,7 +4300,9 @@
       "Tests.Godot/tests/UI/test_hud_scene.gd"
     ],
     "acceptance": [
-      "HUD shows campaign context in localized text without raw keys in release mode. Refs: Tests.Godot/tests/Integration/test_hud_integration.gd Tests.Godot/tests/UI/test_hud_scene.gd"
+      "When campaign runtime state provides commander, strategems, boss pressure context, and round markers, the HUD parameter panel shows each field with zh/en localized labels and values derived from campaign runtime state; in release mode it must not display raw transport/save-header artifacts, raw event codes, or raw localization keys, and malformed localization input must resolve to safe output. Refs: Tests.Godot/tests/Integration/test_hud_integration.gd Tests.Godot/tests/UI/test_hud_scene.gd",
+      "A stable campaign HUD view model is required between runtime state and rendering so HUD behavior does not depend directly on transport events or save headers, and field rendering must stay in the shared HUD layer instead of widget-specific overrides. Refs: Tests.Godot/tests/UI/test_task95_campaign_integration.gd",
+      "Acceptance requires task-specific mapper tests plus GdUnit release-mode regression coverage for localized HUD summary rendering and malformed/missing localization inputs. Refs: Tests.Godot/tests/UI/test_task95_campaign_integration.gd"
     ],
     "test_strategy": [
       "GdUnit locks localized HUD summary rendering for campaign key fields in release mode."
@@ -4353,7 +4360,7 @@
       "Game.Core.Tests/State/GameStateMachineTests.cs"
     ],
     "acceptance": [
-      "Round order remains deterministic and replay-stable under multi-event collisions. Refs: Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs Game.Core.Tests/State/GameStateMachineTests.cs"
+      "Task 96 is satisfied only when campaign round lifecycle state machine integration closure is demonstrated by evidence from split tasks 123 and 124, and this master task does not require additional implementation beyond that closure evidence. Refs: Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs Game.Core.Tests/State/GameStateMachineTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4412,7 +4419,8 @@
       "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "acceptance": [
-      "Five camp building slots are persisted and degrade deterministically. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
+      "Integration closure is complete only when recorded evidence from split tasks 125 and 126, taken together, explicitly proves camp building slot integration and durability model integration are both covered without unresolved gaps. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
+      "Acceptance fails if either camp building slot integration evidence or durability model integration evidence is missing, only indirectly inferred, or leaves unresolved interface/model linkage gaps. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4471,7 +4479,9 @@
       "Game.Core.Tests/Services/SanguoTurnTileActionTests.cs"
     ],
     "acceptance": [
-      "Camp allows at most one action per round, with stable blocked reason reporting. Refs: Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs Game.Core.Tests/Services/SanguoTurnTileActionTests.cs"
+      "If a camp attempts a second action in the same round, the action is refused, camp state does not change, and the event log includes deterministic blocked reason code plus explanatory refusal entry. Refs: Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs Game.Core.Tests/Services/SanguoTurnTileActionTests.cs",
+      "xUnit validates guard behavior for refused second action attempts in one-action-per-round flow. Refs: Game.Core.Tests/Tasks/Task98V3Tests.cs",
+      "GdUnit validates blocked-action message visibility and unchanged camp state for the refused second action path. Refs: Tests.Godot/tests/UI/test_task98_campaign_ui_visibility.gd"
     ],
     "test_strategy": [
       "xUnit validates guard; GdUnit validates blocked action message and unchanged camp state."
@@ -4527,7 +4537,7 @@
       "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "acceptance": [
-      "Each camp building produces explainable and deterministic effects. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
+      "The minimum camp building effects integration is accepted only when evidence from both split tasks 127 and 128 shows the combined work is complete; if evidence from either split task is missing, acceptance fails. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4585,7 +4595,7 @@
       "Game.Core.Tests/Services/SanguoTurnEliminationFlowTests.cs"
     ],
     "acceptance": [
-      "Camp durability zero produces immediate deterministic defeat and exits round safely. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnEliminationFlowTests.cs"
+      "Integration closure is complete only when split-task evidence from tasks 129 and 130 shows this module's work is finished and task 100 requires no additional implementation beyond that closure check. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnEliminationFlowTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4643,7 +4653,9 @@
       "Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
     ],
     "acceptance": [
-      "Difficulty profiles map to configured boss counts and pressure pacing constraints. Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
+      "Integration closure for Task 101 is valid only when split-task evidence from tasks 131 and 132 is both present and passing. Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "Closure evidence must explicitly cover boss dice profile integration by difficulty tier and verify profile resolution across configured difficulty bands. Refs: Game.Core.Tests/Tasks/Task131V3Tests.cs",
+      "Closure evidence must explicitly cover duration-target integration and confirm run configuration drives the intended duration-target pressure behavior. Refs: Game.Core.Tests/Tasks/Task132V3Tests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4697,7 +4709,7 @@
       "Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "acceptance": [
-      "Pressure entries include trigger source, numeric impact, and duration for replay and HUD explainability. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
+      "Gameplay acceptance is satisfied only when split-task evidence for tasks 133 and 134 confirms the integration closure for this pack, with no remaining gameplay implementation left in task 102 itself. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4751,7 +4763,8 @@
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Hard-cap challenge preempts board flow and follows forced challenge prompt policy. Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Task 103 is closed only when the integration outcome from split tasks 135 and 136 is confirmed by their recorded evidence, and this task does not claim standalone implementation beyond that closure check. Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Split-task closure evidence must explicitly prove the combined outcome is the boss reveal delay challenge and hard-cap forcing integration pack behavior defined by Task 103 title/scope. Refs: Game.Core.Tests/Tasks/Task135V3Tests.cs Game.Core.Tests/Tasks/Task136V3Tests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4809,7 +4822,8 @@
       "Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs"
     ],
     "acceptance": [
-      "Skip remains a rule-blocked fallback only and event tiles auto-trigger. Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs"
+      "Integration closure is complete only when split-task evidence shows event tiles auto-trigger and Skip remains available only as a rule-blocked fallback. Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs",
+      "Closure evidence for this integration pack must include both split tasks 137 and 138; missing evidence from either split task keeps Task 104 incomplete. Refs: Game.Core.Tests/Tasks/Task137V3Tests.cs Game.Core.Tests/Tasks/Task138V3Tests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4867,7 +4881,7 @@
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Objective timeline is deterministic: settle at camp, publish after boss branch, and suppress on game end. Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Task 105 is accepted only when split-task evidence shows tasks 139 and 140 together provide the integrated closure for this module and no remaining implementation is left in this master task; if either split task lacks closure evidence, this task is not complete. Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4925,7 +4939,7 @@
       "Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "acceptance": [
-      "Objective reward pipeline is deterministic and explains reward source at commit time. Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
+      "The master task is satisfied only when split-task evidence confirms that the implementation moved to both tasks 141 and 142 is complete and their combined integration closure is achieved; evidence from only one split task does not satisfy this item. Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4982,7 +4996,7 @@
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Campaign win/lose adjudication matches final boss and camp durability rules exactly. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "The master integration closure is satisfied only when evidence from split tasks 143 and 144 confirms the campaign win/lose adjudicator obligations have been completed; if that evidence is missing or does not support completion, this task is not complete. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5041,7 +5055,9 @@
       "Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
     ],
     "acceptance": [
-      "Campaign mode never executes AI decisions and keeps deterministic diagnostics. Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
+      "In campaign mode, invoking any AI decision entrypoint is blocked, no AI action is executed or emitted during rounds, and an explicit blocked diagnostic is recorded. Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "xUnit validates AI decision entrypoint guard by run mode (campaign and non-campaign modes), not only a single campaign-only case. Refs: Game.Core.Tests/Tasks/Task108V3Tests.cs",
+      "Integration coverage validates that campaign rounds emit no AI action events when AI is hard-disabled. Refs: Game.Core.Tests/Tasks/Task108V3Tests.cs"
     ],
     "test_strategy": [
       "xUnit validates AI entrypoint guard by run mode; integration validates no AI action events in campaign rounds."
@@ -5098,7 +5114,7 @@
       "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs"
     ],
     "acceptance": [
-      "Campaign events are contract-first and consumed through DTO mapper registry. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs"
+      "The integration closure for split tasks 145 and 146 is verified by the referenced tests showing campaign events remain contract-first and are consumed through the DTO mapper registry. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5154,7 +5170,7 @@
       "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "acceptance": [
-      "Campaign data packs are rejected by gate when schema or reference constraints are violated. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
+      "Task 110 is accepted only when split-task evidence shows the integrated campaign content-pack schema and gates extension obligations from both tasks 147 and 148 are satisfied; if that evidence is missing or incomplete, this master task is not accepted. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5207,7 +5223,8 @@
       "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd"
     ],
     "acceptance": [
-      "Campaign business flow passes deterministic integration acceptance scenarios. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd"
+      "Integration closure for split tasks 149 and 150 is verified by deterministic acceptance evidence, and this integration pack is not accepted if either split task lacks closure evidence. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd",
+      "Task 111 scope is limited to integration closure of split-task evidence; independent implementation belongs to split tasks 149 and 150 and must not be introduced here. Refs: Game.Core.Tests/Tasks/Task149V3Tests.cs Game.Core.Tests/Tasks/Task150V3Tests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5265,7 +5282,7 @@
       "Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
     ],
     "acceptance": [
-      "PRD v3 assertion set is fully hard-gated with deterministic pass/fail summaries. Refs: Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
+      "Task 112 is accepted only when integration-closure evidence from split tasks 151 and 152 shows the PRD v3 explainability/replay/i18n hard-gate work is closed with deterministic pass/fail summaries; if either split task lacks that evidence, this task is not complete. Refs: Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -5324,7 +5341,8 @@
       "Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-016 with deterministic evidence. Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
+      "Diagnostics desensitization is mode-aware and applies deterministic field masking strategy for the same input payload and mode. Refs: Game.Core.Tests/Tasks/Task113V3Tests.cs",
+      "Task-specific deterministic tests validate masking behavior and stable output under repeated runs. Refs: Game.Core.Tests/Tasks/Task113V3Tests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5376,7 +5394,9 @@
       "Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-017 with deterministic evidence. Refs: Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs"
+      "When diagnostics fall outside the configured retention window, cleanup deterministically removes them so retained diagnostics stay bounded. Refs: Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs",
+      "Diagnostics still inside the retention window remain unchanged after cleanup. Refs: Game.Core.Tests/Tasks/Task114V3Tests.cs",
+      "Cleanup trigger condition is deterministic for the same input diagnostics set and configuration. Refs: Game.Core.Tests/Tasks/Task114V3Tests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5430,7 +5450,7 @@
       "Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-018 with deterministic evidence. Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
+      "Deterministic tests show that when writing to the primary audit sink fails, the audit write falls back to user:// and the runtime does not abort. Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5483,7 +5503,7 @@
       "Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-019 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs"
+      "Fallback audit file rotation enforces the rotation cap and bounded total size policy with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5535,7 +5555,7 @@
       "Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs"
+      "Under a fixed seed and the applicable mode constraints, per-round objective generation produces the same objective output across repeated runs, verified with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5584,10 +5604,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task118SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task118SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence."
+      "Objective lifecycle closure applies deterministic settle timing, skip semantics, and replay-safe ordering, with deterministic evidence for R8. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Task-specific deterministic tests verify objective lifecycle closure behavior and deterministic settlement outcomes for repeated identical runs. Refs: Game.Core.Tests/Tasks/Task118V3Tests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5602,7 +5624,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0119",
@@ -5639,7 +5662,7 @@
       "Game.Core.Tests/Tasks/Task119RewardDraftCandidateDeterminismTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task119RewardDraftCandidateDeterminismTests.cs"
+      "Given the same reward draft inputs, candidate generation returns exactly 3 reward choices in a stable deterministic order across repeated runs. Refs: Game.Core.Tests/Tasks/Task119RewardDraftCandidateDeterminismTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5751,7 +5774,7 @@
       "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "Task verifies R1 with deterministic evidence. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "Campaign setup applies the commander roster lock/open/default availability model so locked commanders are unavailable, open commanders are selectable, and default availability remains unchanged when no lock or open override applies. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5806,7 +5829,7 @@
       "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "Task verifies R1 with deterministic evidence. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "Campaign start commit is refused until both an active strategem and a passive strategem have been selected, and deterministic evidence verifies the refusal and successful commit once both picks are present. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5863,7 +5886,7 @@
       "Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs"
     ],
     "acceptance": [
-      "Task verifies R2, A-001 with deterministic evidence. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs"
+      "Given the camp -> pressure -> board transition path, the system deterministically follows the frozen phase order, routes transition triggers and side effects through one sequencer path, emits ordered checkpoints with reason codes for nominal and preempted flows, and preserves the defined behavior for boss-preempted and standard board-entry branches without phase drift. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5921,7 +5944,7 @@
       "Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs"
     ],
     "acceptance": [
-      "Task verifies R2, A-002 with deterministic evidence. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs"
+      "Deterministic tests must prove that events sharing the same round and tick use explicit replay-stable ordering keys, that ordered snapshots taken at round lifecycle boundaries match across repeated runs, and that nondeterministic ordering drift causes the check to fail with clear diff output. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5978,7 +6001,7 @@
       "Game.Core.Tests/Tasks/Task125SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R5 with deterministic evidence."
+      "Deterministic evidence shows camp buildings use five durability slots/pools and that a building becomes disabled when its durability reaches zero. Refs: Game.Core.Tests/Tasks/Task125SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -5992,7 +6015,8 @@
     "acceptanceRefs": [
       "R5"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0126",
@@ -6032,7 +6056,7 @@
       "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "acceptance": [
-      "Task verifies R5 with deterministic evidence. Refs: Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
+      "Saving records camp durability state in the save schema and loading restores the same durability values deterministically. Refs: Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6085,10 +6109,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task127SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task127SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task127CampBuildingEffectSetATests.cs"
     ],
     "acceptance": [
-      "Task verifies R5 with deterministic evidence."
+      "Task verifies that relic workshop, tavern, and defense center in the first building effect set produce deterministic effect outputs and apply fallback behavior when effect data is missing or invalid instead of leaving the effect unresolved; R5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task127CampBuildingEffectSetATests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6103,7 +6128,8 @@
     "acceptanceRefs": [
       "R5"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0128",
@@ -6144,7 +6170,7 @@
       "Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs"
     ],
     "acceptance": [
-      "Task verifies R5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs"
+      "War hall and training ground in the second building effect set produce deterministic effect outputs, and when a defined effect cannot be applied the fallback output is used, with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6198,10 +6224,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task129SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task129SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs",
+      "Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs"
     ],
     "acceptance": [
-      "Task verifies R3, A-001 with deterministic evidence."
+      "When a camp durability fatal condition collides with other events, the resolved outcome follows the global priority chain, verified against R3, A-001 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6215,7 +6243,8 @@
       "R3",
       "A-001"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0130",
@@ -6251,10 +6280,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task130SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task130SplitTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "acceptance": [
-      "Task verifies R3 with deterministic evidence."
+      "A fatal camp condition routes to defeat settlement without loop deadlock, and the result is verified under R3 with deterministic evidence. Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6267,7 +6298,8 @@
     "acceptanceRefs": [
       "R3"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0131",
@@ -6310,7 +6342,7 @@
       "Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "acceptance": [
-      "Task verifies R6 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
+      "Boss difficulty profile data is deterministically validated against the defined schema so that profiles using the task-defined fields with values inside the allowed bounds pass validation and profiles with out-of-bounds values fail validation. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6363,7 +6395,8 @@
       "Game.Core.Tests/Tasks/Task132SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R6 with deterministic evidence."
+      "Task deterministically verifies R6 by validating configured boss count and expected run-length target bands for each difficulty. Refs: Game.Core.Tests/Tasks/Task132SplitTests.cs",
+      "Task 132 scope remains a split from T101 and is limited to boss-count and duration-target validation closure, without absorbing unrelated validation scope. Refs: Game.Core.Tests/Tasks/Task132SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6374,7 +6407,8 @@
     "acceptanceRefs": [
       "R6"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0133",
@@ -6412,10 +6446,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task133SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task133SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task133BossEliteAttackPressureResolverTests.cs"
     ],
     "acceptance": [
-      "Task verifies R6 with deterministic evidence."
+      "Given boss dice outcomes, the module resolves them into a deterministic elite attack count, and task-specific deterministic evidence verifies the result. Refs: Game.Core.Tests/Tasks/Task133BossEliteAttackPressureResolverTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6426,7 +6461,8 @@
     "acceptanceRefs": [
       "R6"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0134",
@@ -6466,7 +6502,8 @@
       "Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs"
     ],
     "acceptance": [
-      "Task verifies R6 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs"
+      "Boss pressure explain payload items emit source, value, and duration in deterministic test evidence. Refs: Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs",
+      "Task 134 implements and verifies the dedicated boss pressure explain payload mapper module for this split scope. Refs: Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6521,7 +6558,13 @@
       "Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
     ],
     "acceptance": [
-      "Task verifies A-006 with deterministic evidence. Refs: Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
+      "Deterministic core rule tests cover delayed, failed, and resumed boss-pressure scenarios, including stacked pressure behavior across round transitions. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs",
+      "Pressure stacking logic distinguishes unrevealed, revealed-but-delayed, and forced-challenge states to avoid contradictory implementations. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs",
+      "Accumulated pressure is stored in deterministic state and is not recomputed from lossy UI traces. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs",
+      "Deterministic save/load and round-transition tests verify stacked pressure values persist correctly. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs",
+      "Delayed-pressure summaries distinguish baseline boss pressure from penalty pressure and render correct values in UI/integration tests. Refs: Tests.Godot/tests/UI/test_task135_delayed_pressure_summary.gd",
+      "Deterministic cross-feature regression tests cover delayed boss rounds that end in forced challenge preemption. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs",
+      "Task-specific deterministic tests are required evidence for Task 135 closure. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6572,10 +6615,13 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task136SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task136SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-007 with deterministic evidence."
+      "When pressure reaches the hard cap at the leave-camp edge, leaving camp triggers forced challenge preemption. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "When hard-cap preemption condition is met, normal leave-camp flow is not allowed to continue and forced challenge must take priority. Refs: Game.Core.Tests/Tasks/Task136SplitTests.cs",
+      "Task-specific deterministic tests are required evidence for Task 136 closure. Refs: Game.Core.Tests/Tasks/Task136SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6589,7 +6635,8 @@
     "acceptanceRefs": [
       "A-007"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0137",
@@ -6628,10 +6675,13 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task137SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task137SplitTests.cs",
+      "Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd"
     ],
     "acceptance": [
-      "Task verifies R7 with deterministic evidence."
+      "Deterministic core and integration evidence verifies landing on an event tile immediately enters mandatory event resolution. Refs: Game.Core.Tests/Tasks/Task137SplitTests.cs Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd",
+      "UI tests prove skip and unrelated actions are disabled during event-tile resolution. Refs: Tests.Godot/tests/UI/test_task137_event_tile_guard.gd",
+      "Integration tests verify popup text and triggered event name localization during auto-trigger resolution. Refs: Tests.Godot/tests/UI/test_task137_event_tile_guard.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6646,7 +6696,8 @@
     "acceptanceRefs": [
       "R7"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0138",
@@ -6687,7 +6738,7 @@
       "Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
     ],
     "acceptance": [
-      "Task verifies R7 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
+      "Deterministic evidence shows skip is permitted only for rule-blocked scenarios, and non-eligible cases publish a deterministic blocked reason instead of skipping. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6744,7 +6795,8 @@
       "Game.Core.Tests/Tasks/Task139SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task139SplitTests.cs"
+      "In the camp-leave timeline, the objective remains unpublished until the boss branch is completed, and it becomes published after that completion. Refs: Game.Core.Tests/Tasks/Task139SplitTests.cs",
+      "Task-specific deterministic tests are required evidence for Task 139 closure. Refs: Game.Core.Tests/Tasks/Task139SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6796,10 +6848,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task140SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task140SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence."
+      "Previous objective settles at camp and new objective publish is suppressed when the game ends, verifying R8 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6814,7 +6867,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0141",
@@ -6852,10 +6906,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task141SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task141SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task141ObjectiveRewardSourceTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence."
+      "Objective rewards emitted from event, elite, and boss sources produce deterministic source tags, and deterministic evidence verifies R8. Refs: Game.Core.Tests/Tasks/Task141ObjectiveRewardSourceTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6870,7 +6925,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0142",
@@ -6906,10 +6962,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task142SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task142SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task142ObjectiveRewardDraftDeterminismTests.cs"
     ],
     "acceptance": [
-      "Task verifies R8 with deterministic evidence."
+      "Objective settlement applies deterministic reward-draft selection and verifies R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task142ObjectiveRewardDraftDeterminismTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6924,7 +6981,8 @@
     "acceptanceRefs": [
       "R8"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0143",
@@ -6962,10 +7020,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task143SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task143SplitTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnManagerBranchCoverageTests.cs"
     ],
     "acceptance": [
-      "Task verifies R3 with deterministic evidence."
+      "Campaign victory is adjudicated as a win only on the final boss defeat branch, and outcomes outside that branch do not produce that victory result, verified with deterministic evidence R3. Refs: Game.Core.Tests/Services/SanguoTurnManagerBranchCoverageTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6978,7 +7037,8 @@
     "acceptanceRefs": [
       "R3"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0144",
@@ -7014,10 +7074,13 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task144SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task144SplitTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnManagerBranchCoverageTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnManagerTests.cs"
     ],
     "acceptance": [
-      "Task verifies R3 with deterministic evidence."
+      "When camp durability reaches the fatal condition, the campaign is adjudicated through the camp-failure defeat branch with deterministic evidence. Refs: Game.Core.Tests/Services/SanguoTurnManagerBranchCoverageTests.cs Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "When camp durability is not in fatal condition, the camp-failure defeat branch is not adjudicated and campaign defeat must not trigger from that branch. Refs: Game.Core.Tests/Tasks/Task144SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7030,7 +7093,8 @@
     "acceptanceRefs": [
       "R3"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0145",
@@ -7067,10 +7131,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task145SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task145SplitIntegrationTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Domain/SanguoContractInstantiationTests.cs"
     ],
     "acceptance": [
-      "Task verifies R9, A-020 with deterministic evidence."
+      "Task confirms integration closure from split tasks 169 and 170 with deterministic evidence for R9, A-020. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Domain/SanguoContractInstantiationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7082,7 +7148,8 @@
       "R9",
       "A-020"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0146",
@@ -7118,10 +7185,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task146SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task146SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Engine/HudSceneTests.cs"
     ],
     "acceptance": [
-      "Task verifies R9 with deterministic evidence."
+      "Deterministic evidence shows the HUD mapper registers campaign events and no longer depends on raw payload coupling paths, satisfying R9. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Engine/HudSceneTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7132,7 +7201,8 @@
     "acceptanceRefs": [
       "R9"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0147",
@@ -7170,10 +7240,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task147SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task147SplitIntegrationTests.cs",
+      "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Task verifies R9 with deterministic evidence."
+      "Deterministic evidence confirms that the delivered results from split tasks 171 and 172 together close this master integration task, with no additional implementation remaining under this task R9. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7184,7 +7256,8 @@
     "acceptanceRefs": [
       "R9"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0148",
@@ -7221,10 +7294,16 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task148SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task148SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs",
+      "Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs"
     ],
     "acceptance": [
-      "Task verifies R11 with deterministic evidence."
+      "Campaign content validation defines mandatory cross-ref, version-bump, and i18n-coverage checks per campaign dataset type, and deterministic evidence rejects invalid fixtures with pinpointed file path, field, and gate name in CI outputs. Refs: Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "Each campaign content quality rule has validator tests with minimal failing fixtures. Refs: Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs",
+      "Campaign dataset validation reuses existing validation infrastructure instead of introducing campaign-only ad hoc scripts. Refs: scripts/python/validate_campaign_content.py scripts/python/ci_pipeline.py",
+      "Regression fixtures exist for each campaign dataset category and are included in deterministic gate coverage. Refs: Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs",
+      "Campaign content validation is a hard CI gate; failing content checks must block CI instead of passing as non-blocking evidence. Refs: .github/workflows/ci-windows.yml scripts/python/ci_pipeline.py"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7235,7 +7314,8 @@
     "acceptanceRefs": [
       "R11"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0149",
@@ -7273,10 +7353,16 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task149SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task149SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_boss_victory.gd"
     ],
     "acceptance": [
-      "Task verifies 9.1 with deterministic evidence."
+      "A deterministic end-to-end campaign scenario runs from campaign start to final boss victory and verifies milestone order plus visible summaries. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_boss_victory.gd",
+      "End-to-end fixture deterministically seeds both campaign content and runtime state, and scenario setup minimizes randomness to reduce flaky outcomes. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
+      "Integration assertions verify milestone order, visible summaries, and end-state markers for final victory. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
+      "End-to-end run emits expected summary artifacts and acceptance anchors consumable by CI without manual inspection. Refs: logs/ci/README.md scripts/sc/acceptance_check.py",
+      "Scenario checks include i18n cleanliness, replay markers, and final adjudication consistency, and guard against cross-cutting regressions beyond pure victory-state bugs. Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_boss_victory.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7287,7 +7373,8 @@
     "acceptanceRefs": [
       "9.1"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0150",
@@ -7321,10 +7408,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task150SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task150SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs",
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_camp_fail.gd"
     ],
     "acceptance": [
-      "Task verifies 9.1 with deterministic evidence."
+      "A deterministic end-to-end scenario runs from campaign start to camp durability defeat and verifies 9.1 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_camp_fail.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7335,7 +7424,8 @@
     "acceptanceRefs": [
       "9.1"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0151",
@@ -7380,7 +7470,8 @@
       "Game.Core.Tests/Tasks/Task151SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-013, A-014, A-015, A-016, A-017, A-018, A-019, A-020 with deterministic evidence."
+      "Integration closure shows the combined outcome of split tasks 173, 174, and 175, and verifies A-013 through A-020 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs Game.Core.Tests/Tasks/Task174SplitTests.cs Game.Core.Tests/Tasks/Task175SplitTests.cs",
+      "Integration closure check must not pass or advance when split-task evidence is missing for any of tasks 173, 174, 175. Refs: Game.Core.Tests/Tasks/Task151SplitClosureTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7438,10 +7529,15 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task152SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task152SplitTests.cs",
+      "Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
     ],
     "acceptance": [
-      "Task verifies A-011, A-012, 9.3 with deterministic evidence."
+      "CI hard gate explicitly covers UI explainability assertions and i18n exposure assertions with deterministic pass/fail outcomes. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
+      "Task-specific deterministic tests are required evidence for this gate package. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
+      "UI gate inventory is explicit and owned; assertion registry/manifest tests verify required UI checks are enumerated and later additions cannot silently bypass CI. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
+      "Summary-generation tests from representative UI fixtures verify CI gate decision relies only on a narrow and stable UI summary, not arbitrary log parsing. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
+      "Failing UI fixtures produce hard-gate failures with actionable CI messages. Refs: .github/workflows/ci-windows.yml Game.Core.Tests/Tasks/Task152UiHardGateTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7454,7 +7550,8 @@
       "A-012",
       "9.3"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0153",
@@ -7498,10 +7595,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task153V3Tests.cs"
+      "Game.Core.Tests/Tasks/Task153V3Tests.cs",
+      "Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
     ],
     "acceptance": [
-      "R4 end-to-end explainability and replayability has executable deterministic evidence."
+      "An executable deterministic R4 integration gate runs fixed campaign scenarios and passes only when explainability chain exposes trigger source, timing, and impact fields, localized HUD summaries are produced, and replay output remains identical under fixed seed. Refs: Tests.Godot/tests/UI/test_event_log_summary_localized.gd",
+      "CI integration tests lock explainability and replayability evidence specifically for campaign scenarios. Refs: Game.Core.Tests/Tasks/Task153R4IntegrationTests.cs"
     ],
     "test_strategy": [
       "CI integration tests lock end-to-end explainability plus replayability evidence for campaign scenarios."
@@ -7523,7 +7622,8 @@
     "acceptanceRefs": [
       "R4"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0154",
@@ -7562,10 +7662,14 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task154V3Tests.cs"
+      "Game.Core.Tests/Tasks/Task154V3Tests.cs",
+      "Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_non_crash_feedback_suppression.gd"
     ],
     "acceptance": [
-      "Freeze 1.2 policy is executable: non-crash issues never open user-facing feedback flow."
+      "Freeze 1.2 policy is executable: automated tests and CI checks verify only crash-category issues can trigger user-facing feedback flow, while non-crash diagnostics remain logs/audit only. Refs: Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs Tests.Godot/tests/Integration/Security/test_non_crash_feedback_suppression.gd",
+      "Rule tests cover crash, non-crash, and mixed diagnostic categories with deterministic outcomes. Refs: Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs",
+      "Feedback suppression guard is enforced at routing choke point rather than individual call sites. Refs: Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs"
     ],
     "test_strategy": [
       "xUnit + integration tests verify feedback routing policy by issue category with deterministic outcomes."
@@ -7576,7 +7680,8 @@
     "acceptanceRefs": [
       "RF-1.2"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0155",
@@ -7613,10 +7718,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task155V3Tests.cs"
+      "Game.Core.Tests/Tasks/Task155V3Tests.cs",
+      "Game.Core.Tests/Tasks/Task155FreezeChangeControlGateTests.cs"
     ],
     "acceptance": [
-      "Freeze section 9 triplet gate fails when any of the three required artifacts is missing."
+      "CI fails with actionable diagnostics when a freeze section 9 rule change is not accompanied by synchronized freeze revision, assertion update, and test evidence update. Refs: Game.Core.Tests/Tasks/Task155FreezeChangeControlGateTests.cs",
+      "Scripted CI tests verify change-control triplet gate with both positive fixtures and negative fixtures. Refs: Game.Core.Tests/Tasks/Task155FreezeChangeControlGateTests.cs"
     ],
     "test_strategy": [
       "Scripted CI tests verify the change-control triplet gate with positive and negative fixtures."
@@ -7628,7 +7735,8 @@
       "RF-9",
       "R11"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0156",
@@ -7666,10 +7774,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task156GovernanceTests.cs"
+      "Game.Core.Tests/Tasks/Task156GovernanceTests.cs",
+      "Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs"
     ],
     "acceptance": [
-      "Signal/Event contracts must have required XML docs; CI blocks missing cases."
+      "CI rejects changes when any Signal/Event contract or security-critical signal is missing required XML summary/remarks, and passes only when docs satisfy ADR-0004 alignment. Refs: Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs",
+      "Unit fixture includes missing-XML negative cases for signal/event contract documentation gate. Refs: Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs"
     ],
     "test_strategy": [
       "Scripted CI check plus unit fixture for missing-XML negative cases."
@@ -7682,7 +7792,8 @@
       "R11",
       "PH9-B2"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0157",
@@ -7719,10 +7830,13 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task162SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task163SplitTests.cs"
     ],
     "acceptance": [
-      "Signal compliance workflow is a required hard gate in V3 fast pipeline."
+      "Task 157 is satisfied only when split tasks 162 and 163 provide completion evidence for moved implementation; missing either evidence keeps closure incomplete. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs Game.Core.Tests/Tasks/Task163SplitTests.cs",
+      "Closure check is integrated into CI signal compliance workflow as a hard gate, not a generic evidence note. Refs: .github/workflows/ci-windows.yml scripts/python/ci_pipeline.py"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7734,7 +7848,8 @@
       "R11",
       "PH9-B4"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0158",
@@ -7771,10 +7886,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task158SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task158SplitIntegrationTests.cs",
+      "Tests.Godot/tests/Adapters/test_task164_runtime_signal_subscription_lifecycle_guard.gd",
+      "Tests.Godot/tests/Adapters/test_task165_signal_lifecycle_leak_fixtures.gd"
     ],
     "acceptance": [
-      "No stale subscription remains after scene lifecycle teardown in campaign runtime."
+      "Task 158 is accepted only when split-task evidence confirms tasks 164 and 165 complete the moved implementation and no additional implementation work remains in this master task. Refs: Tests.Godot/tests/Adapters/test_task164_runtime_signal_subscription_lifecycle_guard.gd Tests.Godot/tests/Adapters/test_task165_signal_lifecycle_leak_fixtures.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7789,7 +7906,8 @@
       "R11",
       "PH9-B5"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0159",
@@ -7828,10 +7946,16 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task159GovernanceTests.cs"
+      "Game.Core.Tests/Tasks/Task159GovernanceTests.cs",
+      "Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
+      "Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs"
     ],
     "acceptance": [
-      "Privacy-compliance baseline is documented and enforced by policy gate in CI."
+      "Campaign telemetry privacy-compliance baseline document is authored and machine-checkable, defining data minimization, retention bounds, and non-crash feedback suppression linkage. Refs: Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
+      "Document validation tests/fixtures ensure required privacy sections exist. Refs: Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
+      "Policy gate script verifies required privacy clauses and cross-links to freeze/assertion artifacts. Refs: Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs",
+      "Tests verify policy parsing and rule evaluation against representative fixtures, and implementation plus CI consume the same policy clauses. Refs: Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs scripts/python/ci_pipeline.py",
+      "CI summary surfaces privacy policy gate results, violated clause, and offending artifact. Refs: .github/workflows/ci-windows.yml Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs"
     ],
     "test_strategy": [
       "Policy gate script verifies required clauses and cross-links to freeze/assertion artifacts."
@@ -7845,7 +7969,8 @@
       "RF-1.2",
       "PH16-B4"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0160",
@@ -7886,7 +8011,9 @@
       "Game.Core.Tests/Tasks/Task160GovernanceTests.cs"
     ],
     "acceptance": [
-      "Logging guidelines and redaction policies are enforced via executable lint gate."
+      "Executable lint-like gate requires logging-guidelines baseline to document mandatory structured logging, redaction rules, and traceability fields. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs",
+      "Validation includes both documentation checks and configuration checks consumed by observability scripts/tests. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs",
+      "Regression fixtures verify lint-like checks fail when mandatory sections are missing. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs"
     ],
     "test_strategy": [
       "Lint-like documentation and config checks with regression fixtures for missing mandatory sections."
@@ -7899,7 +8026,8 @@
       "R11",
       "PH16-B5"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0161",
@@ -7935,10 +8063,11 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task161SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task161SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task161SplitClosureTests.cs"
     ],
     "acceptance": [
-      "Migration compatibility report is generated and hard-gated for completeness."
+      "Integration closure fails unless evidence from tasks 166, 167, and 168 is present and collectively satisfies the migration compatibility report automation gate. Refs: Game.Core.Tests/Tasks/Task161SplitClosureTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7950,7 +8079,8 @@
       "R11",
       "PH20-B3"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0162",
@@ -7989,7 +8119,7 @@
       "Game.Core.Tests/Tasks/Task162SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R11, PH9-B4 with deterministic evidence."
+      "Deterministic aggregation produces one signal compliance report covering naming, documentation, and lifecycle checks and verifies R11, PH9-B4 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8001,7 +8131,8 @@
       "R11",
       "PH9-B4"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0163",
@@ -8040,7 +8171,7 @@
       "Game.Core.Tests/Tasks/Task163SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R11, PH9-B4 with deterministic evidence."
+      "Fast-mode CI treats the signal compliance report as a hard gate and emits stable failure diagnostics with deterministic evidence. R11, PH9-B4 Refs: Game.Core.Tests/Tasks/Task163SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8052,7 +8183,8 @@
       "R11",
       "PH9-B4"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0164",
@@ -8091,7 +8223,7 @@
       "Game.Core.Tests/Tasks/Task164SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R11, PH9-B5 with deterministic evidence."
+      "For scene-bound signal listeners, each runtime subscription has a matching unsubscribe and node exit leaves no active listener registrations; Task verifies R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task164SplitTests.cs Tests.Godot/tests/Integration/Security/test_signal_subscription_lifecycle.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8145,7 +8277,7 @@
       "Game.Core.Tests/Tasks/Task165SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R11, PH9-B5 with deterministic evidence."
+      "Deterministic GdUnit lifecycle fixtures and assertions fail when a stale signal handler leak is present and pass when the stale handler is not retained, verifying R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task165SplitTests.cs Tests.Godot/tests/Integration/Security/test_signal_subscription_lifecycle.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8199,7 +8331,8 @@
       "Game.Core.Tests/Tasks/Task166SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R11, PH20-B3 with deterministic evidence."
+      "Task generates a migration compatibility report derived from assertions, gates, and scenario evidence. Refs: Game.Core.Tests/Tasks/Task166SplitTests.cs",
+      "Task-specific deterministic tests are required evidence for report generation behavior. Refs: Game.Core.Tests/Tasks/Task166SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8248,7 +8381,9 @@
       "Game.Core.Tests/Tasks/Task167SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R11, PH20-B3 with deterministic evidence."
+      "Validator checks migration compatibility completeness by validating mandatory report sections and evidence links. Refs: Game.Core.Tests/Tasks/Task167SplitTests.cs",
+      "Validator emits deterministic failure output when completeness checks fail. Refs: Game.Core.Tests/Tasks/Task167SplitTests.cs",
+      "Task-specific deterministic tests are required evidence for completeness validator behavior. Refs: Game.Core.Tests/Tasks/Task167SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8297,7 +8432,9 @@
       "Game.Core.Tests/Tasks/Task168SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R11, PH20-B3 with deterministic evidence."
+      "CI hard gate runs the compatibility report validator and emits standardized failure diagnostics on validation failures. Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs .github/workflows/ci-windows.yml",
+      "When compatibility validation fails, CI hard gate must fail and refuse to advance pipeline stages. Refs: .github/workflows/ci-windows.yml scripts/python/ci_pipeline.py",
+      "Task-specific deterministic tests are required evidence for CI hard-gate integration behavior. Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8353,7 +8490,12 @@
       "Game.Core.Tests/Tasks/Task169SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R9, A-020 with deterministic evidence."
+      "Campaign contract surface is fully inventoried by domain events and DTOs. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs",
+      "Registry tests verify expected campaign contracts are declared and discoverable. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs",
+      "New contract types follow repository contract template strictly, include XML docs, and compile tests for added contract types pass. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs docs/workflows/contracts-template-v1.md",
+      "Versioning hooks and deprecation metadata are explicitly wired for the campaign contract set; task must not advance when explicit versioning hooks are absent. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs Game.Core/Contracts/EventTypes.cs",
+      "validate_contracts regression coverage includes new contract types, compatibility tests cover additive evolution plus prohibited breaking changes, and overlay/back-link checks pass against expanded set. Refs: scripts/python/validate_contracts.py docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "Task-specific deterministic tests are required evidence for Task 169 closure. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8404,7 +8546,7 @@
       "Game.Core.Tests/Tasks/Task170SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R9, A-020 with deterministic evidence."
+      "When runtime start, round, and objective flows consume or produce campaign contracts, the shared fields and payload semantics are harmonized deterministically, verified against R9, A-020 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task170SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8461,7 +8603,13 @@
       "Game.Core.Tests/Tasks/Task171SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies R9 with deterministic evidence."
+      "Schema and catalog definitions are extended for commander, strategem, building, boss, and objective datasets. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Schema catalog defines minimal mandatory machine-checkable contracts and constraints (not free-form prose) for each content family. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Schema validation tests include minimal valid and invalid fixtures for each content family. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Pack catalog and loaders recognize each new campaign dataset type, with loader/catalog tests covering all added families. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Validation fails on bad references, out-of-range values, and missing version bumps through deterministic failing fixtures. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Schema evolution path is documented, and validators plus docs enforce the same schema catalog versioning rules. Refs: docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Task-specific deterministic tests are required evidence for Task 171 closure. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8509,10 +8657,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task172SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task172SplitTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "acceptance": [
-      "Task verifies R9, R11 with deterministic evidence."
+      "Task verifies R9, R11 with deterministic evidence by rejecting campaign content packs with invalid cross-table references, missing required i18n keys, or violated version bump invariants. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8524,7 +8674,8 @@
       "R9",
       "R11"
     ],
-    "semantic_review_tier": "auto"
+    "semantic_review_tier": "auto",
+    "evidence_refs": []
   },
   {
     "id": "GM-0173",
@@ -8571,10 +8722,15 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task173SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
     ],
     "acceptance": [
-      "Task verifies A-013, A-014, A-015 with deterministic evidence."
+      "Task verifies A-013, A-014, A-015 as three distinct gate results (not opaque bundle output), and tests explicitly enumerate and execute expected A-013 to A-015 checks. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "CI hard-gate checks replay hash set, save_untrusted behavior, and mismatch policy by mode with deterministic outcomes. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "Trusted and untrusted replay fixtures produce deterministic reusable evidence for CI consumption. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "Replay policy failures produce non-zero pipeline exit plus actionable summaries. Refs: .github/workflows/ci-windows.yml Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "Regression tests cover acceptance-id alignment and summary format compatibility for bundle reporting. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8587,7 +8743,8 @@
       "A-014",
       "A-015"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0174",
@@ -8627,10 +8784,13 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task174SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task174SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task174DiagnosticPayloadRetentionHardGateTests.cs",
+      "Game.Core.Tests/Tasks/Task174AuditFallbackRotationHardGateTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-016, A-017, A-018, A-019 with deterministic evidence."
+      "CI hard-gate checks produce deterministic evidence for A-016 to A-019 diagnostic desensitization/retention and audit fallback/rotation assertions. Refs: Game.Core.Tests/Tasks/Task174DiagnosticPayloadRetentionHardGateTests.cs Game.Core.Tests/Tasks/Task174AuditFallbackRotationHardGateTests.cs",
+      "If any A-016 to A-019 assertion is unverified or fails, CI hard gate fails and pipeline must not advance to subsequent stages. Refs: .github/workflows/ci-windows.yml scripts/python/ci_pipeline.py"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8644,7 +8804,8 @@
       "A-018",
       "A-019"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   },
   {
     "id": "GM-0175",
@@ -8687,7 +8848,7 @@
       "Game.Core.Tests/Tasks/Task175SplitTests.cs"
     ],
     "acceptance": [
-      "Task verifies A-020, R11 with deterministic evidence."
+      "Core hard-gate runner output reports the contract additive-only compatibility assertion result with deterministic evidence for A-020, R11. Refs: Game.Core.Tests/Tasks/Task175SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8699,6 +8860,7 @@
       "A-020",
       "R11"
     ],
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "evidence_refs": []
   }
 ]
