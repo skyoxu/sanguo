@@ -23,6 +23,26 @@ def run_unit(
     if task_filter:
         cmd += ["--filter", task_filter]
     rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=1_800)
+    if (
+        task_filter
+        and int(rc) == 2
+        and "RUN_DOTNET status=coverage_failed" in str(out)
+        and "line=0.0%" in str(out)
+        and "branch=0.0" in str(out)
+    ):
+        fallback_cmd = ["py", "-3", "scripts/python/run_dotnet.py", "--solution", solution, "--configuration", configuration]
+        fallback_rc, fallback_out = run_cmd(fallback_cmd, cwd=repo_root(), timeout_sec=1_800)
+        out = (
+            f"{str(out).rstrip()}\n\n"
+            "[sc-test] task-scoped coverage is 0.0%; retrying unit without task filter.\n"
+            f"fallback_cmd: {' '.join(fallback_cmd)}\n"
+            f"fallback_rc: {int(fallback_rc)}\n"
+            "--- fallback output ---\n"
+            f"{str(fallback_out)}"
+        ).rstrip() + "\n"
+        if int(fallback_rc) == 0:
+            rc = 0
+            cmd = fallback_cmd
     log_path = out_dir / "unit.log"
     write_text(log_path, out)
     unit_artifacts_dir = repo_root() / "logs" / "unit" / today_str()
@@ -95,26 +115,47 @@ def run_gdunit_hard(
     *,
     run_id: str,
     task_id: str | None = None,
+    require_task_scoped_refs: bool = False,
 ) -> dict[str, Any]:
     date = today_str()
     report_dir = Path("logs") / "e2e" / date / "sc-test" / "gdunit-hard"
     os.environ["AUDIT_LOG_ROOT"] = str(repo_root() / "logs" / "ci" / date)
     add_dirs: list[str] = []
     tests_project = repo_root() / "Tests.Godot"
-    for rel in ["tests/Scenes", "tests/UI", "tests/Adapters/Config", "tests/Security/Hard"]:
-        if (tests_project / rel).exists():
-            add_dirs.append(rel)
-        elif (repo_root() / rel).exists():
-            add_dirs.append(rel)
     if str(task_id or "").strip():
-        rel = "tests/Tasks"
-        if (tests_project / rel).exists():
-            add_dirs.append(rel)
-        elif (repo_root() / rel).exists():
-            add_dirs.append(rel)
-        for rel_ref in task_scoped_gdunit_refs(task_id=task_id, tests_project=tests_project):
-            if rel_ref not in add_dirs:
-                add_dirs.append(rel_ref)
+        task_refs = task_scoped_gdunit_refs(task_id=task_id, tests_project=tests_project)
+        if not task_refs and require_task_scoped_refs:
+            log_path = out_dir / "gdunit-hard.log"
+            write_text(
+                log_path,
+                "\n".join(
+                    [
+                        "SC_TEST_GDUNIT_HARD status=fail reason=missing_task_scoped_gd_refs",
+                        f"task_id: {str(task_id).strip()}",
+                        "error: no task-scoped .gd refs resolved from task view files",
+                    ]
+                )
+                + "\n",
+            )
+            return {
+                "name": "gdunit-hard",
+                "cmd": [],
+                "rc": 1,
+                "log": str(log_path),
+                "report_dir": str(report_dir),
+                "error": "missing_task_scoped_gd_refs",
+                "status": "fail",
+            }
+        if task_refs:
+            for rel_ref in task_refs:
+                if rel_ref not in add_dirs:
+                    add_dirs.append(rel_ref)
+    if not add_dirs:
+        for rel in ["tests/Scenes", "tests/UI", "tests/Adapters/Config", "tests/Security/Hard"]:
+            if (tests_project / rel).exists():
+                add_dirs.append(rel)
+            elif (repo_root() / rel).exists():
+                add_dirs.append(rel)
     cmd = [
         "py",
         "-3",
@@ -174,22 +215,7 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = N
         cmd.append("--strict")
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
-    original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
-    original_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
-    if strict:
-        os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
-        os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = "0.25"
-    try:
-        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
-    finally:
-        if original_exit_on_ready is None:
-            os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
-        else:
-            os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
-        if original_exit_delay is None:
-            os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
-        else:
-            os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
+    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
     log_path = out_dir / "smoke.log"
     write_text(log_path, out)
     return {

@@ -13,6 +13,15 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def repo_rel(path: Path | str) -> str:
+    candidate = Path(path).resolve()
+    root = repo_root().resolve()
+    try:
+        return str(candidate.relative_to(root)).replace("\\", "/")
+    except ValueError:
+        return str(candidate).replace("\\", "/")
+
+
 def today_str() -> str:
     return dt.date.today().strftime("%Y-%m-%d")
 
@@ -94,4 +103,3 @@ def iter_files(
             except OSError:
                 continue
             yield p
-

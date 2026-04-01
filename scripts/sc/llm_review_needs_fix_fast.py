@@ -17,7 +17,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from _util import ci_dir, repo_root, run_cmd, split_csv, write_json, write_text
+from _util import ci_dir, repo_root, run_cmd, split_csv, today_str, write_json, write_text
 
 
 OUT_RE = re.compile(r"\bout=([^\r\n]+)")
@@ -69,14 +69,121 @@ def parse_llm_verdicts(summary_path: Path) -> dict[str, str]:
     return out
 
 
-def find_pipeline_step(pipeline_summary_path: Path, step_name: str) -> dict[str, Any]:
-    payload = read_json(pipeline_summary_path)
-    for step in payload.get("steps", []):
+def current_git_fingerprint() -> dict[str, Any]:
+    rc_head, out_head = run_cmd(["git", "rev-parse", "HEAD"], cwd=repo_root(), timeout_sec=30)
+    rc_status, out_status = run_cmd(["git", "status", "--short"], cwd=repo_root(), timeout_sec=30)
+    return {
+        "head": out_head.strip() if rc_head == 0 else "",
+        "status_short": sorted([line.rstrip() for line in out_status.splitlines() if line.strip()]) if rc_status == 0 else [],
+    }
+
+
+def _step_status(summary: dict[str, Any], step_name: str) -> str:
+    step = find_pipeline_step_dict(summary, step_name)
+    return str(step.get("status") or "").strip().lower()
+
+
+def find_pipeline_step_dict(summary_payload: dict[str, Any], step_name: str) -> dict[str, Any]:
+    for step in summary_payload.get("steps", []):
         if not isinstance(step, dict):
             continue
         if str(step.get("name") or "").strip() == step_name:
             return step
     return {}
+
+
+def _git_snapshot_matches(execution_context: dict[str, Any]) -> bool:
+    git_info = execution_context.get("git") if isinstance(execution_context.get("git"), dict) else {}
+    previous = {
+        "head": str(git_info.get("head") or "").strip(),
+        "status_short": sorted([str(line).rstrip() for line in (git_info.get("status_short") or []) if str(line).strip()]),
+    }
+    current = current_git_fingerprint()
+    return previous == current
+
+
+def try_reuse_latest_deterministic_step(
+    *,
+    task_id: str,
+    security_profile: str,
+    skip_sc_test: bool,
+    planned_cmd: list[str],
+    out_dir: Path,
+    script_start: float,
+    budget_min: int,
+) -> dict[str, Any] | None:
+    latest_index = repo_root() / "logs" / "ci" / today_str() / f"sc-review-pipeline-task-{task_id}" / "latest.json"
+    latest_payload = read_json(latest_index)
+    latest_out_dir = Path(str(latest_payload.get("latest_out_dir") or "")).resolve() if str(latest_payload.get("latest_out_dir") or "").strip() else None
+    summary_file = Path(str(latest_payload.get("summary_path") or "")).resolve() if str(latest_payload.get("summary_path") or "").strip() else None
+    execution_context_file = (
+        Path(str(latest_payload.get("execution_context_path") or "")).resolve()
+        if str(latest_payload.get("execution_context_path") or "").strip()
+        else None
+    )
+    if str(latest_payload.get("status") or "").strip().lower() != "ok":
+        return None
+    if latest_out_dir is None or not latest_out_dir.exists():
+        return None
+    if summary_file is None or not summary_file.exists():
+        return None
+    if execution_context_file is None or not execution_context_file.exists():
+        return None
+
+    summary = read_json(summary_file)
+    execution_context = read_json(execution_context_file)
+    if str(summary.get("status") or "").strip().lower() != "ok":
+        return None
+    if str(execution_context.get("security_profile") or "").strip().lower() != str(security_profile).strip().lower():
+        return None
+    if not _git_snapshot_matches(execution_context):
+        return None
+
+    acceptance_status = _step_status(summary, "sc-acceptance-check")
+    if acceptance_status != "ok":
+        return None
+    test_status = _step_status(summary, "sc-test")
+    if skip_sc_test:
+        if test_status not in {"", "ok", "skipped"}:
+            return None
+    elif test_status != "ok":
+        return None
+
+    remaining_before = remain_sec(script_start, budget_min)
+    log_file = out_dir / "pipeline-deterministic.log"
+    write_text(
+        log_file,
+        "\n".join(
+            [
+                "[needs-fix-fast] reused latest deterministic pipeline artifacts",
+                f"task_id={task_id}",
+                f"run_id={str(latest_payload.get('run_id') or '').strip()}",
+                f"summary_file={summary_file}",
+                f"execution_context_file={execution_context_file}",
+                f"SC_REVIEW_PIPELINE status=ok out={latest_out_dir}",
+            ]
+        )
+        + "\n",
+    )
+    return {
+        "name": "pipeline-deterministic",
+        "status": "reused",
+        "rc": 0,
+        "duration_sec": 0.0,
+        "remaining_before_sec": int(max(0, remaining_before)),
+        "remaining_after_sec": int(remain_sec(script_start, budget_min)),
+        "cmd": planned_cmd,
+        "log_file": str(log_file),
+        "reported_out_dir": str(latest_out_dir),
+        "summary_file": str(summary_file),
+        "reused_run_id": str(latest_payload.get("run_id") or "").strip(),
+        "reuse_reason": "latest_successful_deterministic_pipeline",
+    }
+
+
+def find_pipeline_step(pipeline_summary_path: Path, step_name: str) -> dict[str, Any]:
+    payload = read_json(pipeline_summary_path)
+    return find_pipeline_step_dict(payload, step_name)
 
 
 def elapsed_sec(start_monotonic: float) -> int:
@@ -216,15 +323,27 @@ def main() -> int:
     ]
     if args.skip_sc_test:
         deterministic_cmd.append("--skip-test")
-    print("[needs-fix-fast] step: run_review_pipeline deterministic gates")
-    deterministic_step = run_step(
-        name="pipeline-deterministic",
-        cmd=deterministic_cmd,
+    deterministic_step = try_reuse_latest_deterministic_step(
+        task_id=str(args.task_id),
+        security_profile=str(args.security_profile),
+        skip_sc_test=bool(args.skip_sc_test),
+        planned_cmd=deterministic_cmd,
         out_dir=out_dir,
-        timeout_sec=args.step_timeout_sec,
         script_start=script_start,
         budget_min=args.time_budget_min,
     )
+    if deterministic_step is None:
+        print("[needs-fix-fast] step: run_review_pipeline deterministic gates")
+        deterministic_step = run_step(
+            name="pipeline-deterministic",
+            cmd=deterministic_cmd,
+            out_dir=out_dir,
+            timeout_sec=args.step_timeout_sec,
+            script_start=script_start,
+            budget_min=args.time_budget_min,
+        )
+    else:
+        print(f"[needs-fix-fast] step: reuse deterministic pipeline run_id={deterministic_step['reused_run_id']}")
     timeline.append(deterministic_step)
     if deterministic_step["rc"] != 0:
         summary = {

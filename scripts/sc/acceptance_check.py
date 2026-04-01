@@ -198,9 +198,7 @@ def _run_self_check(args: Any) -> int:
 
 
 def main() -> int:
-    args = build_parser().parse_args()
-    args = apply_delivery_profile_defaults(args)
-    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
+    args = apply_delivery_profile_defaults(build_parser().parse_args())
     if bool(getattr(args, "self_check", False)):
         return _run_self_check(args)
     task_id = parse_task_id(args.task_id)
@@ -215,13 +213,13 @@ def main() -> int:
     only_steps = parse_only_steps(args.only)
     subtasks_mode = normalize_subtasks_mode(args.subtasks_coverage)
 
-    has_gd_refs = task_requires_headless_e2e(triplet)
+    force_headless_for_task1 = bool(args.require_headless_e2e) and int(triplet.task_id) == 1
+    has_gd_refs = task_requires_headless_e2e(triplet) or force_headless_for_task1
     needs_env_preflight = task_requires_env_evidence_preflight(triplet)
     require_headless_e2e = bool(args.require_headless_e2e) and has_gd_refs
     require_executed_refs = bool(args.require_executed_refs)
 
     security_profile, security_modes = resolve_security_modes(args)
-    os.environ["SECURITY_PROFILE"] = str(security_profile)
     audit_evidence_mode = security_modes["audit_evidence"]
     perf_p95_ms = compute_perf_p95_ms(perf_p95_ms=args.perf_p95_ms, require_perf=bool(args.require_perf))
 
@@ -244,6 +242,10 @@ def main() -> int:
 
     if bool(getattr(args, "dry_run_plan", False)):
         out_dir = ci_dir(f"sc-acceptance-dry-plan-task-{triplet.task_id}") if bool(args.out_per_task) else ci_dir("sc-acceptance-dry-plan")
+        try:
+            task_id_for_plan = int(triplet.task_id)
+        except (TypeError, ValueError):
+            task_id_for_plan = 0
         step_plan = build_step_plan(
             only_steps=only_steps,
             subtasks_mode=subtasks_mode,
@@ -254,7 +256,7 @@ def main() -> int:
             require_executed_refs=require_executed_refs,
             audit_evidence_mode=audit_evidence_mode,
             perf_p95_ms=perf_p95_ms,
-            task_id=int(str(triplet.task_id).split('.', 1)[0]),
+            task_id=task_id_for_plan,
         )
         summary = _build_summary(
             mode="dry-run-plan",

@@ -158,7 +158,7 @@ class PipelineSession:
     def execute_steps(self, steps: list[tuple[str, list[str], int, bool]], *, resume_or_fork: bool) -> int | None:
         halt_pipeline = False
         for step_name, cmd, timeout_sec, skipped in steps:
-            if resume_or_fork and self.step_is_already_complete(self.marathon_state, step_name):
+            if self.step_is_already_complete(self.marathon_state, step_name):
                 continue
             if skipped:
                 if not self.add_step({"name": step_name, "status": "skipped", "rc": 0, "cmd": cmd}):

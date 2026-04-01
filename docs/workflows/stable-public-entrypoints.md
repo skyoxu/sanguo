@@ -105,6 +105,55 @@ Why this is stable:
 - it is the default task-level main entrypoint
 - it replaces manually stitching lower-level review commands together
 
+### `py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start <start> --task-id-end <end> --delivery-profile <profile> --max-tasks-per-shard <n>`
+
+Use when:
+- you want to run workflow 5.1 across a long task range without manually splitting directories
+- you want isolated shard `out-dir`s plus one coordinator summary and one merged summary
+- you want to avoid `last_task_id` / resume pollution caused by reusing the same `out-dir` for overlapping reruns
+- you want one preset like `stable-batch` or `long-batch` instead of manually restating every rolling/backoff flag
+
+Prerequisites:
+- task triplet available
+- LLM runtime for semantics-related steps
+
+Why this is stable:
+- it is the top-level batch coordinator for workflow 5.1
+- it wraps the existing light-lane runner instead of duplicating lower-level semantics logic
+- merged/top-level summaries surface extract-failure signatures and failure families for faster batch triage
+- it supports rolling `warn|degrade|stop` behavior when cumulative extract failure rate becomes untrustworthy
+- it can also back off automatically after one shard times out heavily by increasing next-shard LLM timeout and reducing next-shard size
+- it can warn or stop on repeated extract failure families and emits `family_hotspots` / `quarantine_ranges` for later targeted reruns
+
+### `py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile <profile> [--no-align-apply]`
+
+Use when:
+- a task needs workflow 5.1 semantics stabilization but you do not want to hand-stitch the lower-level commands
+- you want resilient execution with task resume, timeout retry, extract-failure skip policy, and optional batch extract-first mode
+- you want one rolling summary/log directory for a single task or a small ad-hoc batch
+
+Prerequisites:
+- task triplet available
+- LLM runtime for semantics-related steps
+
+Why this is stable:
+- it is the direct wrapper for workflow 5.1 single-task / small-batch runs
+- it supports read-only lane mode (`--no-align-apply`), `extract-first` batch mode, and resume from `summary.json`
+
+### `py -3 scripts/python/merge_single_task_light_lane_summaries.py --date <YYYY-MM-DD>`
+
+Use when:
+- you split a full workflow 5.1 run into multiple `single-task-light-lane-v2*` directories
+- you want one merged summary with transparent per-task source mapping
+
+Prerequisites:
+- one or more light-lane summary files already exist
+
+Why this is stable:
+- it provides the post-batch merge/report entrypoint for split workflow 5.1 runs
+- it writes transparent source metadata instead of a path-only source list
+- it hard-fails when merged completeness validation detects untrusted input coverage
+
 ### `py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify <mode>`
 
 Use when:

@@ -15,24 +15,47 @@ from _taskmaster import TaskmasterTriplet
 from _util import repo_root
 
 
-def build_task_context(triplet: TaskmasterTriplet | None) -> str:
+def build_task_context(triplet: TaskmasterTriplet | None, *, mode: str = "full") -> str:
     if not triplet:
         return ""
+    normalized_mode = str(mode or "full").strip().lower()
+    profiles = {
+        "full": {
+            "master_desc": 1200,
+            "view_desc": 1200,
+            "master_details": 2000,
+            "view_details": 2000,
+        },
+        "semantic": {
+            "master_desc": 900,
+            "view_desc": 700,
+            "master_details": 1200,
+            "view_details": 800,
+        },
+        "compact": {
+            "master_desc": 420,
+            "view_desc": 260,
+            "master_details": 720,
+            "view_details": 360,
+        },
+    }
+    profile = profiles.get(normalized_mode, profiles["full"])
     title = str(triplet.master.get("title") or "").strip()
     adr = ", ".join(triplet.adr_refs()) or "(none)"
     ch = ", ".join(triplet.arch_refs()) or "(none)"
     overlay = triplet.overlay() or "(none)"
-    master_desc = truncate(str(triplet.master.get("description") or ""), max_chars=1_200)
-    back_desc = truncate(str((triplet.back or {}).get("description") or ""), max_chars=1_200)
-    gameplay_desc = truncate(str((triplet.gameplay or {}).get("description") or ""), max_chars=1_200)
-    master_details = truncate(str(triplet.master.get("details") or ""), max_chars=2_000)
-    back_details = truncate(str((triplet.back or {}).get("details") or ""), max_chars=2_000)
-    gameplay_details = truncate(str((triplet.gameplay or {}).get("details") or ""), max_chars=2_000)
+    master_desc = truncate(str(triplet.master.get("description") or ""), max_chars=profile["master_desc"])
+    back_desc = truncate(str((triplet.back or {}).get("description") or ""), max_chars=profile["view_desc"])
+    gameplay_desc = truncate(str((triplet.gameplay or {}).get("description") or ""), max_chars=profile["view_desc"])
+    master_details = truncate(str(triplet.master.get("details") or ""), max_chars=profile["master_details"])
+    back_details = truncate(str((triplet.back or {}).get("details") or ""), max_chars=profile["view_details"])
+    gameplay_details = truncate(str((triplet.gameplay or {}).get("details") or ""), max_chars=profile["view_details"])
     return "\n".join(
         [
             "Task Context:",
             f"- id: {triplet.task_id}",
             f"- title: {title}",
+            f"- mode: {normalized_mode}",
             f"- adrRefs: {adr}",
             f"- archRefs: {ch}",
             f"- overlay: {overlay}",

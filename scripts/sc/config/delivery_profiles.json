@@ -33,6 +33,7 @@
         "semantic_gate": "skip",
         "prompt_budget_gate": "skip",
         "agents": "architect-reviewer,code-reviewer",
+        "diff_mode": "summary",
         "timeout_sec": 300,
         "agent_timeout_sec": 120,
         "strict": false,
@@ -85,7 +86,8 @@
       "llm_review": {
         "semantic_gate": "warn",
         "prompt_budget_gate": "warn",
-        "agents": "architect-reviewer,code-reviewer",
+        "agents": "code-reviewer,security-auditor,semantic-equivalence-auditor",
+        "diff_mode": "summary",
         "timeout_sec": 600,
         "agent_timeout_sec": 180,
         "strict": false,

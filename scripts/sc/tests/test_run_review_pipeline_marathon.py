@@ -33,6 +33,248 @@ def _stable_env() -> dict[str, str]:
 
 
 class RunReviewPipelineMarathonTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._review_preflight_patcher = mock.patch.object(
+            run_review_pipeline_module,
+            "run_review_prerequisite_check",
+            return_value=None,
+        )
+        self._review_preflight_patcher.start()
+        self.addCleanup(self._review_preflight_patcher.stop)
+
+    def test_find_reusable_sc_test_step_should_pick_matching_failed_pipeline_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            out_dir = root / "logs" / "ci" / "2026-03-31" / "sc-review-pipeline-task-1-newrun"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            source_run = root / "logs" / "ci" / "2026-03-30" / "sc-review-pipeline-task-1-oldrun"
+            source_run.mkdir(parents=True, exist_ok=True)
+            child_sc_test = source_run / "child-artifacts" / "sc-test"
+            child_sc_test.mkdir(parents=True, exist_ok=True)
+            (child_sc_test / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-test",
+                        "run_id": "a" * 32,
+                        "type": "unit",
+                        "solution": "Game.sln",
+                        "configuration": "Debug",
+                        "status": "ok",
+                        "steps": [],
+                        "task_id": "1",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (source_run / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": "oldrun",
+                        "run_id": "oldrun",
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [
+                            {
+                                "name": "sc-test",
+                                "cmd": ["py", "-3", "scripts/sc/test.py", "--type", "unit", "--task-id", "1", "--run-id", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "--delivery-profile", "fast-ship"],
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(source_run / "sc-test.log"),
+                                "reported_out_dir": str(child_sc_test),
+                                "summary_file": str(child_sc_test / "summary.json"),
+                            },
+                            {
+                                "name": "sc-acceptance-check",
+                                "cmd": ["py", "-3", "scripts/sc/acceptance_check.py"],
+                                "rc": 1,
+                                "status": "fail",
+                                "log": str(source_run / "sc-acceptance-check.log"),
+                                "reported_out_dir": "",
+                                "summary_file": "",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (source_run / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "git": {"head": "abc123", "status_short": [" M scripts/sc/run_review_pipeline.py"]},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(run_review_pipeline_module, "repo_root", return_value=root):
+                step = run_review_pipeline_module._find_reusable_sc_test_step(
+                    out_dir=out_dir,
+                    task_id="1",
+                    delivery_profile="fast-ship",
+                    security_profile="host-safe",
+                    planned_cmd=["py", "-3", "scripts/sc/test.py", "--type", "unit", "--task-id", "1", "--run-id", "b" * 32, "--delivery-profile", "fast-ship"],
+                    git_fingerprint={"head": "abc123", "status_short": [" M scripts/sc/run_review_pipeline.py"]},
+                )
+
+            self.assertIsNotNone(step)
+            assert step is not None
+            self.assertEqual("ok", step["status"])
+            self.assertTrue((out_dir / "child-artifacts" / "sc-test" / "summary.json").exists())
+            self.assertIn("reused sc-test", Path(step["log"]).read_text(encoding="utf-8"))
+
+    def test_pipeline_should_reuse_matching_sc_test_before_running_acceptance(self) -> None:
+        run_id = uuid.uuid4().hex
+        previous_run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            reused_out_dir = tmp_root / f"sc-review-pipeline-task-1-{previous_run_id}"
+            reused_out_dir.mkdir(parents=True, exist_ok=True)
+            (reused_out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": previous_run_id,
+                        "run_id": previous_run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [
+                            {
+                                "name": "sc-test",
+                                "cmd": ["py", "-3", "scripts/sc/test.py", "--type", "unit", "--task-id", "1", "--run-id", previous_run_id, "--delivery-profile", "fast-ship"],
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(reused_out_dir / "sc-test.log"),
+                                "reported_out_dir": str(reused_out_dir / "child-artifacts" / "sc-test"),
+                                "summary_file": str(reused_out_dir / "child-artifacts" / "sc-test" / "summary.json"),
+                            },
+                            {
+                                "name": "sc-acceptance-check",
+                                "cmd": ["py", "-3", "scripts/sc/acceptance_check.py"],
+                                "rc": 1,
+                                "status": "fail",
+                                "log": str(reused_out_dir / "sc-acceptance-check.log"),
+                                "reported_out_dir": "",
+                                "summary_file": "",
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            child_sc_test = reused_out_dir / "child-artifacts" / "sc-test"
+            child_sc_test.mkdir(parents=True, exist_ok=True)
+            (child_sc_test / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-test",
+                        "run_id": previous_run_id,
+                        "type": "unit",
+                        "solution": "Game.sln",
+                        "configuration": "Debug",
+                        "status": "ok",
+                        "steps": [],
+                        "task_id": "1",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (reused_out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "security_profile": "host-safe",
+                        "delivery_profile": "fast-ship",
+                        "git": {"head": "abc123", "status_short": [" M scripts/sc/run_review_pipeline.py"]},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            calls: list[str] = []
+
+            def fake_run_step(*, out_dir: Path, name: str, cmd: list[str], timeout_sec: int) -> dict:
+                calls.append(name)
+                return {
+                    "name": name,
+                    "cmd": cmd,
+                    "rc": 0,
+                    "status": "ok",
+                    "log": str(out_dir / f"{name}.log"),
+                    "reported_out_dir": "",
+                    "summary_file": "",
+                }
+
+            argv = [
+                str(REPO_ROOT / "scripts" / "sc" / "run_review_pipeline.py"),
+                "--task-id",
+                "1",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--skip-agent-review",
+                "--skip-llm-review",
+            ]
+            with mock.patch.dict(os.environ, _stable_env(), clear=False), \
+                mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step), \
+                mock.patch.object(run_review_pipeline_module, "_run_cli_capability_preflight", return_value=None), \
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "_find_reusable_sc_test_step",
+                    return_value={
+                        "name": "sc-test",
+                        "cmd": ["py", "-3", "scripts/sc/test.py"],
+                        "rc": 0,
+                        "status": "ok",
+                        "log": str(out_dir / "sc-test.log"),
+                        "reported_out_dir": str(out_dir / "child-artifacts" / "sc-test"),
+                        "summary_file": str(out_dir / "child-artifacts" / "sc-test" / "summary.json"),
+                    },
+                ), \
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "current_git_fingerprint",
+                    return_value={"head": "abc123", "status_short": [" M scripts/sc/run_review_pipeline.py"]},
+                ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(0, rc)
+            self.assertNotIn("sc-test", calls)
+            self.assertIn("sc-acceptance-preflight", calls)
+            self.assertIn("sc-acceptance-check", calls)
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            step_names = [item["name"] for item in summary["steps"]]
+            self.assertIn("sc-test", step_names)
+            self.assertEqual("ok", next(item for item in summary["steps"] if item["name"] == "sc-test")["status"])
     def test_agent_review_post_hook_should_update_marathon_state_and_repair_guide(self) -> None:
         run_id = uuid.uuid4().hex
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://newrouge.local/schemas/sc-review-pipeline-summary.schema.json",
+  "$id": "https://sanguo.local/schemas/sc-review-pipeline-summary.schema.json",
   "title": "sc-review-pipeline summary",
   "type": "object",
   "additionalProperties": false,
@@ -28,7 +28,7 @@
     },
     "run_id": {
       "type": "string",
-      "pattern": "^[A-Fa-f0-9]{32}$"
+      "pattern": "^([A-Fa-f0-9]{32}|[A-Za-z0-9][A-Za-z0-9._:-]{2,127})$"
     },
     "allow_overwrite": {
       "type": "boolean"
@@ -64,6 +64,7 @@
         "name": {
           "type": "string",
           "enum": [
+            "sc-build-tdd-refactor-preflight",
             "sc-test",
             "sc-acceptance-check",
             "sc-llm-review"

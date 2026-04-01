@@ -167,8 +167,60 @@ def extract_gd_test_signals(text: str) -> dict[str, list[str]]:
 
 
 def build_acceptance_semantic_context(
-    triplet: TaskmasterTriplet, *, max_chars: int = 12_000, max_acceptance_items: int = 60, max_files: int = 12
+    triplet: TaskmasterTriplet,
+    *,
+    max_chars: int | None = None,
+    max_acceptance_items: int | None = None,
+    max_files: int | None = None,
+    profile: str = "full",
 ) -> tuple[str, dict[str, Any]]:
+    normalized_profile = str(profile or "full").strip().lower()
+    profiles: dict[str, dict[str, Any]] = {
+        "full": {
+            "max_chars": 12_000,
+            "max_acceptance_items": 60,
+            "max_files": 12,
+            "acceptance_item_chars": 800,
+            "include_anchor_excerpts": True,
+            "anchor_context_lines": 20,
+            "max_anchors_per_file": 5,
+            "max_blocks_per_anchor": 2,
+            "include_head_excerpt": True,
+            "head_excerpt_chars": 1_600,
+        },
+        "semantic": {
+            "max_chars": 8_000,
+            "max_acceptance_items": 40,
+            "max_files": 8,
+            "acceptance_item_chars": 420,
+            "include_anchor_excerpts": True,
+            "anchor_context_lines": 8,
+            "max_anchors_per_file": 3,
+            "max_blocks_per_anchor": 1,
+            "include_head_excerpt": True,
+            "head_excerpt_chars": 600,
+        },
+        "compact": {
+            "max_chars": 3_600,
+            "max_acceptance_items": 24,
+            "max_files": 4,
+            "acceptance_item_chars": 240,
+            "include_anchor_excerpts": False,
+            "anchor_context_lines": 0,
+            "max_anchors_per_file": 0,
+            "max_blocks_per_anchor": 0,
+            "include_head_excerpt": False,
+            "head_excerpt_chars": 0,
+        },
+    }
+    settings = dict(profiles.get(normalized_profile, profiles["full"]))
+    if max_chars is not None:
+        settings["max_chars"] = int(max_chars)
+    if max_acceptance_items is not None:
+        settings["max_acceptance_items"] = int(max_acceptance_items)
+    if max_files is not None:
+        settings["max_files"] = int(max_files)
+
     task_id = str(triplet.task_id)
     views: list[tuple[str, dict[str, Any] | None]] = [("back", triplet.back), ("gameplay", triplet.gameplay)]
 
@@ -185,7 +237,7 @@ def build_acceptance_semantic_context(
             continue
 
         rendered_items.append(f"### Acceptance items (view={view_name})")
-        for idx, raw in enumerate(acceptance[:max_acceptance_items]):
+        for idx, raw in enumerate(acceptance[: int(settings["max_acceptance_items"])]):
             total_items += 1
             text = str(raw or "").strip()
             anchor = f"ACC:T{task_id}.{idx + 1}"
@@ -196,7 +248,7 @@ def build_acceptance_semantic_context(
                     refs_to_anchors.setdefault(r, [])
                     if anchor not in refs_to_anchors[r]:
                         refs_to_anchors[r].append(anchor)
-            item_line = truncate(text, max_chars=800)
+            item_line = truncate(text, max_chars=int(settings["acceptance_item_chars"]))
             suffix = f" (anchor: {anchor})"
             rendered_items.append(f"- {item_line}{suffix}")
 
@@ -205,7 +257,7 @@ def build_acceptance_semantic_context(
     missing_files: list[str] = []
     included_files = 0
 
-    for rel in unique_refs[:max_files]:
+    for rel in unique_refs[: int(settings["max_files"])]:
         path = repo_root() / rel
         if not path.is_file():
             missing_files.append(rel)
@@ -234,32 +286,37 @@ def build_acceptance_semantic_context(
                 excerpts.append("Test funcs: " + ", ".join(sig["test_funcs"][:20]))
 
         anchor_excerpts: list[str] = []
-        for a in anchors[:5]:
-            blocks = extract_anchor_context(lines=content_lines, anchor=a, context_lines=20)
-            for start_line, ex in blocks[:2]:
-                anchor_excerpts.append(f"[anchor={a}] @L{start_line}")
-                anchor_excerpts.extend(ex)
-                anchor_excerpts.append("")
+        if bool(settings["include_anchor_excerpts"]):
+            for a in anchors[: int(settings["max_anchors_per_file"])]:
+                blocks = extract_anchor_context(lines=content_lines, anchor=a, context_lines=int(settings["anchor_context_lines"]))
+                for start_line, ex in blocks[: int(settings["max_blocks_per_anchor"])]:
+                    anchor_excerpts.append(f"[anchor={a}] @L{start_line}")
+                    anchor_excerpts.extend(ex)
+                    anchor_excerpts.append("")
 
-        head = "\n".join(content_lines[:80]).strip()
-        head = truncate(head, max_chars=1_600)
+        head = ""
+        if bool(settings["include_head_excerpt"]):
+            head = "\n".join(content_lines[:40]).strip()
+            head = truncate(head, max_chars=int(settings["head_excerpt_chars"]))
 
-        excerpts.append("```")
-        if anchor_excerpts:
-            excerpts.append("\n".join(anchor_excerpts).rstrip())
-        else:
-            excerpts.append(head or "(empty)")
-        excerpts.append("```")
+        if anchor_excerpts or head:
+            excerpts.append("```")
+            if anchor_excerpts:
+                excerpts.append("\n".join(anchor_excerpts).rstrip())
+            else:
+                excerpts.append(head or "(empty)")
+            excerpts.append("```")
 
     meta = {
         "task_id": task_id,
+        "profile": normalized_profile,
         "acceptance_items_total": total_items,
         "acceptance_items_with_refs": total_items_with_refs,
         "unique_ref_files": len(unique_refs),
         "included_ref_files": included_files,
         "missing_ref_files": missing_files[:50],
-        "max_acceptance_items": max_acceptance_items,
-        "max_files": max_files,
+        "max_acceptance_items": int(settings["max_acceptance_items"]),
+        "max_files": int(settings["max_files"]),
     }
 
     blocks: list[str] = []
@@ -283,4 +340,4 @@ def build_acceptance_semantic_context(
         blocks.append("\n".join([f"- {p}" for p in missing_files[:30]]))
 
     text = "\n\n".join([b for b in blocks if b.strip()]).strip() + "\n"
-    return truncate(text, max_chars=max_chars), meta
+    return truncate(text, max_chars=int(settings["max_chars"])), meta

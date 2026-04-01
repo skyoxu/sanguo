@@ -124,7 +124,8 @@ py -3 scripts/python/dev_cli.py new-execution-plan --title "<topic>" --task-id <
 py -3 scripts/python/dev_cli.py new-decision-log --title "<topic>" --task-id <id>
 ```
 
-TDD 建议顺序：
+
+TDD å»ºè®®é¡ºåºï¼
 
 ```powershell
 py -3 scripts/sc/check_tdd_execution_plan.py --task-id <id> --tdd-stage red-first --verify unit --execution-plan-policy draft
@@ -133,6 +134,39 @@ py -3 scripts/sc/build.py tdd --task-id <id> --stage green
 py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor
 ```
 
+é¡ºåºçº¦æï¼
+
+- green ä¼å
+æ£æ¥æè¿ä¸æ¬¡ `sc-llm-acceptance-tests/summary-<task>.json` æ¯å¦æ¯å¹²åç `red-first` ç»æã
+- å¦æ red-first åå»ºäºæ°æµè¯æä»¶ï¼è¿è¦æ± `red_verify.status = ok`ã
+- refactor ä¼å
+æ£æ¥æè¿ä¸æ¬¡ green summary æ¯å¦ä¸º `status = ok`ã
+- review pipeline ä¼å
+æ£æ¥æè¿ä¸æ¬¡ refactor summary æ¯å¦ä¸º `status = ok`ã
+- å½ `--verify auto|all` å¸¦ `--task-id` æ¶ï¼å¦æä»»å¡è§å¾éæ²¡æ `.gd` refsï¼task-scoped GdUnit ä¼ç´æ¥å¤±è´¥ï¼èä¸æ¯åéè·å
+¨éç®å½ã
+如果 `check_tdd_execution_plan.py` 已经明显提示这是复杂任务，不要立刻手工加重所有步骤；先做两件事：
+
+1. 先补一个最小 `execution-plan`
+2. 再判断是否真的需要 Serena MCP
+
+只有当复杂度来自“代码语义不清”时，才触发 Serena，例如：
+
+- 不确定现有类 / 接口 / 服务是否已经存在
+- 不确定事件契约 / DTO / Contracts 命名是否已有约定
+- 需要 rename / refactor，并且担心跨文件引用影响
+- 需要快速理解依赖链和模块边界
+
+此时可以让 Codex / Serena 先做一轮最小语义检索：
+
+```text
+当前任务先执行 Serena MCP 语义检索，再继续实现。
+只保留与当前任务直接相关的 symbols / contracts / references。
+如果这些信息会影响实现边界，再写入 taskdoc/<id>.md；否则不要额外产出本地文档。
+如果 Serena MCP 不可用，不要阻塞任务，继续 Day 4 流程。
+```
+
+如果复杂度只是“测试文件多、`.cs` + `.gd` 混合、verify 更重”，通常不需要 Serena，直接继续 TDD 即可。
 统一 review pipeline：
 
 ```powershell
@@ -170,7 +204,9 @@ py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start 101 --t
 
 默认理解：
 
-- `extract` 是第一判断点
+- `preflight_acceptance_extract_guard` 会先跑一次确定性 acceptance 预检查，提前拦截明显缺少 Refs 或硬门语义的任务
+- preflight 通过后，`extract`、`align`、`coverage`、`semantic_gate` 仍然照常执行；它不是质量替代品，只是节省时间的前置守卫
+- `extract` 仍然是第一判断点
 - 如果 `extract` 已失败，脚本会自动做后续降载
 - 遇到 `timeout` 或 `SC_LLM_OBLIGATIONS status=fail` 这类 family，会更早短路
 - 只有在长批次明显不稳定时，才去调 `rolling-*`、`fill-refs-mode`、`no-align-apply`

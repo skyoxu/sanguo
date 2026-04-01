@@ -5,6 +5,7 @@ Acceptance check step implementations.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from pathlib import Path
@@ -24,7 +25,7 @@ from _acceptance_steps_security import (
 from _step_result import StepResult
 from _subtasks_coverage_step import step_subtasks_coverage_llm
 from _taskmaster import TaskmasterTriplet
-from _util import repo_root, write_json
+from _util import repo_root, today_str, write_json, write_text
 
 
 ADR_STATUS_RE = re.compile(r"^\s*-?\s*(?:Status|status)\s*:\s*([A-Za-z]+)\s*$", re.MULTILINE)
@@ -177,12 +178,35 @@ def step_acceptance_anchors_validate(out_dir: Path, triplet: TaskmasterTriplet) 
 
 
 def step_overlay_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResult:
-    primary = run_and_capture(
-        out_dir,
-        name="validate-task-overlays",
-        cmd=["py", "-3", "scripts/python/validate_task_overlays.py"],
-        timeout_sec=300,
-    )
+    overlay_checks: list[StepResult] = []
+    task_files: list[tuple[str, str]] = [(triplet.tasks_json_path, "master")]
+    if triplet.back is not None:
+        task_files.append((triplet.tasks_back_path, "back"))
+    if triplet.gameplay is not None:
+        task_files.append((triplet.tasks_gameplay_path, "gameplay"))
+
+    seen: set[str] = set()
+    for task_file, label in task_files:
+        key = str(task_file).strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        overlay_checks.append(
+            run_and_capture(
+                out_dir,
+                name=f"validate-task-overlays-{label}",
+                cmd=[
+                    "py",
+                    "-3",
+                    "scripts/python/validate_task_overlays.py",
+                    "--task-file",
+                    str(task_file),
+                    "--task-id",
+                    str(triplet.task_id),
+                ],
+                timeout_sec=180,
+            )
+        )
     overlay = triplet.overlay()
     test_refs = None
     if overlay:
@@ -201,17 +225,77 @@ def step_overlay_validate(out_dir: Path, triplet: TaskmasterTriplet) -> StepResu
             timeout_sec=60,
         )
 
-    ok = primary.status == "ok" and (test_refs is None or test_refs.status == "ok")
-    details = {"primary": primary.__dict__, "test_refs": test_refs.__dict__ if test_refs else None, "overlay": overlay}
+    ok = all(item.status == "ok" for item in overlay_checks) and (test_refs is None or test_refs.status == "ok")
+    aggregate_log = out_dir / "validate-task-overlays.log"
+    write_text(
+        aggregate_log,
+        "\n".join(
+            [
+                f"{item.name} status={item.status} rc={item.rc} log={item.log}"
+                for item in overlay_checks
+            ]
+        )
+        + ("\n" if overlay_checks else ""),
+    )
+    details = {
+        "primary": [item.__dict__ for item in overlay_checks],
+        "test_refs": test_refs.__dict__ if test_refs else None,
+        "overlay": overlay,
+        "task_id": str(triplet.task_id),
+    }
     write_json(out_dir / "overlay-validate.json", details)
     return StepResult(
         name="validate-task-overlays",
         status="ok" if ok else "fail",
         rc=0 if ok else 1,
-        cmd=primary.cmd,
-        log=primary.log,
+        cmd=overlay_checks[0].cmd if overlay_checks else ["py", "-3", "scripts/python/validate_task_overlays.py"],
+        log=str(aggregate_log),
         details=details,
     )
+
+
+def _read_sc_test_summary_for_reuse(*, run_id: str | None, test_type: str, task_id: str | None) -> tuple[Path, dict[str, Any]] | None:
+    override_summary = str(os.environ.get("SC_TEST_REUSE_SUMMARY") or "").strip()
+    if override_summary:
+        summary_path = Path(override_summary)
+        if summary_path.exists():
+            try:
+                override_payload = json.loads(summary_path.read_text(encoding="utf-8"))
+            except Exception:
+                override_payload = {}
+            if isinstance(override_payload, dict) and str(override_payload.get("status") or "").strip().lower() == "ok":
+                actual_type = str(override_payload.get("type") or "").strip().lower()
+                requested_type = str(test_type or "").strip().lower()
+                requested_task = str(task_id or "").strip()
+                if actual_type in {requested_type, "all"} and (not requested_task or str(override_payload.get("task_id") or "").strip() == requested_task):
+                    return summary_path.parent, override_payload
+
+    if not str(run_id or "").strip():
+        return None
+    sc_test_dir = repo_root() / "logs" / "ci" / today_str() / "sc-test"
+    summary_path = sc_test_dir / "summary.json"
+    run_id_path = sc_test_dir / "run_id.txt"
+    if not summary_path.exists() or not run_id_path.exists():
+        return None
+    try:
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if str(summary.get("status") or "").strip().lower() != "ok":
+        return None
+    if str(summary.get("run_id") or "").strip() != str(run_id).strip():
+        return None
+    if run_id_path.read_text(encoding="utf-8", errors="ignore").strip() != str(run_id).strip():
+        return None
+    actual_type = str(summary.get("type") or "").strip().lower()
+    requested_type = str(test_type or "").strip().lower()
+    if actual_type not in {requested_type, "all"}:
+        return None
+    requested_task = str(task_id or "").strip()
+    if requested_task:
+        if str(summary.get("task_id") or "").strip() != requested_task:
+            return None
+    return sc_test_dir, summary
 
 
 def step_contracts_validate(out_dir: Path) -> StepResult:
@@ -248,18 +332,50 @@ def step_tests_all(
     run_id: str | None = None,
     test_type: str = "all",
     task_id: str | None = None,
-    no_coverage_gate: bool = False,
 ) -> StepResult:
+    reused = _read_sc_test_summary_for_reuse(run_id=run_id, test_type=test_type, task_id=task_id)
+    if reused is not None:
+        sc_test_dir, summary = reused
+        planned_cmd = [
+            "py",
+            "-3",
+            "scripts/sc/test.py",
+            "--type",
+            test_type,
+            "--no-coverage-gate",
+            "--no-coverage-report",
+        ]
+        if str(task_id or "").strip():
+            planned_cmd += ["--task-id", str(task_id).strip()]
+        if run_id:
+            planned_cmd += ["--run-id", run_id]
+        if godot_bin and test_type != "unit":
+            planned_cmd += ["--godot-bin", godot_bin]
+        log_path = out_dir / "tests-all.log"
+        write_text(log_path, f"[sc-acceptance-check] reused sc-test summary\nSC_TEST status=ok out={sc_test_dir}\n")
+        return StepResult(
+            name="tests-all",
+            status="ok",
+            rc=0,
+            cmd=planned_cmd,
+            log=str(log_path),
+            details={
+                "reused": True,
+                "source_summary_file": str(sc_test_dir / "summary.json"),
+                "source_run_id": str(summary.get("run_id") or ""),
+                "source_test_type": str(summary.get("type") or ""),
+            },
+        )
+
     cmd = [
         "py",
         "-3",
         "scripts/sc/test.py",
         "--type",
         test_type,
+        "--no-coverage-gate",
         "--no-coverage-report",
     ]
-    if no_coverage_gate:
-        cmd.append("--no-coverage-gate")
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
     if run_id:

@@ -15,6 +15,15 @@
 - 文档导航（Base 骨干）：`docs/architecture/base/00-README.md`
 - Release/CI 工作流说明（含 Sentry 软门禁）：`docs/workflows/GM-NG-T2-playable-guide.md`
 - Overlay Generation Docs: `docs/workflows/overlay-generation-quickstart.md`, `docs/workflows/overlay-generation-sop.md`, `docs/workflows/overlays-authoring-guide.md`
+- 恢复与 active-task：`docs/agents/01-session-recovery.md`、`docs/agents/03-persistent-harness.md`
+- 目录职责：`docs/agents/16-directory-responsibilities.md`
+- 模板升级协议：`docs/workflows/template-upgrade-protocol.md`
+- Project Health Dashboard：`docs/workflows/project-health-dashboard.md`
+- Prototype Lane：`docs/workflows/prototype-lane.md`
+- Chapter 6 T56 优化指南：`docs/workflows/chapter-6-t56-optimization-guide.md`
+- Stable Public Entrypoints：`docs/workflows/stable-public-entrypoints.md`
+- Script Entrypoints Index：`docs/workflows/script-entrypoints-index.md`
+- Harness Run Protocol：`docs/workflows/run-protocol.md`
 
 ---
 

@@ -115,19 +115,33 @@ def step_quality_rules(out_dir: Path, *, strict: bool) -> StepResult:
     return StepResult(name="quality-rules", status=status, rc=0 if status == "ok" else 1, log=str(log_path), details=report)
 
 
-def find_latest_headless_log() -> Path | None:
+def _headless_log_has_perf_metrics(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return False
+    return PERF_METRICS_RE.search(content) is not None
+
+
+def find_latest_headless_log(*, require_perf_metrics: bool = False) -> Path | None:
     ci_root = repo_root() / "logs" / "ci"
     if not ci_root.exists():
         return None
     candidates = list(ci_root.rglob("headless.log"))
     if not candidates:
         return None
-    return max(candidates, key=lambda p: p.stat().st_mtime)
+    candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    if not require_perf_metrics:
+        return candidates[0]
+    for candidate in candidates:
+        if _headless_log_has_perf_metrics(candidate):
+            return candidate
+    return candidates[0]
 
 
 def step_perf_budget(out_dir: Path, *, max_p95_ms: int) -> StepResult:
     root = repo_root()
-    headless_log = find_latest_headless_log()
+    headless_log = find_latest_headless_log(require_perf_metrics=True)
     if not headless_log:
         details = {
             "status": "disabled" if max_p95_ms <= 0 else "enabled",

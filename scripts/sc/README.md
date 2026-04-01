@@ -23,7 +23,7 @@
 - `sc-git`：`logs/ci/<YYYY-MM-DD>/sc-git/`
 - `sc-acceptance-check`：`logs/ci/<YYYY-MM-DD>/sc-acceptance-check/`
 - `sc-llm-review`：`logs/ci/<YYYY-MM-DD>/sc-llm-review/`（可选，本地 LLM 口头审查）
-- `sc-review-pipeline` also writes `run-events.jsonl`, `harness-capabilities.json`, and supports on-demand `approval-request.json` / `approval-response.json` protocol files.
+- `sc-review-pipeline` also writes `run-events.jsonl`, `harness-capabilities.json`, task-scoped `latest.json`, stable `logs/ci/active-tasks/task-<id>.active.{json,md}`, and supports on-demand `approval-request.json` / `approval-response.json` protocol files.
 
 单元测试与覆盖率固定落盘到：`logs/unit/<YYYY-MM-DD>/`（由 `scripts/python/run_dotnet.py` 生成）。
 
@@ -44,6 +44,7 @@
 `scripts/sc/llm_generate_tests_from_acceptance_refs.py` generates missing test files from task acceptance `Refs:` entries and only allows repo-relative `.cs` / `.gd` test paths.
 
 - Every generated file must include the matching `ACC:T<id>.<n>` anchors.
+- Before long or mixed-surface generation, run `scripts/sc/check_tdd_execution_plan.py` first. It scores complexity from missing refs, mixed `.cs` / `.gd` targets, `red-first`, `verify auto|all`, anchor count, and test-root spread; `--execution-plan-policy draft` can auto-create a minimal `execution-plan`.
 - C# anchors must appear within 5 lines above `[Fact]` / `[Theory]`; GDScript anchors must appear within 5 lines above `func test_...`.
 - `--tdd-stage red-first` is a strict red mode.
   - If the run creates any new `.cs` tests, it forces task-scoped unit verification.
@@ -63,11 +64,44 @@
 Examples:
 
 ```powershell
+# Pre-check whether this task should create or require an execution plan first
+py -3 scripts/sc/check_tdd_execution_plan.py --task-id 11 --tdd-stage red-first --verify auto --execution-plan-policy warn
+
+# Auto-draft an execution plan when the complexity threshold is hit
+py -3 scripts/sc/check_tdd_execution_plan.py --task-id 11 --tdd-stage red-first --verify auto --execution-plan-policy draft
+
 # Normal scaffold generation
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id 11 --verify unit
 
 # Strict red-first generation for new tests
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id 11 --tdd-stage red-first --verify auto --godot-bin "$env:GODOT_BIN"
+```
+
+## Semantic Review Tier Maintenance
+
+Use these Python helpers when you want task views to carry an explicit `semantic_review_tier` policy instead of relying only on runtime delivery-profile defaults.
+
+- `scripts/python/backfill_semantic_review_tier.py`
+  - Fills or normalizes `semantic_review_tier` in `tasks_back.json` / `tasks_gameplay.json`.
+  - Default `--mode conservative` only writes safe floors (`auto` / `full`) and avoids freezing profile-derived runtime defaults into task files.
+  - Template repo behavior: prefer real `.taskmaster/tasks/*.json`; fall back to `examples/taskmaster/*` when the real triplet is missing.
+- `scripts/python/validate_semantic_review_tier.py`
+  - Enforces the field name `semantic_review_tier`.
+  - Enforces legal values only.
+  - Enforces consistency with the current computed suggestion.
+  - Enforces no cross-view drift between `tasks_back` and `tasks_gameplay` for the same task.
+
+Examples:
+
+```powershell
+# Dry-run conservative suggestions
+py -3 scripts/python/backfill_semantic_review_tier.py
+
+# Write conservative backfill into task views
+py -3 scripts/python/backfill_semantic_review_tier.py --write
+
+# Validate current task-view tiers
+py -3 scripts/python/validate_semantic_review_tier.py
 ```
 
 ## Acceptance Check（等价于 Claude Code 的 /acceptance-check）
@@ -163,6 +197,10 @@ py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN
 
 # Tighten or relax the context-refresh heuristic thresholds
 py -3 scripts/sc/run_review_pipeline.py --task-id 10 --context-refresh-after-failures 2 --context-refresh-after-resumes 2 --context-refresh-after-diff-lines 200 --context-refresh-after-diff-categories 2
+
+# Inspect and summarize the latest task-scoped recovery state before deciding resume/fork
+# Or open logs/ci/active-tasks/task-<id>.active.md first for the shortest recovery summary
+py -3 scripts/python/dev_cli.py resume-task --task-id 10
 
 # Resume the latest task-scoped run after fixing the first blocking issue
 py -3 scripts/sc/run_review_pipeline.py --task-id 10 --resume
