@@ -8,7 +8,7 @@ Env thresholds (optional):
   COVERAGE_BRANCHES_MIN e.g., "85" (percent)
 
 Usage (Windows):
-  py -3 scripts/python/run_dotnet.py --solution Game.sln --configuration Debug
+  py -3 scripts/python/run_dotnet.py --solution auto --configuration Debug
 """
 import argparse
 import datetime as dt

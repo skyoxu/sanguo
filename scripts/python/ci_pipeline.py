@@ -4,7 +4,7 @@ CI pipeline driver (Python): dotnet tests+coverage (soft gate), Godot self-check
 
 Usage (Windows):
   py -3 scripts/python/ci_pipeline.py all \
-    --solution Game.sln --configuration Debug \
+    --solution auto --configuration Debug \
     --godot-bin "C:\\Godot\\Godot_v4.5.1-stable_mono_win64_console.exe" \
     --build-solutions
 
@@ -142,7 +142,7 @@ def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest='cmd', required=True)
     ap_all = sub.add_parser('all')
-    ap_all.add_argument('--solution', default='Game.sln')
+    ap_all.add_argument('--solution', default='auto')
     ap_all.add_argument('--configuration', default='Debug')
     ap_all.add_argument('--godot-bin', required=True)
     ap_all.add_argument('--project', default='project.godot')

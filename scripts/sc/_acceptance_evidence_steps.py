@@ -152,7 +152,7 @@ def step_post_evidence_integration(
     report_dir_rel = get_post_evidence_report_dir(task_id)
     report_dir = root / report_dir_rel
     solution_file = resolve_solution_file(root)
-    solution_arg = solution_file.name if solution_file is not None else "Game.sln"
+    solution_arg = solution_file.name if solution_file is not None else "auto"
     cmd = [
         "py",
         "-3",

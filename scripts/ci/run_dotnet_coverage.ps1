@@ -1,5 +1,5 @@
 param(
-  [string]$Solution = 'Game.sln',
+  [string]$Solution = 'GodotGame.sln',
   [string]$Format = 'cobertura'
 )
 

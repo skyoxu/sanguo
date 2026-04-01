@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import sys
+import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
@@ -58,6 +59,26 @@ class EntrypointDeliveryProfileTests(unittest.TestCase):
         cmd = sc_build.build_dotnet_build_cmd(target="Game.sln", config="Release", verbose=True, warn_as_error=runtime["warn_as_error"])
         self.assertIn("-warnaserror", cmd)
 
+    def test_build_main_should_prefer_godotgame_solution_when_target_omitted(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            out_dir = root / "logs" / "ci" / "sc-build"
+            (root / "Game.sln").write_text("stub", encoding="utf-8")
+            (root / "GodotGame.sln").write_text("stub", encoding="utf-8")
+            argv = ["build.py"]
+
+            with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(sc_build, "repo_root", return_value=root), \
+                mock.patch.object(sc_build, "ci_dir", return_value=out_dir), \
+                mock.patch.object(sc_build, "run_cmd", return_value=(0, "ok")) as run_cmd_mock:
+                rc = sc_build.main()
+
+            self.assertEqual(0, rc)
+            run_cmd_mock.assert_called_once()
+            build_cmd = run_cmd_mock.call_args[0][0]
+            self.assertEqual(["dotnet", "build"], build_cmd[:2])
+            self.assertEqual(str(root / "GodotGame.sln"), build_cmd[2])
+
     def test_test_runtime_should_scale_coverage_defaults_by_profile(self) -> None:
         playable = sc_test.resolve_test_runtime(delivery_profile="playable-ea", security_profile=None, no_coverage_gate=False)
         fast_ship = sc_test.resolve_test_runtime(delivery_profile="fast-ship", security_profile=None, no_coverage_gate=False)
@@ -82,6 +103,10 @@ class EntrypointDeliveryProfileTests(unittest.TestCase):
         self.assertFalse(runtime["coverage_gate"])
         self.assertEqual(90, runtime["coverage_lines_min"])
         self.assertEqual(85, runtime["coverage_branches_min"])
+
+    def test_test_parser_should_default_solution_to_auto(self) -> None:
+        args = sc_test.build_parser().parse_args([])
+        self.assertEqual("auto", args.solution)
 
     def test_test_main_should_set_skip_coverage_env_when_no_coverage_gate_is_enabled(self) -> None:
         observed: dict[str, str | None] = {}

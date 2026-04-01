@@ -67,7 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="sc-build tdd gatekeeper")
     ap.add_argument("--stage", choices=["red", "green", "refactor"], default="green")
     ap.add_argument("--task-id", default=None, help="task id; defaults to first status=in-progress in tasks.json")
-    ap.add_argument("--solution", default="Game.sln")
+    ap.add_argument("--solution", default="auto")
     ap.add_argument("--configuration", default="Debug")
     ap.add_argument("--delivery-profile", default=None, choices=DELIVERY_PROFILE_CHOICES, help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).")
     ap.add_argument("--security-profile", default=None, choices=["strict", "host-safe"], help="Security profile override (default derives from delivery profile).")

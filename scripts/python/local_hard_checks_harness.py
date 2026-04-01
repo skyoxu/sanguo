@@ -125,7 +125,7 @@ def _run_with_smoke_exit_on_ready_env(
 
 def run_local_hard_checks(
     *,
-    solution: str = "Game.sln",
+    solution: str = "auto",
     configuration: str = "Debug",
     godot_bin: str = "",
     delivery_profile: str = "",

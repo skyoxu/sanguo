@@ -1275,7 +1275,7 @@ reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"logs/unit/cover
 # 3. 覆盖率门禁校验（Python 脚本）
 $env:COVERAGE_LINES_MIN = "90"
 $env:COVERAGE_BRANCHES_MIN = "85"
-py -3 scripts/python/run_dotnet.py --solution Game.sln --configuration Debug
+py -3 scripts/python/run_dotnet.py --solution auto --configuration Debug
 
 # 4. 场景/集成测试（可选，如果改动涉及 Godot 场景）
 # 本模板中无 godot_tests.py，E2E/场景冒烟建议使用 run_gdunit.py 或 smoke_headless.py：

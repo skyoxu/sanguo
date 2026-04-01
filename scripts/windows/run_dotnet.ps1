@@ -1,5 +1,5 @@
 Param(
-  [string]$Solution = "Game.sln",
+  [string]$Solution = "GodotGame.sln",
   [string]$Configuration = "Debug",
   [string]$OutDir = ""
 )

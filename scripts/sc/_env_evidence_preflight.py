@@ -143,7 +143,7 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
     details["commands"]["dotnet_list_sdks_command"] = {"rc": rc_dotnet_sdks}
 
     solution_file = resolve_solution_file(root)
-    restore_target = solution_file if solution_file is not None else (root / "Game.sln")
+    restore_target = solution_file if solution_file is not None else (root / "GodotGame.sln")
     restore_arg = f".\\{restore_target.name}"
 
     # dotnet restore <solution>

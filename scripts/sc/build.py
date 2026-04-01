@@ -4,7 +4,8 @@ sc-build: Repo-specific build shim (Godot+C# template).
 
 Usage (Windows):
   py -3 scripts/sc/build.py
-  py -3 scripts/sc/build.py Game.sln --type prod --clean --verbose
+  py -3 scripts/sc/build.py --type prod --clean --verbose
+  py -3 scripts/sc/build.py --type prod --clean --verbose GodotGame.sln
 
 TDD helper (gated, non-generative):
   py -3 scripts/sc/build.py tdd --stage green
@@ -99,8 +100,8 @@ def main() -> int:
         target = root / args.target
     else:
         resolved = resolve_build_target(root)
-        target = resolved if resolved is not None else (root / "Game.sln")
-    if not target.exists():
+        target = resolved
+    if target is None or not target.exists():
         print(f"[sc-build] ERROR: target not found: {target}")
         return 2
 
