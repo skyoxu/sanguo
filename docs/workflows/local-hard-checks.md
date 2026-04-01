@@ -49,7 +49,7 @@ py -3 scripts/python/dev_cli.py run-local-hard-checks
 
 - --godot-bin <path>: enables the GdUnit4 hard set and strict smoke.
 - --solution <path>: forwarded to 
-un_dotnet.py; default Game.sln.
+run_dotnet.py; default auto (project-preferred solution is resolved automatically).
 - --configuration <Debug|Release>: forwarded to 
 un_dotnet.py; default Debug.
 - --delivery-profile <profile>: resolves the run-level delivery profile and default security profile.

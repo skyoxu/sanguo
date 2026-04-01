@@ -7,10 +7,11 @@ from pathlib import Path
 def _prefer_named(candidates: list[Path], preferred_names: tuple[str, ...]) -> Path | None:
     if not candidates:
         return None
-    lowered = {name.lower() for name in preferred_names}
-    for candidate in candidates:
-        if candidate.name.lower() in lowered:
-            return candidate
+    by_name = {candidate.name.lower(): candidate for candidate in candidates}
+    for name in preferred_names:
+        match = by_name.get(name.lower())
+        if match is not None:
+            return match
     return None
 
 
@@ -18,7 +19,7 @@ def resolve_solution_file(root: Path) -> Path | None:
     candidates = sorted(root.glob("*.sln"))
     if not candidates:
         return None
-    preferred = _prefer_named(candidates, ("Game.sln", f"{root.name}.sln", "GodotGame.sln"))
+    preferred = _prefer_named(candidates, (f"{root.name}.sln", "GodotGame.sln", "Game.sln"))
     if preferred is not None:
         return preferred
     return candidates[0]

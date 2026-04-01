@@ -62,7 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="sc-test (test shim)")
     ap.add_argument("--type", choices=["unit", "integration", "e2e", "all"], default="all")
     ap.add_argument("--task-id", default=None, help="Optional task id for smoke evidence file logs/ci/<date>/task-<id>.json")
-    ap.add_argument("--solution", default="Game.sln")
+    ap.add_argument("--solution", default="auto")
     ap.add_argument("--configuration", default="Debug")
     ap.add_argument("--delivery-profile", default=None, choices=DELIVERY_PROFILE_CHOICES, help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).")
     ap.add_argument("--security-profile", default=None, choices=["strict", "host-safe"], help="Security profile override (default derives from delivery profile).")

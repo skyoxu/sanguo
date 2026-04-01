@@ -22,6 +22,7 @@ from _project_health_common import (
     unit_test_files,
     write_project_health_record,
 )
+from solution_resolver import resolve_solution_path
 
 
 def real_task_triplet_exists(root: Path) -> bool:
@@ -123,6 +124,8 @@ def doctor_project(root: Path | str | None = None) -> dict[str, Any]:
     example_triplet_ok = has_task_triplet(example_triplet)
     workflow_docs_ok = workflow_entry_docs_exists(resolved_root)
 
+    resolved_solution_name = resolve_solution_path("auto", repo_root=resolved_root)
+    resolved_solution_path = resolved_root / resolved_solution_name
     checks = [
         doctor_check(
             check_id="project-godot",
@@ -147,10 +150,12 @@ def doctor_project(root: Path | str | None = None) -> dict[str, Any]:
         ),
         doctor_check(
             check_id="solution",
-            status="ok" if (resolved_root / "Game.sln").exists() else "fail",
-            path="Game.sln",
-            summary="solution exists" if (resolved_root / "Game.sln").exists() else "Game.sln is missing",
-            recommendation="keep the .NET solution in repo root" if (resolved_root / "Game.sln").exists() else "restore or create Game.sln",
+            status="ok" if resolved_solution_path.exists() else "fail",
+            path=resolved_solution_name,
+            summary="solution exists" if resolved_solution_path.exists() else f"{resolved_solution_name} is missing",
+            recommendation="keep the preferred .NET solution in repo root"
+            if resolved_solution_path.exists()
+            else f"restore or create {resolved_solution_name}",
         ),
         doctor_check(
             check_id="core-tests-csproj",

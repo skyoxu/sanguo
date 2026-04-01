@@ -36,7 +36,7 @@ py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin $env:GODOT_BIN
 py -3 scripts/python/run_gate_bundle.py --mode hard --task-files .taskmaster/tasks/tasks_back.json .taskmaster/tasks/tasks_gameplay.json
 
 # 领域单测 + 覆盖率
-py -3 scripts/python/run_dotnet.py --solution Game.sln --configuration Debug
+py -3 scripts/python/run_dotnet.py --solution auto --configuration Debug
 
 # 追加引擎侧小集（GdUnit4 + strict smoke）
 py -3 scripts/python/quality_gates.py all --godot-bin $env:GODOT_BIN --gdunit-hard --smoke
@@ -239,7 +239,7 @@ func test_main_menu_emits_settings() -> void:
 
 ```powershell
 # 单元测试 + 覆盖率（归档到 logs/unit/<YYYY-MM-DD>/）
-py -3 scripts/python/run_dotnet.py --solution Game.sln --configuration Debug
+py -3 scripts/python/run_dotnet.py --solution auto --configuration Debug
 
 # Godot 组合根自检（归档到 logs/e2e/<YYYY-MM-DD>/ 与 logs/ci/<YYYY-MM-DD>/）
 py -3 scripts/python/godot_selfcheck.py run --godot-bin "$env:GODOT_BIN" --project project.godot --build-solutions
@@ -251,10 +251,10 @@ py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --proj
 py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project . --scene "res://Game.Godot/Scenes/Main.tscn" --timeout-sec 5 --mode strict
 
 # 直接 dotnet（不推荐作为 CI/取证入口）
-dotnet test Game.sln -c Debug
-dotnet test Game.sln -c Debug --collect:"XPlat Code Coverage"
-dotnet test Game.sln -c Debug --filter "FullyQualifiedName~PlayerTests"
-dotnet test Game.sln -c Debug --logger "console;verbosity=detailed"
+dotnet test GodotGame.sln -c Debug
+dotnet test GodotGame.sln -c Debug --collect:"XPlat Code Coverage"
+dotnet test GodotGame.sln -c Debug --filter "FullyQualifiedName~PlayerTests"
+dotnet test GodotGame.sln -c Debug --logger "console;verbosity=detailed"
 ```
 
 ### 覆盖率目标
