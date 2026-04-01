@@ -60,6 +60,7 @@ def resolve_test_runtime(*, delivery_profile: str | None, security_profile: str 
 
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="sc-test (test shim)")
+    ap.add_argument("--self-check", action="store_true", help="Validate parser/runtime wiring and summary contract without running tests.")
     ap.add_argument("--type", choices=["unit", "integration", "e2e", "all"], default="all")
     ap.add_argument("--task-id", default=None, help="Optional task id for smoke evidence file logs/ci/<date>/task-<id>.json")
     ap.add_argument("--solution", default="auto")
@@ -74,6 +75,68 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--no-coverage-gate", action="store_true", help="do not enforce default coverage thresholds")
     ap.add_argument("--no-coverage-report", action="store_true", help="skip HTML coverage report generation")
     return ap
+
+
+def _planned_steps(*, test_type: str, include_coverage_report: bool, skip_smoke: bool) -> list[dict[str, Any]]:
+    planned: list[dict[str, Any]] = []
+    if test_type in ("unit", "all"):
+        planned.append({"name": "unit", "status": "skipped", "reason": "planned"})
+        planned.append({"name": "csharp-test-conventions", "status": "skipped", "reason": "planned"})
+        if include_coverage_report:
+            planned.append({"name": "coverage-report", "status": "skipped", "reason": "planned"})
+    if test_type in ("integration", "e2e", "all"):
+        planned.append({"name": "gdunit-hard", "status": "skipped", "reason": "planned"})
+        if not skip_smoke:
+            planned.append({"name": "smoke", "status": "skipped", "reason": "planned"})
+    return planned
+
+
+def _validate_planned_runtime_summary(*, run_id: str, args: argparse.Namespace, task_root_id: str | None, include_coverage_report: bool) -> None:
+    summary: dict[str, Any] = {
+        "cmd": "sc-test",
+        "run_id": run_id,
+        "type": args.type,
+        "solution": args.solution,
+        "configuration": args.configuration,
+        "status": "fail",
+        "steps": _planned_steps(test_type=args.type, include_coverage_report=include_coverage_report, skip_smoke=bool(args.skip_smoke)),
+    }
+    if task_root_id:
+        summary["task_id"] = task_root_id
+    validate_sc_test_summary(summary)
+
+
+def _run_self_check(args: argparse.Namespace) -> int:
+    out_dir = ci_dir("sc-test-self-check")
+    run_id = str(args.run_id or "").strip() or uuid.uuid4().hex
+    task_root_id = _normalize_task_root_id(args.task_id)
+    errors: list[str] = []
+    try:
+        _validate_planned_runtime_summary(
+            run_id=run_id,
+            args=args,
+            task_root_id=task_root_id,
+            include_coverage_report=not bool(args.no_coverage_report),
+        )
+    except SummarySchemaError as exc:
+        errors.append(str(exc))
+    payload: dict[str, Any] = {
+        "cmd": "sc-test",
+        "mode": "self-check",
+        "status": "ok" if not errors else "fail",
+        "out_dir": str(out_dir),
+        "run_id": run_id,
+        "type": args.type,
+        "solution": args.solution,
+        "configuration": args.configuration,
+        "planned_steps": _planned_steps(test_type=args.type, include_coverage_report=not bool(args.no_coverage_report), skip_smoke=bool(args.skip_smoke)),
+        "arg_validation": {"valid": len(errors) == 0, "errors": errors},
+    }
+    if task_root_id:
+        payload["task_id"] = task_root_id
+    write_json(out_dir / "summary.json", payload)
+    print(f"SC_TEST_SELF_CHECK status={payload['status']} out={out_dir}")
+    return 0 if not errors else 2
 
 
 def _normalize_task_root_id(task_id: str | None) -> str | None:
@@ -104,8 +167,23 @@ def run_csharp_test_conventions(out_dir: Path, *, task_id: str | None = None) ->
     return _run_csharp_test_conventions_impl(out_dir, task_id=task_id)
 
 
-def run_gdunit_hard(out_dir: Path, godot_bin: str, timeout_sec: int, *, run_id: str, task_id: str | None = None) -> dict[str, Any]:
-    return _run_gdunit_hard_impl(out_dir, godot_bin, timeout_sec, run_id=run_id, task_id=task_id)
+def run_gdunit_hard(
+    out_dir: Path,
+    godot_bin: str,
+    timeout_sec: int,
+    *,
+    run_id: str,
+    task_id: str | None = None,
+    require_task_scoped_refs: bool = False,
+) -> dict[str, Any]:
+    return _run_gdunit_hard_impl(
+        out_dir,
+        godot_bin,
+        timeout_sec,
+        run_id=run_id,
+        task_id=task_id,
+        require_task_scoped_refs=require_task_scoped_refs,
+    )
 
 
 def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = None, *, strict: bool = True) -> dict[str, Any]:
@@ -114,6 +192,8 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = N
 
 def main() -> int:
     args = build_parser().parse_args()
+    if bool(args.self_check):
+        return _run_self_check(args)
     runtime = resolve_test_runtime(
         delivery_profile=args.delivery_profile,
         security_profile=args.security_profile,
@@ -143,6 +223,19 @@ def main() -> int:
         summary["task_id"] = task_root_id
     schema_error_log = out_dir / "summary-schema-validation-error.log"
 
+    try:
+        _validate_planned_runtime_summary(
+            run_id=run_id,
+            args=args,
+            task_root_id=task_root_id,
+            include_coverage_report=not bool(args.no_coverage_report),
+        )
+    except SummarySchemaError as exc:
+        write_text(schema_error_log, f"{exc}\n")
+        write_json(out_dir / "summary.invalid.json", summary)
+        print(f"[sc-test] ERROR: planned summary schema validation failed. details={schema_error_log}")
+        return 2
+
     def _persist_summary() -> bool:
         try:
             validate_sc_test_summary(summary)
@@ -164,57 +257,45 @@ def main() -> int:
         return 2
 
     if args.type in ("unit", "all"):
-        original_lines_min = os.environ.get("COVERAGE_LINES_MIN")
-        original_branches_min = os.environ.get("COVERAGE_BRANCHES_MIN")
-        original_skip_coverage_gate = os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE")
         if bool(runtime["coverage_gate"]):
             os.environ["COVERAGE_LINES_MIN"] = str(runtime["coverage_lines_min"])
             os.environ["COVERAGE_BRANCHES_MIN"] = str(runtime["coverage_branches_min"])
-            os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
         else:
             os.environ.pop("COVERAGE_LINES_MIN", None)
             os.environ.pop("COVERAGE_BRANCHES_MIN", None)
-            os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = "1"
-        try:
-            step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id, task_id=args.task_id)
-            summary["steps"].append(step)
+        step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id, task_id=args.task_id)
+        summary["steps"].append(step)
+        if not _persist_summary():
+            return 2
+        if step["rc"] != 0:
+            hard_fail = True
+        else:
+            conventions = run_csharp_test_conventions(out_dir, task_id=args.task_id)
+            summary["steps"].append(conventions)
             if not _persist_summary():
                 return 2
-            if step["rc"] != 0:
+            if conventions["rc"] != 0:
                 hard_fail = True
-            else:
-                conventions = run_csharp_test_conventions(out_dir, task_id=args.task_id)
-                summary["steps"].append(conventions)
-                if not _persist_summary():
-                    return 2
-                if conventions["rc"] != 0:
-                    hard_fail = True
-            if not hard_fail and not args.no_coverage_report:
-                cov = run_coverage_report(out_dir, Path(step["artifacts_dir"]))
-                summary["steps"].append(cov)
-                if not _persist_summary():
-                    return 2
-                if cov.get("status") == "fail":
-                    hard_fail = True
-        finally:
-            if original_lines_min is None:
-                os.environ.pop("COVERAGE_LINES_MIN", None)
-            else:
-                os.environ["COVERAGE_LINES_MIN"] = original_lines_min
-            if original_branches_min is None:
-                os.environ.pop("COVERAGE_BRANCHES_MIN", None)
-            else:
-                os.environ["COVERAGE_BRANCHES_MIN"] = original_branches_min
-            if original_skip_coverage_gate is None:
-                os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
-            else:
-                os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = original_skip_coverage_gate
+        if not hard_fail and not args.no_coverage_report:
+            cov = run_coverage_report(out_dir, Path(step["artifacts_dir"]))
+            summary["steps"].append(cov)
+            if not _persist_summary():
+                return 2
+            if cov.get("status") == "fail":
+                hard_fail = True
 
     if args.type in ("integration", "e2e", "all"):
         if not godot_bin:
             print("[sc-test] ERROR: --godot-bin (or env GODOT_BIN) is required for e2e/integration tests.")
             return 2
-        step = run_gdunit_hard(out_dir, godot_bin, args.timeout_sec, run_id=run_id, task_id=args.task_id)
+        step = run_gdunit_hard(
+            out_dir,
+            godot_bin,
+            args.timeout_sec,
+            run_id=run_id,
+            task_id=args.task_id,
+            require_task_scoped_refs=bool(args.type in ("integration", "e2e", "all")),
+        )
         summary["steps"].append(step)
         if not _persist_summary():
             return 2

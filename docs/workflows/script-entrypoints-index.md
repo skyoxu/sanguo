@@ -60,6 +60,9 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/sc/build/tdd.py`
 - `scripts/sc/check_tdd_execution_plan.py`
 - `scripts/sc/llm_generate_tests_from_acceptance_refs.py`
+- `scripts/python/run_single_task_light_lane_batch.py`
+- `scripts/python/run_single_task_light_lane.py`
+- `scripts/python/merge_single_task_light_lane_summaries.py`
 
 ### Taskmaster / semantics / overlay
 
@@ -194,6 +197,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/sc/git.py`
 - `scripts/sc/llm_generate_red_test.py`
 - `scripts/sc/llm_generate_tests_from_acceptance_refs.py`
+- `scripts/python/run_single_task_light_lane.py`
 - `scripts/sc/llm_review.py`
 - `scripts/sc/llm_review_needs_fix_fast.py`
 - `scripts/sc/run_review_pipeline.py`
@@ -1179,6 +1183,70 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
   - Engine-side options require a local Godot .NET console binary; without it, Godot/GdUnit/smoke stages will skip or fail depending on the script.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
   - Model-backed steps require the repo's LLM runtime/CLI; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
+
+#### `scripts/python/merge_single_task_light_lane_summaries.py`
+
+Purpose:
+- merge split workflow 5.1 summaries into one transparent merged summary
+- preserve per-task winning source, candidate source list, and overridden task ids
+
+Important parameters:
+- `--date`: logs date folder under `logs/ci/YYYY-MM-DD`
+- `--logs-root`: override logs root if you are merging from a custom folder
+- `--input`: explicit summary paths, repeatable
+- `--out-dir`: merged output directory
+
+Prerequisites:
+- one or more `single-task-light-lane-v2*/summary.json` files already exist
+- source summaries should be from the same repo and same logical batch family
+
+Notes:
+- default discovery ignores `*-merged` outputs
+- later/newer source summaries win for overlapping `task_id`
+- output adds `task_source_map`, `task_source_candidates`, and `overridden_task_ids`
+- output also adds `validation`; hard issues make the command fail, warnings keep merge success but flag partial/overlapping inputs
+
+#### `scripts/python/run_single_task_light_lane_batch.py`
+
+Purpose:
+- coordinate workflow 5.1 across isolated shards instead of reusing one batch `out-dir`
+- run the existing light-lane wrapper once per shard, then auto-merge shard summaries
+- keep one top-level `summary.json` for batch monitoring and one `merged/summary.json` for merged task results
+
+Important parameters:
+- `--batch-preset`: recommended bundle such as `stable-batch` or `long-batch`; explicit flags still win
+- `--task-ids` / `--task-id-start` / `--task-id-end` / `--max-tasks`: select the task range using the same selection semantics as the direct light-lane wrapper
+- `--max-tasks-per-shard`: shard size for one batch coordinator run
+- `--out-dir`: coordinator output root; shard summaries go under `shards/`, merged report goes under `merged/`
+- `--batch-lane`, `--fill-refs-mode`, `--downstream-on-extract-fail`, `--resume-failed-task-from`: pass-through shard behavior
+- `--rolling-extract-policy`, `--rolling-extract-rate-threshold`, `--rolling-extract-min-observed-tasks`: rolling early-stop / degrade guard for long ranges
+- `--rolling-family-policy`, `--rolling-family-streak-threshold`: repeated extract failure family stop-loss and quarantine-range generation
+- `--rolling-timeout-backoff-threshold`, `--rolling-timeout-backoff-min-observed-tasks`, `--rolling-timeout-backoff-sec`, `--rolling-timeout-backoff-max-llm-timeout-sec`, `--rolling-shard-reduction-factor`: shard-local timeout backoff for the next shard
+- `--self-check`: write the resolved shard plan without executing shards
+
+Prerequisites:
+- task triplet available; template fallback can read `examples/taskmaster/tasks.json` when real `.taskmaster/tasks/tasks.json` is absent
+- model-backed semantics steps require the repo's LLM runtime/CLI
+- use this entrypoint for long ranges; keep the direct wrapper for one task or a small ad-hoc batch
+
+Notes:
+- shard runs use isolated subdirectories, so overlapping reruns do not mutate another shard's `last_task_id`
+- coordinator `summary.json` tracks shard-level status while `merged/summary.json` tracks task-level merged results
+- merged output reuses the transparent source mapping from `merge_single_task_light_lane_summaries.py`
+- top-level and merged summaries surface both `extract_fail_signature_*` and `extract_fail_family_*`; prefer families for grouped extract triage and signatures for exact evidence
+
+#### `scripts/python/run_single_task_light_lane.py`
+
+- Direct local deps: None.
+- Transitive local deps: None.
+- Subcommands: None.
+- Declared args: `--task-ids`, `--task-id-start`, `--task-id-end`, `--max-tasks`, `--timeout-sec`, `--llm-timeout-sec`, `--out-dir`, `--no-resume`, `--fill-refs-after-extract-fail`, `--fill-refs-mode`, `--downstream-on-extract-fail`, `--batch-lane`, `--resume-failed-task-from`, `--stop-on-step-failure`, `--no-align-apply`, `--delivery-profile`, `--self-check`
+- Parameter prerequisites:
+  - Windows PowerShell + `py -3` from repo root.
+  - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/tasks.json` when real `.taskmaster/tasks/tasks.json` is absent.
+  - Model-backed steps require the repo's LLM runtime/CLI for semantics-related stages.
+  - Write/apply flow is controlled by `--no-align-apply`; default behavior includes `align --apply`.
+  - Multi-task runs can resolve `--batch-lane auto` to `extract-first` and `--fill-refs-mode auto` to `none`.
 
 #### `scripts/sc/llm_review.py`
 

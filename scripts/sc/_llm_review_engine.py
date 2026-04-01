@@ -6,12 +6,10 @@ Engine for sc-llm-review.
 from __future__ import annotations
 
 import argparse
-import os
 import time
 from typing import Any
 
 from _acceptance_artifacts import build_acceptance_evidence
-from _delivery_profile import default_security_profile_for_delivery
 from _deterministic_review import DETERMINISTIC_AGENTS, build_deterministic_review
 from _llm_review_acceptance import build_acceptance_semantic_context, read_text, strip_emoji, truncate
 from _llm_review_cli import (
@@ -36,28 +34,103 @@ from _llm_review_prompting import (
 )
 from _security_profile import build_security_profile_context, resolve_security_profile, security_profile_payload
 from _taskmaster import resolve_triplet
-from _util import ci_dir, repo_root, write_json, write_text
+from _util import ci_dir, repo_rel, repo_root, write_json, write_text
+
+
+def _prompt_shape_for_agent(agent: str) -> dict[str, str]:
+    if agent == "semantic-equivalence-auditor":
+        return {
+            "task_context_mode": "semantic",
+            "acceptance_semantic_profile": "semantic",
+            "diff_position": "tail",
+        }
+    return {
+        "task_context_mode": "compact",
+        "acceptance_semantic_profile": "compact",
+        "diff_position": "before_acceptance_semantic",
+    }
+
+
+def _compose_prompt(*, blocks: list[str], diff_ctx: str, acceptance_semantic_ctx: str, diff_position: str) -> str:
+    rendered = [*blocks]
+    if diff_position == "before_acceptance_semantic":
+        rendered.append(diff_ctx)
+    if acceptance_semantic_ctx:
+        rendered.append(acceptance_semantic_ctx)
+    if diff_position != "before_acceptance_semantic":
+        rendered.append(diff_ctx)
+    return "\n\n".join([b for b in rendered if str(b or "").strip()]).strip() + "\n"
+
+
+def _fit_prompt_context(
+    *,
+    blocks: list[str],
+    diff_ctx: str,
+    diff_ctx_summary: str | None,
+    acceptance_semantic_ctx: str,
+    diff_position: str,
+    max_chars: int,
+    allow_drop_acceptance_semantic: bool,
+) -> tuple[str, dict[str, Any]]:
+    prompt = _compose_prompt(
+        blocks=blocks,
+        diff_ctx=diff_ctx,
+        acceptance_semantic_ctx=acceptance_semantic_ctx,
+        diff_position=diff_position,
+    )
+    meta: dict[str, Any] = {
+        "diff_mode_used": "full",
+        "acceptance_semantic_included": bool(acceptance_semantic_ctx),
+        "fallbacks_applied": [],
+        "pre_budget_chars": len(prompt),
+    }
+    if len(prompt) <= max_chars:
+        return prompt, meta
+
+    if diff_ctx_summary and diff_ctx_summary != diff_ctx:
+        summary_prompt = _compose_prompt(
+            blocks=blocks,
+            diff_ctx=diff_ctx_summary,
+            acceptance_semantic_ctx=acceptance_semantic_ctx,
+            diff_position=diff_position,
+        )
+        if len(summary_prompt) < len(prompt):
+            prompt = summary_prompt
+            meta["diff_mode_used"] = "summary"
+            meta["fallbacks_applied"].append("summary_diff")
+            meta["pre_budget_chars"] = len(prompt)
+
+    if len(prompt) > max_chars and allow_drop_acceptance_semantic and acceptance_semantic_ctx:
+        reduced_prompt = _compose_prompt(
+            blocks=blocks,
+            diff_ctx=diff_ctx_summary if meta["diff_mode_used"] == "summary" and diff_ctx_summary else diff_ctx,
+            acceptance_semantic_ctx="",
+            diff_position=diff_position,
+        )
+        if len(reduced_prompt) < len(prompt):
+            prompt = reduced_prompt
+            meta["acceptance_semantic_included"] = False
+            meta["fallbacks_applied"].append("drop_acceptance_semantic")
+            meta["pre_budget_chars"] = len(prompt)
+
+    return prompt, meta
 
 
 def _run_self_check(args: argparse.Namespace) -> int:
     out_dir = ci_dir("sc-llm-review-self-check")
-    security_profile = resolve_security_profile(args.security_profile or default_security_profile_for_delivery(args.delivery_profile))
-    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
-    os.environ["SECURITY_PROFILE"] = str(security_profile)
+    security_profile = resolve_security_profile(args.security_profile)
     errors = validate_args(args)
     summary = summary_base(mode="self-check", out_dir=out_dir, args=args, security_profile=security_profile, status="fail" if errors else "ok")
     summary["arg_validation"] = {"valid": len(errors) == 0, "errors": errors}
     write_json(out_dir / "summary.json", summary)
     for e in errors:
         print(f"[sc-llm-review] ERROR: {e}")
-    print(f"SC_LLM_REVIEW_SELF_CHECK status={summary['status']} out={out_dir}")
+    print(f"SC_LLM_REVIEW_SELF_CHECK status={summary['status']} out={repo_rel(out_dir)}")
     return 0 if not errors else 2
 
 
 def _run_dry_plan(args: argparse.Namespace) -> int:
-    security_profile = resolve_security_profile(args.security_profile or default_security_profile_for_delivery(args.delivery_profile))
-    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
-    os.environ["SECURITY_PROFILE"] = str(security_profile)
+    security_profile = resolve_security_profile(args.security_profile)
     errors = validate_args(args)
     if errors:
         for e in errors:
@@ -93,13 +166,12 @@ def _run_dry_plan(args: argparse.Namespace) -> int:
     summary["agents"] = agents
     summary["plan"] = plan
     write_json(out_dir / "summary.json", summary)
-    print(f"SC_LLM_REVIEW_DRY_RUN_PLAN status={summary['status']} out={out_dir}")
+    print(f"SC_LLM_REVIEW_DRY_RUN_PLAN status={summary['status']} out={repo_rel(out_dir)}")
     return 0
 
 
 def main() -> int:
-    args = build_parser().parse_args()
-    args = apply_delivery_profile_defaults(args)
+    args = apply_delivery_profile_defaults(build_parser().parse_args())
     if bool(args.self_check):
         return _run_self_check(args)
     if bool(args.dry_run_plan):
@@ -132,15 +204,12 @@ def main() -> int:
 
     out_dir = ci_dir(f"sc-llm-review-task-{triplet.task_id}") if triplet else ci_dir("sc-llm-review")
     claude_agents_root = resolve_claude_agents_root(args.claude_agents_root)
-    security_profile = resolve_security_profile(args.security_profile or default_security_profile_for_delivery(args.delivery_profile))
-    os.environ["DELIVERY_PROFILE"] = str(args.delivery_profile)
-    os.environ["SECURITY_PROFILE"] = str(security_profile)
+    security_profile = resolve_security_profile(args.security_profile)
     agents = resolve_agents(args.agents, str(args.semantic_gate or "skip").strip().lower())
     per_agent_overrides = parse_agent_timeout_overrides(args.agent_timeouts)
     total_timeout_sec = int(args.timeout_sec)
     per_agent_timeout_sec = int(args.agent_timeout_sec)
 
-    ctx = build_task_context(triplet)
     threat_model = resolve_threat_model(args.threat_model)
     threat_ctx = build_threat_model_context(threat_model)
     security_ctx = build_security_profile_context(security_profile)
@@ -175,15 +244,9 @@ def main() -> int:
             print("[sc-llm-review] ERROR: --semantic-gate require needs sc-acceptance-check status=ok.")
             return 1
 
-    acceptance_semantic_ctx = ""
-    acceptance_semantic_meta: dict[str, Any] | None = None
-    if triplet and not bool(args.no_acceptance_semantic):
-        try:
-            acceptance_semantic_ctx, acceptance_semantic_meta = build_acceptance_semantic_context(triplet)
-        except Exception:  # noqa: BLE001
-            acceptance_semantic_ctx, acceptance_semantic_meta = "", {"status": "error"}
+    acceptance_semantic_cache: dict[str, tuple[str, dict[str, Any] | None]] = {}
     diff_ctx = build_diff_context(args)
-    task_requirements_blob = "\n".join([ctx, acceptance_ctx, acceptance_semantic_ctx, review_template])
+    diff_ctx_summary: str | None = None
 
     results: list[ReviewResult] = []
     hard_fail = False
@@ -229,6 +292,22 @@ def main() -> int:
             continue
 
         base_prompt, prompt_meta = agent_prompt(agent, claude_agents_root=claude_agents_root, skip_agent_files=bool(args.skip_agent_prompts))
+        prompt_shape = _prompt_shape_for_agent(agent)
+        ctx = build_task_context(triplet, mode=prompt_shape["task_context_mode"])
+        acceptance_semantic_ctx = ""
+        acceptance_semantic_meta: dict[str, Any] | None = None
+        acceptance_semantic_profile = prompt_shape["acceptance_semantic_profile"]
+        if triplet and not bool(args.no_acceptance_semantic):
+            if acceptance_semantic_profile not in acceptance_semantic_cache:
+                try:
+                    acceptance_semantic_cache[acceptance_semantic_profile] = build_acceptance_semantic_context(
+                        triplet,
+                        profile=acceptance_semantic_profile,
+                    )
+                except Exception:  # noqa: BLE001
+                    acceptance_semantic_cache[acceptance_semantic_profile] = ("", {"status": "error", "profile": acceptance_semantic_profile})
+            acceptance_semantic_ctx, acceptance_semantic_meta = acceptance_semantic_cache[acceptance_semantic_profile]
+        task_requirements_blob = "\n".join([ctx, acceptance_ctx, acceptance_semantic_ctx, review_template])
         blocks = [base_prompt]
         if review_template:
             blocks.append("## Structured Review Template\n" + review_template.strip() + "\n")
@@ -240,10 +319,19 @@ def main() -> int:
             blocks.append(security_ctx)
         if acceptance_ctx:
             blocks.append(acceptance_ctx)
-        if acceptance_semantic_ctx:
-            blocks.append(acceptance_semantic_ctx)
-        blocks.append(diff_ctx)
-        prompt = "\n\n".join(blocks).strip() + "\n"
+        if str(args.diff_mode or "").strip().lower() == "full" and diff_ctx_summary is None:
+            diff_args = argparse.Namespace(**vars(args))
+            diff_args.diff_mode = "summary"
+            diff_ctx_summary = build_diff_context(diff_args)
+        prompt, prompt_fit_meta = _fit_prompt_context(
+            blocks=blocks,
+            diff_ctx=diff_ctx,
+            diff_ctx_summary=diff_ctx_summary,
+            acceptance_semantic_ctx=acceptance_semantic_ctx,
+            diff_position=prompt_shape["diff_position"],
+            max_chars=int(args.prompt_max_chars),
+            allow_drop_acceptance_semantic=(agent != "semantic-equivalence-auditor"),
+        )
         prompt_used, budget_meta = apply_prompt_budget(prompt, max_chars=int(args.prompt_max_chars))
         if bool(budget_meta.get("truncated")):
             prompt_truncated_agents.append(agent)
@@ -264,7 +352,7 @@ def main() -> int:
                     agent=agent,
                     status="skipped",
                     prompt_path=str(prompt_path.relative_to(repo_root())).replace("\\", "/"),
-                    details={"trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"), "claude_agents_root": str(claude_agents_root), "agent_prompt_source": prompt_meta.get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), "prompt_budget": budget_meta, "note": "--prompts-only: LLM execution skipped."},
+                    details={"trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"), "claude_agents_root": str(claude_agents_root), "agent_prompt_source": prompt_meta.get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), "prompt_budget": budget_meta, "prompt_shape": {**prompt_shape, **prompt_fit_meta}, "acceptance_semantic_meta": acceptance_semantic_meta, "note": "--prompts-only: LLM execution skipped."},
                 )
             )
             write_text(trace_path, "--prompts-only: LLM execution skipped.\n")
@@ -317,7 +405,7 @@ def main() -> int:
                 cmd=cmd,
                 prompt_path=str(prompt_path.relative_to(repo_root())).replace("\\", "/"),
                 output_path=str(output_path.relative_to(repo_root())).replace("\\", "/"),
-                details={"trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"), "claude_agents_root": str(claude_agents_root), "agent_prompt_source": prompt_meta.get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), "total_timeout_sec": total_timeout_sec, "agent_timeout_sec": effective_timeout, "prompt_budget": budget_meta, "verdict": verdict, "verdict_normalization": verdict_normalization, "note": "This step is best-effort. Use --strict to make it a hard gate."},
+                details={"trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"), "claude_agents_root": str(claude_agents_root), "agent_prompt_source": prompt_meta.get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), "total_timeout_sec": total_timeout_sec, "agent_timeout_sec": effective_timeout, "prompt_budget": budget_meta, "prompt_shape": {**prompt_shape, **prompt_fit_meta}, "acceptance_semantic_meta": acceptance_semantic_meta, "verdict": verdict, "verdict_normalization": verdict_normalization, "note": "This step is best-effort. Use --strict to make it a hard gate."},
             )
         )
 
@@ -347,5 +435,5 @@ def main() -> int:
         }
     )
     write_json(out_dir / "summary.json", summary)
-    print(f"SC_LLM_REVIEW status={summary['status']} out={out_dir}")
+    print(f"SC_LLM_REVIEW status={summary['status']} out={repo_rel(out_dir)}")
     return 0 if summary["status"] in ("ok", "warn") else 1

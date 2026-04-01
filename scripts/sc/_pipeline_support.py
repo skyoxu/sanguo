@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +44,24 @@ def write_latest_index(*, task_id: str, run_id: str, out_dir: Path, status: str)
     write_json(pipeline_latest_index_path(task_id), payload)
 
 
+def _snapshot_child_artifacts(*, pipeline_out_dir: Path, step_name: str, reported_out_dir: Path) -> tuple[str, str]:
+    resolved = reported_out_dir.resolve()
+    if not resolved.exists() or not resolved.is_dir():
+        return str(resolved), str((resolved / "summary.json")) if (resolved / "summary.json").exists() else ""
+    try:
+        resolved.relative_to(pipeline_out_dir.resolve())
+        return str(resolved), str((resolved / "summary.json")) if (resolved / "summary.json").exists() else ""
+    except ValueError:
+        pass
+
+    snapshot_dir = pipeline_out_dir / "child-artifacts" / step_name
+    if snapshot_dir.exists():
+        shutil.rmtree(snapshot_dir)
+    shutil.copytree(resolved, snapshot_dir)
+    summary_path = snapshot_dir / "summary.json"
+    return str(snapshot_dir), str(summary_path) if summary_path.exists() else ""
+
+
 def run_step(*, out_dir: Path, name: str, cmd: list[str], timeout_sec: int) -> dict[str, Any]:
     rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=timeout_sec)
     log_path = out_dir / f"{name}.log"
@@ -58,10 +77,11 @@ def run_step(*, out_dir: Path, name: str, cmd: list[str], timeout_sec: int) -> d
             continue
         candidate_path = Path(candidate)
         if candidate_path.exists():
-            reported_out_dir = str(candidate_path)
-            summary_candidate = candidate_path / "summary.json"
-            if summary_candidate.exists():
-                summary_file = str(summary_candidate)
+            reported_out_dir, summary_file = _snapshot_child_artifacts(
+                pipeline_out_dir=out_dir,
+                step_name=name,
+                reported_out_dir=candidate_path,
+            )
             break
     return {
         "name": name,

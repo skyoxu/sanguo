@@ -3,7 +3,7 @@
 Validate task overlay references and ACCEPTANCE_CHECKLIST.md front matter.
 
 Checks:
-1) Overlay paths exist (for `overlay_refs`; master tasks may also use `overlay`).
+1) Overlay paths exist (for `overlay` or `overlay_refs`).
 2) If an overlay file is ACCEPTANCE_CHECKLIST.md:
    - YAML front matter exists.
    - Required fields exist: PRD-ID, Title, Status, ADR-Refs, Test-Refs.
@@ -164,13 +164,30 @@ def load_tasks_from_file(task_file: Path) -> list[dict[str, Any]]:
     return []
 
 
-def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str]) -> tuple[int, int]:
+def _task_matches_id(task: dict[str, Any], task_file: Path, task_id: str) -> bool:
+    target = str(task_id).strip()
+    if not target:
+        return True
+    if task_file.name == "tasks.json":
+        return str(task.get("id") or "").strip() == target
+    for key in ("taskmaster_id", "id"):
+        value = task.get(key)
+        if value is None:
+            continue
+        if str(value).strip() == target:
+            return True
+    return False
+
+
+def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str], task_id: str | None = None) -> tuple[int, int]:
     """Validate overlay references for a single task file.
 
     Returns: (tasks_with_overlays, tasks_passed)
     """
 
     tasks = load_tasks_from_file(task_file)
+    if str(task_id or "").strip():
+        tasks = [task for task in tasks if _task_matches_id(task, task_file, str(task_id))]
     if not tasks:
         print(f"\n{label}: no tasks found or file missing")
         return 0, 0
@@ -187,11 +204,9 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
         tid = task.get("id")
 
         overlay_refs = task.get("overlay_refs")
-        overlays: list[str] = []
         if overlay_refs:
             overlays = overlay_refs if isinstance(overlay_refs, list) else [overlay_refs]
-        elif task_file.name == "tasks.json":
-            # Master tasks use a single primary overlay pointer.
+        else:
             overlay = task.get("overlay")
             overlays = [overlay] if overlay else []
 
@@ -205,7 +220,7 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
         #     - <overlay_dir>/_index.md
         #     - <overlay_dir>/ACCEPTANCE_CHECKLIST.md
         #
-        # overlay_dir is inferred from overlay_refs using docs/architecture/overlays/<PRD-ID>/08/... patterns.
+        # overlay_dir is inferred from overlay_refs/overlay using docs/architecture/overlays/<PRD-ID>/08/... patterns.
         if task_file.name == "tasks_back.json":
             overlay_refs_list: list[str] = []
             if isinstance(overlay_refs, list):
@@ -218,8 +233,9 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
                     f"{label} task {tid}: overlay_refs must not be empty; set overlay_refs to include docs/architecture/overlays/<PRD-ID>/08/_index.md and ACCEPTANCE_CHECKLIST.md"
                 )
             else:
+                overlay_candidate = str(task.get("overlay") or "").strip()
                 overlay_dir = None
-                for cand in overlay_refs_list:
+                for cand in overlay_refs_list + ([overlay_candidate] if overlay_candidate else []):
                     m = OVERLAY_DIR_RE.match(str(cand))
                     if m:
                         overlay_dir = m.group(1)
@@ -227,7 +243,7 @@ def validate_task_file(root: Path, task_file: Path, label: str, adr_ids: set[str
 
                 if not overlay_dir:
                     forced_errors.append(
-                        f"{label} task {tid}: cannot infer overlay_dir from overlay_refs; set overlay_refs to include docs/architecture/overlays/<PRD-ID>/08/_index.md and ACCEPTANCE_CHECKLIST.md"
+                        f"{label} task {tid}: cannot infer overlay_dir from overlay/overlay_refs; set overlay_refs to include docs/architecture/overlays/<PRD-ID>/08/_index.md and ACCEPTANCE_CHECKLIST.md"
                     )
                 else:
                     required = [
@@ -297,6 +313,11 @@ def main() -> int:
         type=str,
         help="Task file path to validate (default: all .taskmaster/tasks/*.json).",
     )
+    parser.add_argument(
+        "--task-id",
+        type=str,
+        help="Optional task id to scope validation to a single task across the selected task file(s).",
+    )
 
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
@@ -317,7 +338,7 @@ def main() -> int:
     total_checked = 0
     total_passed = 0
     for task_file in task_files:
-        checked, passed = validate_task_file(root, task_file, task_file.name, adr_ids)
+        checked, passed = validate_task_file(root, task_file, task_file.name, adr_ids, task_id=args.task_id)
         total_checked += checked
         total_passed += passed
 

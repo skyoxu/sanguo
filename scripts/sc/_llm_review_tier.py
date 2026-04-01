@@ -178,11 +178,11 @@ def _text_blob(triplet: TaskmasterTriplet | None) -> str:
     for entry in (triplet.master, triplet.back or {}, triplet.gameplay or {}):
         if not isinstance(entry, dict):
             continue
-        for key in ("title", "details", "description"):
+        for key in ("title", "details", "description", "layer", "owner"):
             value = entry.get(key)
             if isinstance(value, str) and value.strip():
                 parts.append(value.strip().lower())
-        for key in ("labels", "tags"):
+        for key in ("labels", "tags", "chapter_refs", "adr_refs", "overlay_refs"):
             parts.extend(x.lower() for x in _string_list(entry.get(key)))
     return "\n".join(parts)
 
@@ -200,6 +200,8 @@ def _priority(triplet: TaskmasterTriplet | None) -> str:
 
 def _is_full_risk(triplet: TaskmasterTriplet | None) -> tuple[bool, list[str]]:
     reasons: list[str] = []
+    if _has_contract_refs(triplet):
+        reasons.append("contract_refs_present")
     blob = _text_blob(triplet)
     keyword_hits = sorted(
         {
@@ -223,7 +225,7 @@ def _config_for_tier(*, tier: str, profile_defaults: dict[str, Any]) -> dict[str
     base_strict = bool(profile_defaults.get("strict", False))
     if tier == "full":
         return {
-            "agents": "all",
+            "agents": base_agents,
             "semantic_gate": base_gate,
             "timeout_sec": base_timeout,
             "agent_timeout_sec": base_agent_timeout,
@@ -231,14 +233,14 @@ def _config_for_tier(*, tier: str, profile_defaults: dict[str, Any]) -> dict[str
         }
     if tier == "targeted":
         return {
-            "agents": "architect-reviewer,code-reviewer",
+            "agents": base_agents,
             "semantic_gate": "warn",
             "timeout_sec": min(base_timeout, 420),
             "agent_timeout_sec": min(base_agent_timeout, 150),
             "strict": False,
         }
     return {
-        "agents": "architect-reviewer,code-reviewer",
+        "agents": base_agents,
         "semantic_gate": "skip",
         "timeout_sec": min(base_timeout, 300),
         "agent_timeout_sec": min(base_agent_timeout, 120),
@@ -261,12 +263,6 @@ def resolve_llm_review_tier_plan(
     if _priority(triplet) == "P1" and effective_tier == "minimal":
         effective_tier = "targeted"
         escalation_reasons.append("priority_p1")
-
-    if _has_contract_refs(triplet) and effective_tier == "minimal":
-        effective_tier = "targeted"
-        escalation_reasons.append("contract_refs_present")
-    elif _has_contract_refs(triplet):
-        escalation_reasons.append("contract_refs_present")
 
     full_risk, risk_reasons = _is_full_risk(triplet)
     if full_risk and effective_tier != "full":
