@@ -36,6 +36,22 @@ def resolve_repo_path(path_text: str) -> Path:
     return repo_root() / path
 
 
+def known_delivery_profile_choices() -> list[str]:
+    config_path = repo_root() / "scripts" / "sc" / "config" / "delivery_profiles.json"
+    fallback = ["fast-ship", "playable-ea", "standard"]
+    if not config_path.exists():
+        return fallback
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+    except Exception:
+        return fallback
+    profiles = data.get("profiles")
+    if not isinstance(profiles, dict):
+        return fallback
+    choices = [str(key).strip() for key in profiles.keys() if str(key).strip()]
+    return sorted(set(choices)) or fallback
+
+
 def parse_task_ids_csv(text: str) -> list[int]:
     ids: list[int] = []
     seen: set[int] = set()
@@ -182,6 +198,7 @@ def load_or_init_payload(
             "task_ids": task_ids,
             "groups": groups,
             "source_tasks_file": str(Path(args.tasks_file)).replace("\\", "/"),
+            "delivery_profile": args.delivery_profile,
             "security_profile": args.security_profile,
             "consensus_runs": args.consensus_runs,
             "min_obligations": args.min_obligations,
@@ -212,6 +229,8 @@ def build_extract_command(
         str(timeout_sec),
         "--round-id",
         round_id,
+        "--delivery-profile",
+        args.delivery_profile,
         "--garbled-gate",
         args.garbled_gate,
         "--auto-escalate",
@@ -257,7 +276,12 @@ def parse_args() -> argparse.Namespace:
         default="",
         help="Raw output JSON path. Default: logs/ci/<today>/sc-llm-obligations-jitter-batch5x3-raw.json",
     )
-
+    parser.add_argument(
+        "--delivery-profile",
+        default="fast-ship",
+        choices=known_delivery_profile_choices(),
+        help="Delivery profile forwarded to llm_extract_task_obligations.py.",
+    )
     parser.add_argument("--security-profile", default=None, choices=["strict", "host-safe"])
     parser.add_argument("--consensus-runs", type=int, default=1)
     parser.add_argument("--min-obligations", type=int, default=0)

@@ -66,6 +66,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--end-group", type=int, default=0)
     parser.add_argument("--timeout-sec", type=int, default=420)
     parser.add_argument("--round-id-prefix", default="jitter")
+    parser.add_argument(
+        "--delivery-profile",
+        default="fast-ship",
+        choices=("playable-ea", "fast-ship", "standard"),
+        help="Delivery profile forwarded to jitter/extract steps.",
+    )
     parser.add_argument("--security-profile", default="", choices=("", "strict", "host-safe"))
     parser.add_argument("--consensus-runs", type=int, default=1)
     parser.add_argument("--min-obligations", type=int, default=0)
@@ -226,6 +232,9 @@ def main() -> int:
         "cmd": "run_obligations_freeze_pipeline.py",
         "date": today_str(),
         "status": "ok",
+        "delivery_profile": str(args.delivery_profile),
+        "security_profile": str(args.security_profile),
+        "security_override": bool(str(args.security_profile).strip()),
         "out_dir": str(out_dir),
         "steps": [],
         "paths": {
@@ -261,6 +270,8 @@ def main() -> int:
                 str(args.timeout_sec),
                 "--round-id-prefix",
                 args.round_id_prefix,
+                "--delivery-profile",
+                str(args.delivery_profile),
                 "--consensus-runs",
                 str(args.consensus_runs),
                 "--min-obligations",
