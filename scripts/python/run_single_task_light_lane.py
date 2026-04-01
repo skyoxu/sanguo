@@ -25,6 +25,7 @@ _TIMEOUT_BUFFER_SEC = 120
 _RETRY_TIMEOUT_BOOST_SEC = 240
 _RETRYABLE_TIMEOUT_STEPS = {"extract", "align"}
 _FILL_REF_STEP_NAMES = {"fill_refs_dry", "fill_refs_write", "fill_refs_verify"}
+_EARLY_GUARD_STEP_NAMES = {"preflight_extract_guard"}
 _SKIP_SOFT_STEP_NAMES = {"coverage", "semantic_gate", *_FILL_REF_STEP_NAMES}
 _EXTRACT_FAIL_FAMILY_AUTO_SKIP_ALL = {
     "timeout",
@@ -127,6 +128,8 @@ def _delivery_profile_defaults(root: Path, delivery_profile: str) -> dict[str, A
 
 
 def _profile_step_llm_timeout_sec(root: Path, *, step_name: str, delivery_profile: str) -> int:
+    if step_name == "preflight_extract_guard":
+        return 60
     profile = _delivery_profile_defaults(root, delivery_profile)
     if step_name == "extract":
         llm_obligations = profile.get("llm_obligations") or {}
@@ -293,6 +296,16 @@ def _steps(*, align_apply: bool, delivery_profile: str, llm_timeout_sec: int | N
         align_cmd.append("--apply")
 
     steps: list[tuple[str, list[str]]] = [
+        (
+            "preflight_extract_guard",
+            [
+                "py",
+                "-3",
+                "scripts/python/preflight_acceptance_extract_guard.py",
+                "--task-id",
+                "{id}",
+            ],
+        ),
         (
             "extract",
             [
@@ -698,6 +711,11 @@ def _summarize_inner_summary(step_name: str, payload: dict[str, Any]) -> dict[st
                 "triggered": bool(auto_escalate.get("triggered")),
                 "reasons": list(auto_escalate.get("reasons") or []),
             }
+    elif step_name == "preflight_extract_guard":
+        for key in ("issue_count", "issue_ids", "acceptance_item_counts", "views_present"):
+            value = payload.get(key)
+            if value is not None:
+                summary[key] = value
     elif step_name.startswith("fill_refs"):
         for key in ("task_count", "changed_tasks", "written_tasks", "skipped_tasks"):
             value = payload.get(key)
@@ -762,6 +780,12 @@ def _classify_failed_task(row: dict[str, Any]) -> str | None:
     for step in steps:
         if isinstance(step, dict) and int(step.get("rc") or 0) == 124:
             return "timeout"
+
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        if str(step.get("step") or "").strip() == "preflight_extract_guard" and int(step.get("rc") or 0) != 0:
+            return "preflight-gap"
 
     for step in steps:
         if not isinstance(step, dict):
@@ -1057,6 +1081,23 @@ def _run_named_steps_for_task(
 ) -> list[str]:
     failed_steps: list[str] = []
     for step_name, template in step_items:
+        guard_step = next(
+            (
+                step_map.get(name)
+                for name in _EARLY_GUARD_STEP_NAMES
+                if isinstance(step_map.get(name), dict)
+                and not bool(step_map.get(name, {}).get("skipped"))
+                and int(step_map.get(name, {}).get("rc") or 0) != 0
+            ),
+            None,
+        )
+        if isinstance(guard_step, dict) and str(guard_step.get("step") or "").strip() != step_name:
+            step_map[step_name] = _make_skipped_step(step_name, skip_reason="preflight_extract_guard_failed")
+            issue_ids = list((guard_step.get("inner_summary") or {}).get("issue_ids") or [])
+            if issue_ids:
+                step_map[step_name]["preflight_issue_ids"] = issue_ids
+            continue
+
         extract_step = step_map.get("extract")
         extract_failed = isinstance(extract_step, dict) and not bool(extract_step.get("skipped")) and int(extract_step.get("rc") or 0) != 0
         if extract_failed:

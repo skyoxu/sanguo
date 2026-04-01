@@ -22,7 +22,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 设置godot项目.",
@@ -56,7 +56,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 创建环形地图数据结构.",
@@ -90,7 +90,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现城池类."
@@ -123,7 +123,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现玩家类."
@@ -156,7 +156,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现骰子机制."
@@ -190,7 +190,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现回合管理器."
@@ -223,7 +223,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现经济结算管理器."
@@ -258,7 +258,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现事件管理器."
@@ -286,7 +286,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 设计ui界面."
@@ -320,7 +320,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现玩家棋子移动."
@@ -391,7 +391,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 7,
         "recommendedSubtasks": 3,
         "expansionPrompt": "将AI行为设计分为基本规则实现、状态机接口预留、测试用例编写三个子任务。"
@@ -428,7 +428,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现土地购买逻辑."
@@ -461,7 +461,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现过路费支付逻辑."
@@ -495,7 +495,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现月末收益结算."
@@ -529,7 +529,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现季度环境事件."
@@ -562,7 +562,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现年度地价调整."
@@ -648,7 +648,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 8,
         "recommendedSubtasks": 4,
         "expansionPrompt": "将回合循环分为玩家行动、AI行动、时间推进、测试验证四个子任务。"
@@ -681,7 +681,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现存档功能."
@@ -711,7 +711,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui事件提示."
@@ -740,7 +740,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui资金显示."
@@ -769,7 +769,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui日期显示."
@@ -798,7 +798,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui骰子结果显示."
@@ -827,7 +827,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui城池状态显示."
@@ -855,7 +855,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui事件日志."
@@ -911,7 +911,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 6,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将AI策略优化分为现有策略分析、优化策略设计两个子任务。"
@@ -967,7 +967,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将游戏结束条件分为条件设计和测试验证两个子任务。"
@@ -995,7 +995,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 3,
         "recommendedSubtasks": 1,
         "expansionPrompt": "将音效和音乐分为音效选择和集成测试两个子任务。"
@@ -1023,7 +1023,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 4,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将主菜单分为UI设计和功能实现两个子任务。"
@@ -1051,7 +1051,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 4,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将设置菜单分为UI设计和功能实现两个子任务。"
@@ -1115,7 +1115,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "将帮助和教程分为内容设计、UI实现、用户测试三个子任务。"
@@ -1190,7 +1190,7 @@
           "CH09",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "34",
@@ -1306,7 +1306,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "39",
@@ -1331,7 +1331,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "40",
@@ -1405,7 +1405,7 @@
           "CH09",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "43",
@@ -1501,7 +1501,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "47",
@@ -1525,7 +1525,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "48",
@@ -1549,7 +1549,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "49",
@@ -1573,7 +1573,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "50",
@@ -1597,7 +1597,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "51",
@@ -1619,7 +1619,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "52",
@@ -1642,7 +1642,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "53",
@@ -1667,7 +1667,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "54",
@@ -1693,7 +1693,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "55",
@@ -1716,7 +1716,7 @@
           "CH02",
           "CH04"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "56",
@@ -1741,7 +1741,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "57",
@@ -1765,7 +1765,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "58",
@@ -1788,7 +1788,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "59",
@@ -1813,7 +1813,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "60",
@@ -1837,7 +1837,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "61",
@@ -1868,7 +1868,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "62",
@@ -1896,7 +1896,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "63",
@@ -1921,7 +1921,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "64",
@@ -1949,7 +1949,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t64-regions.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "65",
@@ -1977,7 +1977,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t65-regions-mechanics.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
       },
       {
         "id": "66",

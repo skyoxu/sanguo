@@ -20,8 +20,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "bootstrap",
@@ -80,8 +82,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "board",
@@ -144,8 +148,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "city",
@@ -204,8 +210,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "player",
@@ -262,8 +270,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "dice",
@@ -327,8 +337,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "turn",
@@ -402,8 +414,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -474,8 +488,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "events",
@@ -540,8 +556,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -603,8 +621,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "movement",
@@ -667,8 +687,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ai",
@@ -740,8 +762,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -822,8 +846,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -900,8 +926,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -965,8 +993,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "events",
@@ -1031,8 +1061,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "economy",
@@ -1100,8 +1132,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "loop",
@@ -1189,8 +1223,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "save",
@@ -1253,8 +1289,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1315,8 +1353,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1370,8 +1410,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1428,8 +1470,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1484,8 +1528,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1545,8 +1591,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "labels": [
       "ui",
@@ -1627,8 +1675,10 @@
       "CH09"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task25AiTests.cs"
@@ -1683,9 +1733,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.game.started"
@@ -1735,9 +1786,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.city.toll.paid",
@@ -1794,9 +1846,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.random_event.applied"
@@ -1849,9 +1902,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [],
     "acceptance": [
@@ -1905,9 +1959,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.game.started"
@@ -1963,9 +2018,10 @@
       "CH04"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t55-characters.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.game.started"
@@ -2021,9 +2077,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t56-random-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.random_event.applied"
@@ -2074,9 +2131,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.action_card.played",
@@ -2133,9 +2191,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t58-buildings.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.building.built"
@@ -2187,9 +2246,10 @@
       "CH07"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.combat.started",
@@ -2243,9 +2303,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "contractRefs": [
       "core.sanguo.game.ended"
@@ -2298,9 +2359,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "depends_on": [
       "GM-0052",
@@ -2363,9 +2425,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t62-relics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "depends_on": [
       "GM-0056",
@@ -2417,9 +2480,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t63-global-events.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "depends_on": [
       "GM-0052",
@@ -2474,9 +2538,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t64-regions.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "depends_on": [
       "GM-0051",
@@ -2531,9 +2596,10 @@
       "CH10"
     ],
     "overlay_refs": [
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t65-regions-mechanics.md"
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
     "depends_on": [
       "GM-0064",
