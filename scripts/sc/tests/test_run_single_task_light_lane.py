@@ -399,6 +399,37 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
             self.assertEqual(["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"], payload["steps"])
             self.assertEqual(11, payload["task_id_start"])
             self.assertEqual(11, payload["task_id_end"])
+            self.assertEqual(["preflight_extract_guard", "extract", "align"], payload["phase1_step_names"])
+            self.assertEqual(["coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"], payload["phase2_step_names"])
+
+    def test_main_self_check_should_include_preflight_in_phase1_for_multi_task_extract_first(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            tasks_path = root / ".taskmaster" / "tasks" / "tasks.json"
+            _write_master_tasks(
+                tasks_path,
+                [
+                    {"id": 11, "status": "in-progress"},
+                    {"id": 12, "status": "pending"},
+                ],
+            )
+            out_dir = root / "logs" / "ci" / "self-check-multi"
+            argv = [
+                "run_single_task_light_lane.py",
+                "--task-ids",
+                "11,12",
+                "--out-dir",
+                str(out_dir),
+                "--self-check",
+            ]
+
+            with mock.patch.object(sys, "argv", argv), mock.patch.object(lane, "_repo_root", return_value=root):
+                rc = lane.main()
+
+            self.assertEqual(0, rc)
+            payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(["preflight_extract_guard", "extract", "align"], payload["phase1_step_names"])
+            self.assertEqual(["coverage", "semantic_gate"], payload["phase2_step_names"])
 
     def test_snapshot_inner_artifacts_should_copy_summary_and_task_subdir(self) -> None:
         with tempfile.TemporaryDirectory() as td:

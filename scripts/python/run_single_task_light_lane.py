@@ -1279,7 +1279,7 @@ def main() -> int:
     if batch_lane_resolved == "extract-first" and downstream_on_extract_fail_resolved == "continue":
         downstream_on_extract_fail_resolved = "skip-soft"
     step_lookup = {name: cmd for name, cmd in steps}
-    phase1_step_names = [name for name in ["extract", "align"] if name in step_lookup]
+    phase1_step_names = [name for name in ["preflight_extract_guard", "extract", "align"] if name in step_lookup]
     phase2_step_names = [name for name, _cmd in steps if name not in phase1_step_names]
     step_names = [name for name, _ in steps]
     resume_scope = _build_resume_scope(

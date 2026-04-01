@@ -270,7 +270,9 @@ py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start 101 --t
 
 4. 默认行为口径
 
-- `extract` 是第一判断点；如果它已经失败，后续步骤默认会自动降载
+- `preflight_acceptance_extract_guard` 现在是 `extract` 之前的确定性前置守卫；它会先拦截明显缺少 acceptance / Refs / 硬门语义的任务，避免把时间浪费在注定失败的 extract 上
+- preflight 通过不代表后续质量门被跳过；`extract`、`align`、`coverage`、`semantic_gate` 仍然会照常执行，质量口径不降低
+- `extract` 仍然是第一道 LLM 判断点；如果它已经失败，后续步骤默认会自动降载
 - 单任务下：`--downstream-on-extract-fail auto` 默认更偏保守续跑
 - 多任务 batch 下：`auto` 默认更偏向尽快止损
 - family-aware 策略已经接入；遇到 `timeout` 或 `SC_LLM_OBLIGATIONS status=fail` 这类高置信失败，会直接短路当前任务的低价值后续步骤
@@ -354,6 +356,10 @@ py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-pr
 - 调整 timeout / shard size
 - 用 dashboard 看 `extract_family_recommended_actions`，而不是继续往 5.1 里堆逻辑
 ### 5.2 Batch instability lane
+
+补充口径：
+- 5.2 里每个任务在进入 `extract` 前，同样会先经过 `preflight_acceptance_extract_guard`
+- preflight fail-fast 只是为了节省批量耗时，不替代后续真正的质量判定
 
 只有当多个任务都表现出 obligations extraction 不稳定时才使用。
 
