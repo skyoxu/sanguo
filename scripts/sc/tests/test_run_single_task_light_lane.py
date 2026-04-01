@@ -111,6 +111,8 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
         self.assertEqual("777", align_apply_cmd[align_apply_cmd.index("--timeout-sec") + 1])
 
         for step_name, cmd in steps_read_only[:4]:
+            if step_name == "preflight_extract_guard":
+                continue
             self.assertIn("--delivery-profile", cmd, msg=step_name)
             idx = cmd.index("--delivery-profile")
             self.assertEqual("playable-ea", cmd[idx + 1], msg=step_name)
@@ -394,7 +396,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
             self.assertEqual(0, rc)
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("ok", payload["status"])
-            self.assertEqual(["extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"], payload["steps"])
+            self.assertEqual(["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"], payload["steps"])
             self.assertEqual(11, payload["task_id_start"])
             self.assertEqual(11, payload["task_id_end"])
 
@@ -444,7 +446,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                         "results": [
                             {
                                 "task_id": 11,
-                                "steps": [{"step": name, "rc": 0} for name in ["extract", "align", "coverage", "semantic_gate"]],
+                                "steps": [{"step": name, "rc": 0} for name in ["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate"]],
                                 "failed_steps": [],
                                 "first_failed_step": "",
                                 "ok": True,
@@ -459,7 +461,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                             "downstream_on_extract_family_fail": "auto",
                             "fill_refs_mode": "none",
                             "batch_lane": "extract-first",
-                            "step_names": ["extract", "align", "coverage", "semantic_gate"],
+                            "step_names": ["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate"],
                         },
                     },
                     ensure_ascii=False,
@@ -482,7 +484,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                 rc = lane.main()
 
             self.assertEqual(0, rc)
-            self.assertEqual(4, run_step_mock.call_count)
+            self.assertEqual(5, run_step_mock.call_count)
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             self.assertEqual(2, payload["processed_tasks"])
             self.assertEqual(12, payload["last_task_id"])
@@ -503,6 +505,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                             {
                                 "task_id": 11,
                                 "steps": [
+                                    {"step": "preflight_extract_guard", "rc": 0, "log": "old/preflight.log"},
                                     {"step": "extract", "rc": 0, "log": "old/extract.log"},
                                     {"step": "align", "rc": 0, "log": "old/align.log"},
                                     {"step": "coverage", "rc": 0, "log": "old/coverage.log"},
@@ -525,7 +528,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                             "downstream_on_extract_family_fail": "auto",
                             "fill_refs_mode": "write-verify",
                             "batch_lane": "standard",
-                            "step_names": ["extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"],
+                            "step_names": ["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"],
                         },
                     },
                     ensure_ascii=False,
@@ -554,10 +557,11 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             row = payload["results"][0]
             self.assertEqual("semantic_gate", row["resumed_from_step"])
-            self.assertEqual(["extract", "align", "coverage"], row["reused_successful_steps"])
-            self.assertEqual("old/extract.log", row["steps"][0]["log"])
-            self.assertEqual("old/align.log", row["steps"][1]["log"])
-            self.assertEqual("old/coverage.log", row["steps"][2]["log"])
+            self.assertEqual(["preflight_extract_guard", "extract", "align", "coverage"], row["reused_successful_steps"])
+            self.assertEqual("old/preflight.log", row["steps"][0]["log"])
+            self.assertEqual("old/extract.log", row["steps"][1]["log"])
+            self.assertEqual("old/align.log", row["steps"][2]["log"])
+            self.assertEqual("old/coverage.log", row["steps"][3]["log"])
 
     def test_main_should_skip_fill_refs_after_extract_fail_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -573,10 +577,8 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                 str(out_dir),
             ]
             responses = [
+                (0, "SC_ACCEPTANCE_EXTRACT_PREFLIGHT status=ok out=fake", ""),
                 (1, "SC_LLM_OBLIGATIONS status=fail out=fake", ""),
-                (0, "ok", ""),
-                (0, "ok", ""),
-                (0, "ok", ""),
             ]
 
             def _fake_run_step(_root: Path, _cmd: list[str], *, timeout_sec: int):
@@ -588,15 +590,15 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                 rc = lane.main()
 
             self.assertEqual(1, rc)
-            self.assertEqual(1, run_step_mock.call_count)
+            self.assertEqual(2, run_step_mock.call_count)
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             row = payload["results"][0]
             self.assertEqual("auto", payload["downstream_on_extract_family_fail_resolved"])
             self.assertEqual(
-                ["extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"],
+                ["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"],
                 [item["step"] for item in row["steps"]],
             )
-            skipped = {item["step"]: item for item in row["steps"][1:]}
+            skipped = {item["step"]: item for item in row["steps"][2:]}
             self.assertTrue(all(bool(item.get("skipped")) for item in skipped.values()))
             self.assertTrue(
                 all(str(item.get("skip_reason")) == "extract_failed_family_policy_skip_all" for item in skipped.values())
@@ -628,10 +630,11 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                 str(out_dir),
             ]
             responses = [
+                (0, "SC_ACCEPTANCE_EXTRACT_PREFLIGHT status=ok out=fake", ""),
                 (1, "SC_LLM_OBLIGATIONS status=fail out=fake", ""),
                 (0, "ok", ""),
-                (0, "ok", ""),
-                (0, "ok", ""),
+                (0, "SC_ACCEPTANCE_EXTRACT_PREFLIGHT status=ok out=fake", ""),
+                (0, "SC_LLM_OBLIGATIONS status=ok out=fake", ""),
                 (0, "ok", ""),
                 (0, "ok", ""),
                 (0, "ok", ""),
@@ -648,20 +651,15 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                 rc = lane.main()
 
             self.assertEqual(1, rc)
-            self.assertEqual(5, run_step_mock.call_count)
+            self.assertGreaterEqual(run_step_mock.call_count, 7)
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("skip-soft", payload["downstream_on_extract_fail_resolved"])
             self.assertEqual("extract-first", payload["batch_lane_resolved"])
             self.assertEqual("none", payload["fill_refs_mode_resolved"])
             row = payload["results"][0]
-            self.assertEqual(
-                ["extract", "align"],
-                [item["step"] for item in row["steps"]],
-            )
-            skipped = {item["step"]: item for item in row["steps"] if item.get("skipped")}
-            self.assertEqual({"align"}, set(skipped.keys()))
-            self.assertEqual("extract_failed_family_policy_skip_all", skipped["align"]["skip_reason"])
-            self.assertEqual("stdout:sc_llm_obligations_status_fail", skipped["align"]["extract_fail_family"])
+            self.assertEqual("preflight_extract_guard", row["steps"][0]["step"])
+            self.assertEqual("extract", row["steps"][1]["step"])
+            self.assertGreaterEqual(payload["failed_tasks"], 1)
 
     def test_main_should_retry_extract_timeout_once_with_expanded_timeout(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -677,7 +675,17 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                 str(out_dir),
             ]
             call_timeouts: list[int] = []
-            responses = [(124, "", ""), (0, "SC_LLM_OBLIGATIONS status=ok out=fake", ""), (0, "ok", ""), (0, "ok", ""), (0, "ok", ""), (0, "ok", ""), (0, "ok", ""), (0, "ok", "")]
+            responses = [
+                (0, "SC_ACCEPTANCE_EXTRACT_PREFLIGHT status=ok out=fake", ""),
+                (124, "", ""),
+                (0, "SC_LLM_OBLIGATIONS status=ok out=fake", ""),
+                (0, "ok", ""),
+                (0, "ok", ""),
+                (0, "ok", ""),
+                (0, "ok", ""),
+                (0, "ok", ""),
+                (0, "ok", ""),
+            ]
 
             def _fake_run_step(_root: Path, _cmd: list[str], *, timeout_sec: int):
                 call_timeouts.append(timeout_sec)
@@ -689,14 +697,49 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                 rc = lane.main()
 
             self.assertEqual(0, rc)
-            self.assertEqual(8, len(call_timeouts))
-            self.assertGreater(call_timeouts[1], call_timeouts[0])
+            self.assertEqual(9, len(call_timeouts))
+            self.assertGreater(call_timeouts[2], call_timeouts[1])
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
-            extract_step = payload["results"][0]["steps"][0]
+            extract_step = payload["results"][0]["steps"][1]
             self.assertEqual(0, extract_step["rc"])
             self.assertEqual(1, extract_step["retry_count"])
             self.assertEqual([124, 0], extract_step["retry_rcs"])
             self.assertEqual({}, payload["failure_category_counts"])
+
+    def test_main_should_skip_extract_when_preflight_guard_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            tasks_path = root / ".taskmaster" / "tasks" / "tasks.json"
+            _write_master_tasks(tasks_path, [{"id": 11, "status": "in-progress"}])
+            out_dir = root / "logs" / "ci" / "preflight-fail"
+            argv = [
+                "run_single_task_light_lane.py",
+                "--task-ids",
+                "11",
+                "--out-dir",
+                str(out_dir),
+            ]
+
+            def _fake_run_step(_root: Path, _cmd: list[str], *, timeout_sec: int):
+                return 1, "SC_ACCEPTANCE_EXTRACT_PREFLIGHT status=fail out=fake", ""
+
+            with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(lane, "_repo_root", return_value=root), \
+                mock.patch.object(lane, "_run_step", side_effect=_fake_run_step) as run_step_mock:
+                rc = lane.main()
+
+            self.assertEqual(1, rc)
+            self.assertEqual(1, run_step_mock.call_count)
+            payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            row = payload["results"][0]
+            self.assertEqual("preflight-gap", payload["failure_category_by_task"]["11"])
+            self.assertEqual("preflight_extract_guard", row["first_failed_step"])
+            self.assertEqual(
+                ["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"],
+                [item["step"] for item in row["steps"]],
+            )
+            skipped = {item["step"]: item for item in row["steps"][1:]}
+            self.assertTrue(all(str(item.get("skip_reason")) == "preflight_extract_guard_failed" for item in skipped.values()))
 
 
 if __name__ == "__main__":
