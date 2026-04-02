@@ -157,7 +157,27 @@ class QualityGatesEntrypointTests(unittest.TestCase):
             )
 
         self.assertEqual(0, rc)
-        dotnet_mock.assert_called_once_with("GodotGame.sln", "Release")
+        dotnet_mock.assert_called_once_with("GodotGame.sln", "Release", delivery_profile="")
+
+    def test_all_should_forward_delivery_profile_to_run_dotnet(self) -> None:
+        with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0), \
+                mock.patch.object(quality_gates, "_normalize_dotnet_summary", return_value=_ok_dotnet_summary()), \
+                mock.patch.object(quality_gates, "run_dotnet", return_value=0) as dotnet_mock:
+            rc = quality_gates.main(
+                [
+                    "all",
+                    "--build-solutions",
+                    "--solution",
+                    "auto",
+                    "--configuration",
+                    "Release",
+                    "--delivery-profile",
+                    "fast-ship",
+                ]
+            )
+
+        self.assertEqual(0, rc)
+        dotnet_mock.assert_called_once_with("GodotGame.sln", "Release", delivery_profile="fast-ship")
 
     def test_all_should_accept_legacy_gdunit_ui_and_coverage_soft_flags(self) -> None:
         with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
