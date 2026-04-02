@@ -22,6 +22,53 @@ internal sealed class InMemoryDataStore : IDataStore
     public IReadOnlyDictionary<string,string> Snapshot => _dict;
 }
 
+internal sealed class SequencedLoadDataStore : IDataStore
+{
+    private readonly Dictionary<string, string> _storage = new();
+    private readonly Dictionary<string, Queue<string?>> _loadSequences = new();
+
+    public Task SaveAsync(string key, string json)
+    {
+        _storage[key] = json;
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> LoadAsync(string key)
+    {
+        if (_loadSequences.TryGetValue(key, out var queue) && queue.Count > 0)
+        {
+            return Task.FromResult(queue.Dequeue());
+        }
+
+        _storage.TryGetValue(key, out var value);
+        return Task.FromResult(value);
+    }
+
+    public Task DeleteAsync(string key)
+    {
+        _storage.Remove(key);
+        return Task.CompletedTask;
+    }
+
+    public void Seed(string key, string value) => _storage[key] = value;
+
+    public void QueueLoad(string key, params string?[] values)
+    {
+        if (!_loadSequences.TryGetValue(key, out var queue))
+        {
+            queue = new Queue<string?>();
+            _loadSequences[key] = queue;
+        }
+
+        foreach (var value in values)
+        {
+            queue.Enqueue(value);
+        }
+    }
+
+    public IReadOnlyDictionary<string, string> Snapshot => _storage;
+}
+
 public class GameStateManagerTests
 {
     private static GameState MakeState(int level=1, int score=0)
@@ -54,6 +101,25 @@ public class GameStateManagerTests
 
         public void CaptureException(string message, Exception ex, IReadOnlyDictionary<string, string>? context = null)
             => Exceptions.Add((message, ex, context));
+    }
+
+    private sealed class CapturingLogger : ILogger
+    {
+        public List<(string Message, Exception? Exception)> Errors { get; } = new();
+
+        public void Info(string message)
+        {
+        }
+
+        public void Warn(string message)
+        {
+        }
+
+        public void Error(string message)
+            => Errors.Add((message, null));
+
+        public void Error(string message, Exception ex)
+            => Errors.Add((message, ex));
     }
 
     [Fact]
@@ -296,6 +362,67 @@ public class GameStateManagerTests
             e.Message == "gamestatemanager.callback.exception" &&
             e.Context != null &&
             e.Context["event_type"] == GameSaveCreated);
+    }
+
+    [Fact]
+    public async Task GetSaveListAsync_WhenIndexJsonIsNullLiteral_ReturnsEmptyList()
+    {
+        var store = new InMemoryDataStore();
+        await store.SaveAsync("guild-manager-game:index", "null");
+        var mgr = new GameStateManager(store);
+
+        var list = await mgr.GetSaveListAsync();
+
+        list.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SaveGameAsync_WhenIndexJsonIsNullLiteral_RebuildsIndexWithoutThrowing()
+    {
+        var store = new InMemoryDataStore();
+        await store.SaveAsync("guild-manager-game:index", "null");
+
+        var mgr = new GameStateManager(store);
+        mgr.SetState(MakeState(level: 8, score: 120), MakeConfig());
+
+        var saveId = await mgr.SaveGameAsync("slot-null-index");
+
+        saveId.Should().NotBeNullOrWhiteSpace();
+        store.Snapshot.Should().ContainKey(saveId);
+
+        var indexJson = await store.LoadAsync("guild-manager-game:index");
+        JsonSerializer.Deserialize<List<string>>(indexJson!).Should().Contain(saveId);
+    }
+
+    [Fact]
+    public async Task SaveGameAsync_WhenCleanupReloadSeesMissingIndex_DoesNotThrowAndKeepsSave()
+    {
+        var store = new SequencedLoadDataStore();
+        store.QueueLoad("guild-manager-game:index", "[]", null);
+
+        var mgr = new GameStateManager(store);
+        mgr.SetState(MakeState(level: 9, score: 240), MakeConfig());
+
+        var saveId = await mgr.SaveGameAsync("slot-cleanup-missing-index");
+
+        saveId.Should().NotBeNullOrWhiteSpace();
+        store.Snapshot.Should().ContainKey(saveId);
+    }
+
+    [Fact]
+    public void CallbackException_WhenLoggerProvidedButReporterMissing_LogsAndDoesNotThrow()
+    {
+        var store = new InMemoryDataStore();
+        var logger = new CapturingLogger();
+        var mgr = new GameStateManager(store, logger: logger);
+        mgr.OnEvent(_ => throw new InvalidOperationException("boom"));
+
+        Action act = () => mgr.SetState(MakeState(level: 3), MakeConfig());
+
+        act.Should().NotThrow();
+        logger.Errors.Should().ContainSingle();
+        logger.Errors[0].Message.Should().Contain("GameStateManager callback failed");
+        logger.Errors[0].Exception.Should().BeOfType<InvalidOperationException>();
     }
 
 }
