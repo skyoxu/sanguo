@@ -125,7 +125,7 @@ py -3 scripts/python/dev_cli.py new-decision-log --title "<topic>" --task-id <id
 ```
 
 
-TDD å»ºè®®é¡ºåºï¼
+TDD 建议顺序：
 
 ```powershell
 py -3 scripts/sc/check_tdd_execution_plan.py --task-id <id> --tdd-stage red-first --verify unit --execution-plan-policy draft
@@ -134,17 +134,13 @@ py -3 scripts/sc/build.py tdd --task-id <id> --stage green
 py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor
 ```
 
-é¡ºåºçº¦æï¼
+顺序约束：
 
-- green ä¼å
-æ£æ¥æè¿ä¸æ¬¡ `sc-llm-acceptance-tests/summary-<task>.json` æ¯å¦æ¯å¹²åç `red-first` ç»æã
-- å¦æ red-first åå»ºäºæ°æµè¯æä»¶ï¼è¿è¦æ± `red_verify.status = ok`ã
-- refactor ä¼å
-æ£æ¥æè¿ä¸æ¬¡ green summary æ¯å¦ä¸º `status = ok`ã
-- review pipeline ä¼å
-æ£æ¥æè¿ä¸æ¬¡ refactor summary æ¯å¦ä¸º `status = ok`ã
-- å½ `--verify auto|all` å¸¦ `--task-id` æ¶ï¼å¦æä»»å¡è§å¾éæ²¡æ `.gd` refsï¼task-scoped GdUnit ä¼ç´æ¥å¤±è´¥ï¼èä¸æ¯åéè·å
-¨éç®å½ã
+- green 会先检查最近一次 `sc-llm-acceptance-tests/summary-<task>.json` 是否是干净的 `red-first` 结果。
+- 如果 red-first 创建了新测试文件，还要求 `red_verify.status = ok`。
+- refactor 会先检查最近一次 green summary 是否为 `status = ok`。
+- review pipeline 会先检查最近一次 refactor summary 是否为 `status = ok`。
+- 当 `--verify auto|all` 带 `--task-id` 时，如果任务视图里没有 `.gd` refs，task-scoped GdUnit 会直接失败，而不是回退跑全量目录。
 如果 `check_tdd_execution_plan.py` 已经明显提示这是复杂任务，不要立刻手工加重所有步骤；先做两件事：
 
 1. 先补一个最小 `execution-plan`
