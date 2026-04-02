@@ -505,27 +505,24 @@ py -3 scripts/sc/check_tdd_execution_plan.py --task-id <id> --tdd-stage red-firs
 
 ### 6.4 Red stage
 
-å unit ç red-firstï¼
+偏 unit 的 red-first：
 
 ```powershell
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify unit
 ```
 
-æ··å `.cs` + `.gd` æéè¦ Godot-aware verificationï¼
+混合 `.cs` + `.gd` 或需要 Godot-aware verification：
 
 ```powershell
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify auto --godot-bin "$env:GODOT_BIN"
 ```
 
-è¯´æï¼
+说明：
 
-- 6.5 green ä¼å¼ºå¶è¯»åæè¿ä¸æ¬¡ `sc-llm-acceptance-tests/summary-<task>.json`ã
-- è¿ä»½ summary å¿
-é¡»æ¥èª `red-first`ï¼ä¸ä¸è½å­å¨å¤±è´¥ refã
-- å¦æ 6.4 åå»ºäºæ°æµè¯æä»¶ï¼è¿è¦æ± `red_verify.status = ok`ï¼å¦å 6.5 ç´æ¥é»æ­ã
-- å½ä½ å¨ 6.4 ä½¿ç¨ `--verify auto|all` ä¸å¸¦ `--task-id` æ¶ï¼task-scoped GdUnit ç°å¨å¿
-é¡»è½ä»ä»»å¡è§å¾è§£æåº `.gd` refsï¼ä¸ä¼åéé»åéå° `tests/Scenes` ç­å
-¨éç®å½ã
+- 6.5 green 会强制读取最近一次 `sc-llm-acceptance-tests/summary-<task>.json`。
+- 这份 summary 必须来自 `red-first`，且不能存在失败 ref。
+- 如果 6.4 创建了新测试文件，还要求 `red_verify.status = ok`，否则 6.5 直接阻断。
+- 当你在 6.4 使用 `--verify auto|all` 且带 `--task-id` 时，task-scoped GdUnit 现在必须能从任务视图解析出 `.gd` refs；不会再静默回退到 `tests/Scenes` 等全量目录。
 
 ### 6.5 Green stage
 
@@ -533,11 +530,10 @@ py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd
 py -3 scripts/sc/build.py tdd --task-id <id> --stage green
 ```
 
-è¯´æï¼
+说明：
 
-- green ä¹åä¼å 6.4 åç½®ç¡¬é¨ã
-- å¦æ 6.4 æ²¡æè·å°å¹²åç¶æï¼å
-åå»ä¿® 6.4ï¼ä¸è¦ç»§ç»­æ¨è¿ã
+- green 之前会做 6.4 前置硬门。
+- 如果 6.4 没有跑到干净状态，先回去修 6.4，不要继续推进。
 
 ### 6.6 Refactor stage
 
@@ -545,45 +541,40 @@ py -3 scripts/sc/build.py tdd --task-id <id> --stage green
 py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor
 ```
 
-è¯´æï¼
+说明：
 
-- refactor ä¹åä¼æ£æ¥æè¿ä¸æ¬¡åä»»å¡ `sc-build-tdd` ç green summaryï¼è¦æ± `stage = green` ä¸ `status = ok`ã
-- å¦æ 6.5 å¤±è´¥äºï¼å¿
-é¡»å
-ä¿®å¤ 6.5ï¼åè¿å
-¥ refactorã
+- refactor 之前会检查最近一次同任务 `sc-build-tdd` 的 green summary，要求 `stage = green` 且 `status = ok`。
+- 如果 6.5 失败了，必须先修复 6.5，再进入 refactor。
 
-`build.py tdd` å·²ç»å
-ç½® task preflightã`sc-analyze`ãå¿
-éç task-context validationï¼ä»¥å 6.4 -> 6.5 -> 6.6 çé¡ºåºç¡¬é¨ã
+`build.py tdd` 已经内置 task preflight、`sc-analyze`、必需的 task-context validation，以及 6.4 -> 6.5 -> 6.6 的顺序硬门。
 
-### 6.7 ç»ä¸ä»»å¡çº§ review pipeline
+### 6.7 统一任务级 review pipeline
 
-æ¥å¸¸é»è®¤ï¼
+日常默认：
 
 ```powershell
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
 ```
 
-æ´éçæ¶ææ¨¡å¼ï¼
+更重的收敛模式：
 
 ```powershell
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile standard
 ```
 
-å¿«éå¯ç©éªè¯ï¼
+快速可玩验证：
 
 ```powershell
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile playable-ea
 ```
 
-è¯´æï¼
+说明：
 
-- é»è®¤æ¨¡æ¿å·²ç»æ¯ `scripts/sc/templates/llm_review/bmad-godot-review-template.txt`
-- é¤éä½ æç¡®è¦è¦çé»è®¤æ å°ï¼å¦åä¸è¦æå·¥ä¼  `--security-profile`
-- è¿ä¸ª pipeline ä¼å sidecarsãlatest pointersãactive-task summariesãrepair guidanceï¼ä»¥å technical debt sync outputs
-- review pipeline å¯å¨åè¿ä¼æ£æ¥æè¿ä¸æ¬¡åä»»å¡ `sc-build-tdd` ç refactor summaryï¼è¦æ± `stage = refactor` ä¸ `status = ok`ï¼å¦æ 6.6 å¤±è´¥ï¼å
-ä¿® 6.6ã
+- 默认模板已经是 `scripts/sc/templates/llm_review/bmad-godot-review-template.txt`。
+- 除非你明确要覆盖默认映射，否则不要手工传 `--security-profile`。
+- 这个 pipeline 会写 sidecars、latest pointers、active-task summaries、repair guidance，以及 technical debt sync outputs。
+- review pipeline 启动前还会检查最近一次同任务 `sc-build-tdd` 的 refactor summary，要求 `stage = refactor` 且 `status = ok`；如果 6.6 失败，先修 6.6。
+
 ### 6.8 清理 Needs Fix
 
 日常快速清理：
