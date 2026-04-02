@@ -20,6 +20,13 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from _obligations_freeze_runtime import (
+    default_tasks_file_path,
+    known_delivery_profile_choices,
+    resolve_delivery_and_security,
+    resolve_repo_path,
+)
+
 
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
@@ -27,29 +34,6 @@ def repo_root() -> Path:
 
 def today_str() -> str:
     return dt.date.today().strftime("%Y-%m-%d")
-
-
-def resolve_repo_path(path_text: str) -> Path:
-    path = Path(path_text)
-    if path.is_absolute():
-        return path
-    return repo_root() / path
-
-
-def known_delivery_profile_choices() -> list[str]:
-    config_path = repo_root() / "scripts" / "sc" / "config" / "delivery_profiles.json"
-    fallback = ["fast-ship", "playable-ea", "standard"]
-    if not config_path.exists():
-        return fallback
-    try:
-        data = json.loads(config_path.read_text(encoding="utf-8"))
-    except Exception:
-        return fallback
-    profiles = data.get("profiles")
-    if not isinstance(profiles, dict):
-        return fallback
-    choices = [str(key).strip() for key in profiles.keys() if str(key).strip()]
-    return sorted(set(choices)) or fallback
 
 
 def parse_task_ids_csv(text: str) -> list[int]:
@@ -190,6 +174,10 @@ def load_or_init_payload(
             payload.setdefault("meta", {})
             payload.setdefault("rows", [])
             return payload
+    delivery_profile, security_profile = resolve_delivery_and_security(
+        getattr(args, "delivery_profile", None),
+        getattr(args, "security_profile", None),
+    )
     return {
         "meta": {
             "date": today_str(),
@@ -198,8 +186,9 @@ def load_or_init_payload(
             "task_ids": task_ids,
             "groups": groups,
             "source_tasks_file": str(Path(args.tasks_file)).replace("\\", "/"),
-            "delivery_profile": args.delivery_profile,
-            "security_profile": args.security_profile,
+            "delivery_profile": delivery_profile,
+            "security_profile": security_profile,
+            "security_override": bool(str(getattr(args, "security_profile", "") or "").strip()),
             "consensus_runs": args.consensus_runs,
             "min_obligations": args.min_obligations,
             "garbled_gate": args.garbled_gate,
@@ -219,6 +208,11 @@ def build_extract_command(
     round_id: str,
     args: argparse.Namespace,
 ) -> list[str]:
+    delivery_profile, security_profile = resolve_delivery_and_security(
+        getattr(args, "delivery_profile", None),
+        getattr(args, "security_profile", None),
+    )
+    has_security_override = bool(str(getattr(args, "security_profile", "") or "").strip())
     cmd = [
         "py",
         "-3",
@@ -230,7 +224,7 @@ def build_extract_command(
         "--round-id",
         round_id,
         "--delivery-profile",
-        args.delivery_profile,
+        delivery_profile,
         "--garbled-gate",
         args.garbled_gate,
         "--auto-escalate",
@@ -240,8 +234,8 @@ def build_extract_command(
         "--max-schema-errors",
         str(args.max_schema_errors),
     ]
-    if args.security_profile:
-        cmd += ["--security-profile", args.security_profile]
+    if has_security_override:
+        cmd += ["--security-profile", security_profile]
     if args.consensus_runs is not None:
         cmd += ["--consensus-runs", str(args.consensus_runs)]
     if args.min_obligations is not None:
@@ -262,7 +256,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--tasks-file",
-        default=".taskmaster/tasks/tasks.json",
+        default=str(default_tasks_file_path().relative_to(repo_root())).replace("\\", "/"),
         help="Task source file used when --task-ids is empty.",
     )
     parser.add_argument("--batch-size", type=int, default=5, help="Tasks per group (default: 5).")
@@ -278,11 +272,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--delivery-profile",
-        default="fast-ship",
+        default=None,
         choices=known_delivery_profile_choices(),
         help="Delivery profile forwarded to llm_extract_task_obligations.py.",
     )
-    parser.add_argument("--security-profile", default=None, choices=["strict", "host-safe"])
+    parser.add_argument("--security-profile", default="", choices=["", "strict", "host-safe"])
     parser.add_argument("--consensus-runs", type=int, default=1)
     parser.add_argument("--min-obligations", type=int, default=0)
     parser.add_argument("--garbled-gate", default="on", choices=["on", "off"])
@@ -297,12 +291,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     root = repo_root()
+    tasks_file = resolve_repo_path(args.tasks_file)
+    args.tasks_file = str(tasks_file.relative_to(root)).replace("\\", "/") if tasks_file.is_relative_to(root) else str(tasks_file)
 
     task_ids: list[int]
     if str(args.task_ids).strip():
         task_ids = parse_task_ids_csv(args.task_ids)
     else:
-        task_ids = load_numeric_task_ids(resolve_repo_path(args.tasks_file))
+        task_ids = load_numeric_task_ids(tasks_file)
     if not task_ids:
         print("ERROR: no task ids resolved")
         return 2

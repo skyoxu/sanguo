@@ -15,12 +15,21 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import json
-import shlex
 import subprocess
 from pathlib import Path
 from typing import Any
 
+from _obligations_freeze_pipeline_steps import (
+    build_jitter_batch_command,
+    parse_eval_aggregate,
+    run_step,
+    write_pipeline_summary,
+)
+from _obligations_freeze_runtime import (
+    known_delivery_profile_choices,
+    resolve_delivery_and_security,
+    resolve_repo_path,
+)
 
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
@@ -28,13 +37,6 @@ def repo_root() -> Path:
 
 def today_str() -> str:
     return dt.date.today().strftime("%Y-%m-%d")
-
-
-def resolve_repo_path(path_text: str) -> Path:
-    path = Path(path_text)
-    if path.is_absolute():
-        return path
-    return repo_root() / path
 
 
 def parse_args() -> argparse.Namespace:
@@ -59,7 +61,11 @@ def parse_args() -> argparse.Namespace:
 
     # Pass-through knobs for run_obligations_jitter_batch5x3.py
     parser.add_argument("--task-ids", default="")
-    parser.add_argument("--tasks-file", default=".taskmaster/tasks/tasks.json")
+    parser.add_argument(
+        "--tasks-file",
+        default="",
+        help="Tasks JSON path. Empty means resolve default taskmaster/tasks or examples/taskmaster/tasks at runtime.",
+    )
     parser.add_argument("--batch-size", type=int, default=5)
     parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--start-group", type=int, default=1)
@@ -68,8 +74,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--round-id-prefix", default="jitter")
     parser.add_argument(
         "--delivery-profile",
-        default="fast-ship",
-        choices=("playable-ea", "fast-ship", "standard"),
+        default=None,
+        choices=known_delivery_profile_choices(),
         help="Delivery profile forwarded to jitter/extract steps.",
     )
     parser.add_argument("--security-profile", default="", choices=("", "strict", "host-safe"))
@@ -159,82 +165,30 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def run_step(step_name: str, cmd: list[str], out_dir: Path, timeout_sec: int) -> dict[str, Any]:
-    log_path = out_dir / f"{step_name}.log"
-    process = subprocess.run(
-        cmd,
-        cwd=str(repo_root()),
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=timeout_sec,
-    )
-    cmd_text = " ".join(shlex.quote(token) for token in cmd)
-    body = [
-        f"$ {cmd_text}",
-        "",
-        "### stdout",
-        process.stdout or "",
-        "",
-        "### stderr",
-        process.stderr or "",
-    ]
-    log_path.write_text("\n".join(body), encoding="utf-8")
+def _init_pipeline_payload(
+    out_dir: Path,
+    raw_path: Path,
+    summary_path: Path,
+    summary_report: Path,
+    refreshed_summary: Path,
+    refreshed_report: Path,
+    draft_json: Path,
+    draft_md: Path,
+    eval_dir: Path,
+    promote_report: Path,
+    *,
+    delivery_profile: str,
+    security_profile: str,
+    security_override: bool,
+) -> dict[str, Any]:
     return {
-        "name": step_name,
-        "status": "ok" if process.returncode == 0 else "fail",
-        "rc": process.returncode,
-        "cmd": cmd,
-        "log": str(log_path),
-    }
-
-
-def write_pipeline_summary(out_dir: Path, payload: dict[str, Any]) -> None:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    summary_path = out_dir / "summary.json"
-    summary_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
-def parse_eval_aggregate(eval_dir: Path) -> dict[str, Any] | None:
-    summary_file = eval_dir / "summary.json"
-    if not summary_file.exists():
-        return None
-    try:
-        parsed = json.loads(summary_file.read_text(encoding="utf-8"))
-    except Exception:
-        return None
-    aggregate = parsed.get("aggregate")
-    if isinstance(aggregate, dict):
-        return aggregate
-    return None
-
-
-def main() -> int:
-    args = parse_args()
-    out_dir = resolve_repo_path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    raw_path = resolve_repo_path(args.raw) if str(args.raw).strip() else out_dir / "sc-llm-obligations-jitter-batch5x3-raw.json"
-    summary_path = out_dir / "sc-llm-obligations-jitter-batch5x3-summary.json"
-    summary_report = out_dir / "sc-llm-obligations-jitter-batch5x3-report.md"
-    refreshed_summary = out_dir / "sc-llm-obligations-jitter-batch5x3-summary-refreshed.json"
-    refreshed_report = out_dir / "sc-llm-obligations-jitter-batch5x3-refreshed-report.md"
-    draft_json = resolve_repo_path(args.draft_json) if str(args.draft_json).strip() else out_dir / "obligations-freeze-whitelist.draft.json"
-    draft_md = resolve_repo_path(args.draft_md) if str(args.draft_md).strip() else out_dir / "obligations-freeze-whitelist-draft.md"
-    eval_dir = resolve_repo_path(args.eval_dir) if str(args.eval_dir).strip() else out_dir / "freeze-eval"
-    promote_report = (
-        resolve_repo_path(args.promote_report) if str(args.promote_report).strip() else out_dir / "obligations-freeze-promote.md"
-    )
-
-    pipeline: dict[str, Any] = {
         "schema_version": "1.0.0",
         "cmd": "run_obligations_freeze_pipeline.py",
         "date": today_str(),
         "status": "ok",
-        "delivery_profile": str(args.delivery_profile),
-        "security_profile": str(args.security_profile),
-        "security_override": bool(str(args.security_profile).strip()),
+        "delivery_profile": delivery_profile,
+        "security_profile": security_profile,
+        "security_override": bool(security_override),
         "out_dir": str(out_dir),
         "steps": [],
         "paths": {
@@ -250,57 +204,63 @@ def main() -> int:
         },
     }
 
+
+def _append_and_fail(pipeline: dict[str, Any], out_dir: Path, step: dict[str, Any]) -> int:
+    pipeline["steps"].append(step)
+    pipeline["status"] = "fail"
+    write_pipeline_summary(out_dir, pipeline)
+    return int(step["rc"])
+
+
+def main() -> int:
+    args = parse_args()
+    root = repo_root()
+    out_dir = resolve_repo_path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    delivery_profile, security_profile = resolve_delivery_and_security(args.delivery_profile, args.security_profile)
+    security_override = bool(str(args.security_profile).strip())
+    args.delivery_profile = delivery_profile
+
+    raw_path = resolve_repo_path(args.raw) if str(args.raw).strip() else out_dir / "sc-llm-obligations-jitter-batch5x3-raw.json"
+    summary_path = out_dir / "sc-llm-obligations-jitter-batch5x3-summary.json"
+    summary_report = out_dir / "sc-llm-obligations-jitter-batch5x3-report.md"
+    refreshed_summary = out_dir / "sc-llm-obligations-jitter-batch5x3-summary-refreshed.json"
+    refreshed_report = out_dir / "sc-llm-obligations-jitter-batch5x3-refreshed-report.md"
+    draft_json = resolve_repo_path(args.draft_json) if str(args.draft_json).strip() else out_dir / "obligations-freeze-whitelist.draft.json"
+    draft_md = resolve_repo_path(args.draft_md) if str(args.draft_md).strip() else out_dir / "obligations-freeze-whitelist-draft.md"
+    eval_dir = resolve_repo_path(args.eval_dir) if str(args.eval_dir).strip() else out_dir / "freeze-eval"
+    promote_report = (
+        resolve_repo_path(args.promote_report) if str(args.promote_report).strip() else out_dir / "obligations-freeze-promote.md"
+    )
+
+    pipeline = _init_pipeline_payload(
+        out_dir,
+        raw_path,
+        summary_path,
+        summary_report,
+        refreshed_summary,
+        refreshed_report,
+        draft_json,
+        draft_md,
+        eval_dir,
+        promote_report,
+        delivery_profile=delivery_profile,
+        security_profile=security_profile,
+        security_override=security_override,
+    )
+
     try:
         if not args.skip_jitter:
-            cmd = [
-                "py",
-                "-3",
-                "scripts/python/run_obligations_jitter_batch5x3.py",
-                "--tasks-file",
-                args.tasks_file,
-                "--batch-size",
-                str(args.batch_size),
-                "--rounds",
-                str(args.rounds),
-                "--start-group",
-                str(args.start_group),
-                "--end-group",
-                str(args.end_group),
-                "--timeout-sec",
-                str(args.timeout_sec),
-                "--round-id-prefix",
-                args.round_id_prefix,
-                "--delivery-profile",
-                str(args.delivery_profile),
-                "--consensus-runs",
-                str(args.consensus_runs),
-                "--min-obligations",
-                str(args.min_obligations),
-                "--garbled-gate",
-                args.garbled_gate,
-                "--auto-escalate",
-                args.auto_escalate,
-                "--escalate-max-runs",
-                str(args.escalate_max_runs),
-                "--max-schema-errors",
-                str(args.max_schema_errors),
-                "--out-raw",
-                str(raw_path),
-            ]
-            if str(args.task_ids).strip():
-                cmd += ["--task-ids", args.task_ids]
-            if str(args.security_profile).strip():
-                cmd += ["--security-profile", args.security_profile]
-            if bool(args.reuse_last_ok):
-                cmd.append("--reuse-last-ok")
-            if bool(args.explain_reuse_miss):
-                cmd.append("--explain-reuse-miss")
-            step = run_step("jitter-batch", cmd, out_dir, timeout_sec=max(60, args.jitter_timeout_sec))
-            pipeline["steps"].append(step)
+            step = run_step(
+                "jitter-batch",
+                build_jitter_batch_command(args, raw_path=raw_path, root=root),
+                out_dir,
+                root=root,
+                timeout_sec=max(60, args.jitter_timeout_sec),
+            )
             if step["rc"] != 0:
-                pipeline["status"] = "fail"
-                write_pipeline_summary(out_dir, pipeline)
-                return int(step["rc"])
+                return _append_and_fail(pipeline, out_dir, step)
+            pipeline["steps"].append(step)
         elif not raw_path.exists():
             pipeline["status"] = "fail"
             pipeline["error"] = f"missing raw file for --skip-jitter: {raw_path.as_posix()}"
@@ -322,13 +282,12 @@ def main() -> int:
                 str(summary_report),
             ],
             out_dir,
+            root=root,
             timeout_sec=max(60, args.step_timeout_sec),
         )
-        pipeline["steps"].append(step)
         if step["rc"] != 0:
-            pipeline["status"] = "fail"
-            write_pipeline_summary(out_dir, pipeline)
-            return int(step["rc"])
+            return _append_and_fail(pipeline, out_dir, step)
+        pipeline["steps"].append(step)
 
         summary_for_following = summary_path
         if str(args.override_rerun).strip():
@@ -349,13 +308,12 @@ def main() -> int:
                     str(refreshed_report),
                 ],
                 out_dir,
+                root=root,
                 timeout_sec=max(60, args.step_timeout_sec),
             )
-            pipeline["steps"].append(step)
             if step["rc"] != 0:
-                pipeline["status"] = "fail"
-                write_pipeline_summary(out_dir, pipeline)
-                return int(step["rc"])
+                return _append_and_fail(pipeline, out_dir, step)
+            pipeline["steps"].append(step)
             summary_for_following = refreshed_summary
 
         step = run_step(
@@ -372,13 +330,12 @@ def main() -> int:
                 str(draft_md),
             ],
             out_dir,
+            root=root,
             timeout_sec=max(60, args.step_timeout_sec),
         )
-        pipeline["steps"].append(step)
         if step["rc"] != 0:
-            pipeline["status"] = "fail"
-            write_pipeline_summary(out_dir, pipeline)
-            return int(step["rc"])
+            return _append_and_fail(pipeline, out_dir, step)
+        pipeline["steps"].append(step)
 
         eval_cmd = [
             "py",
@@ -393,12 +350,10 @@ def main() -> int:
         ]
         if bool(args.allow_draft_eval):
             eval_cmd.append("--allow-draft")
-        step = run_step("evaluate", eval_cmd, out_dir, timeout_sec=max(60, args.step_timeout_sec))
-        pipeline["steps"].append(step)
+        step = run_step("evaluate", eval_cmd, out_dir, root=root, timeout_sec=max(60, args.step_timeout_sec))
         if step["rc"] != 0:
-            pipeline["status"] = "fail"
-            write_pipeline_summary(out_dir, pipeline)
-            return int(step["rc"])
+            return _append_and_fail(pipeline, out_dir, step)
+        pipeline["steps"].append(step)
 
         eval_aggregate = parse_eval_aggregate(eval_dir)
         pipeline["evaluation"] = eval_aggregate
@@ -442,13 +397,12 @@ def main() -> int:
                     str(promote_report),
                 ],
                 out_dir,
+                root=root,
                 timeout_sec=max(60, args.step_timeout_sec),
             )
-            pipeline["steps"].append(step)
             if step["rc"] != 0:
-                pipeline["status"] = "fail"
-                write_pipeline_summary(out_dir, pipeline)
-                return int(step["rc"])
+                return _append_and_fail(pipeline, out_dir, step)
+            pipeline["steps"].append(step)
         else:
             pipeline["steps"].append(
                 {"name": "promote", "status": "skipped", "rc": 0, "reason": "approve_promote_disabled"}

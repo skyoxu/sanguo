@@ -61,6 +61,13 @@ def _default_out_dir(root: Path) -> Path:
     return root / "logs" / "ci" / _today() / "single-task-light-lane-v2"
 
 
+def _relative_to_root(root: Path, path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(root.resolve())).replace("\\", "/")
+    except Exception:
+        return str(path).replace("\\", "/")
+
+
 def _parse_task_ids_csv(raw: str) -> list[int]:
     out: list[int] = []
     for token in str(raw or "").split(","):
@@ -756,7 +763,7 @@ def _snapshot_inner_artifacts(
 
     metadata: dict[str, Any] = {
         "inner_out_dir": str(source_dir).replace("\\", "/"),
-        "artifact_dir": str(artifact_dir.relative_to(root)).replace("\\", "/"),
+        "artifact_dir": _relative_to_root(root, artifact_dir),
         "artifacts_copied": copied,
     }
     if copied_task_dirs:
@@ -1167,7 +1174,7 @@ def _run_named_steps_for_task(
         step_map[step_name] = {
             "step": step_name,
             "rc": rc,
-            "log": str(log_path.relative_to(root)).replace("\\", "/"),
+            "log": _relative_to_root(root, log_path),
             "stdout_tail": stdout.strip().splitlines()[-1] if stdout.strip() else "",
             "stderr_tail": stderr.strip().splitlines()[-1] if stderr.strip() else "",
             "retry_count": int(retry_meta.get("retry_count") or 0),
