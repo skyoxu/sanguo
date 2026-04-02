@@ -13,6 +13,7 @@ Usage (Windows):
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
@@ -28,7 +29,7 @@ _bootstrap_imports()
 from _delivery_profile import default_security_profile_for_delivery, known_delivery_profiles, profile_test_defaults, resolve_delivery_profile  # noqa: E402
 from _security_profile import resolve_security_profile  # noqa: E402
 from _taskmaster import resolve_triplet  # noqa: E402
-from _util import ci_dir  # noqa: E402
+from _util import ci_dir, repo_root, write_text  # noqa: E402
 from _tdd_shared import assert_no_new_contract_files, snapshot_contract_files, write_coverage_hotspots  # noqa: E402
 from _tdd_steps import (  # noqa: E402
     build_summary,
@@ -124,6 +125,90 @@ def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
     return _run_refactor_checks_impl(out_dir, task_id=task_id)
 
 
+def _read_json(path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _latest_task_summary(*, task_id: str, run_name: str, file_pattern: str) -> tuple[Path | None, dict[str, Any]]:
+    logs_root = repo_root() / "logs" / "ci"
+    if not logs_root.exists():
+        return None, {}
+    candidates = sorted(logs_root.glob(f"*/{run_name}/{file_pattern}"), key=lambda item: item.stat().st_mtime, reverse=True)
+    for candidate in candidates:
+        payload = _read_json(candidate)
+        task_meta = payload.get("task") if isinstance(payload.get("task"), dict) else {}
+        payload_task_id = str(task_meta.get("task_id") or payload.get("task_id") or "").strip()
+        if payload_task_id != str(task_id).strip():
+            continue
+        return candidate, payload
+    return None, {}
+
+
+def _write_preflight_log(*, log_path: Path, header: str, summary_path: Path | None, details: list[str]) -> None:
+    lines = [header]
+    lines.append(f"summary_path: {summary_path}" if summary_path is not None else "summary_path: (missing)")
+    lines.extend(details)
+    write_text(log_path, "\n".join(lines).rstrip() + "\n")
+
+
+def run_green_prerequisite_check(*, task_id: str, out_dir: Path) -> dict[str, Any]:
+    log_path = out_dir / "green-red-first-preflight.log"
+    summary_path, payload = _latest_task_summary(
+        task_id=task_id,
+        run_name="sc-llm-acceptance-tests",
+        file_pattern=f"summary-{task_id}.json",
+    )
+    details: list[str] = []
+    reason = ""
+    if summary_path is None:
+        reason = "missing_red_first_summary"
+        details.append("error: latest sc-llm-acceptance-tests summary is missing")
+    else:
+        tdd_stage = str(payload.get("tdd_stage") or "").strip()
+        details.append(f"tdd_stage: {tdd_stage or '(missing)'}")
+        if tdd_stage != "red-first":
+            reason = "latest_not_red_first"
+            details.append("error: latest acceptance test generation summary is not red-first")
+        results = payload.get("results")
+        failed_refs = [
+            str(item.get("ref") or "").strip()
+            for item in results
+            if isinstance(item, dict) and str(item.get("status") or "").strip() == "fail"
+        ] if isinstance(results, list) else []
+        if failed_refs and not reason:
+            reason = "failed_refs_present"
+        if failed_refs:
+            details.append(f"failed_refs: {failed_refs}")
+        created = int(payload.get("created") or 0)
+        details.append(f"created: {created}")
+        red_verify = payload.get("red_verify") if isinstance(payload.get("red_verify"), dict) else {}
+        red_verify_status = str(red_verify.get("status") or "").strip()
+        if created > 0:
+            details.append(f"red_verify.status: {red_verify_status or '(missing)'}")
+            if red_verify_status != "ok" and not reason:
+                reason = "red_verify_not_ok"
+    rc = 0 if not reason else 1
+    _write_preflight_log(
+        log_path=log_path,
+        header="GREEN_RED_FIRST_PREFLIGHT status=ok" if rc == 0 else f"GREEN_RED_FIRST_PREFLIGHT status=fail reason={reason}",
+        summary_path=summary_path,
+        details=details,
+    )
+    return {
+        "name": "green-red-first-preflight",
+        "cmd": ["internal:green_prerequisite_check"],
+        "rc": rc,
+        "status": "ok" if rc == 0 else "fail",
+        "log": str(log_path),
+        "summary_file": str(summary_path) if summary_path is not None else "",
+        "reason": reason,
+    }
+
+
 def _run_context_gate(*, stage: str, task_id: str, triplet: Any, out_dir: Path, summary: dict[str, Any]) -> bool:
     preflight_step = run_task_preflight(triplet=triplet, out_dir=out_dir)
     summary["steps"].append(preflight_step)
@@ -160,6 +245,13 @@ def _handle_red_stage(*, args: argparse.Namespace, triplet: Any, out_dir: Path, 
 
 def _handle_green_stage(*, args: argparse.Namespace, runtime: dict[str, Any], triplet: Any, out_dir: Path, summary: dict[str, Any]) -> int:
     if not _run_context_gate(stage="green", task_id=triplet.task_id, triplet=triplet, out_dir=out_dir, summary=summary):
+        write_summary(out_dir, summary)
+        print(f"SC_BUILD_TDD status=fail out={out_dir}")
+        return 1
+    preflight_step = run_green_prerequisite_check(task_id=triplet.task_id, out_dir=out_dir)
+    summary["steps"].append(preflight_step)
+    if preflight_step["rc"] != 0:
+        summary["status"] = "fail"
         write_summary(out_dir, summary)
         print(f"SC_BUILD_TDD status=fail out={out_dir}")
         return 1

@@ -243,6 +243,56 @@ class ScTestOrchestrationTests(unittest.TestCase):
                 require_task_scoped_refs=True,
             )
 
+    def test_main_should_skip_engine_lane_for_task_all_when_no_task_scoped_gd_refs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "sc-test"
+            argv = ["test.py", "--type", "all", "--run-id", "7" * 32, "--task-id", "56"]
+            unit_step = {
+                "name": "unit",
+                "cmd": ["py", "-3", "scripts/python/run_dotnet.py"],
+                "rc": 0,
+                "log": str(out_dir / "unit.log"),
+                "artifacts_dir": str(out_dir / "unit-artifacts"),
+                "status": "ok",
+            }
+            conventions_step = {
+                "name": "csharp-test-conventions",
+                "cmd": ["py", "-3", "scripts/python/check_csharp_test_conventions.py"],
+                "rc": 0,
+                "log": str(out_dir / "csharp-test-conventions.log"),
+                "status": "ok",
+            }
+            coverage_step = {
+                "name": "coverage-report",
+                "cmd": ["reportgenerator"],
+                "rc": 0,
+                "log": str(out_dir / "coverage-report.log"),
+                "report_dir": str(out_dir / "coverage-report"),
+                "status": "ok",
+            }
+            with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(sc_test, "ci_dir", return_value=out_dir), \
+                mock.patch.object(sc_test, "_task_scoped_gdunit_refs", return_value=[]), \
+                mock.patch.object(sc_test, "run_unit", return_value=unit_step), \
+                mock.patch.object(sc_test, "run_csharp_test_conventions", return_value=conventions_step), \
+                mock.patch.object(sc_test, "run_coverage_report", return_value=coverage_step), \
+                mock.patch.object(sc_test, "run_gdunit_hard") as gdunit_mock, \
+                mock.patch.object(sc_test, "run_smoke") as smoke_mock:
+                rc = sc_test.main()
+
+            self.assertEqual(0, rc)
+            gdunit_mock.assert_not_called()
+            smoke_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("ok", summary["status"])
+            self.assertEqual(
+                ["unit", "csharp-test-conventions", "coverage-report", "gdunit-hard", "smoke"],
+                [item["name"] for item in summary["steps"]],
+            )
+            skipped = {item["name"]: item for item in summary["steps"] if item["status"] == "skipped"}
+            self.assertEqual("no_task_scoped_gd_refs_for_task", skipped["gdunit-hard"]["reason"])
+            self.assertEqual("no_task_scoped_gd_refs_for_task", skipped["smoke"]["reason"])
+
 
 if __name__ == "__main__":
     unittest.main()
