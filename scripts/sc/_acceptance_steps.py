@@ -332,6 +332,7 @@ def step_tests_all(
     run_id: str | None = None,
     test_type: str = "all",
     task_id: str | None = None,
+    no_coverage_gate: bool = True,
 ) -> StepResult:
     reused = _read_sc_test_summary_for_reuse(run_id=run_id, test_type=test_type, task_id=task_id)
     if reused is not None:
@@ -342,9 +343,10 @@ def step_tests_all(
             "scripts/sc/test.py",
             "--type",
             test_type,
-            "--no-coverage-gate",
             "--no-coverage-report",
         ]
+        if no_coverage_gate:
+            planned_cmd.append("--no-coverage-gate")
         if str(task_id or "").strip():
             planned_cmd += ["--task-id", str(task_id).strip()]
         if run_id:
@@ -373,9 +375,10 @@ def step_tests_all(
         "scripts/sc/test.py",
         "--type",
         test_type,
-        "--no-coverage-gate",
         "--no-coverage-report",
     ]
+    if no_coverage_gate:
+        cmd.append("--no-coverage-gate")
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
     if run_id:
