@@ -111,6 +111,31 @@ class AcceptanceStepsReuseTests(unittest.TestCase):
             self.assertEqual(expected, step)
             run_and_capture_mock.assert_called_once()
 
+    def test_step_tests_all_should_allow_explicit_coverage_gate_on_fallback(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "2026-03-31" / "sc-acceptance-check-task-56"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            expected = StepResult(name="tests-all", status="ok", rc=0, cmd=["py", "-3", "scripts/sc/test.py"])
+            with (
+                mock.patch.object(acceptance_steps, "repo_root", return_value=root),
+                mock.patch.object(acceptance_steps, "today_str", return_value="2026-03-31"),
+                mock.patch.object(acceptance_steps, "run_and_capture", return_value=expected) as run_and_capture_mock,
+            ):
+                step = acceptance_steps.step_tests_all(
+                    out_dir,
+                    godot_bin=None,
+                    run_id="rid-56",
+                    test_type="unit",
+                    task_id="56",
+                    no_coverage_gate=False,
+                )
+
+            self.assertEqual(expected, step)
+            called_cmd = run_and_capture_mock.call_args.kwargs["cmd"]
+            self.assertNotIn("--no-coverage-gate", called_cmd)
+            self.assertIn("--no-coverage-report", called_cmd)
+
     def test_step_overlay_validate_should_scope_validate_task_overlays_to_current_task(self) -> None:
         triplet = TaskmasterTriplet(
             task_id="56",
