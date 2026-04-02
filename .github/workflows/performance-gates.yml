@@ -61,6 +61,7 @@ jobs:
           dotnet restore GodotGame.csproj
           dotnet build GodotGame.csproj -c Release -v minimal
           & "$env:GODOT_BIN" --headless --path . --quit
+          & "$env:GODOT_BIN" --headless --path . --build-solutions --verbose --quit
 
       - name: Collect performance summary via strict headless smoke
         shell: pwsh
