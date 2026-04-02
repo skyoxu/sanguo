@@ -141,6 +141,24 @@ class QualityGatesEntrypointTests(unittest.TestCase):
         gdunit_mock.assert_called_once_with("C:/Godot/Godot.exe")
         smoke_mock.assert_called_once_with("C:/Godot/Godot.exe")
 
+    def test_all_should_run_dotnet_when_build_solutions_is_enabled(self) -> None:
+        with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0), \
+                mock.patch.object(quality_gates, "_normalize_dotnet_summary", return_value=_ok_dotnet_summary()), \
+                mock.patch.object(quality_gates, "run_dotnet", return_value=0) as dotnet_mock:
+            rc = quality_gates.main(
+                [
+                    "all",
+                    "--build-solutions",
+                    "--solution",
+                    "auto",
+                    "--configuration",
+                    "Release",
+                ]
+            )
+
+        self.assertEqual(0, rc)
+        dotnet_mock.assert_called_once_with("GodotGame.sln", "Release")
+
     def test_all_should_accept_legacy_gdunit_ui_and_coverage_soft_flags(self) -> None:
         with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0) as bundle_mock, \
                 mock.patch.object(quality_gates, "_normalize_dotnet_summary", return_value=_ok_dotnet_summary()), \

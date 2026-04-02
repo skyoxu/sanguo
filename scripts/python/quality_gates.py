@@ -260,6 +260,21 @@ def run_gdunit_hard(godot_bin: str) -> int:
     return _run(build_gdunit_hard_cmd(godot_bin=godot_bin))
 
 
+def run_dotnet(solution: str, configuration: str) -> int:
+    """Run dotnet restore/test with coverage and write logs/unit/<date>/summary.json."""
+
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/run_dotnet.py",
+        "--solution",
+        solution,
+        "--configuration",
+        configuration,
+    ]
+    return _run(cmd)
+
+
 def run_smoke_headless(godot_bin: str) -> int:
     """Run strict headless smoke against the main scene."""
     original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
@@ -332,6 +347,10 @@ def main(argv: list[str] | None = None) -> int:
             out_dir=args.out_dir,
             run_id=args.run_id,
         )
+
+    dotnet_rc = 0
+    if args.build_solutions and not test_mode:
+        dotnet_rc = run_dotnet(resolved_solution, args.configuration)
 
     dotnet_summary_path = os.environ.get(QUALITY_GATES_TEST_DOTNET_SUMMARY_JSON_ENV, "").strip() if test_mode else ""
     if not dotnet_summary_path:
@@ -416,6 +435,7 @@ def main(argv: list[str] | None = None) -> int:
     hard_failed = any(
         [
             gate_bundle_rc != 0,
+            dotnet_rc != 0 and dotnet_status in {"missing", "invalid"},
             dotnet_hard_failed,
             gdunit_rc != 0,
             smoke_rc != 0,
@@ -469,6 +489,7 @@ def main(argv: list[str] | None = None) -> int:
         f"status={status} "
         f"out={str(summary_path).replace('\\', '/')} "
         f"coverage_mode={coverage_mode} "
+        f"dotnet_run_rc={dotnet_rc} "
         f"dotnet={dotnet_status} "
         f"gate_bundle_rc={gate_bundle_rc} "
         f"gdunit_rc={gdunit_rc} "
