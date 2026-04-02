@@ -260,7 +260,7 @@ def run_gdunit_hard(godot_bin: str) -> int:
     return _run(build_gdunit_hard_cmd(godot_bin=godot_bin))
 
 
-def run_dotnet(solution: str, configuration: str) -> int:
+def run_dotnet(solution: str, configuration: str, *, delivery_profile: str = "") -> int:
     """Run dotnet restore/test with coverage and write logs/unit/<date>/summary.json."""
 
     cmd = [
@@ -272,6 +272,8 @@ def run_dotnet(solution: str, configuration: str) -> int:
         "--configuration",
         configuration,
     ]
+    if delivery_profile:
+        cmd.extend(["--delivery-profile", delivery_profile])
     return _run(cmd)
 
 
@@ -350,7 +352,7 @@ def main(argv: list[str] | None = None) -> int:
 
     dotnet_rc = 0
     if args.build_solutions and not test_mode:
-        dotnet_rc = run_dotnet(resolved_solution, args.configuration)
+        dotnet_rc = run_dotnet(resolved_solution, args.configuration, delivery_profile=args.delivery_profile)
 
     dotnet_summary_path = os.environ.get(QUALITY_GATES_TEST_DOTNET_SUMMARY_JSON_ENV, "").strip() if test_mode else ""
     if not dotnet_summary_path:

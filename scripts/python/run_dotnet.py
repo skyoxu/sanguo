@@ -25,6 +25,14 @@ from pathlib import Path
 
 from solution_resolver import resolve_solution_path
 
+try:
+    from _delivery_profile import profile_test_defaults, resolve_delivery_profile
+except ImportError:
+    _SC_DIR = Path(__file__).resolve().parents[1] / "sc"
+    if str(_SC_DIR) not in sys.path:
+        sys.path.insert(0, str(_SC_DIR))
+    from _delivery_profile import profile_test_defaults, resolve_delivery_profile
+
 
 def resolve_dotnet_exe(repo_root: str) -> str:
     """
@@ -164,12 +172,67 @@ def pick_latest_existing(paths):
     return max(existing, key=lambda p: os.path.getmtime(p))
 
 
+def resolve_coverage_thresholds(*, delivery_profile: str | None = None) -> dict:
+    resolved_delivery_profile = resolve_delivery_profile(delivery_profile)
+    defaults = profile_test_defaults(resolved_delivery_profile)
+    default_lines_min = float(defaults.get("coverage_lines_min", 90) or 0)
+    default_branches_min = float(defaults.get("coverage_branches_min", 85) or 0)
+    coverage_gate = bool(defaults.get("coverage_gate", True))
+    env_skip_coverage_gate = (
+        (os.environ.get('SC_ACCEPTANCE_NO_COVERAGE_GATE') or '').strip().lower() in {'1', 'true', 'yes', 'on'}
+    )
+    skip_coverage_gate = env_skip_coverage_gate
+
+    raw_lines_min = (os.environ.get('COVERAGE_LINES_MIN') or '').strip()
+    raw_branches_min = (os.environ.get('COVERAGE_BRANCHES_MIN') or '').strip()
+
+    lines_min = default_lines_min
+    branches_min = default_branches_min
+    threshold_source = {
+        'lines_min': 'delivery-profile',
+        'branches_min': 'delivery-profile',
+    }
+
+    if not coverage_gate:
+        skip_coverage_gate = True
+        threshold_source['lines_min'] = 'delivery-profile-skip'
+        threshold_source['branches_min'] = 'delivery-profile-skip'
+
+    if env_skip_coverage_gate:
+        threshold_source['lines_min'] = 'acceptance-env-skip'
+        threshold_source['branches_min'] = 'acceptance-env-skip'
+
+    try:
+        if raw_lines_min:
+            lines_min = float(raw_lines_min)
+            threshold_source['lines_min'] = 'env'
+    except Exception:
+        pass
+
+    try:
+        if raw_branches_min:
+            branches_min = float(raw_branches_min)
+            threshold_source['branches_min'] = 'env'
+    except Exception:
+        pass
+
+    return {
+        'delivery_profile': resolved_delivery_profile,
+        'coverage_gate': coverage_gate,
+        'skip_coverage_gate': skip_coverage_gate,
+        'lines_min': lines_min,
+        'branches_min': branches_min,
+        'threshold_source': threshold_source,
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--solution', default='auto')
     ap.add_argument('--configuration', default='Debug')
     ap.add_argument('--filter', default=None, help='Optional dotnet test filter expression.')
     ap.add_argument('--out-dir', default=None)
+    ap.add_argument('--delivery-profile', default=None, help='Delivery profile override (default: env DELIVERY_PROFILE or repo default).')
     args = ap.parse_args()
 
     root = os.getcwd()
@@ -287,41 +350,13 @@ def main():
         coverage = parse_cobertura(cov_path)
         summary['coverage'] = coverage
 
-    # Thresholds (default hard gate; override via env)
-    #
-    # NOTE: These defaults are the project baseline. See docs/testing-framework.md.
-    default_lines_min = 90.0
-    default_branches_min = 85.0
-    skip_coverage_gate = (os.environ.get('SC_ACCEPTANCE_NO_COVERAGE_GATE') or '').strip().lower() in {'1', 'true', 'yes', 'on'}
-
-    raw_lines_min = (os.environ.get('COVERAGE_LINES_MIN') or '').strip()
-    raw_branches_min = (os.environ.get('COVERAGE_BRANCHES_MIN') or '').strip()
-
-    lines_min = default_lines_min
-    branches_min = default_branches_min
-    threshold_source = {
-        'lines_min': 'default',
-        'branches_min': 'default',
-    }
+    coverage_thresholds = resolve_coverage_thresholds(delivery_profile=args.delivery_profile)
+    skip_coverage_gate = bool(coverage_thresholds['skip_coverage_gate'])
+    lines_min = float(coverage_thresholds['lines_min'])
+    branches_min = float(coverage_thresholds['branches_min'])
+    threshold_source = dict(coverage_thresholds['threshold_source'])
     summary['skip_coverage_gate'] = skip_coverage_gate
-
-    if skip_coverage_gate:
-        threshold_source['lines_min'] = 'acceptance-env-skip'
-        threshold_source['branches_min'] = 'acceptance-env-skip'
-
-    try:
-        if raw_lines_min:
-            lines_min = float(raw_lines_min)
-            threshold_source['lines_min'] = 'env'
-    except Exception:
-        pass
-
-    try:
-        if raw_branches_min:
-            branches_min = float(raw_branches_min)
-            threshold_source['branches_min'] = 'env'
-    except Exception:
-        pass
+    summary['delivery_profile'] = coverage_thresholds['delivery_profile']
 
     if coverage and isinstance(coverage, dict):
         # Provide stable keys for downstream tools/tests.
