@@ -36,7 +36,7 @@ from _sc_test_steps import (
 )
 from _security_profile import resolve_security_profile
 from _summary_schema import SummarySchemaError, validate_sc_test_summary
-from _util import ci_dir, today_str, write_json, write_text
+from _util import ci_dir, repo_root, today_str, write_json, write_text
 
 
 DELIVERY_PROFILE_CHOICES = tuple(sorted(known_delivery_profiles()))
@@ -190,6 +190,17 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = N
     return _run_smoke_impl(out_dir, godot_bin, scene, task_id=task_id, strict=strict)
 
 
+def _skipped_step(*, name: str, reason: str, cmd: list[str] | None = None) -> dict[str, Any]:
+    step: dict[str, Any] = {
+        "name": name,
+        "status": "skipped",
+        "reason": reason,
+    }
+    if cmd:
+        step["cmd"] = list(cmd)
+    return step
+
+
 def main() -> int:
     args = build_parser().parse_args()
     if bool(args.self_check):
@@ -284,30 +295,55 @@ def main() -> int:
             if cov.get("status") == "fail":
                 hard_fail = True
 
+    task_gd_refs = _task_scoped_gdunit_refs(task_id=args.task_id, tests_project=repo_root() / "Tests.Godot") if args.task_id else []
+    explicit_engine_lane = args.type in ("integration", "e2e")
+    should_run_engine_lane = args.type in ("integration", "e2e") or (args.type == "all" and (not args.task_id or bool(task_gd_refs)))
+
     if args.type in ("integration", "e2e", "all"):
-        if not godot_bin:
-            print("[sc-test] ERROR: --godot-bin (or env GODOT_BIN) is required for e2e/integration tests.")
-            return 2
-        step = run_gdunit_hard(
-            out_dir,
-            godot_bin,
-            args.timeout_sec,
-            run_id=run_id,
-            task_id=args.task_id,
-            require_task_scoped_refs=bool(args.type in ("integration", "e2e", "all")),
-        )
-        summary["steps"].append(step)
-        if not _persist_summary():
-            return 2
-        if step["rc"] != 0:
-            hard_fail = True
-        if not args.skip_smoke:
-            smoke = run_smoke(out_dir, godot_bin, args.smoke_scene, task_id=args.task_id, strict=bool(runtime["smoke_strict"]))
-            summary["steps"].append(smoke)
+        if args.type == "all" and args.task_id and not task_gd_refs:
+            summary["steps"].append(
+                _skipped_step(
+                    name="gdunit-hard",
+                    reason="no_task_scoped_gd_refs_for_task",
+                    cmd=["py", "-3", "scripts/python/run_gdunit.py"],
+                )
+            )
             if not _persist_summary():
                 return 2
-            if smoke["rc"] != 0:
+            if not args.skip_smoke:
+                summary["steps"].append(
+                    _skipped_step(
+                        name="smoke",
+                        reason="no_task_scoped_gd_refs_for_task",
+                        cmd=["py", "-3", "scripts/python/smoke_headless.py"],
+                    )
+                )
+                if not _persist_summary():
+                    return 2
+        elif should_run_engine_lane:
+            if not godot_bin:
+                print("[sc-test] ERROR: --godot-bin (or env GODOT_BIN) is required for e2e/integration tests.")
+                return 2
+            step = run_gdunit_hard(
+                out_dir,
+                godot_bin,
+                args.timeout_sec,
+                run_id=run_id,
+                task_id=args.task_id,
+                require_task_scoped_refs=bool(args.task_id and (explicit_engine_lane or bool(task_gd_refs))),
+            )
+            summary["steps"].append(step)
+            if not _persist_summary():
+                return 2
+            if step["rc"] != 0:
                 hard_fail = True
+            if not args.skip_smoke:
+                smoke = run_smoke(out_dir, godot_bin, args.smoke_scene, task_id=args.task_id, strict=bool(runtime["smoke_strict"]))
+                summary["steps"].append(smoke)
+                if not _persist_summary():
+                    return 2
+                if smoke["rc"] != 0:
+                    hard_fail = True
 
     summary["status"] = "ok" if not hard_fail else "fail"
     if not _persist_summary():
