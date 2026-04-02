@@ -60,7 +60,7 @@ class ObligationsFreezeDeliveryProfileTests(unittest.TestCase):
             out_dir = Path(td) / "freeze"
             captured_cmds: list[list[str]] = []
 
-            def _fake_run_step(step_name: str, cmd: list[str], _out_dir: Path, timeout_sec: int):
+            def _fake_run_step(step_name: str, cmd: list[str], _out_dir: Path, *, root: Path, timeout_sec: int):
                 captured_cmds.append(list(cmd))
                 return {
                     "name": step_name,

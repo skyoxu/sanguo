@@ -38,6 +38,16 @@ def _write_master_tasks(path: Path, tasks: list[dict[str, object]]) -> None:
 
 
 class RunSingleTaskLightLaneTests(unittest.TestCase):
+    def test_relative_to_root_should_fallback_to_original_when_path_is_outside_repo(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "repo"
+            root.mkdir(parents=True, exist_ok=True)
+            outside_path = Path(td) / "outside-artifacts" / "summary.json"
+
+            result = lane._relative_to_root(root, outside_path)
+
+            self.assertEqual(str(outside_path).replace("\\", "/"), result)
+
     def test_summary_scope_matches_should_fail_when_selected_ids_change(self) -> None:
         scope = lane._build_resume_scope(
             selected=[11, 12],
