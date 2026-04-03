@@ -1074,7 +1074,7 @@
             "description": "设计详细的游戏帮助信息和教程内容。",
             "dependencies": [],
             "details": "根据游戏核心闭环，设计帮助信息和教程内容，确保涵盖掷骰子、移动、买地/付费、月末结算、季节事件与年度地价调整等。参考 Godot 官方 demo howtouse.md 中的“学习路线建议”和“团队知识库”章节。",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "通过内部审核，确保内容完整且易于理解。",
             "parentId": "undefined"
           },
@@ -1086,7 +1086,7 @@
               1
             ],
             "details": "使用Godot设计帮助和教程的UI界面，确保界面友好且易于导航。UI设计需与游戏整体风格一致。",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "通过UI测试，确保界面功能正常且用户体验良好。",
             "parentId": "undefined"
           },
@@ -1982,9 +1982,9 @@
       {
         "id": "66",
         "title": "Module: A-006 Forced Challenge Prompt UI Integration Tests",
-        "description": "Complete A-006 with GdUnit integration coverage: pre-challenge prompt copy, win-rate tier, and fail consequence are visible in HUD/dialog and consistent with contracts.",
-        "details": "Goal: extend the UI consumption chain of core.sanguo.boss.challenge.prompted from contract unit tests to integration layer (event publish -> UI render -> user confirm -> observable post-confirm result). Keep deferred for now; implementation must add dedicated GdUnit tests and ACC anchors. acceptanceRefs: [A-006] contractRefs: [core.sanguo.boss.challenge.prompted].",
-        "testStrategy": "GdUnit: lock default prompt copy and win-rate tier rendering, aligned with contract constants, and assert that confirm action triggers an observable post-confirm result (event or state transition).",
+        "description": "Complete A-006 with GdUnit integration coverage for the current deferred summary-only prompted UI path: boss challenge summary copy, BossId, win-rate tier, next-round pressure forecast, key-loss summary, and fail consequence must be visible and contract-aligned in the observable HUD surface.",
+        "details": "Goal: extend the UI consumption chain of core.sanguo.boss.challenge.prompted from contract unit tests to integration evidence for the current deferred runtime path (event publish -> UI mapping -> observable HUD summary render). Task 66 does not claim user confirm or post-confirm runtime behavior until a later task introduces that flow; implementation must add dedicated GdUnit tests and ACC anchors aligned to the deferred summary-only scope. acceptanceRefs: [A-006] contractRefs: [core.sanguo.boss.challenge.prompted].",
+        "testStrategy": "GdUnit: lock summary-level prompt copy and the rendered BossId, RoundNumber, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence fields, verify deterministic i18n fallback behavior, and keep deferred runtime scope explicit via integration guard tests.",
         "priority": "medium",
         "dependencies": [
           "59",
@@ -1994,36 +1994,36 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Map challenge prompt payload to HUD/dialog DTO",
-            "description": "Define the UI-facing DTO fields for forced challenge prompt, including boss name, win-rate tier, fail consequence and confirm affordance.",
+            "title": "Map challenge prompt payload to deferred HUD summary data",
+            "description": "Define the currently rendered UI-facing fields for the forced challenge deferred HUD summary, including BossId, RoundNumber, win-rate tier, next-round pressure forecast, key-loss summary, and fail consequence.",
             "dependencies": [],
-            "details": "Keep the mapping layer isolated from raw event payload so UI assertions can lock copy and structure without depending on transport shape.",
+            "details": "Keep the mapping layer isolated from raw event payload so UI assertions can lock the deferred HUD summary copy and field structure without depending on transport shape.",
             "status": "pending",
-            "testStrategy": "Add mapper-level tests to verify prompted event fields are translated into stable UI view data.",
+            "testStrategy": "Add mapper-level tests to verify prompted event fields are translated into stable deferred HUD summary data.",
             "parentId": "66"
           },
           {
             "id": 2,
-            "title": "Build prompted dialog integration fixture",
-            "description": "Create a GdUnit fixture that publishes core.sanguo.boss.challenge.prompted and waits for the HUD/dialog to render the localized prompt.",
+            "title": "Build deferred prompted HUD summary integration fixture",
+            "description": "Create a GdUnit fixture that publishes core.sanguo.boss.challenge.prompted and waits for the HUD summary surface to render the localized boss pre-challenge summary.",
             "dependencies": [
               1
             ],
-            "details": "Cover dialog visibility, confirm button state, localized explanatory copy, and a concrete post-confirm observable result for release-safe presentation.",
+            "details": "Cover summary visibility, localized explanatory copy, event-log parity, and the deferred runtime boundary that no blocking dialog, confirm UI, result popup, or tree pause appears on the publish frame.",
             "status": "pending",
-            "testStrategy": "Add GdUnit integration tests that assert the dialog appears with localized text and actionable controls, then assert a concrete post-confirm observable result.",
+            "testStrategy": "Add GdUnit integration tests that assert the HUD summary appears with localized text and that the publish frame remains summary-only with no confirm or post-confirm runtime path.",
             "parentId": "66"
           },
           {
             "id": 3,
-            "title": "Lock acceptance assertions for prompt visibility",
-            "description": "Bind the fixture to A-006 anchors so the prompt text, win-rate tier and fail consequence remain visible and consistent over regressions.",
+            "title": "Lock acceptance assertions for deferred prompt visibility",
+            "description": "Bind the fixture to A-006 anchors so boss pre-challenge summary copy, BossId, RoundNumber, win-rate tier, next-round pressure forecast, key-loss summary, and fail consequence remain visible and consistent over regressions.",
             "dependencies": [
               2
             ],
-            "details": "Persist assertion anchors in the test names and summary output used by acceptance gates.",
-            "status": "pending",
-            "testStrategy": "Verify GdUnit output and acceptance evidence both reference A-006 with deterministic assertions.",
+            "details": "Keep the A-006 acceptance text aligned to the actual deferred summary-only evidence chain so coverage and review gates can map the rendered summary fields and deferred-boundary assertions without drift.",
+            "status": "done",
+            "testStrategy": "Verify A-006 acceptance text maps directly to deterministic summary-field assertions and deferred-boundary coverage in the referenced GdUnit tests.",
             "parentId": "66"
           }
         ],

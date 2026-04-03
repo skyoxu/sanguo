@@ -271,7 +271,7 @@ def run_refactor_checks(out_dir: Path, *, task_id: str) -> list[dict[str, Any]]:
     candidates = [
         ("validate_acceptance_refs", ["py", "-3", "scripts/python/validate_acceptance_refs.py", "--task-id", str(task_id), "--stage", "refactor", "--out", str(out_dir / "acceptance-refs.json")], out_dir / "validate_acceptance_refs.log", 60),
         ("validate_acceptance_anchors", ["py", "-3", "scripts/python/validate_acceptance_anchors.py", "--task-id", str(task_id), "--stage", "refactor", "--out", str(out_dir / "acceptance-anchors.json")], out_dir / "validate_acceptance_anchors.log", 60),
-        ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py", "--task-id", str(task_id), "--style", "should_when"], out_dir / "check_test_naming.log", 900),
+        ("check_test_naming", ["py", "-3", "scripts/python/check_test_naming.py", "--task-id", str(task_id), "--style", "strict"], out_dir / "check_test_naming.log", 900),
         ("check_tasks_all_refs", ["py", "-3", "scripts/python/check_tasks_all_refs.py"], out_dir / "check_tasks_all_refs.log", 900),
         ("validate_contracts", ["py", "-3", "scripts/python/validate_contracts.py"], out_dir / "validate_contracts.log", 900),
     ]
