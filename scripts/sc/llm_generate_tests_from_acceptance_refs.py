@@ -367,7 +367,7 @@ def main() -> int:
     sync_cmd = ["py", "-3", "scripts/python/update_task_test_refs_from_acceptance_refs.py", "--task-id", task_id, "--mode", "replace", "--write"]
     sync_rc, sync_out = run_cmd(sync_cmd, cwd=repo_root(), timeout_sec=60)
     write_text(out_dir / f"sync-test-refs-{task_id}.log", sync_out)
-    require_strict_red = str(args.tdd_stage) == "red-first" and created > 0
+    require_strict_red = str(args.tdd_stage) == "red-first"
     effective_verify = str(args.verify)
     if require_strict_red:
         effective_verify = "all" if any_gd else "unit"

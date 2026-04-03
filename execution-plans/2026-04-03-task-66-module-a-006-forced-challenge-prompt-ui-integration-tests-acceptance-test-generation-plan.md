@@ -1,0 +1,21 @@
+# Task 66 Module: A-006 Forced Challenge Prompt UI Integration Tests acceptance-test generation plan
+
+- Title: Task 66 Module: A-006 Forced Challenge Prompt UI Integration Tests acceptance-test generation plan
+- Status: active
+- Branch: task/T66
+- Git Head: ed519263820e817d22d1e459abd533fbee4826b0
+- Goal: Control acceptance-driven test generation complexity for task 66.
+- Scope: 3 missing refs across 1 test roots; seed refs: Tests.Godot/tests/Adapters/test_boss_challenge_prompt_mapper_view_data.gd, Tests.Godot/tests/Integration/test_boss_challenge_prompt_deferred_scope_guard.gd, Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd
+- Current step: Review missing acceptance refs and choose the first safe red step.
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: Do not start Codex test generation until the ref mix and verify mode are explicit.
+- Next action: Run llm_generate_tests_from_acceptance_refs.py after confirming the sequence for missing refs.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 66 --resume`
+- Open questions: none recorded yet
+- Exit criteria: The next acceptance-driven test generation step is explicit and low-ambiguity.
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `66`
+- Related run id: `6f2bd0fe91124f6c9a83dae23dbeec3c`
+- Related latest.json: `logs/ci/2026-04-01/sc-review-pipeline-task-66/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-04-01/sc-review-pipeline-task-66-6f2bd0fe91124f6c9a83dae23dbeec3c`
