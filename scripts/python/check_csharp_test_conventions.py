@@ -84,13 +84,16 @@ def _collect_raw_task_cs_refs(*, root: Path, task_id: str) -> list[str]:
     master, back, gameplay = load_task_triplet_metadata(root=root, task_id=task_id)
     refs: list[str] = []
     for block in (master, back or {}, gameplay or {}):
-        raw = block.get("test_refs")
-        if not isinstance(raw, list):
-            continue
-        for item in raw:
-            ref = str(item or "").strip().replace("\\", "/")
-            if ref.startswith("Game.Core.Tests/") and ref.endswith(".cs") and ref not in refs:
-                refs.append(ref)
+        # taskmaster payloads use both test_refs (snake_case) and testRefs (camelCase).
+        # Accept both to avoid false negatives in task-scoped C# gate checks.
+        raw_candidates = [block.get("test_refs"), block.get("testRefs")]
+        for raw in raw_candidates:
+            if not isinstance(raw, list):
+                continue
+            for item in raw:
+                ref = str(item or "").strip().replace("\\", "/")
+                if ref.startswith("Game.Core.Tests/") and ref.endswith(".cs") and ref not in refs:
+                    refs.append(ref)
     return refs
 
 
