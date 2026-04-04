@@ -21,7 +21,7 @@ public sealed class SanguoCampaignContractsTests
     }
 
     [Fact]
-    public void ShouldInstantiateCampaignPromptAndObjectiveEvents_WithDeterministicPayload()
+    public void ShouldInstantiateCampaignPromptAndObjectiveEvents_WhenPayloadIsDeterministic()
     {
         var now = DateTimeOffset.UtcNow;
         var prompted = new SanguoBossChallengePrompted(
@@ -64,7 +64,7 @@ public sealed class SanguoCampaignContractsTests
     }
 
     [Fact]
-    public void A006_ShouldExposeBossPromptConstants_ForDefaultConfirmationCopy()
+    public void ShouldExposeBossPromptConstants_WhenUsingDefaultConfirmationCopy()
     {
         SanguoBossChallengePrompted.WinRateTierLow.Should().Be("low");
         SanguoBossChallengePrompted.WinRateTierMid.Should().Be("mid");
@@ -72,7 +72,7 @@ public sealed class SanguoCampaignContractsTests
     }
 
     [Fact]
-    public void A007_ShouldUseReturnToCampConsequence_ForBossPromptFailPath()
+    public void ShouldUseReturnToCampConsequence_WhenBossPromptFollowsFailPath()
     {
         SanguoBossChallengePrompted.FailConsequenceReturnToCampAndEndRound
             .Should().Be("return_to_camp_end_round");

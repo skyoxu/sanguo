@@ -12,8 +12,8 @@ def resolve_solution_path(requested_solution: str | None, *, repo_root: Path | N
     Priority:
     1) explicit --solution when it exists
     2) <repo-name>.sln
-    3) GodotGame.sln
-    4) Game.sln
+    3) Game.sln
+    4) GodotGame.sln
     5) first *.sln in repo root
     6) fallback to requested value or Game.sln
     """
@@ -31,8 +31,8 @@ def resolve_solution_path(requested_solution: str | None, *, repo_root: Path | N
     if candidates:
         preferred_names = (
             f"{root.name}.sln".lower(),
-            "godotgame.sln",
             "game.sln",
+            "godotgame.sln",
         )
         by_name = {c.name.lower(): c.name for c in candidates}
         for pref in preferred_names:
@@ -41,4 +41,3 @@ def resolve_solution_path(requested_solution: str | None, *, repo_root: Path | N
         return candidates[0].name
 
     return requested or "Game.sln"
-

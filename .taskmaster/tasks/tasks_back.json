@@ -5128,13 +5128,12 @@
       "R1"
     ],
     "acceptance": [
-      "Campaign runmode isolation must be explicitly defined and verified with observable boundaries: entering campaign runmode applies only the intended isolation behavior, and non-campaign paths must not be isolated by this split. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Campaign runmode isolation must be explicitly defined and verified with observable boundaries: entering campaign runmode applies only the intended isolation behavior, and non-campaign paths must not be isolated by this split. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs",
       "Acceptance also requires explicit split-boundary evidence versus T74: this task is independently shippable for R1 isolation scope and does not depend on unsplit parent responsibilities. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs",
       "Task-specific deterministic verification is mandatory: under the same inputs and preconditions, campaign runmode isolation outcomes and split-boundary checks must be reproducible; otherwise the task remains open. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task85SplitTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task85SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
