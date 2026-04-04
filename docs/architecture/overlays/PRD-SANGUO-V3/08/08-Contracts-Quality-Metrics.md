@@ -82,7 +82,7 @@ Gate-execution owner page for T80, T91~T92, T111~T112, and T151~T175. Semantic g
 
 
 
-- `py -3 scripts/sc/acceptance_check.py --task-id <id>`
+- `py -3 scripts/sc/run_review_pipeline.py --task-id <id>`
 
 - subtasks coverage reads main `tasks.json` subtasks plus acceptance coverage semantics from the exported task views
 
@@ -320,4 +320,3 @@ A hard-gate failure is invalid if it only reports a generic `fail` without enoug
 - A quality summary points to an event family that does not exist in `Game.Core/Contracts`.
 
 - A task view claims assertion coverage but omits the extant event surface it is gating.
-

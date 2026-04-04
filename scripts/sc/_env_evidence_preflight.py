@@ -142,8 +142,12 @@ def step_env_evidence_preflight(out_dir: Path, *, godot_bin: str | None, task_id
     dotnet_sdk_versions = _parse_dotnet_sdk_versions(out_dotnet_sdks)
     details["commands"]["dotnet_list_sdks_command"] = {"rc": rc_dotnet_sdks}
 
-    solution_file = resolve_solution_file(root)
-    restore_target = solution_file if solution_file is not None else (root / "GodotGame.sln")
+    preferred_game_sln = root / "Game.sln"
+    if preferred_game_sln.exists():
+        restore_target = preferred_game_sln
+    else:
+        solution_file = resolve_solution_file(root)
+        restore_target = solution_file if solution_file is not None else (root / "GodotGame.sln")
     restore_arg = f".\\{restore_target.name}"
 
     # dotnet restore <solution>

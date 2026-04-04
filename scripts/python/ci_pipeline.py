@@ -198,7 +198,8 @@ def main():
         hard_fail = True
 
     # 0.4) Governance gate bundle (hard gate)
-    gate_bundle_summary_path = os.path.join('logs', 'ci', date, 'gate-bundle', 'ci-pipeline-summary.json')
+    gate_bundle_out_dir = os.path.join('logs', 'ci', date, 'gate-bundle', 'ci-pipeline')
+    gate_bundle_summary_path = os.path.join(gate_bundle_out_dir, 'summary.json')
     task_links_max_warnings = _safe_int(os.environ.get('TASK_LINKS_MAX_WARNINGS', '-1'), -1)
     rc_bundle, out_bundle = run_cmd(
         [
@@ -209,8 +210,10 @@ def main():
             'all',
             '--task-links-max-warnings',
             str(task_links_max_warnings),
-            '--summary-out',
-            gate_bundle_summary_path,
+            '--out-dir',
+            gate_bundle_out_dir,
+            '--run-id',
+            'ci-pipeline',
         ],
         root,
         900_000,
@@ -218,12 +221,20 @@ def main():
     with io.open(os.path.join(ci_dir, 'gate-bundle-stdout.txt'), 'w', encoding='utf-8') as f:
         f.write(out_bundle)
     gate_bundle_sum = read_json(gate_bundle_summary_path) or {}
+    gate_bundle_hard = gate_bundle_sum.get('hard') if isinstance(gate_bundle_sum, dict) else {}
+    gate_bundle_soft = gate_bundle_sum.get('soft') if isinstance(gate_bundle_sum, dict) else {}
     summary['gate_bundle'] = {
         'rc': rc_bundle,
         'status': gate_bundle_sum.get('status') or ('ok' if rc_bundle == 0 else 'fail'),
         'out': gate_bundle_summary_path,
-        'hard_failures_count': gate_bundle_sum.get('hard_failures_count', gate_bundle_sum.get('failures_count')),
-        'soft_failures_count': gate_bundle_sum.get('soft_failures_count', 0),
+        'hard_failures_count': gate_bundle_sum.get(
+            'hard_failures_count',
+            gate_bundle_hard.get('failed') if isinstance(gate_bundle_hard, dict) else gate_bundle_sum.get('failures_count'),
+        ),
+        'soft_failures_count': gate_bundle_sum.get(
+            'soft_failures_count',
+            gate_bundle_soft.get('failed') if isinstance(gate_bundle_soft, dict) else 0,
+        ),
     }
     if rc_bundle != 0:
         hard_fail = True
