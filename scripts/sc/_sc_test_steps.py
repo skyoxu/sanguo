@@ -223,7 +223,22 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = N
         cmd.append("--strict")
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
+    original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+    original_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
+    try:
+        if strict:
+            os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
+            os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = "0.25"
+        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
+    finally:
+        if original_exit_on_ready is None:
+            os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
+        if original_exit_delay is None:
+            os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
     log_path = out_dir / "smoke.log"
     write_text(log_path, out)
     return {
