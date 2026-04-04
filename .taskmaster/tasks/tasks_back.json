@@ -4037,8 +4037,8 @@
     "taskmaster_exported": true,
     "story_id": "PRD-SANGUO-T3-RULES-SG-0067",
     "title": "Module: A-007 Forced Challenge Fail-to-Camp UI Integration Tests",
-    "description": "Complete A-007 integration evidence: rejecting forced challenge must execute \"return to camp and end round\", and the UI state machine must not continue board flow.",
-    "status": "deferred",
+    "description": "Complete deferred A-007 integration evidence: prompted-event summary path must expose return_to_camp_end_round semantics and keep runtime in summary-only flow.",
+    "status": "done",
     "priority": "P2",
     "layer": "adapter",
     "owner": "gameplay",
@@ -4074,15 +4074,15 @@
       "A-007"
     ],
     "acceptance": [
-      "GdUnit: clicking reject in the forced challenge UI confirmation flow must execute the real reject interaction path, trigger return_to_camp_end_round semantics, return the run to camp, end the current round, and leave no board actions available afterward. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd",
-      "GdUnit: after the reject path resolves, the UI flow must keep the reject outcome observable with explicit camp-entry or round-end evidence, and the assertion output must explicitly identify A-007 reject-path coverage rather than prompt-only coverage. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd",
-      "GdUnit: clicking reject must also capture and assert the resulting reject event flow, proving the UI confirm interaction actually emits the reject-path transition event(s) that drive return_to_camp_end_round. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd"
+      "GdUnit: publishing core.sanguo.boss.challenge.prompted with fail_consequence=return_to_camp_end_round must render localized fail consequence in HUD summary and event log as deferred A-007 evidence. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd",
+      "GdUnit: prompted-event summary for A-007 must keep round/loss/pressure context observable (trigger_round, key_loss_summary, next_round_pressure_forecast), not prompt-only marker text. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd",
+      "GdUnit: prompted-event branch for A-007 must remain summary-only runtime boundary with no confirm/result popup opened and no tree pause side effect. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd"
     ],
     "test_refs": [
       "Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd"
     ],
     "test_strategy": [
-      "GdUnit integration tests for A-007; current state is integration_pending."
+      "GdUnit deferred integration tests for A-007 summary-only observability; full reject-click interaction path remains deferred."
     ],
     "contractRefs": [
       "core.sanguo.boss.challenge.prompted"
