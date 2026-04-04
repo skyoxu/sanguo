@@ -3542,12 +3542,12 @@
       "A-008"
     ],
     "acceptance": [
-      "The task delivers only the A-008 popup-log atomic commit split scope, and deterministic evidence confirms that scoped behavior. Refs: Tests.Godot/tests/UI/test_event_result_popup.gd Tests.Godot/tests/UI/test_event_log_details_panel.gd"
+      "For popup-capable A-008 events (for example city bought), popup-log commit is atomic: one event publish yields one non-empty EventLog summary item and a visible ResultPopup with non-empty message in the same UI commit window, with no partial update where only one side changes. Refs: Tests.Godot/tests/UI/test_task81_event_result_popup.gd Tests.Godot/tests/UI/test_task81_event_log_details_panel.gd",
+      "For non-popup events (for example turn advanced), EventLog may append entries but ResultPopup state is unchanged (visibility and message remain at pre-event values). Refs: Tests.Godot/tests/UI/test_task81_event_result_popup.gd Tests.Godot/tests/UI/test_task81_event_log_details_panel.gd"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task81SplitTests.cs",
-      "Tests.Godot/tests/UI/test_event_result_popup.gd",
-      "Tests.Godot/tests/UI/test_event_log_details_panel.gd"
+      "Tests.Godot/tests/UI/test_task81_event_result_popup.gd",
+      "Tests.Godot/tests/UI/test_task81_event_log_details_panel.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
