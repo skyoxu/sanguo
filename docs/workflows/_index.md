@@ -4,6 +4,8 @@
 - `acceptance-semantics-methodology.md` - Acceptance semantics methodology
 - `bmad-integration.md` - BMAD integration workflow
 - `build_taskmaster_tasks.md` - Taskmaster build workflow
+- `business-repo-upgrade-guide.md` - Business repository template-upgrade guide
+- `chapter-6-t56-optimization-guide.md` - Chapter 6 optimization and rollout guide
 - `content-author-guide.md` - Content author guide (T2 minimal loop)
 - `content-data-audit.md` - Content data audit (coverage and gaps)
 - `content-id-reference-rules.md` - ID and reference consistency rules
@@ -13,13 +15,23 @@
 - `contracts-catalog-prd-sanguo-t2.md` - Contracts catalog for PRD-SANGUO-T2
 - `contracts-template-v1.md` - Contract templates and authoring checklist
 - `doc-stack-convergence-guide.md` - Documentation stack convergence guide
+- `gate-bundle.md` - Gate bundle usage and policy
 - `GM-NG-T2-playable-guide.md` - T2 playable guide
+- `harness-boundary-matrix.md` - Harness boundary matrix
+- `local-hard-checks.md` - Local hard checks runbook
 - `map-config.md` - Map config guide
 - `overlay-generation-sop.md` - Standard operating procedure for overlay generation from a new PRD
 - `overlay-generation-quickstart.md` - Minimal command set for a new PRD overlay generation wave
 - `overlays-authoring-guide.md` - Overlays authoring guide
+- `project-health-dashboard.md` - Project health dashboard guide
+- `prototype-lane.md` - Prototype lane workflow guide
+- `run-protocol.md` - Harness run protocol
+- `script-entrypoints-index.md` - Stable script entrypoints index
 - `serena-mcp-command-reference.md` - Serena MCP command reference
+- `stable-public-entrypoints.md` - Stable public entrypoints for operators
 - `superclaude-command-reference.md` - SuperClaude command reference
 - `task-master-superclaude-integration.md` - Taskmaster + SuperClaude integration
 - `task-semantics-gates-evolution.md` - Task semantics gates evolution
+- `template-bootstrap-checklist.md` - Template bootstrap checklist
+- `template-upgrade-protocol.md` - Template upgrade protocol
 - `ui-explainability-matrix.md` - UI explainability matrix

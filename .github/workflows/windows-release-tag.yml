@@ -10,7 +10,6 @@ jobs:
     runs-on: windows-latest
     env:
       GODOT_VERSION: '4.5.1'
-      SECURITY_PROFILE: 'host-safe'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,7 +38,16 @@ jobs:
       - name: Download Godot .NET (GitHub Releases)
         shell: pwsh
         run: |
-          ./scripts/ci/download_godot_release.ps1 -Version "$env:GODOT_VERSION"
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          New-Item -ItemType Directory -Force -Path godot | Out-Null
+          $zip = "godot/godot.zip"
+          $u = "https://github.com/godotengine/godot/releases/download/${env:GODOT_VERSION}-stable/Godot_v${env:GODOT_VERSION}-stable_mono_win64.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $zip
+          Expand-Archive $zip -DestinationPath godot -Force
+          $exe = Get-ChildItem godot -Recurse -Filter *win64*.exe | Select-Object -First 1
+          if (-not $exe) { throw 'Godot exe not found after download.' }
+          "GODOT_BIN=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "GODOT_BIN=$($exe.FullName)"
 
       - name: Install Export Templates (GitHub Releases)
         shell: pwsh
@@ -73,11 +81,16 @@ jobs:
           dotnet restore GodotGame.csproj
           dotnet build GodotGame.csproj -c Release -v minimal
 
-      - name: Export Windows EXE
+      - name: Export Windows via build_windows.py
         shell: pwsh
         run: |
           $env:Path = "$HOME\.dotnet;" + $env:Path
-          ./scripts/ci/export_windows.ps1 -GodotBin "$env:GODOT_BIN" -Preset "Windows Desktop" -Output build/Game.exe
+          py -3 scripts/python/build_windows.py release --godot-bin "$env:GODOT_BIN" --preset "Windows Desktop" --output "build/Game.exe" --channel "tag" --version "${{ github.ref_name }}"
+
+      - name: Smoke exported EXE (return code gate)
+        shell: pwsh
+        run: |
+          ./scripts/ci/smoke_exe.ps1 -ExePath "build/Game.exe" -TimeoutSec 10
 
       - name: Print export log tail (always)
         if: always()
@@ -96,13 +109,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: export-logs
-          path: logs/ci/**/export/**
+          path: |
+            logs/ci/**/export/**
+            logs/ci/**/build-windows/**
+            logs/ci/**/smoke/**
 
       - name: Attach to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             build/Game.exe
+            build/build-info.json
+            build/release-profile.json
+            build/*.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -115,15 +134,3 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           py -3 scripts/python/check_sentry_secrets.py
-
-      - name: Step summary (security profile)
-        if: always()
-        shell: pwsh
-        run: |
-          $profile = "$env:SECURITY_PROFILE"
-          if (-not $profile) { $profile = "host-safe" }
-          $profile = $profile.Trim().ToLowerInvariant()
-          if ($profile -ne "host-safe" -and $profile -ne "strict") {
-            $profile = "host-safe"
-          }
-          "SecurityProfile: $profile" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8

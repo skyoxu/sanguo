@@ -118,6 +118,10 @@ def main() -> int:
         checked += 1
         if item.w_eol in ("-text", "unknown"):
             continue
+        # NuGet lockfiles can be rewritten with CRLF by Windows tooling on CI runners.
+        # Keep this gate focused on source/docs drift instead of tool-generated lockfile endings.
+        if os.path.basename(item.path).lower() == "packages.lock.json":
+            continue
         if item.ext in allow_crlf_ext:
             continue
         if item.w_eol in ("crlf", "mixed"):
@@ -157,4 +161,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
