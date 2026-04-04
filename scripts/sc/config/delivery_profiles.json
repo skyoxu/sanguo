@@ -10,7 +10,8 @@
         "coverage_gate": false,
         "coverage_lines_min": 0,
         "coverage_branches_min": 0,
-        "smoke_strict": true
+        "smoke_strict": true,
+        "allow_full_unit_fallback": false
       },
       "acceptance": {
         "strict_adr_status": false,
@@ -29,6 +30,9 @@
       "agent_review": {
         "mode": "skip"
       },
+      "review_pipeline": {
+        "max_step_retries": 1
+      },
       "llm_review": {
         "semantic_gate": "skip",
         "prompt_budget_gate": "skip",
@@ -38,6 +42,17 @@
         "agent_timeout_sec": 120,
         "strict": false,
         "model_reasoning_effort": "low"
+      },
+      "needs_fix_fast": {
+        "agents": "code-reviewer,semantic-equivalence-auditor",
+        "diff_mode": "summary",
+        "max_rounds": 1,
+        "rerun_failing_only": true,
+        "time_budget_min": 20,
+        "llm_timeout_sec": 600,
+        "agent_timeout_sec": 150,
+        "step_timeout_sec": 1200,
+        "min_llm_budget_min": 8
       },
       "llm_obligations": {
         "consensus_runs": 1,
@@ -64,7 +79,8 @@
         "coverage_gate": true,
         "coverage_lines_min": 70,
         "coverage_branches_min": 60,
-        "smoke_strict": true
+        "smoke_strict": true,
+        "allow_full_unit_fallback": false
       },
       "acceptance": {
         "strict_adr_status": false,
@@ -83,6 +99,9 @@
       "agent_review": {
         "mode": "warn"
       },
+      "review_pipeline": {
+        "max_step_retries": 1
+      },
       "llm_review": {
         "semantic_gate": "warn",
         "prompt_budget_gate": "warn",
@@ -92,6 +111,17 @@
         "agent_timeout_sec": 180,
         "strict": false,
         "model_reasoning_effort": "low"
+      },
+      "needs_fix_fast": {
+        "agents": "code-reviewer,security-auditor,semantic-equivalence-auditor",
+        "diff_mode": "summary",
+        "max_rounds": 2,
+        "rerun_failing_only": true,
+        "time_budget_min": 30,
+        "llm_timeout_sec": 900,
+        "agent_timeout_sec": 240,
+        "step_timeout_sec": 1800,
+        "min_llm_budget_min": 10
       },
       "llm_obligations": {
         "consensus_runs": 1,
@@ -118,7 +148,8 @@
         "coverage_gate": true,
         "coverage_lines_min": 90,
         "coverage_branches_min": 85,
-        "smoke_strict": true
+        "smoke_strict": true,
+        "allow_full_unit_fallback": false
       },
       "acceptance": {
         "strict_adr_status": true,
@@ -137,6 +168,9 @@
       "agent_review": {
         "mode": "require"
       },
+      "review_pipeline": {
+        "max_step_retries": 0
+      },
       "llm_review": {
         "semantic_gate": "require",
         "prompt_budget_gate": "warn",
@@ -145,6 +179,17 @@
         "agent_timeout_sec": 300,
         "strict": true,
         "model_reasoning_effort": "low"
+      },
+      "needs_fix_fast": {
+        "agents": "all",
+        "diff_mode": "full",
+        "max_rounds": 2,
+        "rerun_failing_only": true,
+        "time_budget_min": 45,
+        "llm_timeout_sec": 1800,
+        "agent_timeout_sec": 600,
+        "step_timeout_sec": 2400,
+        "min_llm_budget_min": 12
       },
       "llm_obligations": {
         "consensus_runs": 3,

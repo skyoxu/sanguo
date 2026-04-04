@@ -25,6 +25,7 @@ class PipelinePlanPreflightTests(unittest.TestCase):
             llm_base="origin/main",
             llm_diff_mode="full",
             llm_no_uncommitted=False,
+            allow_full_unit_fallback=False,
             skip_test=False,
             skip_acceptance=False,
             skip_llm_review=False,
@@ -54,6 +55,7 @@ class PipelinePlanPreflightTests(unittest.TestCase):
             llm_agents="all",
             llm_timeout_sec=600,
             llm_agent_timeout_sec=180,
+            llm_agent_timeouts="",
             llm_semantic_gate="warn",
             llm_strict=False,
             llm_diff_mode="summary",
@@ -76,6 +78,7 @@ class PipelinePlanPreflightTests(unittest.TestCase):
             llm_agents="all",
             llm_timeout_sec=600,
             llm_agent_timeout_sec=180,
+            llm_agent_timeouts="",
             llm_semantic_gate="warn",
             llm_strict=False,
             llm_diff_mode="summary",
@@ -83,6 +86,29 @@ class PipelinePlanPreflightTests(unittest.TestCase):
 
         test_cmd = steps[0][1]
         self.assertEqual("all", test_cmd[test_cmd.index("--type") + 1])
+
+    def test_build_pipeline_steps_should_forward_allow_full_unit_fallback_to_sc_test(self) -> None:
+        args = self._args()
+        args.allow_full_unit_fallback = True
+        steps = build_pipeline_steps(
+            args=args,
+            task_id="56",
+            run_id="c" * 32,
+            delivery_profile="fast-ship",
+            security_profile="host-safe",
+            acceptance_defaults={},
+            triplet=self._triplet(back={"test_refs": ["Game.Core.Tests/Tasks/Task0056AcceptanceTests.cs"]}),
+            llm_agents="all",
+            llm_timeout_sec=600,
+            llm_agent_timeout_sec=180,
+            llm_agent_timeouts="",
+            llm_semantic_gate="warn",
+            llm_strict=False,
+            llm_diff_mode="summary",
+        )
+
+        test_cmd = steps[0][1]
+        self.assertIn("--allow-full-unit-fallback", test_cmd)
 
     def test_build_acceptance_command_preflight_should_only_include_deterministic_groups(self) -> None:
         cmd = build_acceptance_command(

@@ -136,6 +136,195 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
             self.assertTrue((out_dir / "child-artifacts" / "sc-test" / "summary.json").exists())
             self.assertIn("reused sc-test", Path(step["log"]).read_text(encoding="utf-8"))
 
+    def test_find_reusable_sc_test_step_should_allow_semantic_only_git_delta(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            out_dir = root / "logs" / "ci" / "2026-03-31" / "sc-review-pipeline-task-1-newrun"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            source_run = root / "logs" / "ci" / "2026-03-30" / "sc-review-pipeline-task-1-oldrun"
+            source_run.mkdir(parents=True, exist_ok=True)
+            child_sc_test = source_run / "child-artifacts" / "sc-test"
+            child_sc_test.mkdir(parents=True, exist_ok=True)
+            (child_sc_test / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-test",
+                        "run_id": "a" * 32,
+                        "type": "unit",
+                        "solution": "Game.sln",
+                        "configuration": "Debug",
+                        "status": "ok",
+                        "steps": [],
+                        "task_id": "1",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (source_run / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": "oldrun",
+                        "run_id": "oldrun",
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [
+                            {
+                                "name": "sc-test",
+                                "cmd": ["py", "-3", "scripts/sc/test.py", "--type", "unit", "--task-id", "1", "--run-id", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "--delivery-profile", "fast-ship"],
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(source_run / "sc-test.log"),
+                                "reported_out_dir": str(child_sc_test),
+                                "summary_file": str(child_sc_test / "summary.json"),
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (source_run / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "git": {"head": "abc123", "status_short": []},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with (
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=root),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "classify_change_scope_between_snapshots",
+                    return_value={
+                        "sc_test_reuse_allowed": True,
+                        "deterministic_strategy": "minimal-acceptance",
+                        "changed_paths": [".taskmaster/tasks/tasks_back.json"],
+                        "unsafe_paths": [],
+                    },
+                ),
+            ):
+                step = run_review_pipeline_module._find_reusable_sc_test_step(
+                    out_dir=out_dir,
+                    task_id="1",
+                    delivery_profile="fast-ship",
+                    security_profile="host-safe",
+                    planned_cmd=["py", "-3", "scripts/sc/test.py", "--type", "unit", "--task-id", "1", "--run-id", "b" * 32, "--delivery-profile", "fast-ship"],
+                    git_fingerprint={"head": "def456", "status_short": []},
+                )
+
+            self.assertIsNotNone(step)
+            assert step is not None
+            self.assertEqual("ok", step["status"])
+            self.assertIn("semantic-only", Path(step["log"]).read_text(encoding="utf-8"))
+
+    def test_find_reusable_sc_test_step_should_not_relax_git_delta_in_standard_profile(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            out_dir = root / "logs" / "ci" / "2026-03-31" / "sc-review-pipeline-task-1-newrun"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            source_run = root / "logs" / "ci" / "2026-03-30" / "sc-review-pipeline-task-1-oldrun"
+            source_run.mkdir(parents=True, exist_ok=True)
+            child_sc_test = source_run / "child-artifacts" / "sc-test"
+            child_sc_test.mkdir(parents=True, exist_ok=True)
+            (child_sc_test / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-test",
+                        "run_id": "a" * 32,
+                        "type": "unit",
+                        "solution": "Game.sln",
+                        "configuration": "Debug",
+                        "status": "ok",
+                        "steps": [],
+                        "task_id": "1",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (source_run / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": "oldrun",
+                        "run_id": "oldrun",
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [
+                            {
+                                "name": "sc-test",
+                                "cmd": ["py", "-3", "scripts/sc/test.py", "--type", "unit", "--task-id", "1", "--run-id", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "--delivery-profile", "standard"],
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(source_run / "sc-test.log"),
+                                "reported_out_dir": str(child_sc_test),
+                                "summary_file": str(child_sc_test / "summary.json"),
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (source_run / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "standard",
+                        "security_profile": "strict",
+                        "git": {"head": "abc123", "status_short": []},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with (
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=root),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "classify_change_scope_between_snapshots",
+                    return_value={
+                        "sc_test_reuse_allowed": True,
+                        "deterministic_strategy": "minimal-acceptance",
+                        "changed_paths": [".taskmaster/tasks/tasks_back.json"],
+                        "unsafe_paths": [],
+                    },
+                ),
+            ):
+                step = run_review_pipeline_module._find_reusable_sc_test_step(
+                    out_dir=out_dir,
+                    task_id="1",
+                    delivery_profile="standard",
+                    security_profile="strict",
+                    planned_cmd=["py", "-3", "scripts/sc/test.py", "--type", "unit", "--task-id", "1", "--run-id", "b" * 32, "--delivery-profile", "standard"],
+                    git_fingerprint={"head": "def456", "status_short": []},
+                )
+
+            self.assertIsNone(step)
+
     def test_pipeline_should_reuse_matching_sc_test_before_running_acceptance(self) -> None:
         run_id = uuid.uuid4().hex
         previous_run_id = uuid.uuid4().hex
@@ -801,6 +990,8 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 "1",
                 "--run-id",
                 run_id,
+                "--max-step-retries",
+                "0",
                 "--skip-agent-review",
             ]
             with mock.patch.dict(os.environ, _stable_env(), clear=False), \

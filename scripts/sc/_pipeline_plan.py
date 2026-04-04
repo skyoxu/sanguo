@@ -68,6 +68,7 @@ def build_pipeline_steps(
     llm_agents: str,
     llm_timeout_sec: int,
     llm_agent_timeout_sec: int,
+    llm_agent_timeouts: str,
     llm_semantic_gate: str,
     llm_strict: bool,
     llm_diff_mode: str,
@@ -79,6 +80,8 @@ def build_pipeline_steps(
     test_cmd = ["py", "-3", "scripts/sc/test.py", "--type", test_type, "--task-id", task_id, "--run-id", run_id, "--delivery-profile", delivery_profile]
     if args.godot_bin:
         test_cmd += ["--godot-bin", str(args.godot_bin)]
+    if bool(getattr(args, "allow_full_unit_fallback", False)):
+        test_cmd.append("--allow-full-unit-fallback")
     steps.append(("sc-test", test_cmd, 1800, args.skip_test))
 
     acceptance_cmd = build_acceptance_command(
@@ -117,6 +120,8 @@ def build_pipeline_steps(
         "--agent-timeout-sec",
         str(llm_agent_timeout_sec),
     ]
+    if str(llm_agent_timeouts).strip():
+        llm_cmd += ["--agent-timeouts", str(llm_agent_timeouts).strip()]
     if not args.llm_no_uncommitted:
         llm_cmd.append("--uncommitted")
     if llm_strict:

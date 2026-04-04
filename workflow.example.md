@@ -125,7 +125,7 @@ py -3 scripts/python/dev_cli.py new-decision-log --title "<topic>" --task-id <id
 ```
 
 
-TDD 建议顺序：
+TDD Sequence:
 
 ```powershell
 py -3 scripts/sc/check_tdd_execution_plan.py --task-id <id> --tdd-stage red-first --verify unit --execution-plan-policy draft
@@ -134,13 +134,14 @@ py -3 scripts/sc/build.py tdd --task-id <id> --stage green
 py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor
 ```
 
-顺序约束：
+Ordering Constraints:
 
-- green 会先检查最近一次 `sc-llm-acceptance-tests/summary-<task>.json` 是否是干净的 `red-first` 结果。
-- 如果 red-first 创建了新测试文件，还要求 `red_verify.status = ok`。
-- refactor 会先检查最近一次 green summary 是否为 `status = ok`。
-- review pipeline 会先检查最近一次 refactor summary 是否为 `status = ok`。
-- 当 `--verify auto|all` 带 `--task-id` 时，如果任务视图里没有 `.gd` refs，task-scoped GdUnit 会直接失败，而不是回退跑全量目录。
+- 6.5 green 会强制读取最近一次 `sc-llm-acceptance-tests/summary-<task>.json`。
+- 这份 summary 必须来自 `red-first`，且不能存在失败 ref。
+- 如果 6.4 创建了新测试文件，还要求 `red_verify.status = ok`，否则 6.5 直接阻断。
+- 当你在 6.4 使用 `--verify auto|all` 且带 `--task-id` 时，task-scoped GdUnit 现在必须能从任务视图解析出 `.gd` refs；不再静默回退到 `tests/Scenes` 等全量目录。
+
+
 如果 `check_tdd_execution_plan.py` 已经明显提示这是复杂任务，不要立刻手工加重所有步骤；先做两件事：
 
 1. 先补一个最小 `execution-plan`
@@ -172,7 +173,40 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 如果出现可执行的 `Needs Fix`：
 
 ```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 1 --rerun-failing-only --time-budget-min 20 --agents code-reviewer,test-automator,semantic-equivalence-auditor
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship
+```
+
+说明：
+
+- 6.7 会按 profile 自动选择默认 reviewer 集合；如果上一轮只有个别 reviewer timeout，当前轮只会定向放大这些 reviewer 的超时预算。
+- 只有在最近两轮 6.7 都持续超时、而且定向扩时仍不够时，才手工提高总超时；不要一开始就把 `--llm-timeout-sec` 拉很大。
+- 6.7 的进一步 `sc-test` 复用只在 `playable-ea` / `fast-ship` 自动启用，而且只接受“文档/任务语义层”变更；只要触及代码、脚本、contracts、测试文件或运行时资源，就会回退到正常 `sc-test`。
+- 如果 task-scoped `dotnet test --filter ...` 因 coverage 0.0% 失败，默认直接失败，不再自动回退到全量 `dotnet test`。
+- 只有在你明确想验证“是否只是 filter 过窄”时，才额外执行：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --allow-full-unit-fallback`。
+
+- 如果你只想先验证 wiring、latest pointer 和 planned steps 是否正常，可先做：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --dry-run --skip-test --skip-acceptance --skip-agent-review`
+- 单轮 6.7 明显可能拖太久时，可加 `--max-wall-time-sec 7200` 做墙钟止损
+- 外部中断后优先 `--resume`；要保留旧 run 再分叉试另一套修法时用 `--fork`；确认旧 run 不该再继续时用 `--abort`
+- 6.8 首轮会优先读取上一轮 `agent-review.json` / `sc-llm-review summary.json`，自动收缩 reviewer；如果没有稳定历史信号，再回退到 profile 默认集合。
+- 中间回合把 6.8 当作 failing-only 快路径即可：优先修命中的 reviewer，不要反复重跑完整 6.7。
+- 6.8 对 task semantics 文本改动会切到最小 acceptance 子集；如果 change fingerprint 没变，会优先复用上一次已经成功的最小 acceptance 结果。
+- `standard` 不启用上面两条放宽路径；它只接受完全相同 snapshot 的复用，否则回到完整 deterministic 链路。
+- 中间回合一般直接用 `--rerun-failing-only --max-rounds 1`；如果怀疑 reviewer 收缩过度，再改成 `--no-rerun-failing-only --max-rounds 1`
+- 本轮只改 review / acceptance 文本时，才考虑 `--skip-sc-test`
+- 少数 reviewer 反复 timeout 时，不要先加大整轮预算；先试 `--step-timeout-sec 900 --min-llm-budget-min 8`
+- 最后一轮正式收口时，直接用 `--final-pass` 强制完整 deterministic 和完整 reviewer 集合。
+- 如果最后一轮已经重新改了实现、测试、contracts 或运行时资源，就不要只跑 `--final-pass`；回到完整 `6.7 standard` 更稳。
+
+如果只是快速验证可玩性：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile playable-ea
+```
+
+如果准备做更重的收口：
+
+```powershell
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile standard --final-pass
 ```
 
 在 commit 或 PR 前：
@@ -180,16 +214,6 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 1 --re
 ```powershell
 py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"
 py -3 scripts/python/inspect_run.py --kind local-hard-checks
-```
-
-### Day 4 补充：轻量 lane 的默认口径
-
-默认只记住两种入口：
-
-1. 单任务或很小的临时批次：
-
-```powershell
-py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile fast-ship
 ```
 
 2. 长区间、多任务：
@@ -207,6 +231,8 @@ py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start 101 --t
 - 遇到 `timeout` 或 `SC_LLM_OBLIGATIONS status=fail` 这类 family，会更早短路
 - 只有在长批次明显不稳定时，才去调 `rolling-*`、`fill-refs-mode`、`no-align-apply`
 - 如果一整轮日志里基本都是 `first_failed_step = extract`，不要继续往 5.1 里堆 stop-loss，优先修 obligations、task context、extract prompt、timeout、shard size
+- 如果你要切换任务区间、profile，或者只是想开一轮完全隔离的重跑，显式换 `--out-dir` 并加 `--no-resume`，避免旧批次状态污染新结果
+- 如果这一轮只是为了尽快定位第一个硬失败点，可加 `--stop-on-step-failure`，不要把后续低价值步骤也跑完
 
 ## 什么时候进入更重的 lanes
 
@@ -234,3 +260,4 @@ py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start 101 --t
 - 不要因为 Serena 暂时不可用就阻塞整项工作
 - 当 `run_review_pipeline.py` 已存在时，不要手工串 test + acceptance + llm review
 - 新仓不要等到第一笔业务提交前，才第一次跑 `run-local-hard-checks`
+

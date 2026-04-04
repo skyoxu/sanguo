@@ -281,16 +281,22 @@ py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start 101 --t
 
 - 同一个 `out-dir` 只适合同一批任务、同一 `delivery-profile`、同一 `align --apply` 模式
 - 跨区间重跑时，换新的 `out-dir`，或者显式传 `--no-resume`
-- 想要最小化“旧状态污染”时，直接显式指定：
-
-```powershell
-py -3 scripts/python/run_single_task_light_lane.py --task-ids 66,67 --delivery-profile fast-ship --out-dir logs/ci/<date>/single-task-light-lane-v2-t66-t67 --no-resume
-```
-
 - 如果上次只是在后半段失败，而前缀步骤已经成功，可以用：
 
 ```powershell
 py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile fast-ship --resume-failed-task-from first-failed-step
+```
+
+- 如果你是在不同区间、不同 `delivery-profile`，或不同 `align --apply` 模式之间切换，为了避免同一个 `out-dir` 的进度字段被旧批次污染，显式换一个输出目录并关闭 resume：
+
+```powershell
+py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile fast-ship --out-dir logs/ci/<date>/single-task-light-lane-t<id>-fresh --no-resume
+```
+
+- 如果这一轮的目标只是尽快定位“当前任务最先卡死在哪一步”，而不是把后续低价值步骤也全跑完，可额外加：
+
+```powershell
+py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile fast-ship --stop-on-step-failure
 ```
 
 #### 5.1.2 高级可选
@@ -317,12 +323,6 @@ py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-pr
   - 真正需要看 refs 写回效果时，才切到 `dry` 或 `write-verify`
 - `--no-align-apply`
   - 用于只读诊断，不做对齐写回
-- `--stop-on-step-failure`
-  - 某一步失败后直接停止该任务后续步骤，适合“先拿失败证据再修”的保守模式
-
-```powershell
-py -3 scripts/python/run_single_task_light_lane.py --task-ids 66,67 --delivery-profile fast-ship --stop-on-step-failure
-```
 
 建议：如果你不是在跑长批次，不要先动这些参数。
 
@@ -383,6 +383,8 @@ py -3 scripts/python/run_obligations_jitter_batch5x3.py --task-ids 1,2,3 --batch
 py -3 scripts/python/run_obligations_freeze_pipeline.py --task-ids 1,2,3 --batch-size 3 --rounds 3 --timeout-sec 420 --garbled-gate on --auto-escalate on --reuse-last-ok --explain-reuse-miss
 ```
 
+默认不要直接 promote freeze baseline。
+
 复用已有 jitter 结果并把评估变成硬门：
 
 ```powershell
@@ -394,8 +396,6 @@ py -3 scripts/python/run_obligations_freeze_pipeline.py --skip-jitter --raw logs
 ```powershell
 py -3 scripts/python/run_obligations_freeze_pipeline.py --skip-jitter --raw logs/ci/<date>/sc-llm-obligations-jitter-batch5x3-raw.json --require-judgable --require-freeze-pass --approve-promote
 ```
-
-默认不要直接 promote freeze baseline。
 
 ## 6. Phase 4：单任务日常循环（Single Task Daily Loop）
 
@@ -415,7 +415,7 @@ py -3 scripts/python/dev_cli.py resume-task --task-id <id>
 py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id>
 ```
 
-需要把恢复证据稳定落盘（便于后续脚本消费）时，显式输出：
+只有在你需要把恢复证据稳定落盘，供后续脚本或人工继续消费时，显式输出：
 
 ```powershell
 py -3 scripts/python/dev_cli.py resume-task --task-id <id> --out-json logs/ci/<date>/resume-task-<id>.json --out-md logs/ci/<date>/resume-task-<id>.md
@@ -542,16 +542,16 @@ py -3 scripts/sc/check_tdd_execution_plan.py --task-id <id> --tdd-stage red-firs
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify unit
 ```
 
+Refs 语义不足、需要 PRD 辅助判定测试归属时：
+
+```powershell
+py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify unit --include-prd-context --prd-context-path .taskmaster/docs/prd.txt
+```
+
 混合 `.cs` + `.gd` 或需要 Godot-aware verification：
 
 ```powershell
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify auto --godot-bin "$env:GODOT_BIN"
-```
-
-Refs 语义不足、需要 PRD 辅助判定测试归属时：
-
-```powershell
-py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify unit --include-prd-context --prd-context-path prd_v3.md
 ```
 
 说明：
@@ -559,7 +559,7 @@ py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd
 - 6.5 green 会强制读取最近一次 `sc-llm-acceptance-tests/summary-<task>.json`。
 - 这份 summary 必须来自 `red-first`，且不能存在失败 ref。
 - 如果 6.4 创建了新测试文件，还要求 `red_verify.status = ok`，否则 6.5 直接阻断。
-- 当你在 6.4 使用 `--verify auto|all` 且带 `--task-id` 时，task-scoped GdUnit 现在必须能从任务视图解析出 `.gd` refs；不会再静默回退到 `tests/Scenes` 等全量目录。
+- 当你在 6.4 使用 `--verify auto|all` 且带 `--task-id` 时，task-scoped GdUnit 现在必须能从任务视图解析出 `.gd` refs；不再静默回退到 `tests/Scenes` 等全量目录。
 
 ### 6.5 Green stage
 
@@ -567,11 +567,11 @@ py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd
 py -3 scripts/sc/build.py tdd --task-id <id> --stage green
 ```
 
-补充口径（只在特定场景使用）：
+补充口径，只在明确场景下启用：
 
 - `--generate-red-test`：6.4 没有生成可执行红测骨架时再启用
 - `--allow-contract-changes`：本任务明确要新建 `Game.Core/Contracts/**` 文件时才启用
-- `--no-coverage-gate`：仅用于临时止损定位，默认不建议；恢复后应回到默认覆盖率门
+- `--no-coverage-gate`：仅用于临时止损定位；恢复后应回到默认覆盖率门
 
 ```powershell
 py -3 scripts/sc/build.py tdd --task-id <id> --stage green --allow-contract-changes
@@ -591,88 +591,27 @@ py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor
 说明：
 
 - refactor 之前会检查最近一次同任务 `sc-build-tdd` 的 green summary，要求 `stage = green` 且 `status = ok`。
-- 如果 6.5 失败了，必须先修复 6.5，再进入 refactor。
-
-`build.py tdd` 已经内置 task preflight、`sc-analyze`、必需的 task-context validation，以及 6.4 -> 6.5 -> 6.6 的顺序硬门。
+- 如果 6.5 失败了，先修复 6.5，再进入 refactor。
+- `build.py tdd` 已经内置 task preflight、`sc-analyze`、必要的 task-context validation，以及 6.4 -> 6.5 -> 6.6 的顺序硬门。
 
 ### 6.7 统一任务级 review pipeline
 
 日常默认：
 
 ```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --max-step-retries 1 --llm-timeout-sec 900
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
 ```
 
 更重的收敛模式：
 
 ```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile standard --max-step-retries 1 --llm-timeout-sec 900
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile standard
 ```
 
 快速可玩验证：
 
 ```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile playable-ea --max-step-retries 1 --llm-timeout-sec 600
-```
-
-恢复上一轮（继续同一个 run）：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --resume --max-step-retries 1 --llm-timeout-sec 900
-```
-
-从已有 run 分叉（保留原 run 证据，另起新 run 继续）：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --fork --fork-from-run-id <old_run_id> --run-id <new_run_id> --max-step-retries 1 --llm-timeout-sec 900
-```
-
-如果确认当前 run 已无价值，先显式中止，避免继续占用时间：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --abort
-```
-
-只看计划命令（不执行），并跳过主要步骤：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --dry-run --skip-test --skip-acceptance --skip-agent-review
-```
-
-给整条 pipeline 增加 wall-time 预算（超过即止损）：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --max-step-retries 1 --llm-timeout-sec 900 --max-wall-time-sec 5400
-```
-
-已知 out-dir/run_id 冲突时，优先使用自动避冲突参数：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --force-new-run-id --max-step-retries 1 --llm-timeout-sec 900
-```
-
-如果你就是要覆盖同一 run-id 的目录（例如本地临时重跑），显式允许覆盖：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --run-id <run_id> --allow-overwrite --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --max-step-retries 1 --llm-timeout-sec 900
-```
-
-只做确定性回归（跳过 LLM review）：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --skip-llm-review
-```
-
-长跑调优（语义门 + 单 agent 超时 + context refresh）：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --llm-semantic-gate require --llm-timeout-sec 900 --llm-agent-timeout-sec 300 --context-refresh-after-failures 2 --context-refresh-after-resumes 2
-```
-
-当工作区 diff 很大、review 耗时明显上升时，可先缩小 diff 口径再跑：
-
-```powershell
-py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --llm-diff-mode summary --llm-agents code-reviewer,test-automator --llm-timeout-sec 900 --llm-agent-timeout-sec 300 --context-refresh-after-diff-lines 400 --context-refresh-after-diff-categories 4
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile playable-ea
 ```
 
 说明：
@@ -681,64 +620,153 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - 除非你明确要覆盖默认映射，否则不要手工传 `--security-profile`。
 - 这个 pipeline 会写 sidecars、latest pointers、active-task summaries、repair guidance，以及 technical debt sync outputs。
 - review pipeline 启动前还会检查最近一次同任务 `sc-build-tdd` 的 refactor summary，要求 `stage = refactor` 且 `status = ok`；如果 6.6 失败，先修 6.6。
-- `--max-step-retries 1` 用于吸收一次瞬时失败，减少手工 `--resume` 导致的整段等待时间。
-- `--llm-timeout-sec` 建议按 profile 显式传入，优先避免 `sc-llm-review` 总超时后再人工恢复。
+- `run_review_pipeline.py` 会按 `DELIVERY_PROFILE` 自动决定第六章的默认强度：
+  - `playable-ea`：默认 `max_step_retries = 1`，首轮 review 更轻，适合先验证可玩性。
+  - `fast-ship`：默认 `max_step_retries = 1`，首轮 review 聚焦 `code-reviewer + security-auditor + semantic-equivalence-auditor`。
+  - `standard`：默认 `max_step_retries = 0`，保留更重的收口姿态，不自动帮你放宽执行节奏。
+- 如果上一次同任务 `sc-llm-review` 里只有少数 reviewer 发生 `rc=124` timeout，6.7 会只对这些 reviewer 增加 `--agent-timeouts`，不会把全部 reviewer 一起扩时。
+- 只有当最近两轮 6.7 都出现总超时，或大部分 reviewer 持续 `rc=124`，且定向扩时仍然不够时，才手工加大总超时，例如：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --llm-timeout-sec 900`。
+- 不要把大超时当作默认配置；首选仍然是“先按默认预算跑，再对命中过 timeout 的 reviewer 定向补时”。
+- 更进一步的 `sc-test` task-scope 化只在 `playable-ea` / `fast-ship` 自动启用；`standard` 只接受“完全相同 git snapshot”的 `sc-test` 复用。
+- 触发这条放宽路径的前提是：最近一次同任务 pipeline 已经有可复用的 `sc-test`，并且本轮相对上轮的变化只落在文档/任务语义层，例如 `docs/**`、`.taskmaster/**`、`examples/taskmaster/**`、`execution-plans/**`、`decision-logs/**`、`AGENTS.md`、`README.md`、`workflow*.md`。
+- 一旦变化触及代码、脚本、contracts、测试文件、Godot 运行时资源，6.7 会自动回退到正常 `sc-test`，不会继续走放宽路径。
+- 如果变化属于 task semantics，例如 taskmaster / overlay / ADR / PRD 文本，6.7 只复用 `sc-test`；后续 `acceptance_check` 仍会重跑，避免“假绿”。
+- 如果你明确要保留旧行为，可以显式传：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile <profile> --allow-full-unit-fallback`。
+- 这个开关只建议用于定位“task-scoped unit coverage = 0.0%”是否由 filter 过窄引起；默认不要开，否则会把任务级失败放大成全仓 `dotnet test`，拖慢单轮时长。
+
+- 如果你只是想先验证 run wiring、profile 解析、latest pointer 和 planned steps 是否正常，而不想真正执行测试与 acceptance，可先做一轮最便宜的探针：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --dry-run --skip-test --skip-acceptance --skip-agent-review
+```
+
+- 如果你要给单轮 6.7 明确设置墙钟上限，防止它无限拖长，可显式传：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --max-wall-time-sec 7200
+```
+
+- 如果上一轮 6.7 只是被外部中断、机器重启或手工停掉，而当前 run 的 sidecars 仍然有效，优先用 `--resume`，不要直接重开一轮：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --resume
+```
+
+- 如果你想保留旧 run 作为证据，同时从同一基线分叉继续试另一套修复路径，用 `--fork`；默认会 fork 最近一次匹配的 run，必要时再配 `--fork-from-run-id <run_id>`：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --fork
+```
+
+- 如果当前 run 已明显失效，不该继续再被恢复，先标记 abort，再按正常模式新开一轮；必要时可配 `--run-id <run_id>` 精确指向旧 run：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --abort
+```
+
+- 如果已知 task+run_id 对应的输出目录存在冲突，优先自动生成新 run id，而不是手工删目录：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --force-new-run-id
+```
+
+- 如果你明确就是要复用同一 run-id 的目录做本地临时重跑，才显式允许覆盖：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --run-id <run_id> --allow-overwrite --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
+```
+
+- 如果这一轮只想做确定性回归，不跑 LLM reviewer，可显式跳过：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --skip-llm-review
+```
+
+- 长跑或大 diff 任务里，如果你已经确认需要更严的语义门和更稳的单 agent 超时，可再加：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --llm-semantic-gate require --llm-agent-timeout-sec 300 --context-refresh-after-failures 2 --context-refresh-after-resumes 2
+```
+
+- 当工作区 diff 很大、review 明显被 prompt 体积拖慢时，可先缩小 diff 口径：
+
+```powershell
+py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --llm-diff-mode summary --context-refresh-after-diff-lines 400 --context-refresh-after-diff-categories 4
+```
 
 ### 6.8 清理 Needs Fix
 
-日常快速清理（默认会执行轻量验证）：
+快速可玩验证：
 
 ```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 1 --rerun-failing-only --time-budget-min 20 --agents code-reviewer,test-automator,semantic-equivalence-auditor
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile playable-ea
 ```
 
-纯 review 回合（仅修审查意见、未改实现代码）：
+日常默认：
 
 ```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 1 --rerun-failing-only --time-budget-min 20 --skip-sc-test
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship
 ```
 
-重跑所有 agents（不使用 `--rerun-failing-only`）：
+更重的收敛模式：
 
 ```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 1 --time-budget-min 20 --agents code-reviewer,test-automator,semantic-equivalence-auditor
-```
-
-为每个外层步骤设置超时上限：
-
-```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 1 --rerun-failing-only --time-budget-min 20 --step-timeout-sec 1800
-```
-
-把 LLM 总超时和单 agent 超时一起收紧（防止单轮拖太久）：
-
-```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 1 --rerun-failing-only --time-budget-min 20 --llm-timeout-sec 900 --agent-timeout-sec 240 --step-timeout-sec 1800
-```
-
-标准清理：
-
-```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 2 --rerun-failing-only --time-budget-min 30
-```
-
-安全敏感清理：
-
-```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --security-profile strict --max-rounds 2 --rerun-failing-only --time-budget-min 45 --agents code-reviewer,security-auditor,test-automator,semantic-equivalence-auditor
-```
-
-工作区改动过大时，先用较小 diff 模式做快速收敛：
-
-```powershell
-py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --max-rounds 1 --rerun-failing-only --time-budget-min 20 --diff-mode committed --base origin/main
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile standard
 ```
 
 说明：
 
-- 6.8 的目标是“定向清理失败 reviewer”，不是重复执行一整条 6.7。
-- 修改了实现代码后，不要使用 `--skip-sc-test`；应回到默认或标准清理命令。
-- CLI 没有 `--no-rerun-failing-only` 参数；想“全 agents 重跑”，直接不传 `--rerun-failing-only` 即可。
+- `llm_review_needs_fix_fast.py` 会按 `DELIVERY_PROFILE` 自动落默认值，不建议每轮手工传 reviewer / diff / timeout。
+- profile 默认值：
+  - `playable-ea`：`agents=code-reviewer,semantic-equivalence-auditor`，`diff_mode=summary`，`max_rounds=1`，`time_budget_min=20`。
+  - `fast-ship`：`agents=code-reviewer,security-auditor,semantic-equivalence-auditor`，`diff_mode=summary`，`max_rounds=2`，`time_budget_min=30`。
+  - `standard`：`agents=all`，`diff_mode=full`，`max_rounds=2`，`time_budget_min=45`。
+- 快速清理脚本会把 `--delivery-profile` 继续透传给内部 `run_review_pipeline.py`，避免第 6.8 里外 profile 漂移。
+- 中间回合默认把 6.8 当作 `rerun-failing-only` 快路径：优先只重跑上轮命中的 reviewer，适合“修 Needs Fix、补 wording、补 refs、补局部测试断言”这类收敛回合。
+- 只要这一轮没有改实现、测试、contracts 或运行时资源，就不要急着回头重跑完整 6.7；先用 6.8 把命中的问题清干净。
+- 首轮 reviewer 会优先读取上一轮同任务 `agent-review.json` 或 `sc-llm-review summary.json`，自动收缩到真正命中的 reviewer；拿不到稳定信号时才回退到 profile 默认 reviewer 集合。
+- deterministic 复用不再只看“当天 latest.json”，会跨日查找最近可复用的同任务 pipeline 产物。
+- 如果当前变化只是非任务语义文档，例如 `README.md`、`AGENTS.md`、`docs/agents/**`，`playable-ea` / `fast-ship` 会直接复用上一轮 deterministic 结果，不再重跑整条链路。
+- 如果当前变化只落在 task semantics 文档，例如 `.taskmaster/**`、`examples/taskmaster/**`、`docs/architecture/**`、`docs/adr/**`、`docs/prd/**`，`playable-ea` / `fast-ship` 会切到最小 acceptance 子集，只重跑 `adr,links,overlay`，必要时再补 `subtasks`。
+- 这条最小子集路径还带 change fingerprint；同一任务、同一 profile、同一变更指纹会优先复用上一次已经成功的最小 acceptance 结果。
+- `standard` 不启用上述两条放宽路径；在 `standard` 下，除了完全相同 git snapshot 的复用，其他情况都会回到完整 deterministic 链路。
+- 新增预算守门：如果 deterministic 之后剩余预算低于 profile 下限，就直接 fail-fast，不再白白开启一轮新的 LLM 回合。
+- `--skip-sc-test` 仍然只建议用于“本轮只修 review / acceptance 文本，没有改实现和测试”的场景；不要把它当作常规默认。
+
+- 如果这是典型的“中间收敛回合”，而且你只想重跑上一轮真正命中的 reviewer，一般直接把轮数压到 1：
+
+```powershell
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
+```
+
+- 如果你怀疑上一轮 reviewer 收缩过度，想强制回到 profile 默认 reviewer 集合，但仍然只想做一轮快速验证，可改成：
+
+```powershell
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --no-rerun-failing-only --max-rounds 1
+```
+
+- 如果本轮只改了 review / acceptance 文本，没有动实现与测试，而且你明确知道 `sc-test` 结果仍可复用，才显式传：
+
+```powershell
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --skip-sc-test --rerun-failing-only --max-rounds 1
+```
+
+- 如果 6.8 反复卡在少数 reviewer timeout，而不是逻辑问题，可只放大单步超时，并给一个更低但明确的预算下限：
+
+```powershell
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --rerun-failing-only --step-timeout-sec 900 --min-llm-budget-min 8
+```
+
+- 如果这是最后一次收口，直接执行：
+
+```powershell
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile standard --final-pass
+```
+
+- `--final-pass` 会强制完整 deterministic、完整 reviewer 集合，并关闭 reviewer 自动收缩与最小 acceptance 快捷路径。
+- 推荐默认：把 `6.8 --delivery-profile standard --final-pass` 视为“最后一次任务级收口”。它适合已经完成主要实现，只剩最终 Needs Fix 清理的场景。
+- 如果最后一轮改动已经超出 Needs Fix 修补范围，例如重新改了实现、测试、contracts、Godot 资源或 review sidecars 已明显过期，就不要只跑 `--final-pass`；应回到完整 `6.7 standard`，必要时再补一轮 6.8。
+- 实用顺序：中间回合多用 6.8 快路径，最后收口在“`6.8 --final-pass`”和“完整 `6.7 standard`”之间二选一；然后统一进入 6.9 仓库级硬检查。
 
 ### 6.9 Commit 前的仓库级验证
 
@@ -753,7 +781,7 @@ py -3 scripts/python/inspect_run.py --kind local-hard-checks
 py -3 scripts/python/dev_cli.py serve-project-health
 ```
 
-端口冲突时，显式指定端口并复用同一口径：
+如果一台设备上同时开了多个项目页面，显式指定端口更稳：
 
 ```powershell
 py -3 scripts/python/dev_cli.py project-health-scan --serve --port 8877

@@ -18,7 +18,28 @@ import _sc_test_steps as sc_steps  # noqa: E402
 
 
 class ScTestStepsUnitFallbackTests(unittest.TestCase):
-    def test_run_unit_should_retry_without_filter_when_task_scoped_coverage_is_zero(self) -> None:
+    def test_run_unit_should_fail_fast_when_task_scoped_coverage_is_zero_and_fallback_is_disabled(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            out_dir = Path(td)
+            first_out = "RUN_DOTNET status=coverage_failed line=0.0% branch=0.0 out=logs/unit/2026-03-30\n"
+
+            with (
+                mock.patch.object(sc_steps, "repo_root", return_value=REPO_ROOT),
+                mock.patch.object(sc_steps, "today_str", return_value="2026-03-30"),
+                mock.patch.object(sc_steps, "task_scoped_cs_refs", return_value=["Game.Core.Tests/Tasks/Task0056AcceptanceTests.cs"]),
+                mock.patch.object(sc_steps, "build_dotnet_filter_from_cs_refs", return_value="FullyQualifiedName~Task0056AcceptanceTests"),
+                mock.patch.object(sc_steps, "run_cmd", return_value=(2, first_out)) as run_cmd_mock,
+            ):
+                step = sc_steps.run_unit(out_dir, "Game.sln", "Debug", run_id="r1", task_id="56")
+
+            self.assertEqual(2, int(step["rc"]))
+            self.assertEqual("fail", step["status"])
+            self.assertIn("--filter", step["cmd"])
+            run_cmd_mock.assert_called_once()
+            log_text = (out_dir / "unit.log").read_text(encoding="utf-8")
+            self.assertIn("full-suite fallback is disabled", log_text)
+
+    def test_run_unit_should_retry_without_filter_when_explicitly_enabled(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             out_dir = Path(td)
             first_out = "RUN_DOTNET status=coverage_failed line=0.0% branch=0.0 out=logs/unit/2026-03-30\n"
@@ -31,7 +52,14 @@ class ScTestStepsUnitFallbackTests(unittest.TestCase):
                 mock.patch.object(sc_steps, "build_dotnet_filter_from_cs_refs", return_value="FullyQualifiedName~Task0056AcceptanceTests"),
                 mock.patch.object(sc_steps, "run_cmd", side_effect=[(2, first_out), (0, second_out)]),
             ):
-                step = sc_steps.run_unit(out_dir, "Game.sln", "Debug", run_id="r1", task_id="56")
+                step = sc_steps.run_unit(
+                    out_dir,
+                    "Game.sln",
+                    "Debug",
+                    run_id="r2",
+                    task_id="56",
+                    allow_full_unit_fallback=True,
+                )
 
             self.assertEqual(0, int(step["rc"]))
             self.assertEqual("ok", step["status"])
@@ -56,7 +84,14 @@ class ScTestStepsUnitFallbackTests(unittest.TestCase):
                 mock.patch.object(sc_steps, "build_dotnet_filter_from_cs_refs", return_value="FullyQualifiedName~Task0056AcceptanceTests"),
                 mock.patch.object(sc_steps, "run_cmd", side_effect=[(2, first_out), (1, second_out)]),
             ):
-                step = sc_steps.run_unit(out_dir, "Game.sln", "Debug", run_id="r2", task_id="56")
+                step = sc_steps.run_unit(
+                    out_dir,
+                    "Game.sln",
+                    "Debug",
+                    run_id="r2b",
+                    task_id="56",
+                    allow_full_unit_fallback=True,
+                )
 
             self.assertEqual(2, int(step["rc"]))
             self.assertEqual("fail", step["status"])
