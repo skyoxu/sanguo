@@ -26,6 +26,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--skip-acceptance", action="store_true", help="Skip sc-acceptance-check step.")
     parser.add_argument("--skip-llm-review", action="store_true", help="Skip sc-llm-review step.")
     parser.add_argument("--skip-agent-review", action="store_true", help="Skip the post-pipeline agent review sidecar.")
+    parser.add_argument(
+        "--allow-full-unit-fallback",
+        action="store_true",
+        help="Pass through to sc-test: when task-scoped unit coverage is 0.0%%, retry once without the task filter.",
+    )
     parser.add_argument("--llm-agents", default=None, help="llm_review --agents value. Default follows delivery profile.")
     parser.add_argument("--llm-timeout-sec", type=int, default=None, help="llm_review total timeout. Default follows delivery profile.")
     parser.add_argument("--llm-agent-timeout-sec", type=int, default=None, help="llm_review per-agent timeout. Default follows delivery profile.")
@@ -38,7 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--resume", action="store_true", help="Resume the latest matching run for this task.")
     parser.add_argument("--abort", action="store_true", help="Abort the latest matching run for this task without running steps.")
     parser.add_argument("--fork", action="store_true", help="Fork the latest matching run into a new run id and continue there.")
-    parser.add_argument("--max-step-retries", type=int, default=0, help="Automatic retry count for a failing step inside this invocation.")
+    parser.add_argument("--max-step-retries", type=int, default=None, help="Automatic retry count for a failing step inside this invocation. Default follows delivery profile.")
     parser.add_argument("--max-wall-time-sec", type=int, default=0, help="Per-run wall-time budget. 0 disables the budget.")
     parser.add_argument("--context-refresh-after-failures", type=int, default=3, help="Flag context refresh when one step fails this many times. 0 disables.")
     parser.add_argument("--context-refresh-after-resumes", type=int, default=2, help="Flag context refresh when resume count reaches this value. 0 disables.")

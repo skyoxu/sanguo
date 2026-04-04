@@ -55,6 +55,7 @@ def resolve_test_runtime(*, delivery_profile: str | None, security_profile: str 
         "coverage_lines_min": max(0, int(defaults.get("coverage_lines_min", 90) or 0)),
         "coverage_branches_min": max(0, int(defaults.get("coverage_branches_min", 85) or 0)),
         "smoke_strict": bool(defaults.get("smoke_strict", True)),
+        "allow_full_unit_fallback": bool(defaults.get("allow_full_unit_fallback", False)),
     }
 
 
@@ -74,6 +75,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--skip-smoke", action="store_true")
     ap.add_argument("--no-coverage-gate", action="store_true", help="do not enforce default coverage thresholds")
     ap.add_argument("--no-coverage-report", action="store_true", help="skip HTML coverage report generation")
+    ap.add_argument(
+        "--allow-full-unit-fallback",
+        action="store_true",
+        help="when task-scoped unit coverage reports 0.0%%, retry once without the task filter",
+    )
     return ap
 
 
@@ -155,8 +161,23 @@ def _build_dotnet_filter_from_cs_refs(cs_refs: list[str]) -> str:
     return _build_dotnet_filter_from_cs_refs_impl(cs_refs)
 
 
-def run_unit(out_dir: Path, solution: str, configuration: str, *, run_id: str, task_id: str | None = None) -> dict[str, Any]:
-    return _run_unit_impl(out_dir, solution, configuration, run_id=run_id, task_id=task_id)
+def run_unit(
+    out_dir: Path,
+    solution: str,
+    configuration: str,
+    *,
+    run_id: str,
+    task_id: str | None = None,
+    allow_full_unit_fallback: bool = False,
+) -> dict[str, Any]:
+    return _run_unit_impl(
+        out_dir,
+        solution,
+        configuration,
+        run_id=run_id,
+        task_id=task_id,
+        allow_full_unit_fallback=allow_full_unit_fallback,
+    )
 
 
 def run_coverage_report(out_dir: Path, unit_artifacts_dir: Path) -> dict[str, Any]:
@@ -274,7 +295,14 @@ def main() -> int:
         else:
             os.environ.pop("COVERAGE_LINES_MIN", None)
             os.environ.pop("COVERAGE_BRANCHES_MIN", None)
-        step = run_unit(out_dir, args.solution, args.configuration, run_id=run_id, task_id=args.task_id)
+        step = run_unit(
+            out_dir,
+            args.solution,
+            args.configuration,
+            run_id=run_id,
+            task_id=args.task_id,
+            allow_full_unit_fallback=bool(runtime["allow_full_unit_fallback"]) or bool(args.allow_full_unit_fallback),
+        )
         summary["steps"].append(step)
         if not _persist_summary():
             return 2

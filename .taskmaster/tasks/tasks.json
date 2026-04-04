@@ -1990,7 +1990,7 @@
           "59",
           "61"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1998,7 +1998,7 @@
             "description": "Define the currently rendered UI-facing fields for the forced challenge deferred HUD summary, including BossId, RoundNumber, win-rate tier, next-round pressure forecast, key-loss summary, and fail consequence.",
             "dependencies": [],
             "details": "Keep the mapping layer isolated from raw event payload so UI assertions can lock the deferred HUD summary copy and field structure without depending on transport shape.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add mapper-level tests to verify prompted event fields are translated into stable deferred HUD summary data.",
             "parentId": "66"
           },
@@ -2010,7 +2010,7 @@
               1
             ],
             "details": "Cover summary visibility, localized explanatory copy, event-log parity, and the deferred runtime boundary that no blocking dialog, confirm UI, result popup, or tree pause appears on the publish frame.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add GdUnit integration tests that assert the HUD summary appears with localized text and that the publish frame remains summary-only with no confirm or post-confirm runtime path.",
             "parentId": "66"
           },
@@ -2026,6 +2026,17 @@
             "testStrategy": "Verify A-006 acceptance text maps directly to deterministic summary-field assertions and deferred-boundary coverage in the referenced GdUnit tests.",
             "parentId": "66"
           }
+        ],
+        "acceptance": [
+          "Publishing core.sanguo.boss.challenge.prompted must render an observable HUD summary aligned to deferred summary-only scope and include BossId, RoundNumber, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence.",
+          "The rendered HUD summary must stay deterministic under missing-locale fallback and must not leak raw translation keys.",
+          "Deferred runtime boundary must hold on publish frame: no blocking dialog, no confirm-action UI, no result popup, and no tree pause."
+        ],
+        "testRefs": [
+          "Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+          "Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd",
+          "Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd",
+          "Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd"
         ],
         "adrRefs": [
           "ADR-0004",

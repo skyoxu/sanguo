@@ -117,6 +117,7 @@ py -3 scripts/python/validate_semantic_review_tier.py
 - 构建门禁（硬）：`dotnet build -warnaserror`（通过 `scripts/sc/build.py`）
 - 安全软检查（软）：Sentry secrets / 核心契约检查 / 编码扫描
 - 测试门禁（硬）：`scripts/sc/test.py --type all`（含 GdUnit4 + smoke）
+  - task-scoped unit coverage 若为 `0.0%`，默认直接失败，不再自动回退到全量 `dotnet test`；只有显式传 `--allow-full-unit-fallback` 才保留旧行为。
 - 性能门禁（可选硬门）：解析最新 `logs/ci/**/headless.log` 的 `[PERF] ... p95_ms=...` 并与阈值比较
   - 启用方式：`--perf-p95-ms <ms>` 或设置环境变量 `PERF_P95_THRESHOLD_MS=<ms>`
   - 快捷方式：`--require-perf`（legacy）：等价于启用性能硬门禁，阈值取 `PERF_P95_THRESHOLD_MS`，否则默认 20ms（口径见 ADR-0015）
@@ -183,11 +184,18 @@ py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN
 # Standard profile for release hardening
 py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --delivery-profile standard
 
+# Final closure pass for remaining Needs Fix items:
+# force full deterministic checks + full reviewer set and disable fast-path shortcuts
+py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 10 --delivery-profile standard --final-pass
+
 # Optional: explicit security override when you intentionally break the default mapping
 py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --security-profile strict
 
 # Optional: skip llm review (deterministic gates only)
 py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --skip-llm-review
+
+# Optional: if task-scoped unit coverage is 0.0%, allow one explicit repo-wide dotnet retry
+py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --allow-full-unit-fallback
 
 # Retry a failing step once inside the same invocation
 py -3 scripts/sc/run_review_pipeline.py --task-id 10 --godot-bin "$env:GODOT_BIN" --max-step-retries 1

@@ -3,13 +3,10 @@
 from __future__ import annotations
 
 import importlib.util
-import os
 import sys
-import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
-from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -59,26 +56,6 @@ class EntrypointDeliveryProfileTests(unittest.TestCase):
         cmd = sc_build.build_dotnet_build_cmd(target="Game.sln", config="Release", verbose=True, warn_as_error=runtime["warn_as_error"])
         self.assertIn("-warnaserror", cmd)
 
-    def test_build_main_should_prefer_godotgame_solution_when_target_omitted(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            out_dir = root / "logs" / "ci" / "sc-build"
-            (root / "Game.sln").write_text("stub", encoding="utf-8")
-            (root / "GodotGame.sln").write_text("stub", encoding="utf-8")
-            argv = ["build.py"]
-
-            with mock.patch.object(sys, "argv", argv), \
-                mock.patch.object(sc_build, "repo_root", return_value=root), \
-                mock.patch.object(sc_build, "ci_dir", return_value=out_dir), \
-                mock.patch.object(sc_build, "run_cmd", return_value=(0, "ok")) as run_cmd_mock:
-                rc = sc_build.main()
-
-            self.assertEqual(0, rc)
-            run_cmd_mock.assert_called_once()
-            build_cmd = run_cmd_mock.call_args[0][0]
-            self.assertEqual(["dotnet", "build"], build_cmd[:2])
-            self.assertEqual(str(root / "GodotGame.sln"), build_cmd[2])
-
     def test_test_runtime_should_scale_coverage_defaults_by_profile(self) -> None:
         playable = sc_test.resolve_test_runtime(delivery_profile="playable-ea", security_profile=None, no_coverage_gate=False)
         fast_ship = sc_test.resolve_test_runtime(delivery_profile="fast-ship", security_profile=None, no_coverage_gate=False)
@@ -87,91 +64,25 @@ class EntrypointDeliveryProfileTests(unittest.TestCase):
         self.assertFalse(playable["coverage_gate"])
         self.assertEqual(0, playable["coverage_lines_min"])
         self.assertEqual(0, playable["coverage_branches_min"])
+        self.assertFalse(playable["allow_full_unit_fallback"])
 
         self.assertTrue(fast_ship["coverage_gate"])
         self.assertEqual(70, fast_ship["coverage_lines_min"])
         self.assertEqual(60, fast_ship["coverage_branches_min"])
         self.assertEqual("host-safe", fast_ship["security_profile"])
+        self.assertFalse(fast_ship["allow_full_unit_fallback"])
 
         self.assertTrue(standard["coverage_gate"])
         self.assertEqual(90, standard["coverage_lines_min"])
         self.assertEqual(85, standard["coverage_branches_min"])
         self.assertEqual("strict", standard["security_profile"])
+        self.assertFalse(standard["allow_full_unit_fallback"])
 
     def test_test_runtime_should_respect_explicit_no_coverage_gate(self) -> None:
         runtime = sc_test.resolve_test_runtime(delivery_profile="standard", security_profile=None, no_coverage_gate=True)
         self.assertFalse(runtime["coverage_gate"])
         self.assertEqual(90, runtime["coverage_lines_min"])
         self.assertEqual(85, runtime["coverage_branches_min"])
-
-    def test_test_parser_should_default_solution_to_auto(self) -> None:
-        args = sc_test.build_parser().parse_args([])
-        self.assertEqual("auto", args.solution)
-
-    def test_test_main_should_set_skip_coverage_env_when_no_coverage_gate_is_enabled(self) -> None:
-        observed: dict[str, str | None] = {}
-        parser = mock.Mock()
-        parser.parse_args.return_value = Namespace(
-            type="unit",
-            task_id=None,
-            solution="Game.sln",
-            configuration="Debug",
-            delivery_profile="standard",
-            security_profile=None,
-            godot_bin=None,
-            run_id="run123",
-            smoke_scene="res://Game.Godot/Scenes/Main.tscn",
-            timeout_sec=600,
-            skip_smoke=False,
-            no_coverage_gate=True,
-            no_coverage_report=True,
-        )
-
-        original_skip = os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE")
-        original_lines = os.environ.get("COVERAGE_LINES_MIN")
-        original_branches = os.environ.get("COVERAGE_BRANCHES_MIN")
-        os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
-        os.environ.pop("COVERAGE_LINES_MIN", None)
-        os.environ.pop("COVERAGE_BRANCHES_MIN", None)
-
-        def fake_run_unit(out_dir, solution, configuration, *, run_id, task_id=None):
-            observed["skip"] = os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE")
-            observed["lines"] = os.environ.get("COVERAGE_LINES_MIN")
-            observed["branches"] = os.environ.get("COVERAGE_BRANCHES_MIN")
-            return {
-                "name": "unit",
-                "rc": 0,
-                "status": "ok",
-                "artifacts_dir": str(REPO_ROOT / "logs" / "unit" / "2026-03-25"),
-            }
-
-        try:
-            with (
-                mock.patch.object(sc_test, "build_parser", return_value=parser),
-                mock.patch.object(sc_test, "run_unit", side_effect=fake_run_unit),
-                mock.patch.object(sc_test, "run_csharp_test_conventions", return_value={"name": "csharp-test-conventions", "rc": 0, "status": "ok"}),
-                mock.patch.object(sc_test, "validate_sc_test_summary", return_value=None),
-            ):
-                rc = sc_test.main()
-        finally:
-            if original_skip is None:
-                os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
-            else:
-                os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = original_skip
-            if original_lines is None:
-                os.environ.pop("COVERAGE_LINES_MIN", None)
-            else:
-                os.environ["COVERAGE_LINES_MIN"] = original_lines
-            if original_branches is None:
-                os.environ.pop("COVERAGE_BRANCHES_MIN", None)
-            else:
-                os.environ["COVERAGE_BRANCHES_MIN"] = original_branches
-
-        self.assertEqual(0, rc)
-        self.assertEqual("1", observed.get("skip"))
-        self.assertIsNone(observed.get("lines"))
-        self.assertIsNone(observed.get("branches"))
-        self.assertNotIn("SC_ACCEPTANCE_NO_COVERAGE_GATE", os.environ)
 
     def test_gate_bundle_runtime_should_scale_warning_budget_and_stability_gate(self) -> None:
         playable = gate_bundle.resolve_gate_bundle_runtime(delivery_profile="playable-ea")

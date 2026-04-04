@@ -9,7 +9,7 @@ import argparse
 import os
 from argparse import Namespace
 
-from _delivery_profile import profile_acceptance_defaults, resolve_delivery_profile
+from _delivery_profile import default_security_profile_for_delivery, profile_acceptance_defaults, resolve_delivery_profile
 from _security_profile import normalize_gate_mode, resolve_security_profile, security_gate_defaults
 
 
@@ -158,7 +158,8 @@ def apply_delivery_profile_defaults(args: Namespace) -> Namespace:
 
 
 def resolve_security_modes(args: Namespace) -> tuple[str, dict[str, str]]:
-    profile = resolve_security_profile(args.security_profile)
+    delivery_profile = resolve_delivery_profile(getattr(args, "delivery_profile", None))
+    profile = resolve_security_profile(args.security_profile or default_security_profile_for_delivery(delivery_profile))
     defaults = security_gate_defaults(profile)
     modes = {
         "path": normalize_gate_mode(args.security_path_gate, defaults["path"]),

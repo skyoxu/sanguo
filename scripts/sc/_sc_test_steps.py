@@ -16,6 +16,7 @@ def run_unit(
     *,
     run_id: str,
     task_id: str | None = None,
+    allow_full_unit_fallback: bool = False,
 ) -> dict[str, Any]:
     cmd = ["py", "-3", "scripts/python/run_dotnet.py", "--solution", solution, "--configuration", configuration]
     task_cs_refs = task_scoped_cs_refs(task_id=task_id)
@@ -23,13 +24,14 @@ def run_unit(
     if task_filter:
         cmd += ["--filter", task_filter]
     rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=1_800)
-    if (
-        task_filter
+    zero_coverage_failure = (
+        bool(task_filter)
         and int(rc) == 2
         and "RUN_DOTNET status=coverage_failed" in str(out)
         and "line=0.0%" in str(out)
         and "branch=0.0" in str(out)
-    ):
+    )
+    if allow_full_unit_fallback and zero_coverage_failure:
         fallback_cmd = ["py", "-3", "scripts/python/run_dotnet.py", "--solution", solution, "--configuration", configuration]
         fallback_rc, fallback_out = run_cmd(fallback_cmd, cwd=repo_root(), timeout_sec=1_800)
         out = (
@@ -43,6 +45,12 @@ def run_unit(
         if int(fallback_rc) == 0:
             rc = 0
             cmd = fallback_cmd
+    elif zero_coverage_failure:
+        out = (
+            f"{str(out).rstrip()}\n\n"
+            "[sc-test] task-scoped coverage is 0.0%; full-suite fallback is disabled.\n"
+            "[sc-test] Re-run with --allow-full-unit-fallback only when you intentionally want a repo-wide retry.\n"
+        ).rstrip() + "\n"
     log_path = out_dir / "unit.log"
     write_text(log_path, out)
     unit_artifacts_dir = repo_root() / "logs" / "unit" / today_str()
@@ -215,23 +223,7 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = N
         cmd.append("--strict")
     if str(task_id or "").strip():
         cmd += ["--task-id", str(task_id).strip()]
-    original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
-    original_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
-    if strict:
-        os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
-        os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = "0.25"
-    try:
-        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
-    finally:
-        if strict:
-            if original_exit_on_ready is None:
-                os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
-            else:
-                os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
-            if original_exit_delay is None:
-                os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
-            else:
-                os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
+    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=120)
     log_path = out_dir / "smoke.log"
     write_text(log_path, out)
     return {

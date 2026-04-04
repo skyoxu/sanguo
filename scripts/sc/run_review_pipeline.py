@@ -21,6 +21,7 @@ from _agent_review_policy import apply_agent_review_policy, apply_agent_review_s
 from _delivery_profile import (
     default_security_profile_for_delivery,
     profile_acceptance_defaults,
+    profile_review_pipeline_defaults,
     profile_llm_review_defaults,
     resolve_delivery_profile,
 )
@@ -64,6 +65,8 @@ from _pipeline_support import (
     run_step as _run_step,
     upsert_step as _upsert_step,
 )
+from _llm_review_cli import resolve_agents
+from _change_scope import classify_change_scope_between_snapshots
 from _repair_guidance import build_execution_context, build_repair_guide, render_repair_guide_markdown
 from _taskmaster import resolve_triplet
 from _technical_debt import write_low_priority_debt_artifacts
@@ -147,10 +150,21 @@ def _find_reusable_sc_test_step(
         if str(execution_context.get("security_profile") or "").strip().lower() != security_profile:
             continue
         git_info = execution_context.get("git") if isinstance(execution_context.get("git"), dict) else {}
-        if str(git_info.get("head") or "").strip() != current_head:
-            continue
         previous_status = sorted([str(line).rstrip() for line in (git_info.get("status_short") or []) if str(line).strip()])
-        if previous_status != current_status:
+        exact_snapshot_match = str(git_info.get("head") or "").strip() == current_head and previous_status == current_status
+        change_scope = (
+            {
+                "sc_test_reuse_allowed": True,
+                "deterministic_strategy": "reuse-latest",
+                "changed_paths": [],
+                "unsafe_paths": [],
+            }
+            if exact_snapshot_match
+            else classify_change_scope_between_snapshots(previous_git=git_info, current_git=git_fingerprint)
+        )
+        if not exact_snapshot_match and str(delivery_profile or "").strip().lower() == "standard":
+            continue
+        if not bool(change_scope.get("sc_test_reuse_allowed")):
             continue
         steps = summary.get("steps") if isinstance(summary.get("steps"), list) else []
         sc_test_step = next((step for step in steps if isinstance(step, dict) and str(step.get("name") or "") == "sc-test"), None)
@@ -179,10 +193,14 @@ def _find_reusable_sc_test_step(
             log_path,
             "\n".join(
                 [
-                    "[sc-review-pipeline] reused sc-test from matching git snapshot",
+                    "[sc-review-pipeline] reused sc-test from matching git snapshot"
+                    if exact_snapshot_match
+                    else "[sc-review-pipeline] reused sc-test after semantic-only git delta",
                     f"source_run_dir={candidate}",
                     f"source_summary={summary_path}",
                     f"source_step_summary={source_summary_raw}",
+                    f"change_scope_strategy={str(change_scope.get('deterministic_strategy') or '').strip()}",
+                    f"changed_paths={json.dumps(change_scope.get('changed_paths') or [], ensure_ascii=False)}",
                     f"SC_TEST status=ok out={snapshot_dir}",
                 ]
             )
@@ -198,6 +216,79 @@ def _find_reusable_sc_test_step(
             "summary_file": snapshot_summary,
         }
     return None
+
+
+def _format_agent_timeout_overrides(overrides: dict[str, int]) -> str:
+    return ",".join(f"{agent}={int(seconds)}" for agent, seconds in overrides.items() if int(seconds) > 0)
+
+
+def _derive_llm_agent_timeout_overrides(
+    *,
+    current_out_dir: Path,
+    task_id: str,
+    delivery_profile: str,
+    security_profile: str,
+    llm_agents: str,
+    llm_semantic_gate: str,
+    llm_timeout_sec: int,
+    llm_agent_timeout_sec: int,
+) -> dict[str, int]:
+    logs_root = repo_root() / "logs" / "ci"
+    if not logs_root.exists():
+        return {}
+    planned_agents = resolve_agents(llm_agents, llm_semantic_gate)
+    if not planned_agents:
+        return {}
+    escalated_timeout = min(int(llm_timeout_sec), max(int(llm_agent_timeout_sec) * 2, int(llm_agent_timeout_sec) + 120))
+    if escalated_timeout <= int(llm_agent_timeout_sec):
+        return {}
+    planned_agent_set = set(planned_agents)
+    current_out_dir_resolved = current_out_dir.resolve()
+    candidates = sorted(
+        [item for item in logs_root.rglob(f"sc-review-pipeline-task-{task_id}-*") if item.is_dir()],
+        key=lambda item: item.stat().st_mtime,
+        reverse=True,
+    )
+    for candidate in candidates:
+        if candidate.resolve() == current_out_dir_resolved:
+            continue
+        summary_path = candidate / "summary.json"
+        execution_context_path = candidate / "execution-context.json"
+        if not summary_path.exists() or not execution_context_path.exists():
+            continue
+        summary = _read_json(summary_path)
+        execution_context = _read_json(execution_context_path)
+        if not summary or not execution_context:
+            continue
+        if str(execution_context.get("delivery_profile") or "").strip().lower() != delivery_profile:
+            continue
+        if str(execution_context.get("security_profile") or "").strip().lower() != security_profile:
+            continue
+        steps = summary.get("steps") if isinstance(summary.get("steps"), list) else []
+        llm_step = next((step for step in steps if isinstance(step, dict) and str(step.get("name") or "") == "sc-llm-review"), None)
+        if not isinstance(llm_step, dict):
+            continue
+        llm_summary_raw = str(llm_step.get("summary_file") or "").strip()
+        if not llm_summary_raw:
+            continue
+        llm_summary_path = Path(llm_summary_raw)
+        if not llm_summary_path.is_absolute():
+            llm_summary_path = (repo_root() / llm_summary_path).resolve()
+        if not llm_summary_path.exists():
+            continue
+        llm_summary = _read_json(llm_summary_path)
+        timed_out_agents: set[str] = set()
+        for result in llm_summary.get("results", []):
+            if not isinstance(result, dict):
+                continue
+            agent = str(result.get("agent") or "").strip()
+            if not agent or agent not in planned_agent_set:
+                continue
+            if int(result.get("rc") or 0) == 124:
+                timed_out_agents.add(agent)
+        if timed_out_agents:
+            return {agent: escalated_timeout for agent in planned_agents if agent in timed_out_agents}
+    return {}
 
 
 def _run_cli_capability_preflight(*, out_dir: Path, step_name: str, cmd: list[str], timeout_sec: int = 120) -> dict[str, Any] | None:
@@ -449,8 +540,10 @@ def main() -> int:
     delivery_profile = resolve_delivery_profile(args.delivery_profile)
     security_profile = str(args.security_profile or default_security_profile_for_delivery(delivery_profile)).strip().lower()
     acceptance_defaults = profile_acceptance_defaults(delivery_profile)
+    pipeline_defaults = profile_review_pipeline_defaults(delivery_profile)
     llm_defaults = profile_llm_review_defaults(delivery_profile)
     agent_review_mode = _resolve_agent_review_mode(delivery_profile)
+    max_step_retries = int(args.max_step_retries if args.max_step_retries is not None else pipeline_defaults.get("max_step_retries", 0))
     try:
         triplet = resolve_triplet(task_id=task_id)
     except Exception:
@@ -498,7 +591,7 @@ def main() -> int:
                 source_state=source_state,
                 new_run_id=run_id,
                 requested_run_id=requested_run_id,
-                max_step_retries=args.max_step_retries,
+                max_step_retries=max_step_retries,
                 max_wall_time_sec=args.max_wall_time_sec,
             )
         else:
@@ -535,7 +628,7 @@ def main() -> int:
         task_id=task_id,
         run_id=run_id,
         requested_run_id=requested_run_id,
-        max_step_retries=args.max_step_retries,
+        max_step_retries=max_step_retries,
         max_wall_time_sec=args.max_wall_time_sec,
         summary=summary,
     )
@@ -547,6 +640,19 @@ def main() -> int:
         delivery_profile=delivery_profile,
         security_profile=security_profile,
     )
+    llm_agent_timeout_overrides = _derive_llm_agent_timeout_overrides(
+        current_out_dir=out_dir,
+        task_id=task_id,
+        delivery_profile=delivery_profile,
+        security_profile=security_profile,
+        llm_agents=llm_agents,
+        llm_semantic_gate=llm_semantic_gate,
+        llm_timeout_sec=llm_timeout_sec,
+        llm_agent_timeout_sec=llm_agent_timeout_sec,
+    )
+    llm_agent_timeouts = _format_agent_timeout_overrides(llm_agent_timeout_overrides)
+    if llm_agent_timeout_overrides:
+        llm_execution_context["agent_timeout_overrides"] = llm_agent_timeout_overrides
     if args.abort:
         append_run_event(
             out_dir=out_dir,
@@ -567,7 +673,7 @@ def main() -> int:
         if str(marathon_state.get("status") or "").strip().lower() == "aborted":
             print("[sc-review-pipeline] ERROR: the selected run is aborted and cannot be resumed.")
             return 2
-        marathon_state = resume_state(marathon_state, max_step_retries=args.max_step_retries, max_wall_time_sec=args.max_wall_time_sec)
+        marathon_state = resume_state(marathon_state, max_step_retries=max_step_retries, max_wall_time_sec=args.max_wall_time_sec)
 
     append_run_event(
         out_dir=out_dir,
@@ -646,6 +752,7 @@ def main() -> int:
         llm_agents=llm_agents,
         llm_timeout_sec=llm_timeout_sec,
         llm_agent_timeout_sec=llm_agent_timeout_sec,
+        llm_agent_timeouts=llm_agent_timeouts,
         llm_semantic_gate=llm_semantic_gate,
         llm_strict=llm_strict,
         llm_diff_mode=llm_diff_mode,
