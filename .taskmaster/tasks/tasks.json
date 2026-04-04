@@ -2535,6 +2535,11 @@
         ],
         "status": "deferred",
         "subtasks": [],
+        "testRefs": [
+          "Game.Core.Tests/Tasks/Task81SplitTests.cs",
+          "Tests.Godot/tests/UI/test_task81_event_result_popup.gd",
+          "Tests.Godot/tests/UI/test_task81_event_log_details_panel.gd"
+        ],
         "adrRefs": [
           "ADR-0004",
           "ADR-0005",
