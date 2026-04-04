@@ -89,9 +89,12 @@ public sealed class Task81SplitTests
             task.GetProperty("acceptanceRefs").EnumerateArray().Select(static x => x.GetString()).Should().Contain("A-008");
 
             var acceptance = task.GetProperty("acceptance").EnumerateArray().Select(static x => x.GetString() ?? string.Empty).ToList();
-            acceptance.Should().ContainSingle();
-            acceptance[0].Should().Contain("test_task81_event_result_popup.gd");
-            acceptance[0].Should().Contain("test_task81_event_log_details_panel.gd");
+            acceptance.Should().HaveCount(2);
+            acceptance[0].Should().Contain("popup-log commit is atomic");
+            acceptance[1].Should().Contain("ResultPopup state is unchanged");
+            acceptance.Should().OnlyContain(item =>
+                item.Contains("test_task81_event_result_popup.gd", StringComparison.Ordinal) &&
+                item.Contains("test_task81_event_log_details_panel.gd", StringComparison.Ordinal));
         }
     }
 }
