@@ -4132,13 +4132,14 @@
       "A-010"
     ],
     "acceptance": [
-      "Integration closure uses split-task evidence from 81, 82. Refs: Tests.Godot/tests/Integration/test_hud_integration.gd Tests.Godot/tests/UI/test_orphan_hud_isolation.gd"
+      "Integration closure MUST be refused when task 81 evidence exists but task 82 evidence is missing. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd",
+      "Integration closure MUST be refused when task 82 evidence exists but task 81 evidence is missing. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd",
+      "Integration closure MUST complete only when both task 81 and task 82 evidence exist. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd",
+      "During integration-closure publish, only the active HUD instance MAY be updated; detached/orphan HUD instances MUST remain unchanged. Refs: Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd"
     ],
     "test_refs": [
-      "Tests.Godot/tests/UI/test_task68_hud_popup_log_transaction.gd",
-      "Tests.Godot/tests/UI/test_task68_hud_log_window_lazy_load.gd",
-      "Tests.Godot/tests/Integration/test_hud_integration.gd",
-      "Tests.Godot/tests/UI/test_orphan_hud_isolation.gd"
+      "Tests.Godot/tests/Integration/test_task68_hud_integration.gd",
+      "Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
