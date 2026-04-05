@@ -18,7 +18,7 @@ public sealed class SanguoTurnActionFlowTests
     // Acceptance anchors:
     // ACC:T17.10
     [Fact]
-    public async Task ExecuteHumanRollDice_ForHumanTurn_ShouldPublishDiceBeforeTokenMove()
+    public async Task ShouldPublishDiceBeforeTokenMove_WhenExecutingHumanRollDiceForHumanTurn()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -77,7 +77,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenActivePlayerIsAi_ShouldNotPublishDiceOrTokenMoved()
+    public async Task ShouldNotPublishDiceOrTokenMoved_WhenExecutingHumanRollDiceAndActivePlayerIsAi()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -112,7 +112,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenTotalPositionsIsUnknown_ShouldNotPublishDiceOrTokenMoved()
+    public async Task ShouldNotPublishDiceOrTokenMoved_WhenExecutingHumanRollDiceAndTotalPositionsIsUnknown()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -146,7 +146,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenHumanLandsOnOwnedCity_ShouldPublishTollPaidAndPlayerStateChanged()
+    public async Task ShouldPublishTollPaidAndPlayerStateChanged_WhenExecutingHumanRollDiceAndHumanLandsOnOwnedCity()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -192,7 +192,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenHumanLandsOnOwnCity_ShouldNotPublishTollPaidOrCityBought()
+    public async Task ShouldNotPublishTollPaidOrCityBought_WhenExecutingHumanRollDiceAndHumanLandsOnOwnCity()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -233,7 +233,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenNoCityAtLandingPosition_ShouldNotPublishCityEvents()
+    public async Task ShouldNotPublishCityEvents_WhenExecutingHumanRollDiceAndNoCityAtLandingPosition()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -275,7 +275,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenRngOutOfRange_ShouldClampToD6()
+    public async Task ShouldClampToD6_WhenExecutingHumanRollDiceAndRngOutOfRange()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -311,7 +311,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenPlayerPositionExceedsTotalPositions_ShouldNormalizeFromIndex()
+    public async Task ShouldNormalizeFromIndex_WhenExecutingHumanRollDiceAndPlayerPositionExceedsTotalPositions()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -348,7 +348,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenHumanInsufficientFunds_ShouldNotPublishCityBought()
+    public async Task ShouldNotPublishCityBought_WhenExecutingHumanRollDiceAndHumanInsufficientFunds()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -390,7 +390,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenHumanAlreadyEliminated_ShouldEndGameAndSkipDice()
+    public async Task ShouldEndGameAndSkipDice_WhenExecutingHumanRollDiceAndHumanAlreadyEliminated()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -433,7 +433,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenGameNotStarted_ShouldThrowInvalidOperationException()
+    public async Task ShouldThrowInvalidOperationException_WhenExecutingHumanRollDiceAndGameNotStarted()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -447,7 +447,7 @@ public sealed class SanguoTurnActionFlowTests
     }
 
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenCorrelationIdBlank_ShouldThrowArgumentException()
+    public async Task ShouldThrowArgumentException_WhenExecutingHumanRollDiceAndCorrelationIdIsBlank()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
