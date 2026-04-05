@@ -3943,13 +3943,12 @@
       "A-003~A-005"
     ],
     "acceptance": [
-      "Leave-camp save retry behavior must be explicitly verified: when leave-camp save fails, a retry path is triggered and observable in deterministic evidence instead of being silently skipped. Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
-      "Warning behavior must be explicitly verified with trigger and non-trigger conditions for leave-camp save outcomes, and acceptance fails if warning semantics are not auditable. Refs: Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs",
-      "A-003/A-004/A-005 closure requires deterministic evidence for retry + warning + split scope containment, not only generic split completion text. Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs"
+      "Leave-camp save retry behavior must be explicitly verified: when a leave-camp save fails on the first attempt, exactly one retry path is exercised and the retry attempt is observable in deterministic evidence instead of being silently skipped. Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs",
+      "Warning behavior must be explicitly verified for leave-camp save outcomes: the warning activates after a failed leave-camp save, clears only after a successful leave-camp retry, and remains active with no success event or persisted save if the retry fails again. Refs: Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs Game.Core.Tests/Tasks/Task88SplitTests.cs",
+      "Scope is limited to leave-camp save retry + warning semantics: recovery evidence from non-leave-camp save flows (for example autosave retry) must not satisfy this split task closure. Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task88SplitTests.cs",
-      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
       "Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs"
     ],
     "test_strategy": [

@@ -973,6 +973,13 @@ public partial class MainMenu : Control
 
         if (!string.IsNullOrWhiteSpace(selected.PortraitPath) && ResourceLoader.Exists(selected.PortraitPath))
         {
+            // Headless smoke focuses on scene boot wiring; skip portrait texture imports there.
+            if (string.Equals(DisplayServer.GetName(), "headless", StringComparison.OrdinalIgnoreCase))
+            {
+                _characterPortrait.Texture = null;
+                return;
+            }
+
             _characterPortrait.Texture = GD.Load<Texture2D>(selected.PortraitPath);
         }
         else
