@@ -381,13 +381,13 @@ Some filenames intentionally keep old T2-oriented names so the task triplet can 
 <!-- TASK_BASELINE_START -->
 ```json
 {
-  "generated_at": "2026-04-05T03:48:37.701710+00:00",
+  "generated_at": "2026-04-05T04:42:54.783617+00:00",
   "files": [
     {
       "path": ".taskmaster/tasks/tasks.json",
       "exists": true,
-      "sha256": "8feb06f2dd72931416c7ed435a4e76d26c4cf6df1880c2ba5dca9e1518f50cfe",
-      "bytes": 243103
+      "sha256": "7bddf1a8166ec6d595fc70516668625016453eae238545082baff34134e58186",
+      "bytes": 243336
     },
     {
       "path": ".taskmaster/tasks/tasks_back.json",
