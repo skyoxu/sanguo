@@ -159,6 +159,9 @@ def main():
     date = dt.date.today().strftime('%Y-%m-%d')
     out_dir = os.path.join(root, 'logs', 'e2e', date)
     os.makedirs(out_dir, exist_ok=True)
+    # Keep security audit evidence in repo-scoped logs/ci/<date> unless caller overrides.
+    if not os.environ.get("AUDIT_LOG_ROOT"):
+        os.environ["AUDIT_LOG_ROOT"] = os.path.abspath(os.path.join(root, "logs", "ci", date))
 
     ensured = ensure_tests_project_junction(args.project, root)
     if ensured is not None:
