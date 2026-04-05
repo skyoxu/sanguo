@@ -3133,13 +3133,11 @@
       "R3"
     ],
     "acceptance": [
-      "Task 74 remains incomplete unless verifiable integration-closure evidence exists for both split tasks 85 and 86; if either split task lacks verifiable evidence, Task 74 is incomplete. Refs: Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
+      "Task 74 remains incomplete unless verifiable integration-closure evidence exists for both split tasks 85 and 86; if either split task lacks verifiable evidence, Task 74 is incomplete. Refs: Game.Core.Tests/Tasks/Task74IntegrationClosureTests.cs",
+      "Task 74 is closure-only after split delivery: it must aggregate R1 isolation and R3 adjudicator evidence without re-expanding parent scope. Refs: Game.Core.Tests/Tasks/Task74IntegrationClosureTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task74CampaignRuleEngineTests.cs",
-      "Tests.Godot/tests/UI/test_task74_campaign_game_end_ui_flow.gd",
-      "Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs",
-      "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
+      "Game.Core.Tests/Tasks/Task74IntegrationClosureTests.cs"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
