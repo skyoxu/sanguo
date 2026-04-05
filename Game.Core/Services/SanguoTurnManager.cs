@@ -2,6 +2,7 @@ using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
 using Game.Core.Domain.ValueObjects;
+using Game.Core.Services.Sanguo;
 using Game.Core.Utilities;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -3253,6 +3254,9 @@ public sealed class SanguoTurnManager
         if (!IsAiPlayerId(activePlayerId))
             return;
 
+        if (IsCampaignRunmodeAiIsolationActive())
+            return;
+
         if (!_boardState.TryGetPlayer(activePlayerId, out var aiPlayer) || aiPlayer is null)
             return;
 
@@ -3289,6 +3293,38 @@ public sealed class SanguoTurnManager
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
+    }
+
+    private bool IsCampaignRunmodeAiIsolationActive()
+    {
+        if (string.IsNullOrWhiteSpace(_gameId))
+            return false;
+
+        var runmode = TryResolveRunmodeFromGameId(_gameId);
+        var isolationOutcome = CampaignRunmodeIsolationPolicy.Evaluate(
+            runmode: runmode,
+            requestIsolation: true);
+        return isolationOutcome.CampaignIsolationApplied;
+    }
+
+    private static string? TryResolveRunmodeFromGameId(string gameId)
+    {
+        if (string.IsNullOrWhiteSpace(gameId))
+            return null;
+
+        var trimmed = gameId.Trim();
+        if (string.Equals(trimmed, CampaignRunmodeIsolationPolicy.CampaignRunmode, StringComparison.OrdinalIgnoreCase))
+            return CampaignRunmodeIsolationPolicy.CampaignRunmode;
+
+        var separators = new[] { '-', '_', '.', ':', '/', '\\', '|', ' ' };
+        var tokens = trimmed.Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        foreach (var token in tokens)
+        {
+            if (string.Equals(token, CampaignRunmodeIsolationPolicy.CampaignRunmode, StringComparison.OrdinalIgnoreCase))
+                return CampaignRunmodeIsolationPolicy.CampaignRunmode;
+        }
+
+        return null;
     }
 
     private async Task ExecuteAiRollDiceAndResolveAsync(
