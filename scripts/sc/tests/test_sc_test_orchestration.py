@@ -97,6 +97,42 @@ class ScTestOrchestrationTests(unittest.TestCase):
             self.assertEqual(run_id, summary["run_id"])
             self.assertEqual(["unit", "csharp-test-conventions", "coverage-report"], [item["name"] for item in summary["steps"]])
 
+    def test_main_should_set_acceptance_no_coverage_gate_env_when_flag_enabled(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "sc-test"
+            run_id = "8" * 32
+            argv = ["test.py", "--type", "unit", "--run-id", run_id, "--no-coverage-gate", "--no-coverage-report"]
+            unit_step = {
+                "name": "unit",
+                "cmd": ["py", "-3", "scripts/python/run_dotnet.py"],
+                "rc": 0,
+                "log": str(out_dir / "unit.log"),
+                "artifacts_dir": str(out_dir / "unit-artifacts"),
+                "status": "ok",
+            }
+            conventions_step = {
+                "name": "csharp-test-conventions",
+                "cmd": ["py", "-3", "scripts/python/check_csharp_test_conventions.py"],
+                "rc": 0,
+                "log": str(out_dir / "csharp-test-conventions.log"),
+                "status": "ok",
+            }
+
+            def _assert_env_and_return(*_args, **_kwargs):  # noqa: ANN001
+                self.assertEqual("1", sc_test.os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE"))
+                self.assertIsNone(sc_test.os.environ.get("COVERAGE_LINES_MIN"))
+                self.assertIsNone(sc_test.os.environ.get("COVERAGE_BRANCHES_MIN"))
+                return unit_step
+
+            with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(sc_test, "ci_dir", return_value=out_dir), \
+                mock.patch.object(sc_test, "run_unit", side_effect=_assert_env_and_return) as run_unit_mock, \
+                mock.patch.object(sc_test, "run_csharp_test_conventions", return_value=conventions_step):
+                rc = sc_test.main()
+
+            self.assertEqual(0, rc)
+            run_unit_mock.assert_called_once()
+
     def test_main_should_skip_coverage_when_unit_step_fails(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir) / "sc-test"

@@ -290,9 +290,11 @@ def main() -> int:
 
     if args.type in ("unit", "all"):
         if bool(runtime["coverage_gate"]):
+            os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
             os.environ["COVERAGE_LINES_MIN"] = str(runtime["coverage_lines_min"])
             os.environ["COVERAGE_BRANCHES_MIN"] = str(runtime["coverage_branches_min"])
         else:
+            os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = "1"
             os.environ.pop("COVERAGE_LINES_MIN", None)
             os.environ.pop("COVERAGE_BRANCHES_MIN", None)
         step = run_unit(

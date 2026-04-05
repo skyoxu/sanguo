@@ -2,6 +2,8 @@ using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Ports;
 using System;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -54,12 +56,14 @@ public sealed class SanguoSaveLoadService
 
         var nowUtc = DateTime.UtcNow;
         var checksum = CalculateChecksum(snapshot);
+        var replayTrustHash = CalculateReplayTrustHash(snapshot);
 
         var saveFile = new SanguoSaveFile(
             Version: "1.0.0",
             SaveSlotId: saveSlotId,
             SavedAtUtc: new DateTimeOffset(nowUtc),
             Checksum: checksum,
+            ReplayTrustHash: replayTrustHash,
             Snapshot: snapshot
         );
 
@@ -123,6 +127,9 @@ public sealed class SanguoSaveLoadService
         if (!string.Equals(checksum, file.Checksum, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Save file is corrupted");
 
+        var expectedReplayTrustHash = CalculateReplayTrustHash(file.Snapshot);
+        var saveUntrusted = !string.Equals(expectedReplayTrustHash, file.ReplayTrustHash, StringComparison.OrdinalIgnoreCase);
+
         var nowUtc = DateTime.UtcNow;
         var evt = new SanguoGameLoaded(
             GameId: file.Snapshot.GameId,
@@ -131,7 +138,8 @@ public sealed class SanguoSaveLoadService
             ContentPackVersion: file.Snapshot.ContentPackVersion,
             OccurredAt: new DateTimeOffset(nowUtc),
             CorrelationId: correlationId,
-            CausationId: causationId);
+            CausationId: causationId,
+            SaveUntrusted: saveUntrusted);
 
         await _bus.PublishAsync(new DomainEvent(
             Type: SanguoGameLoaded.EventType,
@@ -158,11 +166,20 @@ public sealed class SanguoSaveLoadService
         return hash.ToString("X");
     }
 
+    private static string CalculateReplayTrustHash(SanguoSaveSnapshot snapshot)
+    {
+        var canonicalSnapshotJson = JsonSerializer.Serialize(snapshot, JsonOptions);
+        var bytes = Encoding.UTF8.GetBytes(canonicalSnapshotJson);
+        var hash = SHA256.HashData(bytes);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
     private sealed record SanguoSaveFile(
         string Version,
         string SaveSlotId,
         DateTimeOffset SavedAtUtc,
         string Checksum,
+        string ReplayTrustHash,
         SanguoSaveSnapshot Snapshot
     );
 }
