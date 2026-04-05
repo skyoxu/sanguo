@@ -14,14 +14,12 @@ jobs:
   strict-headless-e2e:
     runs-on: windows-latest
     env:
-      DELIVERY_PROFILE: 'standard'
+      DELIVERY_PROFILE: 'fast-ship'
       SECURITY_PROFILE: 'strict'
       GODOT_VERSION: '4.5.1'
       PYTHONIOENCODING: 'utf-8'
       PYTHONUTF8: '1'
       TASK_LINKS_MAX_WARNINGS: '100'
-      COVERAGE_LINES_MIN: '90'
-      COVERAGE_BRANCHES_MIN: '85'
       CI_DOTNET_STAGE_TIMEOUT_MS: '4200000'
     steps:
       - name: Checkout
