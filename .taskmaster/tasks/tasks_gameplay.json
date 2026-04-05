@@ -3889,7 +3889,7 @@
       "R2/R5"
     ],
     "acceptance": [
-      "Deterministic evidence verifies that this split task satisfies both the R2 camp transition obligation and the R5 one-action-rule obligation; if either obligation is missing from verification or fails verification, the task is not accepted. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs"
+      "Deterministic evidence verifies that this split task satisfies both the R2 camp transition obligation and the R5 one-action-rule obligation; if either obligation is missing from verification or fails verification, the task is not accepted. Refs: Game.Core.Tests/Tasks/Task87SplitTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task87SplitTests.cs",
