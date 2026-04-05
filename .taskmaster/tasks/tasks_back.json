@@ -5067,13 +5067,11 @@
       "A-015"
     ],
     "acceptance": [
-      "Replay mismatch mode policy must be explicitly verified: mismatch conditions enter the defined mismatch mode with observable state transition, while non-mismatch conditions do not enter mismatch mode and keep normal flow unchanged. Refs: Game.Core.Tests/Tasks/Task84SplitTests.cs Game.Core.Tests/Tasks/Task46HeadlessSmokeStrictModeTests.cs",
-      "Acceptance closes only with deterministic pass/fail evidence for both entry and non-entry branches of mismatch mode, scoped strictly to this A-015 split. Refs: Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
+      "Replay mismatch mode policy must be explicitly verified: when replay trust hash validation fails, the system sets SaveUntrusted=true and emits exactly one RunStateTransitioned event whose target state is the defined mismatch mode (A-015). Refs: Game.Core.Tests/Tasks/Task84SplitTests.cs",
+      "When replay trust hash validation succeeds, the system must keep normal flow unchanged: SaveUntrusted remains false and no RunStateTransitioned event to mismatch mode is emitted. Refs: Game.Core.Tests/Tasks/Task84SplitTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task84SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task46HeadlessSmokeStrictModeTests.cs",
-      "Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
+      "Game.Core.Tests/Tasks/Task84SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
