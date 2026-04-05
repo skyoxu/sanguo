@@ -10,12 +10,28 @@ public partial class EventLogPanel : PanelContainer
     private const string DetailsKey = "ui.event_log.details";
 
     [Export(PropertyHint.Range, "1,200,1")]
-    public int MaxEntries { get; set; } = 50;
+    public int MaxEntries
+    {
+        get => _maxEntries;
+        set
+        {
+            var normalized = Math.Max(1, value);
+            if (_maxEntries == normalized)
+            {
+                return;
+            }
+
+            _maxEntries = normalized;
+            TrimToMaxEntries();
+        }
+    }
 
     private ItemList _list = default!;
     private Label? _details;
     private Label? _titleLabel;
     private Label? _detailsLabel;
+    private int _maxEntries = 50;
+    private bool _ready;
     private readonly List<EventExplanation> _entries = new();
     private string _latestDetailText = string.Empty;
 
@@ -28,6 +44,8 @@ public partial class EventLogPanel : PanelContainer
 
         _list.ItemSelected += OnItemSelected;
         ApplyLocalizedTexts();
+        _ready = true;
+        TrimToMaxEntries();
     }
 
     private void ApplyLocalizedTexts()
@@ -73,14 +91,7 @@ public partial class EventLogPanel : PanelContainer
 
         _entries.Add(explanation);
         _list.AddItem(explanation.SummaryText);
-        while (_list.ItemCount > MaxEntries)
-        {
-            _list.RemoveItem(0);
-            if (_entries.Count != 0)
-            {
-                _entries.RemoveAt(0);
-            }
-        }
+        TrimToMaxEntries();
 
         var lastIndex = _list.ItemCount - 1;
         if (lastIndex >= 0)
@@ -94,6 +105,23 @@ public partial class EventLogPanel : PanelContainer
         if (_details != null)
         {
             _details.Text = _latestDetailText;
+        }
+    }
+
+    private void TrimToMaxEntries()
+    {
+        if (!_ready)
+        {
+            return;
+        }
+
+        while (_list.ItemCount > MaxEntries)
+        {
+            _list.RemoveItem(0);
+            if (_entries.Count != 0)
+            {
+                _entries.RemoveAt(0);
+            }
         }
     }
 

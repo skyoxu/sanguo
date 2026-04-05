@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using Game.Core.Ports;
@@ -83,6 +83,15 @@ public partial class SqliteDataStore : Node, ISqlDatabase
     // GDScript-friendly helpers
     public bool TryOpen(string dbPath)
     {
+        var raw = (dbPath ?? string.Empty).Replace('\\', '/');
+        var lower = raw.ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(raw) || !lower.StartsWith("user://") || lower.Contains(".."))
+        {
+            LastError = "Only user:// paths are allowed for database files";
+            Audit("db.open.fail", LastError, dbPath ?? string.Empty);
+            return false;
+        }
+
         try { Open(dbPath); LastError = null; return true; }
         catch (Exception ex) { LastError = ex.Message; Audit("db.open.fail", ex.Message, dbPath); return false; }
     }
@@ -338,7 +347,17 @@ public partial class SqliteDataStore : Node, ISqlDatabase
         {
             var date = System.DateTime.UtcNow.ToString("yyyy-MM-dd");
             var root = System.Environment.GetEnvironmentVariable("AUDIT_LOG_ROOT");
-            if (string.IsNullOrEmpty(root)) root = System.IO.Path.Combine("logs", "ci", date);
+            if (string.IsNullOrEmpty(root))
+            {
+                try
+                {
+                    root = ProjectSettings.GlobalizePath($"res://logs/ci/{date}");
+                }
+                catch
+                {
+                    root = System.IO.Path.Combine("logs", "ci", date);
+                }
+            }
             System.IO.Directory.CreateDirectory(root);
             var path = System.IO.Path.Combine(root, "security-audit.jsonl");
             var caller = System.Environment.UserName;
@@ -362,8 +381,5 @@ public partial class SqliteDataStore : Node, ISqlDatabase
         return s.Length <= max ? s : s.Substring(0, max);
     }
 }
-
-
-
 
 
