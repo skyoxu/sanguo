@@ -158,38 +158,7 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
         self.assertIn("--godot-bin", cmd)
         self.assertIn("C:/Godot/Godot.exe", cmd)
 
-    def test_run_quality_gates_should_resolve_solution_automatically_when_not_provided(self) -> None:
-        expected_solution = dev_cli.resolve_solution_path("auto")
-        with mock.patch.object(dev_cli, "run", return_value=0) as run_mock:
-            rc = dev_cli.main(["run-quality-gates"])
-
-        self.assertEqual(0, rc)
-        cmd = run_mock.call_args[0][0]
-        self.assertIn("--solution", cmd)
-        solution_idx = cmd.index("--solution")
-        self.assertEqual(expected_solution, cmd[solution_idx + 1])
-
-    def test_run_ci_basic_legacy_preflight_should_resolve_solution_automatically_when_not_provided(self) -> None:
-        expected_solution = dev_cli.resolve_solution_path("auto")
-        with mock.patch.object(dev_cli, "run", side_effect=[0, 0]) as run_mock:
-            rc = dev_cli.main(
-                [
-                    "run-ci-basic",
-                    "--legacy-preflight",
-                    "--godot-bin",
-                    "C:/Godot/Godot.exe",
-                ]
-            )
-
-        self.assertEqual(0, rc)
-        self.assertEqual(2, run_mock.call_count)
-        legacy_cmd = run_mock.call_args_list[1][0][0]
-        self.assertIn("--solution", legacy_cmd)
-        solution_idx = legacy_cmd.index("--solution")
-        self.assertEqual(expected_solution, legacy_cmd[solution_idx + 1])
-
     def test_run_local_hard_checks_should_delegate_to_protocol_harness(self) -> None:
-        expected_solution = dev_cli.resolve_solution_path("auto")
         with mock.patch.object(dev_cli, "run_local_hard_checks", create=True, return_value=0) as harness_mock, \
             mock.patch.object(dev_cli, "run") as run_mock:
             rc = dev_cli.main(
@@ -213,7 +182,7 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
         self.assertEqual(0, rc)
         run_mock.assert_not_called()
         harness_mock.assert_called_once_with(
-            solution=expected_solution,
+            solution=dev_cli.resolve_solution_path("auto"),
             configuration="Debug",
             godot_bin="C:/Godot/Godot.exe",
             delivery_profile="standard",
@@ -225,13 +194,12 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
         )
 
     def test_run_local_hard_checks_should_return_harness_failure_code(self) -> None:
-        expected_solution = dev_cli.resolve_solution_path("auto")
         with mock.patch.object(dev_cli, "run_local_hard_checks", create=True, return_value=7) as harness_mock:
             rc = dev_cli.main(["run-local-hard-checks"])
 
         self.assertEqual(7, rc)
         harness_mock.assert_called_once_with(
-            solution=expected_solution,
+            solution=dev_cli.resolve_solution_path("auto"),
             configuration="Debug",
             godot_bin="",
             delivery_profile="",
@@ -241,6 +209,100 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
             timeout_sec=5,
             run_fn=dev_cli.run,
         )
+
+    def test_run_local_hard_checks_preflight_should_run_gate_bundle_then_dotnet(self) -> None:
+        with mock.patch.object(dev_cli, "run", side_effect=[0, 0]) as run_mock:
+            rc = dev_cli.main(
+                [
+                    "run-local-hard-checks-preflight",
+                    "--solution",
+                    "Game.sln",
+                    "--configuration",
+                    "Release",
+                    "--delivery-profile",
+                    "fast-ship",
+                    "--run-id",
+                    "preflight-demo",
+                    "--out-dir",
+                    "logs/ci/demo/local-hard-checks-preflight",
+                    "--task-file",
+                    "custom/tasks_back.json",
+                    "--task-file",
+                    "custom/tasks_gameplay.json",
+                ]
+            )
+
+        self.assertEqual(0, rc)
+        self.assertEqual(2, run_mock.call_count)
+        gate_cmd = run_mock.call_args_list[0][0][0]
+        dotnet_cmd = run_mock.call_args_list[1][0][0]
+
+        self.assertEqual(["py", "-3", "scripts/python/run_gate_bundle.py"], gate_cmd[:3])
+        self.assertIn("--mode", gate_cmd)
+        self.assertIn("hard", gate_cmd)
+        self.assertIn("--delivery-profile", gate_cmd)
+        self.assertIn("fast-ship", gate_cmd)
+        self.assertIn("--task-files", gate_cmd)
+        self.assertIn("--run-id", gate_cmd)
+        self.assertIn("preflight-demo", gate_cmd)
+        self.assertIn("--out-dir", gate_cmd)
+        self.assertIn("logs/ci/demo/local-hard-checks-preflight", gate_cmd)
+
+        self.assertEqual(["py", "-3", "scripts/python/run_dotnet.py"], dotnet_cmd[:3])
+        self.assertIn("--solution", dotnet_cmd)
+        self.assertIn("Game.sln", dotnet_cmd)
+        self.assertIn("--configuration", dotnet_cmd)
+        self.assertIn("Release", dotnet_cmd)
+
+    def test_run_local_hard_checks_preflight_should_stop_when_gate_bundle_fails(self) -> None:
+        with mock.patch.object(dev_cli, "run", side_effect=[3]) as run_mock:
+            rc = dev_cli.main(["run-local-hard-checks-preflight"])
+
+        self.assertEqual(3, rc)
+        self.assertEqual(1, run_mock.call_count)
+
+    def test_run_acceptance_preflight_should_run_refs_then_anchors(self) -> None:
+        with mock.patch.object(dev_cli, "run", side_effect=[0, 0]) as run_mock:
+            rc = dev_cli.main(
+                [
+                    "run-acceptance-preflight",
+                    "--task-id",
+                    "11",
+                    "--stage",
+                    "refactor",
+                    "--out-dir",
+                    "logs/ci/demo/acceptance-preflight",
+                ]
+            )
+
+        self.assertEqual(0, rc)
+        self.assertEqual(2, run_mock.call_count)
+
+        refs_cmd = run_mock.call_args_list[0][0][0]
+        anchors_cmd = run_mock.call_args_list[1][0][0]
+
+        self.assertEqual(["py", "-3", "scripts/python/validate_acceptance_refs.py"], refs_cmd[:3])
+        self.assertIn("--task-id", refs_cmd)
+        self.assertIn("11", refs_cmd)
+        self.assertIn("--stage", refs_cmd)
+        self.assertIn("refactor", refs_cmd)
+        self.assertIn("--out", refs_cmd)
+        self.assertIn("logs/ci/demo/acceptance-preflight/acceptance-refs.json", refs_cmd)
+
+        self.assertEqual(["py", "-3", "scripts/python/validate_acceptance_anchors.py"], anchors_cmd[:3])
+        self.assertIn("--task-id", anchors_cmd)
+        self.assertIn("11", anchors_cmd)
+        self.assertIn("--stage", anchors_cmd)
+        self.assertIn("refactor", anchors_cmd)
+        self.assertIn("--out", anchors_cmd)
+        self.assertIn("logs/ci/demo/acceptance-preflight/acceptance-anchors.json", anchors_cmd)
+
+    def test_run_acceptance_preflight_should_stop_when_refs_fail(self) -> None:
+        with mock.patch.object(dev_cli, "run", side_effect=[5]) as run_mock:
+            rc = dev_cli.main(["run-acceptance-preflight", "--task-id", "11"])
+
+        self.assertEqual(5, rc)
+        self.assertEqual(1, run_mock.call_count)
 
     def test_run_smoke_strict_should_use_current_smoke_headless_args(self) -> None:
         with mock.patch.object(dev_cli, "run", return_value=0) as run_mock:
