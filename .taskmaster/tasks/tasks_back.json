@@ -5012,13 +5012,12 @@
       "A-013~A-014"
     ],
     "acceptance": [
-      "This split task must explicitly deliver replay trust hash and save_untrusted behaviors: deterministic evidence must show replay trust hash is computed and validated as expected, and save_untrusted is produced under the defined trust-failure path. Refs: Game.Core.Tests/Tasks/Task83SplitTests.cs Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
-      "Acceptance for A-013/A-014 fails unless task-scoped deterministic tests separately demonstrate both replay trust hash and save_untrusted outcomes (not only generic split completion text). Refs: Game.Core.Tests/Tasks/Task83SplitTests.cs"
+      "This split task must explicitly deliver replay trust hash and save_untrusted behaviors: deterministic evidence must show replay trust hash is computed from snapshot content when saving, and validation is executed when loading. Refs: Game.Core.Tests/Tasks/Task83SplitTests.cs",
+      "Task-scoped acceptance for this split is limited to A-013/A-014 semantics only: replay trust hash persistence on save and save_untrusted derivation on load; A-015 mismatch-mode policy is out of scope for Task 83. Refs: Game.Core.Tests/Tasks/Task83SplitTests.cs",
+      "Deterministic tests must include the trusted-path negative case: when persisted replay trust hash matches recomputed hash on load, SaveUntrusted must not be true. Refs: Game.Core.Tests/Tasks/Task83SplitTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task83SplitTests.cs",
-      "Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs",
-      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
+      "Game.Core.Tests/Tasks/Task83SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."

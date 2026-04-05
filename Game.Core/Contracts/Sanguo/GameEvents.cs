@@ -147,7 +147,8 @@ public sealed record SanguoGameLoaded(
     int ContentPackVersion,
     System.DateTimeOffset OccurredAt,
     string CorrelationId,
-    string? CausationId
+    string? CausationId,
+    bool SaveUntrusted = false
 )
 {
     /// <summary>
