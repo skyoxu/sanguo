@@ -5184,7 +5184,11 @@
       "R3"
     ],
     "acceptance": [
-      "The campaign endgame adjudicator work is delivered as an independent R3 split from T74, and task-specific deterministic tests provide evidence that the changes did not expand beyond that narrow split scope. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "The campaign endgame adjudicator work is delivered as an independent R3 split from T74, and task-specific deterministic tests provide evidence that the changes did not expand beyond that narrow split scope. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Campaign endgame adjudication is deterministic: human elimination ends the run with player_bankrupt. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs",
+      "Campaign endgame adjudication is deterministic: when the run started with at least two players and only one player remains after prune, the run ends with last_actor_standing and the remaining player is the winner. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs",
+      "Campaign endgame adjudication is deterministic: when no players remain after prune, the run ends with no_players. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs",
+      "Campaign endgame adjudication is deterministic: when no endgame condition is satisfied, the run stays active and no end reason is forced. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task86SplitTests.cs",

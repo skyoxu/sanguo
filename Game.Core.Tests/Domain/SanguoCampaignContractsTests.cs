@@ -77,4 +77,12 @@ public sealed class SanguoCampaignContractsTests
         SanguoBossChallengePrompted.FailConsequenceReturnToCampAndEndRound
             .Should().Be("return_to_camp_end_round");
     }
+
+    // ACC:T86.1
+    [Fact]
+    public void ShouldExposeStableEndgameContractEventTypes_WhenCampaignSplitUsesR3AdjudicationSignals()
+    {
+        SanguoGameEnded.EventType.Should().Be("core.sanguo.game.ended");
+        SanguoPlayerEliminated.EventType.Should().Be("core.sanguo.player.eliminated");
+    }
 }
