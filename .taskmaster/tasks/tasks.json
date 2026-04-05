@@ -2132,6 +2132,11 @@
         ],
         "status": "deferred",
         "subtasks": [],
+        "testRefs": [
+          "Game.Core.Tests/Tasks/Task82SplitTests.cs",
+          "Tests.Godot/tests/UI/test_task82_event_log_windowing.gd",
+          "Tests.Godot/tests/UI/test_task82_event_log_windowing_details.gd"
+        ],
         "adrRefs": [
           "ADR-0004",
           "ADR-0005",
@@ -2576,7 +2581,12 @@
           "CH10"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
-        "complexity": 6
+        "complexity": 6,
+        "testRefs": [
+          "Game.Core.Tests/Tasks/Task82SplitTests.cs",
+          "Tests.Godot/tests/UI/test_task82_event_log_windowing.gd",
+          "Tests.Godot/tests/UI/test_task82_event_log_windowing_details.gd"
+        ]
       },
       {
         "id": "83",
