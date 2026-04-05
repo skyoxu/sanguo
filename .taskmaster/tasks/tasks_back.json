@@ -4950,13 +4950,13 @@
       "A-009~A-010"
     ],
     "acceptance": [
-      "The split task is accepted only when HUD log overflow/windowing behavior is explicitly verified: when log volume exceeds the visible window, entries are windowed deterministically (no unbounded growth in the visible panel), and the latest entries remain observable through the intended panel behavior. Refs: Tests.Godot/tests/UI/test_event_log_details_panel.gd Tests.Godot/tests/UI/test_event_log_additional_details.gd",
+      "The split task is accepted only when HUD log overflow/windowing behavior is explicitly verified: when log volume exceeds the visible window, entries are windowed deterministically (no unbounded growth in the visible panel), and the latest entries remain observable through the intended panel behavior. Refs: Tests.Godot/tests/UI/test_task82_event_log_windowing.gd Tests.Godot/tests/UI/test_task82_event_log_windowing_details.gd",
       "Acceptance also requires deterministic task-specific evidence for A-009/A-010 that this split implements only overflow/windowing scope and does not include unrelated parent-task behavior. Refs: Game.Core.Tests/Tasks/Task82SplitTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task82SplitTests.cs",
-      "Tests.Godot/tests/UI/test_event_log_details_panel.gd",
-      "Tests.Godot/tests/UI/test_event_log_additional_details.gd"
+      "Tests.Godot/tests/UI/test_task82_event_log_windowing.gd",
+      "Tests.Godot/tests/UI/test_task82_event_log_windowing_details.gd",
+      "Game.Core.Tests/Tasks/Task82SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."

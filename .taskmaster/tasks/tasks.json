@@ -2132,6 +2132,11 @@
         ],
         "status": "deferred",
         "subtasks": [],
+        "testRefs": [
+          "Game.Core.Tests/Tasks/Task82SplitTests.cs",
+          "Tests.Godot/tests/UI/test_task82_event_log_windowing.gd",
+          "Tests.Godot/tests/UI/test_task82_event_log_windowing_details.gd"
+        ],
         "adrRefs": [
           "ADR-0004",
           "ADR-0005",
