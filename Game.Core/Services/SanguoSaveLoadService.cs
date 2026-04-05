@@ -131,6 +131,26 @@ public sealed class SanguoSaveLoadService
         var saveUntrusted = !string.Equals(expectedReplayTrustHash, file.ReplayTrustHash, StringComparison.OrdinalIgnoreCase);
 
         var nowUtc = DateTime.UtcNow;
+        if (saveUntrusted)
+        {
+            await _bus.PublishAsync(new DomainEvent(
+                Type: EventTypes.RunStateTransitioned,
+                Source: nameof(SanguoSaveLoadService),
+                Data: JsonElementEventData.FromObject(new
+                {
+                    FromState = "normal",
+                    ToState = "replay_mismatch",
+                    Reason = "replay_trust_hash_mismatch",
+                    SaveSlotId = saveSlotId,
+                    OccurredAt = new DateTimeOffset(nowUtc),
+                    CorrelationId = correlationId,
+                    CausationId = causationId,
+                }),
+                Timestamp: nowUtc,
+                Id: Guid.NewGuid().ToString("N")
+            ));
+        }
+
         var evt = new SanguoGameLoaded(
             GameId: file.Snapshot.GameId,
             SaveSlotId: saveSlotId,
