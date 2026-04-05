@@ -1,0 +1,21 @@
+# Task 83 chapter6 delivery plan
+
+- Title: Task 83 chapter6 delivery plan
+- Status: active
+- Branch: task/T83
+- Git Head: c20fddb9655d0ed6f0be366f00e3a54dcfe3689f
+- Goal: TODO: describe goal
+- Scope: TODO: define scope
+- Current step: TODO: define current step
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: TODO: define stop-loss boundary
+- Next action: TODO: define next action
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 83 --resume`
+- Open questions: none recorded yet
+- Exit criteria: TODO: define exit criteria
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `83`
+- Related run id: n/a (no pipeline run id linked yet)
+- Related latest.json: n/a (no task-scoped latest.json pointer resolved yet)
+- Related pipeline artifacts: n/a (no pipeline artifact directory resolved yet)

@@ -84,7 +84,7 @@ internal sealed class FlakySaveDataStore : IDataStore
 public sealed class SanguoSaveLoadServiceTests
 {
     [Fact]
-    public void Constructor_GivenNullBus_ThenThrows()
+    public void GivenNullBus_WhenConstructing_ThenThrows()
     {
         var store = new RecordingDataStore();
         Action act = () => _ = new SanguoSaveLoadService(bus: null!, store: store);
@@ -92,7 +92,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public void Constructor_GivenNullStore_ThenThrows()
+    public void GivenNullStore_WhenConstructing_ThenThrows()
     {
         var bus = new RecordingEventBus();
         Action act = () => _ = new SanguoSaveLoadService(bus: bus, store: null!);
@@ -308,7 +308,7 @@ public sealed class SanguoSaveLoadServiceTests
     [Theory]
     [InlineData("")]
     [InlineData("  ")]
-    public async Task SaveGameAsync_GivenEmptyCorrelationId_ThenThrows(string correlationId)
+    public async Task GivenEmptyCorrelationId_WhenSavingGame_ThenThrows(string correlationId)
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -326,7 +326,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task SaveGameAsync_GivenEmptySnapshotGameId_ThenThrows()
+    public async Task GivenEmptySnapshotGameId_WhenSavingGame_ThenThrows()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -344,7 +344,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task LoadGameAsync_GivenChecksumMismatch_ThenThrowsAndDoesNotPublishLoadedEvent()
+    public async Task GivenChecksumMismatch_WhenLoadingGame_ThenThrowsAndDoesNotPublishLoadedEvent()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -387,7 +387,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task SaveGameAsync_GivenTooLongSaveSlotId_ThenThrows()
+    public async Task GivenTooLongSaveSlotId_WhenSavingGame_ThenThrows()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -407,7 +407,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task SaveGameAsync_GivenTooLongGameId_ThenThrows()
+    public async Task GivenTooLongGameId_WhenSavingGame_ThenThrows()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -429,7 +429,7 @@ public sealed class SanguoSaveLoadServiceTests
     [Theory]
     [InlineData("")]
     [InlineData("  ")]
-    public async Task LoadGameAsync_GivenEmptyCorrelationId_ThenThrows(string correlationId)
+    public async Task GivenEmptyCorrelationId_WhenLoadingGame_ThenThrows(string correlationId)
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -445,7 +445,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task SaveGameAsync_GivenEmptySaveSlotId_ThenThrows()
+    public async Task GivenEmptySaveSlotId_WhenSavingGame_ThenThrows()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -463,7 +463,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task LoadGameAsync_GivenEmptySaveSlotId_ThenThrows()
+    public async Task GivenEmptySaveSlotId_WhenLoadingGame_ThenThrows()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -479,7 +479,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task LoadGameAsync_GivenTooLongSaveSlotId_ThenThrows()
+    public async Task GivenTooLongSaveSlotId_WhenLoadingGame_ThenThrows()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -496,7 +496,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task LoadGameAsync_GivenJsonNull_ThenThrowsSaveDataInvalid()
+    public async Task GivenJsonNull_WhenLoadingGame_ThenThrowsSaveDataInvalid()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -516,7 +516,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task LoadGameAsync_GivenNullSnapshot_ThenThrowsSaveFileCorrupted()
+    public async Task GivenNullSnapshot_WhenLoadingGame_ThenThrowsSaveFileCorrupted()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -544,7 +544,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task SaveGameAsync_GivenOversizedPayload_ThenThrows()
+    public async Task GivenOversizedPayload_WhenSavingGame_ThenThrows()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -572,7 +572,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task LoadGameAsync_GivenMissingChecksum_ThenThrowsSaveFileCorrupted()
+    public async Task GivenMissingChecksum_WhenLoadingGame_ThenThrowsSaveFileCorrupted()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -600,7 +600,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task LoadGameAsync_GivenMissingVersion_ThenThrowsSaveFileCorrupted()
+    public async Task GivenMissingVersion_WhenLoadingGame_ThenThrowsSaveFileCorrupted()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -628,7 +628,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task A003_ShouldAllowRetrySaveAfterFailure_WhenCallerRetriesBeforeLeavingCamp()
+    public async Task ShouldAllowRetrySaveAfterFailure_WhenCallerRetriesBeforeLeavingCamp()
     {
         var store = new FlakySaveDataStore(remainingSaveFailures: 1);
         var bus = new RecordingEventBus();
@@ -661,7 +661,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task A004_ShouldRemainCallable_WhenRetryStillFailsAndLaterAttemptSucceeds()
+    public async Task ShouldRemainCallable_WhenRetryStillFailsAndLaterAttemptSucceeds()
     {
         var store = new FlakySaveDataStore(remainingSaveFailures: 2);
         var bus = new RecordingEventBus();
@@ -701,7 +701,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task A005_ShouldKeepSaveWarningActive_UntilNextSuccessfulSave()
+    public async Task ShouldKeepSaveWarningActive_WhenNextSaveSucceeds()
     {
         var store = new FlakySaveDataStore(remainingSaveFailures: 2);
         var bus = new RecordingEventBus();

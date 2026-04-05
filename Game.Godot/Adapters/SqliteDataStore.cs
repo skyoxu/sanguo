@@ -92,8 +92,8 @@ public partial class SqliteDataStore : Node, ISqlDatabase
             return false;
         }
 
-        try { Open(dbPath); LastError = null; return true; }
-        catch (Exception ex) { LastError = ex.Message; Audit("db.open.fail", ex.Message, dbPath); return false; }
+        try { Open(raw); LastError = null; return true; }
+        catch (Exception ex) { LastError = ex.Message; Audit("db.open.fail", ex.Message, raw); return false; }
     }
 
     public bool TableExists(string name)
@@ -381,5 +381,4 @@ public partial class SqliteDataStore : Node, ISqlDatabase
         return s.Length <= max ? s : s.Substring(0, max);
     }
 }
-
 
