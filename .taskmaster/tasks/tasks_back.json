@@ -4546,12 +4546,10 @@
       "A-005"
     ],
     "acceptance": [
-      "Integration closure uses split-task evidence from 87, 88. Refs: Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
+      "Integration closure is closure-only and remains delegated to split tasks 87 and 88: Task 75 is accepted only when deterministic evidence shows Task 87 closes the R2/R5 camp transition + one-action-rule obligations and Task 88 closes the A-003~A-005 leave-camp save retry + warning obligations; Task 75 stays incomplete if either split evidence is missing, either split obligation is not explicitly covered, or non-leave-camp save evidence is used to stand in for Task 88 scope. Refs: Game.Core.Tests/Tasks/Task75CampLifecycleEngineIntegrationPackTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task75CampLifecycleEngineTests.cs",
-      "Game.Core.Tests/Services/SanguoCatalogPackPathTests.cs",
-      "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
+      "Game.Core.Tests/Tasks/Task75CampLifecycleEngineIntegrationPackTests.cs"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
