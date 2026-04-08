@@ -1698,6 +1698,11 @@ public static class EventExplainService
         var text = TranslationServer.Translate(key);
         if (string.IsNullOrWhiteSpace(text) || string.Equals(text, key, StringComparison.Ordinal))
         {
+            if (Task69ExplanationLocalizationGate.IsTask69ExplanationKey(key))
+            {
+                var buildMode = OS.IsDebugBuild() ? "dev" : "release";
+                return Task69ExplanationLocalizationGate.ResolveMissingTranslation(buildMode, key, fallback);
+            }
             return fallback;
         }
         return text;

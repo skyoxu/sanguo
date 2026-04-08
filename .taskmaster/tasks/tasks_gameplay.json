@@ -2845,18 +2845,23 @@
       "A-012"
     ],
     "acceptance": [
-      "GdUnit: player-facing explanation text resolves missing localization through the shared localization path, so the same missing key is handled there rather than by per-widget overrides. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
-      "GdUnit: for the same missing key resolved through the shared localization path, dev mode may expose the raw i18n key for diagnostics, while release mode must not expose the raw key and must instead show a friendly fallback. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
-      "GdUnit: run mode-parameterized tests for the same explanation-text missing-key case under both release and dev modes, and assert the two outputs differ exactly per policy. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
-      "GdUnit: include direct unit coverage for the missing-key mode policy helper, asserting release-friendly fallback and dev diagnostic raw-key exposure as separate expected outcomes. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
-      "GdUnit integration: render the same missing key in release and dev modes through the shared localization path and assert the rendered outputs diverge as specified. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd",
-      "CI fixture: evaluate the same missing-localization case by build mode, fail the release case when raw key is exposed, and pass the dev diagnostics-enabled case. Refs: Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd"
+      "xUnit: release mode must hide raw i18n key exposure for policy-scoped missing explanation keys and return a friendly fallback (provided fallback, or default friendly fallback when missing/blank). Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "xUnit: dev/debug/editor diagnostics classification must provide an observable raw-key branch for the same missing explanation key in policy-scoped handling (diagnostics-enabled path exposes raw key). Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "xUnit CI guard assertion: under the same missing-key input, release-mode output must not equal the raw key, while diagnostics-enabled dev path may equal the raw key. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "xUnit: diagnostics mode classification is explicit and deterministic (debug/editor treated as diagnostics, release treated as player-facing). Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "xUnit: shared UI localization gate semantics are preserved for task69 explanation keys, while non-task69 keys remain on fallback path in release and dev modes. Refs: Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "xUnit: when fallback text is blank, release mode still returns the default friendly fallback text instead of exposing raw key. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "xUnit: policy behavior is key-agnostic within task69 explanation scope: under release, scoped missing keys must not render as raw key; under diagnostics-enabled dev path, the observable diagnostics branch exposes raw key for scoped missing keys. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "xUnit: when fallback is null or omitted, release mode returns DefaultFriendlyFallback and never exposes raw key for policy-scoped missing explanation keys. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs"
     ],
     "test_refs": [
-      "Tests.Godot/tests/UI/test_task69_i18n_build_mode_visibility.gd"
+      "Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "Game.Core.Tests/Tasks/Task69UiLocalizationWiringTests.cs",
+      "Game.Core.Tests/Tasks/Task69SplitTests.cs"
     ],
     "test_strategy": [
-      "GdUnit mode-parameterized i18n fallback tests."
+      "xUnit build-mode policy tests and gate behavior tests; wiring guard test retained as implementation-level regression check."
     ],
     "contractRefs": [
       "core.sanguo.boss.challenge.prompted",
