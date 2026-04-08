@@ -1,0 +1,21 @@
+# Task 69 chapter 6 delivery plan
+
+- Title: Task 69 chapter 6 delivery plan
+- Status: active
+- Branch: task/T69
+- Git Head: 9ef6740a83562e29de1fc7a023293207e5464217
+- Goal: TODO: describe goal
+- Scope: TODO: define scope
+- Current step: TODO: define current step
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: TODO: define stop-loss boundary
+- Next action: TODO: define next action
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 69 --resume`
+- Open questions: none recorded yet
+- Exit criteria: TODO: define exit criteria
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `69`
+- Related run id: n/a (no pipeline run id linked yet)
+- Related latest.json: n/a (no task-scoped latest.json pointer resolved yet)
+- Related pipeline artifacts: n/a (no pipeline artifact directory resolved yet)

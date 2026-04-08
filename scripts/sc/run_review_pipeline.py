@@ -65,7 +65,7 @@ from _pipeline_support import (
     run_step as _run_step,
     upsert_step as _upsert_step,
 )
-from _llm_review_cli import resolve_agents
+from _llm_review_cli import parse_agent_timeout_overrides, resolve_agents
 from _change_scope import classify_change_scope_between_snapshots
 from _repair_guidance import build_execution_context, build_repair_guide, render_repair_guide_markdown
 from _taskmaster import resolve_triplet
@@ -114,6 +114,19 @@ def _snapshot_directory(*, source_dir: Path, target_dir: Path) -> tuple[str, str
     shutil.copytree(source_dir, target_dir)
     summary_path = target_dir / "summary.json"
     return str(target_dir), str(summary_path) if summary_path.exists() else ""
+
+
+def _snapshot_step_artifacts(*, step: dict[str, Any], out_dir: Path, step_name: str) -> tuple[str, str]:
+    source_dir_raw = str(step.get("reported_out_dir") or "").strip()
+    source_summary_raw = str(step.get("summary_file") or "").strip()
+    target_dir = out_dir / "child-artifacts" / step_name
+    if source_dir_raw and Path(source_dir_raw).is_dir():
+        return _snapshot_directory(source_dir=Path(source_dir_raw), target_dir=target_dir)
+    if source_summary_raw and Path(source_summary_raw).is_file():
+        target_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(Path(source_summary_raw), target_dir / "summary.json")
+        return str(target_dir), str(target_dir / "summary.json")
+    return "", ""
 
 
 def _find_reusable_sc_test_step(
@@ -215,6 +228,117 @@ def _find_reusable_sc_test_step(
             "reported_out_dir": snapshot_dir,
             "summary_file": snapshot_summary,
         }
+    return None
+
+
+def _find_reusable_clean_pipeline_steps(
+    *,
+    out_dir: Path,
+    task_id: str,
+    delivery_profile: str,
+    security_profile: str,
+    planned_steps: list[tuple[str, list[str], int, bool]],
+    git_fingerprint: dict[str, Any],
+) -> list[dict[str, Any]] | None:
+    logs_root = repo_root() / "logs" / "ci"
+    if not logs_root.exists():
+        return None
+    current_head = str(git_fingerprint.get("head") or "").strip()
+    current_status = sorted([str(line).rstrip() for line in (git_fingerprint.get("status_short") or []) if str(line).strip()])
+    normalized_planned = {
+        step_name: _normalize_cmd_for_reuse(cmd)
+        for step_name, cmd, _timeout_sec, skipped in planned_steps
+        if not skipped
+    }
+    if not normalized_planned:
+        return None
+    candidates = sorted(
+        [item for item in logs_root.rglob(f"sc-review-pipeline-task-{task_id}-*") if item.is_dir()],
+        key=lambda item: item.stat().st_mtime,
+        reverse=True,
+    )
+    for candidate in candidates:
+        if candidate.resolve() == out_dir.resolve():
+            continue
+        summary_path = candidate / "summary.json"
+        execution_context_path = candidate / "execution-context.json"
+        if not summary_path.exists() or not execution_context_path.exists():
+            continue
+        summary = _read_json(summary_path)
+        execution_context = _read_json(execution_context_path)
+        if not summary or not execution_context:
+            continue
+        if str(summary.get("status") or "").strip().lower() != "ok":
+            continue
+        if str(execution_context.get("delivery_profile") or "").strip().lower() != delivery_profile:
+            continue
+        if str(execution_context.get("security_profile") or "").strip().lower() != security_profile:
+            continue
+        git_info = execution_context.get("git") if isinstance(execution_context.get("git"), dict) else {}
+        previous_status = sorted([str(line).rstrip() for line in (git_info.get("status_short") or []) if str(line).strip()])
+        exact_snapshot_match = str(git_info.get("head") or "").strip() == current_head and previous_status == current_status
+        change_scope = (
+            {
+                "deterministic_strategy": "reuse-latest",
+                "changed_paths": [],
+                "unsafe_paths": [],
+            }
+            if exact_snapshot_match
+            else classify_change_scope_between_snapshots(previous_git=git_info, current_git=git_fingerprint)
+        )
+        if not exact_snapshot_match and str(change_scope.get("deterministic_strategy") or "").strip() != "reuse-latest":
+            continue
+        steps = summary.get("steps") if isinstance(summary.get("steps"), list) else []
+        step_map = {
+            str(step.get("name") or "").strip(): step
+            for step in steps
+            if isinstance(step, dict) and str(step.get("name") or "").strip()
+        }
+        reused_steps: list[dict[str, Any]] = []
+        for step_name, planned_cmd in normalized_planned.items():
+            source_step = step_map.get(step_name)
+            if not isinstance(source_step, dict):
+                reused_steps = []
+                break
+            if str(source_step.get("status") or "").strip().lower() != "ok":
+                reused_steps = []
+                break
+            if _normalize_cmd_for_reuse(list(source_step.get("cmd") or [])) != planned_cmd:
+                reused_steps = []
+                break
+            snapshot_dir, snapshot_summary = _snapshot_step_artifacts(step=source_step, out_dir=out_dir, step_name=step_name)
+            log_path = out_dir / f"{step_name}.log"
+            write_text(
+                log_path,
+                "\n".join(
+                    [
+                        "[sc-review-pipeline] reused latest successful full pipeline"
+                        if exact_snapshot_match
+                        else "[sc-review-pipeline] reused latest successful full pipeline after non-task doc delta",
+                        f"source_run_dir={candidate}",
+                        f"source_summary={summary_path}",
+                        f"change_scope_strategy={str(change_scope.get('deterministic_strategy') or '').strip()}",
+                        f"changed_paths={json.dumps(change_scope.get('changed_paths') or [], ensure_ascii=False)}",
+                        f"step_name={step_name}",
+                        f"reported_out_dir={snapshot_dir}",
+                        f"summary_file={snapshot_summary}",
+                    ]
+                )
+                + "\n",
+            )
+            reused_steps.append(
+                {
+                    "name": step_name,
+                    "cmd": list(source_step.get("cmd") or []),
+                    "rc": 0,
+                    "status": "ok",
+                    "log": str(log_path),
+                    "reported_out_dir": snapshot_dir,
+                    "summary_file": snapshot_summary,
+                }
+            )
+        if reused_steps:
+            return reused_steps
     return None
 
 
@@ -640,7 +764,8 @@ def main() -> int:
         delivery_profile=delivery_profile,
         security_profile=security_profile,
     )
-    llm_agent_timeout_overrides = _derive_llm_agent_timeout_overrides(
+    requested_llm_agent_timeout_overrides = parse_agent_timeout_overrides(getattr(args, "llm_agent_timeouts", ""))
+    derived_llm_agent_timeout_overrides = _derive_llm_agent_timeout_overrides(
         current_out_dir=out_dir,
         task_id=task_id,
         delivery_profile=delivery_profile,
@@ -650,7 +775,12 @@ def main() -> int:
         llm_timeout_sec=llm_timeout_sec,
         llm_agent_timeout_sec=llm_agent_timeout_sec,
     )
+    llm_agent_timeout_overrides = {**derived_llm_agent_timeout_overrides, **requested_llm_agent_timeout_overrides}
     llm_agent_timeouts = _format_agent_timeout_overrides(llm_agent_timeout_overrides)
+    if derived_llm_agent_timeout_overrides:
+        llm_execution_context["derived_agent_timeout_overrides"] = derived_llm_agent_timeout_overrides
+    if requested_llm_agent_timeout_overrides:
+        llm_execution_context["requested_agent_timeout_overrides"] = requested_llm_agent_timeout_overrides
     if llm_agent_timeout_overrides:
         llm_execution_context["agent_timeout_overrides"] = llm_agent_timeout_overrides
     if args.abort:
@@ -757,6 +887,21 @@ def main() -> int:
         llm_strict=llm_strict,
         llm_diff_mode=llm_diff_mode,
     )
+    if not bool(args.resume or args.fork or args.dry_run or args.skip_test or args.skip_acceptance or args.skip_llm_review):
+        reusable_pipeline_steps = _find_reusable_clean_pipeline_steps(
+            out_dir=out_dir,
+            task_id=task_id,
+            delivery_profile=delivery_profile,
+            security_profile=security_profile,
+            planned_steps=steps,
+            git_fingerprint=current_git_fingerprint(),
+        )
+        if reusable_pipeline_steps:
+            for step in reusable_pipeline_steps:
+                if not session.add_step(step):
+                    return 2
+            print(f"SC_REVIEW_PIPELINE status={session.summary['status']} out={out_dir}")
+            return session.finish()
     reused_sc_test_step: dict[str, Any] | None = None
     if not bool(args.resume or args.fork or args.dry_run or args.skip_test):
         reused_sc_test_step = _find_reusable_sc_test_step(

@@ -34,6 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--llm-agents", default=None, help="llm_review --agents value. Default follows delivery profile.")
     parser.add_argument("--llm-timeout-sec", type=int, default=None, help="llm_review total timeout. Default follows delivery profile.")
     parser.add_argument("--llm-agent-timeout-sec", type=int, default=None, help="llm_review per-agent timeout. Default follows delivery profile.")
+    parser.add_argument("--llm-agent-timeouts", default="", help="llm_review per-agent timeout overrides: agent=sec,agent=sec.")
     parser.add_argument("--llm-semantic-gate", default=None, choices=["skip", "warn", "require"])
     parser.add_argument("--llm-base", default="main", help="llm_review --base value.")
     parser.add_argument("--llm-diff-mode", default=None, choices=["full", "summary", "none"], help="llm_review --diff-mode value. Default follows delivery profile.")

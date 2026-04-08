@@ -12,6 +12,7 @@
 - `examples/taskmaster/**` 只作为模板 fallback，不是业务仓 SSoT
 - 默认的任务级主入口是 `scripts/sc/run_review_pipeline.py`
 - 日常工作中不要手工串 `scripts/sc/test.py + scripts/sc/acceptance_check.py + scripts/sc/llm_review.py`
+- `docs/workflows/script-entrypoints-index.md` 是参数、依赖和适用前提索引，不是日常主流程。只有当你需要查完整参数、确认某个入口能不能在模板仓或业务仓使用、或准备偏离默认流程时再读它。
 
 ## 1. 全局规则
 
@@ -620,11 +621,22 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - 除非你明确要覆盖默认映射，否则不要手工传 `--security-profile`。
 - 这个 pipeline 会写 sidecars、latest pointers、active-task summaries、repair guidance，以及 technical debt sync outputs。
 - review pipeline 启动前还会检查最近一次同任务 `sc-build-tdd` 的 refactor summary，要求 `stage = refactor` 且 `status = ok`；如果 6.6 失败，先修 6.6。
+- 如果这一轮改了 acceptance 文案、`Refs:`、`ACC:T<id>.<n>` anchors，或新生成/重命名了 `Refs:` 指向的测试文件，先做秒级预检，再进 6.7：
+
+```powershell
+py -3 scripts/python/dev_cli.py run-acceptance-preflight --task-id <id>
+```
+
+- 这个轻入口内部会顺序执行 `validate_acceptance_refs.py + validate_acceptance_anchors.py`，默认按 `refactor` 阶段落日志到 `logs/ci/<date>/acceptance-preflight-task-<id>-refactor/`。
+- 如果不是默认 `refactor` 口径，可显式传 `--stage red|green|refactor`；如果你要把产物写到自定义目录，可再传 `--out-dir <dir>`。
+- 它只在 acceptance / refs / anchors / 测试文件映射发生变化时需要；如果本轮只改实现逻辑、review 文案或 sidecars，不必额外插入。
+- 它们的价值是提前拦截 `acceptance refs` / `acceptance anchors` 这类快失败，避免整轮 6.7 跑完才回滚。
 - `run_review_pipeline.py` 会按 `DELIVERY_PROFILE` 自动决定第六章的默认强度：
   - `playable-ea`：默认 `max_step_retries = 1`，首轮 review 更轻，适合先验证可玩性。
   - `fast-ship`：默认 `max_step_retries = 1`，首轮 review 聚焦 `code-reviewer + security-auditor + semantic-equivalence-auditor`。
   - `standard`：默认 `max_step_retries = 0`，保留更重的收口姿态，不自动帮你放宽执行节奏。
 - 如果上一次同任务 `sc-llm-review` 里只有少数 reviewer 发生 `rc=124` timeout，6.7 会只对这些 reviewer 增加 `--agent-timeouts`，不会把全部 reviewer 一起扩时。
+- 在 `fast-ship + summary diff + 小变更` 的 6.8 中间回合，如果上一轮超时热点是 `code-reviewer`，脚本现在会自动只给 `code-reviewer` 提更高的 per-agent timeout，不会顺带放大其他 reviewer。
 - 只有当最近两轮 6.7 都出现总超时，或大部分 reviewer 持续 `rc=124`，且定向扩时仍然不够时，才手工加大总超时，例如：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --llm-timeout-sec 900`。
 - 不要把大超时当作默认配置；首选仍然是“先按默认预算跑，再对命中过 timeout 的 reviewer 定向补时”。
 - 更进一步的 `sc-test` task-scope 化只在 `playable-ea` / `fast-ship` 自动启用；`standard` 只接受“完全相同 git snapshot”的 `sc-test` 复用。
@@ -633,6 +645,8 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - 如果变化属于 task semantics，例如 taskmaster / overlay / ADR / PRD 文本，6.7 只复用 `sc-test`；后续 `acceptance_check` 仍会重跑，避免“假绿”。
 - 如果你明确要保留旧行为，可以显式传：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile <profile> --allow-full-unit-fallback`。
 - 这个开关只建议用于定位“task-scoped unit coverage = 0.0%”是否由 filter 过窄引起；默认不要开，否则会把任务级失败放大成全仓 `dotnet test`，拖慢单轮时长。
+- 如果最近一次完整 6.7 已经 clean，而当前只改了 `decision-logs/**`、`execution-plans/**`、`README.md`、`AGENTS.md`、`docs/agents/**` 这类非任务语义文档，6.7 会直接 clean skip，复用上一轮 `sc-test` / `sc-acceptance-check` / `sc-llm-review`，只刷新本轮 sidecars。
+- 这条整轮 short-circuit 只在最近一次完整 pipeline 三步都成功时成立；如果这次碰了 task semantics 文本，或者上一轮不是完整 clean，就不会整轮跳过。
 
 - 如果你只是想先验证 run wiring、profile 解析、latest pointer 和 planned steps 是否正常，而不想真正执行测试与 acceptance，可先做一轮最便宜的探针：
 
@@ -732,6 +746,15 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 - `standard` 不启用上述两条放宽路径；在 `standard` 下，除了完全相同 git snapshot 的复用，其他情况都会回到完整 deterministic 链路。
 - 新增预算守门：如果 deterministic 之后剩余预算低于 profile 下限，就直接 fail-fast，不再白白开启一轮新的 LLM 回合。
 - `--skip-sc-test` 仍然只建议用于“本轮只修 review / acceptance 文本，没有改实现和测试”的场景；不要把它当作常规默认。
+- 如果本轮确实改了 acceptance 文案、`Refs:` 或 anchors，先跑下面两条秒级预检，再进入 6.8 快路径：
+
+```powershell
+py -3 scripts/python/dev_cli.py run-acceptance-preflight --task-id <id>
+```
+
+- 这一步尤其适合“只补 wording / Refs / anchors 然后立刻 `rerun-failing-only`”的中间回合；先秒级挡错，再决定要不要跑 6.8。
+- 如果你这轮不是 `refactor` 阶段，例如专门检查 red/green 文案，也可以直接改成：`py -3 scripts/python/dev_cli.py run-acceptance-preflight --task-id <id> --stage <red|green>`。
+- 如果最近一次完整 6.7 已经 clean，且本轮只改了非任务语义文档，6.8 会直接判定 `latest_pipeline_already_clean` 并退出，不再重复跑 deterministic / reviewer。
 
 - 如果这是典型的“中间收敛回合”，而且你只想重跑上一轮真正命中的 reviewer，一般直接把轮数压到 1：
 
@@ -757,6 +780,7 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --rerun-failing-only --step-timeout-sec 900 --min-llm-budget-min 8
 ```
 
+- 默认情况下，`fast-ship` 小 diff 中间回合已经会自动只给 `code-reviewer` 做定向补时；只有这条自动补时仍然不够时，才手工继续放大 `--step-timeout-sec` 或整轮预算。
 - 如果这是最后一次收口，直接执行：
 
 ```powershell
@@ -770,10 +794,28 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 
 ### 6.9 Commit 前的仓库级验证
 
+如果这一轮改了 `.taskmaster/tasks/*.json`、`overlay_refs`、overlay `_index.md`，或刚做过任务语义批量回写，先做一次 overlay drift 前置检查：
+
 ```powershell
+py -3 scripts/python/remind_overlay_task_drift.py --overlay-index docs/architecture/overlays/<PRD-ID>/08/_index.md --write
+```
+
+- 模板仓或单 overlay 仓如果只有一个可解析的 overlay index，也可以直接用 `--write` 让脚本自动解析。
+- 多 overlay 业务仓不要偷懒，显式传 `--overlay-index` 更稳。
+- 如果真实 triplet 还没落地，或还没有可维护的 overlay index，这一步先跳过，不要为了跑脚本硬造 baseline。
+
+```powershell
+py -3 scripts/python/dev_cli.py run-local-hard-checks-preflight --delivery-profile fast-ship
 py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"
 py -3 scripts/python/inspect_run.py --kind local-hard-checks
 ```
+
+说明：
+
+- `run-local-hard-checks-preflight` 只跑 `gate-bundle-hard + run-dotnet`，适合在进入完整 6.9 前先挡掉最近最常见的快失败。
+- 如果 preflight 已失败，先修 `gate-bundle-hard` 或 `run-dotnet`，不要立刻重开完整 `run-local-hard-checks`。
+- 如果上一轮失败点正是 `overlay_task_drift`，不要跳过前面的 drift 前置；先刷新或确认 baseline，再进 6.9。
+- preflight 通过后，再进入完整 6.9，可以减少已知失败类型导致的整轮浪费。
 
 如果你想在浏览器里持续观察 project-health 页面，可再执行：
 
