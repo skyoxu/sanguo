@@ -31,6 +31,8 @@ This file is the durable protocol. Use `docs/workflows/business-repo-upgrade-gui
   - `logs/**`, temporary reports, replay outputs, generated baselines unless the protocol explicitly says to promote them.
 - `recovery-sidecar-producers-and-consumers`
   - Treat task-scoped `latest.json`, `active-task`, `execution-context`, `repair-guide`, and their consumer scripts as one migration unit. Do not copy only the docs or only the reader script.
+  - Recovery-facing stop-loss signals (`reason`, `reuse_mode`, `latest_summary_signals`, `chapter6_hints`, `rerun_guard`, `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, `waste_signals`) must travel in the same batch.
+  - If the upgraded template also exposes `recommended_action_why` or `needs-fix-fast`, migrate those reader-facing recovery hints in the same batch as the underlying stop-loss signals.
 - `repo-health-foundation-bundle`
   - Treat `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, `serve-project-health`, their shared support modules, and the `run-local-hard-checks` prelude wiring as one migration unit. Do not copy only the dashboard doc or only the CLI entrypoints.
 - `prototype-lane-docs`
@@ -50,6 +52,7 @@ This file is the durable protocol. Use `docs/workflows/business-repo-upgrade-gui
    - Sync the companion docs and entry indexes (`docs/workflows/project-health-dashboard.md`, `docs/workflows/local-hard-checks.md`, `docs/workflows/stable-public-entrypoints.md`, `docs/workflows/script-entrypoints-index.md`, `README.md`, `AGENTS.md`, `docs/PROJECT_DOCUMENTATION_INDEX.md`) so operators can discover the new repo-level commands.
 4. Recovery and sidecar protocol
    - Sync `latest.json` producers/consumers, `inspect_run.py`, `resume_task.py`, `active-task` behavior, marathon state, and repair-guide sidecars.
+   - Keep stop-loss reasoning aligned across producer and consumer surfaces; do not migrate `run_review_pipeline.py` without the matching `inspect_run.py`, `resume_task.py`, `active-task`, and recovery docs.
 5. Workflow and CI surface
    - Sync workflow changes only after local scripts are present.
    - Rebind paths, solution names, secrets, and delivery/security defaults.
@@ -62,7 +65,7 @@ This file is the durable protocol. Use `docs/workflows/business-repo-upgrade-gui
    - Run the minimum validation bundle before opening a PR.
 
 ## Required Localization Checklist
-- Replace template repo name with the business repo name.
+- Replace upstream source repository name with the business repo name.
 - Replace solution / csproj names and runtime paths.
 - If `Tests.Godot/Game.Godot` should point to a non-default runtime directory, localize the Junction target and workflow arguments together.
 - Replace `PRD-Example` or template overlay roots with the business PRD IDs.
@@ -131,6 +134,7 @@ Minimum validation:
 - Do not wire `serve-project-health` into CI; it is a local operator entrypoint only.
 - Do not copy `README.md` Quick Links or agent routing changes without also copying `docs/workflows/stable-public-entrypoints.md` and `docs/workflows/script-entrypoints-index.md` when those links are referenced.
 - Do not treat `active-task` as a replacement for `resume-task`; it is a short recovery pointer layered above the canonical recovery entrypoint.
+- Do not migrate new recovery stop-loss signals in code only. If `rerun_guard`, `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, or `waste_signals` semantics change, sync the producer, consumer, docs, and regression tests together.
 - Do not move prototype work into formal task triplet completion without an explicit promotion step.
 - Do not enable task-local TDD preflight blindly if the business repo's `contractRefs` semantics intentionally differ from the template's path-aware rule.
 - Do not treat a copied `Tests.Godot/Game.Godot` directory as acceptable technical debt; if git tracks mirror files, fix the index and restore the Junction before trusting GdUnit results.

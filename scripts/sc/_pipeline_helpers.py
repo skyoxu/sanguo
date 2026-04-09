@@ -22,10 +22,30 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--godot-bin", default=None, help="Godot binary path (or env GODOT_BIN).")
     parser.add_argument("--delivery-profile", default=None, choices=["playable-ea", "fast-ship", "standard"], help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).")
     parser.add_argument("--security-profile", default=None, choices=["strict", "host-safe"])
+    parser.add_argument(
+        "--reselect-profile",
+        action="store_true",
+        help="Allow a fresh run to switch away from the latest task-scoped delivery/security profile lock.",
+    )
     parser.add_argument("--skip-test", action="store_true", help="Skip sc-test step.")
     parser.add_argument("--skip-acceptance", action="store_true", help="Skip sc-acceptance-check step.")
     parser.add_argument("--skip-llm-review", action="store_true", help="Skip sc-llm-review step.")
     parser.add_argument("--skip-agent-review", action="store_true", help="Skip the post-pipeline agent review sidecar.")
+    parser.add_argument(
+        "--allow-full-rerun",
+        action="store_true",
+        help="Bypass the narrow-path rerun guard and allow a full rerun when deterministic steps are already green.",
+    )
+    parser.add_argument(
+        "--allow-repeat-deterministic-failures",
+        action="store_true",
+        help="Bypass the repeated deterministic failure guard and rerun even when recent sc-test failures share the same fingerprint.",
+    )
+    parser.add_argument(
+        "--allow-large-change-scope-rerun",
+        action="store_true",
+        help="Bypass the dirty-worktree ceiling and allow a full rerun when changed/unsafe paths exceed the standard Chapter 6 scope guard.",
+    )
     parser.add_argument(
         "--allow-full-unit-fallback",
         action="store_true",
@@ -36,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--llm-agent-timeout-sec", type=int, default=None, help="llm_review per-agent timeout. Default follows delivery profile.")
     parser.add_argument("--llm-agent-timeouts", default="", help="llm_review per-agent timeout overrides: agent=sec,agent=sec.")
     parser.add_argument("--llm-semantic-gate", default=None, choices=["skip", "warn", "require"])
-    parser.add_argument("--llm-base", default="main", help="llm_review --base value.")
+    parser.add_argument("--llm-base", default="origin/main", help="llm_review --base value.")
     parser.add_argument("--llm-diff-mode", default=None, choices=["full", "summary", "none"], help="llm_review --diff-mode value. Default follows delivery profile.")
     parser.add_argument("--llm-no-uncommitted", action="store_true", help="Do not pass --uncommitted to llm_review.")
     parser.add_argument("--llm-strict", action="store_true", help="Pass --strict to llm_review.")
@@ -76,6 +96,213 @@ def pipeline_latest_index_path(task_id: str) -> Path:
     return repo_root() / "logs" / "ci" / today_str() / f"sc-review-pipeline-task-{task_id}" / "latest.json"
 
 
+_LATEST_REUSE_MODES = {
+    "none",
+    "full-clean-reuse",
+    "deterministic-only-reuse",
+    "sc-test-reuse",
+    "mixed-reuse",
+}
+
+_PIPELINE_RUN_TYPES = {
+    "planned-only",
+    "preflight-only",
+    "llm-only",
+    "deterministic-only",
+    "full",
+}
+
+_DETERMINISTIC_STEP_NAMES = {
+    "sc-build-tdd-refactor-preflight",
+    "sc-test",
+    "sc-acceptance-check",
+}
+
+
+def _has_run_completed_event(*, out_dir: Path, run_id: str) -> bool:
+    events_path = run_events_path(out_dir)
+    if not events_path.exists():
+        return False
+    try:
+        for line in events_path.read_text(encoding="utf-8").splitlines():
+            text = line.strip()
+            if not text:
+                continue
+            try:
+                payload = json.loads(text)
+            except Exception:
+                continue
+            if not isinstance(payload, dict):
+                continue
+            if str(payload.get("event") or "").strip() != "run_completed":
+                continue
+            event_run_id = str(payload.get("run_id") or "").strip()
+            if event_run_id and event_run_id != str(run_id or "").strip():
+                continue
+            return True
+    except OSError:
+        return False
+    return False
+
+
+def derive_pipeline_run_type(summary_payload: dict[str, Any]) -> str:
+    steps = summary_payload.get("steps") if isinstance(summary_payload.get("steps"), list) else []
+    if not steps:
+        return "full"
+    materialized_names: set[str] = set()
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        status = str(step.get("status") or "").strip().lower()
+        if not status or status == "planned":
+            continue
+        name = str(step.get("name") or "").strip()
+        if name:
+            materialized_names.add(name)
+
+    if not materialized_names:
+        return "planned-only"
+    if materialized_names == {"sc-build-tdd-refactor-preflight"}:
+        return "preflight-only"
+
+    has_llm = "sc-llm-review" in materialized_names
+    has_deterministic = bool(materialized_names.intersection(_DETERMINISTIC_STEP_NAMES))
+    if has_llm and not has_deterministic:
+        return "llm-only"
+    if has_deterministic and not has_llm:
+        return "deterministic-only"
+    return "full"
+
+
+def has_materialized_pipeline_steps(summary_payload: dict[str, Any]) -> bool:
+    return derive_pipeline_run_type(summary_payload) != "planned-only"
+
+
+def is_planned_only_terminal_run(*, summary_payload: dict[str, Any], out_dir: Path, run_id: str) -> bool:
+    return derive_pipeline_run_type(summary_payload) == "planned-only" and _has_run_completed_event(out_dir=out_dir, run_id=run_id)
+
+
+def effective_pipeline_publish_status(*, status: str, out_dir: Path, run_id: str, summary_payload: dict[str, Any] | None = None) -> str:
+    normalized = str(status or "").strip().lower()
+    payload = summary_payload if isinstance(summary_payload, dict) else {}
+    if normalized == "ok" and payload and is_planned_only_terminal_run(summary_payload=payload, out_dir=out_dir, run_id=run_id):
+        return "fail"
+    if normalized == "ok" and not _has_run_completed_event(out_dir=out_dir, run_id=run_id):
+        return "running"
+    return normalized or "fail"
+
+
+def _derive_latest_reason(
+    *,
+    summary_payload: dict[str, Any],
+    execution_context_payload: dict[str, Any],
+    status: str,
+    out_dir: Path,
+    run_id: str,
+) -> str:
+    normalized_status = (
+        str(status or "").strip().lower()
+        or str(summary_payload.get("status") or "").strip().lower()
+        or str(execution_context_payload.get("status") or "").strip().lower()
+    )
+    if is_planned_only_terminal_run(summary_payload=summary_payload, out_dir=out_dir, run_id=run_id):
+        return "planned_only_incomplete"
+    if normalized_status == "running":
+        return "in_progress"
+    if normalized_status == "aborted":
+        return "aborted"
+    explicit_reason = str(summary_payload.get("reason") or "").strip()
+    if explicit_reason:
+        return explicit_reason
+    steps = summary_payload.get("steps") if isinstance(summary_payload.get("steps"), list) else []
+    failed_step = next(
+        (
+            str(step.get("name") or "").strip()
+            for step in steps
+            if isinstance(step, dict) and str(step.get("status") or "").strip().lower() == "fail"
+        ),
+        "",
+    )
+    if not failed_step:
+        failed_step = str(execution_context_payload.get("failed_step") or "").strip()
+
+    if normalized_status == "aborted":
+        return "aborted"
+    if normalized_status == "running":
+        return "in_progress"
+    if normalized_status == "fail":
+        return f"step_failed:{failed_step}" if failed_step else "pipeline_failed"
+    if any(isinstance(step, dict) and str(step.get("status") or "").strip().lower() == "planned" for step in steps):
+        return "in_progress"
+    return "pipeline_clean"
+
+
+def _derive_latest_reuse_mode(summary_payload: dict[str, Any]) -> str:
+    reuse_mode = str(summary_payload.get("reuse_mode") or "").strip().lower()
+    if reuse_mode in _LATEST_REUSE_MODES:
+        return reuse_mode
+    return "none"
+
+
+def _derive_deterministic_bundle(summary_payload: dict[str, Any]) -> dict[str, Any]:
+    steps = summary_payload.get("steps") if isinstance(summary_payload.get("steps"), list) else []
+    step_map = {
+        str(step.get("name") or "").strip(): step
+        for step in steps
+        if isinstance(step, dict) and str(step.get("name") or "").strip()
+    }
+    sc_test_step = step_map.get("sc-test") if isinstance(step_map.get("sc-test"), dict) else {}
+    acceptance_step = step_map.get("sc-acceptance-check") if isinstance(step_map.get("sc-acceptance-check"), dict) else {}
+    test_status = str(sc_test_step.get("status") or "").strip().lower()
+    acceptance_status = str(acceptance_step.get("status") or "").strip().lower()
+    if test_status not in {"ok", "reused"} and acceptance_status not in {"ok", "reused"}:
+        return {}
+    reported_out_dirs = [
+        str(value).strip()
+        for value in (sc_test_step.get("reported_out_dir"), acceptance_step.get("reported_out_dir"))
+        if str(value or "").strip()
+    ]
+    return {
+        "available": True,
+        "reuse_mode": _derive_latest_reuse_mode(summary_payload),
+        "test_summary_path": str(sc_test_step.get("summary_file") or "").strip(),
+        "acceptance_summary_path": str(acceptance_step.get("summary_file") or "").strip(),
+        "reported_out_dirs": reported_out_dirs,
+    }
+
+
+def _is_real_canonical_latest_candidate(existing_payload: Any) -> bool:
+    if not isinstance(existing_payload, dict):
+        return False
+    run_id = str(existing_payload.get("run_id") or "").strip()
+    latest_out_dir = str(existing_payload.get("latest_out_dir") or "").strip()
+    if not run_id or not latest_out_dir:
+        return False
+    run_type = str(existing_payload.get("run_type") or "").strip().lower()
+    reason = str(existing_payload.get("reason") or "").strip().lower()
+    if run_type == "planned-only":
+        return False
+    if reason == "planned_only_incomplete":
+        return False
+    return True
+
+
+def _should_preserve_existing_canonical_latest(
+    *,
+    existing_payload: Any,
+    current_summary_payload: dict[str, Any],
+    current_out_dir: Path,
+    current_run_id: str,
+) -> bool:
+    if not _is_real_canonical_latest_candidate(existing_payload):
+        return False
+    return is_planned_only_terminal_run(
+        summary_payload=current_summary_payload,
+        out_dir=current_out_dir,
+        run_id=current_run_id,
+    )
+
+
 def write_latest_index(
     *,
     task_id: str,
@@ -85,10 +312,34 @@ def write_latest_index(
     latest_index_path_fn: Callable[[str], Path],
 ) -> None:
     path = latest_index_path_fn(task_id)
+    summary_payload: dict[str, Any] = {}
+    execution_context_payload: dict[str, Any] = {}
+    summary_path = out_dir / "summary.json"
+    execution_context_path = out_dir / "execution-context.json"
+    if summary_path.exists():
+        try:
+            loaded = json.loads(summary_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                summary_payload = loaded
+        except Exception:
+            summary_payload = {}
+    if execution_context_path.exists():
+        try:
+            loaded = json.loads(execution_context_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                execution_context_payload = loaded
+        except Exception:
+            execution_context_payload = {}
+    effective_status = effective_pipeline_publish_status(
+        status=status,
+        out_dir=out_dir,
+        run_id=run_id,
+        summary_payload=summary_payload,
+    )
     payload = {
         "task_id": task_id,
         "run_id": run_id,
-        "status": status,
+        "status": effective_status,
         "date": today_str(),
         "latest_out_dir": str(out_dir),
         "summary_path": str(out_dir / "summary.json"),
@@ -99,6 +350,29 @@ def write_latest_index(
         "run_events_path": str(run_events_path(out_dir)),
         "harness_capabilities_path": str(harness_capabilities_path(out_dir)),
     }
+    payload["reason"] = _derive_latest_reason(
+        summary_payload=summary_payload,
+        execution_context_payload=execution_context_payload,
+        status=effective_status,
+        out_dir=out_dir,
+        run_id=run_id,
+    )
+    payload["run_type"] = derive_pipeline_run_type(summary_payload)
+    payload["reuse_mode"] = _derive_latest_reuse_mode(summary_payload)
+    started_at = str(summary_payload.get("started_at_utc") or "").strip()
+    finished_at = str(summary_payload.get("finished_at_utc") or "").strip()
+    if started_at:
+        payload["started_at_utc"] = started_at
+    if "finished_at_utc" in summary_payload:
+        payload["finished_at_utc"] = finished_at
+    deterministic_bundle = _derive_deterministic_bundle(summary_payload)
+    if deterministic_bundle:
+        payload["deterministic_bundle"] = deterministic_bundle
+    diagnostics = execution_context_payload.get("diagnostics")
+    if not isinstance(diagnostics, dict):
+        diagnostics = summary_payload.get("diagnostics")
+    if isinstance(diagnostics, dict) and diagnostics:
+        payload["diagnostics"] = diagnostics
     if approval_request_path(out_dir).exists():
         payload["approval_request_path"] = str(approval_request_path(out_dir))
     if approval_request_path(out_dir).exists() and approval_response_path(out_dir).exists():
@@ -113,6 +387,16 @@ def write_latest_index(
             and str(existing.get("run_id") or "").strip() == run_id
             and str(existing.get("latest_out_dir") or "").strip() == str(out_dir)
         )
+        if (
+            not same_run
+            and _should_preserve_existing_canonical_latest(
+                existing_payload=existing,
+                current_summary_payload=summary_payload,
+                current_out_dir=out_dir,
+                current_run_id=run_id,
+            )
+        ):
+            return
         if same_run:
             for key in ("agent_review_json_path", "agent_review_md_path"):
                 value = str(existing.get(key) or "").strip()

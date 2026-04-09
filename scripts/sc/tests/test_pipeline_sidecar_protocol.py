@@ -17,6 +17,9 @@ SC_DIR = REPO_ROOT / "scripts" / "sc"
 sys.path.insert(0, str(SC_DIR))
 
 import run_review_pipeline as run_review_pipeline_module  # noqa: E402
+from _pipeline_events import append_run_event  # noqa: E402
+from _pipeline_helpers import has_materialized_pipeline_steps, write_latest_index  # noqa: E402
+from _pipeline_support import load_existing_summary  # noqa: E402
 
 
 def _stable_env() -> dict[str, str]:
@@ -45,6 +48,11 @@ class PipelineSidecarProtocolTests(unittest.TestCase):
                 "1",
                 "--run-id",
                 run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--security-profile",
+                "host-safe",
+                "--reselect-profile",
                 "--dry-run",
                 "--skip-test",
                 "--skip-agent-review",
@@ -99,6 +107,9 @@ class PipelineSidecarProtocolTests(unittest.TestCase):
                         "force_new_run_id": False,
                         "status": "ok",
                         "steps": [],
+                        "elapsed_sec": 0,
+                        "reason": "pipeline_clean",
+                        "reuse_mode": "none",
                     },
                     ensure_ascii=False,
                     indent=2,
@@ -141,6 +152,555 @@ class PipelineSidecarProtocolTests(unittest.TestCase):
             ]
             self.assertEqual("run_aborted", events[-1]["event"])
             self.assertEqual("aborted", events[-1]["status"])
+
+    def test_write_latest_index_should_backfill_reason_and_reuse_mode_from_legacy_summary(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [
+                            {
+                                "name": "sc-test",
+                                "cmd": ["py", "-3", "scripts/sc/test.py"],
+                                "rc": 1,
+                                "status": "fail",
+                                "log": str(out_dir / "sc-test.log"),
+                            }
+                        ],
+                        "elapsed_sec": 3,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "cmd": "sc-review-pipeline",
+                        "date": "2026-04-07",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "status": "fail",
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "failed_step": "sc-test",
+                        "paths": {},
+                        "git": {},
+                        "recovery": {},
+                        "marathon": {},
+                        "agent_review": {},
+                        "llm_review": {},
+                        "approval": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            write_latest_index(
+                task_id="1",
+                run_id=run_id,
+                out_dir=out_dir,
+                status="fail",
+                latest_index_path_fn=lambda _task_id: latest_path,
+            )
+
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual("step_failed:sc-test", latest["reason"])
+            self.assertEqual("none", latest["reuse_mode"])
+
+    def test_write_latest_index_should_not_publish_ok_before_run_completed(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "ok",
+                        "steps": [],
+                        "elapsed_sec": 1,
+                        "reason": "pipeline_clean",
+                        "reuse_mode": "none",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "cmd": "sc-review-pipeline",
+                        "date": "2026-04-07",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "status": "ok",
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "failed_step": "",
+                        "paths": {},
+                        "git": {},
+                        "recovery": {},
+                        "marathon": {},
+                        "agent_review": {},
+                        "llm_review": {},
+                        "approval": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            write_latest_index(
+                task_id="1",
+                run_id=run_id,
+                out_dir=out_dir,
+                status="ok",
+                latest_index_path_fn=lambda _task_id: latest_path,
+            )
+
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual("running", latest["status"])
+            self.assertEqual("in_progress", latest["reason"])
+
+            append_run_event(
+                out_dir=out_dir,
+                event="run_completed",
+                task_id="1",
+                run_id=run_id,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                status="ok",
+                details={"agent_review_rc": 0},
+            )
+            write_latest_index(
+                task_id="1",
+                run_id=run_id,
+                out_dir=out_dir,
+                status="ok",
+                latest_index_path_fn=lambda _task_id: latest_path,
+            )
+
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual("ok", latest["status"])
+            self.assertEqual("pipeline_clean", latest["reason"])
+
+    def test_write_latest_index_should_mark_planned_only_terminal_run_as_incomplete(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "ok",
+                        "steps": [
+                            {
+                                "name": "sc-test",
+                                "cmd": ["py", "-3", "scripts/sc/test.py"],
+                                "rc": 0,
+                                "status": "planned",
+                            },
+                            {
+                                "name": "sc-acceptance-check",
+                                "cmd": ["py", "-3", "scripts/sc/acceptance_check.py"],
+                                "rc": 0,
+                                "status": "planned",
+                            },
+                        ],
+                        "started_at_utc": "2026-04-08T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-08T00:00:05+00:00",
+                        "elapsed_sec": 5,
+                        "run_type": "planned-only",
+                        "reason": "planned_only_incomplete",
+                        "reuse_mode": "none",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "cmd": "sc-review-pipeline",
+                        "date": "2026-04-08",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "status": "ok",
+                        "run_type": "planned-only",
+                        "reason": "planned_only_incomplete",
+                        "reuse_mode": "none",
+                        "started_at_utc": "2026-04-08T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-08T00:00:05+00:00",
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "failed_step": "",
+                        "paths": {},
+                        "git": {},
+                        "recovery": {},
+                        "marathon": {},
+                        "agent_review": {},
+                        "llm_review": {},
+                        "approval": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            append_run_event(
+                out_dir=out_dir,
+                event="run_completed",
+                task_id="1",
+                run_id=run_id,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                status="ok",
+                details={"agent_review_rc": 0},
+            )
+
+            write_latest_index(
+                task_id="1",
+                run_id=run_id,
+                out_dir=out_dir,
+                status="ok",
+                latest_index_path_fn=lambda _task_id: latest_path,
+            )
+
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual("fail", latest["status"])
+            self.assertEqual("planned_only_incomplete", latest["reason"])
+            self.assertEqual("planned-only", latest["run_type"])
+
+    def test_write_latest_index_should_preserve_existing_real_latest_when_new_run_is_planned_only(self) -> None:
+        existing_run_id = "existing-real-run"
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            existing_out_dir = tmp_root / f"sc-review-pipeline-task-1-{existing_run_id}"
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            existing_out_dir.mkdir(parents=True, exist_ok=True)
+            out_dir.mkdir(parents=True, exist_ok=True)
+
+            latest_path.parent.mkdir(parents=True, exist_ok=True)
+            latest_path.write_text(
+                json.dumps(
+                    {
+                        "task_id": "1",
+                        "run_id": existing_run_id,
+                        "status": "ok",
+                        "reason": "pipeline_clean",
+                        "run_type": "full",
+                        "latest_out_dir": str(existing_out_dir),
+                        "summary_path": str(existing_out_dir / "summary.json"),
+                        "execution_context_path": str(existing_out_dir / "execution-context.json"),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "ok",
+                        "steps": [
+                            {"name": "sc-test", "status": "planned"},
+                            {"name": "sc-acceptance-check", "status": "planned"},
+                            {"name": "sc-llm-review", "status": "planned"},
+                        ],
+                        "started_at_utc": "2026-04-08T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-08T00:00:05+00:00",
+                        "elapsed_sec": 5,
+                        "run_type": "planned-only",
+                        "reason": "planned_only_incomplete",
+                        "reuse_mode": "none",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "cmd": "sc-review-pipeline",
+                        "date": "2026-04-08",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "status": "ok",
+                        "run_type": "planned-only",
+                        "reason": "planned_only_incomplete",
+                        "reuse_mode": "none",
+                        "started_at_utc": "2026-04-08T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-08T00:00:05+00:00",
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "failed_step": "",
+                        "paths": {},
+                        "git": {},
+                        "recovery": {},
+                        "marathon": {},
+                        "agent_review": {},
+                        "llm_review": {},
+                        "approval": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            append_run_event(
+                out_dir=out_dir,
+                event="run_completed",
+                task_id="1",
+                run_id=run_id,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                status="ok",
+                details={"agent_review_rc": 0},
+            )
+
+            write_latest_index(
+                task_id="1",
+                run_id=run_id,
+                out_dir=out_dir,
+                status="ok",
+                latest_index_path_fn=lambda _task_id: latest_path,
+            )
+
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual(existing_run_id, latest["run_id"])
+            self.assertEqual(str(existing_out_dir), latest["latest_out_dir"])
+            self.assertEqual("full", latest["run_type"])
+
+    def test_write_latest_index_should_replace_existing_real_latest_when_new_run_is_preflight_only_failure(self) -> None:
+        existing_run_id = "existing-real-run"
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            existing_out_dir = tmp_root / f"sc-review-pipeline-task-1-{existing_run_id}"
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            existing_out_dir.mkdir(parents=True, exist_ok=True)
+            out_dir.mkdir(parents=True, exist_ok=True)
+
+            latest_path.parent.mkdir(parents=True, exist_ok=True)
+            latest_path.write_text(
+                json.dumps(
+                    {
+                        "task_id": "1",
+                        "run_id": existing_run_id,
+                        "status": "ok",
+                        "reason": "pipeline_clean",
+                        "run_type": "full",
+                        "latest_out_dir": str(existing_out_dir),
+                        "summary_path": str(existing_out_dir / "summary.json"),
+                        "execution_context_path": str(existing_out_dir / "execution-context.json"),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [
+                            {
+                                "name": "sc-build-tdd-refactor-preflight",
+                                "status": "fail",
+                                "rc": 1,
+                            }
+                        ],
+                        "started_at_utc": "2026-04-08T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-08T00:00:05+00:00",
+                        "elapsed_sec": 5,
+                        "run_type": "preflight-only",
+                        "reason": "step_failed:sc-build-tdd-refactor-preflight",
+                        "reuse_mode": "none",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "cmd": "sc-review-pipeline",
+                        "date": "2026-04-08",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "status": "fail",
+                        "run_type": "preflight-only",
+                        "reason": "step_failed:sc-build-tdd-refactor-preflight",
+                        "reuse_mode": "none",
+                        "started_at_utc": "2026-04-08T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-08T00:00:05+00:00",
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "failed_step": "sc-build-tdd-refactor-preflight",
+                        "paths": {},
+                        "git": {},
+                        "recovery": {},
+                        "marathon": {},
+                        "agent_review": {},
+                        "llm_review": {},
+                        "approval": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            append_run_event(
+                out_dir=out_dir,
+                event="run_completed",
+                task_id="1",
+                run_id=run_id,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                status="fail",
+            )
+
+            write_latest_index(
+                task_id="1",
+                run_id=run_id,
+                out_dir=out_dir,
+                status="fail",
+                latest_index_path_fn=lambda _task_id: latest_path,
+            )
+
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual(run_id, latest["run_id"])
+            self.assertEqual(str(out_dir), latest["latest_out_dir"])
+            self.assertEqual("preflight-only", latest["run_type"])
+            self.assertEqual("step_failed:sc-build-tdd-refactor-preflight", latest["reason"])
+
+    def test_has_materialized_pipeline_steps_should_reject_planned_only_summary(self) -> None:
+        summary = {
+            "cmd": "sc-review-pipeline",
+            "steps": [
+                {"name": "sc-test", "status": "planned"},
+                {"name": "sc-acceptance-check", "status": "planned"},
+            ],
+        }
+        self.assertFalse(has_materialized_pipeline_steps(summary))
+
+    def test_load_existing_summary_should_infer_legacy_planned_only_reason(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "status": "ok",
+                        "steps": [
+                            {"name": "sc-test", "status": "planned"},
+                            {"name": "sc-acceptance-check", "status": "planned"},
+                            {"name": "sc-llm-review", "status": "planned"},
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            append_run_event(
+                out_dir=out_dir,
+                event="run_completed",
+                task_id="1",
+                run_id=run_id,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                status="ok",
+            )
+
+            payload = load_existing_summary(out_dir)
+
+            self.assertIsNotNone(payload)
+            self.assertEqual("planned-only", payload["run_type"])
+            self.assertEqual("planned_only_incomplete", payload["reason"])
+            self.assertEqual("none", payload["reuse_mode"])
 
 
 class ApprovalContractTests(unittest.TestCase):

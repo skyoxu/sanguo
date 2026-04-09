@@ -38,7 +38,13 @@ def build_acceptance_command(
         acceptance_cmd.append("--require-task-test-refs")
 
     if preflight:
-        acceptance_cmd += ["--only", "adr,links,overlay,contracts,arch,build"]
+        only_groups = ["adr", "links"]
+        subtasks_mode = str(acceptance_defaults.get("subtasks_coverage") or "skip")
+        if subtasks_mode in {"warn", "require"}:
+            only_groups.append("subtasks")
+            acceptance_cmd += ["--subtasks-coverage", subtasks_mode]
+        only_groups += ["overlay", "contracts", "arch", "build"]
+        acceptance_cmd += ["--only", ",".join(only_groups)]
         return acceptance_cmd
 
     if bool(acceptance_defaults.get("require_executed_refs", False)):

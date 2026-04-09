@@ -59,6 +59,7 @@ def build_execution_context(
     recent_log = [line for line in _run_git(["log", "--oneline", "-n", "8"]).splitlines() if line.strip()]
     status_short = [line for line in _run_git(["status", "--short"]).splitlines() if line.strip()]
     failed_step = next((step for step in summary.get("steps", []) if step.get("status") == "fail"), None)
+    diagnostics = (marathon_state or {}).get("diagnostics")
     return {
         "schema_version": "1.0.0",
         "cmd": "sc-review-pipeline",
@@ -67,6 +68,11 @@ def build_execution_context(
         "requested_run_id": requested_run_id,
         "run_id": run_id,
         "status": str(summary.get("status") or "fail"),
+        "run_type": str(summary.get("run_type") or "").strip(),
+        "reason": str(summary.get("reason") or "").strip(),
+        "reuse_mode": str(summary.get("reuse_mode") or "").strip(),
+        "started_at_utc": str(summary.get("started_at_utc") or "").strip(),
+        "finished_at_utc": str(summary.get("finished_at_utc") or "").strip(),
         "delivery_profile": delivery_profile,
         "security_profile": security_profile,
         "failed_step": str(failed_step.get("name")) if isinstance(failed_step, dict) else "",
@@ -134,6 +140,7 @@ def build_execution_context(
             "request_path": str((approval_state or {}).get("request_path") or ""),
             "response_path": str((approval_state or {}).get("response_path") or ""),
         },
+        "diagnostics": dict(diagnostics) if isinstance(diagnostics, dict) else {},
     }
 
 

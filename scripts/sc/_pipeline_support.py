@@ -11,6 +11,7 @@ from _approval_contract import approval_request_path, approval_response_path
 from _delivery_profile import profile_agent_review_defaults
 from _harness_capabilities import harness_capabilities_path
 from _pipeline_events import run_events_path
+from _pipeline_helpers import derive_pipeline_run_type
 from _util import repo_root, run_cmd, today_str, write_json, write_text
 
 
@@ -102,7 +103,52 @@ def load_existing_summary(out_dir: Path) -> dict[str, Any] | None:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
-    return payload if isinstance(payload, dict) else None
+    if not isinstance(payload, dict):
+        return None
+    if str(payload.get("cmd") or "").strip() == "sc-review-pipeline":
+        payload.setdefault("started_at_utc", "legacy")
+        finished_at = payload.get("finished_at_utc")
+        if not isinstance(finished_at, str):
+            payload["finished_at_utc"] = ""
+        payload.setdefault("run_type", derive_pipeline_run_type(payload))
+        completed_event_seen = False
+        events_path = run_events_path(out_dir)
+        if events_path.exists():
+            run_id = str(payload.get("run_id") or payload.get("requested_run_id") or "").strip()
+            try:
+                for line in events_path.read_text(encoding="utf-8").splitlines():
+                    text = str(line or "").strip()
+                    if not text:
+                        continue
+                    try:
+                        event_payload = json.loads(text)
+                    except json.JSONDecodeError:
+                        continue
+                    if not isinstance(event_payload, dict):
+                        continue
+                    if str(event_payload.get("event") or "").strip() != "run_completed":
+                        continue
+                    event_run_id = str(event_payload.get("run_id") or "").strip()
+                    if event_run_id and run_id and event_run_id != run_id:
+                        continue
+                    completed_event_seen = True
+                    break
+            except OSError:
+                completed_event_seen = False
+        status = str(payload.get("status") or "").strip().lower()
+        current_reason = str(payload.get("reason") or "").strip().lower()
+        if str(payload.get("run_type") or "").strip().lower() == "planned-only" and completed_event_seen and current_reason in {"", "in_progress", "dry_run", "dry-run", "pipeline_clean"}:
+            payload["reason"] = "planned_only_incomplete"
+        elif "reason" not in payload:
+            if str(payload.get("run_type") or "").strip().lower() == "planned-only" and completed_event_seen:
+                payload["reason"] = "planned_only_incomplete"
+            else:
+                payload["reason"] = "pipeline_clean" if status == "ok" else "step_failed"
+        payload.setdefault("reuse_mode", "none")
+        elapsed_sec = payload.get("elapsed_sec")
+        if not isinstance(elapsed_sec, int) or int(elapsed_sec) < 0:
+            payload["elapsed_sec"] = max(0, int(payload.get("elapsed_sec") or 0))
+    return payload
 
 
 def upsert_step(summary: dict[str, Any], step: dict[str, Any]) -> None:

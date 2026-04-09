@@ -71,6 +71,11 @@ def validate_pipeline_execution_context_without_jsonschema(payload: dict[str, An
         "cmd",
         "date",
         "requested_run_id",
+        "run_type",
+        "reason",
+        "reuse_mode",
+        "started_at_utc",
+        "finished_at_utc",
         "delivery_profile",
         "security_profile",
         "paths",
@@ -80,6 +85,7 @@ def validate_pipeline_execution_context_without_jsonschema(payload: dict[str, An
         "agent_review",
         "llm_review",
         "approval",
+        "diagnostics",
     }
     for key in required:
         if key not in payload:
@@ -101,6 +107,16 @@ def validate_pipeline_execution_context_without_jsonschema(payload: dict[str, An
         errors.append("$.run_id: must be non-empty string")
     if str(payload.get("status") or "") not in {"ok", "fail"}:
         errors.append("$.status: must be one of ['ok', 'fail']")
+    if "run_type" in payload and str(payload.get("run_type") or "") not in {"planned-only", "preflight-only", "llm-only", "deterministic-only", "full"}:
+        errors.append("$.run_type: must be a known pipeline run type when present")
+    if "reason" in payload and not _is_non_empty_string(payload.get("reason")):
+        errors.append("$.reason: must be non-empty string when present")
+    if "reuse_mode" in payload and str(payload.get("reuse_mode") or "") not in {"none", "full-clean-reuse", "deterministic-only-reuse", "sc-test-reuse", "mixed-reuse"}:
+        errors.append("$.reuse_mode: must be a known reuse mode when present")
+    if "started_at_utc" in payload and not _is_non_empty_string(payload.get("started_at_utc")):
+        errors.append("$.started_at_utc: must be non-empty string when present")
+    if "finished_at_utc" in payload and not isinstance(payload.get("finished_at_utc"), str):
+        errors.append("$.finished_at_utc: must be string when present")
     if "security_profile" in payload and str(payload.get("security_profile") or "") not in {"strict", "host-safe"}:
         errors.append("$.security_profile: must be one of ['strict', 'host-safe'] when present")
     if not isinstance(payload.get("failed_step"), str):
@@ -112,6 +128,8 @@ def validate_pipeline_execution_context_without_jsonschema(payload: dict[str, An
         errors.append("$.delivery_profile: must be non-empty string when present")
     if "approval" in payload:
         errors.extend(_validate_common_approval(payload.get("approval"), base_path="$.approval"))
+    if "diagnostics" in payload and not isinstance(payload.get("diagnostics"), dict):
+        errors.append("$.diagnostics: must be object when present")
     return errors
 
 
@@ -189,6 +207,13 @@ def validate_pipeline_latest_index_without_jsonschema(payload: dict[str, Any]) -
         "approval_response_path",
         "agent_review_json_path",
         "agent_review_md_path",
+        "started_at_utc",
+        "finished_at_utc",
+        "run_type",
+        "reason",
+        "reuse_mode",
+        "deterministic_bundle",
+        "diagnostics",
     }
     for key in required:
         if key not in payload:
@@ -204,7 +229,40 @@ def validate_pipeline_latest_index_without_jsonschema(payload: dict[str, Any]) -
         errors.append("$.status: must be one of ['ok', 'fail', 'running', 'aborted'] when present")
     if "date" in payload and (not isinstance(payload.get("date"), str) or not DATE_RE.match(str(payload.get("date") or ""))):
         errors.append("$.date: must match YYYY-MM-DD when present")
-    for key in allowed - {"task_id", "run_id", "status", "date"}:
+    if "started_at_utc" in payload and not _is_non_empty_string(payload.get("started_at_utc")):
+        errors.append("$.started_at_utc: must be non-empty string when present")
+    if "finished_at_utc" in payload and not isinstance(payload.get("finished_at_utc"), str):
+        errors.append("$.finished_at_utc: must be string when present")
+    if "run_type" in payload and str(payload.get("run_type") or "") not in {"planned-only", "preflight-only", "llm-only", "deterministic-only", "full"}:
+        errors.append("$.run_type: must be a known pipeline run type when present")
+    if "reason" in payload and not _is_non_empty_string(payload.get("reason")):
+        errors.append("$.reason: must be non-empty string when present")
+    if "reuse_mode" in payload and str(payload.get("reuse_mode") or "") not in {"none", "full-clean-reuse", "deterministic-only-reuse", "sc-test-reuse", "mixed-reuse"}:
+        errors.append("$.reuse_mode: must be a known reuse mode when present")
+    if "deterministic_bundle" in payload:
+        bundle = payload.get("deterministic_bundle")
+        if not isinstance(bundle, dict):
+            errors.append("$.deterministic_bundle: must be object when present")
+        else:
+            required_bundle = {"available", "reuse_mode", "test_summary_path", "acceptance_summary_path", "reported_out_dirs"}
+            for key in required_bundle:
+                if key not in bundle:
+                    errors.append(f"$.deterministic_bundle.{key}: missing required property")
+            for key in bundle.keys():
+                if key not in required_bundle:
+                    errors.append(f"$.deterministic_bundle.{key}: unexpected property")
+            if "available" in bundle and not isinstance(bundle.get("available"), bool):
+                errors.append("$.deterministic_bundle.available: must be boolean")
+            if "reuse_mode" in bundle and str(bundle.get("reuse_mode") or "") not in {"none", "full-clean-reuse", "deterministic-only-reuse", "sc-test-reuse", "mixed-reuse"}:
+                errors.append("$.deterministic_bundle.reuse_mode: must be a known reuse mode")
+            for key in ("test_summary_path", "acceptance_summary_path"):
+                if key in bundle and not isinstance(bundle.get(key), str):
+                    errors.append(f"$.deterministic_bundle.{key}: must be string")
+            if "reported_out_dirs" in bundle and (not isinstance(bundle.get("reported_out_dirs"), list) or not all(isinstance(v, str) for v in bundle.get("reported_out_dirs", []))):
+                errors.append("$.deterministic_bundle.reported_out_dirs: must be array of strings")
+    if "diagnostics" in payload and not isinstance(payload.get("diagnostics"), dict):
+        errors.append("$.diagnostics: must be object when present")
+    for key in allowed - {"task_id", "run_id", "status", "date", "reason", "reuse_mode", "deterministic_bundle", "diagnostics"}:
         if key in payload and not isinstance(payload.get(key), str):
             errors.append(f"$.{key}: must be string when present")
     return errors

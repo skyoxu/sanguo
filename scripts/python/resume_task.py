@@ -12,9 +12,13 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT / "scripts" / "python") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts" / "python"))
+if str(REPO_ROOT / "scripts" / "sc") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "scripts" / "sc"))
 
 from inspect_run import inspect_run_artifacts  # noqa: E402
 from validate_recovery_docs import extract_repo_paths, is_readme, is_template, parse_fields  # noqa: E402
+from _active_task_sidecar import write_active_task_sidecar  # noqa: E402
+from _chapter6_recovery_common import chapter6_stop_loss_note as _chapter6_stop_loss_note  # noqa: E402
 
 
 def _repo_rel(root: Path, path: Path | None) -> str:
@@ -111,6 +115,19 @@ def _active_task_json_path(root: Path, task_id: str) -> Path:
     return root / "logs" / "ci" / "active-tasks" / f"task-{task_id}.active.json"
 
 
+def _resolve_latest_out_dir(root: Path, latest_payload: dict[str, Any]) -> Path | None:
+    for key in ("latest_out_dir", "summary_path", "execution_context_path", "repair_guide_json_path", "repair_guide_md_path"):
+        raw = str(latest_payload.get(key) or "").strip()
+        if not raw:
+            continue
+        candidate = _resolve_path(root, raw)
+        if key != "latest_out_dir":
+            candidate = candidate.parent
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def _load_active_task(root: Path, task_id: str) -> dict[str, Any]:
     if not task_id:
         return {}
@@ -123,6 +140,105 @@ def _load_active_task(root: Path, task_id: str) -> dict[str, Any]:
         return {}
     payload["_path"] = _repo_rel(root, path)
     return payload
+
+
+def _normalized_active_task_snapshot(active_task: dict[str, Any], *, inspection_latest: str) -> dict[str, Any]:
+    paths = active_task.get("paths") if isinstance(active_task.get("paths"), dict) else {}
+    reported_latest = str(paths.get("latest_json") or "").strip()
+    resolved_latest = str(inspection_latest or "").strip() or reported_latest
+    payload = {
+        "path": str(active_task.get("_path") or ""),
+        "status": str(active_task.get("status") or "").strip(),
+        "recommended_action": str(active_task.get("recommended_action") or "").strip(),
+        "recommended_action_why": str(active_task.get("recommended_action_why") or "").strip(),
+        "latest_json": resolved_latest,
+    }
+    if reported_latest and reported_latest != resolved_latest:
+        payload["reported_latest_json"] = reported_latest
+        payload["latest_json_mismatch"] = True
+    else:
+        payload["reported_latest_json"] = reported_latest
+        payload["latest_json_mismatch"] = False
+    return payload
+
+
+def _repair_active_task_latest_pointer(root: Path, *, task_id: str, resolved_latest: str) -> dict[str, Any]:
+    if not task_id or not resolved_latest:
+        return {"repaired": False}
+    json_path = _active_task_json_path(root, task_id)
+    if not json_path.exists():
+        return {"repaired": False}
+    try:
+        payload = _read_json(json_path)
+    except Exception:
+        return {"repaired": False}
+    paths = payload.get("paths") if isinstance(payload.get("paths"), dict) else {}
+    reported_latest = str(paths.get("latest_json") or "").strip()
+    if not reported_latest or reported_latest == resolved_latest:
+        return {"repaired": False, "reported_latest_json": reported_latest, "latest_json": resolved_latest}
+    latest_path = _resolve_path(root, resolved_latest)
+    rebuilt = False
+    if latest_path.exists():
+        try:
+            latest_payload = _read_json(latest_path)
+        except Exception:
+            latest_payload = {}
+        rebuilt_out_dir = _resolve_latest_out_dir(root, latest_payload)
+        rebuilt_run_id = str(latest_payload.get("run_id") or "").strip()
+        rebuilt_status = str(latest_payload.get("status") or "").strip() or "ok"
+        if rebuilt_out_dir is not None and rebuilt_run_id:
+            try:
+                write_active_task_sidecar(
+                    task_id=task_id,
+                    run_id=rebuilt_run_id,
+                    status=rebuilt_status,
+                    out_dir=rebuilt_out_dir,
+                    latest_json_path=latest_path,
+                    root=root,
+                )
+                rebuilt = True
+            except Exception:
+                rebuilt = False
+    if rebuilt:
+        try:
+            rebuilt_payload = _read_json(json_path)
+        except Exception:
+            rebuilt_payload = {}
+        if isinstance(rebuilt_payload, dict):
+            rebuilt_payload["reported_latest_json"] = reported_latest
+            rebuilt_payload["latest_json_mismatch"] = False
+            rebuilt_payload["latest_json_repaired"] = True
+            json_path.write_text(json.dumps(rebuilt_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+        return {
+            "repaired": True,
+            "reported_latest_json": reported_latest,
+            "latest_json": resolved_latest,
+            "path": _repo_rel(root, json_path),
+            "rebuild_mode": "sidecar",
+        }
+    paths["latest_json"] = resolved_latest
+    payload["paths"] = paths
+    json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+    md_path = json_path.with_suffix(".md")
+    if md_path.exists():
+        lines = md_path.read_text(encoding="utf-8").splitlines()
+        updated_lines: list[str] = []
+        replaced = False
+        for line in lines:
+            if line.startswith("- Latest pointer:"):
+                updated_lines.append(f"- Latest pointer: `{resolved_latest}`")
+                replaced = True
+            else:
+                updated_lines.append(line)
+        if replaced:
+            md_path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8", newline="\n")
+    return {
+        "repaired": True,
+        "reported_latest_json": reported_latest,
+        "latest_json": resolved_latest,
+        "path": _repo_rel(root, json_path),
+    }
 
 
 def _fallback_recommendation(inspection: dict[str, Any], task_id: str) -> tuple[str, str, str, list[str]]:
@@ -142,7 +258,7 @@ def _fallback_recommendation(inspection: dict[str, Any], task_id: str) -> tuple[
             "Inspection reported status=ok, so no follow-up action is required before continuing local work.",
             signals,
         )
-    if failure_code in {"schema-invalid", "stale-latest", "artifact-missing"}:
+    if failure_code in {"schema-invalid", "stale-latest", "artifact-missing", "artifact-incomplete"}:
         return (
             "rerun",
             "inspection",
@@ -172,6 +288,8 @@ def _fallback_recommendation(inspection: dict[str, Any], task_id: str) -> tuple[
     )
 
 
+
+
 def _recommendation_from_agent_review(agent_review: dict[str, Any]) -> tuple[str, str, list[str]] | None:
     explain = agent_review.get("explain") if isinstance(agent_review.get("explain"), dict) else {}
     recommended_action = str(explain.get("recommended_action") or agent_review.get("recommended_action") or "").strip().lower()
@@ -188,6 +306,26 @@ def _recommendation_from_agent_review(agent_review: dict[str, Any]) -> tuple[str
     return recommended_action, (summary or "Agent review supplied the recovery recommendation."), signals
 
 
+def _recommendation_from_active_task(active_task: dict[str, Any]) -> tuple[str, str, list[str]] | None:
+    recommended_action = str(active_task.get("recommended_action") or "").strip().lower()
+    if not recommended_action or recommended_action in {"continue", "none"}:
+        return None
+    why = str(active_task.get("recommended_action_why") or "").strip()
+    clean_state = active_task.get("clean_state") if isinstance(active_task.get("clean_state"), dict) else {}
+    signals = [f"active_task.recommended_action={recommended_action}"]
+    state = str(clean_state.get("state") or "").strip()
+    if state:
+        signals.append(f"active_task.clean_state={state}")
+    llm_status = str(clean_state.get("llm_status") or "").strip()
+    if llm_status:
+        signals.append(f"active_task.llm_status={llm_status}")
+    for agent in clean_state.get("needs_fix_agents") or []:
+        signals.append(f"active_task.needs_fix_agent={agent}")
+    for agent in clean_state.get("unknown_agents") or []:
+        signals.append(f"active_task.unknown_agent={agent}")
+    return recommended_action, (why or "Active task sidecar supplied the recovery recommendation."), signals
+
+
 def _candidate_commands(task_id: str, latest: str) -> dict[str, str]:
     inspect_cmd = ["py", "-3", "scripts/python/inspect_run.py", "--kind", "pipeline"]
     if latest:
@@ -199,11 +337,13 @@ def _candidate_commands(task_id: str, latest: str) -> dict[str, str]:
         "resume": "",
         "fork": "",
         "rerun": "",
+        "needs_fix_fast": "",
     }
     if task_id:
         commands["resume"] = f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id} --resume"
         commands["fork"] = f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id} --fork"
         commands["rerun"] = f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id}"
+        commands["needs_fix_fast"] = f"py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id {task_id} --delivery-profile fast-ship --rerun-failing-only --max-rounds 1"
     return commands
 
 
@@ -215,10 +355,6 @@ def build_resume_payload(
     run_id: str,
 ) -> tuple[int, dict[str, Any]]:
     active_task = _load_active_task(repo_root, task_id)
-    if not latest:
-        latest = str(((active_task.get("paths") or {}).get("latest_json")) or "").strip()
-    if not run_id:
-        run_id = str(active_task.get("run_id") or "").strip()
     inspection_rc, inspection = inspect_run_artifacts(
         repo_root=repo_root,
         latest=latest,
@@ -232,14 +368,65 @@ def build_resume_payload(
     out_dir_rel = str(((inspection.get("paths") or {}).get("out_dir")) or "").strip()
     active_task = _load_active_task(repo_root, resolved_task_id)
     agent_review = _load_optional_agent_review(repo_root, out_dir_rel)
+    inspection_latest_summary = inspection.get("latest_summary_signals") if isinstance(inspection.get("latest_summary_signals"), dict) else {}
+    recent_failure_summary = inspection.get("recent_failure_summary") if isinstance(inspection.get("recent_failure_summary"), dict) else {}
+    latest_reason = str(inspection_latest_summary.get("reason") or "").strip()
+    latest_run_type = str(inspection_latest_summary.get("run_type") or "").strip()
+    latest_reuse_mode = str(inspection_latest_summary.get("reuse_mode") or "").strip()
+    latest_diagnostics_keys = [
+        str(item).strip()
+        for item in list(inspection_latest_summary.get("diagnostics_keys") or [])
+        if str(item).strip()
+    ]
+    latest_artifact_integrity_kind = str(inspection_latest_summary.get("artifact_integrity_kind") or "").strip()
+    if latest_rel and (
+        not latest_reason
+        or not latest_run_type
+        or not latest_reuse_mode
+        or not latest_diagnostics_keys
+        or not latest_artifact_integrity_kind
+    ):
+        latest_path = _resolve_path(repo_root, latest_rel)
+        if latest_path.exists():
+            try:
+                latest_payload = _read_json(latest_path)
+            except Exception:
+                latest_payload = {}
+            latest_reason = latest_reason or str(latest_payload.get("reason") or "").strip()
+            latest_run_type = latest_run_type or str(latest_payload.get("run_type") or "").strip()
+            latest_reuse_mode = latest_reuse_mode or str(latest_payload.get("reuse_mode") or "").strip()
+            latest_diagnostics = latest_payload.get("diagnostics") if isinstance(latest_payload.get("diagnostics"), dict) else {}
+            if not latest_diagnostics_keys:
+                latest_diagnostics_keys = [str(key).strip() for key in latest_diagnostics.keys() if str(key).strip()]
+            if not latest_artifact_integrity_kind:
+                latest_artifact_integrity = latest_diagnostics.get("artifact_integrity") if isinstance(latest_diagnostics.get("artifact_integrity"), dict) else {}
+                latest_artifact_integrity_kind = str(latest_artifact_integrity.get("kind") or "").strip()
+    diagnostics = inspection.get("diagnostics") if isinstance(inspection.get("diagnostics"), dict) else {}
+    artifact_integrity = diagnostics.get("artifact_integrity") if isinstance(diagnostics.get("artifact_integrity"), dict) else {}
+    latest_artifact_integrity_kind = str(artifact_integrity.get("kind") or "").strip() or latest_artifact_integrity_kind
     agent_review_signal = _recommendation_from_agent_review(agent_review)
     if agent_review_signal is not None:
         recommended_action, recommendation_reason, blocking_signals = agent_review_signal
         recommendation_source = "agent-review"
     else:
-        recommended_action, recommendation_source, recommendation_reason, blocking_signals = _fallback_recommendation(inspection, resolved_task_id)
+        active_task_signal = _recommendation_from_active_task(active_task)
+        if active_task_signal is not None:
+            recommended_action, recommendation_reason, blocking_signals = active_task_signal
+            recommendation_source = "active-task"
+        else:
+            recommended_action, recommendation_source, recommendation_reason, blocking_signals = _fallback_recommendation(inspection, resolved_task_id)
+    if bool(recent_failure_summary.get("stop_full_rerun_recommended")):
+        family = str(recent_failure_summary.get("latest_failure_family") or "").strip()
+        same_family_count = int(recent_failure_summary.get("same_family_count") or 0)
+        blocking_signals = list(blocking_signals) + [
+            f"recent_failure.same_family_count={same_family_count}",
+            f"recent_failure.stop_full_rerun_recommended={str(bool(recent_failure_summary.get('stop_full_rerun_recommended'))).lower()}",
+        ]
+        if family:
+            blocking_signals.append(f"recent_failure.family={family}")
     plans = _find_related_docs(repo_root, "execution-plans", task_id=resolved_task_id, run_id=resolved_run_id, latest_rel=latest_rel)
     logs = _find_related_docs(repo_root, "decision-logs", task_id=resolved_task_id, run_id=resolved_run_id, latest_rel=latest_rel)
+    active_task_snapshot = _normalized_active_task_snapshot(active_task, inspection_latest=latest_rel)
     payload: dict[str, Any] = {
         "task_id": resolved_task_id,
         "run_id": resolved_run_id,
@@ -252,6 +439,15 @@ def build_resume_payload(
         "candidate_commands": _candidate_commands(resolved_task_id, latest or latest_rel),
         "inspection_exit_code": inspection_rc,
         "inspection": inspection,
+        "recent_failure_summary": recent_failure_summary,
+        "latest_summary_signals": {
+            "reason": latest_reason,
+            "run_type": latest_run_type,
+            "reuse_mode": latest_reuse_mode,
+            "artifact_integrity_kind": latest_artifact_integrity_kind,
+            "diagnostics_keys": latest_diagnostics_keys,
+        },
+        "chapter6_hints": dict(inspection.get("chapter6_hints") or {}) if isinstance(inspection.get("chapter6_hints"), dict) else {},
         "related_execution_plans": plans,
         "latest_execution_plan": plans[0] if plans else "",
         "related_decision_logs": logs,
@@ -262,13 +458,7 @@ def build_resume_payload(
             "recommended_action": str(((agent_review.get("explain") or {}).get("recommended_action") or agent_review.get("recommended_action") or "")).strip(),
             "summary": str(((agent_review.get("explain") or {}).get("summary") or "")).strip(),
         },
-        "active_task": {
-            "path": str(active_task.get("_path") or ""),
-            "status": str(active_task.get("status") or "").strip(),
-            "recommended_action": str(active_task.get("recommended_action") or "").strip(),
-            "recommended_action_why": str(active_task.get("recommended_action_why") or "").strip(),
-            "latest_json": str(((active_task.get("paths") or {}).get("latest_json")) or "").strip(),
-        },
+        "active_task": active_task_snapshot,
     }
     return inspection_rc, payload
 
@@ -278,6 +468,10 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     failure = inspection.get("failure") or {}
     paths = inspection.get("paths") or {}
     commands = payload.get("candidate_commands") or {}
+    latest_summary_signals = payload.get("latest_summary_signals") if isinstance(payload.get("latest_summary_signals"), dict) else {}
+    chapter6_hints = payload.get("chapter6_hints") if isinstance(payload.get("chapter6_hints"), dict) else {}
+    recent_failure_summary = payload.get("recent_failure_summary") if isinstance(payload.get("recent_failure_summary"), dict) else {}
+    stop_loss_note = _chapter6_stop_loss_note(chapter6_hints, latest_summary_signals)
     def _line(key: str, value: str) -> str:
         return f"- {key}: {value}"
     lines = [
@@ -293,6 +487,35 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         _line("Inspection status", str(inspection.get("status") or "unknown")),
         _line("Failure code", str(failure.get("code") or "unknown")),
         _line("Latest pointer", f"`{paths.get('latest')}`" if paths.get("latest") else "n/a"),
+        _line("Latest reason", str(latest_summary_signals.get("reason") or "n/a")),
+        _line("Latest run type", str(latest_summary_signals.get("run_type") or "n/a")),
+        _line("Latest reuse mode", str(latest_summary_signals.get("reuse_mode") or "n/a")),
+        _line("Latest artifact integrity", str(latest_summary_signals.get("artifact_integrity_kind") or "none")),
+        _line(
+            "Latest diagnostics keys",
+            ", ".join(f"`{item}`" for item in list(latest_summary_signals.get("diagnostics_keys") or []))
+            if list(latest_summary_signals.get("diagnostics_keys") or [])
+            else "none",
+        ),
+        _line("Chapter6 next action", str(chapter6_hints.get("next_action") or "n/a")),
+        _line("Chapter6 can skip 6.7", "yes" if bool(chapter6_hints.get("can_skip_6_7")) else "no"),
+        _line("Chapter6 can go to 6.8", "yes" if bool(chapter6_hints.get("can_go_to_6_8")) else "no"),
+        _line("Chapter6 blocked by", str(chapter6_hints.get("blocked_by") or "n/a")),
+        _line("Chapter6 rerun forbidden", "yes" if bool(chapter6_hints.get("rerun_forbidden")) else "no"),
+        _line("Chapter6 rerun override", str(chapter6_hints.get("rerun_override_flag") or "n/a")),
+        _line("Chapter6 stop-loss note", stop_loss_note or "n/a"),
+        _line(
+            "Recent failure family",
+            str(recent_failure_summary.get("latest_failure_family") or "n/a"),
+        ),
+        _line(
+            "Recent same-family count",
+            str(int(recent_failure_summary.get("same_family_count") or 0)) if recent_failure_summary else "0",
+        ),
+        _line(
+            "Recent stop-full-rerun",
+            "yes" if bool(recent_failure_summary.get("stop_full_rerun_recommended")) else "no",
+        ),
         _line("Pipeline out dir", f"`{paths.get('out_dir')}`" if paths.get("out_dir") else "n/a"),
         _line("Latest execution plan", f"`{payload.get('latest_execution_plan')}`" if payload.get("latest_execution_plan") else "none"),
         _line("Latest decision log", f"`{payload.get('latest_decision_log')}`" if payload.get("latest_decision_log") else "none"),
@@ -300,6 +523,7 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         _line("Resume command", f"`{commands.get('resume')}`" if commands.get("resume") else "n/a"),
         _line("Fork command", f"`{commands.get('fork')}`" if commands.get("fork") else "n/a"),
         _line("Rerun command", f"`{commands.get('rerun')}`" if commands.get("rerun") else "n/a"),
+        _line("Needs Fix command", f"`{commands.get('needs_fix_fast')}`" if commands.get("needs_fix_fast") else "n/a"),
     ]
     agent_review = payload.get("agent_review") or {}
     active_task = payload.get("active_task") or {}
@@ -317,8 +541,23 @@ def _render_markdown(payload: dict[str, Any]) -> str:
                 _line("Active task summary", f"`{active_task.get('path')}`"),
                 _line("Active task status", str(active_task.get("status") or "unknown")),
                 _line("Active task recommendation", str(active_task.get("recommended_action") or "n/a")),
+                _line("Active task latest pointer", f"`{active_task.get('latest_json')}`" if active_task.get("latest_json") else "n/a"),
             ]
         )
+        if bool(active_task.get("latest_json_repaired")) and active_task.get("reported_latest_json"):
+            lines.append(
+                _line(
+                    "Active task latest pointer repaired from",
+                    f"`{active_task.get('reported_latest_json')}`",
+                )
+            )
+        if bool(active_task.get("latest_json_mismatch")) and active_task.get("reported_latest_json"):
+            lines.append(
+                _line(
+                    "Active task reported latest pointer",
+                    f"`{active_task.get('reported_latest_json')}`",
+                )
+            )
     related_plans = payload.get("related_execution_plans") or []
     related_logs = payload.get("related_decision_logs") or []
     blocking_signals = payload.get("blocking_signals") or []
@@ -358,6 +597,18 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as exc:
         print(f"ERROR: failed to build task resume summary: {exc}", file=sys.stderr)
         return 2
+    active_task = payload.get("active_task") if isinstance(payload.get("active_task"), dict) else {}
+    repair = _repair_active_task_latest_pointer(
+        root,
+        task_id=str(payload.get("task_id") or task_id or "").strip(),
+        resolved_latest=str((((payload.get("inspection") or {}).get("paths") or {}).get("latest")) or "").strip(),
+    )
+    if bool(repair.get("repaired")):
+        active_task["latest_json"] = str(repair.get("latest_json") or active_task.get("latest_json") or "").strip()
+        active_task["reported_latest_json"] = str(repair.get("reported_latest_json") or active_task.get("reported_latest_json") or "").strip()
+        active_task["latest_json_mismatch"] = False
+        active_task["latest_json_repaired"] = True
+        payload["active_task"] = active_task
 
     out_json, out_md = _default_output_paths(root, str(payload.get("task_id") or task_id or "unknown"))
     if str(args.out_json or "").strip():

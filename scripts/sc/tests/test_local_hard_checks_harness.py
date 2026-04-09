@@ -34,6 +34,31 @@ local_hard_checks_harness = _load_module(
 
 
 class LocalHardChecksHarnessTests(unittest.TestCase):
+    def test_run_without_godot_bin_should_resolve_test_solution_when_auto(self) -> None:
+        commands: list[list[str]] = []
+
+        def runner(cmd: list[str]) -> int:
+            commands.append(list(cmd))
+            return 0
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "local-hard-checks-demo"
+            with mock.patch.object(
+                local_hard_checks_harness,
+                "resolve_test_solution_arg",
+                return_value="Game.sln",
+            ) as resolve_mock:
+                rc = local_hard_checks_harness.run_local_hard_checks(
+                    delivery_profile="standard",
+                    run_id="local-demo",
+                    out_dir=str(out_dir),
+                    run_fn=runner,
+                )
+
+        self.assertEqual(0, rc)
+        resolve_mock.assert_called_once_with("")
+        self.assertEqual("Game.sln", commands[2][commands[2].index("--solution") + 1])
+
     def test_run_without_godot_bin_should_write_protocol_sidecars_and_two_steps(self) -> None:
         commands: list[list[str]] = []
 

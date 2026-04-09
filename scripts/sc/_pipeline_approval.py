@@ -32,6 +32,12 @@ def _stable_unique(values: list[str]) -> list[str]:
 def _fork_requested(summary: dict[str, Any], repair_guide: dict[str, Any], marathon_state: dict[str, Any], *, explicit_fork: bool) -> tuple[bool, str]:
     if explicit_fork:
         return True, "Operator requested a forked continuation run."
+    approval = repair_guide.get("approval") if isinstance(repair_guide.get("approval"), dict) else {}
+    approval_required_action = str(approval.get("required_action") or "").strip().lower()
+    approval_status = str(approval.get("status") or "").strip().lower()
+    approval_reason = str(approval.get("reason") or "").strip()
+    if approval_required_action == "fork" and approval_status in {"pending", "approved", "denied", "invalid", "mismatched"}:
+        return True, approval_reason or "Existing fork approval state is still active for this run."
     agent_review = (marathon_state.get("agent_review") or {}) if isinstance(marathon_state, dict) else {}
     if str(agent_review.get("recommended_action") or "").strip().lower() == "fork":
         reasons = [str(item) for item in (agent_review.get("recommended_refresh_reasons") or []) if str(item).strip()]

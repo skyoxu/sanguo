@@ -5,14 +5,15 @@ from typing import Any
 
 from _summary_schema_local_hard_checks import validate_local_hard_checks_without_jsonschema as _validate_local_hard_checks_impl
 
-RUN_ID_RE = re.compile(r"^[A-Fa-f0-9]{32}$")
+RUN_ID_RE = re.compile(r"^([A-Fa-f0-9]{32}|[A-Za-z0-9][A-Za-z0-9._:-]{2,127})$")
 TASK_ID_RE = re.compile(r"^[0-9]+$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
-PIPELINE_STEP_NAMES = {"sc-test", "sc-acceptance-check", "sc-llm-review"}
+PIPELINE_STEP_NAMES = {"sc-test", "sc-acceptance-check", "sc-llm-review", "sc-build-tdd-refactor-preflight"}
 PIPELINE_STEP_STATUS = {"ok", "fail", "skipped", "planned"}
 PIPELINE_SUMMARY_STATUS = {"ok", "fail"}
+PIPELINE_REUSE_MODE = {"none", "full-clean-reuse", "deterministic-only-reuse", "sc-test-reuse", "mixed-reuse"}
 
 SC_TEST_TYPES = {"unit", "integration", "e2e", "all"}
 SC_TEST_STEP_STATUS = {"ok", "fail", "skipped"}
@@ -70,8 +71,14 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         "force_new_run_id",
         "status",
         "steps",
+        "started_at_utc",
+        "finished_at_utc",
+        "elapsed_sec",
+        "run_type",
+        "reason",
+        "reuse_mode",
     }
-    allowed = required
+    allowed = required | {"diagnostics"}
     for key in required:
         if key not in payload:
             errors.append(f"$.{key}: missing required property")
@@ -101,6 +108,21 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
     status = payload.get("status")
     if not isinstance(status, str) or status not in PIPELINE_SUMMARY_STATUS:
         errors.append("$.status: must be one of ['ok', 'fail']")
+    if not _is_non_empty_string(payload.get("started_at_utc")):
+        errors.append("$.started_at_utc: must be non-empty string")
+    if not isinstance(payload.get("finished_at_utc"), str):
+        errors.append("$.finished_at_utc: must be string")
+    if not _is_int_not_bool(payload.get("elapsed_sec")) or int(payload.get("elapsed_sec") or 0) < 0:
+        errors.append("$.elapsed_sec: must be integer >= 0")
+    if str(payload.get("run_type") or "") not in {"planned-only", "preflight-only", "llm-only", "deterministic-only", "full"}:
+        errors.append("$.run_type: must be a known pipeline run type")
+    if not _is_non_empty_string(payload.get("reason")):
+        errors.append("$.reason: must be non-empty string")
+    reuse_mode = payload.get("reuse_mode")
+    if not isinstance(reuse_mode, str) or reuse_mode not in PIPELINE_REUSE_MODE:
+        errors.append(f"$.reuse_mode: must be one of {sorted(PIPELINE_REUSE_MODE)}")
+    if "diagnostics" in payload and not isinstance(payload.get("diagnostics"), dict):
+        errors.append("$.diagnostics: must be object when present")
 
     steps = payload.get("steps")
     if not isinstance(steps, list):

@@ -251,10 +251,10 @@ py -3 scripts/python/run_gdunit.py --prewarm --godot-bin "$env:GODOT_BIN" --proj
 py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project . --scene "res://Game.Godot/Scenes/Main.tscn" --timeout-sec 5 --mode strict
 
 # 直接 dotnet（不推荐作为 CI/取证入口）
-dotnet test GodotGame.sln -c Debug
-dotnet test GodotGame.sln -c Debug --collect:"XPlat Code Coverage"
-dotnet test GodotGame.sln -c Debug --filter "FullyQualifiedName~PlayerTests"
-dotnet test GodotGame.sln -c Debug --logger "console;verbosity=detailed"
+dotnet test Game.sln -c Debug
+dotnet test Game.sln -c Debug --collect:"XPlat Code Coverage"
+dotnet test Game.sln -c Debug --filter "FullyQualifiedName~PlayerTests"
+dotnet test Game.sln -c Debug --logger "console;verbosity=detailed"
 ```
 
 ### 覆盖率目标

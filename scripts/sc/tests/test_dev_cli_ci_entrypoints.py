@@ -182,7 +182,7 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
         self.assertEqual(0, rc)
         run_mock.assert_not_called()
         harness_mock.assert_called_once_with(
-            solution=dev_cli.resolve_solution_path("auto"),
+            solution=dev_cli.resolve_test_solution_path("auto"),
             configuration="Debug",
             godot_bin="C:/Godot/Godot.exe",
             delivery_profile="standard",
@@ -199,7 +199,7 @@ class DevCliCiEntrypointsTests(unittest.TestCase):
 
         self.assertEqual(7, rc)
         harness_mock.assert_called_once_with(
-            solution=dev_cli.resolve_solution_path("auto"),
+            solution=dev_cli.resolve_test_solution_path("auto"),
             configuration="Debug",
             godot_bin="",
             delivery_profile="",

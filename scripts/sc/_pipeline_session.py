@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
+
+from _pipeline_helpers import has_materialized_pipeline_steps
 
 
 @dataclass
@@ -44,9 +48,19 @@ class PipelineSession:
     mark_wall_time_exceeded: Callable[[dict[str, Any]], dict[str, Any]]
     cap_step_timeout: Callable[[int, dict[str, Any]], int]
     run_agent_review_post_hook: Callable[..., tuple[int, dict[str, Any]]]
+    refresh_summary_meta: Callable[[dict[str, Any]], None]
+
+    def _should_publish_recovery_sidecars(self) -> bool:
+        return not bool(getattr(self.args, "dry_run", False)) and has_materialized_pipeline_steps(self.summary)
 
     def persist(self) -> bool:
+        self.refresh_summary_meta(self.summary)
         self.marathon_state = self.apply_runtime_policy(self.marathon_state)
+        diagnostics = self.marathon_state.get("diagnostics")
+        if isinstance(diagnostics, dict):
+            self.summary["diagnostics"] = dict(diagnostics)
+        else:
+            self.summary.pop("diagnostics", None)
         if isinstance(self.marathon_state.get("agent_review"), dict):
             self.marathon_state = self.apply_agent_review_signal(self.marathon_state, self.marathon_state["agent_review"])
         try:
@@ -55,7 +69,8 @@ class PipelineSession:
             self.write_text(self.schema_error_log, f"{exc}\n")
             self.write_json(self.out_dir / "summary.invalid.json", self.summary)
             self.save_marathon_state(self.out_dir, self.marathon_state)
-            self.write_latest_index(task_id=self.task_id, run_id=self.run_id, out_dir=self.out_dir, status="fail")
+            if self._should_publish_recovery_sidecars():
+                self.write_latest_index(task_id=self.task_id, run_id=self.run_id, out_dir=self.out_dir, status="fail")
             print(f"[sc-review-pipeline] ERROR: summary schema validation failed. details={self.schema_error_log}")
             return False
 
@@ -126,18 +141,19 @@ class PipelineSession:
                 status=str(event_payload.get("status") or "") or None,
                 details=dict(event_payload.get("details") or {}),
             )
-        self.write_latest_index(
-            task_id=self.task_id,
-            run_id=self.run_id,
-            out_dir=self.out_dir,
-            status=str(self.summary.get("status", "fail")),
-        )
-        self.write_active_task_sidecar(
-            task_id=self.task_id,
-            run_id=self.run_id,
-            out_dir=self.out_dir,
-            status=str(self.summary.get("status", "fail")),
-        )
+        if self._should_publish_recovery_sidecars():
+            self.write_latest_index(
+                task_id=self.task_id,
+                run_id=self.run_id,
+                out_dir=self.out_dir,
+                status=str(self.summary.get("status", "fail")),
+            )
+            self.write_active_task_sidecar(
+                task_id=self.task_id,
+                run_id=self.run_id,
+                out_dir=self.out_dir,
+                status=str(self.summary.get("status", "fail")),
+            )
         return True
 
     def add_step(self, step: dict[str, Any]) -> bool:
@@ -154,6 +170,54 @@ class PipelineSession:
         if not self.persist():
             return False
         return step.get("status") != "fail"
+
+    def _current_step_map(self) -> dict[str, dict[str, Any]]:
+        steps = self.summary.get("steps") if isinstance(self.summary.get("steps"), list) else []
+        return {
+            str(item.get("name") or "").strip(): item
+            for item in steps
+            if isinstance(item, dict) and str(item.get("name") or "").strip()
+        }
+
+    def _should_stop_retry_after_timeout(self, step_name: str) -> bool:
+        if str(step_name or "").strip() != "sc-llm-review":
+            return False
+        step_state = (self.marathon_state.get("steps") or {}).get(step_name, {})
+        if str(step_state.get("status") or "").strip().lower() != "fail":
+            return False
+        if int(step_state.get("last_rc") or 0) != 124:
+            return False
+        step_map = self._current_step_map()
+        sc_test_status = str((step_map.get("sc-test") or {}).get("status") or "").strip().lower()
+        acceptance_status = str((step_map.get("sc-acceptance-check") or {}).get("status") or "").strip().lower()
+        return sc_test_status == "ok" and acceptance_status == "ok"
+
+    def _should_stop_retry_after_sc_test_unit_failure(self, step_name: str) -> bool:
+        if str(step_name or "").strip() != "sc-test":
+            return False
+        step_state = (self.marathon_state.get("steps") or {}).get(step_name, {})
+        if str(step_state.get("status") or "").strip().lower() != "fail":
+            return False
+        summary_file = str(step_state.get("summary_file") or "").strip()
+        if not summary_file:
+            return False
+        summary_path = Path(summary_file)
+        if not summary_path.exists():
+            return False
+        try:
+            payload = json.loads(summary_path.read_text(encoding="utf-8"))
+        except Exception:
+            return False
+        if not isinstance(payload, dict):
+            return False
+        steps = payload.get("steps") if isinstance(payload.get("steps"), list) else []
+        step_map = {
+            str(item.get("name") or "").strip(): item
+            for item in steps
+            if isinstance(item, dict) and str(item.get("name") or "").strip()
+        }
+        unit_status = str((step_map.get("unit") or {}).get("status") or "").strip().lower()
+        return unit_status == "fail"
 
     def execute_steps(self, steps: list[tuple[str, list[str], int, bool]], *, resume_or_fork: bool) -> int | None:
         halt_pipeline = False
@@ -191,6 +255,24 @@ class PipelineSession:
                     break
                 if self.schema_error_log.exists():
                     return 2
+                if self._should_stop_retry_after_timeout(step_name):
+                    diagnostics = self.marathon_state.setdefault("diagnostics", {})
+                    if isinstance(diagnostics, dict):
+                        diagnostics["llm_retry_stop_loss"] = {
+                            "kind": "single_timeout_after_deterministic_green",
+                            "blocked": True,
+                            "step_name": step_name,
+                        }
+                    break
+                if self._should_stop_retry_after_sc_test_unit_failure(step_name):
+                    diagnostics = self.marathon_state.setdefault("diagnostics", {})
+                    if isinstance(diagnostics, dict):
+                        diagnostics["sc_test_retry_stop_loss"] = {
+                            "kind": "unit_failure_known",
+                            "blocked": True,
+                            "step_name": step_name,
+                        }
+                    break
                 if not self.can_retry_failed_step(self.marathon_state, step_name):
                     break
             if halt_pipeline:
@@ -218,6 +300,9 @@ class PipelineSession:
                 return post_hook_rc
         else:
             self._append_run_completed(agent_review_rc=0)
+        self.summary["finished_at_utc"] = datetime.now(timezone.utc).isoformat()
+        if not self.persist():
+            return 2
         return 0 if self.summary["status"] == "ok" else 1
 
     def _append_run_completed(self, *, agent_review_rc: int) -> None:

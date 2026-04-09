@@ -124,6 +124,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 run_id,
                 '--delivery-profile',
                 'playable-ea',
+                '--reselect-profile',
                 '--skip-test',
                 '--skip-acceptance',
                 '--skip-llm-review',
@@ -158,6 +159,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 run_id,
                 '--delivery-profile',
                 'fast-ship',
+                '--reselect-profile',
                 '--skip-test',
                 '--skip-acceptance',
                 '--skip-llm-review',
@@ -194,6 +196,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 run_id,
                 '--delivery-profile',
                 'standard',
+                '--reselect-profile',
                 '--skip-test',
                 '--skip-acceptance',
                 '--skip-llm-review',
@@ -230,9 +233,17 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
         latest = json.loads((REPO_ROOT / 'logs' / 'ci' / out_dir.parent.name / 'sc-review-pipeline-task-1' / 'latest.json').read_text(encoding='utf-8'))
 
         self.assertEqual('ok', summary['status'])
+        self.assertEqual('full', summary['run_type'])
+        self.assertEqual('pipeline_clean', summary['reason'])
         self.assertEqual('pass', agent_review['review_verdict'])
+        self.assertEqual('full', latest['run_type'])
+        self.assertEqual('pipeline_clean', latest['reason'])
         self.assertEqual(str(out_dir / 'agent-review.json'), latest['agent_review_json_path'])
         self.assertEqual(str(out_dir / 'agent-review.md'), latest['agent_review_md_path'])
+        active = json.loads((REPO_ROOT / 'logs' / 'ci' / 'active-tasks' / 'task-1.active.json').read_text(encoding='utf-8'))
+        self.assertEqual('full', active['latest_summary_signals']['run_type'])
+        self.assertEqual('pipeline_clean', active['latest_summary_signals']['reason'])
+        self.assertEqual('', active['latest_summary_signals']['artifact_integrity_kind'])
 
     def test_skip_agent_review_should_not_generate_sidecar_outputs(self) -> None:
         with self._refactor_summary_fixture():
@@ -257,7 +268,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
 
     def test_dry_run_playable_ea_should_relax_acceptance_and_llm_defaults(self) -> None:
         proc = subprocess.run(
-            [sys.executable, str(SCRIPT), '--task-id', '1', '--delivery-profile', 'playable-ea', '--dry-run', '--skip-test'],
+            [sys.executable, str(SCRIPT), '--task-id', '1', '--delivery-profile', 'playable-ea', '--reselect-profile', '--dry-run', '--skip-test'],
             cwd=str(REPO_ROOT),
             env=_stable_subprocess_env(),
             stdout=subprocess.PIPE,
@@ -288,7 +299,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
 
     def test_dry_run_standard_should_keep_strict_acceptance_and_llm_defaults(self) -> None:
         proc = subprocess.run(
-            [sys.executable, str(SCRIPT), '--task-id', '1', '--delivery-profile', 'standard', '--dry-run', '--skip-test'],
+            [sys.executable, str(SCRIPT), '--task-id', '1', '--delivery-profile', 'standard', '--reselect-profile', '--dry-run', '--skip-test'],
             cwd=str(REPO_ROOT),
             env=_stable_subprocess_env(),
             stdout=subprocess.PIPE,
@@ -319,7 +330,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
     def test_delivery_profile_should_set_default_max_step_retries_in_marathon_state(self) -> None:
         with self._refactor_summary_fixture():
             playable = subprocess.run(
-                [sys.executable, str(SCRIPT), '--task-id', '1', '--delivery-profile', 'playable-ea', '--dry-run', '--skip-agent-review'],
+                [sys.executable, str(SCRIPT), '--task-id', '1', '--delivery-profile', 'playable-ea', '--reselect-profile', '--dry-run', '--skip-agent-review', '--allow-large-change-scope-rerun'],
                 cwd=str(REPO_ROOT),
                 env=_stable_subprocess_env(),
                 stdout=subprocess.PIPE,
@@ -328,13 +339,16 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 encoding='utf-8',
                 errors='ignore',
             )
-            self.assertEqual(0, playable.returncode, playable.stdout)
+            self.assertEqual(1, playable.returncode, playable.stdout)
             playable_out = _extract_out_dir(playable.stdout or '')
+            playable_summary = json.loads((playable_out / 'summary.json').read_text(encoding='utf-8'))
             playable_state = json.loads((playable_out / 'marathon-state.json').read_text(encoding='utf-8'))
+            self.assertEqual('planned-only', playable_summary['run_type'])
+            self.assertEqual('planned_only_incomplete', playable_summary['reason'])
             self.assertEqual(1, playable_state['max_step_retries'])
 
             standard = subprocess.run(
-                [sys.executable, str(SCRIPT), '--task-id', '1', '--delivery-profile', 'standard', '--dry-run', '--skip-agent-review'],
+                [sys.executable, str(SCRIPT), '--task-id', '1', '--delivery-profile', 'standard', '--reselect-profile', '--dry-run', '--skip-agent-review', '--allow-large-change-scope-rerun'],
                 cwd=str(REPO_ROOT),
                 env=_stable_subprocess_env(),
                 stdout=subprocess.PIPE,
@@ -343,9 +357,12 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 encoding='utf-8',
                 errors='ignore',
             )
-            self.assertEqual(0, standard.returncode, standard.stdout)
+            self.assertEqual(1, standard.returncode, standard.stdout)
             standard_out = _extract_out_dir(standard.stdout or '')
+            standard_summary = json.loads((standard_out / 'summary.json').read_text(encoding='utf-8'))
             standard_state = json.loads((standard_out / 'marathon-state.json').read_text(encoding='utf-8'))
+            self.assertEqual('planned-only', standard_summary['run_type'])
+            self.assertEqual('planned_only_incomplete', standard_summary['reason'])
             self.assertEqual(0, standard_state['max_step_retries'])
 
     def test_dry_run_fast_ship_should_apply_task_level_minimal_review_tier(self) -> None:
@@ -362,6 +379,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 run_id,
                 "--delivery-profile",
                 "fast-ship",
+                "--reselect-profile",
                 "--dry-run",
                 "--skip-test",
                 "--skip-agent-review",
@@ -400,6 +418,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 run_id,
                 "--delivery-profile",
                 "fast-ship",
+                "--reselect-profile",
                 "--dry-run",
                 "--skip-test",
                 "--skip-agent-review",
@@ -441,6 +460,7 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 run_id,
                 "--delivery-profile",
                 "fast-ship",
+                "--reselect-profile",
                 "--dry-run",
                 "--skip-test",
                 "--skip-agent-review",
@@ -460,6 +480,100 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
             self.assertEqual({"security-auditor": 480}, execution_context["llm_review"]["agent_timeout_overrides"])
             self.assertIn("--agent-timeouts", llm_cmd)
             self.assertEqual("security-auditor=480", llm_cmd[llm_cmd.index("--agent-timeouts") + 1])
+
+    def test_dry_run_should_not_publish_latest_or_active_task_sidecar(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-1" / "latest.json"
+            active_task_path = tmp_root / "logs" / "ci" / "active-tasks" / "task-1.active.json"
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "1",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--reselect-profile",
+                "--dry-run",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, {}, clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertTrue((out_dir / "summary.json").exists())
+            self.assertEqual("planned-only", summary["run_type"])
+            self.assertEqual("planned_only_incomplete", summary["reason"])
+            self.assertFalse(latest_path.exists())
+            self.assertFalse(active_task_path.exists())
+
+    def test_dry_run_should_not_overwrite_existing_latest_pointer(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-1" / "latest.json"
+            latest_path.parent.mkdir(parents=True, exist_ok=True)
+            latest_path.write_text(
+                json.dumps(
+                    {
+                        "task_id": "1",
+                        "run_id": "existingrun",
+                        "status": "ok",
+                        "date": "2026-04-06",
+                        "latest_out_dir": "logs/ci/2026-04-06/sc-review-pipeline-task-1-existingrun",
+                        "summary_path": "logs/ci/2026-04-06/sc-review-pipeline-task-1-existingrun/summary.json",
+                        "execution_context_path": "logs/ci/2026-04-06/sc-review-pipeline-task-1-existingrun/execution-context.json",
+                        "repair_guide_json_path": "logs/ci/2026-04-06/sc-review-pipeline-task-1-existingrun/repair-guide.json",
+                        "repair_guide_md_path": "logs/ci/2026-04-06/sc-review-pipeline-task-1-existingrun/repair-guide.md",
+                        "marathon_state_path": "logs/ci/2026-04-06/sc-review-pipeline-task-1-existingrun/marathon-state.json",
+                        "run_events_path": "logs/ci/2026-04-06/sc-review-pipeline-task-1-existingrun/run-events.jsonl",
+                        "harness_capabilities_path": "logs/ci/2026-04-06/sc-review-pipeline-task-1-existingrun/harness-capabilities.json",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ) + "\n",
+                encoding="utf-8",
+            )
+            before = latest_path.read_text(encoding="utf-8")
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "1",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--reselect-profile",
+                "--dry-run",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, {}, clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("planned-only", summary["run_type"])
+            self.assertEqual("planned_only_incomplete", summary["reason"])
+            self.assertEqual(before, latest_path.read_text(encoding="utf-8"))
 
     def test_derive_llm_agent_timeout_overrides_should_only_escalate_previously_timed_out_agents(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -512,6 +626,215 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
                 )
 
             self.assertEqual({"security-auditor": 480}, overrides)
+
+    def test_resolve_pipeline_profiles_should_reject_explicit_mismatch_on_resume(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "delivery profile"):
+            run_review_pipeline_module._resolve_pipeline_profiles(
+                requested_delivery_profile="fast-ship",
+                requested_security_profile=None,
+                source_execution_context={"delivery_profile": "standard", "security_profile": "strict"},
+                inherit_from_source=True,
+            )
+
+    def test_resolve_pipeline_profiles_should_inherit_source_when_resume_has_no_explicit_profile(self) -> None:
+        delivery_profile, security_profile = run_review_pipeline_module._resolve_pipeline_profiles(
+            requested_delivery_profile=None,
+            requested_security_profile=None,
+            source_execution_context={"delivery_profile": "playable-ea", "security_profile": "host-safe"},
+            inherit_from_source=True,
+        )
+
+        self.assertEqual("playable-ea", delivery_profile)
+        self.assertEqual("host-safe", security_profile)
+
+    def test_resolve_pipeline_profiles_should_reject_non_resume_profile_drift_without_reselect(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "delivery profile mismatch"):
+            run_review_pipeline_module._resolve_pipeline_profiles(
+                requested_delivery_profile="playable-ea",
+                requested_security_profile="host-safe",
+                source_execution_context={"delivery_profile": "fast-ship", "security_profile": "host-safe"},
+                inherit_from_source=True,
+            )
+
+    def test_derive_delivery_profile_floor_should_raise_playable_ea_for_risky_mixed_changes(self) -> None:
+        decision = run_review_pipeline_module._derive_delivery_profile_floor(
+            delivery_profile="playable-ea",
+            security_profile="host-safe",
+            change_scope={
+                "changed_paths": [
+                    "scripts/sc/run_review_pipeline.py",
+                    "Game.Core/Combat/AttackResolver.cs",
+                ],
+                "unsafe_paths": [
+                    "scripts/sc/run_review_pipeline.py",
+                    "Game.Core/Combat/AttackResolver.cs",
+                ],
+            },
+            explicit_security_profile=False,
+        )
+
+        self.assertTrue(decision["applied"])
+        self.assertEqual("fast-ship", decision["delivery_profile"])
+        self.assertEqual("host-safe", decision["security_profile"])
+        self.assertEqual("risky-change-floor", decision["reason"])
+
+    def test_derive_delivery_profile_floor_should_keep_playable_ea_for_semantic_only_changes(self) -> None:
+        decision = run_review_pipeline_module._derive_delivery_profile_floor(
+            delivery_profile="playable-ea",
+            security_profile="host-safe",
+            change_scope={
+                "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                "unsafe_paths": [],
+            },
+            explicit_security_profile=False,
+        )
+
+        self.assertFalse(decision["applied"])
+        self.assertEqual("playable-ea", decision["delivery_profile"])
+        self.assertEqual("host-safe", decision["security_profile"])
+
+    def test_detect_latest_profile_drift_should_report_latest_mismatched_run(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            older = root / "logs" / "ci" / "2026-04-02" / "sc-review-pipeline-task-1-old"
+            older.mkdir(parents=True, exist_ok=True)
+            (older / "execution-context.json").write_text(
+                json.dumps({"run_id": "old", "delivery_profile": "standard", "security_profile": "strict"}, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (older / "summary.json").write_text(json.dumps({"status": "ok"}, ensure_ascii=False) + "\n", encoding="utf-8")
+            current = root / "logs" / "ci" / "2026-04-03" / "sc-review-pipeline-task-1-current"
+
+            with mock.patch.object(run_review_pipeline_module, "repo_root", return_value=root):
+                drift = run_review_pipeline_module._detect_latest_profile_drift(
+                    current_out_dir=current,
+                    task_id="1",
+                    delivery_profile="fast-ship",
+                    security_profile="host-safe",
+                )
+
+            self.assertIsNotNone(drift)
+            assert drift is not None
+            self.assertEqual("standard", drift["previous_delivery_profile"])
+            self.assertEqual("strict", drift["previous_security_profile"])
+            self.assertEqual("fast-ship", drift["current_delivery_profile"])
+            self.assertEqual("host-safe", drift["current_security_profile"])
+
+    def test_derive_llm_agent_timeout_overrides_should_add_complexity_bonus_for_strict_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            previous_run = root / "logs" / "ci" / "2026-04-02" / "sc-review-pipeline-task-1-oldrun"
+            llm_dir = root / "logs" / "ci" / "2026-04-02" / "sc-llm-review-task-1"
+            previous_run.mkdir(parents=True, exist_ok=True)
+            llm_dir.mkdir(parents=True, exist_ok=True)
+            (previous_run / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "task_id": "1",
+                        "steps": [
+                            {
+                                "name": "sc-llm-review",
+                                "status": "fail",
+                                "summary_file": str(llm_dir / "summary.json"),
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (previous_run / "execution-context.json").write_text(
+                json.dumps({"delivery_profile": "standard", "security_profile": "strict"}),
+                encoding="utf-8",
+            )
+            (llm_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "results": [
+                            {"agent": "security-auditor", "status": "fail", "rc": 124, "details": {"verdict": ""}},
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(run_review_pipeline_module, "repo_root", return_value=root):
+                overrides = run_review_pipeline_module._derive_llm_agent_timeout_overrides(
+                    current_out_dir=root / "logs" / "ci" / "2026-04-03" / "sc-review-pipeline-task-1-newrun",
+                    task_id="1",
+                    delivery_profile="standard",
+                    security_profile="strict",
+                    llm_agents="code-reviewer,security-auditor,semantic-equivalence-auditor,architecture-reviewer",
+                    llm_semantic_gate="require",
+                    llm_timeout_sec=900,
+                    llm_agent_timeout_sec=240,
+                )
+
+            self.assertEqual({"security-auditor": 600}, overrides)
+
+    def test_derive_llm_agent_timeout_overrides_should_use_previous_timeout_memory_when_agent_timed_out_again(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            previous_run = root / "logs" / "ci" / "2026-04-02" / "sc-review-pipeline-task-1-oldrun"
+            llm_dir = root / "logs" / "ci" / "2026-04-02" / "sc-llm-review-task-1"
+            previous_run.mkdir(parents=True, exist_ok=True)
+            llm_dir.mkdir(parents=True, exist_ok=True)
+            (previous_run / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "task_id": "1",
+                        "steps": [
+                            {
+                                "name": "sc-llm-review",
+                                "status": "fail",
+                                "summary_file": str(llm_dir / "summary.json"),
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (previous_run / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "llm_review": {
+                            "agent_timeout_sec": 240,
+                            "agent_timeout_overrides": {"security-auditor": 420},
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (llm_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "results": [
+                            {
+                                "agent": "security-auditor",
+                                "status": "fail",
+                                "rc": 124,
+                                "details": {"verdict": "", "agent_timeout_sec": 420},
+                            },
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(run_review_pipeline_module, "repo_root", return_value=root):
+                overrides = run_review_pipeline_module._derive_llm_agent_timeout_overrides(
+                    current_out_dir=root / "logs" / "ci" / "2026-04-03" / "sc-review-pipeline-task-1-newrun",
+                    task_id="1",
+                    delivery_profile="fast-ship",
+                    security_profile="host-safe",
+                    llm_agents="security-auditor",
+                    llm_semantic_gate="warn",
+                    llm_timeout_sec=900,
+                    llm_agent_timeout_sec=240,
+                )
+
+            self.assertEqual({"security-auditor": 540}, overrides)
 
 
 if __name__ == '__main__':

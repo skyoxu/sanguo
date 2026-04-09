@@ -937,6 +937,9 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - Transitive local deps: None.
 - Subcommands: None.
 - Declared args: `--repo-root`, `--latest`, `--kind`, `--task-id`, `--run-id`, `--out-json`
+- Behavior notes: pipeline inspection now extracts `latest_summary_signals` (`reason`, `run_type`, `reuse_mode`, `artifact_integrity`, `diagnostics_keys`) and derived `chapter6_hints` (`next_action`, `can_skip_6_7`, `can_go_to_6_8`, `blocked_by`).
+- Behavior notes: `chapter6_hints.blocked_by` now also covers `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, and `waste_signals`, not only generic rerun guard states.
+- Behavior notes: if inspection resolves `run_type = planned-only`, `reason = planned_only_incomplete`, or `blocked_by = artifact_integrity`, the bundle must be treated as evidence-only rather than a resumable producer run.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
@@ -1009,6 +1012,8 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - Transitive local deps: `scripts/python/inspect_run.py`, `scripts/python/validate_recovery_docs.py`
 - Subcommands: None.
 - Declared args: `--repo-root`, `--task-id`, `--run-id`, `--latest`, `--out-json`, `--out-md`
+- Behavior notes: recovery summaries now surface `latest_summary_signals`, `chapter6_hints`, and a derived `Chapter6 stop-loss note` so operators can see why another full `6.7` would be wasteful; this includes `run_type`, `artifact_integrity`, and planned-only terminal bundle handling.
+- Behavior notes: recovery outputs also surface `recommended_action_why`; when the resolved action is `needs-fix-fast`, operators should prefer targeted closure instead of another full rerun.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
@@ -1273,15 +1278,21 @@ Notes:
   - First round reviewer selection can auto-shrink from the previous task run's `agent-review.json` or `sc-llm-review` summary when those artifacts exist and are stable.
   - Deterministic reuse can scan recent same-task pipeline artifacts across dates; git snapshot or security-profile mismatch still disables reuse.
   - `--final-pass` disables deterministic shortcuts and reviewer auto-shrink, forces a full reviewer set, and is intended for the last closure run before handoff/PR.
+- Behavior notes: round summaries now record `timeout_agents`; when `rc=124` and no child summary was produced, `failure_kind` becomes `timeout-no-summary` so timeout-only rounds are not misread as clean.
 
 #### `scripts/sc/run_review_pipeline.py`
 
 - Direct local deps: `scripts/sc/_active_task_sidecar.py`, `scripts/sc/_agent_review_policy.py`, `scripts/sc/_delivery_profile.py`, `scripts/sc/_harness_capabilities.py`, `scripts/sc/_llm_review_tier.py`, `scripts/sc/_marathon_policy.py`, `scripts/sc/_marathon_state.py`, `scripts/sc/_pipeline_approval.py`, `scripts/sc/_pipeline_events.py`, `scripts/sc/_pipeline_helpers.py`, `scripts/sc/_pipeline_plan.py`, `scripts/sc/_pipeline_session.py`, `scripts/sc/_pipeline_support.py`, `scripts/sc/_repair_guidance.py`, `scripts/sc/_summary_schema.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_technical_debt.py`, `scripts/sc/_util.py`, `scripts/sc/agent_to_agent_review.py`
 - Transitive local deps: `scripts/sc/_active_task_sidecar.py`, `scripts/sc/_agent_review_contract.py`, `scripts/sc/_agent_review_policy.py`, `scripts/sc/_approval_contract.py`, `scripts/sc/_artifact_schema.py`, `scripts/sc/_artifact_schema_fallback.py`, `scripts/sc/_delivery_profile.py`, `scripts/sc/_harness_capabilities.py`, `scripts/sc/_llm_review_tier.py`, `scripts/sc/_marathon_policy.py`, `scripts/sc/_marathon_state.py`, `scripts/sc/_pipeline_approval.py`, `scripts/sc/_pipeline_events.py`, `scripts/sc/_pipeline_helpers.py`, `scripts/sc/_pipeline_plan.py`, `scripts/sc/_pipeline_session.py`, `scripts/sc/_pipeline_support.py`, `scripts/sc/_repair_approval.py`, `scripts/sc/_repair_guidance.py`, `scripts/sc/_repair_recommendations.py`, `scripts/sc/_sidecar_schema.py`, `scripts/sc/_summary_schema.py`, `scripts/sc/_summary_schema_fallback.py`, `scripts/sc/_summary_schema_local_hard_checks.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_technical_debt.py`, `scripts/sc/_util.py`, `scripts/sc/agent_to_agent_review.py`
 - Subcommands: None.
-- Declared args: `--task-id`, `--run-id`, `--fork-from-run-id`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--skip-test`, `--skip-acceptance`, `--skip-llm-review`, `--skip-agent-review`, `--allow-full-unit-fallback`, `--llm-agents`, `--llm-timeout-sec`, `--llm-agent-timeout-sec`, `--llm-agent-timeouts`, `--llm-semantic-gate`, `--llm-base`, `--llm-diff-mode`, `--llm-no-uncommitted`, `--llm-strict`, `--review-template`, `--resume`, `--abort`, `--fork`, `--max-step-retries`, `--max-wall-time-sec`, `--context-refresh-after-failures`, `--context-refresh-after-resumes`, `--context-refresh-after-diff-lines`, `--context-refresh-after-diff-categories`, `--dry-run`, `--allow-overwrite`, `--force-new-run-id`.
+- Declared args: `--task-id`, `--run-id`, `--fork-from-run-id`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--reselect-profile`, `--skip-test`, `--skip-acceptance`, `--skip-llm-review`, `--skip-agent-review`, `--allow-full-rerun`, `--allow-repeat-deterministic-failures`, `--allow-full-unit-fallback`, `--llm-agents`, `--llm-timeout-sec`, `--llm-agent-timeout-sec`, `--llm-agent-timeouts`, `--llm-semantic-gate`, `--llm-base`, `--llm-diff-mode`, `--llm-no-uncommitted`, `--llm-strict`, `--review-template`, `--resume`, `--abort`, `--fork`, `--max-step-retries`, `--max-wall-time-sec`, `--context-refresh-after-failures`, `--context-refresh-after-resumes`, `--context-refresh-after-diff-lines`, `--context-refresh-after-diff-categories`, `--dry-run`, `--allow-overwrite`, `--force-new-run-id`.
 - Behavior notes: task-scoped previous timeout evidence can inject targeted `--agent-timeouts` for timed-out reviewers only; this is automatic and profile-aware.
 - Behavior notes: `--llm-agent-timeouts` is mainly for orchestration layers such as `llm_review_needs_fix_fast.py`; explicit values override auto-derived reviewer timeout bumps.
+- Behavior notes: fresh non-resume runs inherit the latest same-task `delivery/security profile` lock; switching away from that lock requires explicit `--reselect-profile`.
+- Behavior notes: when deterministic is already green in the same invocation and `sc-llm-review` hits a first long timeout, the pipeline records `diagnostics.llm_retry_stop_loss` and skips a second long wait in that round.
+- Behavior notes: when the same invocation already proves a known `sc-test` unit failure, the pipeline records `diagnostics.sc_test_retry_stop_loss` and stops the same-run retry instead of paying for another identical attempt.
+- Behavior notes: bundles ending as `run_type = planned-only` / `reason = planned_only_incomplete` are evidence-only and must not be reused as producer-run recovery baselines.
+- Behavior notes: `--llm-base` defaults to `origin/main`.
 - Behavior notes: `--allow-full-unit-fallback` only affects the internal `sc-test` call when task-scoped unit coverage fails at `0.0%`; default delivery profiles keep this off to avoid accidental repo-wide retries.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.

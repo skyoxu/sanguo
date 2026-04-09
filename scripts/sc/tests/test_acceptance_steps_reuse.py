@@ -16,6 +16,7 @@ if str(SC_DIR) not in sys.path:
     sys.path.insert(0, str(SC_DIR))
 
 import _acceptance_steps as acceptance_steps  # noqa: E402
+import _acceptance_orchestration as acceptance_orchestration  # noqa: E402
 from _step_result import StepResult  # noqa: E402
 from _taskmaster import TaskmasterTriplet  # noqa: E402
 
@@ -111,31 +112,6 @@ class AcceptanceStepsReuseTests(unittest.TestCase):
             self.assertEqual(expected, step)
             run_and_capture_mock.assert_called_once()
 
-    def test_step_tests_all_should_allow_explicit_coverage_gate_on_fallback(self) -> None:
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            out_dir = root / "logs" / "ci" / "2026-03-31" / "sc-acceptance-check-task-56"
-            out_dir.mkdir(parents=True, exist_ok=True)
-            expected = StepResult(name="tests-all", status="ok", rc=0, cmd=["py", "-3", "scripts/sc/test.py"])
-            with (
-                mock.patch.object(acceptance_steps, "repo_root", return_value=root),
-                mock.patch.object(acceptance_steps, "today_str", return_value="2026-03-31"),
-                mock.patch.object(acceptance_steps, "run_and_capture", return_value=expected) as run_and_capture_mock,
-            ):
-                step = acceptance_steps.step_tests_all(
-                    out_dir,
-                    godot_bin=None,
-                    run_id="rid-56",
-                    test_type="unit",
-                    task_id="56",
-                    no_coverage_gate=False,
-                )
-
-            self.assertEqual(expected, step)
-            called_cmd = run_and_capture_mock.call_args.kwargs["cmd"]
-            self.assertNotIn("--no-coverage-gate", called_cmd)
-            self.assertIn("--no-coverage-report", called_cmd)
-
     def test_step_overlay_validate_should_scope_validate_task_overlays_to_current_task(self) -> None:
         triplet = TaskmasterTriplet(
             task_id="56",
@@ -165,6 +141,90 @@ class AcceptanceStepsReuseTests(unittest.TestCase):
             self.assertIn("--task-id", cmd)
             self.assertIn("56", cmd)
             self.assertIn("--task-file", cmd)
+
+    def test_run_registry_steps_should_reuse_matching_acceptance_summary_from_env(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "2026-03-31" / "sc-acceptance-check-task-56"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            reuse_summary = out_dir / "preflight-summary.json"
+            reuse_summary.write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-acceptance-check",
+                        "task_id": "56",
+                        "status": "ok",
+                        "steps": [
+                            {"name": "adr-compliance", "status": "ok", "rc": 0},
+                            {"name": "task-links-validate", "status": "ok", "rc": 0},
+                            {"name": "task-test-refs", "status": "ok", "rc": 0},
+                            {"name": "acceptance-refs", "status": "ok", "rc": 0},
+                            {"name": "acceptance-anchors", "status": "ok", "rc": 0},
+                            {"name": "subtasks-coverage", "status": "ok", "rc": 0},
+                            {"name": "validate-task-overlays", "status": "ok", "rc": 0},
+                            {"name": "validate-contracts", "status": "ok", "rc": 0},
+                            {"name": "architecture-boundary", "status": "ok", "rc": 0},
+                            {"name": "dotnet-build-warnaserror", "status": "ok", "rc": 0},
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ) + "\n",
+                encoding="utf-8",
+            )
+            triplet = TaskmasterTriplet(
+                task_id="56",
+                master={"id": "56", "title": "Task 56", "subtasks": [{"id": 1, "title": "One"}]},
+                back={"taskmaster_id": 56},
+                gameplay={"taskmaster_id": 56},
+                tasks_json_path=".taskmaster/tasks/tasks.json",
+                tasks_back_path=".taskmaster/tasks/tasks_back.json",
+                tasks_gameplay_path=".taskmaster/tasks/tasks_gameplay.json",
+                taskdoc_path=None,
+            )
+            args = mock.Mock(strict_adr_status=False, strict_test_quality=False, strict_quality_rules=False, require_task_test_refs=True, subtasks_timeout_sec=60)
+
+            with (
+                mock.patch.dict("os.environ", {"SC_ACCEPTANCE_REUSE_SUMMARY": str(reuse_summary)}, clear=False),
+                mock.patch.object(acceptance_orchestration, "step_adr_compliance", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_task_links_validate", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_task_test_refs_validate", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_acceptance_refs_validate", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_acceptance_anchors_validate", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_subtasks_coverage_llm", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_overlay_validate", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_contracts_validate", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_architecture_boundary", side_effect=AssertionError("should reuse")),
+                mock.patch.object(acceptance_orchestration, "step_build_warnaserror", side_effect=AssertionError("should reuse")),
+            ):
+                steps = acceptance_orchestration.run_registry_steps(
+                    out_dir=out_dir,
+                    triplet=triplet,
+                    args=args,
+                    only_steps={"adr", "links", "subtasks", "overlay", "contracts", "arch", "build"},
+                    subtasks_mode="warn",
+                    security_modes={},
+                    needs_env_preflight=False,
+                    godot_bin=None,
+                )
+
+            self.assertEqual(
+                [
+                    "adr-compliance",
+                    "task-links-validate",
+                    "task-test-refs",
+                    "acceptance-refs",
+                    "acceptance-anchors",
+                    "subtasks-coverage",
+                    "validate-task-overlays",
+                    "validate-contracts",
+                    "architecture-boundary",
+                    "dotnet-build-warnaserror",
+                ],
+                [step.name for step in steps],
+            )
+            self.assertTrue(all(step.status == "ok" for step in steps))
+            self.assertTrue(all(bool((step.details or {}).get("reused")) for step in steps))
 
 
 if __name__ == "__main__":

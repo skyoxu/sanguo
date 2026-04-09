@@ -34,6 +34,37 @@
       "type": "string",
       "minLength": 1
     },
+    "run_type": {
+      "type": "string",
+      "enum": [
+        "planned-only",
+        "preflight-only",
+        "llm-only",
+        "deterministic-only",
+        "full"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reuse_mode": {
+      "type": "string",
+      "enum": [
+        "none",
+        "full-clean-reuse",
+        "deterministic-only-reuse",
+        "sc-test-reuse",
+        "mixed-reuse"
+      ]
+    },
+    "started_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "finished_at_utc": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -75,6 +106,9 @@
     },
     "approval": {
       "$ref": "#/$defs/approval"
+    },
+    "diagnostics": {
+      "$ref": "#/$defs/diagnostics"
     }
   },
   "$defs": {
@@ -105,6 +139,144 @@
         },
         "response_path": {
           "type": "string"
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "profile_drift": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "previous_run_id": {
+              "type": "string"
+            },
+            "previous_out_dir": {
+              "type": "string"
+            },
+            "previous_delivery_profile": {
+              "type": "string"
+            },
+            "previous_security_profile": {
+              "type": "string"
+            },
+            "current_delivery_profile": {
+              "type": "string"
+            },
+            "current_security_profile": {
+              "type": "string"
+            }
+          }
+        },
+        "acceptance_preflight": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "source_summary_file": {
+              "type": "string"
+            }
+          }
+        },
+        "waste_signals": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "unit_failed_but_engine_lane_ran": {
+              "type": "boolean"
+            }
+          }
+        },
+        "rerun_guard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "blocked": {
+              "type": "boolean"
+            },
+            "recommended_path": {
+              "type": "string"
+            },
+            "override": {
+              "type": "string"
+            },
+            "fingerprint": {
+              "type": "string"
+            }
+          }
+        },
+        "reuse_decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "type": "string"
+            },
+            "blocked": {
+              "type": "boolean"
+            }
+          }
+        },
+        "llm_timeout_memory": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "overrides": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "llm_retry_stop_loss": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "blocked": {
+              "type": "boolean"
+            },
+            "step_name": {
+              "type": "string"
+            },
+            "timed_out_step": {
+              "type": "string"
+            },
+            "retry_count": {
+              "type": "integer"
+            },
+            "deterministic_ok": {
+              "type": "boolean"
+            }
+          }
+        },
+        "sc_test_retry_stop_loss": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "blocked": {
+              "type": "boolean"
+            },
+            "step_name": {
+              "type": "string"
+            },
+            "retry_count": {
+              "type": "integer"
+            }
+          }
         }
       }
     }

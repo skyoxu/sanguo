@@ -36,7 +36,7 @@ from dev_cli_builders import (
     build_smoke_strict_cmd,
 )
 from local_hard_checks_harness import run_local_hard_checks
-from solution_resolver import resolve_solution_path
+from solution_resolver import resolve_solution_path, resolve_test_solution_path
 
 
 def run(cmd: list[str]) -> int:
@@ -66,7 +66,7 @@ def cmd_run_ci_basic(args: argparse.Namespace) -> int:
         print("[dev_cli] error: --godot-bin is required when --legacy-preflight is enabled", file=sys.stderr)
         return 2
 
-    solution = resolve_solution_path(args.solution)
+    solution = resolve_test_solution_path(args.solution)
     return run(
         build_legacy_ci_pipeline_cmd(
             solution=solution,
@@ -79,7 +79,7 @@ def cmd_run_ci_basic(args: argparse.Namespace) -> int:
 def cmd_run_quality_gates(args: argparse.Namespace) -> int:
     """Run quality_gates.py all with optional hard GdUnit and smoke."""
 
-    solution = resolve_solution_path(args.solution)
+    solution = resolve_test_solution_path(args.solution)
     return run(
         build_quality_gates_cmd(
             solution=solution,
@@ -167,7 +167,7 @@ def cmd_run_local_hard_checks(args: argparse.Namespace) -> int:
     """Run local hard checks via the protocolized harness wrapper."""
 
     task_files = list(args.task_file or DEFAULT_GATE_BUNDLE_TASK_FILES)
-    solution = resolve_solution_path(args.solution)
+    solution = resolve_test_solution_path(args.solution)
     return run_local_hard_checks(
         solution=solution,
         configuration=args.configuration,
@@ -196,7 +196,7 @@ def cmd_run_local_hard_checks_preflight(args: argparse.Namespace) -> int:
     if gate_rc != 0:
         return gate_rc
 
-    solution = resolve_solution_path(args.solution)
+    solution = resolve_test_solution_path(args.solution)
     return run(build_run_dotnet_cmd(solution=solution, configuration=args.configuration))
 
 

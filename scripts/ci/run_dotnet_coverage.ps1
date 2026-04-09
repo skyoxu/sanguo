@@ -1,5 +1,5 @@
 param(
-  [string]$Solution = 'GodotGame.sln',
+  [string]$Solution = 'auto',
   [string]$Format = 'cobertura'
 )
 
@@ -7,6 +7,33 @@ $ErrorActionPreference = 'Stop'
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
   Write-Error 'dotnet CLI not found in PATH.'
 }
+
+function Resolve-SolutionPath {
+  param(
+    [string]$RequestedSolution
+  )
+
+  if (-not [string]::IsNullOrWhiteSpace($RequestedSolution) -and $RequestedSolution -ne 'auto') {
+    return $RequestedSolution
+  }
+
+  $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..\')
+  $repoName = Split-Path -Leaf $repoRoot
+  $preferred = @('Game.sln', "$repoName.sln", 'GodotGame.sln')
+  foreach ($name in $preferred) {
+    $candidate = Join-Path $repoRoot $name
+    if (Test-Path -LiteralPath $candidate) {
+      return $candidate
+    }
+  }
+  $first = Get-ChildItem -Path $repoRoot -Filter *.sln -File -ErrorAction SilentlyContinue | Sort-Object Name | Select-Object -First 1
+  if ($first) {
+    return $first.FullName
+  }
+  return $RequestedSolution
+}
+
+$Solution = Resolve-SolutionPath -RequestedSolution $Solution
 
 # Use coverlet collector
 $argsList = @('test', $Solution, '-v', 'minimal', '--collect:"XPlat Code Coverage"',

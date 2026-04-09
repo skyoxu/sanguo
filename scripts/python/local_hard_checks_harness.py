@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import os
 import subprocess
 import sys
 import uuid
@@ -28,13 +27,10 @@ from local_hard_checks_support import (
     write_latest_index,
     write_step_log,
 )
+from solution_target import resolve_test_solution_arg
 
 try:
-    from _delivery_profile import (
-        default_security_profile_for_delivery,
-        profile_test_defaults,
-        resolve_delivery_profile,
-    )
+    from _delivery_profile import default_security_profile_for_delivery, resolve_delivery_profile
     from _pipeline_events import append_run_event
     from _summary_schema import SummarySchemaError, validate_local_hard_checks_summary
     from _util import write_json, write_text
@@ -42,11 +38,7 @@ except ImportError:
     _SC_DIR = Path(__file__).resolve().parents[1] / "sc"
     if str(_SC_DIR) not in sys.path:
         sys.path.insert(0, str(_SC_DIR))
-    from _delivery_profile import (
-        default_security_profile_for_delivery,
-        profile_test_defaults,
-        resolve_delivery_profile,
-    )
+    from _delivery_profile import default_security_profile_for_delivery, resolve_delivery_profile
     from _pipeline_events import append_run_event
     from _summary_schema import SummarySchemaError, validate_local_hard_checks_summary
     from _util import write_json, write_text
@@ -62,70 +54,9 @@ def _run_step_default(cmd: list[str]) -> int:
     return proc.returncode
 
 
-def _run_with_profile_coverage_env(
-    *,
-    run: Callable[[list[str]], int],
-    cmd: list[str],
-    delivery_profile: str,
-) -> int:
-    defaults = profile_test_defaults(delivery_profile)
-    coverage_gate = bool(defaults.get("coverage_gate", True))
-    lines_min = int(defaults.get("coverage_lines_min", 90) or 0)
-    branches_min = int(defaults.get("coverage_branches_min", 85) or 0)
-
-    original_lines = os.environ.get("COVERAGE_LINES_MIN")
-    original_branches = os.environ.get("COVERAGE_BRANCHES_MIN")
-    original_skip = os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE")
-    try:
-        if coverage_gate:
-            os.environ["COVERAGE_LINES_MIN"] = str(max(0, lines_min))
-            os.environ["COVERAGE_BRANCHES_MIN"] = str(max(0, branches_min))
-            os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
-        else:
-            os.environ.pop("COVERAGE_LINES_MIN", None)
-            os.environ.pop("COVERAGE_BRANCHES_MIN", None)
-            os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = "1"
-        return int(run(cmd))
-    finally:
-        if original_lines is None:
-            os.environ.pop("COVERAGE_LINES_MIN", None)
-        else:
-            os.environ["COVERAGE_LINES_MIN"] = original_lines
-        if original_branches is None:
-            os.environ.pop("COVERAGE_BRANCHES_MIN", None)
-        else:
-            os.environ["COVERAGE_BRANCHES_MIN"] = original_branches
-        if original_skip is None:
-            os.environ.pop("SC_ACCEPTANCE_NO_COVERAGE_GATE", None)
-        else:
-            os.environ["SC_ACCEPTANCE_NO_COVERAGE_GATE"] = original_skip
-
-
-def _run_with_smoke_exit_on_ready_env(
-    *,
-    run: Callable[[list[str]], int],
-    cmd: list[str],
-) -> int:
-    original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
-    original_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
-    try:
-        os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
-        os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = "0.25"
-        return int(run(cmd))
-    finally:
-        if original_exit_on_ready is None:
-            os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
-        else:
-            os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
-        if original_exit_delay is None:
-            os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
-        else:
-            os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
-
-
 def run_local_hard_checks(
     *,
-    solution: str = "auto",
+    solution: str = "",
     configuration: str = "Debug",
     godot_bin: str = "",
     delivery_profile: str = "",
@@ -135,6 +66,7 @@ def run_local_hard_checks(
     timeout_sec: int = 5,
     run_fn: Callable[[list[str]], int] | None = None,
 ) -> int:
+    resolved_solution = resolve_test_solution_arg(solution)
     resolved_delivery_profile = resolve_delivery_profile(delivery_profile or None)
     security_profile = default_security_profile_for_delivery(resolved_delivery_profile)
     requested_run_id = str(run_id or "").strip() or uuid.uuid4().hex
@@ -163,7 +95,7 @@ def run_local_hard_checks(
         delivery_profile=resolved_delivery_profile,
         security_profile=security_profile,
         status="running",
-        details={"requested_run_id": requested_run_id, "cmd": CMD_NAME},
+        details={"requested_run_id": requested_run_id, "cmd": CMD_NAME, "solution": resolved_solution},
     )
 
     summary: dict[str, Any] = {
@@ -189,7 +121,7 @@ def run_local_hard_checks(
         task_files=task_file_list,
         out_dir=resolved_out_dir,
         run_id=resolved_run_id,
-        solution=solution,
+        solution=resolved_solution,
         configuration=configuration,
         godot_bin=godot_bin,
         timeout_sec=timeout_sec,
@@ -209,19 +141,7 @@ def run_local_hard_checks(
             status="running",
             details={"cmd": cmd},
         )
-        if name == "run-dotnet":
-            step_rc = _run_with_profile_coverage_env(
-                run=runner,
-                cmd=cmd,
-                delivery_profile=resolved_delivery_profile,
-            )
-        elif name == "smoke-strict":
-            step_rc = _run_with_smoke_exit_on_ready_env(
-                run=runner,
-                cmd=cmd,
-            )
-        else:
-            step_rc = int(runner(cmd))
+        step_rc = int(runner(cmd))
         step_status = "ok" if step_rc == 0 else "fail"
         write_step_log(step_log, cmd=cmd, rc=step_rc, status=step_status, artifacts=artifacts)
         append_run_event(

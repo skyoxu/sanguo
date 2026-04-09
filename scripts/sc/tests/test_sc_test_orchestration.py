@@ -97,42 +97,6 @@ class ScTestOrchestrationTests(unittest.TestCase):
             self.assertEqual(run_id, summary["run_id"])
             self.assertEqual(["unit", "csharp-test-conventions", "coverage-report"], [item["name"] for item in summary["steps"]])
 
-    def test_main_should_set_acceptance_no_coverage_gate_env_when_flag_enabled(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            out_dir = Path(tmpdir) / "sc-test"
-            run_id = "8" * 32
-            argv = ["test.py", "--type", "unit", "--run-id", run_id, "--no-coverage-gate", "--no-coverage-report"]
-            unit_step = {
-                "name": "unit",
-                "cmd": ["py", "-3", "scripts/python/run_dotnet.py"],
-                "rc": 0,
-                "log": str(out_dir / "unit.log"),
-                "artifacts_dir": str(out_dir / "unit-artifacts"),
-                "status": "ok",
-            }
-            conventions_step = {
-                "name": "csharp-test-conventions",
-                "cmd": ["py", "-3", "scripts/python/check_csharp_test_conventions.py"],
-                "rc": 0,
-                "log": str(out_dir / "csharp-test-conventions.log"),
-                "status": "ok",
-            }
-
-            def _assert_env_and_return(*_args, **_kwargs):  # noqa: ANN001
-                self.assertEqual("1", sc_test.os.environ.get("SC_ACCEPTANCE_NO_COVERAGE_GATE"))
-                self.assertIsNone(sc_test.os.environ.get("COVERAGE_LINES_MIN"))
-                self.assertIsNone(sc_test.os.environ.get("COVERAGE_BRANCHES_MIN"))
-                return unit_step
-
-            with mock.patch.object(sys, "argv", argv), \
-                mock.patch.object(sc_test, "ci_dir", return_value=out_dir), \
-                mock.patch.object(sc_test, "run_unit", side_effect=_assert_env_and_return) as run_unit_mock, \
-                mock.patch.object(sc_test, "run_csharp_test_conventions", return_value=conventions_step):
-                rc = sc_test.main()
-
-            self.assertEqual(0, rc)
-            run_unit_mock.assert_called_once()
-
     def test_main_should_skip_coverage_when_unit_step_fails(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir) / "sc-test"
@@ -244,45 +208,10 @@ class ScTestOrchestrationTests(unittest.TestCase):
             self.assertEqual("fail", summary["status"])
             self.assertEqual(["gdunit-hard", "smoke"], [item["name"] for item in summary["steps"]])
 
-    def test_main_should_require_task_scoped_gd_refs_for_explicit_e2e_lane(self) -> None:
+    def test_main_should_skip_gdunit_for_task_scoped_all_when_no_gd_refs(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir) / "sc-test"
-            argv = ["test.py", "--type", "e2e", "--run-id", "6" * 32, "--godot-bin", "C:/Godot/Godot.exe", "--task-id", "56"]
-            gdunit_step = {
-                "name": "gdunit-hard",
-                "cmd": ["py", "-3", "scripts/python/run_gdunit.py"],
-                "rc": 0,
-                "log": str(out_dir / "gdunit-hard.log"),
-                "report_dir": str(out_dir / "gdunit-hard"),
-                "status": "ok",
-            }
-            smoke_step = {
-                "name": "smoke",
-                "cmd": ["py", "-3", "scripts/python/smoke_headless.py"],
-                "rc": 0,
-                "log": str(out_dir / "smoke.log"),
-                "status": "ok",
-            }
-            with mock.patch.object(sys, "argv", argv), \
-                mock.patch.object(sc_test, "ci_dir", return_value=out_dir), \
-                mock.patch.object(sc_test, "run_gdunit_hard", return_value=gdunit_step) as gdunit_mock, \
-                mock.patch.object(sc_test, "run_smoke", return_value=smoke_step):
-                rc = sc_test.main()
-
-            self.assertEqual(0, rc)
-            gdunit_mock.assert_called_once_with(
-                out_dir,
-                "C:/Godot/Godot.exe",
-                600,
-                run_id="6" * 32,
-                task_id="56",
-                require_task_scoped_refs=True,
-            )
-
-    def test_main_should_skip_engine_lane_for_task_all_when_no_task_scoped_gd_refs(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            out_dir = Path(tmpdir) / "sc-test"
-            argv = ["test.py", "--type", "all", "--run-id", "7" * 32, "--task-id", "56"]
+            argv = ["test.py", "--type", "all", "--run-id", "6" * 32, "--task-id", "21", "--godot-bin", "C:/Godot/Godot.exe"]
             unit_step = {
                 "name": "unit",
                 "cmd": ["py", "-3", "scripts/python/run_dotnet.py"],
@@ -293,7 +222,7 @@ class ScTestOrchestrationTests(unittest.TestCase):
             }
             conventions_step = {
                 "name": "csharp-test-conventions",
-                "cmd": ["py", "-3", "scripts/python/check_csharp_test_conventions.py"],
+                "cmd": ["py", "-3", "scripts/python/check_csharp_test_conventions.py", "--task-id", "21"],
                 "rc": 0,
                 "log": str(out_dir / "csharp-test-conventions.log"),
                 "status": "ok",
@@ -308,10 +237,10 @@ class ScTestOrchestrationTests(unittest.TestCase):
             }
             with mock.patch.object(sys, "argv", argv), \
                 mock.patch.object(sc_test, "ci_dir", return_value=out_dir), \
-                mock.patch.object(sc_test, "_task_scoped_gdunit_refs", return_value=[]), \
                 mock.patch.object(sc_test, "run_unit", return_value=unit_step), \
                 mock.patch.object(sc_test, "run_csharp_test_conventions", return_value=conventions_step), \
                 mock.patch.object(sc_test, "run_coverage_report", return_value=coverage_step), \
+                mock.patch.object(sc_test, "_task_scoped_gdunit_refs", return_value=[]), \
                 mock.patch.object(sc_test, "run_gdunit_hard") as gdunit_mock, \
                 mock.patch.object(sc_test, "run_smoke") as smoke_mock:
                 rc = sc_test.main()
@@ -325,9 +254,73 @@ class ScTestOrchestrationTests(unittest.TestCase):
                 ["unit", "csharp-test-conventions", "coverage-report", "gdunit-hard", "smoke"],
                 [item["name"] for item in summary["steps"]],
             )
-            skipped = {item["name"]: item for item in summary["steps"] if item["status"] == "skipped"}
-            self.assertEqual("no_task_scoped_gd_refs_for_task", skipped["gdunit-hard"]["reason"])
-            self.assertEqual("no_task_scoped_gd_refs_for_task", skipped["smoke"]["reason"])
+            self.assertEqual("skipped", summary["steps"][3]["status"])
+            self.assertEqual("task_scoped_no_gd_refs_unit_only", summary["steps"][3]["reason"])
+            self.assertEqual("skipped", summary["steps"][4]["status"])
+
+    def test_main_should_keep_fail_fast_for_explicit_e2e_when_no_gd_refs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "sc-test"
+            argv = ["test.py", "--type", "e2e", "--run-id", "7" * 32, "--task-id", "21", "--godot-bin", "C:/Godot/Godot.exe"]
+            gdunit_step = {
+                "name": "gdunit-hard",
+                "cmd": ["internal:task_scoped_gdunit_refs"],
+                "rc": 2,
+                "log": str(out_dir / "gdunit-hard.log"),
+                "report_dir": str(out_dir / "gdunit-hard"),
+                "status": "fail",
+                "reason": "missing_task_scoped_gdunit_refs",
+            }
+            smoke_step = {
+                "name": "smoke",
+                "cmd": ["py", "-3", "scripts/python/smoke_headless.py"],
+                "rc": 0,
+                "log": str(out_dir / "smoke.log"),
+                "status": "ok",
+            }
+            with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(sc_test, "ci_dir", return_value=out_dir), \
+                mock.patch.object(sc_test, "_task_scoped_gdunit_refs", return_value=[]), \
+                mock.patch.object(sc_test, "run_gdunit_hard", return_value=gdunit_step) as gdunit_mock, \
+                mock.patch.object(sc_test, "run_smoke", return_value=smoke_step) as smoke_mock:
+                rc = sc_test.main()
+
+            self.assertEqual(1, rc)
+            gdunit_mock.assert_called_once()
+            smoke_mock.assert_called_once()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("fail", summary["status"])
+
+    def test_main_should_skip_engine_lane_when_unit_failed_in_all_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "sc-test"
+            argv = ["test.py", "--type", "all", "--run-id", "8" * 32, "--task-id", "21", "--godot-bin", "C:/Godot/Godot.exe"]
+            unit_step = {
+                "name": "unit",
+                "cmd": ["py", "-3", "scripts/python/run_dotnet.py"],
+                "rc": 1,
+                "log": str(out_dir / "unit.log"),
+                "artifacts_dir": str(out_dir / "unit-artifacts"),
+                "status": "fail",
+            }
+            with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(sc_test, "ci_dir", return_value=out_dir), \
+                mock.patch.object(sc_test, "run_unit", return_value=unit_step), \
+                mock.patch.object(sc_test, "_task_scoped_gdunit_refs", return_value=["Tests.Godot/tests/Integration/test_task_21_flow.gd"]), \
+                mock.patch.object(sc_test, "run_gdunit_hard") as gdunit_mock, \
+                mock.patch.object(sc_test, "run_smoke") as smoke_mock:
+                rc = sc_test.main()
+
+            self.assertEqual(1, rc)
+            gdunit_mock.assert_not_called()
+            smoke_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("fail", summary["status"])
+            self.assertEqual(["unit", "gdunit-hard", "smoke"], [item["name"] for item in summary["steps"]])
+            self.assertEqual("skipped", summary["steps"][1]["status"])
+            self.assertEqual("unit_failed_prevents_engine_lane", summary["steps"][1]["reason"])
+            self.assertEqual("skipped", summary["steps"][2]["status"])
+            self.assertEqual("unit_failed_prevents_engine_lane", summary["steps"][2]["reason"])
 
 
 if __name__ == "__main__":

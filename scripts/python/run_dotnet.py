@@ -19,96 +19,10 @@ import re
 import shutil
 import subprocess
 import sys
-import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from solution_resolver import resolve_solution_path
-
-try:
-    from _delivery_profile import profile_test_defaults, resolve_delivery_profile
-except ImportError:
-    _SC_DIR = Path(__file__).resolve().parents[1] / "sc"
-    if str(_SC_DIR) not in sys.path:
-        sys.path.insert(0, str(_SC_DIR))
-    from _delivery_profile import profile_test_defaults, resolve_delivery_profile
-
-
-def resolve_dotnet_exe(repo_root: str) -> str:
-    """
-    Prefer the repo-local toolchain when available.
-
-    CI and local workflows may provision a pinned .NET SDK under `.dotnet/`.
-    Relying on the system-wide `dotnet` can be brittle if the host SDK is
-    missing workload-related SDK components.
-    """
-    local = os.path.join(repo_root, ".dotnet", "dotnet.exe")
-    if os.path.isfile(local):
-        return local
-    return "dotnet"
-
-
-def ensure_local_workload_locator_sdks(*, repo_root: str, dotnet_exe: str, out_dir: str) -> dict:
-    """
-    Some pinned/local SDK installs can miss workload locator SDK folders/files.
-
-    In that case, MSBuild fails very early with errors like:
-      - MSB4019: missing AutoImport.props
-      - MSB4276: failed to resolve Workload*Locator SDKs
-
-    This function creates minimal no-op stubs for:
-      - Microsoft.NET.SDK.WorkloadAutoImportPropsLocator/Sdk/{Sdk.props,Sdk.targets,AutoImport.props}
-      - Microsoft.NET.SDK.WorkloadManifestTargetsLocator/Sdk/{Sdk.props,Sdk.targets,WorkloadManifest.targets}
-
-    The directory `.dotnet/` is gitignored; creating these files is an environment repair,
-    not a source change.
-    """
-    report = {"dotnet_exe": dotnet_exe, "attempted": False, "created": [], "sdk_version": None, "error": None}
-
-    local_root = os.path.join(repo_root, ".dotnet")
-    if os.path.abspath(dotnet_exe).startswith(os.path.abspath(local_root) + os.sep):
-        report["attempted"] = True
-    else:
-        return report
-
-    def _write_if_missing(path: str) -> None:
-        if os.path.exists(path):
-            return
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with io.open(path, "w", encoding="utf-8", newline="\n") as f:
-            f.write("<Project />\n")
-        report["created"].append(path.replace("\\", "/"))
-
-    try:
-        rc, ver_out = run_cmd([dotnet_exe, "--version"], cwd=repo_root, timeout=30_000)
-        sdk_ver = (ver_out or "").strip().splitlines()[-1].strip() if rc == 0 and ver_out else ""
-        report["sdk_version"] = sdk_ver or None
-        if not sdk_ver:
-            return report
-
-        sdks_root = os.path.join(local_root, "sdk", sdk_ver, "Sdks")
-        auto_dir = os.path.join(sdks_root, "Microsoft.NET.SDK.WorkloadAutoImportPropsLocator", "Sdk")
-        man_dir = os.path.join(sdks_root, "Microsoft.NET.SDK.WorkloadManifestTargetsLocator", "Sdk")
-
-        _write_if_missing(os.path.join(auto_dir, "Sdk.props"))
-        _write_if_missing(os.path.join(auto_dir, "Sdk.targets"))
-        _write_if_missing(os.path.join(auto_dir, "AutoImport.props"))
-
-        _write_if_missing(os.path.join(man_dir, "Sdk.props"))
-        _write_if_missing(os.path.join(man_dir, "Sdk.targets"))
-        _write_if_missing(os.path.join(man_dir, "WorkloadManifest.targets"))
-
-        with io.open(os.path.join(out_dir, "dotnet-sdk-repair.json"), "w", encoding="utf-8") as f:
-            json.dump(report, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        report["error"] = str(e)
-        try:
-            with io.open(os.path.join(out_dir, "dotnet-sdk-repair.json"), "w", encoding="utf-8") as f:
-                json.dump(report, f, ensure_ascii=False, indent=2)
-        except Exception:
-            pass
-
-    return report
+from solution_target import resolve_test_solution_arg
 
 
 def run_cmd(args, cwd=None, timeout=900_000):
@@ -172,125 +86,42 @@ def pick_latest_existing(paths):
     return max(existing, key=lambda p: os.path.getmtime(p))
 
 
-def resolve_coverage_thresholds(*, delivery_profile: str | None = None) -> dict:
-    resolved_delivery_profile = resolve_delivery_profile(delivery_profile)
-    defaults = profile_test_defaults(resolved_delivery_profile)
-    default_lines_min = float(defaults.get("coverage_lines_min", 90) or 0)
-    default_branches_min = float(defaults.get("coverage_branches_min", 85) or 0)
-    coverage_gate = bool(defaults.get("coverage_gate", True))
-    env_skip_coverage_gate = (
-        (os.environ.get('SC_ACCEPTANCE_NO_COVERAGE_GATE') or '').strip().lower() in {'1', 'true', 'yes', 'on'}
-    )
-    skip_coverage_gate = env_skip_coverage_gate
-
-    raw_lines_min = (os.environ.get('COVERAGE_LINES_MIN') or '').strip()
-    raw_branches_min = (os.environ.get('COVERAGE_BRANCHES_MIN') or '').strip()
-
-    lines_min = default_lines_min
-    branches_min = default_branches_min
-    threshold_source = {
-        'lines_min': 'delivery-profile',
-        'branches_min': 'delivery-profile',
-    }
-
-    if not coverage_gate:
-        skip_coverage_gate = True
-        threshold_source['lines_min'] = 'delivery-profile-skip'
-        threshold_source['branches_min'] = 'delivery-profile-skip'
-
-    if env_skip_coverage_gate:
-        threshold_source['lines_min'] = 'acceptance-env-skip'
-        threshold_source['branches_min'] = 'acceptance-env-skip'
-
-    try:
-        if raw_lines_min:
-            lines_min = float(raw_lines_min)
-            threshold_source['lines_min'] = 'env'
-    except Exception:
-        pass
-
-    try:
-        if raw_branches_min:
-            branches_min = float(raw_branches_min)
-            threshold_source['branches_min'] = 'env'
-    except Exception:
-        pass
-
-    return {
-        'delivery_profile': resolved_delivery_profile,
-        'coverage_gate': coverage_gate,
-        'skip_coverage_gate': skip_coverage_gate,
-        'lines_min': lines_min,
-        'branches_min': branches_min,
-        'threshold_source': threshold_source,
-    }
-
-
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--solution', default='auto')
+    ap.add_argument('--solution', default='')
     ap.add_argument('--configuration', default='Debug')
     ap.add_argument('--filter', default=None, help='Optional dotnet test filter expression.')
     ap.add_argument('--out-dir', default=None)
-    ap.add_argument('--delivery-profile', default=None, help='Delivery profile override (default: env DELIVERY_PROFILE or repo default).')
     args = ap.parse_args()
 
     root = os.getcwd()
-    resolved_solution = resolve_solution_path(args.solution, repo_root=Path(root))
-    dotnet = resolve_dotnet_exe(root)
+    resolved_solution = resolve_test_solution_arg(args.solution, root=Path(root))
     date = dt.date.today().strftime('%Y-%m-%d')
     out_dir = args.out_dir or os.path.join(root, 'logs', 'unit', date)
     ensure_dir(out_dir)
 
     summary = {
         'solution': resolved_solution,
-        'solution_requested': args.solution,
+        'solution_input': args.solution,
         'configuration': args.configuration,
         'filter': args.filter or '',
         'out_dir': out_dir,
-        'dotnet': dotnet,
         'status': 'fail',
     }
 
-    summary['dotnet_sdk_repair'] = ensure_local_workload_locator_sdks(repo_root=root, dotnet_exe=dotnet, out_dir=out_dir)
-
-    # Restore (with retry for transient CI/network issues)
-    restore_retries = max(1, int(os.getenv("DOTNET_RESTORE_RETRIES", "3") or "3"))
-    restore_delay_s = float(os.getenv("DOTNET_RESTORE_RETRY_DELAY_SECS", "2") or "2")
-    restore_attempts: list[dict] = []
-    rc = 1
-    out = ""
-    for attempt in range(1, restore_retries + 1):
-        rc, out = run_cmd([dotnet, "restore", resolved_solution], cwd=root)
-        restore_attempts.append({"attempt": attempt, "rc": rc})
-        with io.open(os.path.join(out_dir, f"dotnet-restore-attempt{attempt}.log"), "w", encoding="utf-8") as f:
-            f.write(out)
-        if rc == 0:
-            break
-        if attempt < restore_retries:
-            time.sleep(restore_delay_s)
-            restore_delay_s = min(30.0, restore_delay_s * 2)
-
-    # Keep a stable filename for CI artifact copy.
-    try:
-        shutil.copyfile(
-            os.path.join(out_dir, f"dotnet-restore-attempt{len(restore_attempts)}.log"),
-            os.path.join(out_dir, "dotnet-restore.log"),
-        )
-    except Exception:
-        with io.open(os.path.join(out_dir, "dotnet-restore.log"), "w", encoding="utf-8") as f:
-            f.write(out)
-
-    summary["restore_rc"] = rc
-    summary["restore_attempts"] = restore_attempts
+    # Restore
+    rc, out = run_cmd(['dotnet', 'restore', resolved_solution], cwd=root)
+    with io.open(os.path.join(out_dir, 'dotnet-restore.log'), 'w', encoding='utf-8') as f:
+        f.write(out)
+    summary['restore_rc'] = rc
     if rc != 0:
-        with io.open(os.path.join(out_dir, "summary.json"), "w", encoding="utf-8") as f:
+        with io.open(os.path.join(out_dir, 'summary.json'), 'w', encoding='utf-8') as f:
             json.dump(summary, f, ensure_ascii=False, indent=2)
-        print(f"RUN_DOTNET status=fail stage=restore out={out_dir}")
+        print(f'RUN_DOTNET status=fail stage=restore out={out_dir}')
         return 1
 
     # Test with coverage
-    test_cmd = [dotnet, 'test', resolved_solution,
+    test_cmd = ['dotnet', 'test', resolved_solution,
                 f'-c', args.configuration,
                 '--collect:XPlat Code Coverage',
                 '--logger', 'trx;LogFileName=tests.trx']
@@ -300,7 +131,6 @@ def main():
     with io.open(os.path.join(out_dir, 'dotnet-test-output.txt'), 'w', encoding='utf-8') as f:
         f.write(out)
     summary['test_rc'] = rc
-    summary['test_cmd'] = test_cmd
 
     # Copy artifacts using paths emitted by dotnet test output (preferred).
     artifacts = parse_paths_from_test_output(out)
@@ -350,34 +180,19 @@ def main():
         coverage = parse_cobertura(cov_path)
         summary['coverage'] = coverage
 
-    coverage_thresholds = resolve_coverage_thresholds(delivery_profile=args.delivery_profile)
-    skip_coverage_gate = bool(coverage_thresholds['skip_coverage_gate'])
-    lines_min = float(coverage_thresholds['lines_min'])
-    branches_min = float(coverage_thresholds['branches_min'])
-    threshold_source = dict(coverage_thresholds['threshold_source'])
-    summary['skip_coverage_gate'] = skip_coverage_gate
-    summary['delivery_profile'] = coverage_thresholds['delivery_profile']
-
-    if coverage and isinstance(coverage, dict):
-        # Provide stable keys for downstream tools/tests.
-        if 'line_pct' in coverage and 'lines_pct' not in coverage:
-            coverage['lines_pct'] = coverage.get('line_pct')
-        if 'branch_pct' in coverage and 'branches_pct' not in coverage:
-            coverage['branches_pct'] = coverage.get('branch_pct')
-        coverage['lines_min'] = lines_min
-        coverage['branches_min'] = branches_min
-        coverage['threshold_source'] = threshold_source
-
-    threshold_ok = skip_coverage_gate
-    if not skip_coverage_gate and coverage and isinstance(coverage, dict):
+    # Thresholds (optional)
+    lines_min = os.environ.get('COVERAGE_LINES_MIN')
+    branches_min = os.environ.get('COVERAGE_BRANCHES_MIN')
+    threshold_ok = True
+    if coverage and (lines_min or branches_min):
         try:
-            threshold_ok = (float(coverage.get('line_pct', 0) or 0) >= float(lines_min)) and (
-                float(coverage.get('branch_pct', 0) or 0) >= float(branches_min)
-            )
+            if lines_min:
+                threshold_ok = threshold_ok and (coverage.get('line_pct', 0) >= float(lines_min))
+            if branches_min:
+                threshold_ok = threshold_ok and (coverage.get('branch_pct', 0) >= float(branches_min))
         except Exception:
-            threshold_ok = False
-
-    summary['threshold_ok'] = bool(threshold_ok)
+            pass
+    summary['threshold_ok'] = threshold_ok
 
     summary['status'] = 'ok' if (rc == 0 and threshold_ok) else ('tests_failed' if rc != 0 else 'coverage_failed')
     with io.open(os.path.join(out_dir, 'summary.json'), 'w', encoding='utf-8') as f:

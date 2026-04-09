@@ -107,11 +107,18 @@ dotnet test Game.Core.Tests/Game.Core.Tests.csproj
 py -3 scripts/python/dev_cli.py resume-task --task-id <id>
 ```
 
+- `resume-task` 会直接带出 `Latest reason`、`Latest reuse mode`、`Chapter6 next action`、`Chapter6 can skip 6.7`、`Chapter6 can go to 6.8`、`Chapter6 blocked by`。
+- `resume-task` also surfaces `recommended_action_why`; if it already says `recommended_action = needs-fix-fast`, prefer targeted closure instead of a full rerun.
+- 恢复判断先看 `reason / run_type / reuse_mode / artifact_integrity`，不要只按最新 `latest.json` 时间戳决定是否重跑。
+
 如果 recovery summary 仍然不够，再执行二级恢复入口：
 
 ```powershell
 py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id>
 ```
+
+- `inspect_run.py --kind pipeline` 会输出同一组 `latest_summary_signals` / `chapter6_hints`，适合在真正重跑前确认是继续 `6.7` 还是转 `6.8`。
+- 如果这里已经显示 `run_type = planned-only`、`reason = planned_only_incomplete`，或 `Chapter6 blocked by = artifact_integrity`，把该 bundle 只当证据看，不要直接从它 reopen `6.7` / `6.8`。
 
 只有任务很长或跨切面时，才创建 execution plan：
 
@@ -180,7 +187,11 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 说明：
 
 - 6.7 会按 profile 自动选择默认 reviewer 集合；如果上一轮只有个别 reviewer timeout，当前轮只会定向放大这些 reviewer 的超时预算。
+- 如果同一轮已经证明 deterministic 绿色，而 `sc-llm-review` 首次长等待就超时，pipeline 会直接止损，不再在同一轮继续第二次长等待。
+- 新开 6.7 默认继承最近同任务的 `delivery/security profile`；只有你明确要换 profile 时，才加 `--reselect-profile`。
+- `--llm-base` 默认是 `origin/main`；除非你明确要看别的比较基线，不要手工改回 `main`。
 - 只有在最近两轮 6.7 都持续超时、而且定向扩时仍不够时，才手工提高总超时；不要一开始就把 `--llm-timeout-sec` 拉很大。
+- 在决定重跑 6.7 前，先读 `run_type` 与 `artifact_integrity`；如果恢复链已经给出 `planned-only` / `planned_only_incomplete` / `artifact_integrity`，这一轮不是可恢复的 producer run。
 - 6.7 的进一步 `sc-test` 复用只在 `playable-ea` / `fast-ship` 自动启用，而且只接受“文档/任务语义层”变更；只要触及代码、脚本、contracts、测试文件或运行时资源，就会回退到正常 `sc-test`。
 - 如果 task-scoped `dotnet test --filter ...` 因 coverage 0.0% 失败，默认直接失败，不再自动回退到全量 `dotnet test`。
 - 只有在你明确想验证“是否只是 filter 过窄”时，才额外执行：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --allow-full-unit-fallback`。
@@ -194,6 +205,8 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 - 6.8 首轮会优先读取上一轮 `agent-review.json` / `sc-llm-review summary.json`，自动收缩 reviewer；如果没有稳定历史信号，再回退到 profile 默认集合。
 - 中间回合把 6.8 当作 failing-only 快路径即可：优先修命中的 reviewer，不要反复重跑完整 6.7。
 - 6.8 对 task semantics 文本改动会切到最小 acceptance 子集；如果 change fingerprint 没变，会优先复用上一次已经成功的最小 acceptance 结果。
+- 6.8 的 round 摘要现在会写 `timeout_agents` / `failure_kind`；如果看到 `timeout-no-summary`，先看工件完整性，不要直接当 clean。
+- 如果恢复链已经显示 `run_type = planned-only`、`reason = planned_only_incomplete`，或 `Chapter6 blocked by = artifact_integrity`，不要直接进 6.8；先回到真实 deterministic bundle 再决定是否收敛 Needs Fix。
 - `standard` 不启用上面两条放宽路径；它只接受完全相同 snapshot 的复用，否则回到完整 deterministic 链路。
 - 中间回合一般直接用 `--rerun-failing-only --max-rounds 1`；如果怀疑 reviewer 收缩过度，再改成 `--no-rerun-failing-only --max-rounds 1`
 - 本轮只改 review / acceptance 文本时，才考虑 `--skip-sc-test`

@@ -4,7 +4,7 @@
 
 适用范围：
 
-- 上游参考模板仓 `godotgame`
+- 当前仓库 `sanguo`
 - 本机其他仍处于旧版 Chapter 6 口径的业务仓
 - 需要读取第六章后直接执行任务循环的 AI 代码助手
 
@@ -132,6 +132,9 @@
 - `6.1` 不再只是“找资料”，而是恢复 active-task sidecar、latest pointers、repair guide 的正式入口。
 - `6.3` 不再只是一个提醒器，而是决定是否需要 execution-plan、Serena MCP、taskdoc 的轻量分流器。
 
+- `6.1` 恢复时要按 `reason -> run_type -> reuse_mode -> artifact_integrity -> chapter6_hints` 顺序读取信号；不能只看 `status=ok` 或最新 `latest.json` 时间戳。
+- `active-task` 不只是展示页，也是 stop-loss 判读面；会提前显示 `Latest run type`、`Latest artifact integrity` 和 `Diagnostics artifact_integrity`。
+
 ### 4.2 `6.7` 现在是唯一推荐的任务级统一评审入口
 
 不要再手工串：
@@ -199,6 +202,29 @@
 
 - `6.7` 负责生成“完整事实面”
 - `6.8` 负责在“事实面稳定后”做小范围收敛
+- `6.8` 的 round 摘要如果出现 `timeout_agents` / `failure_kind = timeout-no-summary`，应先判定为“观测不足”而不是“事实已 clean”
+
+### 4.6 现在新增了 rerun stop-loss 与更明确的窄路径信号
+
+新增口径：
+- 如果最近一轮已经是 deterministic 绿色（`sc-test = ok`、`sc-acceptance-check = ok`），只剩 `sc-llm-review` 不干净，而本轮没有命中 deterministic 相关改动，默认直接阻止再次完整 6.7；应先走 6.8 或 `llm_review_needs_fix_fast.py`。
+- 如确实要保留完整重跑，显式传：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --allow-full-rerun`。
+- 如果最近两轮都卡在同一类 `sc-test` 失败指纹，默认第三次完整 6.7 直接止损；如确需重试，显式传 `--allow-repeat-deterministic-failures`。
+- `summary.json` / `latest.json` 现在会带出 `reason`、`reuse_mode`、`diagnostics`，其中重点看：
+  - `diagnostics.rerun_guard`
+  - `diagnostics.reuse_decision`
+  - `diagnostics.acceptance_preflight`
+  - `diagnostics.llm_timeout_memory`
+- 如果当前同一轮里已经证明 deterministic 绿色，但 `sc-llm-review` 首次长等待就超时，`run_review_pipeline.py` 会把这轮直接止损，不再继续第二次长等待；证据写入 `diagnostics.llm_retry_stop_loss`。
+- 如果当前同一轮 `sc-test` 已经从 child summary 证明是 `unit` 失败，`run_review_pipeline.py` 会直接停掉同 run 的第二次同参重试；证据写入 `diagnostics.sc_test_retry_stop_loss`，避免把“已知 unit 根因”再付一轮 engine lane 成本。
+- 新开 run 默认继承最近同任务的 `delivery/security profile` 组合；如果确实要改 profile，必须显式传 `--reselect-profile`，否则以 profile drift 失败。
+- `resume-task` / `inspect_run.py --kind pipeline` / active-task sidecar 现在会统一透出 `latest_summary_signals` 与 `chapter6_hints`，减少“还没看清工件就直接重跑”的浪费。
+- Read `recommended_action_why` whenever it is available; if the action is already `needs-fix-fast`, prefer targeted closure instead of reopening a full `6.7`.
+- LLM reviewer 超时扩时不再只看“上一轮是否 timeout”，还会记住最近同任务 / 同 profile 的 agent 级有效超时，继续 timeout 时只定向抬高对应 reviewer。
+
+- 读取 `summary.json` / `latest.json` 时，必须同时看 `run_type` 和 `artifact_integrity`；只看 `reason` 和 `reuse_mode` 会漏掉 planned-only terminal bundle。
+- 如果恢复链显示 `run_type = planned-only`、`reason = planned_only_incomplete`，或 `Chapter6 blocked by = artifact_integrity`，该 run 只能当作 `planned-only terminal bundle` 证据，不能作为 reopen `6.7` / `6.8` 的 producer run。
+- 对 `planned-only terminal bundle`，应先读 `summary.json`、`repair-guide.md`、`run-events.jsonl` 和 active-task sidecars，然后回退到上一轮真实 bundle，或直接新开真实 run，不要继续 `--resume`。
 
 ## 5. 其他 AI 代码助手只读第六章，能否正确操作
 
@@ -371,6 +397,43 @@ Chapter 6 的正确升级单位是：
   - `sc-test.log`
   - `child-artifacts/sc-acceptance-check/summary.json`
 
+- 恢复时，先读 `reason`、`run_type`、`reuse_mode` 和 `artifact_integrity`，再决定是 reopen `6.7` 还是继续 `6.8`。
+- 如果 `active-task` 或 `inspect_run` 已显示 `planned_only_incomplete` / `artifact_integrity`，该 bundle 只能当作证据，不能继续用来做收敛步骤。
+
+### 7.1 Fast mode 最省时执行模板
+
+推荐命令顺序：
+
+1. `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`
+2. `py -3 scripts/sc/check_tdd_execution_plan.py --task-id <id> --tdd-stage red-first --verify unit --execution-plan-policy draft`
+3. `py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify unit`
+4. `py -3 scripts/sc/build.py tdd --task-id <id> --stage green`
+5. `py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor`
+6. `py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship`
+7. 只有出现 `Needs Fix` 时，再跑 `py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --rerun-failing-only --max-rounds 1`
+8. `py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"`
+
+省时原则：
+
+- 6.4 首轮用轻验证，不先上 `--verify all`。
+- 6.7 先判断故障归属，不把仓库级噪音当成当前任务问题。
+- 6.8 只为新修复的 reviewer 锚点再付一次 LLM 成本。
+- deterministic 已 clean 但只剩 P2/P3 证据问题时，默认记录并止损。
+
+基于 T14 的补充止损规则：
+
+- 6.4 首轮如果新建 `.gd` 测试文件较多，不要直接上 `--verify all`；先用最便宜的 red 验证口径拿到干净证据。
+- 纯 `.cs` 任务默认保持 unit 路径；只有当 task views 明确声明 `.gd` test refs，或本轮显式走 `verify=all|e2e`，才拉入 Godot / GdUnit 重路径。
+- 6.7 首轮若在 `sc-test` 就暴露仓库级噪音、锁进程或 `rc=124` 超时，先停下来查 `run-events.jsonl`、`child-artifacts/sc-test/summary.json`、`sc-test.log`，不要连续多次 `--resume`。
+- 同一个 run 连续两次在 `sc-test` 失败时，默认判定这个 run 已经没有继续价值；修根因后新开 run。
+- 如果上一轮 6.7 已经证明 `sc-test = ok` 且 `sc-acceptance-check = ok`，只有 `sc-llm-review` 超时或失败，而本轮只改了 review / acceptance / overlay / task 语义文本，下一轮应优先复用 deterministic，只重跑 LLM，不要再手工重付 `sc-test + acceptance_check`。
+- 但 task semantics 变更不算真正的 docs-only clean reuse；这类改动默认最多只复用 `sc-test`，仍要重跑 `acceptance_check`，避免假绿。
+- 一旦改动命中 `Game.Core/**`、`Game.Godot/**`、`Game.Core/Contracts/**`、测试文件、`scripts/**`、`project.godot`、`*.cs`、`*.gd`、`*.tscn`、`*.tres`、`*.csproj`、`*.sln`，就不要再走窄路径，直接回到完整 deterministic。
+- 6.8 只有在本轮改动直接命中上一轮 reviewer 锚点时才值得立刻重跑；如果 deterministic 已经稳定通过，剩余只是 P2/P3 证据强度问题，默认记录并止损，不再重复支付 LLM 成本。
+- 6.8 reviewer 默认要按问题类别定向收缩：代码问题优先 `code-reviewer`，语义 / acceptance / overlay / task-view 问题优先 `semantic-equivalence-auditor`，安全问题才补 `security-auditor`。
+- 如果连续两轮 6.8 都落在同类 `Needs Fix`，且严重度、锚点和建议动作基本不变，默认直接止损并记录，不再开第三轮同口径 reviewer 重跑。
+- 如果上一轮 6.8 只是 LLM 超时、没有产生新的可执行 finding、`final_needs_fix_agents` 仍为空，默认先读工件并记录，不要无差别原参数重跑。
+- 如果上一轮只剩 `Unknown/timeout`，而本轮没有命中 reviewer 锚点文件，默认直接止损，不再继续支付同一轮 6.8。
 ## 8. 最终结论
 
 基于 T56 日志驱动的这轮优化后，本仓第六章已经具备以下性质：
@@ -382,4 +445,4 @@ Chapter 6 的正确升级单位是：
 5. perf gate 不再被模板 smoke 日志误导。
 6. 旧项目可以按本文档成批迁移，完整对齐，而不是只对齐表面命令。
 
-如果一个项目做完本文档第 6 节中的迁移和验证，它就可以视为“与当前模板仓的 Chapter 6 能力对齐”。
+如果一个项目做完本文档第 6 节中的迁移和验证，它就可以视为“与 `sanguo` 当前 Chapter 6 能力对齐”。

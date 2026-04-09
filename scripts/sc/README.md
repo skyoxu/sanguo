@@ -27,6 +27,23 @@
 
 单元测试与覆盖率固定落盘到：`logs/unit/<YYYY-MM-DD>/`（由 `scripts/python/run_dotnet.py` 生成）。
 
+## Task Recovery Before Another Full Rerun
+
+在重新执行 `run_review_pipeline.py` 或 Chapter 6 的 `6.7 / 6.8` 之前，先走恢复链，而不是直接重跑：
+
+- 先读 `logs/ci/active-tasks/task-<id>.active.md`，它是最短恢复摘要。
+- 再执行 `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`，读取 `Latest reason`、`Latest run type`、`Latest reuse mode`、`Latest artifact integrity`、`Chapter6 next action`、`Chapter6 blocked by`。
+- 需要深挖时，再执行 `py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id>`。
+
+高价值止损口径：
+
+- 若恢复链显示 `run_type = planned-only` 或 `reason = planned_only_incomplete`，该 bundle 只能当证据，不能直接 reopen `6.7` / `6.8`。
+- 若 `Chapter6 blocked by = artifact_integrity`，先回退到上一轮真实 producer bundle，再决定是否继续。
+- 若出现 `llm_retry_stop_loss`，优先走窄路径收敛 LLM 结果，不要再付一整轮 deterministic 成本。
+- 若出现 `sc_test_retry_stop_loss`，说明同 run 的 unit 根因已被证明，先修根因，不要重复同参重跑。
+- 若 `recommended_action = needs-fix-fast`，优先做定向 closure，不要再盲目开整轮 `6.7`。
+- If `active-task`, `resume-task`, or project-health already exposes `recommended_action_why`, use it to choose between `inspect`, `resume`, and `needs-fix-fast` before paying for another rerun.
+
 ## TDD 门禁编排（重要说明）
 
 `py -3 scripts/sc/build.py tdd ...` 是“门禁编排器”，不是自动生成业务代码的生成器：

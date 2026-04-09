@@ -159,8 +159,15 @@ This file is the repository map. It routes you to the right source document by t
 - Task-scoped execution entry: `py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN"`
 - Targeted test / acceptance / review checks are internal pipeline stages behind `run_review_pipeline.py`; do not document them as standalone task-level commands.
 - First recovery entry: read `logs/ci/active-tasks/task-<id>.active.md` if present, then run `py -3 scripts/python/dev_cli.py resume-task --task-id <id>` for the full task-scoped summary.
+- Before reopening a full `6.7`, read `Latest reason`, `Latest reuse mode`, `Chapter6 blocked by`, and `Chapter6 stop-loss note`.
 - If deeper inspection is still needed, inspect `execution-context.json`, `repair-guide.json`, and `agent-review.json` under the task run directory before reaching for internal helper scripts.
 - Agent-to-agent review rebuild: `py -3 scripts/sc/agent_to_agent_review.py --task-id <id>`
+
+## Recovery Stop-Loss Signals
+- `rerun_guard`: deterministic path already says stop; do not blindly rerun `6.7`.
+- `llm_retry_stop_loss`: deterministic was green and the first long LLM wait already timed out; prefer narrow LLM closure.
+- `sc_test_retry_stop_loss`: same-run unit retry already proved wasteful; fix the unit root cause first.
+- `waste_signals`: engine-lane cost already ran after a known unit/root-cause failure.
 
 ## Recovery Files
 - `logs/ci/<date>/sc-review-pipeline-task-<task>-<run_id>/summary.json`

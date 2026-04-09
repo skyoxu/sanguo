@@ -68,6 +68,7 @@
 - Overlay Authoring Guide：`docs/workflows/overlays-authoring-guide.md`
 - Testing Framework：`docs/testing-framework.md`
 - Technical Debt Register：`docs/technical-debt.md`
+- Session Recovery：`docs/agents/01-session-recovery.md`
 
 - Project Health Dashboard: `docs/workflows/project-health-dashboard.md`
 - Stable Public Entrypoints: `docs/workflows/stable-public-entrypoints.md`
@@ -76,6 +77,34 @@
 - Business Repo Upgrade Guide: `docs/workflows/business-repo-upgrade-guide.md`
 - Prototype Lane: `docs/workflows/prototype-lane.md`
 - Directory Responsibilities: `docs/agents/16-directory-responsibilities.md`
+
+## Recovery First
+
+当会话重置或跨设备恢复任务时，先走恢复入口，不要先做全量重跑：
+
+1. 阅读 `docs/agents/01-session-recovery.md`
+2. 运行 `py -3 scripts/python/dev_cli.py resume-task --task-id <task-id>`
+3. 仍不足时，再运行 `py -3 scripts/python/inspect_run.py --kind pipeline --task-id <task-id>`
+
+在决定是否重开完整 `6.7` 前，先看这些字段：
+
+- `Latest reason`
+- `Latest run type`
+- `Latest reuse mode`
+- `Latest artifact integrity`
+- `Chapter6 blocked by`
+- `Chapter6 stop-loss note`
+- `recommended_action_why`
+
+恢复止损规则：
+
+- `run_type = planned-only` 或 `reason = planned_only_incomplete`：该包仅作证据，不直接进入 `6.7`/`6.8`
+- `Chapter6 blocked by = artifact_integrity`：先回退到上一个真实产物包，再决定是否重跑
+- `rerun_guard`：已判定不应重复支付 deterministic 成本
+- `llm_retry_stop_loss`：优先走窄路径 LLM 收口，不直接重开全量
+- `sc_test_retry_stop_loss`：同轮 unit 重试已证明浪费，先修 root cause
+- `waste_signals`：已出现单测失败后仍执行高成本 lane 的浪费信号
+- `recommended_action = needs-fix-fast`：优先 targeted closure，不先开全量重跑
 ## Main Entrypoints
 
 ### Repo-Scoped Hard Checks
