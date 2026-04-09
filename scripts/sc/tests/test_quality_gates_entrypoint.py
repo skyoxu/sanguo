@@ -109,6 +109,29 @@ class QualityGatesEntrypointTests(unittest.TestCase):
         gdunit_mock.assert_not_called()
         smoke_mock.assert_not_called()
 
+    def test_all_should_set_and_restore_smoke_exit_on_ready_env(self) -> None:
+        observed: dict[str, str | None] = {}
+
+        def _fake_smoke(_godot_bin: str) -> int:
+            observed["during"] = quality_gates.os.environ.get("GD_SMOKE_EXIT_ON_READY")
+            return 0
+
+        with mock.patch.object(quality_gates, "run_gate_bundle_hard", return_value=0), \
+                mock.patch.object(quality_gates, "run_smoke_headless", side_effect=_fake_smoke), \
+                mock.patch.dict(quality_gates.os.environ, {"GD_SMOKE_EXIT_ON_READY": "legacy"}, clear=False):
+            rc = quality_gates.main(
+                [
+                    "all",
+                    "--smoke",
+                    "--godot-bin",
+                    "C:/Godot/Godot.exe",
+                ]
+            )
+            self.assertEqual("legacy", quality_gates.os.environ.get("GD_SMOKE_EXIT_ON_READY"))
+
+        self.assertEqual(0, rc)
+        self.assertEqual("1", observed.get("during"))
+
 
 if __name__ == "__main__":
     unittest.main()

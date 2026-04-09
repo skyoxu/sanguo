@@ -13,6 +13,7 @@ entrypoint now follows the same gate bundle mainline used by current CI.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 
@@ -111,7 +112,16 @@ def main(argv: list[str] | None = None) -> int:
             hard_failed = True
 
     if args.smoke:
-        smoke_rc = run_smoke_headless(args.godot_bin)
+        # Strict smoke should request the app to exit as soon as ready.
+        original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+        try:
+            os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
+            smoke_rc = run_smoke_headless(args.godot_bin)
+        finally:
+            if original_exit_on_ready is None:
+                os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+            else:
+                os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
         if smoke_rc != 0:
             hard_failed = True
 
