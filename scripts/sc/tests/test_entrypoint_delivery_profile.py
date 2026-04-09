@@ -84,6 +84,32 @@ class EntrypointDeliveryProfileTests(unittest.TestCase):
         self.assertEqual(90, runtime["coverage_lines_min"])
         self.assertEqual(85, runtime["coverage_branches_min"])
 
+    def test_task_scoped_runtime_relaxation_should_disable_coverage_gate_for_fast_profiles(self) -> None:
+        fast_ship = sc_test.resolve_test_runtime(delivery_profile="fast-ship", security_profile=None, no_coverage_gate=False)
+        relaxed_fast_ship = sc_test.apply_task_scoped_runtime_relaxation(
+            fast_ship,
+            test_type="unit",
+            task_root_id="70",
+        )
+        self.assertFalse(relaxed_fast_ship["coverage_gate"])
+
+        playable = sc_test.resolve_test_runtime(delivery_profile="playable-ea", security_profile=None, no_coverage_gate=False)
+        relaxed_playable = sc_test.apply_task_scoped_runtime_relaxation(
+            playable,
+            test_type="all",
+            task_root_id="70",
+        )
+        self.assertFalse(relaxed_playable["coverage_gate"])
+
+    def test_task_scoped_runtime_relaxation_should_keep_standard_coverage_gate(self) -> None:
+        standard = sc_test.resolve_test_runtime(delivery_profile="standard", security_profile=None, no_coverage_gate=False)
+        relaxed_standard = sc_test.apply_task_scoped_runtime_relaxation(
+            standard,
+            test_type="unit",
+            task_root_id="70",
+        )
+        self.assertTrue(relaxed_standard["coverage_gate"])
+
     def test_gate_bundle_runtime_should_scale_warning_budget_and_stability_gate(self) -> None:
         playable = gate_bundle.resolve_gate_bundle_runtime(delivery_profile="playable-ea")
         standard = gate_bundle.resolve_gate_bundle_runtime(delivery_profile="standard")

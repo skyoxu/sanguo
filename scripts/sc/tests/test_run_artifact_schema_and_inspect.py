@@ -340,13 +340,24 @@ class RunArtifactSchemaTests(unittest.TestCase):
                 "llm_timeout_memory": {
                     "overrides": {
                         "code-reviewer": 480,
-                    }
+                    },
+                    "planned_agents": [
+                        "code-reviewer",
+                        "security-auditor",
+                    ],
                 },
                 "llm_retry_stop_loss": {
+                    "kind": "deterministic_green_llm_not_clean",
                     "blocked": True,
                     "timed_out_step": "sc-llm-review",
                     "retry_count": 1,
                     "deterministic_ok": True,
+                },
+                "sc_test_retry_stop_loss": {
+                    "kind": "unit_failure_known",
+                    "blocked": True,
+                    "step_name": "sc-test",
+                    "retry_count": 1,
                 },
             }
             artifact_schema.validate_pipeline_execution_context_payload(payload)

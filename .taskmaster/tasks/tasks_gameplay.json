@@ -2916,12 +2916,10 @@
       "A-015"
     ],
     "acceptance": [
-      "Integration closure is accepted only when reviewable evidence for both split tasks 83 and 84 is present and supports the closure result; if evidence for either split task is missing or does not support closure, the integration closure remains incomplete. Refs: Tests.Godot/tests/Integration/test_backup_integrity_wal.gd Tests.Godot/tests/Integration/test_backup_restore_savegame.gd"
+      "Integration closure is accepted only when reviewable evidence for both split tasks 83 and 84 is present and supports the closure result; if evidence for either split task is missing or does not support closure, the integration closure remains incomplete. Refs: Game.Core.Tests/Tasks/Task70ReplayIntegrityTrustTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task70ReplayIntegrityTrustTests.cs",
-      "Tests.Godot/tests/Integration/test_backup_integrity_wal.gd",
-      "Tests.Godot/tests/Integration/test_backup_restore_savegame.gd"
+      "Game.Core.Tests/Tasks/Task70ReplayIntegrityTrustTests.cs"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
