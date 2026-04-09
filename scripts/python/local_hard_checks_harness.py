@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import os
 import subprocess
 import sys
 import uuid
@@ -141,7 +142,19 @@ def run_local_hard_checks(
             status="running",
             details={"cmd": cmd},
         )
-        step_rc = int(runner(cmd))
+        original_exit_on_ready = None
+        if name == "smoke-strict":
+            # Strict smoke should request exit-on-ready to avoid timeout-based false failures.
+            original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+            os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
+        try:
+            step_rc = int(runner(cmd))
+        finally:
+            if name == "smoke-strict":
+                if original_exit_on_ready is None:
+                    os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+                else:
+                    os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
         step_status = "ok" if step_rc == 0 else "fail"
         write_step_log(step_log, cmd=cmd, rc=step_rc, status=step_status, artifacts=artifacts)
         append_run_event(

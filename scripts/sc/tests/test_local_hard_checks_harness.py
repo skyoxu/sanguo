@@ -150,6 +150,29 @@ class LocalHardChecksHarnessTests(unittest.TestCase):
             self.assertIn("--timeout-sec", commands[4])
             self.assertIn("7", commands[4])
 
+    def test_run_with_smoke_strict_should_set_and_restore_exit_on_ready_env(self) -> None:
+        observed: dict[str, str | None] = {}
+
+        def runner(cmd: list[str]) -> int:
+            if "--strict" in cmd:
+                observed["during"] = local_hard_checks_harness.os.environ.get("GD_SMOKE_EXIT_ON_READY")
+            return 0
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "local-hard-checks-demo"
+            with mock.patch.dict(local_hard_checks_harness.os.environ, {"GD_SMOKE_EXIT_ON_READY": "legacy"}, clear=False):
+                rc = local_hard_checks_harness.run_local_hard_checks(
+                    delivery_profile="fast-ship",
+                    run_id="local-demo",
+                    out_dir=str(out_dir),
+                    godot_bin="C:/Godot/Godot.exe",
+                    run_fn=runner,
+                )
+                self.assertEqual("legacy", local_hard_checks_harness.os.environ.get("GD_SMOKE_EXIT_ON_READY"))
+
+        self.assertEqual(0, rc)
+        self.assertEqual("1", observed.get("during"))
+
     def test_project_health_fail_should_stop_before_other_hard_checks(self) -> None:
         commands: list[list[str]] = []
 
