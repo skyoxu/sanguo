@@ -6752,12 +6752,13 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task113SplitTests.cs",
-      "Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
+      "Game.Core.Tests/Tasks/Task113V3Tests.cs"
     ],
     "acceptance": [
-      "Diagnostics desensitization is mode-aware and applies deterministic field masking strategy for the same input payload and mode. Refs: Game.Core.Tests/Tasks/Task113V3Tests.cs",
-      "Task-specific deterministic tests validate masking behavior and stable output under repeated runs. Refs: Game.Core.Tests/Tasks/Task113V3Tests.cs"
+      "Diagnostics desensitization is mode-aware: in release mode, sensitive diagnostic fields are masked with a deterministic field-level strategy (same input value under the same field and mode yields the same masked representation), while non-sensitive fields remain unchanged. Refs: Game.Core.Tests/Tasks/Task113V3Tests.cs",
+      "In dev mode, diagnostics payload values are preserved raw (no masking) for the same input keys and values. Refs: Game.Core.Tests/Tasks/Task113V3Tests.cs",
+      "For the same payload and build mode, desensitization output is deterministic across repeated runs. Refs: Game.Core.Tests/Tasks/Task113V3Tests.cs",
+      "Release-mode masking is value-deterministic for sensitive fields: applying policy multiple times to payloads containing the same sensitive field/value pair yields identical masked value for that field. Refs: Game.Core.Tests/Tasks/Task113V3Tests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
