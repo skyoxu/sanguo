@@ -239,6 +239,12 @@
               "additionalProperties": {
                 "type": "integer"
               }
+            },
+            "planned_agents": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         },
@@ -246,6 +252,9 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "kind": {
+              "type": "string"
+            },
             "blocked": {
               "type": "boolean"
             },
@@ -267,6 +276,9 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "kind": {
+              "type": "string"
+            },
             "blocked": {
               "type": "boolean"
             },

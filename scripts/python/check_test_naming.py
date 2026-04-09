@@ -81,6 +81,8 @@ def is_given_when_then_style(name: str) -> bool:
 
 
 def is_allowed_test_method_name(name: str, *, style: str) -> bool:
+    if style == "should_when":
+        style = "strict"
     if style == "legacy":
         return is_pascal_case(name) or is_pascal_case_with_underscores(name)
     if style == "strict":
@@ -250,7 +252,7 @@ def scan_specific_files(*, files: List[Path], style: str) -> dict:
 def main():
     """Main entry point for the script."""
     ap = argparse.ArgumentParser(description="Validate test method naming conventions for Game.Core.Tests.")
-    ap.add_argument("--style", choices=["legacy", "strict"], default="legacy", help="Naming style to enforce.")
+    ap.add_argument("--style", choices=["legacy", "strict", "should_when"], default="legacy", help="Naming style to enforce.")
     ap.add_argument("--task-id", default=None, help="If set, validate only the task's C# test_refs (.cs).")
     ap.add_argument("--files", nargs="*", default=None, help="If set, validate only these repo-relative C# files.")
     ap.add_argument("--out", default=None, help="Optional JSON output report path.")

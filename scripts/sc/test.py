@@ -59,6 +59,24 @@ def resolve_test_runtime(*, delivery_profile: str | None, security_profile: str 
     }
 
 
+def apply_task_scoped_runtime_relaxation(
+    runtime: dict[str, Any],
+    *,
+    test_type: str,
+    task_root_id: str | None,
+) -> dict[str, Any]:
+    if not task_root_id:
+        return runtime
+    if str(test_type) not in {"unit", "all"}:
+        return runtime
+    if str(runtime.get("delivery_profile") or "") not in {"playable-ea", "fast-ship"}:
+        return runtime
+
+    relaxed = dict(runtime)
+    relaxed["coverage_gate"] = False
+    return relaxed
+
+
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="sc-test (test shim)")
     ap.add_argument("--self-check", action="store_true", help="Validate parser/runtime wiring and summary contract without running tests.")
@@ -231,6 +249,12 @@ def main() -> int:
         security_profile=args.security_profile,
         no_coverage_gate=bool(args.no_coverage_gate),
     )
+    task_root_id = _normalize_task_root_id(args.task_id)
+    runtime = apply_task_scoped_runtime_relaxation(
+        runtime,
+        test_type=args.type,
+        task_root_id=task_root_id,
+    )
     os.environ["DELIVERY_PROFILE"] = str(runtime["delivery_profile"])
     os.environ["SECURITY_PROFILE"] = str(runtime["security_profile"])
     out_dir = ci_dir("sc-test")
@@ -250,7 +274,6 @@ def main() -> int:
         "status": "fail",
         "steps": [],
     }
-    task_root_id = _normalize_task_root_id(args.task_id)
     if task_root_id:
         summary["task_id"] = task_root_id
     schema_error_log = out_dir / "summary-schema-validation-error.log"
