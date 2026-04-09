@@ -1,11 +1,38 @@
 Param(
-  [string]$Solution = "GodotGame.sln",
+  [string]$Solution = "auto",
   [string]$Configuration = "Debug",
   [string]$OutDir = ""
 )
 
 # English comments/prints only. UTF-8 output. Windows friendly.
 $ErrorActionPreference = 'Continue'
+
+function Resolve-SolutionPath {
+  param(
+    [string]$RequestedSolution
+  )
+
+  if (-not [string]::IsNullOrWhiteSpace($RequestedSolution) -and $RequestedSolution -ne 'auto') {
+    return $RequestedSolution
+  }
+
+  $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+  $repoName = Split-Path -Leaf $repoRoot
+  $preferred = @('Game.sln', "$repoName.sln", 'GodotGame.sln')
+  foreach ($name in $preferred) {
+    $candidate = Join-Path $repoRoot $name
+    if (Test-Path -LiteralPath $candidate) {
+      return $candidate
+    }
+  }
+  $first = Get-ChildItem -Path $repoRoot -Filter *.sln -File -ErrorAction SilentlyContinue | Sort-Object Name | Select-Object -First 1
+  if ($first) {
+    return $first.FullName
+  }
+  return $RequestedSolution
+}
+
+$Solution = Resolve-SolutionPath -RequestedSolution $Solution
 
 if ([string]::IsNullOrWhiteSpace($OutDir)) {
   $date = Get-Date -Format 'yyyy-MM-dd'

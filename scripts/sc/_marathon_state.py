@@ -265,6 +265,12 @@ def build_forked_summary(source_summary: dict[str, Any], *, new_run_id: str, req
         "force_new_run_id": False,
         "status": "ok",
         "steps": cloned_steps,
+        "started_at_utc": _now_iso(),
+        "finished_at_utc": "",
+        "elapsed_sec": 0,
+        "run_type": "deterministic-only" if cloned_steps else "full",
+        "reason": "pipeline_clean" if cloned_steps else "in_progress",
+        "reuse_mode": "none",
     }
 
 

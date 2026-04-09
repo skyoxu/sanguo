@@ -31,6 +31,23 @@
       "type": "string",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
     },
+    "started_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "finished_at_utc": {
+      "type": "string"
+    },
+    "run_type": {
+      "type": "string",
+      "enum": [
+        "planned-only",
+        "preflight-only",
+        "llm-only",
+        "deterministic-only",
+        "full"
+      ]
+    },
     "latest_out_dir": {
       "type": "string"
     },
@@ -54,6 +71,61 @@
     },
     "harness_capabilities_path": {
       "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reuse_mode": {
+      "type": "string",
+      "enum": [
+        "none",
+        "full-clean-reuse",
+        "deterministic-only-reuse",
+        "sc-test-reuse",
+        "mixed-reuse"
+      ]
+    },
+    "deterministic_bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "available",
+        "reuse_mode",
+        "test_summary_path",
+        "acceptance_summary_path",
+        "reported_out_dirs"
+      ],
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "reuse_mode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "full-clean-reuse",
+            "deterministic-only-reuse",
+            "sc-test-reuse",
+            "mixed-reuse"
+          ]
+        },
+        "test_summary_path": {
+          "type": "string"
+        },
+        "acceptance_summary_path": {
+          "type": "string"
+        },
+        "reported_out_dirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object"
     },
     "approval_request_path": {
       "type": "string"

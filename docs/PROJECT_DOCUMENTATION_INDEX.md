@@ -1,132 +1,80 @@
-# 项目文档索引（sanguo）
+# Project Documentation Index (sanguo)
 
-> 最后更新：2026-03-22
-> 项目定位：skyoxu/sanguo，基于 Godot 4.5 + C#/.NET 8（Windows-only）模板能力演进的三国主题项目
-> 迁移说明：本仓库继承上游 Godot 模板能力，但当前运行时、任务编排与文档入口均以 `skyoxu/sanguo` 为准；迁移历史材料在 `docs/migration/**`，仅用于历史对照。
+This file is the top-level navigation for project docs.
 
----
+## Start Order After Context Reset
 
-## Quick Links（先看这些）
+1. `README.md`
+2. `docs/agents/00-index.md`
+3. `docs/agents/01-session-recovery.md`
+4. `docs/PROJECT_DOCUMENTATION_INDEX.md`
+5. `docs/agents/13-rag-sources-and-session-ssot.md`
+6. `DELIVERY_PROFILE.md`
+7. `docs/testing-framework.md`
+8. `docs/agents/16-directory-responsibilities.md`
+9. `docs/workflows/prototype-lane.md`
+10. Newest file in `execution-plans/`
+11. Newest file in `decision-logs/`
+12. If available: `logs/ci/<date>/sc-review-pipeline-task-<task-id>/latest.json`
 
-- 项目总览与一键命令：`../README.md`
-- AI/协作规则（SSoT）：`../CLAUDE.md`、`../AGENTS.md`
-- Godot+C# 快速开始（本仓模板）：`docs/TEMPLATE_GODOT_GETTING_STARTED.md`
-- 测试框架与门禁说明：`docs/testing-framework.md`
-- 文档导航（Base 骨干）：`docs/architecture/base/00-README.md`
-- Release/CI 工作流说明（含 Sentry 软门禁）：`docs/workflows/GM-NG-T2-playable-guide.md`
-- Overlay Generation Docs: `docs/workflows/overlay-generation-quickstart.md`, `docs/workflows/overlay-generation-sop.md`, `docs/workflows/overlays-authoring-guide.md`
-- 恢复与 active-task：`docs/agents/01-session-recovery.md`、`docs/agents/03-persistent-harness.md`
-- 目录职责：`docs/agents/16-directory-responsibilities.md`
-- 模板升级协议：`docs/workflows/template-upgrade-protocol.md`
-- Project Health Dashboard：`docs/workflows/project-health-dashboard.md`
-- Prototype Lane：`docs/workflows/prototype-lane.md`
-- Chapter 6 T56 优化指南：`docs/workflows/chapter-6-t56-optimization-guide.md`
-- Stable Public Entrypoints：`docs/workflows/stable-public-entrypoints.md`
-- Script Entrypoints Index：`docs/workflows/script-entrypoints-index.md`
-- Harness Run Protocol：`docs/workflows/run-protocol.md`
+## Authoritative Sources
 
----
+- Taskmaster triplet: `.taskmaster/tasks/tasks.json`, `.taskmaster/tasks/tasks_back.json`, `.taskmaster/tasks/tasks_gameplay.json`
+- PRD: `.taskmaster/docs/prd.txt`, `docs/prd/**`
+- ADR: `docs/adr/ADR-*.md`, `docs/architecture/ADR_INDEX_GODOT.md`
+- Base architecture: `docs/architecture/base/**`
+- Overlay slices: `docs/architecture/overlays/**/08/**`
+- Testing rules: `docs/testing-framework.md`
+- Delivery/run protocol: `DELIVERY_PROFILE.md`, `docs/workflows/run-protocol.md`, `docs/workflows/local-hard-checks.md`
 
-## 1) 入口文档（SSoT）
+## Workflow Docs
 
-- `../README.md`：模板简介、Quick Links、常用命令
-- `../CLAUDE.md`：单一真相（AI 助手/架构/门禁/日志规范）
-- `../AGENTS.md`：协作与编码规范（Windows only、UTF-8、日志与取证）
+- Daily workflow (authoritative execution order): `workflow.md`
+- Chapter 6 optimization guide: `docs/workflows/chapter-6-t56-optimization-guide.md`
+- Upgrade guide: `docs/workflows/business-repo-upgrade-guide.md`
+- Template upgrade protocol: `docs/workflows/template-upgrade-protocol.md`
+- Project health dashboard: `docs/workflows/project-health-dashboard.md`
+- Local hard checks: `docs/workflows/local-hard-checks.md`
+- Stable entrypoint index: `docs/workflows/stable-public-entrypoints.md`
+- Script entrypoint index: `docs/workflows/script-entrypoints-index.md`
 
----
+## Recovery And Stop-Loss
 
-## 2) Getting Started（开始开发）
+- Canonical recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id <task-id>`
+- Deep inspection command: `py -3 scripts/python/inspect_run.py --kind pipeline --task-id <task-id>`
+- Recovery reading order: `docs/agents/01-session-recovery.md`
+- Stable recovery/entry routing: `docs/workflows/stable-public-entrypoints.md`
+- Sidecar and consumer contract: `docs/workflows/run-protocol.md`
 
-- `docs/TEMPLATE_GODOT_GETTING_STARTED.md`：从 0 到可跑/可测/可导出
-- `docs/testing-framework.md`：xUnit + GdUnit4 + 覆盖率/门禁（Windows）
+Read these recovery signals before reopening a full Chapter 6 pipeline:
 
----
+- `latest_summary_signals.reason`
+- `latest_summary_signals.run_type`
+- `latest_summary_signals.reuse_mode`
+- `latest_summary_signals.artifact_integrity`
+- `chapter6_hints.next_action`
+- `chapter6_hints.blocked_by`
+- `recommended_action_why` from `active-task` or project-health when available
 
-## 3) 架构文档（Base-Clean，arc42 12 章）
+High-value interpretation rules:
 
-目录：`docs/architecture/base/`
+- `run_type = planned-only` or `reason = planned_only_incomplete` means the newest bundle is evidence-only, not a resumable producer run.
+- `artifact_integrity` means you should fall back to the previous real producer bundle before rerunning Chapter 6.
+- `recommended_action = needs-fix-fast` usually means the deterministic evidence is already good enough and you should close targeted anchors instead of paying for another full rerun.
 
-- `docs/architecture/base/00-README.md`：Base 导航与维护说明
-- `docs/architecture/base/01-introduction-and-goals-v2.md`：约束与目标（Godot+C# 口径）
-- `docs/architecture/base/02-security-baseline-godot-v2.md`：安全基线（Godot 运行时）
-- `docs/architecture/base/03-observability-sentry-logging-v2.md`：可观测性与 Release Health（Sentry）
-- `docs/architecture/base/04-system-context-c4-event-flows-v2.md`：系统上下文、容器与事件流（Signals/Contracts）
-- `docs/architecture/base/05-data-models-and-storage-ports-v2.md`：数据模型与存储端口
-- `docs/architecture/base/06-runtime-view-loops-state-machines-error-paths-v2.md`：运行时视图与状态机/错误路径
-- `docs/architecture/base/07-dev-build-and-gates-v2.md`：开发/构建/质量门禁（Windows）
-- `docs/architecture/base/08-crosscutting-and-feature-slices.base.md`：08 章模板（Base 禁止具体纵切）
-- `docs/architecture/base/09-performance-and-capacity-v2.md`：性能与容量（帧时间 P95 门禁）
-- `docs/architecture/base/10-i18n-ops-release-v2.md`：i18n 与发布运维（Windows-only）
-- `docs/architecture/base/11-risks-and-technical-debt-v2.md`：风险与技术债
-- `docs/architecture/base/12-glossary-v2.md`：术语表
+Current stop-loss families:
 
----
+- `rerun_guard`
+- `llm_retry_stop_loss`
+- `sc_test_retry_stop_loss`
+- `waste_signals`
+- `artifact_integrity`
 
-## 4) ADR（架构决策记录）
+## Evidence and Logs
 
-目录：`docs/adr/`
-
-- `docs/architecture/ADR_INDEX_GODOT.md`：当前 Godot 模板口径的 ADR 索引（Accepted + Addenda）
-- `docs/adr/guide.md`：ADR 编写指南
-
----
-
-## 5) Workflows（CI/协作手册）
-
-目录：`docs/workflows/`
-
-- `docs/workflows/GM-NG-T2-playable-guide.md`：可玩度/Release 工作流与 Sentry 软门禁说明
-- `docs/workflows/doc-stack-convergence-guide.md`：文档口径全量收敛（Base/Migration 扫描、取证与验证）
-- `docs/workflows/serena-mcp-command-reference.md`：Serena / Codex CLI 常用命令
-- `docs/workflows/superclaude-command-reference.md`：SuperClaude 工作流说明
-- `docs/workflows/task-master-superclaude-integration.md`：Taskmaster + SuperClaude 集成（如仅做 Godot 桌面模板，可先跳过 Web/旧桌面壳 相关段落）
-- `docs/workflows/overlay-generation-quickstart.md`：overlay generation 的最小安全命令集
-- `docs/workflows/overlay-generation-sop.md`：generate / repair / small-batch apply 的标准流程
-- `docs/workflows/overlays-authoring-guide.md`：目录、front matter、task backlinks 与 contract refs 规则
-
----
-
-## 6) Migration（历史对照与资料库）
-
-目录：`docs/migration/`（包含从旧栈迁移到 Godot 的过程性材料；不作为当前运行时口径的唯一来源）
-
-- `docs/migration/MIGRATION_INDEX.md`
-- `docs/migration/Phase-12-Headless-Smoke-Tests.md`
-- `docs/migration/Phase-17-Windows-Only-Quickstart.md`
-- `docs/migration/Phase-17-Export-Checklist.md`
-- `docs/migration/Phase-18-Staged-Release-and-Canary-Strategy.md`
-
----
-
-## 7) Scripts & CI（可执行入口）
-
-### PowerShell（Windows）
-
-- `scripts/ci/quality_gate.ps1`：一键门禁入口（调用 Python gates，可选导出/冒烟/性能门禁）
-- `scripts/ci/smoke_headless.ps1`：Godot headless 冒烟（产出 `logs/ci/**`）
-- `scripts/ci/export_windows.ps1`：导出 Windows EXE
-- `scripts/ci/check_perf_budget.ps1`：解析 `[PERF]` 标记并做 P95 门禁
-- `scripts/ci/verify_base_clean.ps1`：Base-Clean 校验（禁止 Base 出现 PRD-ID/具体 08 内容）
-
-### Python（py -3）
-
-- `scripts/python/quality_gates.py`：本地/CI 统一门禁编排（dotnet + gdunit + encoding 等）
-- `scripts/python/check_sentry_secrets.py`：Sentry Secrets 软门禁（Step Summary）
-- `scripts/python/check_encoding.py`：UTF-8/疑似乱码扫描（写入 `logs/ci/<YYYY-MM-DD>/encoding/**`）
-- `scripts/python/scan_doc_stack_terms.py`：旧技术栈术语扫描（用于文档收敛取证）
-- `scripts/python/task_links_validate.py`：NG/GM ↔ ADR/章节/Overlay 回链校验（CI 门禁）
-- `scripts/python/verify_task_mapping.py`：抽样检查任务映射元数据完整度（软检查）
-- `scripts/python/validate_task_master_triplet.py`：三份任务文件结构总检（本地/后续 CI）
-- `scripts/python/prd_coverage_report.py`：PRD→任务覆盖报表（软检查）
-
----
-
-## 8) 日志与工件（排障入口）
-
-- 统一目录：`logs/**`（单元/引擎冒烟/CI/性能/审计）
-- 建议先看：`logs/ci/<YYYY-MM-DD>/`（门禁与扫描报告）
-
-## Additional Workflow Links (2026-02)
-
-- `docs/workflows/task-semantics-gates-evolution.md`
-- `docs/workflows/acceptance-check-and-llm-review.md`
+- CI and local evidence: `logs/ci/<YYYY-MM-DD>/`
+- Review pipeline artifact entry: `logs/ci/<YYYY-MM-DD>/sc-review-pipeline-task-<task>/latest.json`
+- Local hard-check latest pointer: `logs/ci/<YYYY-MM-DD>/local-hard-checks-latest.json`
+- Project-health latest pointer: `logs/ci/project-health/latest.json`
+- Project-health dashboard page: `logs/ci/project-health/latest.html`
+- Project-health report catalog: `logs/ci/project-health/report-catalog.latest.json`

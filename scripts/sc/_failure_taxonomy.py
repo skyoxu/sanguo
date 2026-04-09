@@ -12,6 +12,7 @@ def classify_run_failure(
     validation_errors: list[str],
     missing_artifacts: list[str],
     stale_latest: bool,
+    incomplete_run: bool,
 ) -> dict[str, Any]:
     if validation_errors:
         return {
@@ -29,6 +30,12 @@ def classify_run_failure(
         return {
             "code": "artifact-missing",
             "message": "One or more required sidecars are missing.",
+            "severity": "hard",
+        }
+    if incomplete_run:
+        return {
+            "code": "artifact-incomplete",
+            "message": "The latest pointer reports ok, but the producer run has no run_completed event yet.",
             "severity": "hard",
         }
     if latest_status == "aborted":

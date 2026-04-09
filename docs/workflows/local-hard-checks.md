@@ -20,11 +20,10 @@ This document defines the contract for `py -3 scripts/python/dev_cli.py run-loca
 
 `run-local-hard-checks` executes these steps in order and stops at the first failing step:
 
-1. `scripts/python/project_health_scan.py`
-2. `scripts/python/run_gate_bundle.py --mode hard`
-3. `scripts/python/run_dotnet.py`
-4. `scripts/python/run_gdunit.py` (Adapters/Config + Security hard set, only when `--godot-bin` is provided)
-5. `scripts/python/smoke_headless.py --project-path . --strict` (only when `--godot-bin` is provided)
+1. `scripts/python/run_gate_bundle.py --mode hard`
+2. `scripts/python/run_dotnet.py`
+3. `scripts/python/run_gdunit.py` (Adapters/Config + Security hard set, only when `--godot-bin` is provided)
+4. `scripts/python/smoke_headless.py --strict` (only when `--godot-bin` is provided)
 
 Core rules:
 
@@ -39,8 +38,11 @@ Core rules:
 # Full local hard validation
 py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin C:\Godot\Godot_v4.5.1-stable_mono_win64_console.exe
 
-# No Godot runtime available: project health + semantics + contracts + dotnet only
+# No Godot runtime available: semantics, contracts, and dotnet only
 py -3 scripts/python/dev_cli.py run-local-hard-checks
+
+# Inspect the latest repo-scoped hard-check run after it stops
+py -3 scripts/python/inspect_run.py --kind local-hard-checks
 ```
 
 ## Main Parameters
@@ -54,6 +56,9 @@ py -3 scripts/python/dev_cli.py run-local-hard-checks
 - `--run-id <id>`: stable identity for the whole harness run and its nested hard bundle artifacts.
 - `--timeout-sec <n>`: forwarded to strict smoke; default `5`.
 
+Notes:
+- For test-oriented commands, `--solution auto` prefers the test-bearing solution when one exists (for this repo, that is currently `Game.sln` rather than a repo-named solution such as `sanguo.sln`).
+
 ## Difference From Other Entrypoints
 
 ### `run-ci-basic`
@@ -65,12 +70,12 @@ py -3 scripts/python/dev_cli.py run-local-hard-checks
 ### `run-quality-gates`
 
 - Goal: wrap `quality_gates.py all`.
-- Default behavior: runs the hard gate bundle first and optionally appends `--gdunit-hard` and `--smoke`.
+- Default behavior: run the hard gate bundle first and optionally append `--gdunit-hard` / `--smoke`.
 - Useful for focused engine-side checks, but not the right primary entrypoint for full local hard validation because it can duplicate the hard bundle path.
 
 ### Manual Step Execution
 
-Manual execution is still useful when isolating one failing step, but it is not the recommended day-to-day default.
+Useful when isolating one failing step, but not the recommended day-to-day default.
 
 ## Artifacts And Logs
 
@@ -78,16 +83,16 @@ Manual execution is still useful when isolating one failing step, but it is not 
 
 Default root: `logs/ci/<YYYY-MM-DD>/local-hard-checks-<run-id>/`
 
-This directory is a first-class run object and writes at least:
+This directory is now a first-class run object and writes at least:
 
-- `summary.json`: canonical run status and step list.
-- `execution-context.json`: profile state, failed step, and sidecar pointers.
-- `repair-guide.json`: machine-readable repair guidance.
-- `repair-guide.md`: human-readable repair guidance.
-- `run-events.jsonl`: append-only lifecycle and step timeline.
-- `harness-capabilities.json`: supported sidecars and recovery actions for this run type.
-- `run_id.txt`: stable run id.
-- `<step>.log`: one JSON log per step, for example `gate-bundle-hard.log`.
+- `summary.json`: canonical run status and step list
+- `execution-context.json`: profile state, failed step, and sidecar pointers
+- `repair-guide.json`: machine-readable repair guidance
+- `repair-guide.md`: human-readable repair guidance
+- `run-events.jsonl`: append-only lifecycle and step timeline
+- `harness-capabilities.json`: supported sidecars and recovery actions for this run type
+- `run_id.txt`: stable run id
+- `<step>.log`: one JSON log per step, for example `gate-bundle-hard.log`
 
 The same date directory also gets a repo-scoped pointer:
 
@@ -95,16 +100,16 @@ The same date directory also gets a repo-scoped pointer:
 
 ### Repo Health Prelude
 
-- The run refreshes `logs/ci/project-health/latest.json` and `logs/ci/project-health/latest.html` before any hard validation step.
+- The run now refreshes `logs/ci/project-health/latest.json` and `logs/ci/project-health/latest.html` before any hard validation step.
 - `warn` from project health does not block the run.
 - `fail` from project health blocks the run immediately because it indicates a repo-level stop-loss issue.
 
 ### Nested Step Artifacts
 
-- Hard gate bundle: nested summary at `<run-out-dir>/hard/summary.json`.
-- Dotnet: `logs/unit/<YYYY-MM-DD>/`.
-- GdUnit4 hard set: `logs/e2e/dev-cli/local-hard-checks-gdunit-hard/`.
-- Strict smoke: `logs/ci/<YYYY-MM-DD>/smoke/<timestamp>/`.
+- Hard gate bundle: nested summary at `<run-out-dir>/hard/summary.json`
+- Dotnet: `logs/unit/<YYYY-MM-DD>/`
+- GdUnit4 hard set: `logs/e2e/dev-cli/local-hard-checks-gdunit-hard/`
+- Strict smoke: `logs/ci/<YYYY-MM-DD>/smoke/<timestamp>/`
 
 ### Protocol Boundary
 
@@ -115,6 +120,16 @@ This run currently supports only the minimal recovery actions:
 
 It does not produce `approval-request.json`, `approval-response.json`, `marathon-state.json`, or `agent-review.json`. Those sidecars remain part of the task-scoped `run_review_pipeline.py` protocol.
 
+## Recovery Reading Hints
+
+Use local hard checks as a repo-scoped health run, not as a task-scoped Chapter 6 producer run.
+
+- Inspect the latest repo-scoped run with `py -3 scripts/python/inspect_run.py --kind local-hard-checks` before rerunning it.
+- Read `summary.json`, `execution-context.json`, `repair-guide.md`, and `run-events.jsonl` together; they tell you which step failed and whether the next action is rerun or inspect.
+- If the repo-scoped run failed in `project-health`, `run_gate_bundle`, or `run_dotnet`, fix that root cause first instead of paying for another full hard pass.
+- If you actually need task recovery semantics such as `reason`, `run_type`, `reuse_mode`, `artifact_integrity`, `planned-only`, `planned_only_incomplete`, `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, `recommended_action_why`, or `recommended_action = needs-fix-fast`, switch to the task-scoped recovery chain: `resume-task`, `inspect_run.py --kind pipeline`, `active-task`, and `run_review_pipeline.py`.
+- Do not treat `local-hard-checks-latest.json` as evidence that a task can reopen Chapter 6. Task-scoped rerun decisions must come from the pipeline sidecars, not from repo-scoped hard-check artifacts.
+
 ## Stop-Loss Rules
 
 - If you only want semantics and contract gates, use `run-ci-basic` instead.
@@ -124,7 +139,9 @@ It does not produce `approval-request.json`, `approval-response.json`, `marathon
 
 ## Related Docs
 
-- [Testing Framework](../testing-framework.md)
-- [Gate Bundle](gate-bundle.md)
-- [Run Protocol](run-protocol.md)
-- [DELIVERY_PROFILE](../../DELIVERY_PROFILE.md)
+- `docs/testing-framework.md`
+- `docs/workflows/gate-bundle.md`
+- `docs/workflows/run-protocol.md`
+- `docs/workflows/project-health-dashboard.md`
+- `docs/agents/01-session-recovery.md`
+- `DELIVERY_PROFILE.md`

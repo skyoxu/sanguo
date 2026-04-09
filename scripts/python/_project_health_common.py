@@ -5,11 +5,13 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from _chapter6_recovery_common import chapter6_stop_loss_note as _chapter6_stop_loss_note
 
 PROJECT_HEALTH_KINDS = (
     "detect-project-stage",
@@ -56,6 +58,29 @@ def repo_rel(path: Path, *, root: Path) -> str:
         return to_posix(path.resolve().relative_to(root.resolve()))
     except ValueError:
         return to_posix(path.resolve())
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = str(os.environ.get(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return default
+
+
+def _parse_iso8601_soft(value: Any) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    return parsed.astimezone() if parsed.tzinfo else parsed.replace(tzinfo=now_local().tzinfo)
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -178,6 +203,173 @@ def _normalize_report_value(value: Any, *, limit: int = 240) -> str:
     return text[:limit]
 
 
+def _normalize_llm_verdict(value: Any) -> str:
+    raw = str(value or "").strip().lower()
+    if raw in {"ok", "pass", "passed"}:
+        return "OK"
+    if raw in {"needs fix", "needs_fix", "need fix", "fail", "failed"}:
+        return "Needs Fix"
+    return "Unknown"
+
+
+def _resolve_report_path(raw: Any, *, root: Path) -> Path | None:
+    text = str(raw or "").strip()
+    if not text:
+        return None
+    candidate = Path(text)
+    if not candidate.is_absolute():
+        candidate = (root / candidate).resolve()
+    return candidate if candidate.exists() else None
+
+
+
+
+def _derive_clean_state_from_summary(summary_path: Path | None, *, root: Path) -> dict[str, Any]:
+    if summary_path is None or not summary_path.exists():
+        return {
+            "state": "",
+            "deterministic_ok": False,
+            "llm_status": "",
+            "needs_fix_agents": [],
+            "unknown_agents": [],
+            "timeout_agents": [],
+        }
+    try:
+        summary = read_json(summary_path)
+    except Exception:
+        return {
+            "state": "",
+            "deterministic_ok": False,
+            "llm_status": "",
+            "needs_fix_agents": [],
+            "unknown_agents": [],
+            "timeout_agents": [],
+        }
+    steps = summary.get("steps") if isinstance(summary.get("steps"), list) else []
+    step_map = {
+        str(item.get("name") or "").strip(): item
+        for item in steps
+        if isinstance(item, dict) and str(item.get("name") or "").strip()
+    }
+    test_status = str((step_map.get("sc-test") or {}).get("status") or "").strip().lower()
+    acceptance_status = str((step_map.get("sc-acceptance-check") or {}).get("status") or "").strip().lower()
+    llm_step = step_map.get("sc-llm-review") or {}
+    llm_status = str(llm_step.get("status") or "").strip().lower()
+    llm_summary_path = _resolve_report_path(llm_step.get("summary_file"), root=root)
+    needs_fix_agents: list[str] = []
+    unknown_agents: list[str] = []
+    timeout_agents: list[str] = []
+    if llm_summary_path is not None:
+        try:
+            llm_summary = read_json(llm_summary_path)
+        except Exception:
+            llm_summary = {}
+        results = llm_summary.get("results") if isinstance(llm_summary.get("results"), list) else []
+        for row in results:
+            if not isinstance(row, dict):
+                continue
+            agent = str(row.get("agent") or "").strip()
+            details = row.get("details") if isinstance(row.get("details"), dict) else {}
+            verdict = _normalize_llm_verdict(details.get("verdict"))
+            rc = int(row.get("rc") or 0)
+            status = str(row.get("status") or "").strip().lower()
+            if verdict == "Needs Fix" and agent:
+                needs_fix_agents.append(agent)
+            if (verdict == "Unknown" or status not in {"ok", "skipped"} or rc != 0) and agent:
+                unknown_agents.append(agent)
+            if rc == 124 and agent:
+                timeout_agents.append(agent)
+    deterministic_ok = test_status == "ok" and acceptance_status == "ok"
+    llm_clean = llm_status == "ok" and not needs_fix_agents and not unknown_agents
+    if deterministic_ok and llm_clean:
+        state = "clean"
+    elif deterministic_ok and (needs_fix_agents or unknown_agents or llm_status == "fail"):
+        state = "deterministic_ok_llm_not_clean"
+    elif deterministic_ok and llm_status == "skipped":
+        state = "deterministic_only"
+    else:
+        state = "not_clean"
+    return {
+        "state": state,
+        "deterministic_ok": deterministic_ok,
+        "llm_status": llm_status,
+        "needs_fix_agents": sorted(needs_fix_agents),
+        "unknown_agents": sorted(set(unknown_agents)),
+        "timeout_agents": sorted(set(timeout_agents)),
+    }
+
+
+def _derive_waste_signals_from_summary(summary_path: Path | None, *, root: Path) -> dict[str, bool]:
+    if summary_path is None or not summary_path.exists():
+        return {"unit_failed_but_engine_lane_ran": False}
+    try:
+        summary = read_json(summary_path)
+    except Exception:
+        return {"unit_failed_but_engine_lane_ran": False}
+    steps = summary.get("steps") if isinstance(summary.get("steps"), list) else []
+    step_map = {
+        str(item.get("name") or "").strip(): item
+        for item in steps
+        if isinstance(item, dict) and str(item.get("name") or "").strip()
+    }
+    sc_test_summary_path = _resolve_report_path((step_map.get("sc-test") or {}).get("summary_file"), root=root)
+    if sc_test_summary_path is None:
+        return {"unit_failed_but_engine_lane_ran": False}
+    try:
+        sc_test_summary = read_json(sc_test_summary_path)
+    except Exception:
+        return {"unit_failed_but_engine_lane_ran": False}
+    sc_steps = sc_test_summary.get("steps") if isinstance(sc_test_summary.get("steps"), list) else []
+    sc_step_map = {
+        str(item.get("name") or "").strip(): item
+        for item in sc_steps
+        if isinstance(item, dict) and str(item.get("name") or "").strip()
+    }
+    unit_status = str((sc_step_map.get("unit") or {}).get("status") or "").strip().lower()
+    engine_ran = any(
+        str((sc_step_map.get(name) or {}).get("status") or "").strip().lower() in {"ok", "fail"}
+        for name in ("gdunit-hard", "smoke")
+    )
+    return {
+        "unit_failed_but_engine_lane_ran": unit_status == "fail" and engine_ran,
+    }
+
+
+def _derive_deterministic_bundle_from_summary(summary_path: Path | None, *, root: Path) -> dict[str, Any]:
+    if summary_path is None or not summary_path.exists():
+        return {}
+    try:
+        summary = read_json(summary_path)
+    except Exception:
+        return {}
+    steps = summary.get("steps") if isinstance(summary.get("steps"), list) else []
+    step_map = {
+        str(item.get("name") or "").strip(): item
+        for item in steps
+        if isinstance(item, dict) and str(item.get("name") or "").strip()
+    }
+    sc_test_step = step_map.get("sc-test") if isinstance(step_map.get("sc-test"), dict) else {}
+    acceptance_step = step_map.get("sc-acceptance-check") if isinstance(step_map.get("sc-acceptance-check"), dict) else {}
+    test_summary_path = _resolve_report_path(sc_test_step.get("summary_file"), root=root)
+    acceptance_summary_path = _resolve_report_path(acceptance_step.get("summary_file"), root=root)
+    test_ok = str(sc_test_step.get("status") or "").strip().lower() in {"ok", "reused"}
+    acceptance_ok = str(acceptance_step.get("status") or "").strip().lower() in {"ok", "reused"}
+    if not (test_ok or acceptance_ok):
+        return {}
+    reported_dirs = []
+    for step in (sc_test_step, acceptance_step):
+        reported_out_dir = _resolve_report_path(step.get("reported_out_dir"), root=root)
+        if reported_out_dir is not None:
+            reported_dirs.append(repo_rel(reported_out_dir, root=root))
+    return {
+        "available": bool(test_ok or acceptance_ok),
+        "test_summary": repo_rel(test_summary_path, root=root) if test_summary_path is not None else "",
+        "acceptance_summary": repo_rel(acceptance_summary_path, root=root) if acceptance_summary_path is not None else "",
+        "reported_out_dirs": reported_dirs,
+        "reuse_mode": _normalize_report_value(summary.get("reuse_mode"), limit=60),
+    }
+
+
 def _compact_extract_family_actions(items: Any, *, limit: int = 6) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     if not isinstance(items, list):
@@ -239,6 +431,308 @@ def _extract_report_highlights(payload: dict[str, Any]) -> dict[str, Any]:
     if "failed_count" in payload:
         highlights["failed_count"] = int(payload.get("failed_count") or 0)
     return highlights
+
+
+def _active_task_latest_json_is_canonical(payload: dict[str, Any], *, root: Path) -> bool:
+    paths = payload.get("paths") if isinstance(payload.get("paths"), dict) else {}
+    latest_path = _resolve_report_path(paths.get("latest_json"), root=root)
+    if latest_path is None or latest_path.name.lower() != "latest.json":
+        return False
+    return latest_path.parent.name.lower().startswith("sc-review-pipeline-task-")
+
+
+def _active_task_is_stale_clean(payload: dict[str, Any], *, now: datetime) -> bool:
+    clean_state = payload.get("clean_state") if isinstance(payload.get("clean_state"), dict) else {}
+    chapter6_hints = payload.get("chapter6_hints") if isinstance(payload.get("chapter6_hints"), dict) else {}
+    if str(payload.get("status") or "").strip().lower() != "ok":
+        return False
+    if str(clean_state.get("state") or "").strip().lower() != "clean":
+        return False
+    if str(payload.get("recommended_action") or "").strip().lower() != "continue":
+        return False
+    if str(chapter6_hints.get("blocked_by") or "").strip():
+        return False
+    updated_at = _parse_iso8601_soft(payload.get("updated_at_utc"))
+    if updated_at is None:
+        return False
+    max_age_days = _env_int("PROJECT_HEALTH_ACTIVE_TASK_CLEAN_MAX_AGE_DAYS", 3)
+    return (now - updated_at).total_seconds() > (max_age_days * 86400)
+
+
+def load_active_task_records(root: Path, *, limit: int = 16) -> list[dict[str, Any]]:
+    active_dir = root / "logs" / "ci" / "active-tasks"
+    if not active_dir.exists():
+        return []
+    limit = max(1, _env_int("PROJECT_HEALTH_ACTIVE_TASK_LIMIT", limit))
+    records: list[dict[str, Any]] = []
+    now = now_local()
+    for path in sorted(active_dir.glob("task-*.active.json"), key=lambda item: item.stat().st_mtime, reverse=True):
+        try:
+            payload = read_json(path)
+        except Exception:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        if not _active_task_latest_json_is_canonical(payload, root=root):
+            continue
+        if _active_task_is_stale_clean(payload, now=now):
+            continue
+        clean_state = payload.get("clean_state") if isinstance(payload.get("clean_state"), dict) else {}
+        diagnostics = payload.get("diagnostics") if isinstance(payload.get("diagnostics"), dict) else {}
+        paths = payload.get("paths") if isinstance(payload.get("paths"), dict) else {}
+        if not str(clean_state.get("state") or "").strip():
+            clean_state = _derive_clean_state_from_summary(
+                _resolve_report_path(paths.get("summary_json"), root=root),
+                root=root,
+            )
+        profile_drift = diagnostics.get("profile_drift") if isinstance(diagnostics.get("profile_drift"), dict) else {}
+        waste_signals = diagnostics.get("waste_signals") if isinstance(diagnostics.get("waste_signals"), dict) else {}
+        rerun_guard = diagnostics.get("rerun_guard") if isinstance(diagnostics.get("rerun_guard"), dict) else {}
+        reuse_decision = diagnostics.get("reuse_decision") if isinstance(diagnostics.get("reuse_decision"), dict) else {}
+        llm_timeout_memory = diagnostics.get("llm_timeout_memory") if isinstance(diagnostics.get("llm_timeout_memory"), dict) else {}
+        llm_retry_stop_loss = diagnostics.get("llm_retry_stop_loss") if isinstance(diagnostics.get("llm_retry_stop_loss"), dict) else {}
+        sc_test_retry_stop_loss = diagnostics.get("sc_test_retry_stop_loss") if isinstance(diagnostics.get("sc_test_retry_stop_loss"), dict) else {}
+        artifact_integrity = diagnostics.get("artifact_integrity") if isinstance(diagnostics.get("artifact_integrity"), dict) else {}
+        recent_failure_summary = diagnostics.get("recent_failure_summary") if isinstance(diagnostics.get("recent_failure_summary"), dict) else {}
+        summary_path = _resolve_report_path(paths.get("summary_json"), root=root)
+        if not waste_signals:
+            waste_signals = _derive_waste_signals_from_summary(
+                summary_path,
+                root=root,
+            )
+        latest_summary_signals = payload.get("latest_summary_signals") if isinstance(payload.get("latest_summary_signals"), dict) else {}
+        chapter6_hints = payload.get("chapter6_hints") if isinstance(payload.get("chapter6_hints"), dict) else {}
+        rerun_forbidden = bool(chapter6_hints.get("rerun_forbidden"))
+        rerun_override_flag = _normalize_report_value(chapter6_hints.get("rerun_override_flag"), limit=60)
+        deterministic_bundle = _derive_deterministic_bundle_from_summary(summary_path, root=root)
+        records.append(
+            {
+                "task_id": _normalize_report_value(payload.get("task_id"), limit=20),
+                "run_id": _normalize_report_value(payload.get("run_id"), limit=40),
+                "status": _normalize_report_value(payload.get("status"), limit=20),
+                "updated_at_utc": _normalize_report_value(payload.get("updated_at_utc"), limit=40),
+                "recommended_action": _normalize_report_value(payload.get("recommended_action"), limit=40),
+                "recommended_action_why": _normalize_report_value(payload.get("recommended_action_why"), limit=200),
+                "clean_state": {
+                    "state": _normalize_report_value(clean_state.get("state"), limit=40),
+                    "deterministic_ok": bool(clean_state.get("deterministic_ok")),
+                    "llm_status": _normalize_report_value(clean_state.get("llm_status"), limit=20),
+                    "needs_fix_agents": [_normalize_report_value(item, limit=40) for item in list(clean_state.get("needs_fix_agents") or [])[:6]],
+                    "unknown_agents": [_normalize_report_value(item, limit=40) for item in list(clean_state.get("unknown_agents") or [])[:6]],
+                    "timeout_agents": [_normalize_report_value(item, limit=40) for item in list(clean_state.get("timeout_agents") or [])[:6]],
+                },
+                "diagnostics": {
+                    "profile_drift": {
+                        "previous_delivery_profile": _normalize_report_value(profile_drift.get("previous_delivery_profile"), limit=20),
+                        "previous_security_profile": _normalize_report_value(profile_drift.get("previous_security_profile"), limit=20),
+                        "current_delivery_profile": _normalize_report_value(profile_drift.get("current_delivery_profile"), limit=20),
+                        "current_security_profile": _normalize_report_value(profile_drift.get("current_security_profile"), limit=20),
+                    }
+                    if profile_drift
+                    else {},
+                    "waste_signals": {
+                        "unit_failed_but_engine_lane_ran": bool(waste_signals.get("unit_failed_but_engine_lane_ran")),
+                    },
+                    "rerun_guard": {
+                        "kind": _normalize_report_value(rerun_guard.get("kind"), limit=60),
+                        "blocked": bool(rerun_guard.get("blocked")),
+                        "recommended_path": _normalize_report_value(rerun_guard.get("recommended_path"), limit=40),
+                    }
+                    if rerun_guard
+                    else {},
+                    "reuse_decision": {
+                        "mode": _normalize_report_value(reuse_decision.get("mode"), limit=60),
+                        "blocked": bool(reuse_decision.get("blocked")),
+                    }
+                    if reuse_decision
+                    else {},
+                    "llm_timeout_memory": {
+                        "overrides": {
+                            _normalize_report_value(key, limit=40): int(value)
+                            for key, value in dict(llm_timeout_memory.get("overrides") or {}).items()
+                            if str(key).strip()
+                        },
+                    }
+                    if llm_timeout_memory
+                    else {},
+                    "llm_retry_stop_loss": {
+                        "blocked": bool(llm_retry_stop_loss.get("blocked")),
+                        "step_name": _normalize_report_value(
+                            llm_retry_stop_loss.get("step_name") or llm_retry_stop_loss.get("timed_out_step"),
+                            limit=40,
+                        ),
+                        "kind": _normalize_report_value(llm_retry_stop_loss.get("kind"), limit=60),
+                    }
+                    if llm_retry_stop_loss
+                    else {},
+                    "sc_test_retry_stop_loss": {
+                        "blocked": bool(sc_test_retry_stop_loss.get("blocked")),
+                        "step_name": _normalize_report_value(sc_test_retry_stop_loss.get("step_name"), limit=40),
+                        "kind": _normalize_report_value(sc_test_retry_stop_loss.get("kind"), limit=60),
+                    }
+                    if sc_test_retry_stop_loss
+                    else {},
+                    "artifact_integrity": {
+                        "kind": _normalize_report_value(artifact_integrity.get("kind"), limit=40),
+                        "blocked": bool(artifact_integrity.get("blocked")),
+                    }
+                    if artifact_integrity
+                    else {},
+                    "recent_failure_summary": {
+                        "latest_failure_family": _normalize_report_value(
+                            recent_failure_summary.get("latest_failure_family"),
+                            limit=120,
+                        ),
+                        "same_family_count": int(recent_failure_summary.get("same_family_count") or 0),
+                        "stop_full_rerun_recommended": bool(
+                            recent_failure_summary.get("stop_full_rerun_recommended")
+                        ),
+                    }
+                    if recent_failure_summary
+                    else {},
+                },
+                "latest_summary_signals": {
+                    "reason": _normalize_report_value(latest_summary_signals.get("reason"), limit=80),
+                    "run_type": _normalize_report_value(latest_summary_signals.get("run_type"), limit=40),
+                    "reuse_mode": _normalize_report_value(latest_summary_signals.get("reuse_mode"), limit=80),
+                    "artifact_integrity_kind": _normalize_report_value(latest_summary_signals.get("artifact_integrity_kind"), limit=40),
+                    "diagnostics_keys": [
+                        _normalize_report_value(item, limit=40)
+                        for item in list(latest_summary_signals.get("diagnostics_keys") or [])[:8]
+                    ],
+                },
+                "chapter6_hints": {
+                    "next_action": _normalize_report_value(chapter6_hints.get("next_action"), limit=40),
+                    "can_skip_6_7": bool(chapter6_hints.get("can_skip_6_7")),
+                    "can_go_to_6_8": bool(chapter6_hints.get("can_go_to_6_8")),
+                    "blocked_by": _normalize_report_value(chapter6_hints.get("blocked_by"), limit=40),
+                    "rerun_forbidden": rerun_forbidden,
+                    "rerun_override_flag": rerun_override_flag,
+                },
+                "latest_json": _normalize_report_value(paths.get("latest_json"), limit=200),
+                "reported_latest_json": _normalize_report_value(payload.get("reported_latest_json"), limit=200),
+                "latest_json_mismatch": bool(payload.get("latest_json_mismatch")),
+                "latest_json_repaired": bool(payload.get("latest_json_repaired")),
+                "deterministic_bundle": deterministic_bundle,
+                "path": repo_rel(path, root=root),
+            }
+        )
+        if len(records) >= limit:
+            break
+    return records
+
+
+def build_active_task_summary(root: Path) -> dict[str, Any]:
+    records = load_active_task_records(root)
+    top_records_limit = max(1, _env_int("PROJECT_HEALTH_ACTIVE_TASK_TOP_RECORDS", 8))
+    top_records_limit = min(top_records_limit, len(records)) if records else 0
+    summary = {
+        "total": len(records),
+        "clean": 0,
+        "deterministic_ok_llm_not_clean": 0,
+        "deterministic_only": 0,
+        "not_clean": 0,
+        "profile_drift": 0,
+        "unit_failed_but_engine_lane_ran": 0,
+        "rerun_guard_blocked": 0,
+        "llm_retry_stop_loss_blocked": 0,
+        "sc_test_retry_stop_loss_blocked": 0,
+        "artifact_integrity_blocked": 0,
+        "recent_failure_summary_blocked": 0,
+        "artifact_integrity_planned_only_incomplete": 0,
+        "latest_json_mismatch": 0,
+        "latest_json_repaired": 0,
+        "reuse_decision_present": 0,
+        "rerun_forbidden": 0,
+        "deterministic_bundle_available": 0,
+        "run_type_planned_only": 0,
+        "run_type_deterministic_only": 0,
+        "run_type_full": 0,
+        "run_type_llm_only": 0,
+        "run_type_preflight_only": 0,
+        "next_action_needs_fix_fast": 0,
+        "next_action_inspect": 0,
+        "next_action_resume": 0,
+        "next_action_continue": 0,
+        "chapter6_can_skip_6_7": 0,
+        "chapter6_can_go_to_6_8": 0,
+        "top_records": records[:top_records_limit],
+    }
+    for item in records:
+        state = str(((item.get("clean_state") or {}).get("state")) or "").strip().lower()
+        diagnostics = item.get("diagnostics") if isinstance(item.get("diagnostics"), dict) else {}
+        chapter6_hints = item.get("chapter6_hints") if isinstance(item.get("chapter6_hints"), dict) else {}
+        if isinstance(diagnostics.get("profile_drift"), dict) and diagnostics.get("profile_drift"):
+            summary["profile_drift"] += 1
+        waste_signals = diagnostics.get("waste_signals") if isinstance(diagnostics.get("waste_signals"), dict) else {}
+        if bool(waste_signals.get("unit_failed_but_engine_lane_ran")):
+            summary["unit_failed_but_engine_lane_ran"] += 1
+        rerun_guard = diagnostics.get("rerun_guard") if isinstance(diagnostics.get("rerun_guard"), dict) else {}
+        if bool(rerun_guard.get("blocked")):
+            summary["rerun_guard_blocked"] += 1
+        llm_retry_stop_loss = diagnostics.get("llm_retry_stop_loss") if isinstance(diagnostics.get("llm_retry_stop_loss"), dict) else {}
+        if bool(llm_retry_stop_loss.get("blocked")):
+            summary["llm_retry_stop_loss_blocked"] += 1
+        sc_test_retry_stop_loss = diagnostics.get("sc_test_retry_stop_loss") if isinstance(diagnostics.get("sc_test_retry_stop_loss"), dict) else {}
+        if bool(sc_test_retry_stop_loss.get("blocked")):
+            summary["sc_test_retry_stop_loss_blocked"] += 1
+        artifact_integrity = diagnostics.get("artifact_integrity") if isinstance(diagnostics.get("artifact_integrity"), dict) else {}
+        if bool(artifact_integrity.get("blocked")):
+            summary["artifact_integrity_blocked"] += 1
+        recent_failure_summary = diagnostics.get("recent_failure_summary") if isinstance(diagnostics.get("recent_failure_summary"), dict) else {}
+        if bool(recent_failure_summary.get("stop_full_rerun_recommended")):
+            summary["recent_failure_summary_blocked"] += 1
+        latest_summary_signals = item.get("latest_summary_signals") if isinstance(item.get("latest_summary_signals"), dict) else {}
+        artifact_integrity_kind = str(
+            latest_summary_signals.get("artifact_integrity_kind") or artifact_integrity.get("kind") or ""
+        ).strip().lower()
+        if artifact_integrity_kind == "planned_only_incomplete":
+            summary["artifact_integrity_planned_only_incomplete"] += 1
+        if bool(item.get("latest_json_mismatch")):
+            summary["latest_json_mismatch"] += 1
+        if bool(item.get("latest_json_repaired")):
+            summary["latest_json_repaired"] += 1
+        reuse_decision = diagnostics.get("reuse_decision") if isinstance(diagnostics.get("reuse_decision"), dict) else {}
+        if reuse_decision:
+            summary["reuse_decision_present"] += 1
+        if bool(chapter6_hints.get("rerun_forbidden")):
+            summary["rerun_forbidden"] += 1
+        deterministic_bundle = item.get("deterministic_bundle") if isinstance(item.get("deterministic_bundle"), dict) else {}
+        if bool(deterministic_bundle.get("available")):
+            summary["deterministic_bundle_available"] += 1
+        latest_run_type = str(latest_summary_signals.get("run_type") or "").strip().lower()
+        if latest_run_type == "planned-only":
+            summary["run_type_planned_only"] += 1
+        elif latest_run_type == "deterministic-only":
+            summary["run_type_deterministic_only"] += 1
+        elif latest_run_type == "full":
+            summary["run_type_full"] += 1
+        elif latest_run_type == "llm-only":
+            summary["run_type_llm_only"] += 1
+        elif latest_run_type == "preflight-only":
+            summary["run_type_preflight_only"] += 1
+        next_action = str(chapter6_hints.get("next_action") or "").strip().lower()
+        if next_action == "needs-fix-fast":
+            summary["next_action_needs_fix_fast"] += 1
+        elif next_action == "inspect":
+            summary["next_action_inspect"] += 1
+        elif next_action in {"resume", "fix-and-resume"}:
+            summary["next_action_resume"] += 1
+        elif next_action == "continue":
+            summary["next_action_continue"] += 1
+        if bool(chapter6_hints.get("can_skip_6_7")):
+            summary["chapter6_can_skip_6_7"] += 1
+        if bool(chapter6_hints.get("can_go_to_6_8")):
+            summary["chapter6_can_go_to_6_8"] += 1
+        if state == "clean":
+            summary["clean"] += 1
+        elif state == "deterministic_ok_llm_not_clean":
+            summary["deterministic_ok_llm_not_clean"] += 1
+        elif state == "deterministic_only":
+            summary["deterministic_only"] += 1
+        else:
+            summary["not_clean"] += 1
+    return summary
 
 
 def build_report_catalog(root: Path) -> dict[str, Any]:
@@ -310,6 +804,7 @@ def dashboard_html(
     generated_at: str,
     report_catalog: dict[str, Any],
     report_catalog_path: str,
+    active_task_summary: dict[str, Any],
 ) -> str:
     overall = "ok"
     if any(item.get("status") == "fail" for item in records):
@@ -419,6 +914,105 @@ def dashboard_html(
     report_total = int(report_catalog.get("total_json", 0))
     report_invalid = int(report_catalog.get("invalid_json", 0))
     report_catalog_path_escaped = html.escape(report_catalog_path)
+    active_task_cards = []
+    for item in list(active_task_summary.get("top_records") or []):
+        clean_state = item.get("clean_state") if isinstance(item.get("clean_state"), dict) else {}
+        diagnostics = item.get("diagnostics") if isinstance(item.get("diagnostics"), dict) else {}
+        latest_summary_signals = item.get("latest_summary_signals") if isinstance(item.get("latest_summary_signals"), dict) else {}
+        chapter6_hints = item.get("chapter6_hints") if isinstance(item.get("chapter6_hints"), dict) else {}
+        profile_drift = diagnostics.get("profile_drift") if isinstance(diagnostics.get("profile_drift"), dict) else {}
+        waste_signals = diagnostics.get("waste_signals") if isinstance(diagnostics.get("waste_signals"), dict) else {}
+        rerun_guard = diagnostics.get("rerun_guard") if isinstance(diagnostics.get("rerun_guard"), dict) else {}
+        reuse_decision = diagnostics.get("reuse_decision") if isinstance(diagnostics.get("reuse_decision"), dict) else {}
+        llm_timeout_memory = diagnostics.get("llm_timeout_memory") if isinstance(diagnostics.get("llm_timeout_memory"), dict) else {}
+        llm_retry_stop_loss = diagnostics.get("llm_retry_stop_loss") if isinstance(diagnostics.get("llm_retry_stop_loss"), dict) else {}
+        sc_test_retry_stop_loss = diagnostics.get("sc_test_retry_stop_loss") if isinstance(diagnostics.get("sc_test_retry_stop_loss"), dict) else {}
+        artifact_integrity = diagnostics.get("artifact_integrity") if isinstance(diagnostics.get("artifact_integrity"), dict) else {}
+        recent_failure_summary = diagnostics.get("recent_failure_summary") if isinstance(diagnostics.get("recent_failure_summary"), dict) else {}
+        deterministic_bundle = item.get("deterministic_bundle") if isinstance(item.get("deterministic_bundle"), dict) else {}
+        chapter6_stop_loss_note = _chapter6_stop_loss_note(chapter6_hints, latest_summary_signals)
+        diagnostic_lines: list[str] = []
+        if profile_drift:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">profile_drift: {html.escape(str(profile_drift.get('previous_delivery_profile') or 'unknown'))} -&gt; {html.escape(str(profile_drift.get('current_delivery_profile') or 'unknown'))}</div>"
+            )
+        if bool(waste_signals.get("unit_failed_but_engine_lane_ran")):
+            diagnostic_lines.append("<div class=\"meta\">unit_failed_but_engine_lane_ran: true</div>")
+        if rerun_guard:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">rerun_guard: blocked={html.escape(str(bool(rerun_guard.get('blocked'))).lower())} kind={html.escape(str(rerun_guard.get('kind') or 'n/a'))}</div>"
+            )
+        if reuse_decision:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">reuse_decision: {html.escape(str(reuse_decision.get('mode') or 'n/a'))}</div>"
+            )
+        if llm_timeout_memory:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">llm_timeout_memory: {html.escape(','.join(str(key) for key in dict(llm_timeout_memory.get('overrides') or {}).keys()) or 'none')}</div>"
+            )
+        if llm_retry_stop_loss:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">llm_retry_stop_loss: blocked={html.escape(str(bool(llm_retry_stop_loss.get('blocked'))).lower())} step_name={html.escape(str(llm_retry_stop_loss.get('step_name') or 'n/a'))} kind={html.escape(str(llm_retry_stop_loss.get('kind') or 'n/a'))}</div>"
+            )
+        if sc_test_retry_stop_loss:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">sc_test_retry_stop_loss: blocked={html.escape(str(bool(sc_test_retry_stop_loss.get('blocked'))).lower())} step_name={html.escape(str(sc_test_retry_stop_loss.get('step_name') or 'n/a'))} kind={html.escape(str(sc_test_retry_stop_loss.get('kind') or 'n/a'))}</div>"
+            )
+        if artifact_integrity:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">artifact_integrity: blocked={html.escape(str(bool(artifact_integrity.get('blocked'))).lower())} kind={html.escape(str(artifact_integrity.get('kind') or 'n/a'))}</div>"
+            )
+        if recent_failure_summary:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">recent_failure_summary: family={html.escape(str(recent_failure_summary.get('latest_failure_family') or 'n/a'))} same_family_count={int(recent_failure_summary.get('same_family_count') or 0)} stop_full_rerun_recommended={bool(recent_failure_summary.get('stop_full_rerun_recommended'))}</div>"
+            )
+        if bool(chapter6_hints.get("rerun_forbidden")):
+            diagnostic_lines.append(
+                f"<div class=\"meta\">chapter6_rerun_forbidden: true override={html.escape(str(chapter6_hints.get('rerun_override_flag') or 'n/a'))}</div>"
+            )
+        if chapter6_stop_loss_note:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">chapter6_stop_loss_note: {html.escape(chapter6_stop_loss_note)}</div>"
+            )
+        if deterministic_bundle:
+            diagnostic_lines.append(
+                f"<div class=\"meta\">deterministic_bundle: available={html.escape(str(bool(deterministic_bundle.get('available'))).lower())} reuse_mode={html.escape(str(deterministic_bundle.get('reuse_mode') or 'n/a'))}</div>"
+            )
+        if str((latest_summary_signals.get("artifact_integrity_kind") or artifact_integrity.get("kind") or "")).strip().lower() == "planned_only_incomplete":
+            diagnostic_lines.append("<div class=\"meta\">planned_only_terminal_bundle: true</div>")
+        active_task_cards.append(
+            "\n".join(
+                [
+                    "<section class=\"highlight-card\">",
+                    f"<h3>Task {html.escape(str(item.get('task_id') or 'unknown'))}</h3>",
+                    f"<div class=\"meta\">clean_state: {html.escape(str(clean_state.get('state') or 'unknown'))}</div>",
+                    f"<div class=\"meta\">deterministic_ok: {html.escape(str(clean_state.get('deterministic_ok')))}</div>",
+                    f"<div class=\"meta\">llm_status: {html.escape(str(clean_state.get('llm_status') or 'unknown'))}</div>",
+                    f"<div class=\"meta\">recommended_action: {html.escape(str(item.get('recommended_action') or 'inspect'))}</div>",
+                    f"<div class=\"meta\">recommended_action_why: {html.escape(str(item.get('recommended_action_why') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">latest_reason: {html.escape(str(latest_summary_signals.get('reason') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">latest_run_type: {html.escape(str(latest_summary_signals.get('run_type') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">latest_reuse_mode: {html.escape(str(latest_summary_signals.get('reuse_mode') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">latest_artifact_integrity: {html.escape(str(latest_summary_signals.get('artifact_integrity_kind') or 'none'))}</div>",
+                    f"<div class=\"meta\">latest_diagnostics_keys: {html.escape(','.join(str(x) for x in list(latest_summary_signals.get('diagnostics_keys') or [])) or 'none')}</div>",
+                    f"<div class=\"meta\">chapter6_next_action: {html.escape(str(chapter6_hints.get('next_action') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">chapter6_can_skip_6_7: {html.escape(str(bool(chapter6_hints.get('can_skip_6_7'))).lower())}</div>",
+                    f"<div class=\"meta\">chapter6_can_go_to_6_8: {html.escape(str(bool(chapter6_hints.get('can_go_to_6_8'))).lower())}</div>",
+                    f"<div class=\"meta\">chapter6_blocked_by: {html.escape(str(chapter6_hints.get('blocked_by') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">chapter6_rerun_override: {html.escape(str(chapter6_hints.get('rerun_override_flag') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">latest_json: {html.escape(str(item.get('latest_json') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">reported_latest_json: {html.escape(str(item.get('reported_latest_json') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">latest_json_mismatch: {html.escape(str(bool(item.get('latest_json_mismatch'))).lower())}</div>",
+                    f"<div class=\"meta\">latest_json_repaired: {html.escape(str(bool(item.get('latest_json_repaired'))).lower())}</div>",
+                    f"<div class=\"meta\">needs_fix_agents: {html.escape(','.join(str(x) for x in list(clean_state.get('needs_fix_agents') or [])) or 'none')}</div>",
+                    f"<div class=\"meta\">unknown_agents: {html.escape(','.join(str(x) for x in list(clean_state.get('unknown_agents') or [])) or 'none')}</div>",
+                    f"<div class=\"meta\">timeout_agents: {html.escape(','.join(str(x) for x in list(clean_state.get('timeout_agents') or [])) or 'none')}</div>",
+                    *diagnostic_lines,
+                    f"<div class=\"meta\">path: {html.escape(str(item.get('path') or ''))}</div>",
+                    "</section>",
+                ]
+            )
+        )
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -487,7 +1081,16 @@ def dashboard_html(
         {''.join(highlight_sections) if highlight_sections else '<div class="meta">当前没有可直接展示的批量诊断摘要。</div>'}
       </div>
     </details>
+    <details open>
+      <summary>Active task clean state</summary>
+      <div class="hint">Top active task sidecars are summarized here so deterministic-green-but-LLM-not-clean tasks are visible without opening each run directory.</div>
+      <div class="hint">total={int(active_task_summary.get('total') or 0)} clean={int(active_task_summary.get('clean') or 0)} deterministic_ok_llm_not_clean={int(active_task_summary.get('deterministic_ok_llm_not_clean') or 0)} deterministic_only={int(active_task_summary.get('deterministic_only') or 0)} not_clean={int(active_task_summary.get('not_clean') or 0)} profile_drift={int(active_task_summary.get('profile_drift') or 0)} unit_failed_but_engine_lane_ran={int(active_task_summary.get('unit_failed_but_engine_lane_ran') or 0)} rerun_guard_blocked={int(active_task_summary.get('rerun_guard_blocked') or 0)} rerun_forbidden={int(active_task_summary.get('rerun_forbidden') or 0)} llm_retry_stop_loss_blocked={int(active_task_summary.get('llm_retry_stop_loss_blocked') or 0)} sc_test_retry_stop_loss_blocked={int(active_task_summary.get('sc_test_retry_stop_loss_blocked') or 0)} artifact_integrity_blocked={int(active_task_summary.get('artifact_integrity_blocked') or 0)} recent_failure_summary_blocked={int(active_task_summary.get('recent_failure_summary_blocked') or 0)} artifact_integrity_planned_only_incomplete={int(active_task_summary.get('artifact_integrity_planned_only_incomplete') or 0)} latest_json_mismatch={int(active_task_summary.get('latest_json_mismatch') or 0)} latest_json_repaired={int(active_task_summary.get('latest_json_repaired') or 0)} reuse_decision_present={int(active_task_summary.get('reuse_decision_present') or 0)} deterministic_bundle_available={int(active_task_summary.get('deterministic_bundle_available') or 0)} run_type_planned_only={int(active_task_summary.get('run_type_planned_only') or 0)} run_type_deterministic_only={int(active_task_summary.get('run_type_deterministic_only') or 0)} run_type_full={int(active_task_summary.get('run_type_full') or 0)} run_type_llm_only={int(active_task_summary.get('run_type_llm_only') or 0)} run_type_preflight_only={int(active_task_summary.get('run_type_preflight_only') or 0)} next_action_needs_fix_fast={int(active_task_summary.get('next_action_needs_fix_fast') or 0)} next_action_inspect={int(active_task_summary.get('next_action_inspect') or 0)} next_action_resume={int(active_task_summary.get('next_action_resume') or 0)} next_action_continue={int(active_task_summary.get('next_action_continue') or 0)} chapter6_can_skip_6_7={int(active_task_summary.get('chapter6_can_skip_6_7') or 0)} chapter6_can_go_to_6_8={int(active_task_summary.get('chapter6_can_go_to_6_8') or 0)}</div>
+      <div class="highlight-wrap">
+        {''.join(active_task_cards) if active_task_cards else '<div class="meta">No active task sidecars found.</div>'}
+      </div>
+    </details>
     <div class="hint">JSON 报告总数: {report_total}；解析失败: {report_invalid}；索引文件: {report_catalog_path_escaped}</div>
+    <div class="hint">Auto-refresh is disabled. 页面不会自动刷新，请在执行扫描后手动刷新。</div>
     <details>
       <summary>展开查看全部 JSON 报告索引</summary>
       <div class="table-wrap">
@@ -519,6 +1122,7 @@ def refresh_dashboard(root: Path | str | None = None, *, now: datetime | None = 
     stamp = now or now_local()
     records = load_latest_records(resolved_root)
     report_catalog = build_report_catalog(resolved_root)
+    active_task_summary = build_active_task_summary(resolved_root)
     overall = "ok"
     if any(item.get("status") == "fail" for item in records):
         overall = "fail"
@@ -544,6 +1148,7 @@ def refresh_dashboard(root: Path | str | None = None, *, now: datetime | None = 
             "invalid_json": int(report_catalog.get("invalid_json", 0)),
             "catalog_json": "logs/ci/project-health/report-catalog.latest.json",
         },
+        "active_task_summary": active_task_summary,
     }
     latest_root = latest_dir(resolved_root)
     report_catalog_path = latest_root / "report-catalog.latest.json"
@@ -556,6 +1161,7 @@ def refresh_dashboard(root: Path | str | None = None, *, now: datetime | None = 
             generated_at=payload["generated_at"],
             report_catalog=report_catalog,
             report_catalog_path=repo_rel(report_catalog_path, root=resolved_root),
+            active_task_summary=active_task_summary,
         ),
     )
     return payload

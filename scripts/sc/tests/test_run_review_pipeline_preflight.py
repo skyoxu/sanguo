@@ -19,6 +19,7 @@ if str(SC_DIR) not in sys.path:
     sys.path.insert(0, str(SC_DIR))
 
 import run_review_pipeline as run_review_pipeline_module  # noqa: E402
+from _artifact_schema import validate_pipeline_latest_index_payload  # noqa: E402
 from _taskmaster import TaskmasterTriplet  # noqa: E402
 
 
@@ -93,7 +94,10 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             self.assertEqual(["sc-acceptance-check"], [item["name"] for item in summary["steps"]])
             cmd = summary["steps"][0]["cmd"]
             self.assertIn("--only", cmd)
-            self.assertEqual("adr,links,overlay,contracts,arch,build", cmd[cmd.index("--only") + 1])
+            expected_only = "adr,links,overlay,contracts,arch,build"
+            if str(run_review_pipeline_module.profile_acceptance_defaults("fast-ship").get("subtasks_coverage") or "skip") in {"warn", "require"}:
+                expected_only = "adr,links,subtasks,overlay,contracts,arch,build"
+            self.assertEqual(expected_only, cmd[cmd.index("--only") + 1])
 
     def test_cli_preflight_failure_should_stop_before_sc_test(self) -> None:
         run_id = uuid.uuid4().hex
@@ -226,6 +230,251 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
         self.assertIn("--agent-timeouts", llm_cmd)
         self.assertEqual("code-reviewer=480", llm_cmd[llm_cmd.index("--agent-timeouts") + 1])
 
+    def test_find_reusable_successful_acceptance_step_should_match_latest_successful_acceptance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            logs_root = tmp_root / "logs" / "ci" / "2026-04-06"
+            previous_out_dir = logs_root / "sc-review-pipeline-task-56-previous"
+            previous_out_dir.mkdir(parents=True, exist_ok=True)
+            args = run_review_pipeline_module.build_parser().parse_args(
+                [
+                    "--task-id",
+                    "56",
+                    "--run-id",
+                    "previous",
+                    "--delivery-profile",
+                    "fast-ship",
+                    "--skip-agent-review",
+                ]
+            )
+            triplet = self._triplet()
+            llm_defaults = run_review_pipeline_module.profile_llm_review_defaults("fast-ship")
+            llm_plan = run_review_pipeline_module.resolve_llm_review_tier_plan(
+                delivery_profile="fast-ship",
+                triplet=triplet,
+                profile_defaults=llm_defaults,
+            )
+            planned_steps = run_review_pipeline_module.build_pipeline_steps(
+                args=args,
+                task_id="56",
+                run_id="previous",
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                acceptance_defaults=run_review_pipeline_module.profile_acceptance_defaults("fast-ship"),
+                triplet=triplet,
+                llm_agents=str(llm_plan.get("agents") or llm_defaults.get("agents") or "all"),
+                llm_timeout_sec=int(llm_plan.get("timeout_sec") or llm_defaults.get("timeout_sec") or 900),
+                llm_agent_timeout_sec=int(llm_plan.get("agent_timeout_sec") or llm_defaults.get("agent_timeout_sec") or 300),
+                llm_agent_timeouts="",
+                llm_semantic_gate=str(llm_plan.get("semantic_gate") or llm_defaults.get("semantic_gate") or "warn"),
+                llm_strict=bool(llm_plan.get("strict", llm_defaults.get("strict", False))),
+                llm_diff_mode=str(llm_plan.get("diff_mode") or llm_defaults.get("diff_mode") or "summary"),
+            )
+            planned_cmd_map = {name: cmd for name, cmd, _timeout, skipped in planned_steps if not skipped}
+
+            child_dir = previous_out_dir / "sc-acceptance-check-artifacts"
+            child_dir.mkdir(parents=True, exist_ok=True)
+            (child_dir / "summary.json").write_text(
+                json.dumps({"step": "sc-acceptance-check", "status": "ok"}, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (previous_out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "56",
+                        "run_id": "previous",
+                        "status": "fail",
+                        "steps": [
+                            {
+                                "name": "sc-acceptance-check",
+                                "cmd": planned_cmd_map["sc-acceptance-check"],
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(previous_out_dir / "sc-acceptance-check.log"),
+                                "reported_out_dir": str(child_dir),
+                                "summary_file": str(child_dir / "summary.json"),
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (previous_out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "git": {"head": "prev-head", "status_short": []},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56-current"
+            with (
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "classify_change_scope_between_snapshots",
+                    return_value={
+                        "deterministic_strategy": "reuse-latest",
+                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "unsafe_paths": [],
+                    },
+                ),
+            ):
+                reused_step = run_review_pipeline_module._find_reusable_successful_acceptance_step(
+                    out_dir=out_dir,
+                    task_id="56",
+                    delivery_profile="fast-ship",
+                    security_profile="host-safe",
+                    planned_cmd=planned_cmd_map["sc-acceptance-check"],
+                    git_fingerprint={"head": "current-head", "status_short": []},
+                )
+
+            self.assertIsNotNone(reused_step)
+            assert reused_step is not None
+            self.assertEqual("sc-acceptance-check", reused_step["name"])
+            self.assertEqual("ok", reused_step["status"])
+            self.assertTrue(str(reused_step["summary_file"]).endswith("summary.json"))
+
+    def test_find_reusable_successful_acceptance_step_should_allow_preflight_to_reuse_successful_full_acceptance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            logs_root = tmp_root / "logs" / "ci" / "2026-04-06"
+            previous_out_dir = logs_root / "sc-review-pipeline-task-56-previous"
+            previous_out_dir.mkdir(parents=True, exist_ok=True)
+            args = run_review_pipeline_module.build_parser().parse_args(
+                [
+                    "--task-id",
+                    "56",
+                    "--run-id",
+                    "previous",
+                    "--delivery-profile",
+                    "fast-ship",
+                    "--skip-agent-review",
+                ]
+            )
+            acceptance_defaults = run_review_pipeline_module.profile_acceptance_defaults("fast-ship")
+            acceptance_defaults["subtasks_coverage"] = "warn"
+            planned_preflight_cmd = run_review_pipeline_module.build_acceptance_command(
+                args=args,
+                task_id="56",
+                run_id="current",
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                acceptance_defaults=acceptance_defaults,
+                preflight=True,
+            )
+            full_acceptance_cmd = run_review_pipeline_module.build_acceptance_command(
+                args=args,
+                task_id="56",
+                run_id="previous",
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                acceptance_defaults=acceptance_defaults,
+                preflight=False,
+            )
+
+            child_dir = previous_out_dir / "sc-acceptance-check-artifacts"
+            child_dir.mkdir(parents=True, exist_ok=True)
+            (child_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-acceptance-check",
+                        "status": "ok",
+                        "task_id": "56",
+                        "steps": [
+                            {"name": "adr-compliance", "status": "ok", "rc": 0},
+                            {"name": "task-links-validate", "status": "ok", "rc": 0},
+                            {"name": "task-test-refs", "status": "ok", "rc": 0},
+                            {"name": "acceptance-refs", "status": "ok", "rc": 0},
+                            {"name": "acceptance-anchors", "status": "ok", "rc": 0},
+                            {"name": "subtasks-coverage", "status": "ok", "rc": 0},
+                            {"name": "validate-task-overlays", "status": "ok", "rc": 0},
+                            {"name": "validate-contracts", "status": "ok", "rc": 0},
+                            {"name": "architecture-boundary", "status": "ok", "rc": 0},
+                            {"name": "dotnet-build-warnaserror", "status": "ok", "rc": 0},
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (previous_out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "56",
+                        "run_id": "previous",
+                        "status": "ok",
+                        "steps": [
+                            {
+                                "name": "sc-acceptance-check",
+                                "cmd": full_acceptance_cmd,
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(previous_out_dir / "sc-acceptance-check.log"),
+                                "reported_out_dir": str(child_dir),
+                                "summary_file": str(child_dir / "summary.json"),
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (previous_out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "git": {"head": "prev-head", "status_short": []},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56-current"
+            with (
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "classify_change_scope_between_snapshots",
+                    return_value={
+                        "deterministic_strategy": "reuse-latest",
+                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "unsafe_paths": [],
+                    },
+                ),
+            ):
+                reused_step = run_review_pipeline_module._find_reusable_successful_acceptance_step(
+                    out_dir=out_dir,
+                    task_id="56",
+                    delivery_profile="fast-ship",
+                    security_profile="host-safe",
+                    planned_cmd=planned_preflight_cmd,
+                    git_fingerprint={"head": "current-head", "status_short": []},
+                )
+
+            self.assertIsNotNone(reused_step)
+            assert reused_step is not None
+            self.assertEqual("sc-acceptance-check", reused_step["name"])
+            self.assertEqual("ok", reused_step["status"])
+            self.assertTrue(str(reused_step["summary_file"]).endswith("summary.json"))
+
     def test_clean_skip_should_reuse_latest_successful_full_pipeline_for_docs_only_delta(self) -> None:
         run_id = uuid.uuid4().hex
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -272,8 +521,18 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             for step_name in ("sc-test", "sc-acceptance-check", "sc-llm-review"):
                 child_dir = previous_out_dir / f"{step_name}-artifacts"
                 child_dir.mkdir(parents=True, exist_ok=True)
+                payload = {"step": step_name, "status": "ok"}
+                if step_name == "sc-llm-review":
+                    payload = {
+                        "status": "ok",
+                        "results": [
+                            {"agent": "code-reviewer", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                            {"agent": "security-auditor", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                            {"agent": "semantic-equivalence-auditor", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                        ],
+                    }
                 (child_dir / "summary.json").write_text(
-                    json.dumps({"step": step_name, "status": "ok"}, ensure_ascii=False, indent=2) + "\n",
+                    json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
                     encoding="utf-8",
                 )
 
@@ -375,12 +634,655 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             run_step_mock.assert_not_called()
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("ok", summary["status"])
+            self.assertEqual("pipeline_clean", summary["reason"])
+            self.assertEqual("full-clean-reuse", summary["reuse_mode"])
+            self.assertGreaterEqual(int(summary["elapsed_sec"]), 0)
             self.assertEqual(
                 ["sc-test", "sc-acceptance-check", "sc-llm-review"],
                 [item["name"] for item in summary["steps"]],
             )
             self.assertTrue(all(item["status"] == "ok" for item in summary["steps"]))
             self.assertIn("decision-logs/active-task.md", (out_dir / "sc-llm-review.log").read_text(encoding="utf-8"))
+
+    def test_reuse_deterministic_steps_should_reuse_sc_test_and_acceptance_after_llm_only_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            logs_root = tmp_root / "logs" / "ci" / "2026-04-06"
+            previous_out_dir = logs_root / "sc-review-pipeline-task-56-previous"
+            previous_out_dir.mkdir(parents=True, exist_ok=True)
+            args = run_review_pipeline_module.build_parser().parse_args(
+                [
+                    "--task-id",
+                    "56",
+                    "--run-id",
+                    "previous",
+                    "--delivery-profile",
+                    "fast-ship",
+                    "--skip-agent-review",
+                ]
+            )
+            triplet = self._triplet()
+            llm_defaults = run_review_pipeline_module.profile_llm_review_defaults("fast-ship")
+            llm_plan = run_review_pipeline_module.resolve_llm_review_tier_plan(
+                delivery_profile="fast-ship",
+                triplet=triplet,
+                profile_defaults=llm_defaults,
+            )
+            planned_steps = run_review_pipeline_module.build_pipeline_steps(
+                args=args,
+                task_id="56",
+                run_id="previous",
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                acceptance_defaults=run_review_pipeline_module.profile_acceptance_defaults("fast-ship"),
+                triplet=triplet,
+                llm_agents=str(llm_plan.get("agents") or llm_defaults.get("agents") or "all"),
+                llm_timeout_sec=int(llm_plan.get("timeout_sec") or llm_defaults.get("timeout_sec") or 900),
+                llm_agent_timeout_sec=int(llm_plan.get("agent_timeout_sec") or llm_defaults.get("agent_timeout_sec") or 300),
+                llm_agent_timeouts="",
+                llm_semantic_gate=str(llm_plan.get("semantic_gate") or llm_defaults.get("semantic_gate") or "warn"),
+                llm_strict=bool(llm_plan.get("strict", llm_defaults.get("strict", False))),
+                llm_diff_mode=str(llm_plan.get("diff_mode") or llm_defaults.get("diff_mode") or "summary"),
+            )
+            planned_cmd_map = {name: cmd for name, cmd, _timeout, skipped in planned_steps if not skipped}
+
+            for step_name in ("sc-test", "sc-acceptance-check", "sc-llm-review"):
+                child_dir = previous_out_dir / f"{step_name}-artifacts"
+                child_dir.mkdir(parents=True, exist_ok=True)
+                (child_dir / "summary.json").write_text(
+                    json.dumps({"step": step_name, "status": "ok" if step_name != "sc-llm-review" else "fail"}, ensure_ascii=False, indent=2)
+                    + "\n",
+                    encoding="utf-8",
+                )
+
+            summary_payload = {
+                "cmd": "sc-review-pipeline",
+                "task_id": "56",
+                "requested_run_id": "previous",
+                "run_id": "previous",
+                "status": "fail",
+                "steps": [
+                    {
+                        "name": "sc-test",
+                        "cmd": planned_cmd_map["sc-test"],
+                        "rc": 0,
+                        "status": "ok",
+                        "log": str(previous_out_dir / "sc-test.log"),
+                        "reported_out_dir": str(previous_out_dir / "sc-test-artifacts"),
+                        "summary_file": str(previous_out_dir / "sc-test-artifacts" / "summary.json"),
+                    },
+                    {
+                        "name": "sc-acceptance-check",
+                        "cmd": planned_cmd_map["sc-acceptance-check"],
+                        "rc": 0,
+                        "status": "ok",
+                        "log": str(previous_out_dir / "sc-acceptance-check.log"),
+                        "reported_out_dir": str(previous_out_dir / "sc-acceptance-check-artifacts"),
+                        "summary_file": str(previous_out_dir / "sc-acceptance-check-artifacts" / "summary.json"),
+                    },
+                    {
+                        "name": "sc-llm-review",
+                        "cmd": planned_cmd_map["sc-llm-review"],
+                        "rc": 124,
+                        "status": "fail",
+                        "log": str(previous_out_dir / "sc-llm-review.log"),
+                        "reported_out_dir": str(previous_out_dir / "sc-llm-review-artifacts"),
+                        "summary_file": str(previous_out_dir / "sc-llm-review-artifacts" / "summary.json"),
+                    },
+                ],
+            }
+            (previous_out_dir / "summary.json").write_text(
+                json.dumps(summary_payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (previous_out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "git": {"head": "prev-head", "status_short": []},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56-current"
+            with (
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "classify_change_scope_between_snapshots",
+                    return_value={
+                        "deterministic_strategy": "reuse-latest",
+                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "unsafe_paths": [],
+                    },
+                ),
+            ):
+                reused_steps = run_review_pipeline_module._find_reusable_deterministic_steps_from_llm_only_failure(
+                    out_dir=out_dir,
+                    task_id="56",
+                    delivery_profile="fast-ship",
+                    security_profile="host-safe",
+                    planned_steps=planned_steps,
+                    git_fingerprint={"head": "current-head", "status_short": []},
+                )
+
+            self.assertIsNotNone(reused_steps)
+            assert reused_steps is not None
+            self.assertEqual(["sc-test", "sc-acceptance-check"], [step["name"] for step in reused_steps])
+            self.assertTrue(all(step["status"] == "ok" for step in reused_steps))
+
+    def test_clean_skip_should_reject_parent_ok_when_llm_child_summary_is_not_clean(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            logs_root = tmp_root / "logs" / "ci" / "2026-04-06"
+            previous_out_dir = logs_root / "sc-review-pipeline-task-56-previous"
+            previous_out_dir.mkdir(parents=True, exist_ok=True)
+            args = run_review_pipeline_module.build_parser().parse_args(
+                [
+                    "--task-id",
+                    "56",
+                    "--run-id",
+                    "previous",
+                    "--delivery-profile",
+                    "fast-ship",
+                    "--skip-agent-review",
+                ]
+            )
+            triplet = self._triplet()
+            llm_defaults = run_review_pipeline_module.profile_llm_review_defaults("fast-ship")
+            llm_plan = run_review_pipeline_module.resolve_llm_review_tier_plan(
+                delivery_profile="fast-ship",
+                triplet=triplet,
+                profile_defaults=llm_defaults,
+            )
+            planned_steps = run_review_pipeline_module.build_pipeline_steps(
+                args=args,
+                task_id="56",
+                run_id="previous",
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                acceptance_defaults=run_review_pipeline_module.profile_acceptance_defaults("fast-ship"),
+                triplet=triplet,
+                llm_agents=str(llm_plan.get("agents") or llm_defaults.get("agents") or "all"),
+                llm_timeout_sec=int(llm_plan.get("timeout_sec") or llm_defaults.get("timeout_sec") or 900),
+                llm_agent_timeout_sec=int(llm_plan.get("agent_timeout_sec") or llm_defaults.get("agent_timeout_sec") or 300),
+                llm_agent_timeouts="",
+                llm_semantic_gate=str(llm_plan.get("semantic_gate") or llm_defaults.get("semantic_gate") or "warn"),
+                llm_strict=bool(llm_plan.get("strict", llm_defaults.get("strict", False))),
+                llm_diff_mode=str(llm_plan.get("diff_mode") or llm_defaults.get("diff_mode") or "summary"),
+            )
+            planned_cmd_map = {name: cmd for name, cmd, _timeout, skipped in planned_steps if not skipped}
+            for step_name in ("sc-test", "sc-acceptance-check", "sc-llm-review"):
+                child_dir = previous_out_dir / f"{step_name}-artifacts"
+                child_dir.mkdir(parents=True, exist_ok=True)
+                payload = {"step": step_name, "status": "ok"}
+                if step_name == "sc-llm-review":
+                    payload = {
+                        "status": "ok",
+                        "results": [
+                            {"agent": "code-reviewer", "status": "ok", "rc": 0, "details": {"verdict": "Needs Fix"}},
+                        ],
+                    }
+                (child_dir / "summary.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            summary_payload = {
+                "cmd": "sc-review-pipeline",
+                "task_id": "56",
+                "run_id": "previous",
+                "status": "ok",
+                "steps": [
+                    {
+                        "name": "sc-test",
+                        "cmd": planned_cmd_map["sc-test"],
+                        "rc": 0,
+                        "status": "ok",
+                        "reported_out_dir": str(previous_out_dir / "sc-test-artifacts"),
+                        "summary_file": str(previous_out_dir / "sc-test-artifacts" / "summary.json"),
+                    },
+                    {
+                        "name": "sc-acceptance-check",
+                        "cmd": planned_cmd_map["sc-acceptance-check"],
+                        "rc": 0,
+                        "status": "ok",
+                        "reported_out_dir": str(previous_out_dir / "sc-acceptance-check-artifacts"),
+                        "summary_file": str(previous_out_dir / "sc-acceptance-check-artifacts" / "summary.json"),
+                    },
+                    {
+                        "name": "sc-llm-review",
+                        "cmd": planned_cmd_map["sc-llm-review"],
+                        "rc": 0,
+                        "status": "ok",
+                        "reported_out_dir": str(previous_out_dir / "sc-llm-review-artifacts"),
+                        "summary_file": str(previous_out_dir / "sc-llm-review-artifacts" / "summary.json"),
+                    },
+                ],
+            }
+            (previous_out_dir / "summary.json").write_text(json.dumps(summary_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            (previous_out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "git": {"head": "same-head", "status_short": []},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56-current"
+            with mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root):
+                reused_steps = run_review_pipeline_module._find_reusable_clean_pipeline_steps(
+                    out_dir=out_dir,
+                    task_id="56",
+                    delivery_profile="fast-ship",
+                    security_profile="host-safe",
+                    planned_steps=planned_steps,
+                    git_fingerprint={"head": "same-head", "status_short": []},
+                )
+            self.assertIsNone(reused_steps)
+
+    def test_main_should_block_full_rerun_when_latest_run_is_deterministic_ok_but_llm_not_clean(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            previous_out_dir = tmp_root / "logs" / "ci" / "2026-04-06" / "sc-review-pipeline-task-56-previous"
+            previous_out_dir.mkdir(parents=True, exist_ok=True)
+            args = run_review_pipeline_module.build_parser().parse_args(
+                [
+                    "--task-id",
+                    "56",
+                    "--run-id",
+                    "previous",
+                    "--delivery-profile",
+                    "fast-ship",
+                    "--skip-agent-review",
+                ]
+            )
+            triplet = self._triplet()
+            llm_defaults = run_review_pipeline_module.profile_llm_review_defaults("fast-ship")
+            llm_plan = run_review_pipeline_module.resolve_llm_review_tier_plan(
+                delivery_profile="fast-ship",
+                triplet=triplet,
+                profile_defaults=llm_defaults,
+            )
+            planned_steps = run_review_pipeline_module.build_pipeline_steps(
+                args=args,
+                task_id="56",
+                run_id="previous",
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                acceptance_defaults=run_review_pipeline_module.profile_acceptance_defaults("fast-ship"),
+                triplet=triplet,
+                llm_agents=str(llm_plan.get("agents") or llm_defaults.get("agents") or "all"),
+                llm_timeout_sec=int(llm_plan.get("timeout_sec") or llm_defaults.get("timeout_sec") or 900),
+                llm_agent_timeout_sec=int(llm_plan.get("agent_timeout_sec") or llm_defaults.get("agent_timeout_sec") or 300),
+                llm_agent_timeouts="",
+                llm_semantic_gate=str(llm_plan.get("semantic_gate") or llm_defaults.get("semantic_gate") or "warn"),
+                llm_strict=bool(llm_plan.get("strict", llm_defaults.get("strict", False))),
+                llm_diff_mode=str(llm_plan.get("diff_mode") or llm_defaults.get("diff_mode") or "summary"),
+            )
+            planned_cmd_map = {name: cmd for name, cmd, _timeout, skipped in planned_steps if not skipped}
+            for step_name in ("sc-test", "sc-acceptance-check", "sc-llm-review"):
+                child_dir = previous_out_dir / f"{step_name}-artifacts"
+                child_dir.mkdir(parents=True, exist_ok=True)
+                payload = {"step": step_name, "status": "ok"}
+                if step_name == "sc-llm-review":
+                    payload = {
+                        "status": "fail",
+                        "results": [
+                            {"agent": "code-reviewer", "status": "fail", "rc": 124, "details": {"verdict": ""}},
+                        ],
+                    }
+                (child_dir / "summary.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            (previous_out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "56",
+                        "requested_run_id": "previous",
+                        "run_id": "previous",
+                        "status": "fail",
+                        "steps": [
+                            {
+                                "name": "sc-test",
+                                "cmd": planned_cmd_map["sc-test"],
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(previous_out_dir / "sc-test.log"),
+                                "reported_out_dir": str(previous_out_dir / "sc-test-artifacts"),
+                                "summary_file": str(previous_out_dir / "sc-test-artifacts" / "summary.json"),
+                            },
+                            {
+                                "name": "sc-acceptance-check",
+                                "cmd": planned_cmd_map["sc-acceptance-check"],
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(previous_out_dir / "sc-acceptance-check.log"),
+                                "reported_out_dir": str(previous_out_dir / "sc-acceptance-check-artifacts"),
+                                "summary_file": str(previous_out_dir / "sc-acceptance-check-artifacts" / "summary.json"),
+                            },
+                            {
+                                "name": "sc-llm-review",
+                                "cmd": planned_cmd_map["sc-llm-review"],
+                                "rc": 124,
+                                "status": "fail",
+                                "log": str(previous_out_dir / "sc-llm-review.log"),
+                                "reported_out_dir": str(previous_out_dir / "sc-llm-review-artifacts"),
+                                "summary_file": str(previous_out_dir / "sc-llm-review-artifacts" / "summary.json"),
+                            },
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (previous_out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "run_id": "previous",
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "git": {"head": "prev-head", "status_short": []},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / f"sc-review-pipeline-task-56-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56" / "latest.json"
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "56",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, _stable_env(), clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "current_git_fingerprint",
+                    return_value={"head": "current-head", "status_short": []},
+                ),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "classify_change_scope_between_snapshots",
+                    return_value={
+                        "deterministic_strategy": "reuse-latest",
+                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "unsafe_paths": [],
+                    },
+                ),
+                mock.patch.object(run_review_pipeline_module, "_run_step") as run_step_mock,
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            run_step_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            validate_pipeline_latest_index_payload(latest)
+            self.assertEqual("fail", summary["status"])
+            self.assertEqual("rerun_blocked:deterministic_green_llm_not_clean", summary["reason"])
+            self.assertEqual("none", summary["reuse_mode"])
+            self.assertTrue(summary["diagnostics"]["rerun_guard"]["blocked"])
+            self.assertEqual("llm-only", summary["diagnostics"]["rerun_guard"]["recommended_path"])
+            self.assertEqual("rerun_blocked:deterministic_green_llm_not_clean", latest["reason"])
+            self.assertTrue(latest["diagnostics"]["rerun_guard"]["blocked"])
+
+    def test_main_should_stop_after_first_llm_timeout_when_deterministic_already_green(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-56-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-56" / "latest.json"
+            calls: list[str] = []
+
+            def fake_run_step(*, out_dir: Path, name: str, cmd: list[str], timeout_sec: int) -> dict:
+                calls.append(name)
+                if name == "sc-acceptance-preflight":
+                    return {
+                        "name": name,
+                        "cmd": cmd,
+                        "rc": 0,
+                        "status": "ok",
+                        "log": str(out_dir / f"{name}.log"),
+                        "reported_out_dir": str(out_dir / "acceptance-preflight"),
+                        "summary_file": str(out_dir / "acceptance-preflight" / "summary.json"),
+                    }
+                if name in {"sc-test", "sc-acceptance-check"}:
+                    return {
+                        "name": name,
+                        "cmd": cmd,
+                        "rc": 0,
+                        "status": "ok",
+                        "log": str(out_dir / f"{name}.log"),
+                        "reported_out_dir": str(out_dir / name),
+                        "summary_file": str(out_dir / name / "summary.json"),
+                    }
+                if name == "sc-llm-review":
+                    return {
+                        "name": name,
+                        "cmd": cmd,
+                        "rc": 124,
+                        "status": "fail",
+                        "log": str(out_dir / f"{name}.log"),
+                        "reported_out_dir": "",
+                        "summary_file": "",
+                    }
+                raise AssertionError(f"unexpected step: {name}")
+
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "56",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "playable-ea",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, _stable_env(), clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "run_review_prerequisite_check", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step),
+                mock.patch.object(run_review_pipeline_module, "_run_cli_capability_preflight", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_run_agent_review_post_hook", return_value=(0, {})),
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            self.assertEqual(["sc-acceptance-preflight", "sc-test", "sc-acceptance-check", "sc-llm-review"], calls)
+            events = (out_dir / "run-events.jsonl").read_text(encoding="utf-8").splitlines()
+            self.assertEqual(1, sum(1 for line in events if '"event": "step_failed"' in line and '"step_name": "sc-llm-review"' in line))
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            validate_pipeline_latest_index_payload(latest)
+            self.assertEqual("fail", summary["status"])
+            self.assertTrue(latest["deterministic_bundle"]["available"])
+            self.assertEqual("none", latest["deterministic_bundle"]["reuse_mode"])
+            self.assertIn("sc-test", str(latest["deterministic_bundle"]["test_summary_path"]).replace("\\", "/"))
+
+    def test_main_should_block_full_rerun_when_dirty_worktree_exceeds_change_scope_ceiling(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / f"sc-review-pipeline-task-56-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56" / "latest.json"
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "56",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, _stable_env(), clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "_load_latest_task_execution_context",
+                    return_value={
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "git": {"head": "previous-head", "status_short": []},
+                    },
+                ),
+                mock.patch.object(run_review_pipeline_module, "current_git_fingerprint", return_value={"head": "current-head", "status_short": [" M docs/workflows/workflow.md"]}),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "classify_change_scope_between_snapshots",
+                    return_value={
+                        "deterministic_strategy": "full-rerun",
+                        "changed_paths": [f"docs/workflows/file-{idx}.md" for idx in range(1, 25)],
+                        "unsafe_paths": [f"Game.Core/Changed{idx}.cs" for idx in range(1, 11)],
+                    },
+                ),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_run_step") as run_step_mock,
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            run_step_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual("rerun_blocked:dirty_worktree_unsafe_paths_ceiling", summary["reason"])
+            self.assertTrue(summary["diagnostics"]["rerun_guard"]["blocked"])
+            self.assertEqual("--allow-large-change-scope-rerun", summary["diagnostics"]["rerun_guard"]["allow_override_flag"])
+            self.assertEqual(24, summary["diagnostics"]["rerun_guard"]["changed_paths_count"])
+            self.assertEqual(10, summary["diagnostics"]["rerun_guard"]["unsafe_paths_count"])
+            self.assertEqual("dirty_worktree_unsafe_paths_ceiling", summary["diagnostics"]["rerun_forbidden"]["kind"])
+            self.assertEqual("rerun_blocked:dirty_worktree_unsafe_paths_ceiling", latest["reason"])
+
+    def test_main_should_block_repeated_identical_sc_test_failures_before_third_full_run(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            for suffix in ("older", "latest"):
+                previous_out_dir = tmp_root / "logs" / "ci" / "2026-04-06" / f"sc-review-pipeline-task-56-{suffix}"
+                previous_out_dir.mkdir(parents=True, exist_ok=True)
+                sc_test_dir = previous_out_dir / "sc-test-artifacts"
+                sc_test_dir.mkdir(parents=True, exist_ok=True)
+                (sc_test_dir / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "cmd": "sc-test",
+                            "run_id": suffix,
+                            "task_id": "56",
+                            "type": "all",
+                            "solution": "Game.sln",
+                            "configuration": "Debug",
+                            "status": "fail",
+                            "steps": [
+                                {"name": "unit", "status": "fail", "rc": 2, "reason": "compile_error", "error": "CS0103 name missing", "log": "unit.log"},
+                            ],
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                (previous_out_dir / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "cmd": "sc-review-pipeline",
+                            "task_id": "56",
+                            "requested_run_id": suffix,
+                            "run_id": suffix,
+                            "status": "fail",
+                            "steps": [
+                                {
+                                    "name": "sc-test",
+                                    "cmd": ["py", "-3", "scripts/sc/test.py", "--task-id", "56"],
+                                    "rc": 2,
+                                    "status": "fail",
+                                    "log": str(previous_out_dir / "sc-test.log"),
+                                    "reported_out_dir": str(sc_test_dir),
+                                    "summary_file": str(sc_test_dir / "summary.json"),
+                                }
+                            ],
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                (previous_out_dir / "execution-context.json").write_text(
+                    json.dumps(
+                        {
+                            "run_id": suffix,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / f"sc-review-pipeline-task-56-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56" / "latest.json"
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "56",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, _stable_env(), clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_run_step") as run_step_mock,
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            run_step_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("rerun_blocked:repeat_deterministic_failure", summary["reason"])
+            self.assertEqual("repeat_deterministic_failure", summary["diagnostics"]["rerun_guard"]["kind"])
+            self.assertTrue(summary["diagnostics"]["rerun_guard"]["blocked"])
+            self.assertTrue(str(summary["diagnostics"]["rerun_guard"]["fingerprint"]).startswith("sc-test|unit|2|compile_error"))
 
 
 if __name__ == "__main__":

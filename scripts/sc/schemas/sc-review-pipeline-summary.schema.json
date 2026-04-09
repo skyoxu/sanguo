@@ -12,7 +12,13 @@
     "allow_overwrite",
     "force_new_run_id",
     "status",
-    "steps"
+    "steps",
+    "started_at_utc",
+    "finished_at_utc",
+    "elapsed_sec",
+    "run_type",
+    "reason",
+    "reuse_mode"
   ],
   "properties": {
     "cmd": {
@@ -42,6 +48,44 @@
         "ok",
         "fail"
       ]
+    },
+    "started_at_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "finished_at_utc": {
+      "type": "string"
+    },
+    "elapsed_sec": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "run_type": {
+      "type": "string",
+      "enum": [
+        "planned-only",
+        "preflight-only",
+        "llm-only",
+        "deterministic-only",
+        "full"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reuse_mode": {
+      "type": "string",
+      "enum": [
+        "none",
+        "full-clean-reuse",
+        "deterministic-only-reuse",
+        "sc-test-reuse",
+        "mixed-reuse"
+      ]
+    },
+    "diagnostics": {
+      "type": "object"
     },
     "steps": {
       "type": "array",

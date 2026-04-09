@@ -25,18 +25,6 @@ from _project_health_common import (
 from solution_resolver import resolve_solution_path
 
 
-def real_task_triplet_exists(root: Path) -> bool:
-    return has_task_triplet(task_triplet_paths(root, Path(".taskmaster") / "tasks"))
-
-
-def workflow_entry_docs_exists(root: Path) -> bool:
-    template_pair_ok = (root / "workflow.md").exists() and (root / "DELIVERY_PROFILE.md").exists()
-    business_pair_ok = (root / "docs" / "workflows" / "run-protocol.md").exists() and (
-        root / "docs" / "workflows" / "local-hard-checks.md"
-    ).exists()
-    return template_pair_ok or business_pair_ok
-
-
 def detect_project_stage(root: Path | str | None = None) -> dict[str, Any]:
     resolved_root = resolve_root(root)
     real_triplet = task_triplet_paths(resolved_root, Path(".taskmaster") / "tasks")
@@ -120,12 +108,9 @@ def doctor_project(root: Path | str | None = None) -> dict[str, Any]:
     resolved_root = resolve_root(root)
     real_triplet = task_triplet_paths(resolved_root, Path(".taskmaster") / "tasks")
     example_triplet = task_triplet_paths(resolved_root, Path("examples") / "taskmaster")
-    real_triplet_ok = has_task_triplet(real_triplet)
-    example_triplet_ok = has_task_triplet(example_triplet)
-    workflow_docs_ok = workflow_entry_docs_exists(resolved_root)
-
     resolved_solution_name = resolve_solution_path("auto", repo_root=resolved_root)
     resolved_solution_path = resolved_root / resolved_solution_name
+
     checks = [
         doctor_check(
             check_id="project-godot",
@@ -153,9 +138,7 @@ def doctor_project(root: Path | str | None = None) -> dict[str, Any]:
             status="ok" if resolved_solution_path.exists() else "fail",
             path=resolved_solution_name,
             summary="solution exists" if resolved_solution_path.exists() else f"{resolved_solution_name} is missing",
-            recommendation="keep the preferred .NET solution in repo root"
-            if resolved_solution_path.exists()
-            else f"restore or create {resolved_solution_name}",
+            recommendation="keep the .NET solution in repo root" if resolved_solution_path.exists() else f"restore or create {resolved_solution_name}",
         ),
         doctor_check(
             check_id="core-tests-csproj",
@@ -170,27 +153,21 @@ def doctor_project(root: Path | str | None = None) -> dict[str, Any]:
         ),
         doctor_check(
             check_id="task-triplet-real",
-            status="ok" if real_triplet_ok else "warn",
+            status="ok" if has_task_triplet(real_triplet) else "warn",
             path=".taskmaster/tasks",
-            summary="real task triplet exists" if real_triplet_ok else "real task triplet is missing",
+            summary="real task triplet exists" if has_task_triplet(real_triplet) else "real task triplet is missing",
             recommendation="keep task triplet updated"
-            if real_triplet_ok
+            if has_task_triplet(real_triplet)
             else "create .taskmaster/tasks/tasks*.json before running task-scoped workflows",
         ),
         doctor_check(
             check_id="task-triplet-example",
-            status="ok" if (real_triplet_ok or example_triplet_ok) else "warn",
+            status="ok" if has_task_triplet(example_triplet) else "warn",
             path="examples/taskmaster",
-            summary="example task triplet is optional in business repos"
-            if real_triplet_ok
-            else ("example triplet exists" if example_triplet_ok else "example task triplet is missing"),
-            recommendation="optional: keep example triplet aligned with template onboarding"
-            if real_triplet_ok
-            else (
-                "keep example triplet aligned with the template"
-                if example_triplet_ok
-                else "restore example task triplet for template onboarding"
-            ),
+            summary="example triplet exists" if has_task_triplet(example_triplet) else "example task triplet is missing",
+            recommendation="keep example triplet aligned with the template"
+            if has_task_triplet(example_triplet)
+            else "restore example task triplet for template onboarding",
         ),
         doctor_check(
             check_id="overlay-indexes",
@@ -212,11 +189,15 @@ def doctor_project(root: Path | str | None = None) -> dict[str, Any]:
         ),
         doctor_check(
             check_id="workflow-docs",
-            status="ok" if workflow_docs_ok else "warn",
-            path="workflow.md + DELIVERY_PROFILE.md or docs/workflows/run-protocol.md + docs/workflows/local-hard-checks.md",
-            summary="workflow entry docs exist" if workflow_docs_ok else "workflow entry docs are incomplete",
+            status="ok"
+            if (resolved_root / "workflow.md").exists() and (resolved_root / "DELIVERY_PROFILE.md").exists()
+            else "warn",
+            path="workflow.md + DELIVERY_PROFILE.md",
+            summary="workflow entry docs exist"
+            if (resolved_root / "workflow.md").exists() and (resolved_root / "DELIVERY_PROFILE.md").exists()
+            else "workflow entry docs are incomplete",
             recommendation="keep workflow docs indexed"
-            if workflow_docs_ok
+            if (resolved_root / "workflow.md").exists() and (resolved_root / "DELIVERY_PROFILE.md").exists()
             else "restore workflow.md and DELIVERY_PROFILE.md",
         ),
         doctor_check(
@@ -327,7 +308,6 @@ def check_directory_boundaries(root: Path | str | None = None) -> dict[str, Any]
     resolved_root = resolve_root(root)
     violations: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
-    real_triplet_ok = real_task_triplet_exists(resolved_root)
 
     violations.extend(scan_text_violations(resolved_root, "Game.Core", rule_id="game-core-no-godot"))
     violations.extend(scan_text_violations(resolved_root, "Game.Core/Contracts", rule_id="contracts-no-godot"))
@@ -335,15 +315,14 @@ def check_directory_boundaries(root: Path | str | None = None) -> dict[str, Any]
     violations.extend(scan_base_prd_leaks(resolved_root))
     warnings.extend(scan_extra_base_08_files(resolved_root))
 
-    if not real_triplet_ok:
-        for tracked in git_tracked_matches(resolved_root, "taskdoc"):
-            warnings.append(
-                {
-                    "rule_id": "root-taskdoc-not-tracked",
-                    "path": tracked,
-                    "summary": "root taskdoc should not be git-tracked in the template repo",
-                }
-            )
+    for tracked in git_tracked_matches(resolved_root, "taskdoc"):
+        warnings.append(
+            {
+                "rule_id": "root-taskdoc-not-tracked",
+                "path": tracked,
+                "summary": "root taskdoc should not be git-tracked in this repository",
+            }
+        )
 
     status = "fail" if violations else ("warn" if warnings else "ok")
     summary = f"boundary checks: fail={len(violations)} warn={len(warnings)}"

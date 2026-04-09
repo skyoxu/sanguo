@@ -24,6 +24,8 @@
 1. Persistent local harness runs with sidecars, latest pointers, replay/inspect support, and marathon recovery state.
 2. Task-level TDD now has a lightweight `task_preflight` stage before the heavier analyze/context gates. It checks only the current task's overlay and `contractRefs` resolution so a business repo can fail fast on broken task-local metadata without running repo-wide hard gates.
 3. Task-scoped review pipeline runs now write stable `active-task` sidecars under `logs/ci/active-tasks/`, and `resume_task.py` consumes them before falling back to deeper artifact inspection. This gives business repos a shorter recovery path after context reset without changing the canonical `resume-task` entrypoint.
+4. Recovery consumers now surface explicit Chapter 6 stop-loss reasoning from task-scoped artifacts, including `rerun_guard`, `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, and `waste_signals`, so operators can avoid paying for another wasteful full rerun.
+5. Recovery readers should also surface `recommended_action_why`; when the resolved action is `needs-fix-fast`, business repos should prefer targeted closure instead of reopening a full rerun.
 4. Docs and routing now distinguish between:
    - compare-range migration reports (`business-repo-upgrade-guide.md`),
    - stable migration protocol (`template-upgrade-protocol.md`),
@@ -59,7 +61,7 @@ Mandatory business-repo adaptations after file copy:
 
 1. Replace template fallback assumptions with real `.taskmaster/tasks/tasks.json`, `.taskmaster/tasks/tasks_back.json`, `.taskmaster/tasks/tasks_gameplay.json`.
 2. Move `semantic_review_tier` examples into the real `tasks_back.json` / `tasks_gameplay.json`, not `examples/taskmaster/**`.
-3. Rename any template repo names, PRD examples, and project identity strings in `AGENTS.md`, `docs/agents/**`, `README.md`, and bootstrap docs.
+3. Rename any upstream source repository names, PRD examples, and project identity strings in `AGENTS.md`, `docs/agents/**`, `README.md`, and bootstrap docs.
 4. Keep `docs/technical-debt.md` in-repo, because the review pipeline now writes to it.
 
 ### Phase 1: Recovery Assets And Agent Routing
@@ -159,6 +161,7 @@ Reason:
 - Migration impact:
   - Copy the producer (`run_review_pipeline.py`, `_pipeline_session.py`, `_active_task_sidecar.py`) and the consumer (`scripts/python/resume_task.py`) in the same batch.
   - Do not copy only the docs or only the consumer; the value depends on producer and consumer both existing.
+  - If the target repo wants full Chapter 6 parity, also copy the stop-loss readers (`scripts/python/inspect_run.py`) and the docs that explain those signals (`workflow.md`, `docs/agents/00-index.md`, `docs/agents/01-session-recovery.md`, `docs/workflows/stable-public-entrypoints.md`, `docs/workflows/run-protocol.md`).
   - The task recovery default command remains `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`.
   - `active-task` is a shorter summary sidecar, not a replacement for the canonical recovery entrypoint.
 
@@ -690,4 +693,3 @@ A scripts/sc/tests/test_run_review_pipeline_marathon.py
 A scripts/sc/tests/test_sc_test_orchestration.py
 A scripts/sc/tests/test_sc_test_refs.py
 ```
-

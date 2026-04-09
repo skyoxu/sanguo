@@ -434,6 +434,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 mock.patch.object(sys, "argv", argv), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "_load_latest_task_execution_context", return_value=None), \
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step), \
                 mock.patch.object(run_review_pipeline_module, "_run_cli_capability_preflight", return_value=None), \
                 mock.patch.object(
@@ -529,6 +530,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 mock.patch.object(sys, "argv", argv), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "_load_latest_task_execution_context", return_value=None), \
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step), \
                 mock.patch.object(run_review_pipeline_module, "write_agent_review", return_value=(payload, [], [])):
                 rc = run_review_pipeline_module.main()
@@ -602,6 +604,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 mock.patch.object(sys, "argv", argv), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "_load_latest_task_execution_context", return_value=None), \
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step), \
                 mock.patch.object(run_review_pipeline_module, "write_agent_review", return_value=(payload, [], [])):
                 rc = run_review_pipeline_module.main()
@@ -934,6 +937,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 run_id,
                 "--max-step-retries",
                 "1",
+                "--allow-large-change-scope-rerun",
                 "--skip-agent-review",
             ]
             with mock.patch.dict(os.environ, _stable_env(), clear=False), \
@@ -958,6 +962,88 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
             self.assertEqual(2, marathon_state["steps"]["sc-test"]["attempt_count"])
             self.assertEqual("ok", marathon_state["steps"]["sc-test"]["status"])
             self.assertEqual(str(out_dir / "marathon-state.json"), latest["marathon_state_path"])
+
+    def test_sc_test_unit_failure_should_stop_same_run_retry_even_when_retries_allowed(self) -> None:
+        run_id = uuid.uuid4().hex
+        call_counts: dict[str, int] = {}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+
+            def fake_run_step(*, out_dir: Path, name: str, cmd: list[str], timeout_sec: int) -> dict:
+                call_counts[name] = call_counts.get(name, 0) + 1
+                if name == "sc-test":
+                    sc_test_summary = out_dir / "child-artifacts" / "sc-test" / "summary.json"
+                    sc_test_summary.parent.mkdir(parents=True, exist_ok=True)
+                    sc_test_summary.write_text(
+                        json.dumps(
+                            {
+                                "cmd": "sc-test",
+                                "status": "fail",
+                                "steps": [
+                                    {"name": "unit", "status": "fail", "rc": 2},
+                                    {"name": "gdunit-hard", "status": "ok", "rc": 0},
+                                    {"name": "smoke", "status": "ok", "rc": 0},
+                                ],
+                            },
+                            ensure_ascii=False,
+                            indent=2,
+                        )
+                        + "\n",
+                        encoding="utf-8",
+                    )
+                    return {
+                        "name": name,
+                        "cmd": cmd,
+                        "rc": 1,
+                        "status": "fail",
+                        "log": str(out_dir / f"{name}.log"),
+                        "reported_out_dir": str(sc_test_summary.parent),
+                        "summary_file": str(sc_test_summary),
+                    }
+                return {
+                    "name": name,
+                    "cmd": cmd,
+                    "rc": 0,
+                    "status": "ok",
+                    "log": str(out_dir / f"{name}.log"),
+                    "reported_out_dir": "",
+                    "summary_file": "",
+                }
+
+            argv = [
+                str(REPO_ROOT / "scripts" / "sc" / "run_review_pipeline.py"),
+                "--task-id",
+                "1",
+                "--run-id",
+                run_id,
+                "--max-step-retries",
+                "1",
+                "--allow-large-change-scope-rerun",
+                "--skip-agent-review",
+            ]
+            with mock.patch.dict(os.environ, _stable_env(), clear=False), \
+                mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            self.assertEqual(1, call_counts["sc-test"])
+            self.assertNotIn("sc-acceptance-check", call_counts)
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("fail", summary["status"])
+            self.assertEqual("step_failed:sc-test", summary["reason"])
+            self.assertEqual(
+                {
+                    "kind": "unit_failure_known",
+                    "blocked": True,
+                    "step_name": "sc-test",
+                },
+                summary["diagnostics"]["sc_test_retry_stop_loss"],
+            )
 
     def test_resume_should_continue_from_failed_step(self) -> None:
         run_id = uuid.uuid4().hex
@@ -992,6 +1078,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 run_id,
                 "--max-step-retries",
                 "0",
+                "--allow-large-change-scope-rerun",
                 "--skip-agent-review",
             ]
             with mock.patch.dict(os.environ, _stable_env(), clear=False), \
@@ -1025,6 +1112,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 "--task-id",
                 "1",
                 "--resume",
+                "--allow-large-change-scope-rerun",
                 "--skip-agent-review",
             ]
             with mock.patch.dict(os.environ, _stable_env(), clear=False), \
@@ -1222,6 +1310,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 "--fork",
                 "--run-id",
                 fork_run_id,
+                "--allow-large-change-scope-rerun",
                 "--skip-agent-review",
             ]
             with mock.patch.dict(os.environ, _stable_env(), clear=False), \
