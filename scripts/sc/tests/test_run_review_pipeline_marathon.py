@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import io
 import json
 import os
 import sys
 import tempfile
 import unittest
 import uuid
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -609,10 +611,11 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 mock.patch.object(run_review_pipeline_module, "write_agent_review", return_value=(payload, [], [])):
                 rc = run_review_pipeline_module.main()
 
-            self.assertEqual(0, rc)
+            self.assertEqual(1, rc)
             request = json.loads((out_dir / "approval-request.json").read_text(encoding="utf-8"))
             latest = json.loads(latest_path.read_text(encoding="utf-8"))
             execution_context = json.loads((out_dir / "execution-context.json").read_text(encoding="utf-8"))
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
 
             self.assertEqual("fork", request["action"])
             self.assertEqual("pending", request["status"])
@@ -620,6 +623,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
             self.assertEqual(str(out_dir / "approval-request.json"), latest["approval_request_path"])
             self.assertEqual("pending", execution_context["approval"]["status"])
             self.assertEqual("fork", execution_context["approval"]["required_action"])
+            self.assertEqual("fail", summary["status"])
 
     def test_existing_approval_response_should_be_indexed_as_soft_signal(self) -> None:
         run_id = uuid.uuid4().hex
@@ -761,6 +765,350 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
             self.assertEqual(str(out_dir / "approval-response.json"), latest["approval_response_path"])
             self.assertEqual("approved", execution_context["approval"]["status"])
             self.assertEqual("approved", execution_context["approval"]["decision"])
+
+    def test_resume_should_stop_when_fork_approval_is_pending(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "marathon-state.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "requested_run_id": run_id,
+                        "status": "running",
+                        "resume_count": 1,
+                        "max_step_retries": 0,
+                        "max_wall_time_sec": 0,
+                        "created_at": "2000-01-01T00:00:00",
+                        "updated_at": "2000-01-01T00:00:00",
+                        "last_completed_step": "",
+                        "last_failed_step": "",
+                        "next_step_name": "sc-test",
+                        "steps": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "approval-request.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "request_id": f"{run_id}:fork",
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "action": "fork",
+                        "reason": "Await approval before forking.",
+                        "requested_files": [],
+                        "requested_commands": [f"py -3 scripts/sc/run_review_pipeline.py --task-id 1 --fork"],
+                        "status": "pending",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            latest_path.parent.mkdir(parents=True, exist_ok=True)
+            latest_path.write_text(
+                json.dumps(
+                    {
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "status": "running",
+                        "latest_out_dir": str(out_dir),
+                        "summary_path": str(out_dir / "summary.json"),
+                        "marathon_state_path": str(out_dir / "marathon-state.json"),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            argv = [
+                str(REPO_ROOT / "scripts" / "sc" / "run_review_pipeline.py"),
+                "--task-id",
+                "1",
+                "--resume",
+                "--delivery-profile",
+                "fast-ship",
+            ]
+            stdout = io.StringIO()
+            with mock.patch.dict(os.environ, _stable_env(), clear=False), \
+                mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                redirect_stdout(stdout):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(2, rc)
+            self.assertIn("fork approval is pending", stdout.getvalue())
+
+    def test_fork_should_stop_when_fork_approval_is_denied(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "marathon-state.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "requested_run_id": run_id,
+                        "status": "running",
+                        "resume_count": 1,
+                        "max_step_retries": 0,
+                        "max_wall_time_sec": 0,
+                        "created_at": "2000-01-01T00:00:00",
+                        "updated_at": "2000-01-01T00:00:00",
+                        "last_completed_step": "",
+                        "last_failed_step": "",
+                        "next_step_name": "sc-test",
+                        "steps": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "approval-request.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "request_id": f"{run_id}:fork",
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "action": "fork",
+                        "reason": "Fork approval was requested.",
+                        "requested_files": [],
+                        "requested_commands": [f"py -3 scripts/sc/run_review_pipeline.py --task-id 1 --fork"],
+                        "status": "pending",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "approval-response.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "request_id": f"{run_id}:fork",
+                        "decision": "denied",
+                        "reviewer": "human",
+                        "reason": "Stay on the current run.",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            latest_path.parent.mkdir(parents=True, exist_ok=True)
+            latest_path.write_text(
+                json.dumps(
+                    {
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "status": "running",
+                        "latest_out_dir": str(out_dir),
+                        "summary_path": str(out_dir / "summary.json"),
+                        "marathon_state_path": str(out_dir / "marathon-state.json"),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            argv = [
+                str(REPO_ROOT / "scripts" / "sc" / "run_review_pipeline.py"),
+                "--task-id",
+                "1",
+                "--fork",
+                "--run-id",
+                uuid.uuid4().hex,
+                "--delivery-profile",
+                "fast-ship",
+            ]
+            stdout = io.StringIO()
+            with mock.patch.dict(os.environ, _stable_env(), clear=False), \
+                mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                redirect_stdout(stdout):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(2, rc)
+            self.assertIn("fork approval was denied", stdout.getvalue())
+
+    def test_resume_should_stop_when_fork_approval_is_mismatched(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "fail",
+                        "steps": [],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "marathon-state.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "requested_run_id": run_id,
+                        "status": "running",
+                        "resume_count": 1,
+                        "max_step_retries": 0,
+                        "max_wall_time_sec": 0,
+                        "created_at": "2000-01-01T00:00:00",
+                        "updated_at": "2000-01-01T00:00:00",
+                        "last_completed_step": "",
+                        "last_failed_step": "",
+                        "next_step_name": "sc-test",
+                        "steps": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "approval-request.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "request_id": f"{run_id}:fork",
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "action": "fork",
+                        "reason": "Fork approval was requested.",
+                        "requested_files": [],
+                        "requested_commands": [f"py -3 scripts/sc/run_review_pipeline.py --task-id 1 --fork"],
+                        "status": "pending",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "approval-response.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "request_id": "wrong-run:fork",
+                        "decision": "approved",
+                        "reviewer": "human",
+                        "reason": "Approved the wrong request.",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            latest_path.parent.mkdir(parents=True, exist_ok=True)
+            latest_path.write_text(
+                json.dumps(
+                    {
+                        "task_id": "1",
+                        "run_id": run_id,
+                        "status": "running",
+                        "latest_out_dir": str(out_dir),
+                        "summary_path": str(out_dir / "summary.json"),
+                        "marathon_state_path": str(out_dir / "marathon-state.json"),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            argv = [
+                str(REPO_ROOT / "scripts" / "sc" / "run_review_pipeline.py"),
+                "--task-id",
+                "1",
+                "--resume",
+                "--delivery-profile",
+                "fast-ship",
+            ]
+            stdout = io.StringIO()
+            with mock.patch.dict(os.environ, _stable_env(), clear=False), \
+                mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                redirect_stdout(stdout):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(2, rc)
+            self.assertIn("invalid or mismatched", stdout.getvalue())
 
     def test_dry_run_should_mark_context_refresh_when_diff_growth_exceeds_threshold(self) -> None:
         run_id = uuid.uuid4().hex
@@ -1128,11 +1476,19 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
 
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             marathon_state = json.loads((out_dir / "marathon-state.json").read_text(encoding="utf-8"))
+            events = [
+                json.loads(line)
+                for line in (out_dir / "run-events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
 
             self.assertEqual("ok", summary["status"])
             self.assertEqual("ok", marathon_state["status"])
             self.assertEqual(2, marathon_state["resume_count"])
             self.assertEqual("sc-llm-review", marathon_state["last_completed_step"])
+            resumed_event = next(item for item in events if item["event"] == "run_resumed")
+            self.assertEqual(f"{run_id}:turn-2", resumed_event["turn_id"])
+            self.assertEqual(2, resumed_event["turn_seq"])
 
     def test_abort_should_mark_latest_run_and_skip_execution(self) -> None:
         run_id = uuid.uuid4().hex

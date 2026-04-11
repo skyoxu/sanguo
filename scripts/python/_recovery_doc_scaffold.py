@@ -309,6 +309,68 @@ def write_markdown(path: Path, content: str) -> Path:
     return path
 
 
+def record_chapter6_residual_followup(
+    *,
+    root: Path,
+    task_id: str,
+    run_id: str,
+    latest_json: str,
+    findings_summary: str,
+    recommended_command: str,
+    related_adrs: Sequence[str] | None = None,
+) -> dict[str, str]:
+    links = infer_recovery_links(root=root, task_id=task_id, run_id=run_id, latest_json=latest_json)
+    branch = resolve_git_branch(root)
+    git_head = resolve_git_head(root)
+
+    decision_title = f"task-{task_id}-chapter6-residual-needs-fix"
+    decision_path = ensure_output_path(root, "", "decision-logs", decision_title)
+    decision_content = build_decision_log_markdown(
+        root=root,
+        title=decision_title,
+        status="accepted",
+        why_now="Chapter 6 routing determined that another immediate 6.8 rerun would not be cost-effective.",
+        context=f"Remaining findings are low priority reviewer items after deterministic evidence was already sufficient. {findings_summary}",
+        decision="Record the residual Needs Fix items and stop the current fast-ship closure loop until a later change hits the same reviewer anchors.",
+        consequences="The task keeps explicit follow-up evidence instead of paying for another same-shape 6.8 rerun.",
+        recovery_impact="Recovery should prefer the recorded follow-up plan over reopening 6.7 or repeating 6.8 without fresh anchor hits.",
+        validation=recommended_command or "Re-run chapter6-route after new anchor-hitting changes land.",
+        supersedes="none",
+        superseded_by="none",
+        related_adrs=list(related_adrs or []),
+        related_execution_plans=[],
+        links=links,
+        branch=branch,
+        git_head=git_head,
+    )
+    write_markdown(decision_path, decision_content)
+
+    plan_title = f"task-{task_id}-chapter6-residual-followup"
+    plan_path = ensure_output_path(root, "", "execution-plans", plan_title)
+    plan_content = build_execution_plan_markdown(
+        root=root,
+        title=plan_title,
+        status="active",
+        goal=f"Close the recorded residual reviewer findings for Task {task_id}.",
+        scope=findings_summary,
+        current_step="Residual Needs Fix recorded; wait for a change that hits the previous reviewer anchors before paying for another 6.8.",
+        stop_loss="Do not reopen 6.7 without a fresh deterministic failure. Do not rerun 6.8 when current edits do not hit the recorded reviewer anchors.",
+        next_action=recommended_command or "Re-run chapter6-route after fresh anchor-hitting edits.",
+        exit_criteria="Either the recorded findings are cleared by a targeted 6.8 pass, or a later run supersedes this residual record.",
+        related_adrs=list(related_adrs or []),
+        related_decision_logs=[decision_path.relative_to(root).as_posix()],
+        links=links,
+        branch=branch,
+        git_head=git_head,
+    )
+    write_markdown(plan_path, plan_content)
+
+    return {
+        "decision_log_path": decision_path.relative_to(root).as_posix(),
+        "execution_plan_path": plan_path.relative_to(root).as_posix(),
+    }
+
+
 def add_common_recovery_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--task-id", default="", help="Optional Taskmaster task id.")
     parser.add_argument("--run-id", default="", help="Optional pipeline run id.")

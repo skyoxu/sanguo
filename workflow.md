@@ -21,18 +21,21 @@
 
 1. 先读 `AGENTS.md` 和 `docs/agents/00-index.md`
 2. 先执行 `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`
-3. 如果 recovery summary 仍然不够，再读 `logs/ci/active-tasks/task-<id>.active.md`
-4. 只有当 `resume-task` 与 `active-task` 仍不足以判断时，再执行 `py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id>`
+3. 如果需要判断“是否值得继续付 6.7 / 6.8 成本”，先执行 `py -3 scripts/python/dev_cli.py chapter6-route --task-id <id> --recommendation-only`
+4. 如果 recovery summary 仍然不够，再读 `logs/ci/active-tasks/task-<id>.active.md`
+5. 只有当 `resume-task`、`chapter6-route` 与 `active-task` 仍不足以判断时，再执行 `py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id <id>`
 
 补充说明：
-- `resume-task` 现在会汇总 `Latest reason`、`Latest run type`、`Latest reuse mode`、`Latest artifact integrity`、`Chapter6 next action`、`Chapter6 can skip 6.7`、`Chapter6 can go to 6.8`、`Chapter6 blocked by`。
+- `resume-task` now surfaces `Latest reason`, `Latest run type`, `Latest reuse mode`, `Latest artifact integrity`, `Chapter6 next action`, `Chapter6 can skip 6.7`, `Chapter6 can go to 6.8`, `Chapter6 blocked by`, plus `Recommended command` / `Forbidden commands`. When the latest pipeline `summary.json` already contains those recommendation fields, `resume-task` treats that summary as the canonical source and only falls back to `active-task` / local derivation when the summary is missing them.
 - `resume-task` also surfaces `recommended_action_why`; if it already says `recommended_action = needs-fix-fast`, prefer targeted closure before any full rerun.
-- `inspect_run.py --kind pipeline` 也会导出同一组 `latest_summary_signals` / `chapter6_hints`，用于判断是继续 `6.7`、转 `6.8`，还是先修 deterministic 根因。
-- `run_review_pipeline.py --dry-run` 仍会在本次 `out_dir` 写 `summary/execution-context/repair-guide`，但不再发布 `latest.json` 或 `active-task` sidecars；不要把 dry-run 当作恢复指针。
-- `inspect_run.py --kind pipeline --task-id <id>` 在解析自动恢复指针时，会跳过只来自 dry-run 的更新候选，回退到最近一轮真实可恢复 run。
-
+- `--recommendation-only` prints only the compact recovery recommendation (`task_id`, `run_id`, `recommended_action`, `recommended_command`, `forbidden_commands`, `latest_reason`, `chapter6_next_action`) and skips default JSON/Markdown writes unless you explicitly pass `--out-json` / `--out-md`; use it when you only need a fast go/no-go decision before 6.3 / 6.7 / 6.8. For script consumption, add `--recommendation-format json`.
+- `dev_cli.py inspect-run --kind pipeline` also exports the same `latest_summary_signals` / `chapter6_hints`, and directly exposes `recommended_action` / `candidate_commands` / `recommended_command` / `forbidden_commands` so you can decide whether to continue `6.7`, move to `6.8`, or fix the deterministic root cause first.
+- `py -3 scripts/python/dev_cli.py chapter6-route --task-id <id> --recommendation-only` consumes the same recovery artifacts first, then classifies `repo-noise` vs `task-issue`, tells you whether `6.8` is worth paying for this round, and can write residual `decision-logs/**` + `execution-plans/**` when only low-priority findings remain.
+- `dev_cli.py inspect-run --recommendation-only` prints a compact block (`task_id`, `run_id`, `failure_code`, `recommended_action`, `recommended_command`, `forbidden_commands`, `latest_reason`, `chapter6_next_action`, `blocked_by`) when you only need a stop-loss / next-step decision and do not want the full JSON dumped to the console. Add `--recommendation-format json` when another script should consume the result directly.
+- `run_review_pipeline.py --dry-run` still writes `summary/execution-context/repair-guide` under the current `out_dir`, but it no longer publishes `latest.json` or `active-task` sidecars; do not treat dry-run output as a recovery pointer. Real runs now also mirror `recommended_action` / `candidate_commands` / `recommended_command` / `forbidden_commands` into `execution-context.json` for downstream consumers.
+- `py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id <id>` 在解析自动恢复指针时，会跳过只来自 dry-run 的更新候选，回退到最近一轮真实可恢复 run。
 - Recovery order now requires reading `Latest reason`, `Latest run type`, `Latest reuse mode`, and `Latest artifact integrity` before trusting the newest `latest.json` pointer.
-- `logs/ci/active-tasks/task-<id>.active.md` 现在是 `resume-task` 之后的短指针补充视图；只有当 recovery summary 还需要更快的人读入口时再看它，并继续结合 `Latest reason`、`Latest run type`、`Latest artifact integrity` 与 `Diagnostics artifact_integrity` 一起判断。
+- `logs/ci/active-tasks/task-<id>.active.md` remains the short follow-up view after `resume-task`; read it only when the recovery summary is still not enough, and use it together with `Latest reason`, `Latest run type`, `Latest artifact integrity`, and `Diagnostics artifact_integrity`. `resume-task` now prefers the recommendation fields already present in the inspection payload, so `active-task` should be treated as the fallback evidence view, not the primary recommendation source. The active-task sidecar still exposes `Recommended command` / `Forbidden commands` for parity.
 - If recovery shows `Latest run type = planned-only`, `Latest reason = planned_only_incomplete`, or `Chapter6 blocked by = artifact_integrity`, treat the bundle as evidence only; do not reopen `6.7` or `6.8` from it.
 
 ### 1.2 先选 Delivery Profile
@@ -99,7 +102,7 @@
 
 ```powershell
 py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"
-py -3 scripts/python/inspect_run.py --kind local-hard-checks
+py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks
 ```
 
 这第一次运行的价值：
@@ -408,29 +411,58 @@ py -3 scripts/python/run_obligations_freeze_pipeline.py --skip-jitter --raw logs
 py -3 scripts/python/run_obligations_freeze_pipeline.py --skip-jitter --raw logs/ci/<date>/sc-llm-obligations-jitter-batch5x3-raw.json --require-judgable --require-freeze-pass --approve-promote
 ```
 
-## 6. Phase 4：单任务日常循环（Single Task Daily Loop）
+## 6. Phase 4: Single Task Daily Loop
 
-这是主日常路径。
+This chapter is the main daily loop for a single task: recovery inspection, TDD, review pipeline, Needs Fix convergence, and pre-commit hard checks.
 
-如需理解本章在 `T56` 实战中做过哪些优化、哪些脚本必须成批升级、以及旧项目如何完整对齐，请先读 `docs/workflows/chapter-6-t56-optimization-guide.md`。
+If you want the background for the T56-based optimization and stop-loss rules, read `docs/workflows/chapter-6-t56-optimization-guide.md` first.
+
+### 6.0 Choose The Chapter 6 Entrypoint First
+
+Default to the top-level orchestrator instead of manually chaining `6.3 -> 6.9` every time.
+
+Recommended entrypoint:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
+```
+
+Default convergence by delivery profile:
+- `playable-ea`: enforce `P0` only by default; record or defer `P1/P2/P3`.
+- `fast-ship`: enforce `P0/P1` by default; record or defer `P2/P3`.
+- `standard`: also enforce `P0/P1` by default; only add `--fix-through P2` for an explicit pre-release final convergence pass.
+
+Prefer the top-level orchestrator when:
+- You want one stable path that includes `resume-task`, `chapter6-route`, `6.3`, `6.7`, `6.8`, and `6.9`.
+- You want the script to decide whether `6.8` is worth paying for.
+- You want route stop-loss, approval sidecars, and recovery sidecars applied automatically.
+
+Switch to manual step-by-step execution when:
+- You need to target a single step such as `6.4`, `6.7`, or `6.8`.
+- You intentionally want to override the default route with flags like `--allow-full-rerun` or `--allow-repeat-deterministic-failures`.
+- You are debugging the workflow itself and need every artifact in sequence.
 
 ### 6.1 先恢复状态
 
 ```powershell
 py -3 scripts/python/dev_cli.py resume-task --task-id <id>
+# quick recommendation-only read
+py -3 scripts/python/dev_cli.py resume-task --task-id <id> --recommendation-only
 ```
 
 只有确实需要时再执行：
 
 ```powershell
-py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id>
+py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id <id>
+# quick recommendation-only read
+py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id <id> --recommendation-only
 ```
 
 只有在你需要把恢复证据稳定落盘，供后续脚本或人工继续消费时，显式输出：
 
 ```powershell
 py -3 scripts/python/dev_cli.py resume-task --task-id <id> --out-json logs/ci/<date>/resume-task-<id>.json --out-md logs/ci/<date>/resume-task-<id>.md
-py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id> --out-json logs/ci/<date>/inspect-pipeline-<id>.json
+py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id <id> --out-json logs/ci/<date>/inspect-pipeline-<id>.json
 ```
 
 失败任务或恢复任务时，优先查看这些文件：
@@ -447,11 +479,24 @@ Recovery decision order:
 
 1. Read `Latest reason`, `Latest run type`, `Latest reuse mode`, and `Latest artifact integrity` first.
 2. Then read `Chapter6 next action`, `Chapter6 can skip 6.7`, `Chapter6 can go to 6.8`, and `Chapter6 blocked by`.
-3. Only then decide whether to reopen the current run, move to 6.8, or start a fresh real run.
+3. Then read `Approval required action`, `Approval status`, `Approval decision`, and `Approval reason` when they exist.
+4. Only then decide whether to reopen the current run, move to 6.8, enter `pause`, or start a fresh real run.
+5. If you need to know exactly where the producer stopped, read `run-events.jsonl` by `turn_id`, `item_kind`, `item_id`, and `event_family` instead of scraping event names.
+
+Recovery protocol invariants:
+
+- `run-events.jsonl` is a structured producer log, not free text. Recovery consumers must treat `turn_id -> item_kind -> item_id -> event_family` as the stable taxonomy, and treat concrete event names as best-effort detail only.
+- New `item_kind` or `event_family` values must be backward-compatible extensions. Do not repurpose an existing value with a new meaning inside the same recovery contract.
+- Sidecars follow a consumer-driven schema. `summary.json`, `execution-context.json`, `repair-guide.json`, `agent-review.json`, and `active-task` should be consumed by declared protocol fields first; only fall back to prose when the protocol fields are missing.
+- When `summary.json` or `execution-context.json` already carries canonical recommendation fields, downstream tools should reuse those fields instead of re-deriving state from side observations. Recovery should rely on protocol, not convention.
+- Approval sidecar is part of the same contract: `pending -> pause`, `approved -> fork`, `denied -> resume`, `invalid/mismatched -> inspect`. Treat these as protocol states, not soft hints.
+- If approval remains unresolved, keep the task in `pause` and wait for a new decision. Do not pay `6.7` or `6.8` cost by guessing around the approval state machine.
 
 Hard stop-loss:
 
 - If `Latest run type = planned-only` and `Latest reason = planned_only_incomplete`, treat it as a `planned-only terminal bundle`; it is not a resumable producer run.
+- Approval routing is deterministic now: `pending -> pause`, `approved -> fork`, `denied -> resume`, `invalid/mismatched -> inspect`.
+- Do not force `--resume` when approval is `pending|approved|invalid|mismatched`; do not force `--fork` when approval is `pending|denied|invalid|mismatched`.
 - If `Chapter6 blocked by = artifact_integrity`, fall back to the previous real bundle first; if none exists, start a fresh real `6.7` instead of continuing `--resume` from the planned-only terminal state.
 - If `active-task` or `inspect_run` reports `artifact_integrity_planned_only_incomplete`, do not enter `6.7` or `6.8` yet; fix artifact integrity first.
 
@@ -646,13 +691,18 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - 默认模板已经是 `scripts/sc/templates/llm_review/bmad-godot-review-template.txt`。
 - 除非你明确要覆盖默认映射，否则不要手工传 `--security-profile`。
 - 这个 pipeline 会写 sidecars、latest pointers、active-task summaries、repair guidance，以及 technical debt sync outputs。
+- 这一步现在优先通过 `py -3 scripts/python/dev_cli.py chapter6-route --task-id <id> --recommendation-only` 做。它会先消费 recovery 工件，再给出 `preferred_lane = run-6.7 | run-6.8 | fix-deterministic | repo-noise-stop | record-residual | inspect-first`，不要在没跑这个路由前直接重开完整 6.7。
+- `repo-noise-stop` now uses prior route reason, repeated recent failure family, and lock/process/transport contention signals instead of relying only on message keywords.
+- `run_review_pipeline.py` now consumes the same route signal before a fresh full rerun. If recovery already routes to `inspect-first`, `repo-noise-stop`, `fix-deterministic`, or `run-6.8`, the script stops before refactor preflight and downstream cost.
+- `repair-guide.json` / `repair-guide.md` now surface the same Chapter 6 route stop-loss families, so blocked reruns tell you whether to inspect first, fix deterministic failure, stop for repo noise, or switch to `6.8`.
+- The same recovery chain now carries approval-sidecar decisions too: `resume-task` / `inspect-run` expose `Approval required action` / `Approval status` / `Approval decision` / `Approval reason`, and a `pending -> pause` state means stop and handle approval before spending more Chapter 6 cost.
 - review pipeline 启动前还会检查最近一次同任务 `sc-build-tdd` 的 refactor summary，要求 `stage = refactor` 且 `status = ok`；如果 6.6 失败，先修 6.6。
 - 如果 6.7 首轮失败，先判断是“仓库级噪音”还是“当前任务问题”。与当前任务无关的 unit 红灯、锁进程、全仓历史失败，不要继续按当前任务的 6.7/6.8 节奏推进。
 - 如果上一轮 6.7 已经证明 `sc-test = ok` 且 `sc-acceptance-check = ok`，只有 `sc-llm-review` 超时或失败，而你本轮只改了 review / acceptance / overlay / task 语义文本，不要再手工重付完整 deterministic 成本；优先复用已通过的 deterministic，只重跑 LLM。
-- 当最近一轮已经是 `sc-test = ok + sc-acceptance-check = ok + sc-llm-review != clean`，且本轮没有命中 deterministic 相关文件时，默认不要再开一轮完整 6.7；优先进入 6.8 或 `py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship`。只有在你明确需要完整重跑时，才显式传 `--allow-full-rerun`。
+- When the latest run is already `sc-test = ok + sc-acceptance-check = ok + sc-llm-review != clean` and this round did not touch deterministic files, do not reopen a full 6.7 by default; prefer 6.8 or `py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship`. Only use `--allow-full-rerun` when you explicitly accept the full rerun cost. If recovery already points `Recommended command` to `needs-fix-fast`, do not reopen a full 6.7 against that recommendation.
 - 当最近两轮 6.7 都停在同一类 `sc-test` 失败指纹时，默认先修根因，不要第三次原参数重跑；只有在你明确接受重复 deterministic 成本时，才显式传 `--allow-repeat-deterministic-failures`。
 - 重跑前先读最近一轮 `summary.json` 和 `latest.json` 里的 `reason`、`reuse_mode` 与 `diagnostics`；这些字段会明确标出 `rerun_guard`、`reuse_decision`、`acceptance_preflight`、`llm_timeout_memory`。
-- 如果同一轮里已经出现“`sc-test` / `sc-acceptance-check` 通过，但 `sc-llm-review` 首次长等待超时”的情况，pipeline 会在当前轮直接止损，不再继续第二次长等待；证据写入 `diagnostics.llm_retry_stop_loss`。
+- When the same run already proved `sc-test` / `sc-acceptance-check` green and the first long `sc-llm-review` wait timed out, the pipeline now stops inside that run and writes evidence to `diagnostics.llm_retry_stop_loss`. Even a manual reviewer-only rerun (`--skip-test --skip-acceptance`) is blocked when recent reviewer-only attempts keep repeating the same Needs Fix family; switch to `needs-fix-fast` or record the residual findings instead of reopening 6.7.
 - `active-task` 的 `Chapter6 blocked by` 现在会区分 `rerun_guard`、`llm_retry_stop_loss`、`sc_test_retry_stop_loss`、`waste_signals`：前者表示不要再重复付 deterministic 成本，第二项表示优先走 llm-only follow-up，第三项表示同 run 的 unit 重试已经止损，最后一项表示先停掉无效 engine lane 成本并修 unit/root-cause。
 - reviewer 超时扩时现在会继承最近同任务 / 同 profile 的 agent 级超时历史；继续 timeout 时只定向放大该 reviewer，而不是整体抬高全部 reviewer。
 - `run_review_pipeline.py` 会按 `DELIVERY_PROFILE` 自动决定第六章的默认强度：
@@ -754,6 +804,8 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile playable-ea
 ```
 
+   If recovery summary or active-task already points `Recommended command` to this lane and `Forbidden commands` block full rerun / resume, do not manually reopen 6.7.
+
 日常默认：
 
 ```powershell
@@ -777,7 +829,9 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 - 中间回合默认把 6.8 当作 `rerun-failing-only` 快路径：优先只重跑上轮命中的 reviewer，适合“修 Needs Fix、补 wording、补 refs、补局部测试断言”这类收敛回合。
 - 只要这一轮没有改实现、测试、contracts 或运行时资源，就不要急着回头重跑完整 6.7；先用 6.8 把命中的问题清干净。
 - 只有当本轮改动直接命中了上一轮 reviewer 给出的锚点问题时，才值得立刻再跑 6.8。没有新修复内容时，重复跑 6.8 只是重复支付 LLM 成本。
-- 如果上一轮 6.8 的 LLM 回合是超时退出、没有新的可执行 finding、`final_needs_fix_agents` 仍为空，默认先停下来读工件并记录，不要立刻重复同参数再跑一轮。
+- 这一步也应优先由 `chapter6-route --recommendation-only` 来判断：只有它给出 `preferred_lane = run-6.8` 时，才继续付 6.8 的 LLM 成本；如果输出是 `record-residual` 或 `inspect-first`，先记录或止损。
+- `llm_review_needs_fix_fast.py` now runs the same route preflight before deterministic / LLM spend. When the latest recoverable run already has `agent-review.json`, any lane other than `run-6.8` becomes a controlled stop, and `record-residual` auto-writes `decision-logs/**` plus `execution-plans/**`.
+- If the previous 6.8 round exited on timeout, produced no new actionable finding, and `final_needs_fix_agents` is still empty, stop and inspect the artifacts instead of repeating the same parameters. Prefer the `Recommended command` from `resume-task` / active-task, and treat `Forbidden commands` as explicit stop-loss boundaries.
 - 如果上一轮只剩 `Unknown/timeout`，而本轮改动没有命中 reviewer 相关锚点（代码、测试、contracts、tasks/overlays/ADR、review 模板），默认直接止损，不再重复支付 6.8。
 - 6.8 的 round 摘要现在会额外记录 `timeout_agents` 与 `failure_kind`；当出现 `timeout-no-summary` 时，优先把它当“观测不足”，而不是把 `status=ok` 误判为 clean。
 - 首轮 reviewer 会优先读取上一轮同任务 `agent-review.json` 或 `sc-llm-review summary.json`，自动收缩到真正命中的 reviewer；拿不到稳定信号时才回退到 profile 默认 reviewer 集合。
@@ -799,6 +853,8 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 ```powershell
 py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
 ```
+
+   If recovery summary or active-task already points `Recommended command` to this lane and `Forbidden commands` block full rerun / resume, do not manually reopen 6.7.
 
 - 如果你怀疑上一轮 reviewer 收缩过度，想强制回到 profile 默认 reviewer 集合，但仍然只想做一轮快速验证，可改成：
 
@@ -835,7 +891,7 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 
 ```powershell
 py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"
-py -3 scripts/python/inspect_run.py --kind local-hard-checks
+py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks
 ```
 
 如果你想在浏览器里持续观察 project-health 页面，可再执行：
@@ -870,112 +926,141 @@ py -3 scripts/python/dev_cli.py run-local-hard-checks-preflight --delivery-profi
 - `llm_review_needs_fix_fast.py` 在 fast-ship 小 diff 中间回合可只对 `code-reviewer` 做定向扩时；如果最近完整 pipeline 已 clean，也允许 clean-skip。
 - 如果最近一轮完整 pipeline 不是完全 clean，但 deterministic 已经通过、失败仅剩 `sc-llm-review`，当前脚本也应优先走“复用 deterministic + 只重跑 LLM”的窄路径，而不是重新支付 `sc-test + acceptance_check`。
 
-### 6.11 Fast mode 最省时执行模板
+### 6.11 Fast Mode Fastest Template
 
-适用前提：
-
-- 日常单任务循环
-- 默认 `DELIVERY_PROFILE=fast-ship`
-- 不手工覆盖默认 `SECURITY_PROFILE`
-- 已正确设置 `$env:GODOT_BIN`
-
-推荐顺序：
-
-1. 恢复上下文：
+If you accept the default Chapter 6 route, the cheapest daily path is the top-level orchestrator:
 
 ```powershell
-py -3 scripts/python/dev_cli.py resume-task --task-id <id>
+py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
 ```
 
-2. TDD preflight：
+Common variants:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile playable-ea
+py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile standard
+py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile standard --fix-through P2
+```
+
+Notes:
+- The orchestrator runs `resume-task` and `chapter6-route` first, then decides whether to enter `6.3 -> 6.9` and whether `6.8` is worth paying for.
+- Default enforcement:
+  - `playable-ea`: `P0`
+  - `fast-ship`: `P0/P1`
+  - `standard`: `P0/P1`
+- `P2/P3` are record-and-stop-loss by default.
+- Only add `--fix-through P2` for an explicit pre-release final convergence pass.
+- Use self-check first if you only want to verify routing, profile resolution, planned steps, and output wiring:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --self-check
+```
+
+Prerequisites:
+- Python is available.
+- `DELIVERY_PROFILE=fast-ship` is set, or `--delivery-profile` is passed explicitly.
+- `SECURITY_PROFILE` is set when needed.
+- `$env:GODOT_BIN` is configured.
+
+Manual step-by-step template:
+
+1. Recovery inspection:
+```powershell
+py -3 scripts/python/dev_cli.py resume-task --task-id <id>
+# quick recommendation-only read
+py -3 scripts/python/dev_cli.py resume-task --task-id <id> --recommendation-only
+```
+
+2. TDD preflight:
 
 ```powershell
 py -3 scripts/sc/check_tdd_execution_plan.py --task-id <id> --tdd-stage red-first --verify unit --execution-plan-policy draft
 ```
 
-3. 6.4 red-first：
+3. 6.4 red-first:
 
 ```powershell
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify unit
 ```
 
-- 只有明确需要 Godot-aware red 证据时，才升级为：
+- Upgrade to Godot-aware red evidence only when required:
 
 ```powershell
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify auto --godot-bin "$env:GODOT_BIN"
 ```
 
-4. 6.5 green：
+4. 6.5 green:
 
 ```powershell
 py -3 scripts/sc/build.py tdd --task-id <id> --stage green
 ```
 
-5. 6.6 refactor：
+5. 6.6 refactor:
 
 ```powershell
 py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor
 ```
 
-6. 6.7 review pipeline：
+6. 6.7 review pipeline:
 
 ```powershell
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
 ```
 
-7. 只有真的出现 `Needs Fix` 再进 6.8：
+7. Ask the route whether 6.8 is worth paying for:
+
+```powershell
+py -3 scripts/python/dev_cli.py chapter6-route --task-id <id> --recommendation-only
+```
+
+8. Enter 6.8 only when the route says `preferred_lane = run-6.8`:
 
 ```powershell
 py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
 ```
 
-8. 6.9 仓库级硬检查：
+9. 6.9 repository hard checks:
 
 ```powershell
 py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"
-py -3 scripts/python/inspect_run.py --kind local-hard-checks
+py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks
 ```
 
-省时规则：
+Time-saving rules:
+- Keep `6.4` on `unit` first; do not start with `--verify all`.
+- If `6.7` first exposes repo noise, process locks, or `sc-test rc=124`, fix the root cause before chaining more `--resume` attempts.
+- If the same run gets stuck on `sc-test` twice, abandon that run and open a new one after the fix.
+- Only pay for `6.8` when this round actually hits the previous reviewer anchors.
+- If deterministic is already stable `ok` and only `P2/P3` evidence-strength findings remain, record and stop instead of paying repeated LLM cost.
 
-- `6.4` 首轮默认 `unit`，不要先上 `--verify all`。
-- `6.7` 首轮若暴露仓库级噪音、锁进程或 `sc-test rc=124`，先修根因，不要连续 `--resume`。
-- 同一个 run 连续两次卡在 `sc-test`，默认放弃该 run；修完后新开 run。
-- `6.8` 只在“本轮改动命中上一轮 reviewer 锚点”时才值得重跑。
-- 如果 deterministic 已经稳定 `ok`，剩下只是 P2/P3 证据强度问题，默认记录并止损，不再重复支付 LLM 成本。
+Use `--resume` when:
+- The run was interrupted externally.
+- The machine restarted.
+- The root cause is fixed and you only want to continue the same run.
 
-何时可以 `--resume`：
+Do not use `--resume` when:
+- `sc-test` keeps failing.
+- The first round already exposed repo-level historical red failures.
+- You have not read `run-events.jsonl`, `sc-test.log`, and `child-artifacts/sc-test/summary.json` yet.
 
-- 外部中断
-- 机器重启
-- 已确认根因修完，只想继续同一个 run
-
-何时不要 `--resume`：
-
-- `sc-test` 连续失败
-- 首轮就暴露仓库级历史红灯
-- 还没先看 `run-events.jsonl`、`sc-test.log`、`child-artifacts/sc-test/summary.json`
-
-中间收敛回合的 6.8 快路径：
+Fast 6.8 path for an intermediate convergence round:
 
 ```powershell
 py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
 ```
 
-只改了 review / acceptance 文本、没动实现和测试时：
+If this round only changes review / acceptance text and does not touch implementation or tests:
 
 ```powershell
 py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --skip-sc-test --rerun-failing-only --max-rounds 1
 ```
 
-失败后优先看：
-
+Inspect these first after a failure:
 - `summary.json`
 - `repair-guide.md`
 - `run-events.jsonl`
 - `sc-test.log`
 - `child-artifacts/sc-acceptance-check/summary.json`
-
 
 ## 7. Profile 快速指引
 
@@ -1014,6 +1099,8 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - 在 triplet 有效前，不要开始 overlays
 - 默认不要跑重型 obligations freeze toolchain
 - 在读取 sidecars 前，不要用聊天记录恢复
+- 不要把 `run-events.jsonl` 当自由文本日志；恢复自动化必须消费 `turn_id`、`item_kind`、`item_id`、`event_family`。
+- 当 approval sidecar 已进入 `pending`、`invalid` 或 `mismatched` 时，不要硬开 `--resume` / `--fork` 试图绕过恢复状态机。
 - 不要在 `standard` 上强行传 `--security-profile host-safe`；除非你明确要覆盖默认映射，否则让它自然落到 `strict`
 - 不要为 `llm_fill_acceptance_refs.py` 虚构 `--dry-run` 参数；不带 `--write` 就是 dry-run
 - 不要因为 Serena 暂时不可用就阻塞整项工作

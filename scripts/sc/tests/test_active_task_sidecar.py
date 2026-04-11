@@ -16,6 +16,7 @@ if str(SC_DIR) not in sys.path:
     sys.path.insert(0, str(SC_DIR))
 
 import _active_task_sidecar as active_task_sidecar  # noqa: E402
+from _sidecar_schema import validate_active_task_payload  # noqa: E402
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -80,10 +81,15 @@ class ActiveTaskSidecarTests(unittest.TestCase):
                 "schema_version": "1.0.0",
                 "ts": datetime.now(timezone.utc).isoformat(),
                 "event": "run_started",
+                "event_family": "run",
                 "task_id": task_id,
                 "run_id": run_id,
+                "turn_id": f"{run_id}:turn-1",
+                "turn_seq": 1,
                 "delivery_profile": str(execution_context_payload.get("delivery_profile") or "fast-ship"),
                 "security_profile": str(execution_context_payload.get("security_profile") or "host-safe"),
+                "item_kind": "run",
+                "item_id": run_id,
                 "step_name": None,
                 "status": "ok",
                 "details": {},
@@ -95,10 +101,15 @@ class ActiveTaskSidecarTests(unittest.TestCase):
                     "schema_version": "1.0.0",
                     "ts": datetime.now(timezone.utc).isoformat(),
                     "event": "run_completed",
+                    "event_family": "run",
                     "task_id": task_id,
                     "run_id": run_id,
+                    "turn_id": f"{run_id}:turn-1",
+                    "turn_seq": 1,
                     "delivery_profile": str(execution_context_payload.get("delivery_profile") or "fast-ship"),
                     "security_profile": str(execution_context_payload.get("security_profile") or "host-safe"),
+                    "item_kind": "run",
+                    "item_id": run_id,
                     "step_name": None,
                     "status": str(summary_payload.get("status") or ""),
                     "details": {},
@@ -108,6 +119,178 @@ class ActiveTaskSidecarTests(unittest.TestCase):
         for relative_path, payload in (extra_files or {}).items():
             _write_json(out_dir / relative_path, payload)
         return out_dir, latest_path
+
+    def test_build_active_task_payload_should_validate_against_schema(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_id = "abababababababababababababababab"
+            out_dir, latest_path = self._build_bundle(
+                root=root,
+                task_id="15",
+                run_id=run_id,
+                summary_payload={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "15",
+                    "run_id": run_id,
+                    "status": "fail",
+                    "reason": "rerun_blocked:repeat_review_needs_fix",
+                    "reuse_mode": "deterministic-only-reuse",
+                    "recommended_action": "needs-fix-fast",
+                    "recommended_action_why": "Repeat reviewer family is already deterministic.",
+                    "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --max-rounds 1",
+                    "forbidden_commands": ["py -3 scripts/sc/run_review_pipeline.py --task-id 15"],
+                    "steps": [
+                        {"name": "sc-test", "status": "ok", "rc": 0},
+                        {"name": "sc-acceptance-check", "status": "ok", "rc": 0},
+                        {"name": "sc-llm-review", "status": "fail", "rc": 1}
+                    ],
+                    "clean_state": {"state": "deterministic_ok_llm_not_clean", "llm_review": "needs-fix"},
+                    "latest_summary_signals": {"reason": "rerun_blocked:repeat_review_needs_fix"},
+                    "chapter6_hints": {
+                        "next_action": "needs-fix-fast",
+                        "blocked_by": "rerun_guard",
+                        "rerun_forbidden": True,
+                        "can_skip_6_7": True,
+                        "can_go_to_6_8": True,
+                        "rerun_override_flag": "--allow-rerun"
+                    },
+                    "diagnostics": {}
+                },
+                execution_context_payload={
+                    "schema_version": "1.0.0",
+                    "cmd": "sc-review-pipeline",
+                    "date": "2026-04-07",
+                    "task_id": "15",
+                    "requested_run_id": run_id,
+                    "run_id": run_id,
+                    "status": "fail",
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                    "approval": {
+                        "soft_gate": True,
+                        "required_action": "fork",
+                        "status": "pending",
+                        "decision": "",
+                        "reason": "Waiting for operator approval.",
+                        "request_id": f"{run_id}:fork",
+                        "request_path": str(root / "approval-request.json"),
+                        "response_path": "",
+                        "recommended_action": "pause",
+                        "allowed_actions": ["inspect", "pause"],
+                        "blocked_actions": ["fork", "resume", "rerun"]
+                    },
+                    "agent_review": {"recommended_action": "fork"}
+                },
+            )
+            run_events_path = out_dir / "run-events.jsonl"
+            run_events_path.write_text(
+                "\n".join(
+                    json.dumps(item, ensure_ascii=False)
+                    for item in [
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "run_started",
+                            "event_family": "run",
+                            "task_id": "15",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-1",
+                            "turn_seq": 1,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "run",
+                            "item_id": run_id,
+                            "step_name": None,
+                            "status": "ok",
+                            "details": {}
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "run_resumed",
+                            "event_family": "run",
+                            "task_id": "15",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "run",
+                            "item_id": run_id,
+                            "step_name": None,
+                            "status": "ok",
+                            "details": {}
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "reviewer_completed",
+                            "event_family": "reviewer",
+                            "task_id": "15",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "reviewer",
+                            "item_id": "code-reviewer",
+                            "step_name": None,
+                            "status": "needs-fix",
+                            "details": {"reviewer": "code-reviewer", "review_verdict": "needs-fix"}
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "approval_request_written",
+                            "event_family": "approval",
+                            "task_id": "15",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "approval",
+                            "item_id": f"{run_id}:fork",
+                            "step_name": None,
+                            "status": "pending",
+                            "details": {"action": "fork", "request_id": f"{run_id}:fork", "transition": "created"}
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "sidecar_active_task_synced",
+                            "event_family": "sidecar",
+                            "task_id": "15",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "sidecar",
+                            "item_id": "task-active",
+                            "step_name": None,
+                            "status": "ok",
+                            "details": {"sidecar": "task-active"}
+                        }
+                    ]
+                ) + "\n",
+                encoding="utf-8",
+            )
+
+            payload = active_task_sidecar.build_active_task_payload(
+                task_id="15",
+                run_id=run_id,
+                status="fail",
+                out_dir=out_dir,
+                latest_json_path=latest_path,
+                root=root,
+            )
+
+            validate_active_task_payload(payload)
+            self.assertEqual("active-task-sidecar", payload["cmd"])
+            self.assertEqual("pause", payload["approval"]["recommended_action"])
+            self.assertEqual(f"{run_id}:turn-1", payload["run_event_summary"]["previous_turn_id"])
+            self.assertEqual("py -3 scripts/python/dev_cli.py resume-task --task-id 15", payload["candidate_commands"]["resume_summary"])
 
     def test_build_active_task_payload_should_prefer_needs_fix_fast_when_rerun_guard_blocks_llm_only_path(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -183,7 +366,365 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertTrue(payload["chapter6_hints"]["can_go_to_6_8"])
             self.assertTrue(payload["chapter6_hints"]["rerun_forbidden"])
             self.assertEqual("--allow-full-rerun", payload["chapter6_hints"]["rerun_override_flag"])
+            self.assertEqual(payload["candidate_commands"]["needs_fix_fast"], payload["recommended_command"])
+            self.assertIn(payload["candidate_commands"]["rerun"], payload["forbidden_commands"])
+            self.assertIn(payload["candidate_commands"]["resume"], payload["forbidden_commands"])
             self.assertIn("rerun guard", payload["recommended_action_why"].lower())
+
+
+    def test_build_active_task_payload_should_emit_resume_summary_command_for_continue_action(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_id = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            out_dir, latest_path = self._build_bundle(
+                root=root,
+                run_id=run_id,
+                summary_payload={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "14",
+                    "run_id": run_id,
+                    "status": "ok",
+                    "reason": "pipeline_clean",
+                    "reuse_mode": "full-clean-reuse",
+                    "steps": [
+                        {"name": "sc-test", "status": "ok", "rc": 0},
+                        {"name": "sc-acceptance-check", "status": "ok", "rc": 0},
+                        {"name": "sc-llm-review", "status": "ok", "rc": 0},
+                    ],
+                },
+                execution_context_payload={
+                    "run_id": run_id,
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                },
+                repair_guide_payload={
+                    "schema_version": "1.0.0",
+                    "status": "not-needed",
+                    "task_id": "14",
+                    "summary_status": "ok",
+                    "failed_step": "",
+                    "approval": {},
+                    "generated_from": {},
+                    "recommendations": [],
+                },
+            )
+
+            payload = active_task_sidecar.build_active_task_payload(
+                task_id="14",
+                run_id=run_id,
+                status="ok",
+                out_dir=out_dir,
+                latest_json_path=latest_path,
+                root=root,
+            )
+
+            self.assertEqual("continue", payload["recommended_action"])
+            self.assertEqual(payload["candidate_commands"]["resume_summary"], payload["recommended_command"])
+
+    def test_build_active_task_payload_should_respect_approval_pause_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_id = "ffffffffffffffffffffffffffffffff"
+            out_dir, latest_path = self._build_bundle(
+                root=root,
+                run_id=run_id,
+                summary_payload={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "14",
+                    "run_id": run_id,
+                    "status": "fail",
+                    "reason": "review_pending",
+                    "reuse_mode": "none",
+                    "steps": [
+                        {"name": "sc-test", "status": "ok", "rc": 0},
+                        {"name": "sc-acceptance-check", "status": "ok", "rc": 0},
+                        {"name": "sc-llm-review", "status": "fail", "rc": 1},
+                    ],
+                },
+                execution_context_payload={
+                    "run_id": run_id,
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                    "approval": {
+                        "required_action": "fork",
+                        "status": "pending",
+                        "recommended_action": "pause",
+                        "allowed_actions": ["inspect", "pause"],
+                        "blocked_actions": ["fork", "resume", "rerun"],
+                    },
+                },
+                repair_guide_payload={
+                    "schema_version": "1.0.0",
+                    "status": "needs-fix",
+                    "task_id": "14",
+                    "summary_status": "fail",
+                    "failed_step": "",
+                    "approval": {
+                        "required_action": "fork",
+                        "status": "pending",
+                        "recommended_action": "pause",
+                        "allowed_actions": ["inspect", "pause"],
+                        "blocked_actions": ["fork", "resume", "rerun"],
+                    },
+                    "generated_from": {},
+                    "recommendations": [],
+                },
+            )
+
+            payload = active_task_sidecar.build_active_task_payload(
+                task_id="14",
+                run_id=run_id,
+                status="fail",
+                out_dir=out_dir,
+                latest_json_path=latest_path,
+                root=root,
+            )
+            markdown = active_task_sidecar.render_active_task_markdown(payload)
+
+            self.assertEqual("pause", payload["approval"]["recommended_action"])
+            self.assertEqual(["inspect", "pause"], payload["approval"]["allowed_actions"])
+            self.assertEqual("", payload["recommended_command"])
+            self.assertIn(payload["candidate_commands"]["resume"], payload["forbidden_commands"])
+            self.assertIn(payload["candidate_commands"]["fork"], payload["forbidden_commands"])
+            self.assertIn(payload["candidate_commands"]["rerun"], payload["forbidden_commands"])
+            self.assertIn("- Approval required action: fork", markdown)
+            self.assertIn("- Approval status: pending", markdown)
+            self.assertIn("- Approval recommended action: pause", markdown)
+            self.assertIn("- Approval allowed actions: inspect, pause", markdown)
+            self.assertIn("- Approval blocked actions: fork, resume, rerun", markdown)
+
+    def test_render_active_task_markdown_should_surface_run_event_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_id = "11112222333344445555666677778888"
+            out_dir, latest_path = self._build_bundle(
+                root=root,
+                run_id=run_id,
+                summary_payload={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "14",
+                    "run_id": run_id,
+                    "status": "fail",
+                    "reason": "rerun_blocked:deterministic_green_llm_not_clean",
+                    "reuse_mode": "deterministic-only-reuse",
+                    "steps": [
+                        {"name": "sc-test", "status": "ok", "rc": 0},
+                        {"name": "sc-acceptance-check", "status": "ok", "rc": 0},
+                        {"name": "sc-llm-review", "status": "fail", "rc": 1},
+                    ],
+                },
+                execution_context_payload={
+                    "run_id": run_id,
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                    "approval": {},
+                },
+            )
+            run_events_path = out_dir / "run-events.jsonl"
+            run_events_path.write_text(
+                "\n".join(
+                    json.dumps(item, ensure_ascii=False)
+                    for item in [
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "run_started",
+                            "event_family": "run",
+                            "task_id": "14",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-1",
+                            "turn_seq": 1,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "run",
+                            "item_id": run_id,
+                            "step_name": None,
+                            "status": "ok",
+                            "details": {},
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "run_resumed",
+                            "event_family": "run",
+                            "task_id": "14",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "run",
+                            "item_id": run_id,
+                            "step_name": None,
+                            "status": "ok",
+                            "details": {},
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "approval_request_written",
+                            "event_family": "approval",
+                            "task_id": "14",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "approval",
+                            "item_id": f"{run_id}:fork",
+                            "step_name": None,
+                            "status": "pending",
+                            "details": {"action": "fork", "request_id": f"{run_id}:fork", "transition": "created"},
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "reviewer_completed",
+                            "event_family": "reviewer",
+                            "task_id": "14",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "reviewer",
+                            "item_id": "code-reviewer",
+                            "step_name": None,
+                            "status": "fail",
+                            "details": {"reviewer": "code-reviewer", "review_verdict": "needs-fix"},
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "sidecar_execution_context_synced",
+                            "event_family": "sidecar",
+                            "task_id": "14",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "sidecar",
+                            "item_id": "execution-context.json",
+                            "step_name": None,
+                            "status": "ok",
+                            "details": {"sidecar": "execution-context.json"},
+                        },
+                        {
+                            "schema_version": "1.0.0",
+                            "ts": datetime.now(timezone.utc).isoformat(),
+                            "event": "run_completed",
+                            "event_family": "run",
+                            "task_id": "14",
+                            "run_id": run_id,
+                            "turn_id": f"{run_id}:turn-2",
+                            "turn_seq": 2,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                            "item_kind": "run",
+                            "item_id": run_id,
+                            "step_name": None,
+                            "status": "fail",
+                            "details": {},
+                        },
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            payload = active_task_sidecar.build_active_task_payload(
+                task_id="14",
+                run_id=run_id,
+                status="fail",
+                out_dir=out_dir,
+                latest_json_path=latest_path,
+                root=root,
+            )
+            markdown = active_task_sidecar.render_active_task_markdown(payload)
+
+            self.assertEqual(2, payload["run_event_summary"]["latest_turn_seq"])
+            self.assertEqual(f"{run_id}:turn-2", payload["run_event_summary"]["latest_turn_id"])
+            self.assertEqual(f"{run_id}:turn-1", payload["run_event_summary"]["previous_turn_id"])
+            self.assertTrue(payload["run_event_summary"]["approval_changed"])
+            self.assertIn("- Run events event count: 6", markdown)
+            self.assertIn(f"- Run events latest turn: {run_id}:turn-2 seq=2", markdown)
+            self.assertIn(f"- Run events previous turn: {run_id}:turn-1 seq=1", markdown)
+            self.assertIn("- Run events latest event: run_completed", markdown)
+            self.assertIn("- Run events families: run=3, approval=1, reviewer=1, sidecar=1", markdown)
+            self.assertIn("- Run events previous turn families: run=1", markdown)
+            self.assertIn("- Run events latest turn families: run=2, approval=1, reviewer=1, sidecar=1", markdown)
+            self.assertIn("- Run events turn family delta: approval=+1, reviewer=+1, run=+1, sidecar=+1", markdown)
+            self.assertIn("- Run events new reviewers: code-reviewer", markdown)
+            self.assertIn("- Run events new sidecars: execution-context.json", markdown)
+            self.assertIn("- Run events approval changed: True", markdown)
+            self.assertIn("- Reviewer activity: code-reviewer:fail/reviewer_completed", markdown)
+            self.assertIn("- Sidecar activity: execution-context.json:ok/sidecar_execution_context_synced", markdown)
+            self.assertIn(f"- Approval activity: pending/approval_request_written action=fork request_id={run_id}:fork transition=created", markdown)
+
+
+    def test_build_active_task_payload_should_prefer_needs_fix_fast_when_rerun_guard_blocks_repeat_review_needs_fix(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir, latest_path = self._build_bundle(
+                root=root,
+                summary_payload={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "14",
+                    "run_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "status": "fail",
+                    "reason": "rerun_blocked:repeat_review_needs_fix",
+                    "reuse_mode": "none",
+                    "steps": [
+                        {"name": "sc-llm-review", "status": "ok"},
+                    ],
+                },
+                execution_context_payload={
+                    "schema_version": "1.0.0",
+                    "cmd": "sc-review-pipeline",
+                    "date": "2026-04-07",
+                    "task_id": "14",
+                    "requested_run_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "run_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "status": "fail",
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                    "failed_step": "",
+                    "paths": {},
+                    "git": {},
+                    "recovery": {},
+                    "marathon": {},
+                    "agent_review": {},
+                    "llm_review": {},
+                    "approval": {},
+                    "diagnostics": {
+                        "rerun_guard": {
+                            "kind": "repeat_review_needs_fix",
+                            "blocked": True,
+                            "recommended_path": "needs-fix-fast",
+                        }
+                    },
+                },
+            )
+
+            payload = active_task_sidecar.build_active_task_payload(
+                task_id="14",
+                run_id="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                status="fail",
+                out_dir=out_dir,
+                latest_json_path=latest_path,
+                root=root,
+            )
+
+            self.assertEqual("needs-fix-fast", payload["recommended_action"])
+            self.assertEqual("rerun_guard", payload["chapter6_hints"]["blocked_by"])
+            self.assertTrue(payload["chapter6_hints"]["can_skip_6_7"])
+            self.assertTrue(payload["chapter6_hints"]["can_go_to_6_8"])
+
+            self.assertEqual(payload["candidate_commands"]["needs_fix_fast"], payload["recommended_command"])
+            self.assertIn(payload["candidate_commands"]["rerun"], payload["forbidden_commands"])
+
+            self.assertIn("needs fix family", payload["recommended_action_why"].lower())
 
     def test_build_active_task_payload_should_block_planned_only_terminal_bundle(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -243,6 +784,7 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertEqual("rerun", payload["recommended_action"])
             self.assertEqual("artifact_integrity", payload["chapter6_hints"]["blocked_by"])
             self.assertEqual("planned_only_incomplete", payload["diagnostics"]["artifact_integrity"]["kind"])
+            self.assertEqual(payload["candidate_commands"]["rerun"], payload["recommended_command"])
 
     def test_build_active_task_payload_should_infer_legacy_planned_only_terminal_bundle(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -578,6 +1120,8 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertFalse(payload["chapter6_hints"]["can_go_to_6_8"])
             self.assertTrue(payload["chapter6_hints"]["rerun_forbidden"])
             self.assertEqual("--allow-large-change-scope-rerun", payload["chapter6_hints"]["rerun_override_flag"])
+            self.assertEqual(payload["candidate_commands"]["resume_summary"], payload["recommended_command"])
+            self.assertIn(payload["candidate_commands"]["rerun"], payload["forbidden_commands"])
             self.assertIn("safe scope", payload["recommended_action_why"].lower())
 
     def test_build_active_task_payload_should_route_first_llm_timeout_stop_loss_to_needs_fix_fast(self) -> None:
@@ -647,7 +1191,11 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertEqual("needs-fix-fast", payload["recommended_action"])
             self.assertEqual("llm_retry_stop_loss", payload["chapter6_hints"]["blocked_by"])
             self.assertTrue(payload["chapter6_hints"]["rerun_forbidden"])
+            self.assertEqual(payload["candidate_commands"]["needs_fix_fast"], payload["recommended_command"])
+            self.assertIn(payload["candidate_commands"]["rerun"], payload["forbidden_commands"])
             self.assertIn("llm timeout", payload["recommended_action_why"].lower())
+            self.assertIn("- Recommended command: `py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 14 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1`", markdown)
+            self.assertIn("- Forbidden commands: `py -3 scripts/sc/run_review_pipeline.py --task-id 14`", markdown)
             self.assertIn("- Latest run type: full", markdown)
             self.assertIn("- Latest artifact integrity: none", markdown)
             self.assertIn(
@@ -765,6 +1313,7 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertEqual("rerun", payload["recommended_action"])
             self.assertEqual("sc_test_retry_stop_loss", payload["chapter6_hints"]["blocked_by"])
             self.assertTrue(payload["chapter6_hints"]["rerun_forbidden"])
+            self.assertEqual(payload["candidate_commands"]["rerun"], payload["recommended_command"])
             self.assertIn("known unit failure", payload["recommended_action_why"].lower())
             self.assertIn("- Diagnostics sc_test_retry_stop_loss:", markdown)
 
@@ -841,6 +1390,8 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertEqual("inspect", payload["recommended_action"])
             self.assertEqual("recent_failure_summary", payload["chapter6_hints"]["blocked_by"])
             self.assertTrue(payload["chapter6_hints"]["rerun_forbidden"])
+            self.assertEqual(payload["candidate_commands"]["resume_summary"], payload["recommended_command"])
+            self.assertIn(payload["candidate_commands"]["rerun"], payload["forbidden_commands"])
             markdown = active_task_sidecar.render_active_task_markdown(payload)
             self.assertIn(
                 "- Chapter6 stop-loss note: Recent runs already repeat the same failure family; inspect the repeated fingerprint and fix the root cause before rerunning 6.7.",
@@ -911,6 +1462,7 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertEqual("needs-fix", payload["repair_status"])
             self.assertEqual("inspect", payload["recommended_action"])
             self.assertEqual("", payload["chapter6_hints"]["blocked_by"])
+            self.assertEqual(payload["candidate_commands"]["resume_summary"], payload["recommended_command"])
             self.assertIn("repair", payload["recommended_action_why"].lower())
 
     def test_build_active_task_payload_should_surface_waste_signal_and_prefer_resume_for_sc_test_failure(self) -> None:

@@ -84,6 +84,78 @@ def _wall_time_recommendation(task_id: str, step: dict[str, Any]) -> dict[str, A
     )
 
 
+def _chapter6_route_repo_noise_recommendation(task_id: str, step: dict[str, Any]) -> dict[str, Any]:
+    return _base_recommendation(
+        rec_id="chapter6-route-repo-noise",
+        title="Inspect repo-level noise before paying for another Chapter 6 rerun",
+        why="The latest route classified the failure as repo noise or process contention, so another immediate 6.7/6.8 rerun is likely waste.",
+        commands=[
+            f"py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id {task_id} --recommendation-only",
+            f"py -3 scripts/python/dev_cli.py chapter6-route --task-id {task_id} --recommendation-only",
+        ],
+        files=_step_files(step),
+    )
+
+
+def _chapter6_route_fix_deterministic_recommendation(task_id: str, step: dict[str, Any]) -> dict[str, Any]:
+    return _base_recommendation(
+        rec_id="chapter6-route-fix-deterministic",
+        title="Fix the deterministic failure before reopening Chapter 6",
+        why="The latest route says the blocking issue is still deterministic, so reopening 6.7 or paying for 6.8 would only repeat the same failure family.",
+        commands=[
+            f"py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id {task_id} --recommendation-only",
+            f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id} --resume",
+        ],
+        files=_step_files(step),
+    )
+
+
+def _chapter6_route_needs_fix_fast_recommendation(task_id: str, step: dict[str, Any]) -> dict[str, Any]:
+    return _base_recommendation(
+        rec_id="chapter6-route-run-6-8",
+        title="Use the narrow 6.8 lane instead of reopening a full 6.7 rerun",
+        why="The latest route already proved deterministic evidence is sufficient for this task. Continue with the targeted Needs Fix closure lane.",
+        commands=[
+            f"py -3 scripts/python/dev_cli.py chapter6-route --task-id {task_id} --recommendation-only",
+            f"py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id {task_id} --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+        ],
+        files=_step_files(step),
+    )
+
+
+def _chapter6_route_inspect_recommendation(task_id: str, step: dict[str, Any]) -> dict[str, Any]:
+    return _base_recommendation(
+        rec_id="chapter6-route-inspect-first",
+        title="Inspect the latest artifacts before choosing the next Chapter 6 lane",
+        why="The latest route could not justify another rerun yet. Read the compact recovery recommendation first instead of paying for more pipeline cost.",
+        commands=[
+            f"py -3 scripts/python/dev_cli.py resume-task --task-id {task_id} --recommendation-only",
+            f"py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id {task_id} --recommendation-only",
+        ],
+        files=_step_files(step),
+    )
+
+
+def _chapter6_route_runtime_recommendations(task_id: str, step: dict[str, Any], runtime_state: dict[str, Any]) -> list[dict[str, Any]]:
+    diagnostics = runtime_state.get("diagnostics") if isinstance(runtime_state.get("diagnostics"), dict) else {}
+    rerun_guard = diagnostics.get("rerun_guard") if isinstance(diagnostics.get("rerun_guard"), dict) else {}
+    guard_kind = str(rerun_guard.get("kind") or "").strip().lower()
+    stop_reason = str(runtime_state.get("stop_reason") or "").strip().lower()
+    effective_kind = guard_kind
+    if not effective_kind and stop_reason.startswith("rerun_blocked:"):
+        effective_kind = stop_reason.split(":", 1)[1].strip().lower()
+
+    if effective_kind == "chapter6_route_repo_noise_stop":
+        return [_chapter6_route_repo_noise_recommendation(task_id, step)]
+    if effective_kind == "chapter6_route_fix_deterministic":
+        return [_chapter6_route_fix_deterministic_recommendation(task_id, step)]
+    if effective_kind == "chapter6_route_run_6_8":
+        return [_chapter6_route_needs_fix_fast_recommendation(task_id, step)]
+    if effective_kind == "chapter6_route_inspect_first":
+        return [_chapter6_route_inspect_recommendation(task_id, step)]
+    return []
+
+
 def _test_recommendations(task_id: str, step: dict[str, Any], log_text: str) -> list[dict[str, Any]]:
     files = _step_files(step)
     recommendations = [
@@ -240,6 +312,7 @@ def build_runtime_recommendations(
     synthetic_step = {"log": "", "summary_file": ""}
     if not isinstance(runtime_state, dict):
         return recommendations
+    recommendations.extend(_chapter6_route_runtime_recommendations(task_id, synthetic_step, runtime_state))
     reasons = [str(x) for x in (runtime_state.get("context_refresh_reasons") or []) if str(x).strip()]
     if bool(runtime_state.get("context_refresh_needed")):
         recommendations.append(_context_refresh_recommendation(task_id, synthetic_step, reasons))
@@ -259,6 +332,7 @@ def extend_with_runtime_recommendations(
 ) -> list[dict[str, Any]]:
     if not isinstance(runtime_state, dict):
         return recommendations
+    recommendations.extend(_chapter6_route_runtime_recommendations(task_id, step, runtime_state))
     reasons = [str(x) for x in (runtime_state.get("context_refresh_reasons") or []) if str(x).strip()]
     if bool(runtime_state.get("context_refresh_needed")):
         recommendations.append(_context_refresh_recommendation(task_id, step, reasons))

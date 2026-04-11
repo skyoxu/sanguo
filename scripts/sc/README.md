@@ -33,7 +33,13 @@
 
 - 先读 `logs/ci/active-tasks/task-<id>.active.md`，它是最短恢复摘要。
 - 再执行 `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`，读取 `Latest reason`、`Latest run type`、`Latest reuse mode`、`Latest artifact integrity`、`Chapter6 next action`、`Chapter6 blocked by`。
-- 需要深挖时，再执行 `py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id>`。
+- `resume-task` 现在还会输出 `Approval required action`、`Approval status`、`Approval decision`、`Approval reason`，用于判断当前是继续修复、进入 `pause`、还是允许 `fork`。
+- 需要深挖时，再执行 `py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id <id>`。
+- `inspect-run` 对 approval sidecar 的消费口径已经固定：`pending -> pause`、`approved -> fork`、`denied -> resume`、`invalid/mismatched -> inspect`。
+- `run_review_pipeline.py --resume` / `--fork` 现在会在真正恢复前检查 approval 状态；`resume` 会阻断 `pending|approved|invalid|mismatched`，`fork` 会阻断 `pending|denied|invalid|mismatched`。
+- è¥è¦å¤æ­ producer å°åºåå¨ä»ä¹ä½ç½®ï¼ä¼å
+- 若要判断 producer 到底停在什么位置，优先读取 `run-events.jsonl`。事件流现在有稳定 taxonomy：`turn_id`（本轮生命周期）、`turn_seq`（当前是第几轮 turn）、`item_kind`（run/task/step/sidecar/approval/reviewer）、`item_id`（对应项主键）、`event_family`（run/step/sidecar/approval/reviewer），避免再靠事件名字符串猜测。
+åé äºä»¶åå­ç¬¦ä¸²çæµã
 
 高价值止损口径：
 

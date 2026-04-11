@@ -1,0 +1,60 @@
+# Active Task Summary
+
+- Task id: `15`
+- Run id: `run-15`
+- Status: fail
+- Updated at UTC: 2026-04-10T12:00:00+00:00
+- Latest pointer: `logs/ci/2026-04-10/sc-review-pipeline-task-15/latest.json`
+- Pipeline out dir: `logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15`
+- Latest step: n/a
+- Latest step status: n/a
+- Failed step: none
+- Last completed step: none
+- Recommended action: needs-fix-fast
+- Recommended action why: Repeat reviewer family is already deterministic.
+- Clean state: deterministic_ok_llm_not_clean
+- Deterministic ok: None
+- Latest reason: rerun_blocked:repeat_review_needs_fix
+- Latest run type: deterministic-only
+- Latest reuse mode: deterministic-only-reuse
+- Latest artifact integrity: none
+- Latest diagnostics keys: none
+- Chapter6 next action: needs-fix-fast
+- Chapter6 can skip 6.7: True
+- Chapter6 can go to 6.8: True
+- Chapter6 blocked by: rerun_guard
+- Chapter6 rerun forbidden: True
+- Chapter6 rerun override: --allow-rerun
+- Chapter6 stop-loss note: Recent reviewer-only reruns already repeated the same Needs Fix family; switch to needs-fix-fast or record the remaining findings instead of reopening 6.7.
+- Approval required action: fork
+- Approval status: pending
+- Approval decision: n/a
+- Approval recommended action: pause
+- Approval allowed actions: inspect, pause
+- Approval blocked actions: fork, resume, rerun
+- Approval reason: Waiting for operator approval.
+- Recommended command: n/a
+- Forbidden commands: `py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume`, `py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork`, `py -3 scripts/sc/run_review_pipeline.py --task-id 15`
+- Resume summary command: `py -3 scripts/python/dev_cli.py resume-task --task-id 15`
+- Inspect command: `py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15`
+- Resume command: `py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume`
+- Fork command: `py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork`
+- Rerun command: `py -3 scripts/sc/run_review_pipeline.py --task-id 15`
+- Needs Fix command: `py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1`
+- Diagnostics recent_failure_summary: family=review-needs-fix same_family_count=2 stop_full_rerun_recommended=True
+- Run events path: `logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/run-events.jsonl`
+- Run events event count: 5
+- Run events turn count: 2
+- Run events latest turn: run-15:turn-2 seq=2
+- Run events previous turn: run-15:turn-1 seq=1
+- Run events latest event: sidecar_active_task_synced
+- Run events families: approval=1, reviewer=1, run=2, sidecar=1
+- Run events previous turn families: run=1
+- Run events latest turn families: approval=1, reviewer=1, run=1, sidecar=1
+- Run events turn family delta: approval=+1, reviewer=+1, sidecar=+1
+- Run events new reviewers: code-reviewer
+- Run events new sidecars: task-active
+- Run events approval changed: True
+- Reviewer activity: code-reviewer:needs-fix/reviewer_completed
+- Sidecar activity: task-active:ok/sidecar_active_task_synced
+- Approval activity: pending/approval_request_written action=fork request_id=run-15:fork transition=created

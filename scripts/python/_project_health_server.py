@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from _project_health_common import latest_dir, now_local, read_json, refresh_dashboard, resolve_root, write_json
+from _project_health_schema import validate_project_health_server_payload
 
 
 HOST = "127.0.0.1"
@@ -161,6 +162,7 @@ def ensure_project_health_server(
             "served_dir": str(info.get("served_dir") or str(dashboard_dir(resolved_root).resolve()).replace("\\", "/")),
             "started_at": str(info.get("started_at") or now_local().isoformat(timespec="seconds")),
         }
+        validate_project_health_server_payload(payload)
         write_json(server_json_path(resolved_root), payload)
         return {
             **payload,
@@ -183,6 +185,7 @@ def ensure_project_health_server(
         "served_dir": str(dashboard_dir(resolved_root).resolve()).replace("\\", "/"),
         "started_at": now_local().isoformat(timespec="seconds"),
     }
+    validate_project_health_server_payload(payload)
     write_json(server_json_path(resolved_root), payload)
     return {
         **payload,

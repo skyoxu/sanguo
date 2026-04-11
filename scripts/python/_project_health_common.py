@@ -12,6 +12,12 @@ from pathlib import Path
 from typing import Any
 
 from _chapter6_recovery_common import chapter6_stop_loss_note as _chapter6_stop_loss_note
+from _project_health_schema import (
+    validate_project_health_dashboard_payload,
+    validate_project_health_record_payload,
+    validate_project_health_report_catalog_payload,
+    validate_project_health_scan_payload,
+)
 
 PROJECT_HEALTH_KINDS = (
     "detect-project-stage",
@@ -103,6 +109,10 @@ def history_dir(root: Path, *, now: datetime | None = None) -> Path:
 
 def latest_dir(root: Path) -> Path:
     return root / "logs" / "ci" / "project-health"
+
+
+def project_health_scan_latest_path(root: Path) -> Path:
+    return latest_dir(root) / "project-health-scan.latest.json"
 
 
 def task_triplet_paths(root: Path, parent: Path) -> dict[str, Path]:
@@ -201,6 +211,42 @@ def _normalize_report_value(value: Any, *, limit: int = 240) -> str:
     if not text:
         return ""
     return text[:limit]
+
+
+_REPO_NOISE_TOKENS = (
+    "being used by another process",
+    "sharing violation",
+    "file is locked",
+    "access is denied",
+    "permission denied",
+    "could not find a part of the path",
+    "network path was not found",
+    "connection reset",
+    "connection aborted",
+    "unable to write to the transport connection",
+)
+
+
+def _contains_repo_noise_token(value: Any) -> bool:
+    text = str(value or "").strip().lower()
+    if not text:
+        return False
+    return any(token in text for token in _REPO_NOISE_TOKENS)
+
+
+def _derive_project_health_route_fields(*, rerun_guard: dict[str, Any], recent_failure_summary: dict[str, Any]) -> tuple[str, str]:
+    guard_kind = str(rerun_guard.get("kind") or "").strip().lower()
+    recommended_path = str(rerun_guard.get("recommended_path") or "").strip()
+    if guard_kind.startswith("chapter6_route_"):
+        lane = recommended_path or guard_kind.removeprefix("chapter6_route_").replace("_", "-")
+        if guard_kind == "chapter6_route_repo_noise_stop":
+            return lane, "prior chapter6-route already classified this run as repo-noise"
+        return lane, ""
+    latest_family = str(recent_failure_summary.get("latest_failure_family") or "").strip()
+    recommendation_basis = str(recent_failure_summary.get("recommendation_basis") or "").strip()
+    if _contains_repo_noise_token(latest_family) or _contains_repo_noise_token(recommendation_basis):
+        return "", "recent failure family repeats a repo-noise signature"
+    return "", ""
 
 
 def _normalize_llm_verdict(value: Any) -> str:
@@ -370,6 +416,71 @@ def _derive_deterministic_bundle_from_summary(summary_path: Path | None, *, root
     }
 
 
+def _derive_recovery_recommendation_from_summary(summary_path: Path | None) -> dict[str, Any]:
+    if summary_path is None or not summary_path.exists():
+        return {}
+    try:
+        summary = read_json(summary_path)
+    except Exception:
+        return {}
+    if not isinstance(summary, dict) or str(summary.get("cmd") or "").strip() != "sc-review-pipeline":
+        return {}
+    latest_summary_signals = summary.get("latest_summary_signals") if isinstance(summary.get("latest_summary_signals"), dict) else {}
+    chapter6_hints = summary.get("chapter6_hints") if isinstance(summary.get("chapter6_hints"), dict) else {}
+    candidate_commands = summary.get("candidate_commands") if isinstance(summary.get("candidate_commands"), dict) else {}
+    return {
+        "recommended_action": str(summary.get("recommended_action") or "").strip(),
+        "recommended_action_why": str(summary.get("recommended_action_why") or "").strip(),
+        "recommended_command": str(summary.get("recommended_command") or "").strip(),
+        "forbidden_commands": [str(item).strip() for item in list(summary.get("forbidden_commands") or []) if str(item).strip()],
+        "candidate_commands": {
+            str(key).strip(): str(value).strip()
+            for key, value in candidate_commands.items()
+            if str(key).strip() and str(value).strip()
+        },
+        "latest_summary_signals": dict(latest_summary_signals),
+        "chapter6_hints": dict(chapter6_hints),
+    }
+
+
+def _normalize_approval_contract(payload: Any) -> dict[str, Any]:
+    approval = payload if isinstance(payload, dict) else {}
+    allowed_actions = [
+        _normalize_report_value(item, limit=30)
+        for item in list(approval.get("allowed_actions") or [])
+        if _normalize_report_value(item, limit=30)
+    ]
+    blocked_actions = [
+        _normalize_report_value(item, limit=30)
+        for item in list(approval.get("blocked_actions") or [])
+        if _normalize_report_value(item, limit=30)
+    ]
+    normalized = {
+        "required_action": _normalize_report_value(approval.get("required_action"), limit=30),
+        "status": _normalize_report_value(approval.get("status"), limit=30),
+        "decision": _normalize_report_value(approval.get("decision"), limit=30),
+        "recommended_action": _normalize_report_value(approval.get("recommended_action"), limit=30),
+        "reason": _normalize_report_value(approval.get("reason"), limit=200),
+        "request_id": _normalize_report_value(approval.get("request_id"), limit=80),
+        "allowed_actions": allowed_actions[:6],
+        "blocked_actions": blocked_actions[:6],
+    }
+    if not any(
+        [
+            normalized["required_action"],
+            normalized["status"],
+            normalized["decision"],
+            normalized["recommended_action"],
+            normalized["reason"],
+            normalized["request_id"],
+            normalized["allowed_actions"],
+            normalized["blocked_actions"],
+        ]
+    ):
+        return {}
+    return normalized
+
+
 def _compact_extract_family_actions(items: Any, *, limit: int = 6) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     if not isinstance(items, list):
@@ -433,6 +544,210 @@ def _extract_report_highlights(payload: dict[str, Any]) -> dict[str, Any]:
     return highlights
 
 
+def _load_jsonl_records(path: Path | None) -> list[dict[str, Any]]:
+    if path is None or not path.exists():
+        return []
+    records: list[dict[str, Any]] = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return records
+    for line in lines:
+        text = line.strip()
+        if not text:
+            continue
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(payload, dict):
+            records.append(payload)
+    return records
+
+
+def _count_event_values(events: list[dict[str, Any]], key: str) -> list[dict[str, Any]]:
+    counts: dict[str, int] = {}
+    for event in events:
+        name = _normalize_report_value(event.get(key), limit=60)
+        if not name:
+            continue
+        counts[name] = counts.get(name, 0) + 1
+    return [
+        {"name": name, "count": count}
+        for name, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    ]
+
+
+def _compact_event_entities(
+    events: list[dict[str, Any]],
+    *,
+    family: str,
+    id_key: str = "item_id",
+    limit: int = 4,
+) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for event in reversed(events):
+        if str(event.get("event_family") or "").strip() != family:
+            continue
+        entity_id = _normalize_report_value(event.get(id_key), limit=60)
+        if not entity_id:
+            details = event.get("details") if isinstance(event.get("details"), dict) else {}
+            entity_id = _normalize_report_value(
+                details.get("reviewer") or details.get("sidecar") or details.get("request_id"),
+                limit=60,
+            )
+        if not entity_id or entity_id in seen:
+            continue
+        details = event.get("details") if isinstance(event.get("details"), dict) else {}
+        items.append(
+            {
+                "id": entity_id,
+                "event": _normalize_report_value(event.get("event"), limit=80),
+                "status": _normalize_report_value(event.get("status"), limit=30),
+                "turn_seq": int(event.get("turn_seq") or 0),
+                "verdict": _normalize_report_value(details.get("review_verdict") or details.get("verdict"), limit=40),
+                "action": _normalize_report_value(details.get("action"), limit=40),
+                "request_id": _normalize_report_value(details.get("request_id"), limit=80),
+                "transition": _normalize_report_value(details.get("transition"), limit=30),
+            }
+        )
+        seen.add(entity_id)
+        if len(items) >= limit:
+            break
+    items.reverse()
+    return items
+
+
+def _resolve_active_task_run_events_path(paths: dict[str, Any], *, root: Path) -> Path | None:
+    latest_json_path = _resolve_report_path(paths.get("latest_json"), root=root)
+    if latest_json_path is not None:
+        try:
+            latest_payload = read_json(latest_json_path)
+        except Exception:
+            latest_payload = {}
+        if isinstance(latest_payload, dict):
+            explicit = _resolve_report_path(latest_payload.get("run_events_path"), root=root)
+            if explicit is not None:
+                return explicit
+            latest_out_dir = _resolve_report_path(latest_payload.get("latest_out_dir"), root=root)
+            if latest_out_dir is not None and latest_out_dir.is_dir():
+                candidate = latest_out_dir / "run-events.jsonl"
+                if candidate.exists():
+                    return candidate
+    summary_path = _resolve_report_path(paths.get("summary_json"), root=root)
+    if summary_path is not None:
+        candidate = summary_path.parent / "run-events.jsonl"
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _resolve_active_task_sidecar_path(paths: dict[str, Any], *, key: str, filename: str, root: Path) -> Path | None:
+    explicit = _resolve_report_path(paths.get(key), root=root)
+    if explicit is not None:
+        return explicit
+    latest_json_path = _resolve_report_path(paths.get("latest_json"), root=root)
+    if latest_json_path is not None:
+        try:
+            latest_payload = read_json(latest_json_path)
+        except Exception:
+            latest_payload = {}
+        if isinstance(latest_payload, dict):
+            latest_out_dir = _resolve_report_path(latest_payload.get("latest_out_dir"), root=root)
+            if latest_out_dir is not None and latest_out_dir.is_dir():
+                candidate = latest_out_dir / filename
+                if candidate.exists():
+                    return candidate
+    summary_path = _resolve_report_path(paths.get("summary_json"), root=root)
+    if summary_path is not None:
+        candidate = summary_path.parent / filename
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _summarize_run_events(run_events_path: Path | None, *, root: Path) -> dict[str, Any]:
+    events = _load_jsonl_records(run_events_path)
+    if not events:
+        return {}
+    latest_event = events[-1]
+    latest_turn_seq = max(int(item.get("turn_seq") or 0) for item in events)
+    latest_turn_events = [item for item in events if int(item.get("turn_seq") or 0) == latest_turn_seq]
+    latest_turn_id = _normalize_report_value(
+        (latest_turn_events[-1] if latest_turn_events else latest_event).get("turn_id"),
+        limit=120,
+    )
+    previous_turn_events: list[dict[str, Any]] = []
+    previous_turn_seq = 0
+    if latest_turn_seq > 1:
+        previous_turn_seq = max(int(item.get("turn_seq") or 0) for item in events if int(item.get("turn_seq") or 0) < latest_turn_seq)
+        previous_turn_events = [item for item in events if int(item.get("turn_seq") or 0) == previous_turn_seq]
+    previous_turn_id = _normalize_report_value(
+        (previous_turn_events[-1] if previous_turn_events else {}).get("turn_id"),
+        limit=120,
+    )
+    previous_turn_family_counts = _count_event_values(previous_turn_events, "event_family")[:6]
+    approval_items = _compact_event_entities(events, family="approval", limit=2)
+    approval_latest = approval_items[-1] if approval_items else {}
+    previous_approval_items = _compact_event_entities(previous_turn_events, family="approval", limit=1)
+    previous_approval = previous_approval_items[-1] if previous_approval_items else {}
+    previous_reviewer_ids = {str(item.get("id") or "").strip() for item in _compact_event_entities(previous_turn_events, family="reviewer", limit=12)}
+    latest_reviewers = _compact_event_entities(events, family="reviewer", limit=4)
+    latest_turn_reviewers = _compact_event_entities(latest_turn_events, family="reviewer", limit=12)
+    latest_turn_sidecars = _compact_event_entities(latest_turn_events, family="sidecar", limit=12)
+    previous_sidecar_ids = {str(item.get("id") or "").strip() for item in _compact_event_entities(previous_turn_events, family="sidecar", limit=12)}
+    family_delta: list[dict[str, Any]] = []
+    previous_counts = {str(item.get("name") or ""): int(item.get("count") or 0) for item in previous_turn_family_counts}
+    latest_counts = {str(item.get("name") or ""): int(item.get("count") or 0) for item in _count_event_values(latest_turn_events, "event_family")}
+    for family in sorted(set(previous_counts) | set(latest_counts)):
+        delta = int(latest_counts.get(family, 0)) - int(previous_counts.get(family, 0))
+        if delta:
+            family_delta.append({"name": family, "delta": delta})
+    return {
+        "path": repo_rel(run_events_path, root=root) if run_events_path is not None else "",
+        "event_count": len(events),
+        "latest_event": _normalize_report_value(latest_event.get("event"), limit=80),
+        "latest_turn_id": latest_turn_id,
+        "latest_turn_seq": latest_turn_seq,
+        "turn_count": len({str(item.get("turn_id") or "").strip() for item in events if str(item.get("turn_id") or "").strip()}),
+        "family_counts": _count_event_values(events, "event_family")[:6],
+        "latest_turn_family_counts": _count_event_values(latest_turn_events, "event_family")[:6],
+        "previous_turn_id": previous_turn_id,
+        "previous_turn_seq": previous_turn_seq,
+        "previous_turn_family_counts": previous_turn_family_counts,
+        "turn_family_delta": family_delta,
+        "new_reviewers": [
+            _normalize_report_value(item.get("id"), limit=60)
+            for item in latest_turn_reviewers
+            if _normalize_report_value(item.get("id"), limit=60) and _normalize_report_value(item.get("id"), limit=60) not in previous_reviewer_ids
+        ][:6],
+        "new_sidecars": [
+            _normalize_report_value(item.get("id"), limit=60)
+            for item in latest_turn_sidecars
+            if _normalize_report_value(item.get("id"), limit=60) and _normalize_report_value(item.get("id"), limit=60) not in previous_sidecar_ids
+        ][:6],
+        "approval_changed": bool(
+            approval_latest and (
+                _normalize_report_value(approval_latest.get("event"), limit=80) != _normalize_report_value(previous_approval.get("event"), limit=80)
+                or _normalize_report_value(approval_latest.get("status"), limit=30) != _normalize_report_value(previous_approval.get("status"), limit=30)
+                or _normalize_report_value(approval_latest.get("request_id"), limit=80) != _normalize_report_value(previous_approval.get("request_id"), limit=80)
+            )
+        ),
+        "reviewers": latest_reviewers,
+        "sidecars": _compact_event_entities(events, family="sidecar", limit=4),
+        "approval": {
+            "event": _normalize_report_value(approval_latest.get("event"), limit=80),
+            "status": _normalize_report_value(approval_latest.get("status"), limit=30),
+            "action": _normalize_report_value(approval_latest.get("action"), limit=40),
+            "request_id": _normalize_report_value(approval_latest.get("request_id"), limit=80),
+            "transition": _normalize_report_value(approval_latest.get("transition"), limit=30),
+        }
+        if approval_latest
+        else {},
+    }
+
+
 def _active_task_latest_json_is_canonical(payload: dict[str, Any], *, root: Path) -> bool:
     paths = payload.get("paths") if isinstance(payload.get("paths"), dict) else {}
     latest_path = _resolve_report_path(paths.get("latest_json"), root=root)
@@ -494,25 +809,84 @@ def load_active_task_records(root: Path, *, limit: int = 16) -> list[dict[str, A
         sc_test_retry_stop_loss = diagnostics.get("sc_test_retry_stop_loss") if isinstance(diagnostics.get("sc_test_retry_stop_loss"), dict) else {}
         artifact_integrity = diagnostics.get("artifact_integrity") if isinstance(diagnostics.get("artifact_integrity"), dict) else {}
         recent_failure_summary = diagnostics.get("recent_failure_summary") if isinstance(diagnostics.get("recent_failure_summary"), dict) else {}
+        chapter6_route_lane, repo_noise_reason = _derive_project_health_route_fields(
+            rerun_guard=rerun_guard,
+            recent_failure_summary=recent_failure_summary,
+        )
         summary_path = _resolve_report_path(paths.get("summary_json"), root=root)
+        execution_context_path = _resolve_active_task_sidecar_path(
+            paths,
+            key="execution_context_json",
+            filename="execution-context.json",
+            root=root,
+        )
+        if execution_context_path is not None and execution_context_path.exists():
+            try:
+                execution_context = read_json(execution_context_path)
+            except Exception:
+                execution_context = {}
+        else:
+            execution_context = {}
+        approval_contract = _normalize_approval_contract(
+            execution_context.get("approval") if isinstance(execution_context, dict) else {}
+        )
         if not waste_signals:
             waste_signals = _derive_waste_signals_from_summary(
                 summary_path,
                 root=root,
             )
+        summary_recommendation = _derive_recovery_recommendation_from_summary(summary_path)
         latest_summary_signals = payload.get("latest_summary_signals") if isinstance(payload.get("latest_summary_signals"), dict) else {}
+        if isinstance(summary_recommendation.get("latest_summary_signals"), dict) and summary_recommendation.get("latest_summary_signals"):
+            latest_summary_signals = dict(summary_recommendation.get("latest_summary_signals") or {})
         chapter6_hints = payload.get("chapter6_hints") if isinstance(payload.get("chapter6_hints"), dict) else {}
+        if isinstance(summary_recommendation.get("chapter6_hints"), dict) and summary_recommendation.get("chapter6_hints"):
+            chapter6_hints = dict(summary_recommendation.get("chapter6_hints") or {})
+        run_event_summary = _summarize_run_events(_resolve_active_task_run_events_path(paths, root=root), root=root)
         rerun_forbidden = bool(chapter6_hints.get("rerun_forbidden"))
         rerun_override_flag = _normalize_report_value(chapter6_hints.get("rerun_override_flag"), limit=60)
         deterministic_bundle = _derive_deterministic_bundle_from_summary(summary_path, root=root)
+        recommended_action = _normalize_report_value(
+            summary_recommendation.get("recommended_action") or payload.get("recommended_action"),
+            limit=40,
+        )
+        recommended_action_why = _normalize_report_value(
+            summary_recommendation.get("recommended_action_why") or payload.get("recommended_action_why"),
+            limit=200,
+        )
+        recommended_command = _normalize_report_value(
+            summary_recommendation.get("recommended_command") or payload.get("recommended_command"),
+            limit=240,
+        )
+        forbidden_commands_source = (
+            list(summary_recommendation.get("forbidden_commands") or [])
+            if list(summary_recommendation.get("forbidden_commands") or [])
+            else list(payload.get("forbidden_commands") or [])
+        )
+        candidate_commands_source = (
+            dict(summary_recommendation.get("candidate_commands") or {})
+            if dict(summary_recommendation.get("candidate_commands") or {})
+            else dict(payload.get("candidate_commands") or {})
+        )
         records.append(
             {
                 "task_id": _normalize_report_value(payload.get("task_id"), limit=20),
                 "run_id": _normalize_report_value(payload.get("run_id"), limit=40),
                 "status": _normalize_report_value(payload.get("status"), limit=20),
                 "updated_at_utc": _normalize_report_value(payload.get("updated_at_utc"), limit=40),
-                "recommended_action": _normalize_report_value(payload.get("recommended_action"), limit=40),
-                "recommended_action_why": _normalize_report_value(payload.get("recommended_action_why"), limit=200),
+                "recommended_action": recommended_action,
+                "recommended_action_why": recommended_action_why,
+                "recommended_command": recommended_command,
+                "forbidden_commands": [
+                    _normalize_report_value(item, limit=240)
+                    for item in forbidden_commands_source[:6]
+                    if _normalize_report_value(item, limit=240)
+                ],
+                "candidate_commands": {
+                    _normalize_report_value(key, limit=40): _normalize_report_value(value, limit=240)
+                    for key, value in candidate_commands_source.items()
+                    if _normalize_report_value(key, limit=40) and _normalize_report_value(value, limit=240)
+                },
                 "clean_state": {
                     "state": _normalize_report_value(clean_state.get("state"), limit=40),
                     "deterministic_ok": bool(clean_state.get("deterministic_ok")),
@@ -609,11 +983,15 @@ def load_active_task_records(root: Path, *, limit: int = 16) -> list[dict[str, A
                     "rerun_forbidden": rerun_forbidden,
                     "rerun_override_flag": rerun_override_flag,
                 },
+                "chapter6_route_lane": _normalize_report_value(chapter6_route_lane, limit=40),
+                "repo_noise_reason": _normalize_report_value(repo_noise_reason, limit=160),
                 "latest_json": _normalize_report_value(paths.get("latest_json"), limit=200),
                 "reported_latest_json": _normalize_report_value(payload.get("reported_latest_json"), limit=200),
                 "latest_json_mismatch": bool(payload.get("latest_json_mismatch")),
                 "latest_json_repaired": bool(payload.get("latest_json_repaired")),
                 "deterministic_bundle": deterministic_bundle,
+                "run_event_summary": run_event_summary,
+                "approval_contract": approval_contract,
                 "path": repo_rel(path, root=root),
             }
         )
@@ -650,6 +1028,20 @@ def build_active_task_summary(root: Path) -> dict[str, Any]:
         "run_type_full": 0,
         "run_type_llm_only": 0,
         "run_type_preflight_only": 0,
+        "run_events_available": 0,
+        "multi_turn_runs": 0,
+        "reviewer_activity_present": 0,
+        "sidecar_activity_present": 0,
+        "approval_activity_present": 0,
+        "turn_diff_available": 0,
+        "turn_diff_reviewer_change": 0,
+        "turn_diff_sidecar_change": 0,
+        "turn_diff_approval_change": 0,
+        "approval_contract_present": 0,
+        "approval_pause_required": 0,
+        "approval_fork_ready": 0,
+        "approval_resume_ready": 0,
+        "approval_inspect_required": 0,
         "next_action_needs_fix_fast": 0,
         "next_action_inspect": 0,
         "next_action_resume": 0,
@@ -700,6 +1092,36 @@ def build_active_task_summary(root: Path) -> dict[str, Any]:
         deterministic_bundle = item.get("deterministic_bundle") if isinstance(item.get("deterministic_bundle"), dict) else {}
         if bool(deterministic_bundle.get("available")):
             summary["deterministic_bundle_available"] += 1
+        run_event_summary = item.get("run_event_summary") if isinstance(item.get("run_event_summary"), dict) else {}
+        if run_event_summary:
+            summary["run_events_available"] += 1
+            if int(run_event_summary.get("turn_count") or 0) > 1:
+                summary["multi_turn_runs"] += 1
+                summary["turn_diff_available"] += 1
+            if list(run_event_summary.get("reviewers") or []):
+                summary["reviewer_activity_present"] += 1
+            if list(run_event_summary.get("sidecars") or []):
+                summary["sidecar_activity_present"] += 1
+            if isinstance(run_event_summary.get("approval"), dict) and run_event_summary.get("approval"):
+                summary["approval_activity_present"] += 1
+            if list(run_event_summary.get("new_reviewers") or []):
+                summary["turn_diff_reviewer_change"] += 1
+            if list(run_event_summary.get("new_sidecars") or []):
+                summary["turn_diff_sidecar_change"] += 1
+            if bool(run_event_summary.get("approval_changed")):
+                summary["turn_diff_approval_change"] += 1
+        approval_contract = item.get("approval_contract") if isinstance(item.get("approval_contract"), dict) else {}
+        if approval_contract:
+            summary["approval_contract_present"] += 1
+            approval_recommended = str(approval_contract.get("recommended_action") or "").strip().lower()
+            if approval_recommended == "pause":
+                summary["approval_pause_required"] += 1
+            elif approval_recommended == "fork":
+                summary["approval_fork_ready"] += 1
+            elif approval_recommended == "resume":
+                summary["approval_resume_ready"] += 1
+            elif approval_recommended == "inspect":
+                summary["approval_inspect_required"] += 1
         latest_run_type = str(latest_summary_signals.get("run_type") or "").strip().lower()
         if latest_run_type == "planned-only":
             summary["run_type_planned_only"] += 1
@@ -920,6 +1342,13 @@ def dashboard_html(
         diagnostics = item.get("diagnostics") if isinstance(item.get("diagnostics"), dict) else {}
         latest_summary_signals = item.get("latest_summary_signals") if isinstance(item.get("latest_summary_signals"), dict) else {}
         chapter6_hints = item.get("chapter6_hints") if isinstance(item.get("chapter6_hints"), dict) else {}
+        candidate_commands = item.get("candidate_commands") if isinstance(item.get("candidate_commands"), dict) else {}
+        recommended_command = str(item.get("recommended_command") or "").strip()
+        forbidden_commands = [
+            str(command).strip()
+            for command in list(item.get("forbidden_commands") or [])
+            if str(command).strip()
+        ]
         profile_drift = diagnostics.get("profile_drift") if isinstance(diagnostics.get("profile_drift"), dict) else {}
         waste_signals = diagnostics.get("waste_signals") if isinstance(diagnostics.get("waste_signals"), dict) else {}
         rerun_guard = diagnostics.get("rerun_guard") if isinstance(diagnostics.get("rerun_guard"), dict) else {}
@@ -930,6 +1359,8 @@ def dashboard_html(
         artifact_integrity = diagnostics.get("artifact_integrity") if isinstance(diagnostics.get("artifact_integrity"), dict) else {}
         recent_failure_summary = diagnostics.get("recent_failure_summary") if isinstance(diagnostics.get("recent_failure_summary"), dict) else {}
         deterministic_bundle = item.get("deterministic_bundle") if isinstance(item.get("deterministic_bundle"), dict) else {}
+        run_event_summary = item.get("run_event_summary") if isinstance(item.get("run_event_summary"), dict) else {}
+        approval_contract = item.get("approval_contract") if isinstance(item.get("approval_contract"), dict) else {}
         chapter6_stop_loss_note = _chapter6_stop_loss_note(chapter6_hints, latest_summary_signals)
         diagnostic_lines: list[str] = []
         if profile_drift:
@@ -978,6 +1409,72 @@ def dashboard_html(
             diagnostic_lines.append(
                 f"<div class=\"meta\">deterministic_bundle: available={html.escape(str(bool(deterministic_bundle.get('available'))).lower())} reuse_mode={html.escape(str(deterministic_bundle.get('reuse_mode') or 'n/a'))}</div>"
             )
+        if approval_contract:
+            diagnostic_lines.extend(
+                [
+                    f"<div class=\"meta\">approval_required_action: {html.escape(str(approval_contract.get('required_action') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">approval_status: {html.escape(str(approval_contract.get('status') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">approval_decision: {html.escape(str(approval_contract.get('decision') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">approval_recommended_action: {html.escape(str(approval_contract.get('recommended_action') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">approval_allowed_actions: {html.escape(','.join(str(x) for x in list(approval_contract.get('allowed_actions') or [])) or 'none')}</div>",
+                    f"<div class=\"meta\">approval_blocked_actions: {html.escape(','.join(str(x) for x in list(approval_contract.get('blocked_actions') or [])) or 'none')}</div>",
+                    f"<div class=\"meta\">approval_reason: {html.escape(str(approval_contract.get('reason') or 'n/a'))}</div>",
+                ]
+            )
+        if run_event_summary:
+            family_counts = ",".join(
+                f"{str(entry.get('name') or 'unknown')}={int(entry.get('count') or 0)}"
+                for entry in list(run_event_summary.get("family_counts") or [])
+            )
+            previous_turn_family_counts = ",".join(
+                f"{str(entry.get('name') or 'unknown')}={int(entry.get('count') or 0)}"
+                for entry in list(run_event_summary.get("previous_turn_family_counts") or [])
+            )
+            latest_turn_family_counts = ",".join(
+                f"{str(entry.get('name') or 'unknown')}={int(entry.get('count') or 0)}"
+                for entry in list(run_event_summary.get("latest_turn_family_counts") or [])
+            )
+            turn_family_delta = ",".join(
+                f"{str(entry.get('name') or 'unknown')}={'+' if int(entry.get('delta') or 0) > 0 else ''}{int(entry.get('delta') or 0)}"
+                for entry in list(run_event_summary.get("turn_family_delta") or [])
+            )
+            reviewers = "; ".join(
+                f"{str(entry.get('id') or 'unknown')}:{str(entry.get('status') or 'n/a')}/{str(entry.get('event') or 'n/a')}"
+                for entry in list(run_event_summary.get("reviewers") or [])
+            )
+            sidecars = "; ".join(
+                f"{str(entry.get('id') or 'unknown')}:{str(entry.get('status') or 'n/a')}/{str(entry.get('event') or 'n/a')}"
+                for entry in list(run_event_summary.get("sidecars") or [])
+            )
+            approval = run_event_summary.get("approval") if isinstance(run_event_summary.get("approval"), dict) else {}
+            approval_text = (
+                f"{str(approval.get('status') or 'n/a')}/{str(approval.get('event') or 'n/a')} "
+                f"action={str(approval.get('action') or 'n/a')} "
+                f"request_id={str(approval.get('request_id') or 'n/a')} "
+                f"transition={str(approval.get('transition') or 'n/a')}"
+                if approval
+                else "none"
+            )
+            diagnostic_lines.extend(
+                [
+                    f"<div class=\"meta\">run_events_path: {html.escape(str(run_event_summary.get('path') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">run_events_event_count: {int(run_event_summary.get('event_count') or 0)}</div>",
+                    f"<div class=\"meta\">run_events_turn_count: {int(run_event_summary.get('turn_count') or 0)}</div>",
+                    f"<div class=\"meta\">run_events_latest_turn: {html.escape(str(run_event_summary.get('latest_turn_id') or 'n/a'))} seq={int(run_event_summary.get('latest_turn_seq') or 0)}</div>",
+                    f"<div class=\"meta\">run_events_previous_turn: {html.escape(str(run_event_summary.get('previous_turn_id') or 'n/a'))} seq={int(run_event_summary.get('previous_turn_seq') or 0)}</div>",
+                    f"<div class=\"meta\">run_events_latest_event: {html.escape(str(run_event_summary.get('latest_event') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">run_events_families: {html.escape(family_counts or 'none')}</div>",
+                    f"<div class=\"meta\">run_events_previous_turn_families: {html.escape(previous_turn_family_counts or 'none')}</div>",
+                    f"<div class=\"meta\">run_events_latest_turn_families: {html.escape(latest_turn_family_counts or 'none')}</div>",
+                    f"<div class=\"meta\">run_events_turn_family_delta: {html.escape(turn_family_delta or 'none')}</div>",
+                    f"<div class=\"meta\">run_events_new_reviewers: {html.escape(','.join(str(x) for x in list(run_event_summary.get('new_reviewers') or [])) or 'none')}</div>",
+                    f"<div class=\"meta\">run_events_new_sidecars: {html.escape(','.join(str(x) for x in list(run_event_summary.get('new_sidecars') or [])) or 'none')}</div>",
+                    f"<div class=\"meta\">run_events_approval_changed: {html.escape(str(bool(run_event_summary.get('approval_changed'))).lower())}</div>",
+                    f"<div class=\"meta\">reviewer_activity: {html.escape(reviewers or 'none')}</div>",
+                    f"<div class=\"meta\">sidecar_activity: {html.escape(sidecars or 'none')}</div>",
+                    f"<div class=\"meta\">approval_activity: {html.escape(approval_text)}</div>",
+                ]
+            )
         if str((latest_summary_signals.get("artifact_integrity_kind") or artifact_integrity.get("kind") or "")).strip().lower() == "planned_only_incomplete":
             diagnostic_lines.append("<div class=\"meta\">planned_only_terminal_bundle: true</div>")
         active_task_cards.append(
@@ -990,6 +1487,8 @@ def dashboard_html(
                     f"<div class=\"meta\">llm_status: {html.escape(str(clean_state.get('llm_status') or 'unknown'))}</div>",
                     f"<div class=\"meta\">recommended_action: {html.escape(str(item.get('recommended_action') or 'inspect'))}</div>",
                     f"<div class=\"meta\">recommended_action_why: {html.escape(str(item.get('recommended_action_why') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">recommended_command: {html.escape(recommended_command or 'n/a')}</div>",
+                    f"<div class=\"meta\">forbidden_commands: {html.escape(','.join(forbidden_commands) or 'none')}</div>",
                     f"<div class=\"meta\">latest_reason: {html.escape(str(latest_summary_signals.get('reason') or 'n/a'))}</div>",
                     f"<div class=\"meta\">latest_run_type: {html.escape(str(latest_summary_signals.get('run_type') or 'n/a'))}</div>",
                     f"<div class=\"meta\">latest_reuse_mode: {html.escape(str(latest_summary_signals.get('reuse_mode') or 'n/a'))}</div>",
@@ -999,11 +1498,19 @@ def dashboard_html(
                     f"<div class=\"meta\">chapter6_can_skip_6_7: {html.escape(str(bool(chapter6_hints.get('can_skip_6_7'))).lower())}</div>",
                     f"<div class=\"meta\">chapter6_can_go_to_6_8: {html.escape(str(bool(chapter6_hints.get('can_go_to_6_8'))).lower())}</div>",
                     f"<div class=\"meta\">chapter6_blocked_by: {html.escape(str(chapter6_hints.get('blocked_by') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">chapter6_route_lane: {html.escape(str(item.get('chapter6_route_lane') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">repo_noise_reason: {html.escape(str(item.get('repo_noise_reason') or 'n/a'))}</div>",
                     f"<div class=\"meta\">chapter6_rerun_override: {html.escape(str(chapter6_hints.get('rerun_override_flag') or 'n/a'))}</div>",
                     f"<div class=\"meta\">latest_json: {html.escape(str(item.get('latest_json') or 'n/a'))}</div>",
                     f"<div class=\"meta\">reported_latest_json: {html.escape(str(item.get('reported_latest_json') or 'n/a'))}</div>",
                     f"<div class=\"meta\">latest_json_mismatch: {html.escape(str(bool(item.get('latest_json_mismatch'))).lower())}</div>",
                     f"<div class=\"meta\">latest_json_repaired: {html.escape(str(bool(item.get('latest_json_repaired'))).lower())}</div>",
+                    f"<div class=\"meta\">resume_summary_command: {html.escape(str(candidate_commands.get('resume_summary') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">inspect_command: {html.escape(str(candidate_commands.get('inspect') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">resume_command: {html.escape(str(candidate_commands.get('resume') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">fork_command: {html.escape(str(candidate_commands.get('fork') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">rerun_command: {html.escape(str(candidate_commands.get('rerun') or 'n/a'))}</div>",
+                    f"<div class=\"meta\">needs_fix_command: {html.escape(str(candidate_commands.get('needs_fix_fast') or 'n/a'))}</div>",
                     f"<div class=\"meta\">needs_fix_agents: {html.escape(','.join(str(x) for x in list(clean_state.get('needs_fix_agents') or [])) or 'none')}</div>",
                     f"<div class=\"meta\">unknown_agents: {html.escape(','.join(str(x) for x in list(clean_state.get('unknown_agents') or [])) or 'none')}</div>",
                     f"<div class=\"meta\">timeout_agents: {html.escape(','.join(str(x) for x in list(clean_state.get('timeout_agents') or [])) or 'none')}</div>",
@@ -1084,7 +1591,7 @@ def dashboard_html(
     <details open>
       <summary>Active task clean state</summary>
       <div class="hint">Top active task sidecars are summarized here so deterministic-green-but-LLM-not-clean tasks are visible without opening each run directory.</div>
-      <div class="hint">total={int(active_task_summary.get('total') or 0)} clean={int(active_task_summary.get('clean') or 0)} deterministic_ok_llm_not_clean={int(active_task_summary.get('deterministic_ok_llm_not_clean') or 0)} deterministic_only={int(active_task_summary.get('deterministic_only') or 0)} not_clean={int(active_task_summary.get('not_clean') or 0)} profile_drift={int(active_task_summary.get('profile_drift') or 0)} unit_failed_but_engine_lane_ran={int(active_task_summary.get('unit_failed_but_engine_lane_ran') or 0)} rerun_guard_blocked={int(active_task_summary.get('rerun_guard_blocked') or 0)} rerun_forbidden={int(active_task_summary.get('rerun_forbidden') or 0)} llm_retry_stop_loss_blocked={int(active_task_summary.get('llm_retry_stop_loss_blocked') or 0)} sc_test_retry_stop_loss_blocked={int(active_task_summary.get('sc_test_retry_stop_loss_blocked') or 0)} artifact_integrity_blocked={int(active_task_summary.get('artifact_integrity_blocked') or 0)} recent_failure_summary_blocked={int(active_task_summary.get('recent_failure_summary_blocked') or 0)} artifact_integrity_planned_only_incomplete={int(active_task_summary.get('artifact_integrity_planned_only_incomplete') or 0)} latest_json_mismatch={int(active_task_summary.get('latest_json_mismatch') or 0)} latest_json_repaired={int(active_task_summary.get('latest_json_repaired') or 0)} reuse_decision_present={int(active_task_summary.get('reuse_decision_present') or 0)} deterministic_bundle_available={int(active_task_summary.get('deterministic_bundle_available') or 0)} run_type_planned_only={int(active_task_summary.get('run_type_planned_only') or 0)} run_type_deterministic_only={int(active_task_summary.get('run_type_deterministic_only') or 0)} run_type_full={int(active_task_summary.get('run_type_full') or 0)} run_type_llm_only={int(active_task_summary.get('run_type_llm_only') or 0)} run_type_preflight_only={int(active_task_summary.get('run_type_preflight_only') or 0)} next_action_needs_fix_fast={int(active_task_summary.get('next_action_needs_fix_fast') or 0)} next_action_inspect={int(active_task_summary.get('next_action_inspect') or 0)} next_action_resume={int(active_task_summary.get('next_action_resume') or 0)} next_action_continue={int(active_task_summary.get('next_action_continue') or 0)} chapter6_can_skip_6_7={int(active_task_summary.get('chapter6_can_skip_6_7') or 0)} chapter6_can_go_to_6_8={int(active_task_summary.get('chapter6_can_go_to_6_8') or 0)}</div>
+      <div class="hint">total={int(active_task_summary.get('total') or 0)} clean={int(active_task_summary.get('clean') or 0)} deterministic_ok_llm_not_clean={int(active_task_summary.get('deterministic_ok_llm_not_clean') or 0)} deterministic_only={int(active_task_summary.get('deterministic_only') or 0)} not_clean={int(active_task_summary.get('not_clean') or 0)} profile_drift={int(active_task_summary.get('profile_drift') or 0)} unit_failed_but_engine_lane_ran={int(active_task_summary.get('unit_failed_but_engine_lane_ran') or 0)} rerun_guard_blocked={int(active_task_summary.get('rerun_guard_blocked') or 0)} rerun_forbidden={int(active_task_summary.get('rerun_forbidden') or 0)} llm_retry_stop_loss_blocked={int(active_task_summary.get('llm_retry_stop_loss_blocked') or 0)} sc_test_retry_stop_loss_blocked={int(active_task_summary.get('sc_test_retry_stop_loss_blocked') or 0)} artifact_integrity_blocked={int(active_task_summary.get('artifact_integrity_blocked') or 0)} recent_failure_summary_blocked={int(active_task_summary.get('recent_failure_summary_blocked') or 0)} artifact_integrity_planned_only_incomplete={int(active_task_summary.get('artifact_integrity_planned_only_incomplete') or 0)} latest_json_mismatch={int(active_task_summary.get('latest_json_mismatch') or 0)} latest_json_repaired={int(active_task_summary.get('latest_json_repaired') or 0)} reuse_decision_present={int(active_task_summary.get('reuse_decision_present') or 0)} deterministic_bundle_available={int(active_task_summary.get('deterministic_bundle_available') or 0)} run_events_available={int(active_task_summary.get('run_events_available') or 0)} multi_turn_runs={int(active_task_summary.get('multi_turn_runs') or 0)} turn_diff_available={int(active_task_summary.get('turn_diff_available') or 0)} turn_diff_reviewer_change={int(active_task_summary.get('turn_diff_reviewer_change') or 0)} turn_diff_sidecar_change={int(active_task_summary.get('turn_diff_sidecar_change') or 0)} turn_diff_approval_change={int(active_task_summary.get('turn_diff_approval_change') or 0)} reviewer_activity_present={int(active_task_summary.get('reviewer_activity_present') or 0)} sidecar_activity_present={int(active_task_summary.get('sidecar_activity_present') or 0)} approval_activity_present={int(active_task_summary.get('approval_activity_present') or 0)} approval_contract_present={int(active_task_summary.get('approval_contract_present') or 0)} approval_pause_required={int(active_task_summary.get('approval_pause_required') or 0)} approval_fork_ready={int(active_task_summary.get('approval_fork_ready') or 0)} approval_resume_ready={int(active_task_summary.get('approval_resume_ready') or 0)} approval_inspect_required={int(active_task_summary.get('approval_inspect_required') or 0)} run_type_planned_only={int(active_task_summary.get('run_type_planned_only') or 0)} run_type_deterministic_only={int(active_task_summary.get('run_type_deterministic_only') or 0)} run_type_full={int(active_task_summary.get('run_type_full') or 0)} run_type_llm_only={int(active_task_summary.get('run_type_llm_only') or 0)} run_type_preflight_only={int(active_task_summary.get('run_type_preflight_only') or 0)} next_action_needs_fix_fast={int(active_task_summary.get('next_action_needs_fix_fast') or 0)} next_action_inspect={int(active_task_summary.get('next_action_inspect') or 0)} next_action_resume={int(active_task_summary.get('next_action_resume') or 0)} next_action_continue={int(active_task_summary.get('next_action_continue') or 0)} chapter6_can_skip_6_7={int(active_task_summary.get('chapter6_can_skip_6_7') or 0)} chapter6_can_go_to_6_8={int(active_task_summary.get('chapter6_can_go_to_6_8') or 0)}</div>
       <div class="highlight-wrap">
         {''.join(active_task_cards) if active_task_cards else '<div class="meta">No active task sidecars found.</div>'}
       </div>
@@ -1152,6 +1659,8 @@ def refresh_dashboard(root: Path | str | None = None, *, now: datetime | None = 
     }
     latest_root = latest_dir(resolved_root)
     report_catalog_path = latest_root / "report-catalog.latest.json"
+    validate_project_health_dashboard_payload(payload)
+    validate_project_health_report_catalog_payload(report_catalog)
     write_json(report_catalog_path, report_catalog)
     write_json(latest_root / "latest.json", payload)
     write_text(
@@ -1188,6 +1697,7 @@ def write_project_health_record(
     record["history_json"] = repo_rel(history_json, root=resolved_root)
     record["latest_json"] = repo_rel(latest_json, root=resolved_root)
 
+    validate_project_health_record_payload(record)
     write_json(history_json, record)
     write_json(latest_json, record)
     write_text(latest_md, record_markdown(record))
@@ -1198,3 +1708,11 @@ def write_project_health_record(
         "latest_md": repo_rel(latest_md, root=resolved_root),
         "dashboard_html": repo_rel(latest_root / "latest.html", root=resolved_root),
     }
+
+
+def write_project_health_scan_payload(*, root: Path | str | None, payload: dict[str, Any]) -> str:
+    resolved_root = resolve_root(root)
+    validate_project_health_scan_payload(payload)
+    target = project_health_scan_latest_path(resolved_root)
+    write_json(target, payload)
+    return repo_rel(target, root=resolved_root)

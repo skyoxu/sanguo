@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-project-health-record.schema.json",
+  "title": "Project Health Latest Record",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/detectProjectStage"
+    },
+    {
+      "$ref": "#/$defs/doctorProject"
+    },
+    {
+      "$ref": "#/$defs/checkDirectoryBoundaries"
+    }
+  ],
+  "$defs": {
+    "tripletPaths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tasks.json",
+        "tasks_back.json",
+        "tasks_gameplay.json"
+      ],
+      "properties": {
+        "tasks.json": { "type": "string", "minLength": 1 },
+        "tasks_back.json": { "type": "string", "minLength": 1 },
+        "tasks_gameplay.json": { "type": "string", "minLength": 1 }
+      }
+    },
+    "taskStatusCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "in_progress",
+        "done",
+        "other"
+      ],
+      "properties": {
+        "in_progress": { "type": "integer", "minimum": 0 },
+        "done": { "type": "integer", "minimum": 0 },
+        "other": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "commonRecord": {
+      "type": "object",
+      "required": [
+        "kind",
+        "status",
+        "summary",
+        "exit_code",
+        "generated_at",
+        "history_json",
+        "latest_json"
+      ],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "enum": ["ok", "warn", "fail"] },
+        "summary": { "type": "string" },
+        "exit_code": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": "string", "minLength": 1 },
+        "history_json": { "type": "string", "minLength": 1 },
+        "latest_json": { "type": "string", "minLength": 1 }
+      }
+    },
+    "doctorCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "path",
+        "summary",
+        "recommendation"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "enum": ["ok", "warn", "fail"] },
+        "path": { "type": "string", "minLength": 1 },
+        "summary": { "type": "string" },
+        "recommendation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "boundaryIssue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule_id",
+        "path",
+        "summary"
+      ],
+      "properties": {
+        "rule_id": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "summary": { "type": "string" }
+      }
+    },
+    "detectProjectStage": {
+      "allOf": [
+        { "$ref": "#/$defs/commonRecord" },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "stage",
+            "signals",
+            "paths"
+          ],
+          "properties": {
+            "kind": { "const": "detect-project-stage" },
+            "stage": { "type": "string", "minLength": 1 },
+            "signals": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "project_godot",
+                "readme",
+                "agents",
+                "real_task_triplet",
+                "example_task_triplet",
+                "overlay_indexes",
+                "contract_files",
+                "unit_test_files"
+              ],
+              "properties": {
+                "project_godot": { "type": "boolean" },
+                "readme": { "type": "boolean" },
+                "agents": { "type": "boolean" },
+                "real_task_triplet": { "type": "boolean" },
+                "example_task_triplet": { "type": "boolean" },
+                "overlay_indexes": { "type": "integer", "minimum": 0 },
+                "contract_files": { "type": "integer", "minimum": 0 },
+                "unit_test_files": { "type": "integer", "minimum": 0 },
+                "task_status_counts": { "$ref": "#/$defs/taskStatusCounts" }
+              }
+            },
+            "paths": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "real_task_triplet",
+                "example_task_triplet"
+              ],
+              "properties": {
+                "real_task_triplet": { "$ref": "#/$defs/tripletPaths" },
+                "example_task_triplet": { "$ref": "#/$defs/tripletPaths" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "doctorProject": {
+      "allOf": [
+        { "$ref": "#/$defs/commonRecord" },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "counts",
+            "checks"
+          ],
+          "properties": {
+            "kind": { "const": "doctor-project" },
+            "counts": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["fail", "warn", "ok"],
+              "properties": {
+                "fail": { "type": "integer", "minimum": 0 },
+                "warn": { "type": "integer", "minimum": 0 },
+                "ok": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "checks": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/doctorCheck" }
+            }
+          }
+        }
+      ]
+    },
+    "checkDirectoryBoundaries": {
+      "allOf": [
+        { "$ref": "#/$defs/commonRecord" },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "violations",
+            "warnings",
+            "rules_checked"
+          ],
+          "properties": {
+            "kind": { "const": "check-directory-boundaries" },
+            "violations": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/boundaryIssue" }
+            },
+            "warnings": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/boundaryIssue" }
+            },
+            "rules_checked": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

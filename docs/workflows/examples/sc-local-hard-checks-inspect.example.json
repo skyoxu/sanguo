@@ -1,0 +1,72 @@
+{
+  "kind": "local-hard-checks",
+  "status": "fail",
+  "task_id": "repo",
+  "run_id": "local-demo",
+  "latest_status": "fail",
+  "summary_status": "fail",
+  "repair_status": "fail",
+  "failed_step": "run-dotnet",
+  "failure": {
+    "code": "step-failed",
+    "message": "The producer pipeline failed at run-dotnet.",
+    "severity": "soft"
+  },
+  "validation_errors": [],
+  "missing_artifacts": [],
+  "stale_latest": false,
+  "incomplete_run": false,
+  "recent_failure_summary": {},
+  "approval": {
+    "soft_gate": false,
+    "required_action": "",
+    "status": "not-needed",
+    "decision": "",
+    "reason": "",
+    "request_id": "",
+    "request_path": "",
+    "response_path": "",
+    "recommended_action": "continue",
+    "allowed_actions": [
+      "continue"
+    ],
+    "blocked_actions": []
+  },
+  "latest_summary_signals": {
+    "reason": "",
+    "run_type": "full",
+    "reuse_mode": "",
+    "artifact_integrity_kind": "",
+    "diagnostics_keys": []
+  },
+  "run_event_summary": {},
+  "paths": {
+    "latest": "logs/ci/2026-04-11/local-hard-checks-latest.json",
+    "out_dir": "logs/ci/2026-04-11/local-hard-checks-local-demo",
+    "summary": "logs/ci/2026-04-11/local-hard-checks-local-demo/summary.json",
+    "execution_context": "logs/ci/2026-04-11/local-hard-checks-local-demo/execution-context.json",
+    "repair_guide": "logs/ci/2026-04-11/local-hard-checks-local-demo/repair-guide.json",
+    "repair_guide_md": "logs/ci/2026-04-11/local-hard-checks-local-demo/repair-guide.md",
+    "run_events": "logs/ci/2026-04-11/local-hard-checks-local-demo/run-events.jsonl"
+  },
+  "chapter6_hints": {
+    "next_action": "fix-and-resume",
+    "can_skip_6_7": false,
+    "can_go_to_6_8": false,
+    "blocked_by": "deterministic_failure",
+    "rerun_forbidden": false,
+    "rerun_override_flag": ""
+  },
+  "candidate_commands": {
+    "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks --latest logs/ci/2026-04-11/local-hard-checks-latest.json",
+    "resume": "",
+    "fork": "",
+    "rerun": "py -3 scripts/python/dev_cli.py run-local-hard-checks --run-id local-demo",
+    "needs_fix_fast": "",
+    "inspect_failed_step": "py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks --latest logs/ci/2026-04-11/local-hard-checks-latest.json"
+  },
+  "recommended_action": "rerun",
+  "recommended_action_why": "Repo-scoped hard checks failed at run-dotnet; fix that root cause first, then rerun the same entrypoint.",
+  "forbidden_commands": [],
+  "recommended_command": "py -3 scripts/python/dev_cli.py run-local-hard-checks --run-id local-demo"
+}

@@ -1,0 +1,127 @@
+{
+  "cmd": "active-task-sidecar",
+  "task_id": "15",
+  "run_id": "run-15",
+  "status": "fail",
+  "updated_at_utc": "2026-04-10T12:00:00+00:00",
+  "paths": {
+    "latest_json": "logs/ci/2026-04-10/sc-review-pipeline-task-15/latest.json",
+    "out_dir": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15",
+    "summary_json": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/summary.json",
+    "execution_context_json": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/execution-context.json",
+    "repair_guide_json": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/repair-guide.json",
+    "repair_guide_md": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/repair-guide.md"
+  },
+  "step_summary": {
+    "total": 3,
+    "ok": 2,
+    "fail": 1
+  },
+  "clean_state": {
+    "state": "deterministic_ok_llm_not_clean",
+    "llm_review": "needs-fix"
+  },
+  "diagnostics": {
+    "recent_failure_summary": {
+      "latest_failure_family": "review-needs-fix",
+      "same_family_count": 2,
+      "stop_full_rerun_recommended": true
+    }
+  },
+  "latest_summary_signals": {
+    "reason": "rerun_blocked:repeat_review_needs_fix",
+    "run_type": "deterministic-only",
+    "reuse_mode": "deterministic-only-reuse"
+  },
+  "chapter6_hints": {
+    "next_action": "needs-fix-fast",
+    "blocked_by": "rerun_guard",
+    "rerun_forbidden": true,
+    "can_skip_6_7": true,
+    "can_go_to_6_8": true,
+    "rerun_override_flag": "--allow-rerun"
+  },
+  "recommended_action": "needs-fix-fast",
+  "recommended_action_why": "Repeat reviewer family is already deterministic.",
+  "candidate_commands": {
+    "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+    "resume": "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume",
+    "fork": "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork",
+    "rerun": "py -3 scripts/sc/run_review_pipeline.py --task-id 15",
+    "needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+    "resume_summary": "py -3 scripts/python/dev_cli.py resume-task --task-id 15"
+  },
+  "recommended_command": "",
+  "forbidden_commands": [
+    "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume",
+    "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork",
+    "py -3 scripts/sc/run_review_pipeline.py --task-id 15"
+  ],
+  "repair_status": "needs-fix",
+  "agent_review_recommended_action": "fork",
+  "approval": {
+    "soft_gate": true,
+    "required_action": "fork",
+    "status": "pending",
+    "decision": "",
+    "reason": "Waiting for operator approval.",
+    "request_id": "run-15:fork",
+    "request_path": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/approval-request.json",
+    "response_path": "",
+    "recommended_action": "pause",
+    "allowed_actions": [
+      "inspect",
+      "pause"
+    ],
+    "blocked_actions": [
+      "fork",
+      "resume",
+      "rerun"
+    ]
+  },
+  "run_event_summary": {
+    "path": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/run-events.jsonl",
+    "event_count": 5,
+    "turn_count": 2,
+    "latest_turn_id": "run-15:turn-2",
+    "latest_turn_seq": 2,
+    "latest_event": "sidecar_active_task_synced",
+    "family_counts": {
+      "approval": 1,
+      "reviewer": 1,
+      "run": 2,
+      "sidecar": 1
+    },
+    "latest_turn_family_counts": {
+      "approval": 1,
+      "reviewer": 1,
+      "run": 1,
+      "sidecar": 1
+    },
+    "previous_turn_id": "run-15:turn-1",
+    "previous_turn_seq": 1,
+    "previous_turn_family_counts": {
+      "run": 1
+    },
+    "turn_family_delta": {
+      "approval": 1,
+      "reviewer": 1,
+      "sidecar": 1
+    },
+    "new_reviewers": [
+      "code-reviewer"
+    ],
+    "new_sidecars": [
+      "task-active"
+    ],
+    "approval_changed": true,
+    "previous_approval": "",
+    "reviewers": [
+      "code-reviewer:needs-fix/reviewer_completed"
+    ],
+    "sidecars": [
+      "task-active:ok/sidecar_active_task_synced"
+    ],
+    "approval": "pending/approval_request_written action=fork request_id=run-15:fork transition=created"
+  }
+}

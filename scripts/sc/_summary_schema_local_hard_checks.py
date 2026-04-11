@@ -115,4 +115,14 @@ def validate_local_hard_checks_without_jsonschema(
             if key in step and not isinstance(step.get(key), str):
                 errors.append(f"{base}.{key}: must be string when present")
 
+        if name == "project-health-scan":
+            reported_out_dir = step.get("reported_out_dir")
+            summary_file = step.get("summary_file")
+            if not isinstance(reported_out_dir, str) or not reported_out_dir.replace("\\", "/").endswith("logs/ci/project-health"):
+                errors.append(f"{base}.reported_out_dir: must end with logs/ci/project-health")
+            if not isinstance(summary_file, str) or not summary_file.replace("\\", "/").endswith(
+                "logs/ci/project-health/project-health-scan.latest.json"
+            ):
+                errors.append(f"{base}.summary_file: must end with logs/ci/project-health/project-health-scan.latest.json")
+
     return errors

@@ -281,6 +281,88 @@ def build_resume_task_cmd(args) -> list[str]:
         cmd += ["--out-json", args.out_json]
     if args.out_md:
         cmd += ["--out-md", args.out_md]
+    if getattr(args, "recommendation_only", False):
+        cmd += ["--recommendation-only"]
+    recommendation_format = str(getattr(args, "recommendation_format", "") or "").strip()
+    if recommendation_format:
+        cmd += ["--recommendation-format", recommendation_format]
+    return cmd
+
+
+def build_inspect_run_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/inspect_run.py",
+    ]
+    if args.repo_root:
+        cmd += ["--repo-root", args.repo_root]
+    if args.latest:
+        cmd += ["--latest", args.latest]
+    if args.kind:
+        cmd += ["--kind", args.kind]
+    if args.task_id:
+        cmd += ["--task-id", args.task_id]
+    if args.run_id:
+        cmd += ["--run-id", args.run_id]
+    if args.out_json:
+        cmd += ["--out-json", args.out_json]
+    if getattr(args, "recommendation_only", False):
+        cmd += ["--recommendation-only"]
+    recommendation_format = str(getattr(args, "recommendation_format", "") or "").strip()
+    if recommendation_format:
+        cmd += ["--recommendation-format", recommendation_format]
+    return cmd
+
+
+def build_chapter6_route_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/chapter6_route.py",
+    ]
+    if args.repo_root:
+        cmd += ["--repo-root", args.repo_root]
+    if args.task_id:
+        cmd += ["--task-id", args.task_id]
+    if args.run_id:
+        cmd += ["--run-id", args.run_id]
+    if args.latest:
+        cmd += ["--latest", args.latest]
+    if getattr(args, "record_residual", False):
+        cmd += ["--record-residual"]
+    if args.out_json:
+        cmd += ["--out-json", args.out_json]
+    if args.out_md:
+        cmd += ["--out-md", args.out_md]
+    if getattr(args, "recommendation_only", False):
+        cmd += ["--recommendation-only"]
+    recommendation_format = str(getattr(args, "recommendation_format", "") or "").strip()
+    if recommendation_format:
+        cmd += ["--recommendation-format", recommendation_format]
+    return cmd
+
+
+def build_run_single_task_chapter6_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/run_single_task_chapter6_lane.py",
+        "--task-id",
+        args.task_id,
+    ]
+    if args.godot_bin:
+        cmd += ["--godot-bin", args.godot_bin]
+    if args.delivery_profile:
+        cmd += ["--delivery-profile", args.delivery_profile]
+    if args.security_profile:
+        cmd += ["--security-profile", args.security_profile]
+    if args.fix_through:
+        cmd += ["--fix-through", args.fix_through]
+    if args.out_dir:
+        cmd += ["--out-dir", args.out_dir]
+    if getattr(args, "self_check", False):
+        cmd.append("--self-check")
     return cmd
 
 

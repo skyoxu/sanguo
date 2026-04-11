@@ -1,0 +1,19 @@
+{
+  "cmd": "local-hard-checks",
+  "task_id": "repo",
+  "requested_run_id": "local-hard-checks-20260411T110000",
+  "run_id": "local-hard-checks-20260411T110000",
+  "delivery_profile": "fast-ship",
+  "security_profile": "host-safe",
+  "status": "fail",
+  "failed_step": "run-dotnet",
+  "artifacts": {
+    "summary_json": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/summary.json",
+    "execution_context_json": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/execution-context.json",
+    "repair_guide_json": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/repair-guide.json",
+    "repair_guide_md": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/repair-guide.md",
+    "run_events_jsonl": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/run-events.jsonl",
+    "harness_capabilities_json": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/harness-capabilities.json",
+    "run_id_txt": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/run_id.txt"
+  }
+}

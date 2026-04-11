@@ -42,7 +42,7 @@ py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin C:\Godot\Godot
 py -3 scripts/python/dev_cli.py run-local-hard-checks
 
 # Inspect the latest repo-scoped hard-check run after it stops
-py -3 scripts/python/inspect_run.py --kind local-hard-checks
+py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks
 ```
 
 ## Main Parameters
@@ -57,7 +57,7 @@ py -3 scripts/python/inspect_run.py --kind local-hard-checks
 - `--timeout-sec <n>`: forwarded to strict smoke; default `5`.
 
 Notes:
-- For test-oriented commands, `--solution auto` prefers the test-bearing solution when one exists (for this repo, that is currently `Game.sln` rather than a repo-named solution such as `sanguo.sln`).
+- For test-oriented commands, `--solution auto` prefers the test-bearing solution when one exists (for this repo, that is currently `Sanguo.sln` rather than `Game.sln`).
 
 ## Difference From Other Entrypoints
 
@@ -89,7 +89,7 @@ This directory is now a first-class run object and writes at least:
 - `execution-context.json`: profile state, failed step, and sidecar pointers
 - `repair-guide.json`: machine-readable repair guidance
 - `repair-guide.md`: human-readable repair guidance
-- `run-events.jsonl`: append-only lifecycle and step timeline
+- `run-events.jsonl`: append-only lifecycle and step timeline with stable taxonomy fields (`turn_id`, `item_kind`, `item_id`, `event_family`)
 - `harness-capabilities.json`: supported sidecars and recovery actions for this run type
 - `run_id.txt`: stable run id
 - `<step>.log`: one JSON log per step, for example `gate-bundle-hard.log`
@@ -124,10 +124,11 @@ It does not produce `approval-request.json`, `approval-response.json`, `marathon
 
 Use local hard checks as a repo-scoped health run, not as a task-scoped Chapter 6 producer run.
 
-- Inspect the latest repo-scoped run with `py -3 scripts/python/inspect_run.py --kind local-hard-checks` before rerunning it.
+- Inspect the latest repo-scoped run with `py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks` before rerunning it.
+- That inspect surface should only recommend repo-scoped commands such as `inspect-run --kind local-hard-checks` and `run-local-hard-checks`; if you need `resume`, `fork`, or `needs-fix-fast`, you are in the wrong lane and should switch to the task-scoped review pipeline.
 - Read `summary.json`, `execution-context.json`, `repair-guide.md`, and `run-events.jsonl` together; they tell you which step failed and whether the next action is rerun or inspect.
 - If the repo-scoped run failed in `project-health`, `run_gate_bundle`, or `run_dotnet`, fix that root cause first instead of paying for another full hard pass.
-- If you actually need task recovery semantics such as `reason`, `run_type`, `reuse_mode`, `artifact_integrity`, `planned-only`, `planned_only_incomplete`, `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, `recommended_action_why`, or `recommended_action = needs-fix-fast`, switch to the task-scoped recovery chain: `resume-task`, `inspect_run.py --kind pipeline`, `active-task`, and `run_review_pipeline.py`.
+- If you actually need task recovery semantics such as `reason`, `run_type`, `reuse_mode`, `artifact_integrity`, `planned-only`, `planned_only_incomplete`, `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, `recommended_action_why`, `chapter6_route_lane`, `repo_noise_reason`, or `recommended_action = needs-fix-fast`, switch to the task-scoped recovery chain: `resume-task`, `dev_cli.py chapter6-route --recommendation-only`, `dev_cli.py inspect-run --kind pipeline`, `active-task`, and `run_review_pipeline.py`.
 - Do not treat `local-hard-checks-latest.json` as evidence that a task can reopen Chapter 6. Task-scoped rerun decisions must come from the pipeline sidecars, not from repo-scoped hard-check artifacts.
 
 ## Stop-Loss Rules
@@ -136,6 +137,17 @@ Use local hard checks as a repo-scoped health run, not as a task-scoped Chapter 
 - If you only want GdUnit4 hard or smoke, use `run-quality-gates` or the dedicated subcommands instead.
 - If this entrypoint needs more steps later, do not push command composition back into `dev_cli.py`; extend `scripts/python/local_hard_checks_harness.py` and `scripts/python/dev_cli_builders.py` instead.
 - If future work needs approvals, marathon checkpoints, or reviewer sidecars, decide first whether the feature still belongs to a repo-scoped run or should move into the task-scoped review pipeline.
+
+## Protocol Examples
+
+- `docs/workflows/examples/sc-local-hard-checks-latest-index.example.json`
+- `docs/workflows/examples/sc-local-hard-checks-execution-context.example.json`
+- `docs/workflows/examples/sc-local-hard-checks-repair-guide.example.json`
+- `docs/workflows/examples/sc-local-hard-checks-repair-guide.example.md`
+- `docs/workflows/examples/sc-local-hard-checks-inspect.example.json`
+- `docs/workflows/examples/sc-local-hard-checks-compact.example.json`
+- `docs/workflows/examples/sc-local-hard-checks-inspect.stdout.example.txt`
+- `docs/workflows/examples/sc-local-hard-checks-compact.stdout.example.txt`
 
 ## Related Docs
 

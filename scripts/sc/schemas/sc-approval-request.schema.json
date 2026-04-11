@@ -1,5 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-approval-request.schema.json",
   "title": "sc-approval-request",
   "type": "object",
   "additionalProperties": false,
@@ -33,7 +34,9 @@
     },
     "action": {
       "type": "string",
-      "minLength": 1
+      "enum": [
+        "fork"
+      ]
     },
     "reason": {
       "type": "string",
@@ -58,6 +61,27 @@
       "enum": [
         "pending"
       ]
+    },
+    "recommended_action": {
+      "type": "string",
+      "enum": [
+        "inspect",
+        "pause"
+      ]
+    },
+    "allowed_actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "blocked_actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     }
   }
 }

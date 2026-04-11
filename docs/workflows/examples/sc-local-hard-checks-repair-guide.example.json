@@ -1,0 +1,26 @@
+{
+  "cmd": "local-hard-checks",
+  "task_id": "repo",
+  "run_id": "local-hard-checks-20260411T110000",
+  "status": "fail",
+  "failed_step": "run-dotnet",
+  "artifacts": {
+    "summary_json": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/summary.json",
+    "execution_context_json": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/execution-context.json"
+  },
+  "next_actions": [
+    "Open summary.json and inspect the first failing step.",
+    "Open the failing step log and then inspect the referenced artifact directory.",
+    "Re-run the command after fixing the first failing step."
+  ],
+  "rerun_command": [
+    "py",
+    "-3",
+    "scripts/python/dev_cli.py",
+    "run-local-hard-checks",
+    "--godot-bin",
+    "C:/Godot/Godot_v4.5.1-stable_mono_win64_console.exe",
+    "--run-id",
+    "local-hard-checks-20260411T110000"
+  ]
+}

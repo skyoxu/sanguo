@@ -1,0 +1,33 @@
+{
+  "total_json": 2,
+  "invalid_json": 0,
+  "entries": [
+    {
+      "path": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/summary.json",
+      "kind": "sc-review-pipeline",
+      "status": "fail",
+      "generated_at": "2026-04-10T12:00:00+00:00",
+      "summary": "Repeat reviewer family is already deterministic.",
+      "size_bytes": 1024,
+      "modified_at": "2026-04-10T20:00:00+08:00",
+      "parse_error": "",
+      "highlights": {}
+    },
+    {
+      "path": "logs/ci/project-health/latest.json",
+      "kind": "project-health-dashboard",
+      "status": "fail",
+      "generated_at": "2026-04-10T20:00:00+08:00",
+      "summary": "",
+      "size_bytes": 2048,
+      "modified_at": "2026-04-10T20:00:00+08:00",
+      "parse_error": "",
+      "highlights": {
+        "report_catalog_summary": {
+          "total_json": 2,
+          "invalid_json": 0
+        }
+      }
+    }
+  ]
+}

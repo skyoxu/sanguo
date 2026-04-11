@@ -1,0 +1,11 @@
+{
+  "status": "ok",
+  "reused": false,
+  "host": "127.0.0.1",
+  "port": 8765,
+  "pid": 4321,
+  "url": "http://127.0.0.1:8765/latest.html",
+  "repo_root": "F:/sanguo",
+  "served_dir": "F:/sanguo/logs/ci/project-health",
+  "started_at": "2026-04-11T10:00:00+08:00"
+}

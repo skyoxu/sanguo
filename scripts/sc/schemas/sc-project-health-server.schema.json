@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-project-health-server.schema.json",
+  "title": "Project Health Server Sidecar",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "reused",
+    "host",
+    "port",
+    "pid",
+    "url",
+    "repo_root",
+    "served_dir",
+    "started_at"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "const": "ok"
+    },
+    "reused": {
+      "type": "boolean"
+    },
+    "host": {
+      "type": "string",
+      "minLength": 1
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "pid": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "url": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repo_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "served_dir": {
+      "type": "string",
+      "minLength": 1
+    },
+    "started_at": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

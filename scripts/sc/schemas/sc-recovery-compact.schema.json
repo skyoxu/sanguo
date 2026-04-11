@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-recovery-compact.schema.json",
+  "title": "sc-recovery-compact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "run_id",
+    "failure_code",
+    "recommended_action",
+    "recommended_command",
+    "forbidden_commands",
+    "latest_reason",
+    "chapter6_next_action",
+    "blocked_by",
+    "approval_status",
+    "approval_recommended_action",
+    "approval_allowed_actions",
+    "approval_blocked_actions",
+    "latest_turn",
+    "turn_count"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "failure_code": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recommended_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recommended_command": {
+      "type": "string",
+      "minLength": 1
+    },
+    "forbidden_commands": {
+      "type": "string",
+      "minLength": 1
+    },
+    "latest_reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "chapter6_next_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "blocked_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approval_status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approval_recommended_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approval_allowed_actions": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approval_blocked_actions": {
+      "type": "string",
+      "minLength": 1
+    },
+    "latest_turn": {
+      "type": "string",
+      "minLength": 1
+    },
+    "turn_count": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    }
+  }
+}

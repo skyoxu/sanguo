@@ -18,7 +18,13 @@ if str(REPO_ROOT / "scripts" / "sc") not in sys.path:
 from inspect_run import inspect_run_artifacts  # noqa: E402
 from validate_recovery_docs import extract_repo_paths, is_readme, is_template, parse_fields  # noqa: E402
 from _active_task_sidecar import write_active_task_sidecar  # noqa: E402
-from _chapter6_recovery_common import chapter6_stop_loss_note as _chapter6_stop_loss_note  # noqa: E402
+from _chapter6_recovery_common import (  # noqa: E402
+    compact_recommendation_fields,
+    candidate_commands as _shared_candidate_commands,
+    chapter6_stop_loss_note as _chapter6_stop_loss_note,
+    forbidden_commands as _shared_forbidden_commands,
+    recommended_command as _shared_recommended_command,
+)
 
 
 def _repo_rel(root: Path, path: Path | None) -> str:
@@ -326,25 +332,81 @@ def _recommendation_from_active_task(active_task: dict[str, Any]) -> tuple[str, 
     return recommended_action, (why or "Active task sidecar supplied the recovery recommendation."), signals
 
 
+def _load_pipeline_summary_from_inspection(repo_root: Path, inspection: dict[str, Any]) -> dict[str, Any]:
+    paths = inspection.get("paths") if isinstance(inspection.get("paths"), dict) else {}
+    summary_rel = str(paths.get("summary") or "").strip()
+    if not summary_rel:
+        return {}
+    try:
+        return _read_json(_resolve_path(repo_root, summary_rel))
+    except Exception:
+        return {}
+
+
+def _recommendation_from_pipeline_summary(summary_payload: dict[str, Any]) -> tuple[str, str, list[str]] | None:
+    recommended_action = str(summary_payload.get("recommended_action") or "").strip().lower()
+    if not recommended_action or recommended_action in {"continue", "none"}:
+        return None
+    why = str(summary_payload.get("recommended_action_why") or "").strip()
+    signals = [f"pipeline_summary.recommended_action={recommended_action}"]
+    latest_summary_signals = (
+        summary_payload.get("latest_summary_signals")
+        if isinstance(summary_payload.get("latest_summary_signals"), dict)
+        else {}
+    )
+    reason = str(latest_summary_signals.get("reason") or "").strip()
+    if reason:
+        signals.append(f"pipeline_summary.latest_reason={reason}")
+    chapter6_hints = summary_payload.get("chapter6_hints") if isinstance(summary_payload.get("chapter6_hints"), dict) else {}
+    blocked_by = str(chapter6_hints.get("blocked_by") or "").strip()
+    if blocked_by:
+        signals.append(f"pipeline_summary.blocked_by={blocked_by}")
+    return recommended_action, (why or "Pipeline summary supplied the recovery recommendation."), signals
+
+
+def _recommendation_from_inspection(inspection: dict[str, Any]) -> tuple[str, str, list[str]] | None:
+    recommended_action = str(inspection.get("recommended_action") or "").strip().lower()
+    if not recommended_action or recommended_action in {"continue", "none"}:
+        return None
+    why = str(inspection.get("recommended_action_why") or "").strip()
+    signals = [f"inspection.recommended_action={recommended_action}"]
+    latest_summary_signals = inspection.get("latest_summary_signals") if isinstance(inspection.get("latest_summary_signals"), dict) else {}
+    reason = str(latest_summary_signals.get("reason") or "").strip()
+    if reason:
+        signals.append(f"inspection.latest_reason={reason}")
+    chapter6_hints = inspection.get("chapter6_hints") if isinstance(inspection.get("chapter6_hints"), dict) else {}
+    blocked_by = str(chapter6_hints.get("blocked_by") or "").strip()
+    if blocked_by:
+        signals.append(f"inspection.blocked_by={blocked_by}")
+    return recommended_action, (why or "Inspection payload supplied the recovery recommendation."), signals
+
+
 def _candidate_commands(task_id: str, latest: str) -> dict[str, str]:
-    inspect_cmd = ["py", "-3", "scripts/python/inspect_run.py", "--kind", "pipeline"]
-    if latest:
-        inspect_cmd += ["--latest", latest]
-    elif task_id:
-        inspect_cmd += ["--task-id", task_id]
-    commands = {
-        "inspect": " ".join(inspect_cmd),
-        "resume": "",
-        "fork": "",
-        "rerun": "",
-        "needs_fix_fast": "",
-    }
-    if task_id:
-        commands["resume"] = f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id} --resume"
-        commands["fork"] = f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id} --fork"
-        commands["rerun"] = f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id}"
-        commands["needs_fix_fast"] = f"py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id {task_id} --delivery-profile fast-ship --rerun-failing-only --max-rounds 1"
-    return commands
+    return _shared_candidate_commands(task_id, latest)
+
+
+def _recommended_command(
+    recommended_action: str,
+    commands: dict[str, str],
+    chapter6_hints: dict[str, Any],
+    approval: dict[str, Any] | None = None,
+) -> str:
+    return _shared_recommended_command(recommended_action, commands, chapter6_hints, approval)
+
+
+def _forbidden_commands(
+    *,
+    recommended_action: str,
+    commands: dict[str, str],
+    chapter6_hints: dict[str, Any],
+    approval: dict[str, Any] | None = None,
+) -> list[str]:
+    return _shared_forbidden_commands(
+        recommended_action=recommended_action,
+        commands=commands,
+        chapter6_hints=chapter6_hints,
+        approval=approval,
+    )
 
 
 def build_resume_payload(
@@ -368,6 +430,7 @@ def build_resume_payload(
     out_dir_rel = str(((inspection.get("paths") or {}).get("out_dir")) or "").strip()
     active_task = _load_active_task(repo_root, resolved_task_id)
     agent_review = _load_optional_agent_review(repo_root, out_dir_rel)
+    pipeline_summary = _load_pipeline_summary_from_inspection(repo_root, inspection)
     inspection_latest_summary = inspection.get("latest_summary_signals") if isinstance(inspection.get("latest_summary_signals"), dict) else {}
     recent_failure_summary = inspection.get("recent_failure_summary") if isinstance(inspection.get("recent_failure_summary"), dict) else {}
     latest_reason = str(inspection_latest_summary.get("reason") or "").strip()
@@ -404,17 +467,42 @@ def build_resume_payload(
     diagnostics = inspection.get("diagnostics") if isinstance(inspection.get("diagnostics"), dict) else {}
     artifact_integrity = diagnostics.get("artifact_integrity") if isinstance(diagnostics.get("artifact_integrity"), dict) else {}
     latest_artifact_integrity_kind = str(artifact_integrity.get("kind") or "").strip() or latest_artifact_integrity_kind
-    agent_review_signal = _recommendation_from_agent_review(agent_review)
-    if agent_review_signal is not None:
-        recommended_action, recommendation_reason, blocking_signals = agent_review_signal
-        recommendation_source = "agent-review"
+    chapter6_hints = dict(inspection.get("chapter6_hints") or {}) if isinstance(inspection.get("chapter6_hints"), dict) else {}
+    if not chapter6_hints and isinstance(pipeline_summary.get("chapter6_hints"), dict):
+        chapter6_hints = dict(pipeline_summary.get("chapter6_hints") or {})
+    inspection_candidate_commands = inspection.get("candidate_commands") if isinstance(inspection.get("candidate_commands"), dict) else {}
+    candidate_commands = dict(inspection_candidate_commands) if inspection_candidate_commands else _candidate_commands(resolved_task_id, latest or latest_rel)
+    summary_candidate_commands = (
+        pipeline_summary.get("candidate_commands")
+        if isinstance(pipeline_summary.get("candidate_commands"), dict)
+        else {}
+    )
+    for key, value in summary_candidate_commands.items():
+        key_text = str(key or "").strip()
+        value_text = str(value or "").strip()
+        if key_text and value_text:
+            candidate_commands[key_text] = value_text
+    inspection_signal = _recommendation_from_inspection(inspection)
+    if inspection_signal is not None:
+        recommended_action, recommendation_reason, blocking_signals = inspection_signal
+        recommendation_source = "inspection"
     else:
-        active_task_signal = _recommendation_from_active_task(active_task)
-        if active_task_signal is not None:
-            recommended_action, recommendation_reason, blocking_signals = active_task_signal
-            recommendation_source = "active-task"
+        summary_signal = _recommendation_from_pipeline_summary(pipeline_summary)
+        if summary_signal is not None:
+            recommended_action, recommendation_reason, blocking_signals = summary_signal
+            recommendation_source = "pipeline-summary"
         else:
-            recommended_action, recommendation_source, recommendation_reason, blocking_signals = _fallback_recommendation(inspection, resolved_task_id)
+            agent_review_signal = _recommendation_from_agent_review(agent_review)
+            if agent_review_signal is not None:
+                recommended_action, recommendation_reason, blocking_signals = agent_review_signal
+                recommendation_source = "agent-review"
+            else:
+                active_task_signal = _recommendation_from_active_task(active_task)
+                if active_task_signal is not None:
+                    recommended_action, recommendation_reason, blocking_signals = active_task_signal
+                    recommendation_source = "active-task"
+                else:
+                    recommended_action, recommendation_source, recommendation_reason, blocking_signals = _fallback_recommendation(inspection, resolved_task_id)
     if bool(recent_failure_summary.get("stop_full_rerun_recommended")):
         family = str(recent_failure_summary.get("latest_failure_family") or "").strip()
         same_family_count = int(recent_failure_summary.get("same_family_count") or 0)
@@ -427,6 +515,25 @@ def build_resume_payload(
     plans = _find_related_docs(repo_root, "execution-plans", task_id=resolved_task_id, run_id=resolved_run_id, latest_rel=latest_rel)
     logs = _find_related_docs(repo_root, "decision-logs", task_id=resolved_task_id, run_id=resolved_run_id, latest_rel=latest_rel)
     active_task_snapshot = _normalized_active_task_snapshot(active_task, inspection_latest=latest_rel)
+
+    approval = inspection.get("approval") if isinstance(inspection.get("approval"), dict) else {}
+    recommended_command = str(inspection.get("recommended_command") or "").strip() or str(pipeline_summary.get("recommended_command") or "").strip() or _recommended_command(
+        recommended_action,
+        candidate_commands,
+        chapter6_hints,
+        approval,
+    )
+    forbidden_commands = [str(item).strip() for item in list(inspection.get("forbidden_commands") or []) if str(item).strip()]
+    if not forbidden_commands:
+        forbidden_commands = [str(item).strip() for item in list(pipeline_summary.get("forbidden_commands") or []) if str(item).strip()]
+    if not forbidden_commands:
+        forbidden_commands = _forbidden_commands(
+            recommended_action=recommended_action,
+            commands=candidate_commands,
+            chapter6_hints=chapter6_hints,
+            approval=approval,
+        )
+
     payload: dict[str, Any] = {
         "task_id": resolved_task_id,
         "run_id": resolved_run_id,
@@ -436,9 +543,14 @@ def build_resume_payload(
         "blocking_signals": blocking_signals,
         "recommendation_source": recommendation_source,
         "recommendation_reason": recommendation_reason,
-        "candidate_commands": _candidate_commands(resolved_task_id, latest or latest_rel),
+        "candidate_commands": candidate_commands,
+
+        "recommended_command": recommended_command,
+        "forbidden_commands": forbidden_commands,
+
         "inspection_exit_code": inspection_rc,
         "inspection": inspection,
+        "approval": approval,
         "recent_failure_summary": recent_failure_summary,
         "latest_summary_signals": {
             "reason": latest_reason,
@@ -447,7 +559,7 @@ def build_resume_payload(
             "artifact_integrity_kind": latest_artifact_integrity_kind,
             "diagnostics_keys": latest_diagnostics_keys,
         },
-        "chapter6_hints": dict(inspection.get("chapter6_hints") or {}) if isinstance(inspection.get("chapter6_hints"), dict) else {},
+        "chapter6_hints": chapter6_hints,
         "related_execution_plans": plans,
         "latest_execution_plan": plans[0] if plans else "",
         "related_decision_logs": logs,
@@ -470,6 +582,27 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     commands = payload.get("candidate_commands") or {}
     latest_summary_signals = payload.get("latest_summary_signals") if isinstance(payload.get("latest_summary_signals"), dict) else {}
     chapter6_hints = payload.get("chapter6_hints") if isinstance(payload.get("chapter6_hints"), dict) else {}
+
+    approval = payload.get("approval") if isinstance(payload.get("approval"), dict) else {}
+
+    recommended_command = str(payload.get("recommended_command") or "").strip() or _recommended_command(
+        str(payload.get("recommended_action") or ""),
+        commands,
+        chapter6_hints,
+
+        approval,
+
+    )
+    forbidden_commands = [str(item).strip() for item in list(payload.get("forbidden_commands") or []) if str(item).strip()]
+    if not forbidden_commands:
+        forbidden_commands = _forbidden_commands(
+            recommended_action=str(payload.get("recommended_action") or ""),
+            commands=commands,
+            chapter6_hints=chapter6_hints,
+
+            approval=approval,
+
+        )
     recent_failure_summary = payload.get("recent_failure_summary") if isinstance(payload.get("recent_failure_summary"), dict) else {}
     stop_loss_note = _chapter6_stop_loss_note(chapter6_hints, latest_summary_signals)
     def _line(key: str, value: str) -> str:
@@ -486,6 +619,8 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         _line("Recommendation reason", str(payload.get("recommendation_reason") or "n/a")),
         _line("Inspection status", str(inspection.get("status") or "unknown")),
         _line("Failure code", str(failure.get("code") or "unknown")),
+        _line("Recommended command", f"`{recommended_command}`" if recommended_command else "n/a"),
+        _line("Forbidden commands", ", ".join(f"`{item}`" for item in forbidden_commands) if forbidden_commands else "none"),
         _line("Latest pointer", f"`{paths.get('latest')}`" if paths.get("latest") else "n/a"),
         _line("Latest reason", str(latest_summary_signals.get("reason") or "n/a")),
         _line("Latest run type", str(latest_summary_signals.get("run_type") or "n/a")),
@@ -504,6 +639,19 @@ def _render_markdown(payload: dict[str, Any]) -> str:
         _line("Chapter6 rerun forbidden", "yes" if bool(chapter6_hints.get("rerun_forbidden")) else "no"),
         _line("Chapter6 rerun override", str(chapter6_hints.get("rerun_override_flag") or "n/a")),
         _line("Chapter6 stop-loss note", stop_loss_note or "n/a"),
+        _line("Approval required action", str(approval.get("required_action") or "n/a")),
+        _line("Approval status", str(approval.get("status") or "n/a")),
+        _line("Approval decision", str(approval.get("decision") or "n/a")),
+        _line("Approval recommended action", str(approval.get("recommended_action") or "n/a")),
+        _line(
+            "Approval allowed actions",
+            ", ".join(str(item).strip() for item in list(approval.get("allowed_actions") or []) if str(item).strip()) or "none",
+        ),
+        _line(
+            "Approval blocked actions",
+            ", ".join(str(item).strip() for item in list(approval.get("blocked_actions") or []) if str(item).strip()) or "none",
+        ),
+        _line("Approval reason", str(approval.get("reason") or "n/a")),
         _line(
             "Recent failure family",
             str(recent_failure_summary.get("latest_failure_family") or "n/a"),
@@ -568,6 +716,15 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _render_recommendation_only(payload: dict[str, Any]) -> str:
+    fields = _compact_recommendation_payload(payload)
+    return "\n".join(f"{key}={value}" for key, value in fields.items()) + "\n"
+
+
+def _compact_recommendation_payload(payload: dict[str, Any]) -> dict[str, str]:
+    return compact_recommendation_fields(payload)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Build a task-scoped recovery summary from the latest pipeline artifacts.")
     parser.add_argument("--repo-root", default=str(REPO_ROOT))
@@ -576,6 +733,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--latest", default="", help="Optional latest.json path.")
     parser.add_argument("--out-json", default="", help="Optional output JSON path.")
     parser.add_argument("--out-md", default="", help="Optional output Markdown path.")
+    parser.add_argument(
+        "--recommendation-only",
+        action="store_true",
+        help="Print a compact recovery recommendation without writing default summary files.",
+    )
+    parser.add_argument(
+        "--recommendation-format",
+        default="kv",
+        choices=["kv", "json"],
+        help="Output format for --recommendation-only.",
+    )
     return parser
 
 
@@ -609,6 +777,23 @@ def main(argv: list[str] | None = None) -> int:
         active_task["latest_json_mismatch"] = False
         active_task["latest_json_repaired"] = True
         payload["active_task"] = active_task
+
+    if bool(args.recommendation_only):
+        explicit_out_json = str(args.out_json or "").strip()
+        explicit_out_md = str(args.out_md or "").strip()
+        if explicit_out_json:
+            out_json = _resolve_path(root, explicit_out_json)
+            out_json.parent.mkdir(parents=True, exist_ok=True)
+            out_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+        if explicit_out_md:
+            out_md = _resolve_path(root, explicit_out_md)
+            out_md.parent.mkdir(parents=True, exist_ok=True)
+            out_md.write_text(_render_markdown(payload), encoding="utf-8", newline="\n")
+        if str(args.recommendation_format or "kv").strip().lower() == "json":
+            print(json.dumps(_compact_recommendation_payload(payload), ensure_ascii=False))
+        else:
+            print(_render_recommendation_only(payload), end="")
+        return 0
 
     out_json, out_md = _default_output_paths(root, str(payload.get("task_id") or task_id or "unknown"))
     if str(args.out_json or "").strip():

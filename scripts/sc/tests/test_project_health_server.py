@@ -30,6 +30,7 @@ def _load_module(name: str, relative_path: str):
 
 server_module = _load_module("project_health_server_test_module", "scripts/python/_project_health_server.py")
 scan_cli_module = _load_module("project_health_scan_cli_test_module", "scripts/python/project_health_scan.py")
+project_health_schema = _load_module("project_health_schema_test_module_for_server", "scripts/python/_project_health_schema.py")
 
 
 def _write(path: Path, text: str) -> None:
@@ -72,6 +73,7 @@ class ProjectHealthServerTests(unittest.TestCase):
 
             self.assertTrue(payload["reused"])
             self.assertEqual(8765, payload["port"])
+            project_health_schema.validate_project_health_server_payload(json.loads(sidecar.read_text(encoding="utf-8")))
             spawn_mock.assert_not_called()
 
     def test_ensure_project_health_server_should_spawn_and_write_server_sidecar(self) -> None:
@@ -92,6 +94,7 @@ class ProjectHealthServerTests(unittest.TestCase):
             self.assertEqual(5555, payload["pid"])
             self.assertEqual("http://127.0.0.1:8777/latest.html", payload["url"])
             self.assertEqual(8777, sidecar["port"])
+            project_health_schema.validate_project_health_server_payload(sidecar)
             spawn_mock.assert_called_once()
 
     def test_project_health_scan_cli_should_optionally_serve(self) -> None:

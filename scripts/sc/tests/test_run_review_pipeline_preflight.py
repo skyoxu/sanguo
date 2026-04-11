@@ -78,9 +78,15 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             with (
                 mock.patch.dict(os.environ, _stable_env(), clear=False),
                 mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
                 mock.patch.object(run_review_pipeline_module, "run_review_prerequisite_check", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_rerun_forbidden_payload", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_clean_pipeline_steps", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_deterministic_steps_from_llm_only_failure", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_successful_acceptance_step", return_value=None),
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step),
                 mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
             ):
@@ -118,9 +124,15 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             with (
                 mock.patch.dict(os.environ, _stable_env(), clear=False),
                 mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
                 mock.patch.object(run_review_pipeline_module, "run_review_prerequisite_check", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_rerun_forbidden_payload", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_clean_pipeline_steps", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_deterministic_steps_from_llm_only_failure", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_successful_acceptance_step", return_value=None),
                 mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
                 mock.patch.object(
                     run_review_pipeline_module,
@@ -164,9 +176,16 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             with (
                 mock.patch.dict(os.environ, _stable_env(), clear=False),
                 mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
                 mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_load_latest_task_execution_context", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_rerun_forbidden_payload", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_clean_pipeline_steps", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_deterministic_steps_from_llm_only_failure", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_successful_acceptance_step", return_value=None),
                 mock.patch.object(
                     run_review_pipeline_module,
                     "run_review_prerequisite_check",
@@ -324,7 +343,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                     "classify_change_scope_between_snapshots",
                     return_value={
                         "deterministic_strategy": "reuse-latest",
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -455,7 +474,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                     "classify_change_scope_between_snapshots",
                     return_value={
                         "deterministic_strategy": "reuse-latest",
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -757,7 +776,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                     "classify_change_scope_between_snapshots",
                     return_value={
                         "deterministic_strategy": "reuse-latest",
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -1028,7 +1047,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                     "classify_change_scope_between_snapshots",
                     return_value={
                         "deterministic_strategy": "reuse-latest",
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -1048,6 +1067,146 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             self.assertEqual("llm-only", summary["diagnostics"]["rerun_guard"]["recommended_path"])
             self.assertEqual("rerun_blocked:deterministic_green_llm_not_clean", latest["reason"])
             self.assertTrue(latest["diagnostics"]["rerun_guard"]["blocked"])
+
+    def test_main_should_block_full_rerun_when_chapter6_route_requests_inspect_first(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / f"sc-review-pipeline-task-56-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56" / "latest.json"
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "56",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, _stable_env(), clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_find_recent_deterministic_green_llm_not_clean_run", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_repeated_deterministic_failure_guard", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "_derive_chapter6_route_guard",
+                    create=True,
+                    return_value={
+                        "kind": "chapter6_route_inspect_first",
+                        "blocked": True,
+                        "recommended_path": "inspect-first",
+                        "recommended_command": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 56",
+                        "allow_override_flag": "--allow-full-rerun",
+                    },
+                ),
+                mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=AssertionError("run_step should not execute when route blocks rerun")),
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("rerun_blocked:chapter6_route_inspect_first", summary["reason"])
+            self.assertTrue(summary["diagnostics"]["rerun_guard"]["blocked"])
+            self.assertEqual("inspect-first", summary["diagnostics"]["rerun_guard"]["recommended_path"])
+
+    def test_main_should_block_full_rerun_when_chapter6_route_requests_repo_noise_stop(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / f"sc-review-pipeline-task-56-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56" / "latest.json"
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "56",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, _stable_env(), clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_find_recent_deterministic_green_llm_not_clean_run", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_repeated_deterministic_failure_guard", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "_derive_chapter6_route_guard",
+                    create=True,
+                    return_value={
+                        "kind": "chapter6_route_repo_noise_stop",
+                        "blocked": True,
+                        "recommended_path": "repo-noise-stop",
+                        "recommended_command": "py -3 scripts/python/dev_cli.py chapter6-route --task-id 56 --recommendation-only",
+                        "allow_override_flag": "",
+                    },
+                ),
+                mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=AssertionError("run_step should not execute when route blocks rerun")),
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("rerun_blocked:chapter6_route_repo_noise_stop", summary["reason"])
+            self.assertEqual("repo-noise-stop", summary["diagnostics"]["rerun_guard"]["recommended_path"])
+
+    def test_main_should_block_full_rerun_when_chapter6_route_requests_run_6_8(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / f"sc-review-pipeline-task-56-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56" / "latest.json"
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "56",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--skip-agent-review",
+            ]
+            with (
+                mock.patch.dict(os.environ, _stable_env(), clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_find_recent_deterministic_green_llm_not_clean_run", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_repeated_deterministic_failure_guard", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+                mock.patch.object(
+                    run_review_pipeline_module,
+                    "_derive_chapter6_route_guard",
+                    create=True,
+                    return_value={
+                        "kind": "chapter6_route_run_6_8",
+                        "blocked": True,
+                        "recommended_path": "run-6.8",
+                    },
+                ),
+                mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=AssertionError("run_step should not execute when route blocks rerun")),
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("rerun_blocked:chapter6_route_run_6_8", summary["reason"])
+            self.assertEqual("run-6.8", summary["diagnostics"]["rerun_guard"]["recommended_path"])
 
     def test_main_should_stop_after_first_llm_timeout_when_deterministic_already_green(self) -> None:
         run_id = uuid.uuid4().hex
@@ -1104,9 +1263,16 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             with (
                 mock.patch.dict(os.environ, _stable_env(), clear=False),
                 mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
                 mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_load_latest_task_execution_context", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_change_scope_ceiling_guard", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_derive_rerun_forbidden_payload", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_clean_pipeline_steps", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_deterministic_steps_from_llm_only_failure", return_value=None),
+                mock.patch.object(run_review_pipeline_module, "_find_reusable_successful_acceptance_step", return_value=None),
                 mock.patch.object(run_review_pipeline_module, "run_review_prerequisite_check", return_value=None),
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step),
                 mock.patch.object(run_review_pipeline_module, "_run_cli_capability_preflight", return_value=None),
@@ -1283,6 +1449,94 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             self.assertEqual("repeat_deterministic_failure", summary["diagnostics"]["rerun_guard"]["kind"])
             self.assertTrue(summary["diagnostics"]["rerun_guard"]["blocked"])
             self.assertTrue(str(summary["diagnostics"]["rerun_guard"]["fingerprint"]).startswith("sc-test|unit|2|compile_error"))
+
+    def test_main_should_block_repeated_review_needs_fix_before_llm_only_rerun(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            for suffix in ("older", "latest"):
+                previous_out_dir = tmp_root / "logs" / "ci" / "2026-04-06" / f"sc-review-pipeline-task-56-{suffix}"
+                previous_out_dir.mkdir(parents=True, exist_ok=True)
+                (previous_out_dir / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "cmd": "sc-review-pipeline",
+                            "task_id": "56",
+                            "requested_run_id": suffix,
+                            "run_id": suffix,
+                            "status": "ok",
+                            "reason": "pipeline_clean",
+                            "steps": [
+                                {"name": "sc-test", "status": "ok", "rc": 0, "log": str(previous_out_dir / "sc-test.log")},
+                                {
+                                    "name": "sc-acceptance-check",
+                                    "status": "ok",
+                                    "rc": 0,
+                                    "log": str(previous_out_dir / "sc-acceptance-check.log"),
+                                },
+                                {
+                                    "name": "sc-llm-review",
+                                    "status": "ok",
+                                    "rc": 0,
+                                    "log": str(previous_out_dir / "sc-llm-review.log"),
+                                },
+                            ],
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                (previous_out_dir / "repair-guide.json").write_text(
+                    json.dumps({"status": "needs-fix"}, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                (previous_out_dir / "execution-context.json").write_text(
+                    json.dumps(
+                        {
+                            "run_id": suffix,
+                            "delivery_profile": "fast-ship",
+                            "security_profile": "host-safe",
+                        },
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+
+            out_dir = tmp_root / "logs" / "ci" / "2026-04-07" / f"sc-review-pipeline-task-56-{run_id}"
+            latest_path = tmp_root / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-56" / "latest.json"
+            argv = [
+                str(SCRIPT),
+                "--task-id",
+                "56",
+                "--run-id",
+                run_id,
+                "--delivery-profile",
+                "fast-ship",
+                "--skip-test",
+                "--skip-acceptance",
+            ]
+            with (
+                mock.patch.dict(os.environ, _stable_env(), clear=False),
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir),
+                mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path),
+                mock.patch.object(run_review_pipeline_module, "repo_root", return_value=tmp_root),
+                mock.patch.object(run_review_pipeline_module, "resolve_triplet", return_value=self._triplet()),
+                mock.patch.object(run_review_pipeline_module, "_run_step") as run_step_mock,
+            ):
+                rc = run_review_pipeline_module.main()
+
+            self.assertEqual(1, rc)
+            run_step_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("rerun_blocked:repeat_review_needs_fix", summary["reason"])
+            self.assertEqual("repeat_review_needs_fix", summary["diagnostics"]["rerun_guard"]["kind"])
+            self.assertTrue(summary["diagnostics"]["rerun_guard"]["blocked"])
+            self.assertEqual("needs-fix-fast", summary["diagnostics"]["rerun_guard"]["recommended_path"])
 
 
 if __name__ == "__main__":

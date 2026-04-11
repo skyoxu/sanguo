@@ -104,7 +104,7 @@ def build_step_plan(
             "cmd": ["py", "-3", "scripts/python/project_health_scan.py", "--repo-root", "."],
             "artifacts": {
                 "reported_out_dir": str((repo_root() / "logs" / "ci" / "project-health")).replace("\\", "/"),
-                "summary_file": str((repo_root() / "logs" / "ci" / "project-health" / "latest.json")).replace(
+                "summary_file": str((repo_root() / "logs" / "ci" / "project-health" / "project-health-scan.latest.json")).replace(
                     "\\",
                     "/",
                 ),

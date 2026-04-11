@@ -1,0 +1,96 @@
+{
+  "kind": "project-health-scan",
+  "status": "warn",
+  "exit_code": 0,
+  "results": [
+    {
+      "kind": "detect-project-stage",
+      "status": "warn",
+      "stage": "triplet-missing",
+      "summary": "real task triplet is missing; repo is still relying on examples/taskmaster",
+      "exit_code": 0,
+      "signals": {
+        "project_godot": true,
+        "readme": true,
+        "agents": true,
+        "real_task_triplet": false,
+        "example_task_triplet": true,
+        "overlay_indexes": 0,
+        "contract_files": 0,
+        "unit_test_files": 0
+      },
+      "paths": {
+        "real_task_triplet": {
+          "tasks.json": ".taskmaster/tasks/tasks.json",
+          "tasks_back.json": ".taskmaster/tasks/tasks_back.json",
+          "tasks_gameplay.json": ".taskmaster/tasks/tasks_gameplay.json"
+        },
+        "example_task_triplet": {
+          "tasks.json": "examples/taskmaster/tasks.json",
+          "tasks_back.json": "examples/taskmaster/tasks_back.json",
+          "tasks_gameplay.json": "examples/taskmaster/tasks_gameplay.json"
+        }
+      }
+    },
+    {
+      "kind": "doctor-project",
+      "status": "warn",
+      "summary": "doctor checks: fail=0 warn=2 ok=9",
+      "exit_code": 0,
+      "counts": {
+        "fail": 0,
+        "warn": 2,
+        "ok": 9
+      },
+      "checks": [
+        {
+          "id": "project-godot",
+          "status": "ok",
+          "path": "project.godot",
+          "summary": "Godot project entry exists",
+          "recommendation": "keep current entry"
+        },
+        {
+          "id": "task-triplet-real",
+          "status": "warn",
+          "path": ".taskmaster/tasks",
+          "summary": "real task triplet is missing",
+          "recommendation": "create .taskmaster/tasks/tasks*.json before running task-scoped workflows"
+        }
+      ]
+    },
+    {
+      "kind": "check-directory-boundaries",
+      "status": "fail",
+      "summary": "boundary checks: fail=2 warn=1",
+      "exit_code": 1,
+      "violations": [
+        {
+          "rule_id": "game-core-no-godot",
+          "path": "Game.Core/Foo.cs",
+          "summary": "Godot API reference crossed a pure-code boundary"
+        },
+        {
+          "rule_id": "base-docs-no-prd-leak",
+          "path": "docs/architecture/base/01-introduction.md",
+          "summary": "PRD identifier leaked into base architecture docs"
+        }
+      ],
+      "warnings": [
+        {
+          "rule_id": "base-08-template-only",
+          "path": "docs/architecture/base/08-legacy.md",
+          "summary": "feature-slice content should stay in overlays, not base/08"
+        }
+      ],
+      "rules_checked": [
+        "game-core-no-godot",
+        "contracts-no-godot",
+        "scripts-core-no-godot",
+        "base-docs-no-prd-leak",
+        "base-08-template-only",
+        "root-taskdoc-not-tracked"
+      ]
+    }
+  ]
+}

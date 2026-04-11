@@ -1,0 +1,36 @@
+{
+  "kind": "check-directory-boundaries",
+  "status": "fail",
+  "summary": "boundary checks: fail=2 warn=1",
+  "exit_code": 1,
+  "generated_at": "2026-04-11T10:00:00+08:00",
+  "history_json": "logs/ci/2026-04-11/project-health/check-directory-boundaries-100000000000.json",
+  "latest_json": "logs/ci/project-health/check-directory-boundaries.latest.json",
+  "violations": [
+    {
+      "rule_id": "game-core-no-godot",
+      "path": "Game.Core/Foo.cs",
+      "summary": "Godot API reference crossed a pure-code boundary"
+    },
+    {
+      "rule_id": "base-docs-no-prd-leak",
+      "path": "docs/architecture/base/01-introduction.md",
+      "summary": "PRD identifier leaked into base architecture docs"
+    }
+  ],
+  "warnings": [
+    {
+      "rule_id": "base-08-template-only",
+      "path": "docs/architecture/base/08-legacy.md",
+      "summary": "feature-slice content should stay in overlays, not base/08"
+    }
+  ],
+  "rules_checked": [
+    "game-core-no-godot",
+    "contracts-no-godot",
+    "scripts-core-no-godot",
+    "base-docs-no-prd-leak",
+    "base-08-template-only",
+    "root-taskdoc-not-tracked"
+  ]
+}

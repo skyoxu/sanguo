@@ -1,0 +1,37 @@
+{
+  "kind": "doctor-project",
+  "status": "warn",
+  "summary": "doctor checks: fail=0 warn=2 ok=9",
+  "exit_code": 0,
+  "generated_at": "2026-04-11T10:00:00+08:00",
+  "history_json": "logs/ci/2026-04-11/project-health/doctor-project-100000000000.json",
+  "latest_json": "logs/ci/project-health/doctor-project.latest.json",
+  "counts": {
+    "fail": 0,
+    "warn": 2,
+    "ok": 9
+  },
+  "checks": [
+    {
+      "id": "project-godot",
+      "status": "ok",
+      "path": "project.godot",
+      "summary": "Godot project entry exists",
+      "recommendation": "keep current entry"
+    },
+    {
+      "id": "task-triplet-real",
+      "status": "warn",
+      "path": ".taskmaster/tasks",
+      "summary": "real task triplet is missing",
+      "recommendation": "create .taskmaster/tasks/tasks*.json before running task-scoped workflows"
+    },
+    {
+      "id": "godot-bin-env",
+      "status": "warn",
+      "path": "env:GODOT_BIN",
+      "summary": "GODOT_BIN is not set",
+      "recommendation": "set GODOT_BIN before running local hard checks with Godot"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+task_id=15
+run_id=run-15
+preferred_lane=run-6.8
+recommended_command=py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15
+latest_reason=rerun_blocked:repeat_review_needs_fix
+chapter6_next_action=needs-fix-fast
+blocked_by=rerun_guard
+reviewer_anchor_hit=yes
+six_eight_worthwhile=yes
+repo_noise_classification=task-issue
+residual_recording=no
