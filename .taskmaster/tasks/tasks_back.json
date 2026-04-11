@@ -6780,7 +6780,7 @@
     "story_id": "PRD-SANGUO-T3-SPLIT-SG-0114",
     "title": "Module: diagnostic retention window enforcement (split from T71)",
     "description": "Split task for A-017 retention policy.",
-    "status": "deferred",
+    "status": "done",
     "priority": "P2",
     "layer": "core",
     "depends_on": [
@@ -6806,8 +6806,8 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task114SplitTests.cs",
-      "Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs"
+      "Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs",
+      "Game.Core.Tests/Tasks/Task114V3Tests.cs"
     ],
     "acceptance": [
       "When diagnostics fall outside the configured retention window, cleanup deterministically removes them so retained diagnostics stay bounded. Refs: Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs",
