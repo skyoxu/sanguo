@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-active-task.schema.json",
+  "title": "sc-active-task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cmd",
+    "task_id",
+    "run_id",
+    "status",
+    "updated_at_utc",
+    "paths",
+    "step_summary",
+    "clean_state",
+    "diagnostics",
+    "latest_summary_signals",
+    "chapter6_hints",
+    "recommended_action",
+    "recommended_action_why",
+    "candidate_commands",
+    "recommended_command",
+    "forbidden_commands",
+    "repair_status",
+    "agent_review_recommended_action",
+    "approval",
+    "run_event_summary"
+  ],
+  "properties": {
+    "cmd": { "const": "active-task-sidecar" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "minLength": 1 },
+    "updated_at_utc": { "type": "string", "minLength": 1 },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "latest_json",
+        "out_dir",
+        "summary_json",
+        "execution_context_json",
+        "repair_guide_json",
+        "repair_guide_md"
+      ],
+      "properties": {
+        "latest_json": { "type": "string", "minLength": 1 },
+        "out_dir": { "type": "string", "minLength": 1 },
+        "summary_json": { "type": "string", "minLength": 1 },
+        "execution_context_json": { "type": "string", "minLength": 1 },
+        "repair_guide_json": { "type": "string", "minLength": 1 },
+        "repair_guide_md": { "type": "string", "minLength": 1 }
+      }
+    },
+    "step_summary": { "type": "object" },
+    "clean_state": { "type": "object" },
+    "diagnostics": { "type": "object" },
+    "latest_summary_signals": { "type": "object" },
+    "chapter6_hints": { "type": "object" },
+    "recommended_action": { "type": "string", "minLength": 1 },
+    "recommended_action_why": { "type": "string" },
+    "candidate_commands": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inspect", "resume", "fork", "rerun", "needs_fix_fast", "resume_summary"],
+      "properties": {
+        "inspect": { "type": "string", "minLength": 1 },
+        "resume": { "type": "string" },
+        "fork": { "type": "string" },
+        "rerun": { "type": "string" },
+        "needs_fix_fast": { "type": "string" },
+        "resume_summary": { "type": "string" }
+      }
+    },
+    "recommended_command": { "type": "string" },
+    "forbidden_commands": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "repair_status": { "type": "string" },
+    "agent_review_recommended_action": { "type": "string" },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "soft_gate": { "type": "boolean" },
+        "required_action": { "type": "string" },
+        "status": { "type": "string" },
+        "decision": { "type": "string" },
+        "reason": { "type": "string" },
+        "request_id": { "type": "string" },
+        "request_path": { "type": "string" },
+        "response_path": { "type": "string" },
+        "recommended_action": { "type": "string" },
+        "allowed_actions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "blocked_actions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "run_event_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string" },
+        "event_count": { "type": "integer", "minimum": 0 },
+        "turn_count": { "type": "integer", "minimum": 0 },
+        "latest_turn_id": { "type": "string" },
+        "latest_turn_seq": { "type": "integer", "minimum": 0 },
+        "latest_event": { "type": "string" },
+        "family_counts": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "latest_turn_family_counts": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "previous_turn_id": { "type": "string" },
+        "previous_turn_seq": { "type": "integer", "minimum": 0 },
+        "previous_turn_family_counts": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "turn_family_delta": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "new_reviewers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "new_sidecars": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "approval_changed": { "type": "boolean" },
+        "previous_approval": { "type": "string" },
+        "reviewers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "sidecars": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "approval": { "type": "string" }
+      }
+    }
+  }
+}

@@ -6,6 +6,10 @@ from __future__ import annotations
 import argparse
 import os
 
+from _project_health_cli_status import (
+    render_project_health_scan_ci_fail_line,
+    render_project_health_scan_status_line,
+)
 from _project_health_support import project_health_scan
 from _project_health_server import ensure_project_health_server
 
@@ -18,15 +22,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.serve and os.environ.get("CI"):
-        print("PROJECT_HEALTH_SCAN status=fail reason=serve_not_allowed_in_ci")
+        print(render_project_health_scan_ci_fail_line())
         return 2
 
     payload = project_health_scan(args.repo_root)
-    suffix = "dashboard=logs/ci/project-health/latest.html"
+    url = ""
     if args.serve:
         server = ensure_project_health_server(root=args.repo_root, preferred_port=args.port)
-        suffix += f" url={server['url']}"
-    print(f"PROJECT_HEALTH_SCAN status={payload['status']} {suffix}")
+        url = str(server["url"])
+    print(render_project_health_scan_status_line(status=str(payload["status"]), url=url))
     return int(payload.get("exit_code", 0))
 
 

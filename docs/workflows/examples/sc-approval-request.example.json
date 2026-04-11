@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "request_id": "apr-20260321-001",
+  "task_id": "10",
+  "run_id": "20260321T100000Z-10",
+  "action": "fork",
+  "reason": "Reviewer requested an isolated continuation run after the first turn stopped on a red acceptance test.",
+  "requested_files": [
+    "logs/ci/2026-03-21/sc-review-pipeline-task-10-20260321T100000Z-10/repair-guide.json",
+    "logs/ci/2026-03-21/sc-review-pipeline-task-10-20260321T100000Z-10/execution-context.json"
+  ],
+  "requested_commands": [
+    "py -3 scripts/sc/run_review_pipeline.py --task-id 10 --fork"
+  ],
+  "status": "pending",
+  "recommended_action": "pause",
+  "allowed_actions": [
+    "inspect",
+    "pause"
+  ],
+  "blocked_actions": [
+    "fork",
+    "resume",
+    "rerun"
+  ]
+}

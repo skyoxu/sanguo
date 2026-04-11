@@ -17,9 +17,11 @@ SC_DIR = REPO_ROOT / "scripts" / "sc"
 sys.path.insert(0, str(SC_DIR))
 
 import run_review_pipeline as run_review_pipeline_module  # noqa: E402
-from _pipeline_events import append_run_event  # noqa: E402
+from _pipeline_session import PipelineSession  # noqa: E402
+from _pipeline_events import append_run_event, build_run_event  # noqa: E402
 from _pipeline_helpers import has_materialized_pipeline_steps, write_latest_index  # noqa: E402
 from _pipeline_support import load_existing_summary  # noqa: E402
+from _summary_schema import SummarySchemaError, validate_pipeline_summary  # noqa: E402
 
 
 def _stable_env() -> dict[str, str]:
@@ -36,6 +38,295 @@ def _stable_env() -> dict[str, str]:
 
 
 class PipelineSidecarProtocolTests(unittest.TestCase):
+    def test_build_run_event_should_derive_taxonomy_fields(self) -> None:
+        payload = build_run_event(
+            event="step_finished",
+            task_id="1",
+            run_id="run-1",
+            delivery_profile="fast-ship",
+            security_profile="host-safe",
+            step_name="sc-test",
+            status="ok",
+            details={"rc": 0},
+        )
+
+        self.assertEqual("run-1:turn-1", payload["turn_id"])
+        self.assertEqual(1, payload["turn_seq"])
+        self.assertEqual("step", payload["item_kind"])
+        self.assertEqual("sc-test", payload["item_id"])
+        self.assertEqual("step", payload["event_family"])
+
+    def test_build_run_event_should_derive_approval_item_taxonomy(self) -> None:
+        payload = build_run_event(
+            event="approval_request_written",
+            task_id="15",
+            run_id="run-15",
+            delivery_profile="fast-ship",
+            security_profile="host-safe",
+            status="pending",
+            details={"action": "fork", "request_id": "run-15:fork"},
+        )
+
+        self.assertEqual("approval", payload["item_kind"])
+        self.assertEqual("run-15:fork", payload["item_id"])
+        self.assertEqual("approval", payload["event_family"])
+        self.assertEqual("run-15:turn-1", payload["turn_id"])
+
+    def test_pipeline_session_should_copy_active_task_recommendations_into_summary(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            emitted_events: list[dict[str, object]] = []
+            active_task_json = tmp_root / "task-1.active.json"
+            active_task_md = tmp_root / "task-1.active.md"
+            active_task_json.write_text(
+                json.dumps(
+                    {
+                        "latest_summary_signals": {
+                            "reason": "rerun_blocked:repeat_review_needs_fix",
+                            "run_type": "full",
+                            "reuse_mode": "deterministic-only-reuse",
+                            "artifact_integrity_kind": "",
+                            "diagnostics_keys": ["rerun_guard"],
+                        },
+                        "chapter6_hints": {
+                            "next_action": "needs-fix-fast",
+                            "can_skip_6_7": True,
+                            "can_go_to_6_8": True,
+                            "blocked_by": "rerun_guard",
+                            "rerun_forbidden": True,
+                            "rerun_override_flag": "--allow-full-rerun",
+                        },
+                        "recommended_action": "needs-fix-fast",
+                        "recommended_action_why": "repeat family",
+                        "candidate_commands": {
+                            "needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                            "rerun": "py -3 scripts/sc/run_review_pipeline.py --task-id 1",
+                        },
+                        "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                        "forbidden_commands": ["py -3 scripts/sc/run_review_pipeline.py --task-id 1"],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ) + "\n",
+                encoding="utf-8",
+            )
+            active_task_md.write_text("# active\n", encoding="utf-8")
+
+            session = PipelineSession(
+                args=type("Args", (), {"dry_run": False, "fork": False})(),
+                out_dir=out_dir,
+                task_id="1",
+                run_id=run_id,
+                turn_id=f"{run_id}:turn-1",
+                turn_seq=1,
+                requested_run_id=run_id,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                llm_review_context={},
+                summary={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "1",
+                    "requested_run_id": run_id,
+                    "run_id": run_id,
+                    "allow_overwrite": False,
+                    "force_new_run_id": False,
+                    "status": "fail",
+                    "steps": [
+                        {
+                            "name": "sc-test",
+                            "cmd": ["py", "-3", "scripts/sc/test.py"],
+                            "rc": 1,
+                            "status": "fail",
+                            "log": str(out_dir / "sc-test.log"),
+                        }
+                    ],
+                    "started_at_utc": "2026-04-10T00:00:00+00:00",
+                    "finished_at_utc": "2026-04-10T00:00:05+00:00",
+                    "elapsed_sec": 5,
+                    "run_type": "full",
+                    "reason": "step_failed:sc-test",
+                    "reuse_mode": "none",
+                },
+                marathon_state={"steps": {}, "diagnostics": {}, "agent_review": {}},
+                agent_review_mode="off",
+                schema_error_log=out_dir / "summary-schema-validation-error.log",
+                apply_runtime_policy=lambda state: state,
+                apply_agent_review_signal=lambda state, _review: state,
+                validate_pipeline_summary=validate_pipeline_summary,
+                summary_schema_error=SummarySchemaError,
+                write_harness_capabilities=lambda **_: None,
+                write_json=lambda path, payload: path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"),
+                write_text=lambda path, content: path.write_text(content, encoding="utf-8"),
+                save_marathon_state=lambda _out_dir, _state: None,
+                build_repair_guide=lambda *_args, **_kwargs: {
+                    "schema_version": "1.0.0",
+                    "status": "needs-fix",
+                    "task_id": "1",
+                    "summary_status": "fail",
+                    "failed_step": "sc-test",
+                    "approval": {},
+                    "generated_from": {},
+                    "recommendations": [],
+                },
+                sync_soft_approval_sidecars=lambda **_: {"events": []},
+                build_execution_context=lambda **kwargs: {
+                    "schema_version": "1.0.0",
+                    "recommended_action": str((kwargs.get("summary") or {}).get("recommended_action") or ""),
+                    "recommended_command": str((kwargs.get("summary") or {}).get("recommended_command") or ""),
+                    "forbidden_commands": list((kwargs.get("summary") or {}).get("forbidden_commands") or []),
+                    "chapter6_hints": dict((kwargs.get("summary") or {}).get("chapter6_hints") or {}),
+                },
+                render_repair_guide_markdown=lambda _payload: "# repair\n",
+                append_run_event=lambda **kwargs: emitted_events.append(dict(kwargs)),
+                write_latest_index=lambda **_: None,
+                write_active_task_sidecar=lambda **_: (active_task_json, active_task_md),
+                record_step_result=lambda state, _step: state,
+                upsert_step=lambda _summary, _step: None,
+                append_step_event=lambda **_: None,
+                run_step=lambda **_: {},
+                can_retry_failed_step=lambda *_: False,
+                step_is_already_complete=lambda *_: False,
+                wall_time_exceeded=lambda *_: False,
+                mark_wall_time_exceeded=lambda state: state,
+                cap_step_timeout=lambda timeout, _state: timeout,
+                run_agent_review_post_hook=lambda **_: (0, {}),
+                refresh_summary_meta=lambda _summary: None,
+            )
+
+            persisted = session.persist()
+
+            self.assertTrue(persisted)
+            summary_payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            execution_context_payload = json.loads((out_dir / "execution-context.json").read_text(encoding="utf-8"))
+            self.assertEqual("needs-fix-fast", summary_payload["recommended_action"])
+            self.assertEqual(
+                "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                summary_payload["recommended_command"],
+            )
+            self.assertEqual(
+                ["py -3 scripts/sc/run_review_pipeline.py --task-id 1"],
+                summary_payload["forbidden_commands"],
+            )
+            self.assertEqual("needs-fix-fast", summary_payload["chapter6_hints"]["next_action"])
+            self.assertEqual("needs-fix-fast", execution_context_payload["recommended_action"])
+            self.assertEqual(
+                "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                execution_context_payload["recommended_command"],
+            )
+            self.assertEqual(
+                ["py -3 scripts/sc/run_review_pipeline.py --task-id 1"],
+                execution_context_payload["forbidden_commands"],
+            )
+            self.assertEqual("needs-fix-fast", execution_context_payload["chapter6_hints"]["next_action"])
+            event_names = [str(item.get("event") or "") for item in emitted_events]
+            self.assertIn("sidecar_harness_capabilities_synced", event_names)
+            self.assertIn("sidecar_execution_context_synced", event_names)
+            self.assertIn("sidecar_repair_guide_synced", event_names)
+            self.assertIn("sidecar_latest_index_synced", event_names)
+            self.assertIn("sidecar_active_task_synced", event_names)
+
+    def test_pipeline_session_finish_should_emit_reviewer_event(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / f"sc-review-pipeline-task-1-{run_id}"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            emitted_events: list[dict[str, object]] = []
+
+            session = PipelineSession(
+                args=type("Args", (), {"dry_run": False, "fork": False, "skip_agent_review": False})(),
+                out_dir=out_dir,
+                task_id="1",
+                run_id=run_id,
+                turn_id=f"{run_id}:turn-1",
+                turn_seq=1,
+                requested_run_id=run_id,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                llm_review_context={},
+                summary={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "1",
+                    "requested_run_id": run_id,
+                    "run_id": run_id,
+                    "allow_overwrite": False,
+                    "force_new_run_id": False,
+                    "status": "ok",
+                    "steps": [],
+                    "started_at_utc": "2026-04-10T00:00:00+00:00",
+                    "finished_at_utc": "",
+                    "elapsed_sec": 0,
+                    "run_type": "full",
+                    "reason": "pipeline_clean",
+                    "reuse_mode": "none",
+                },
+                marathon_state={"steps": {}, "diagnostics": {}, "agent_review": {}},
+                agent_review_mode="warn",
+                schema_error_log=out_dir / "summary-schema-validation-error.log",
+                apply_runtime_policy=lambda state: state,
+                apply_agent_review_signal=lambda state, _review: state,
+                validate_pipeline_summary=validate_pipeline_summary,
+                summary_schema_error=SummarySchemaError,
+                write_harness_capabilities=lambda **_: None,
+                write_json=lambda path, payload: path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"),
+                write_text=lambda path, content: path.write_text(content, encoding="utf-8"),
+                save_marathon_state=lambda _out_dir, _state: None,
+                build_repair_guide=lambda *_args, **_kwargs: {
+                    "schema_version": "1.0.0",
+                    "status": "not-needed",
+                    "task_id": "1",
+                    "summary_status": "ok",
+                    "failed_step": "",
+                    "approval": {},
+                    "generated_from": {},
+                    "recommendations": [],
+                },
+                sync_soft_approval_sidecars=lambda **_: {"events": []},
+                build_execution_context=lambda **kwargs: {
+                    "schema_version": "1.0.0",
+                    "recommended_action": str((kwargs.get("summary") or {}).get("recommended_action") or ""),
+                    "recommended_command": str((kwargs.get("summary") or {}).get("recommended_command") or ""),
+                    "forbidden_commands": list((kwargs.get("summary") or {}).get("forbidden_commands") or []),
+                    "chapter6_hints": dict((kwargs.get("summary") or {}).get("chapter6_hints") or {}),
+                },
+                render_repair_guide_markdown=lambda _payload: "# repair\n",
+                append_run_event=lambda **kwargs: emitted_events.append(dict(kwargs)),
+                write_latest_index=lambda **_: None,
+                write_active_task_sidecar=lambda **_: (),
+                record_step_result=lambda state, _step: state,
+                upsert_step=lambda _summary, _step: None,
+                append_step_event=lambda **_: None,
+                run_step=lambda **_: {},
+                can_retry_failed_step=lambda *_: False,
+                step_is_already_complete=lambda *_: False,
+                wall_time_exceeded=lambda *_: False,
+                mark_wall_time_exceeded=lambda state: state,
+                cap_step_timeout=lambda timeout, _state: timeout,
+                run_agent_review_post_hook=lambda **_: (
+                    0,
+                    {
+                        "steps": {},
+                        "diagnostics": {},
+                        "agent_review": {
+                            "review_verdict": "needs-fix",
+                            "recommended_action": "fork",
+                        },
+                    },
+                ),
+                refresh_summary_meta=lambda _summary: None,
+            )
+
+            rc = session.finish()
+
+            self.assertEqual(0, rc)
+            reviewer_event = next(item for item in emitted_events if item.get("event") == "reviewer_completed")
+            self.assertEqual("reviewer", reviewer_event["item_kind"])
+            self.assertEqual("artifact-reviewer", reviewer_event["item_id"])
+            self.assertEqual("ok", reviewer_event["status"])
+            self.assertEqual("fork", reviewer_event["details"]["recommended_action"])
+
     def test_dry_run_should_write_run_events_and_capabilities(self) -> None:
         run_id = uuid.uuid4().hex
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -74,9 +365,16 @@ class PipelineSidecarProtocolTests(unittest.TestCase):
             ]
             self.assertGreaterEqual(len(events), 4)
             self.assertEqual("run_started", events[0]["event"])
-            self.assertEqual("run_completed", events[-1]["event"])
+            self.assertIn("run_completed", {item["event"] for item in events})
             self.assertIn("step_skipped", {item["event"] for item in events})
             self.assertIn("step_planned", {item["event"] for item in events})
+            self.assertEqual("run", events[0]["item_kind"])
+            self.assertEqual(f"{run_id}:turn-1", events[0]["turn_id"])
+            self.assertEqual(1, events[0]["turn_seq"])
+            planned = next(item for item in events if item["event"] == "step_planned")
+            self.assertEqual("step", planned["item_kind"])
+            self.assertTrue(str(planned["item_id"]).strip())
+            self.assertEqual("step", planned["event_family"])
 
             capabilities = json.loads((out_dir / "harness-capabilities.json").read_text(encoding="utf-8"))
             self.assertEqual("1.0.0", capabilities["protocol_version"])
@@ -722,6 +1020,9 @@ class ApprovalContractTests(unittest.TestCase):
             request_id="req-1",
         )
         response = build_approval_response(
+            task_id="1",
+            run_id="run-1",
+            action="fork",
             request_id="req-1",
             decision="approved",
             reviewer="human",
@@ -732,7 +1033,30 @@ class ApprovalContractTests(unittest.TestCase):
         validate_approval_response_payload(response)
 
         self.assertEqual("pending", request["status"])
+        self.assertEqual("pause", request["recommended_action"])
+        self.assertEqual(["inspect", "pause"], request["allowed_actions"])
+        self.assertEqual(["fork", "resume", "rerun"], request["blocked_actions"])
         self.assertEqual("approved", response["decision"])
+        self.assertEqual("fork", response["action"])
+        self.assertEqual("1", response["task_id"])
+        self.assertEqual("run-1", response["run_id"])
+        self.assertEqual("fork", response["recommended_action"])
+        self.assertEqual(["fork", "inspect"], response["allowed_actions"])
+        self.assertEqual(["resume", "rerun"], response["blocked_actions"])
+
+    def test_build_approval_request_should_reject_unknown_action(self) -> None:
+        from _approval_contract import build_approval_request
+
+        with self.assertRaises(Exception):
+            build_approval_request(
+                task_id="1",
+                run_id="run-1",
+                action="resume",
+                reason="unsupported action should fail validation",
+                requested_files=[],
+                requested_commands=[],
+                request_id="req-1",
+            )
 
 
 if __name__ == "__main__":

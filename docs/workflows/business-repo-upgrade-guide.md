@@ -26,25 +26,26 @@
 3. Task-scoped review pipeline runs now write stable `active-task` sidecars under `logs/ci/active-tasks/`, and `resume_task.py` consumes them before falling back to deeper artifact inspection. This gives business repos a shorter recovery path after context reset without changing the canonical `resume-task` entrypoint.
 4. Recovery consumers now surface explicit Chapter 6 stop-loss reasoning from task-scoped artifacts, including `rerun_guard`, `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, and `waste_signals`, so operators can avoid paying for another wasteful full rerun.
 5. Recovery readers should also surface `recommended_action_why`; when the resolved action is `needs-fix-fast`, business repos should prefer targeted closure instead of reopening a full rerun.
-4. Docs and routing now distinguish between:
+6. Chapter 6 now has a stable route preflight entrypoint: `py -3 scripts/python/dev_cli.py chapter6-route --task-id <id> --recommendation-only`. Full-parity business repos should copy both the route producer/consumer scripts and the docs that explain `chapter6_route_*`, `chapter6_route_lane`, and `repo_noise_reason`.
+7. Docs and routing now distinguish between:
    - compare-range migration reports (`business-repo-upgrade-guide.md`),
    - stable migration protocol (`template-upgrade-protocol.md`),
    - directory responsibility routing (`docs/agents/16-directory-responsibilities.md`),
    - and exploration-vs-delivery separation (`docs/workflows/prototype-lane.md`, `docs/prototypes/`).
-5. Prototype work now has an explicit pre-task lane. This is intentionally separate from `DELIVERY_PROFILE`; business repos should not use prototype artifacts as completed formal task output.
-6. A repo-scoped hard-check entrypoint: `py -3 scripts/python/dev_cli.py run-local-hard-checks`.
-7. A task-scoped unified review entrypoint with profile-aware review behavior: `py -3 scripts/sc/run_review_pipeline.py`.
-8. Consumer-driven sidecar schemas for execution context, repair guide, latest pointer, harness capabilities, approval requests, and run events.
-9. Delivery-profile-driven runtime behavior across `sc-test`, `tdd`, acceptance, run-review-pipeline, and LLM semantic gates.
-10. Task-level `semantic_review_tier` hints in task views, with stop-loss escalation rules.
-11. Unified low-priority technical debt sync into `docs/technical-debt.md`.
-12. Strict acceptance test generation with red-first verification and deterministic C# conventions gate.
-13. Split `sc-test` / `tdd` orchestration helpers and stronger task-ref resolution, including template fallback from `.taskmaster/tasks` to `examples/taskmaster`.
-14. Overlay generation tooling for PRD -> Overlay 08 scaffold and repair flows.
-15. Recovery-doc scaffolding and validation for `execution-plans/` and `decision-logs/`.
-16. Repo-scoped health commands and a lightweight local dashboard: `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, and `serve-project-health`.
-17. `run-local-hard-checks` now begins with a deterministic repo-health prelude and writes/refreshes `logs/ci/project-health/latest.json` plus `latest.html` before the hard validation chain.
-18. A decomposed `AGENTS.md` plus `docs/agents/**` knowledge map instead of one oversized root instruction file.
+8. Prototype work now has an explicit pre-task lane. This is intentionally separate from `DELIVERY_PROFILE`; business repos should not use prototype artifacts as completed formal task output.
+9. A repo-scoped hard-check entrypoint: `py -3 scripts/python/dev_cli.py run-local-hard-checks`.
+10. A task-scoped unified review entrypoint with profile-aware review behavior: `py -3 scripts/sc/run_review_pipeline.py`.
+11. Consumer-driven sidecar schemas for execution context, repair guide, latest pointer, harness capabilities, approval requests, and run events.
+12. Delivery-profile-driven runtime behavior across `sc-test`, `tdd`, acceptance, `run-review-pipeline`, and LLM semantic gates.
+13. Task-level `semantic_review_tier` hints in task views, with stop-loss escalation rules.
+14. Unified low-priority technical debt sync into `docs/technical-debt.md`.
+15. Strict acceptance test generation with red-first verification and deterministic C# conventions gate.
+16. Split `sc-test` / `tdd` orchestration helpers and stronger task-ref resolution, including template fallback from `.taskmaster/tasks` to `examples/taskmaster`.
+17. Overlay generation tooling for PRD -> Overlay 08 scaffold and repair flows.
+18. Recovery-doc scaffolding and validation for `execution-plans/` and `decision-logs/`.
+19. Repo-scoped health commands and a lightweight local dashboard: `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, and `serve-project-health`.
+20. `run-local-hard-checks` now begins with a deterministic repo-health prelude and writes/refreshes `logs/ci/project-health/latest.json` plus `latest.html` before the hard validation chain.
+21. A decomposed `AGENTS.md` plus `docs/agents/**` knowledge map instead of one oversized root instruction file.
 
 ## Migration Strategy
 
@@ -161,7 +162,7 @@ Reason:
 - Migration impact:
   - Copy the producer (`run_review_pipeline.py`, `_pipeline_session.py`, `_active_task_sidecar.py`) and the consumer (`scripts/python/resume_task.py`) in the same batch.
   - Do not copy only the docs or only the consumer; the value depends on producer and consumer both existing.
-  - If the target repo wants full Chapter 6 parity, also copy the stop-loss readers (`scripts/python/inspect_run.py`) and the docs that explain those signals (`workflow.md`, `docs/agents/00-index.md`, `docs/agents/01-session-recovery.md`, `docs/workflows/stable-public-entrypoints.md`, `docs/workflows/run-protocol.md`).
+  - If the target repo wants full Chapter 6 parity, also copy the stop-loss readers and route preflight entrypoint (`scripts/python/inspect_run.py`, `scripts/python/chapter6_route.py`, `scripts/python/_chapter6_recovery_common.py`, `scripts/python/_recovery_doc_scaffold.py`) plus the docs that explain those signals (`workflow.md`, `docs/agents/00-index.md`, `docs/agents/01-session-recovery.md`, `docs/workflows/stable-public-entrypoints.md`, `docs/workflows/run-protocol.md`, `docs/workflows/project-health-dashboard.md`).
   - The task recovery default command remains `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`.
   - `active-task` is a shorter summary sidecar, not a replacement for the canonical recovery entrypoint.
 
@@ -198,6 +199,13 @@ Copy this bundle together:
 29. `scripts/sc/tests/test_agent_to_agent_review.py`
 30. `scripts/sc/tests/test_llm_review_tier.py`
 31. `scripts/sc/tests/test_review_technical_debt.py`
+32. `scripts/python/chapter6_route.py`
+33. `scripts/python/_chapter6_recovery_common.py`
+34. `scripts/python/_recovery_doc_scaffold.py`
+35. `scripts/python/tests/test_chapter6_route.py`
+36. `scripts/python/tests/test_chapter6_recovery_common.py`
+37. `scripts/python/tests/test_inspect_run.py`
+38. `scripts/python/tests/test_resume_task.py`
 
 Reason:
 
@@ -396,10 +404,10 @@ Run these on Windows after copying and adapting the files:
    - `py -3 scripts/python/validate_docs_utf8_no_bom.py`
 3. Repo-scoped hard checks:
    - `py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin C:\Godot\Godot_v4.5.1-stable_mono_win64_console.exe`
-   - `py -3 scripts/python/inspect_run.py --kind local-hard-checks`
+   - `py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks`
 4. Task-scoped review pipeline:
    - `py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --skip-llm-review`
-   - `py -3 scripts/python/inspect_run.py --kind pipeline --task-id <id>`
+   - `py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id <id>`
 5. Acceptance-test generation and C# conventions:
    - `py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify auto --godot-bin "$env:GODOT_BIN"`
    - `py -3 scripts/python/check_csharp_test_conventions.py --task-id <id>`

@@ -78,7 +78,16 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         "reason",
         "reuse_mode",
     }
-    allowed = required | {"diagnostics"}
+    allowed = required | {
+        "diagnostics",
+        "latest_summary_signals",
+        "chapter6_hints",
+        "recommended_action",
+        "recommended_action_why",
+        "candidate_commands",
+        "recommended_command",
+        "forbidden_commands",
+    }
     for key in required:
         if key not in payload:
             errors.append(f"$.{key}: missing required property")
@@ -123,6 +132,20 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         errors.append(f"$.reuse_mode: must be one of {sorted(PIPELINE_REUSE_MODE)}")
     if "diagnostics" in payload and not isinstance(payload.get("diagnostics"), dict):
         errors.append("$.diagnostics: must be object when present")
+    if "latest_summary_signals" in payload and not isinstance(payload.get("latest_summary_signals"), dict):
+        errors.append("$.latest_summary_signals: must be object when present")
+    if "chapter6_hints" in payload and not isinstance(payload.get("chapter6_hints"), dict):
+        errors.append("$.chapter6_hints: must be object when present")
+    if "recommended_action" in payload and not _is_non_empty_string(payload.get("recommended_action")):
+        errors.append("$.recommended_action: must be non-empty string when present")
+    if "recommended_action_why" in payload and not _is_non_empty_string(payload.get("recommended_action_why")):
+        errors.append("$.recommended_action_why: must be non-empty string when present")
+    if "candidate_commands" in payload and not isinstance(payload.get("candidate_commands"), dict):
+        errors.append("$.candidate_commands: must be object when present")
+    if "recommended_command" in payload and not _is_non_empty_string(payload.get("recommended_command")):
+        errors.append("$.recommended_command: must be non-empty string when present")
+    if "forbidden_commands" in payload and not _is_string_list(payload.get("forbidden_commands"), allow_empty=True):
+        errors.append("$.forbidden_commands: must be array of non-empty strings when present")
 
     steps = payload.get("steps")
     if not isinstance(steps, list):

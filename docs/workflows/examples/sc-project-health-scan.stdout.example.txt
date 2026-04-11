@@ -1,0 +1,1 @@
+PROJECT_HEALTH_SCAN status=warn dashboard=logs/ci/project-health/latest.html url=http://127.0.0.1:8765/latest.html

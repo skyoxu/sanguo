@@ -1,0 +1,15 @@
+task_id=repo
+run_id=local-demo
+failure_code=step-failed
+recommended_action=rerun
+recommended_command=py -3 scripts/python/dev_cli.py run-local-hard-checks --run-id local-demo
+forbidden_commands=none
+latest_reason=n/a
+chapter6_next_action=fix-and-resume
+blocked_by=deterministic_failure
+approval_status=not-needed
+approval_recommended_action=continue
+approval_allowed_actions=continue
+approval_blocked_actions=none
+latest_turn=n/a
+turn_count=0

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-project-health-report-catalog.schema.json",
+  "title": "sc-project-health-report-catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "total_json",
+    "invalid_json",
+    "entries"
+  ],
+  "properties": {
+    "total_json": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "invalid_json": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "kind",
+          "status",
+          "generated_at",
+          "summary",
+          "size_bytes",
+          "modified_at",
+          "parse_error",
+          "highlights"
+        ],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "minLength": 1 },
+          "status": { "type": "string" },
+          "generated_at": { "type": "string" },
+          "summary": { "type": "string" },
+          "size_bytes": { "type": "integer", "minimum": 0 },
+          "modified_at": { "type": "string" },
+          "parse_error": { "type": "string" },
+          "highlights": { "type": "object" }
+        }
+      }
+    }
+  }
+}

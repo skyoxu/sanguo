@@ -1,0 +1,12 @@
+{
+  "cmd": "local-hard-checks",
+  "task_id": "repo",
+  "run_id": "local-hard-checks-20260411T110000",
+  "status": "fail",
+  "out_dir": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000",
+  "summary_path": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/summary.json",
+  "execution_context_path": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/execution-context.json",
+  "repair_guide_json_path": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/repair-guide.json",
+  "repair_guide_md_path": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/repair-guide.md",
+  "run_events_path": "logs/ci/2026-04-11/local-hard-checks-local-hard-checks-20260411T110000/run-events.jsonl"
+}

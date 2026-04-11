@@ -36,10 +36,12 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 ### Repo bootstrap and recovery
 
 - `scripts/python/dev_cli.py`
+- `scripts/python/chapter6_route.py`
 - `scripts/python/inspect_run.py`
 - `scripts/python/project_health_scan.py`
 - `scripts/python/serve_project_health.py`
 - `scripts/python/resume_task.py`
+- `scripts/python/run_single_task_chapter6_lane.py`
 
 ### Repo hard gates
 
@@ -62,6 +64,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/sc/llm_generate_tests_from_acceptance_refs.py`
 - `scripts/python/run_single_task_light_lane_batch.py`
 - `scripts/python/run_single_task_light_lane.py`
+- `scripts/python/run_single_task_chapter6_lane.py`
 - `scripts/python/merge_single_task_light_lane_summaries.py`
 
 ### Taskmaster / semantics / overlay
@@ -178,6 +181,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/python/project_health_scan.py`
 - `scripts/python/quality_gates.py`
 - `scripts/python/resume_task.py`
+- `scripts/python/run_single_task_chapter6_lane.py`
 - `scripts/python/run_dotnet.py`
 - `scripts/python/run_gate_bundle.py`
 - `scripts/python/run_gdunit.py`
@@ -198,6 +202,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/sc/llm_generate_red_test.py`
 - `scripts/sc/llm_generate_tests_from_acceptance_refs.py`
 - `scripts/python/run_single_task_light_lane.py`
+- `scripts/python/run_single_task_chapter6_lane.py`
 - `scripts/sc/llm_review.py`
 - `scripts/sc/llm_review_needs_fix_fast.py`
 - `scripts/sc/run_review_pipeline.py`
@@ -902,8 +907,8 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 
 - Direct local deps: `scripts/python/dev_cli_builders.py`, `scripts/python/local_hard_checks_harness.py`
 - Transitive local deps: `scripts/python/dev_cli_builders.py`, `scripts/python/local_hard_checks_harness.py`, `scripts/python/local_hard_checks_support.py`
-- Subcommands: `run-ci-basic`, `run-quality-gates`, `run-local-hard-checks`, `run-local-hard-checks-preflight`, `run-gdunit-hard`, `run-gdunit-full`, `run-preflight`, `run-acceptance-preflight`, `run-smoke-strict`, `new-execution-plan`, `new-decision-log`, `resume-task`, `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, `serve-project-health`
-- Declared args: `--solution`, `--configuration`, `--godot-bin`, `--delivery-profile`, `--task-file`, `--out-dir`, `--run-id`, `--legacy-preflight`, `--build-solutions`, `--gdunit-hard`, `--smoke`, `--timeout-sec`, `--test-project`, `--title`, `--status`, `--goal`, `--scope`, `--current-step`, `--stop-loss`, `--next-action`, `--exit-criteria`, `--adr`, `--decision-log`, `--task-id`, `--stage`, `--latest-json`, `--output`, `--why-now`, `--context`, `--decision`, `--consequences`, `--recovery-impact`, `--validation`, `--supersedes`, `--superseded-by`, `--execution-plan`, `--repo-root`, `--latest`, `--out-json`, `--out-md`, `--serve`, `--port`
+- Subcommands: `run-ci-basic`, `run-quality-gates`, `run-local-hard-checks`, `run-local-hard-checks-preflight`, `run-gdunit-hard`, `run-gdunit-full`, `run-preflight`, `run-acceptance-preflight`, `run-smoke-strict`, `new-execution-plan`, `new-decision-log`, `resume-task`, `inspect-run`, `chapter6-route`, `run-single-task-chapter6`, `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, `serve-project-health`
+- Declared args: `--solution`, `--configuration`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--fix-through`, `--task-file`, `--out-dir`, `--run-id`, `--legacy-preflight`, `--build-solutions`, `--gdunit-hard`, `--smoke`, `--timeout-sec`, `--test-project`, `--title`, `--status`, `--goal`, `--scope`, `--current-step`, `--stop-loss`, `--next-action`, `--exit-criteria`, `--adr`, `--decision-log`, `--task-id`, `--stage`, `--latest-json`, `--output`, `--why-now`, `--context`, `--decision`, `--consequences`, `--recovery-impact`, `--validation`, `--supersedes`, `--superseded-by`, `--execution-plan`, `--repo-root`, `--latest`, `--kind`, `--record-residual`, `--out-json`, `--out-md`, `--recommendation-only`, `--recommendation-format`, `--serve`, `--port`, `--self-check`
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Engine-side options require a local Godot .NET console binary; without it, Godot/GdUnit/smoke stages will skip or fail depending on the script.
@@ -936,13 +941,41 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - Direct local deps: None.
 - Transitive local deps: None.
 - Subcommands: None.
-- Declared args: `--repo-root`, `--latest`, `--kind`, `--task-id`, `--run-id`, `--out-json`
+- Declared args: `--repo-root`, `--latest`, `--kind`, `--task-id`, `--run-id`, `--out-json`, `--recommendation-only`
 - Behavior notes: pipeline inspection now extracts `latest_summary_signals` (`reason`, `run_type`, `reuse_mode`, `artifact_integrity`, `diagnostics_keys`) and derived `chapter6_hints` (`next_action`, `can_skip_6_7`, `can_go_to_6_8`, `blocked_by`).
+- Behavior notes: `--recommendation-only` prints the compact recovery block instead of the full JSON payload, which is useful when only the next stop-loss / rerun decision is needed.
 - Behavior notes: `chapter6_hints.blocked_by` now also covers `llm_retry_stop_loss`, `sc_test_retry_stop_loss`, and `waste_signals`, not only generic rerun guard states.
 - Behavior notes: if inspection resolves `run_type = planned-only`, `reason = planned_only_incomplete`, or `blocked_by = artifact_integrity`, the bundle must be treated as evidence-only rather than a resumable producer run.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
+
+#### `scripts/python/chapter6_route.py`
+
+- Direct local deps: `scripts/python/resume_task.py`, `scripts/python/_recovery_doc_scaffold.py`
+- Transitive local deps: `scripts/python/inspect_run.py`, `scripts/python/resume_task.py`, `scripts/python/_recovery_doc_scaffold.py`, `scripts/sc/llm_review_needs_fix_fast.py`
+- Subcommands: None.
+- Declared args: `--repo-root`, `--task-id`, `--run-id`, `--latest`, `--record-residual`, `--out-json`, `--out-md`, `--recommendation-only`, `--recommendation-format`
+- Behavior notes: reads recovery artifacts first, then routes Chapter 6 to `run-6.7`, `run-6.8`, `fix-deterministic`, `repo-noise-stop`, `record-residual`, or `inspect-first`.
+- Behavior notes: `6.8` is only recommended when current edits hit the previous reviewer anchors.
+- Behavior notes: `--record-residual` writes `decision-logs/**` and `execution-plans/**` when only low-priority findings remain.
+- Parameter prerequisites:
+  - Windows PowerShell + `py -3` from repo root.
+  - Task-scoped parameters require real recovery artifacts under `logs/ci/**`.
+
+#### `scripts/python/run_single_task_chapter6_lane.py`
+
+- Direct local deps: None.
+- Transitive local deps: None.
+- Subcommands: None.
+- Declared args: `--task-id`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--fix-through`, `--out-dir`, `--self-check`
+- Behavior notes: starts from `resume-task` and `chapter6-route`, then routes to either the full `6.3 -> 6.9` path or the narrower `6.8` closure path based on recovery artifacts.
+- Behavior notes: default policy is `playable-ea -> fix-through P0`, `fast-ship -> fix-through P1`, `standard -> fix-through P1`; residual `P2/P3` findings are recorded by default instead of being auto-reopened.
+- Behavior notes: `--self-check` writes the resolved command plan without executing the Chapter 6 tools.
+- Parameter prerequisites:
+  - Windows PowerShell + `py -3` from repo root.
+  - Task-scoped parameters require a Taskmaster triplet and normal Chapter 6 entrypoint availability.
+  - `--godot-bin` is strongly recommended because the lane includes repo-level hard checks and may need engine-side verification.
 
 #### `scripts/python/new_decision_log.py`
 
@@ -1011,8 +1044,9 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - Direct local deps: `scripts/python/inspect_run.py`, `scripts/python/validate_recovery_docs.py`
 - Transitive local deps: `scripts/python/inspect_run.py`, `scripts/python/validate_recovery_docs.py`
 - Subcommands: None.
-- Declared args: `--repo-root`, `--task-id`, `--run-id`, `--latest`, `--out-json`, `--out-md`
+- Declared args: `--repo-root`, `--task-id`, `--run-id`, `--latest`, `--out-json`, `--out-md`, `--recommendation-only`
 - Behavior notes: recovery summaries now surface `latest_summary_signals`, `chapter6_hints`, and a derived `Chapter6 stop-loss note` so operators can see why another full `6.7` would be wasteful; this includes `run_type`, `artifact_integrity`, and planned-only terminal bundle handling.
+- Behavior notes: `--recommendation-only` prints the compact recovery recommendation and skips the default JSON/Markdown writes unless explicit output paths are requested.
 - Behavior notes: recovery outputs also surface `recommended_action_why`; when the resolved action is `needs-fix-fast`, operators should prefer targeted closure instead of another full rerun.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
@@ -1279,6 +1313,7 @@ Notes:
   - Deterministic reuse can scan recent same-task pipeline artifacts across dates; git snapshot or security-profile mismatch still disables reuse.
   - `--final-pass` disables deterministic shortcuts and reviewer auto-shrink, forces a full reviewer set, and is intended for the last closure run before handoff/PR.
 - Behavior notes: round summaries now record `timeout_agents`; when `rc=124` and no child summary was produced, `failure_kind` becomes `timeout-no-summary` so timeout-only rounds are not misread as clean.
+- Behavior notes: before paying for deterministic / LLM work, the script now consumes `chapter6-route` when a recoverable prior run already has `agent-review.json`; only `preferred_lane = run-6.8` may continue, while `inspect-first` / `repo-noise-stop` / `fix-deterministic` / `run-6.7` become controlled stop-loss exits and `record-residual` can auto-write follow-up docs.
 
 #### `scripts/sc/run_review_pipeline.py`
 
@@ -1292,6 +1327,7 @@ Notes:
 - Behavior notes: when deterministic is already green in the same invocation and `sc-llm-review` hits a first long timeout, the pipeline records `diagnostics.llm_retry_stop_loss` and skips a second long wait in that round.
 - Behavior notes: when the same invocation already proves a known `sc-test` unit failure, the pipeline records `diagnostics.sc_test_retry_stop_loss` and stops the same-run retry instead of paying for another identical attempt.
 - Behavior notes: bundles ending as `run_type = planned-only` / `reason = planned_only_incomplete` are evidence-only and must not be reused as producer-run recovery baselines.
+- Behavior notes: before a fresh full rerun pays refactor preflight or deterministic cost, the script now consumes `chapter6-route`; recoverable tasks route-block to `inspect-first`, `repo-noise-stop`, `fix-deterministic`, or `run-6.8` instead of blindly reopening 6.7.
 - Behavior notes: `--llm-base` defaults to `origin/main`.
 - Behavior notes: `--allow-full-unit-fallback` only affects the internal `sc-test` call when task-scoped unit coverage fails at `0.0%`; default delivery profiles keep this off to avoid accidental repo-wide retries.
 - Parameter prerequisites:

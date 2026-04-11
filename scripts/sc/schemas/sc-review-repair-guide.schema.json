@@ -117,6 +117,21 @@
         },
         "response_path": {
           "type": "string"
+        },
+        "recommended_action": {
+          "type": "string"
+        },
+        "allowed_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blocked_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     }

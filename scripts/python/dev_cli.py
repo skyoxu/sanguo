@@ -25,9 +25,12 @@ from dev_cli_builders import (
     build_legacy_ci_pipeline_cmd,
     build_new_decision_log_cmd,
     build_new_execution_plan_cmd,
+    build_inspect_run_cmd,
+    build_chapter6_route_cmd,
     build_preflight_cmd,
     build_project_health_scan_cmd,
     build_resume_task_cmd,
+    build_run_single_task_chapter6_cmd,
     build_quality_gates_cmd,
     build_run_dotnet_cmd,
     build_run_gdunit_full_cmd,
@@ -224,6 +227,24 @@ def cmd_resume_task(args: argparse.Namespace) -> int:
     return run(build_resume_task_cmd(args))
 
 
+def cmd_inspect_run(args: argparse.Namespace) -> int:
+    """Inspect the latest local harness run and emit a recovery summary."""
+
+    return run(build_inspect_run_cmd(args))
+
+
+def cmd_chapter6_route(args: argparse.Namespace) -> int:
+    """Route Chapter 6 rerun/stop-loss decisions through the stable recovery entrypoint."""
+
+    return run(build_chapter6_route_cmd(args))
+
+
+def cmd_run_single_task_chapter6(args: argparse.Namespace) -> int:
+    """Run the Chapter 6 single-task orchestrator."""
+
+    return run(build_run_single_task_chapter6_cmd(args))
+
+
 def cmd_detect_project_stage(args: argparse.Namespace) -> int:
     """Detect the current repo stage and refresh project-health artifacts."""
 
@@ -395,7 +416,48 @@ def build_parser() -> argparse.ArgumentParser:
     p_rt.add_argument("--latest", default="")
     p_rt.add_argument("--out-json", default="")
     p_rt.add_argument("--out-md", default="")
+    p_rt.add_argument("--recommendation-only", action="store_true")
+    p_rt.add_argument("--recommendation-format", default="", choices=["", "kv", "json"])
     p_rt.set_defaults(func=cmd_resume_task)
+
+    # inspect-run
+    p_ir = sub.add_parser("inspect-run", help="inspect the latest local harness run and emit a stable recovery summary")
+    p_ir.add_argument("--repo-root", default=".")
+    p_ir.add_argument("--latest", default="")
+    p_ir.add_argument("--kind", default="", choices=["", "pipeline", "local-hard-checks"])
+    p_ir.add_argument("--task-id", default="")
+    p_ir.add_argument("--run-id", default="")
+    p_ir.add_argument("--out-json", default="")
+    p_ir.add_argument("--recommendation-only", action="store_true")
+    p_ir.add_argument("--recommendation-format", default="", choices=["", "kv", "json"])
+    p_ir.set_defaults(func=cmd_inspect_run)
+
+    # chapter6-route
+    p_c6 = sub.add_parser("chapter6-route", help="route Chapter 6 recovery decisions through the artifact-aware entrypoint")
+    p_c6.add_argument("--repo-root", default=".")
+    p_c6.add_argument("--task-id", default="")
+    p_c6.add_argument("--run-id", default="")
+    p_c6.add_argument("--latest", default="")
+    p_c6.add_argument("--record-residual", action="store_true")
+    p_c6.add_argument("--out-json", default="")
+    p_c6.add_argument("--out-md", default="")
+    p_c6.add_argument("--recommendation-only", action="store_true")
+    p_c6.add_argument("--recommendation-format", default="", choices=["", "kv", "json"])
+    p_c6.set_defaults(func=cmd_chapter6_route)
+
+    # run-single-task-chapter6
+    p_ch6 = sub.add_parser(
+        "run-single-task-chapter6",
+        help="run the Chapter 6 single-task orchestrator with profile-aware defaults",
+    )
+    p_ch6.add_argument("--task-id", required=True)
+    p_ch6.add_argument("--godot-bin", default="")
+    p_ch6.add_argument("--delivery-profile", default="")
+    p_ch6.add_argument("--security-profile", default="")
+    p_ch6.add_argument("--fix-through", default="", choices=["", "P0", "P1", "P2", "P3"])
+    p_ch6.add_argument("--out-dir", default="")
+    p_ch6.add_argument("--self-check", action="store_true")
+    p_ch6.set_defaults(func=cmd_run_single_task_chapter6)
 
     # detect-project-stage
     p_stage = sub.add_parser("detect-project-stage", help="detect repo stage and refresh project-health artifacts")

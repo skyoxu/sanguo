@@ -936,7 +936,7 @@ class NeedsFixFastTargetedTimeoutTests(unittest.TestCase):
                     return_value={
                         "deterministic_strategy": "reuse-latest",
                         "doc_only_delta": True,
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature-slice.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature-slice.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -1236,6 +1236,179 @@ class NeedsFixFastUnknownStopLossTests(unittest.TestCase):
             self.assertEqual("pipeline-llm-unknown-stop-loss", summary["timeline"][0]["name"])
 
 
+class NeedsFixFastChapter6RouteTests(unittest.TestCase):
+    def test_main_should_stop_before_deterministic_when_chapter6_route_requests_inspect_first(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "2026-04-10" / "sc-needs-fix-fast-task-56"
+            argv = [
+                "llm_review_needs_fix_fast.py",
+                "--task-id",
+                "56",
+                "--delivery-profile",
+                "fast-ship",
+            ]
+
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(needs_fix_fast, "repo_root", return_value=root),
+                mock.patch.object(needs_fix_fast, "ci_dir", return_value=out_dir),
+                mock.patch.object(needs_fix_fast, "try_skip_when_latest_pipeline_already_clean", return_value=None),
+                mock.patch.object(needs_fix_fast, "try_stop_when_latest_llm_unknown_without_anchor_fix", return_value=None),
+                mock.patch.object(
+                    needs_fix_fast,
+                    "_run_chapter6_route_preflight",
+                    return_value={
+                        "task_id": "56",
+                        "run_id": "route-run",
+                        "preferred_lane": "inspect-first",
+                        "recommended_command": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 56",
+                        "blocked_by": "recent_failure_summary",
+                        "repo_noise_classification": "task-issue",
+                    },
+                ),
+                mock.patch.object(needs_fix_fast, "run_step") as run_step_mock,
+            ):
+                rc = needs_fix_fast.main()
+
+            self.assertEqual(1, rc)
+            run_step_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("indeterminate", summary["status"])
+            self.assertEqual("chapter6_route_inspect_first", summary["reason"])
+            self.assertEqual("inspect-first", summary["route_preflight"]["preferred_lane"])
+            self.assertEqual("chapter6-route-preflight", summary["timeline"][0]["name"])
+
+    def test_main_should_continue_when_chapter6_route_requests_run_6_8(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "2026-04-10" / "sc-needs-fix-fast-task-56"
+            argv = [
+                "llm_review_needs_fix_fast.py",
+                "--task-id",
+                "56",
+                "--delivery-profile",
+                "fast-ship",
+                "--agents",
+                "code-reviewer",
+                "--max-rounds",
+                "1",
+            ]
+            calls: list[str] = []
+
+            def _run_step(*, name: str, cmd: list[str], out_dir: Path, timeout_sec: int, script_start: float, budget_min: int) -> dict[str, object]:
+                calls.append(name)
+                reported_out_dir, summary_file = _write_llm_pipeline_artifacts(
+                    out_dir,
+                    name,
+                    results=[{"agent": "code-reviewer", "status": "ok", "rc": 0, "details": {"verdict": "OK"}}],
+                )
+                return {
+                    "name": name,
+                    "status": "ok",
+                    "rc": 0,
+                    "duration_sec": 1.0,
+                    "remaining_before_sec": 1000,
+                    "remaining_after_sec": 999,
+                    "cmd": list(cmd),
+                    "log_file": str(out_dir / f"{name}.log"),
+                    "reported_out_dir": reported_out_dir,
+                    "summary_file": summary_file,
+                }
+
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(needs_fix_fast, "repo_root", return_value=root),
+                mock.patch.object(needs_fix_fast, "ci_dir", return_value=out_dir),
+                mock.patch.object(needs_fix_fast, "try_skip_when_latest_pipeline_already_clean", return_value=None),
+                mock.patch.object(needs_fix_fast, "try_stop_when_latest_llm_unknown_without_anchor_fix", return_value=None),
+                mock.patch.object(
+                    needs_fix_fast,
+                    "_run_chapter6_route_preflight",
+                    return_value={
+                        "task_id": "56",
+                        "run_id": "route-run",
+                        "preferred_lane": "run-6.8",
+                        "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 56",
+                        "repo_noise_classification": "task-issue",
+                    },
+                ),
+                mock.patch.object(
+                    needs_fix_fast,
+                    "try_reuse_latest_deterministic_step",
+                    return_value={
+                        "name": "pipeline-deterministic",
+                        "status": "reused",
+                        "rc": 0,
+                        "duration_sec": 0.0,
+                        "remaining_before_sec": 300,
+                        "remaining_after_sec": 300,
+                        "cmd": ["py", "-3", "scripts/sc/run_review_pipeline.py"],
+                        "log_file": str(out_dir / "pipeline-deterministic.log"),
+                        "reported_out_dir": str(out_dir / "deterministic"),
+                        "summary_file": str(out_dir / "deterministic" / "summary.json"),
+                        "reused_run_id": "run-ok",
+                        "reuse_reason": "latest_successful_deterministic_pipeline",
+                    },
+                ),
+                mock.patch.object(needs_fix_fast, "infer_initial_run_agents", return_value=(["code-reviewer"], "configured-defaults")),
+                mock.patch.object(needs_fix_fast, "run_step", side_effect=_run_step),
+            ):
+                rc = needs_fix_fast.main()
+
+            self.assertEqual(0, rc)
+            self.assertEqual(["pipeline-llm-round-1"], calls)
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("run-6.8", summary["route_preflight"]["preferred_lane"])
+            self.assertEqual("ok", summary["status"])
+
+    def test_main_should_record_residual_and_stop_without_running_llm(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "2026-04-10" / "sc-needs-fix-fast-task-56"
+            argv = [
+                "llm_review_needs_fix_fast.py",
+                "--task-id",
+                "56",
+                "--delivery-profile",
+                "fast-ship",
+            ]
+
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(needs_fix_fast, "repo_root", return_value=root),
+                mock.patch.object(needs_fix_fast, "ci_dir", return_value=out_dir),
+                mock.patch.object(needs_fix_fast, "try_skip_when_latest_pipeline_already_clean", return_value=None),
+                mock.patch.object(needs_fix_fast, "try_stop_when_latest_llm_unknown_without_anchor_fix", return_value=None),
+                mock.patch.object(
+                    needs_fix_fast,
+                    "_run_chapter6_route_preflight",
+                    return_value={
+                        "task_id": "56",
+                        "run_id": "route-run",
+                        "preferred_lane": "record-residual",
+                        "recommended_command": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 56",
+                        "repo_noise_classification": "task-issue",
+                        "residual_recording": {
+                            "eligible": True,
+                            "performed": True,
+                            "decision_log_path": "decision-logs/task-56-chapter6-residual-needs-fix.md",
+                            "execution_plan_path": "execution-plans/task-56-chapter6-residual-followup.md",
+                        },
+                    },
+                ),
+                mock.patch.object(needs_fix_fast, "run_step") as run_step_mock,
+            ):
+                rc = needs_fix_fast.main()
+
+            self.assertEqual(0, rc)
+            run_step_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("ok", summary["status"])
+            self.assertEqual("chapter6_route_recorded_residual", summary["reason"])
+            self.assertTrue(summary["residual_recording"]["performed"])
+
+
 class NeedsFixFastBudgetPredictionTests(unittest.TestCase):
     def test_main_should_stop_before_llm_when_recent_timeout_history_exceeds_remaining_budget(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -1411,8 +1584,8 @@ class NeedsFixFastTargetedReviewerSelectionTests(unittest.TestCase):
                         "cmd": ["py", "-3", "scripts/sc/acceptance_check.py", "--task-id", "56", "--only", "adr,links,overlay"],
                         "change_scope": {
                             "deterministic_strategy": "minimal-acceptance",
-                            "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature.md"],
-                            "task_semantic_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature.md"],
+                            "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature.md"],
+                            "task_semantic_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature.md"],
                         },
                     },
                 ),

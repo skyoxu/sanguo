@@ -2,7 +2,7 @@
 
 Use this file after a context reset.
 
-Preferred command: `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`.
+Preferred command: `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`. For a quick next-step read, prefer `py -3 scripts/python/dev_cli.py resume-task --task-id <id> --recommendation-only` first.
 
 ## Recovery Order
 1. Read `AGENTS.md`.
@@ -17,7 +17,7 @@ Preferred command: `py -3 scripts/python/dev_cli.py resume-task --task-id <id>`.
 10. From that latest index, open `summary.json`, `execution-context.json`, and `repair-guide.md`.
 11. If `agent_review_json_path` or `agent_review_md_path` exists in `latest.json`, read that next before rerunning anything.
 12. Do not use `run_review_pipeline.py --dry-run` as a recovery pointer producer: dry-run still writes local artifacts in its own `out_dir`, but it no longer publishes `latest.json` or `active-task` sidecars.
-13. If `inspect_run.py --kind pipeline --task-id <id>` resolves a newer dry-run pointer, it now skips that candidate automatically and falls back to the newest real recoverable run.
+13. If `py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id <id>` resolves a newer dry-run pointer, it now skips that candidate automatically and falls back to the newest real recoverable run.
 14. If `active-task` and `latest.json` disagree about the active bundle, trust `latest.json` first; `active-task` now follows that bundle on the next refresh.
 15. If `active-task` or `inspect_run` surfaces `artifact_integrity`, do not pay for another blind rerun until you confirm whether the producer bundle is stale, incomplete, missing `run_completed`, or only a `planned-only` terminal bundle.
 

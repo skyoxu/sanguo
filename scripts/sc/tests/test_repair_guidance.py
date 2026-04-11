@@ -26,7 +26,20 @@ class RepairGuidanceTests(unittest.TestCase):
                 out_dir=out_dir,
                 delivery_profile="fast-ship",
                 security_profile="host-safe",
-                summary={"status": "fail", "steps": [{"name": "sc-test", "status": "fail"}]},
+                llm_review_context={},
+                summary={
+                    "status": "fail",
+                    "steps": [{"name": "sc-test", "status": "fail"}],
+                    "recommended_action": "needs-fix-fast",
+                    "recommended_action_why": "repeat family",
+                    "candidate_commands": {
+                        "needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                    },
+                    "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                    "forbidden_commands": ["py -3 scripts/sc/run_review_pipeline.py --task-id 1"],
+                    "latest_summary_signals": {"reason": "rerun_blocked:repeat_review_needs_fix"},
+                    "chapter6_hints": {"next_action": "needs-fix-fast"},
+                },
                 marathon_state={
                     "diff_stats": {
                         "baseline": {"total_lines": 10, "categories": ["scripts"], "axes": ["implementation"]},
@@ -45,6 +58,18 @@ class RepairGuidanceTests(unittest.TestCase):
             self.assertEqual(["governance", "implementation"], payload["marathon"]["diff_current_axes"])
             self.assertEqual(["docs"], payload["marathon"]["diff_growth_new_categories"])
             self.assertEqual(["governance"], payload["marathon"]["diff_growth_new_axes"])
+            self.assertEqual("needs-fix-fast", payload["recommended_action"])
+            self.assertEqual("repeat family", payload["recommended_action_why"])
+            self.assertEqual(
+                "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                payload["recommended_command"],
+            )
+            self.assertEqual(
+                ["py -3 scripts/sc/run_review_pipeline.py --task-id 1"],
+                payload["forbidden_commands"],
+            )
+            self.assertEqual("rerun_blocked:repeat_review_needs_fix", payload["latest_summary_signals"]["reason"])
+            self.assertEqual("needs-fix-fast", payload["chapter6_hints"]["next_action"])
 
     def test_build_repair_guide_should_mark_not_needed_when_no_failed_step(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -58,6 +83,62 @@ class RepairGuidanceTests(unittest.TestCase):
             payload = build_repair_guide(summary, task_id="1", out_dir=out_dir)
             self.assertEqual("not-needed", payload["status"])
             self.assertEqual([], payload["recommendations"])
+
+    def test_build_repair_guide_should_surface_repo_noise_route_stop_loss(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            summary = {
+                "status": "fail",
+                "reason": "rerun_blocked:chapter6_route_repo_noise_stop",
+                "steps": [],
+            }
+            payload = build_repair_guide(
+                summary,
+                task_id="1",
+                out_dir=out_dir,
+                marathon_state={
+                    "status": "stopped",
+                    "stop_reason": "rerun_blocked:chapter6_route_repo_noise_stop",
+                    "diagnostics": {
+                        "rerun_guard": {
+                            "kind": "chapter6_route_repo_noise_stop",
+                            "blocked": True,
+                            "recommended_path": "repo-noise-stop",
+                        }
+                    },
+                },
+            )
+            self.assertEqual("needs-fix", payload["status"])
+            ids = {item["id"] for item in payload["recommendations"]}
+            self.assertIn("chapter6-route-repo-noise", ids)
+
+    def test_build_repair_guide_should_surface_run_6_8_route_stop_loss(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            summary = {
+                "status": "fail",
+                "reason": "rerun_blocked:chapter6_route_run_6_8",
+                "steps": [],
+            }
+            payload = build_repair_guide(
+                summary,
+                task_id="1",
+                out_dir=out_dir,
+                marathon_state={
+                    "status": "stopped",
+                    "stop_reason": "rerun_blocked:chapter6_route_run_6_8",
+                    "diagnostics": {
+                        "rerun_guard": {
+                            "kind": "chapter6_route_run_6_8",
+                            "blocked": True,
+                            "recommended_path": "run-6.8",
+                        }
+                    },
+                },
+            )
+            self.assertEqual("needs-fix", payload["status"])
+            ids = {item["id"] for item in payload["recommendations"]}
+            self.assertIn("chapter6-route-run-6-8", ids)
 
     def test_build_repair_guide_should_suggest_project_path_fix_for_msb1009(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

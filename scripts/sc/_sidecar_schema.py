@@ -36,6 +36,10 @@ def approval_response_schema_path() -> Path:
     return _schemas_dir() / "sc-approval-response.schema.json"
 
 
+def active_task_schema_path() -> Path:
+    return _schemas_dir() / "sc-active-task.schema.json"
+
+
 def _load_schema(path: Path, label: str) -> dict[str, Any]:
     if not path.exists():
         raise SidecarSchemaError(f"{label} schema not found: {path}")
@@ -97,12 +101,45 @@ def _require_string_list(payload: dict[str, Any], key: str, errors: list[str]) -
 
 def _validate_run_event_fallback(payload: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    for key in ("schema_version", "ts", "event", "task_id", "run_id", "delivery_profile", "security_profile"):
+    allowed_event_families = {
+        "acceptance-preflight",
+        "approval",
+        "custom",
+        "recovery",
+        "reviewer",
+        "run",
+        "runtime-guard",
+        "sidecar",
+        "step",
+    }
+    allowed_item_kinds = {"approval", "reviewer", "run", "sidecar", "step", "task"}
+    for key in (
+        "schema_version",
+        "ts",
+        "event",
+        "event_family",
+        "task_id",
+        "run_id",
+        "turn_id",
+        "turn_seq",
+        "delivery_profile",
+        "security_profile",
+        "item_kind",
+        "item_id",
+    ):
+        if key == "turn_seq":
+            if not isinstance(payload.get(key), int) or int(payload.get(key) or 0) < 1:
+                errors.append("$.turn_seq: expected integer >= 1")
+            continue
         _require_string(payload, key, errors)
     if payload.get("step_name") is not None and not isinstance(payload.get("step_name"), str):
         errors.append("$.step_name: expected string or null")
     if payload.get("status") is not None and not isinstance(payload.get("status"), str):
         errors.append("$.status: expected string or null")
+    if isinstance(payload.get("event_family"), str) and payload["event_family"] not in allowed_event_families:
+        errors.append(f"$.event_family: expected one of {sorted(allowed_event_families)}")
+    if isinstance(payload.get("item_kind"), str) and payload["item_kind"] not in allowed_item_kinds:
+        errors.append(f"$.item_kind: expected one of {sorted(allowed_item_kinds)}")
     _require_object(payload, "details", errors)
     return errors
 
@@ -123,8 +160,17 @@ def _validate_approval_request_fallback(payload: dict[str, Any]) -> list[str]:
         _require_string(payload, key, errors)
     _require_string_list(payload, "requested_files", errors)
     _require_string_list(payload, "requested_commands", errors)
+    if str(payload.get("action") or "").strip() != "fork":
+        errors.append("$.action: expected 'fork'")
     if str(payload.get("status") or "").strip() != "pending":
         errors.append("$.status: expected 'pending'")
+    if "recommended_action" in payload:
+        recommended_action = payload.get("recommended_action")
+        if recommended_action not in {"inspect", "pause"}:
+            errors.append("$.recommended_action: expected 'inspect' or 'pause'")
+    for key in ("allowed_actions", "blocked_actions"):
+        if key in payload:
+            _require_string_list(payload, key, errors)
     return errors
 
 
@@ -132,8 +178,69 @@ def _validate_approval_response_fallback(payload: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     for key in ("schema_version", "request_id", "decision", "reviewer", "reason"):
         _require_string(payload, key, errors)
+    for key in ("task_id", "run_id", "action"):
+        if key in payload and not isinstance(payload.get(key), str):
+            errors.append(f"$.{key}: expected string")
+    if "action" in payload and str(payload.get("action") or "").strip() != "fork":
+        errors.append("$.action: expected 'fork'")
     if str(payload.get("decision") or "").strip() not in {"approved", "denied"}:
         errors.append("$.decision: expected 'approved' or 'denied'")
+    if "recommended_action" in payload:
+        recommended_action = payload.get("recommended_action")
+        if recommended_action not in {"fork", "inspect", "pause", "resume"}:
+            errors.append("$.recommended_action: expected 'fork', 'inspect', 'pause', or 'resume'")
+    for key in ("allowed_actions", "blocked_actions"):
+        if key in payload:
+            _require_string_list(payload, key, errors)
+    return errors
+
+
+def _validate_active_task_fallback(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for key in (
+        "cmd",
+        "task_id",
+        "run_id",
+        "status",
+        "updated_at_utc",
+        "recommended_action",
+        "recommended_action_why",
+        "recommended_command",
+        "repair_status",
+        "agent_review_recommended_action",
+    ):
+        if key in {"recommended_action_why", "recommended_command", "repair_status", "agent_review_recommended_action"}:
+            if not isinstance(payload.get(key), str):
+                errors.append(f"$.{key}: expected string")
+            continue
+        _require_string(payload, key, errors)
+    if str(payload.get("cmd") or "").strip() != "active-task-sidecar":
+        errors.append("$.cmd: expected 'active-task-sidecar'")
+    for key in ("paths", "step_summary", "clean_state", "diagnostics", "latest_summary_signals", "chapter6_hints", "candidate_commands", "approval", "run_event_summary"):
+        _require_object(payload, key, errors)
+    _require_string_list(payload, "forbidden_commands", errors)
+    paths = payload.get("paths") if isinstance(payload.get("paths"), dict) else {}
+    for key in ("latest_json", "out_dir", "summary_json", "execution_context_json", "repair_guide_json", "repair_guide_md"):
+        _require_string(paths, key, errors)
+    commands = payload.get("candidate_commands") if isinstance(payload.get("candidate_commands"), dict) else {}
+    for key in ("inspect", "resume", "fork", "rerun", "needs_fix_fast", "resume_summary"):
+        if key == "inspect":
+            _require_string(commands, key, errors)
+        elif not isinstance(commands.get(key), str):
+            errors.append(f"$.candidate_commands.{key}: expected string")
+    approval = payload.get("approval") if isinstance(payload.get("approval"), dict) else {}
+    for key in ("allowed_actions", "blocked_actions"):
+        if key in approval:
+            _require_string_list(approval, key, errors)
+    run_event_summary = payload.get("run_event_summary") if isinstance(payload.get("run_event_summary"), dict) else {}
+    for key in ("event_count", "turn_count", "latest_turn_seq", "previous_turn_seq"):
+        if key in run_event_summary and (not isinstance(run_event_summary.get(key), int) or int(run_event_summary.get(key) or 0) < 0):
+            errors.append(f"$.run_event_summary.{key}: expected integer >= 0")
+    if "approval_changed" in run_event_summary and not isinstance(run_event_summary.get("approval_changed"), bool):
+        errors.append("$.run_event_summary.approval_changed: expected boolean")
+    for key in ("new_reviewers", "new_sidecars", "reviewers", "sidecars"):
+        if key in run_event_summary:
+            _require_string_list(run_event_summary, key, errors)
     return errors
 
 
@@ -183,4 +290,13 @@ def validate_approval_response_payload(payload: dict[str, Any]) -> None:
         schema_path=approval_response_schema_path(),
         label="sc-approval-response",
         fallback_validator=_validate_approval_response_fallback,
+    )
+
+
+def validate_active_task_payload(payload: dict[str, Any]) -> None:
+    _validate_payload(
+        payload=payload,
+        schema_path=active_task_schema_path(),
+        label="sc-active-task",
+        fallback_validator=_validate_active_task_fallback,
     )

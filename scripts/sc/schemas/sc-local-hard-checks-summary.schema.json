@@ -132,7 +132,37 @@
         "summary_file": {
           "type": "string"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "name": {
+                "const": "project-health-scan"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "then": {
+            "required": [
+              "reported_out_dir",
+              "summary_file"
+            ],
+            "properties": {
+              "reported_out_dir": {
+                "type": "string",
+                "pattern": "logs/ci/project-health$"
+              },
+              "summary_file": {
+                "type": "string",
+                "pattern": "logs/ci/project-health/project-health-scan\\.latest\\.json$"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

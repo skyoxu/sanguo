@@ -87,6 +87,30 @@
     "diagnostics": {
       "type": "object"
     },
+    "latest_summary_signals": {
+      "type": "object"
+    },
+    "chapter6_hints": {
+      "type": "object"
+    },
+    "recommended_action": {
+      "type": "string"
+    },
+    "recommended_action_why": {
+      "type": "string"
+    },
+    "candidate_commands": {
+      "type": "object"
+    },
+    "recommended_command": {
+      "type": "string"
+    },
+    "forbidden_commands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "steps": {
       "type": "array",
       "items": {

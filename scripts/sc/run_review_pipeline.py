@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import shutil
+import sys
 import time
 import uuid
 from datetime import datetime, timezone
@@ -48,7 +49,7 @@ from _marathon_state import (
     step_is_already_complete,
 )
 from _pipeline_approval import sync_soft_approval_sidecars
-from _pipeline_events import append_run_event
+from _pipeline_events import append_run_event, build_turn_id
 from _pipeline_helpers import allocate_out_dir as _allocate_out_dir_impl
 from _pipeline_helpers import append_step_event as _append_step_event_impl
 from _pipeline_helpers import build_parser as _build_parser_impl
@@ -71,6 +72,10 @@ from _pipeline_support import (
 )
 from _llm_review_cli import parse_agent_timeout_overrides, resolve_agents
 from _change_scope import classify_change_scope_between_snapshots
+from _pipeline_history import collect_recent_failure_summary
+
+from _repair_approval import resolve_approval_state
+
 from _repair_guidance import build_execution_context, build_repair_guide, render_repair_guide_markdown
 from _risk_profile_floor import derive_delivery_profile_floor
 from _taskmaster import resolve_triplet
@@ -628,6 +633,83 @@ def _find_repeated_deterministic_failure_guard(
         "fingerprint": str(matches[0].get("fingerprint") or ""),
         "recent_runs": matches,
     }
+
+
+def _find_repeated_review_needs_fix_guard(
+    *,
+    task_id: str,
+    delivery_profile: str,
+    security_profile: str,
+) -> dict[str, Any] | None:
+    recent_failure_summary = collect_recent_failure_summary(
+        task_id=task_id,
+        delivery_profile=delivery_profile,
+        security_profile=security_profile,
+        root=repo_root(),
+        limit=3,
+    )
+    if not bool(recent_failure_summary.get("stop_full_rerun_recommended")):
+        return None
+    latest_family = str(recent_failure_summary.get("latest_failure_family") or "").strip()
+    if not latest_family.startswith("review-needs-fix|"):
+        return None
+    same_family_count = int(recent_failure_summary.get("same_family_count") or 0)
+    if same_family_count < 2:
+        return None
+    return {
+        "kind": "repeat_review_needs_fix",
+        "blocked": True,
+        "recommended_path": "needs-fix-fast",
+        "family": latest_family,
+        "same_family_count": same_family_count,
+        "same_family_run_ids": [
+            str(item).strip()
+            for item in list(recent_failure_summary.get("same_family_run_ids") or [])
+            if str(item).strip()
+        ],
+        "allow_override_flag": "--allow-full-rerun",
+    }
+
+
+
+def _derive_chapter6_route_guard(
+    *,
+    task_id: str,
+    delivery_profile: str,
+    security_profile: str,
+) -> dict[str, Any] | None:
+    python_dir = repo_root() / "scripts" / "python"
+    if str(python_dir) not in sys.path:
+        sys.path.insert(0, str(python_dir))
+    try:
+        from chapter6_route import route_chapter6  # noqa: WPS433
+    except Exception:
+        return None
+
+    try:
+        _rc, payload = route_chapter6(
+            repo_root=repo_root(),
+            task_id=task_id,
+            record_residual=False,
+        )
+    except Exception:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    run_id = str(payload.get("run_id") or "").strip()
+    if not run_id:
+        return None
+    preferred_lane = str(payload.get("preferred_lane") or "").strip()
+    if preferred_lane in {"", "run-6.7"}:
+        return None
+
+    kind_suffix = preferred_lane.replace("-", "_")
+    return {
+        "kind": f"chapter6_route_{kind_suffix}",
+        "blocked": True,
+        "recommended_path": preferred_lane,
+    }
+
 
 
 def _derive_summary_reason(summary: dict[str, Any]) -> str:
@@ -1312,7 +1394,7 @@ def _derive_pipeline_run_type(summary: dict[str, Any]) -> str:
     return _derive_pipeline_run_type_impl(summary)
 
 
-def _write_active_task_sidecar(*, task_id: str, run_id: str, out_dir: Path, status: str) -> None:
+def _write_active_task_sidecar(*, task_id: str, run_id: str, out_dir: Path, status: str) -> tuple[Path, Path]:
     effective_status = status
     latest_path = _pipeline_latest_index_path(task_id)
     if latest_path.exists():
@@ -1324,7 +1406,7 @@ def _write_active_task_sidecar(*, task_id: str, run_id: str, out_dir: Path, stat
                     effective_status = latest_status
         except Exception:
             pass
-    _write_active_task_sidecar_impl(
+    return _write_active_task_sidecar_impl(
         task_id=task_id,
         run_id=run_id,
         out_dir=out_dir,
@@ -1368,6 +1450,8 @@ def _append_step_event(
     out_dir: Path,
     task_id: str,
     run_id: str,
+    turn_id: str | None,
+    turn_seq: int | None,
     delivery_profile: str,
     security_profile: str,
     step: dict[str, Any],
@@ -1376,6 +1460,8 @@ def _append_step_event(
         out_dir=out_dir,
         task_id=task_id,
         run_id=run_id,
+        turn_id=turn_id,
+        turn_seq=turn_seq,
         delivery_profile=delivery_profile,
         security_profile=security_profile,
         step=step,
@@ -1402,6 +1488,36 @@ def _load_source_run(task_id: str, selector_run_id: str | None) -> tuple[Path, d
         load_existing_summary_fn=_load_existing_summary,
         load_marathon_state_fn=load_marathon_state,
     )
+
+
+def _approval_block_message(*, action: str, approval: dict[str, Any]) -> str:
+    status = str(approval.get("status") or "").strip().lower()
+    if action == "resume" and status == "pending":
+        return "fork approval is pending; pause recovery until approval is approved or denied."
+    if action == "resume" and status == "approved":
+        return "fork approval is approved; resume is blocked, use --fork."
+    if action == "fork" and status == "denied":
+        return "fork approval was denied; fork is blocked, use --resume instead."
+    if action in {"resume", "fork"} and status in {"invalid", "mismatched"}:
+        return "approval sidecars are invalid or mismatched; inspect the approval artifacts before continuing."
+    if action == "fork" and status == "pending":
+        return "fork approval is pending; wait for approval before using --fork."
+    return ""
+
+
+def _enforce_approval_contract(*, action: str, source_out_dir: Path, source_execution_context: dict[str, Any] | None) -> tuple[bool, str]:
+    execution_approval = {}
+    if isinstance(source_execution_context, dict) and isinstance(source_execution_context.get("approval"), dict):
+        execution_approval = source_execution_context.get("approval") or {}
+    approval = resolve_approval_state(out_dir=source_out_dir, approval_state=execution_approval)
+    if str(approval.get("required_action") or "").strip().lower() != "fork":
+        return False, ""
+    status = str(approval.get("status") or "").strip().lower()
+    if action == "resume" and status in {"pending", "approved", "invalid", "mismatched"}:
+        return True, _approval_block_message(action=action, approval=approval)
+    if action == "fork" and status in {"pending", "denied", "invalid", "mismatched"}:
+        return True, _approval_block_message(action=action, approval=approval)
+    return False, ""
 
 
 def _run_acceptance_preflight(
@@ -1444,6 +1560,8 @@ def _run_acceptance_preflight(
                 event="acceptance_preflight_skipped",
                 task_id=task_id,
                 run_id=run_id,
+                turn_id=session.turn_id,
+                turn_seq=session.turn_seq,
                 delivery_profile=delivery_profile,
                 security_profile=security_profile,
                 status="skipped",
@@ -1478,6 +1596,8 @@ def _run_acceptance_preflight(
             event="acceptance_preflight_completed",
             task_id=task_id,
             run_id=run_id,
+            turn_id=session.turn_id,
+            turn_seq=session.turn_seq,
             delivery_profile=delivery_profile,
             security_profile=security_profile,
             status="ok",
@@ -1519,11 +1639,28 @@ def main() -> int:
         if args.resume or args.abort:
             out_dir, summary, marathon_state = _load_source_run(task_id, (args.run_id or "").strip() or None)
             source_execution_context = _read_execution_context(out_dir)
+            if args.resume:
+                blocked, message = _enforce_approval_contract(
+                    action="resume",
+                    source_out_dir=out_dir,
+                    source_execution_context=source_execution_context,
+                )
+                if blocked:
+                    print(f"[sc-review-pipeline] ERROR: {message}")
+                    return 2
             run_id = str(summary.get("run_id") or "").strip() or run_id
             requested_run_id = str(summary.get("requested_run_id") or run_id).strip() or run_id
         elif args.fork:
             source_out_dir, source_summary, source_state = _load_source_run(task_id, (args.fork_from_run_id or "").strip() or None)
             source_execution_context = _read_execution_context(source_out_dir)
+            blocked, message = _enforce_approval_contract(
+                action="fork",
+                source_out_dir=source_out_dir,
+                source_execution_context=source_execution_context,
+            )
+            if blocked:
+                print(f"[sc-review-pipeline] ERROR: {message}")
+                return 2
             source_delivery_profile, _source_security_profile = _resolve_pipeline_profiles(
                 requested_delivery_profile=args.delivery_profile,
                 requested_security_profile=args.security_profile,
@@ -1705,12 +1842,16 @@ def main() -> int:
         llm_execution_context["requested_agent_timeout_overrides"] = requested_llm_agent_timeout_overrides
     if llm_agent_timeout_overrides:
         llm_execution_context["agent_timeout_overrides"] = llm_agent_timeout_overrides
+    current_turn_seq = max(1, int((marathon_state or {}).get("resume_count") or 1))
+    current_turn_id = build_turn_id(run_id=run_id, turn_seq=current_turn_seq)
     if args.abort:
         append_run_event(
             out_dir=out_dir,
             event="run_aborted",
             task_id=task_id,
             run_id=run_id,
+            turn_id=current_turn_id,
+            turn_seq=current_turn_seq,
             delivery_profile=delivery_profile,
             security_profile=security_profile,
             status="aborted",
@@ -1726,12 +1867,16 @@ def main() -> int:
             print("[sc-review-pipeline] ERROR: the selected run is aborted and cannot be resumed.")
             return 2
         marathon_state = resume_state(marathon_state, max_step_retries=max_step_retries, max_wall_time_sec=args.max_wall_time_sec)
+        current_turn_seq = max(1, int((marathon_state or {}).get("resume_count") or 1))
+        current_turn_id = build_turn_id(run_id=run_id, turn_seq=current_turn_seq)
 
     append_run_event(
         out_dir=out_dir,
         event="run_resumed" if args.resume else "run_forked" if args.fork else "run_started",
         task_id=task_id,
         run_id=run_id,
+        turn_id=current_turn_id,
+        turn_seq=current_turn_seq,
         delivery_profile=delivery_profile,
         security_profile=security_profile,
         status=str(summary.get("status") or "ok"),
@@ -1750,6 +1895,8 @@ def main() -> int:
         out_dir=out_dir,
         task_id=task_id,
         run_id=run_id,
+        turn_id=current_turn_id,
+        turn_seq=current_turn_seq,
         requested_run_id=requested_run_id,
         delivery_profile=delivery_profile,
         security_profile=security_profile,
@@ -1814,18 +1961,50 @@ def main() -> int:
         llm_diff_mode=llm_diff_mode,
     )
     force_full_rerun = False
-    if not bool(args.resume or args.fork or args.dry_run or args.skip_test or args.skip_acceptance or args.skip_llm_review):
+    skip_deterministic = bool(args.skip_test and args.skip_acceptance and not args.skip_llm_review)
+    if not bool(args.resume or args.fork or args.dry_run or args.skip_llm_review):
         diagnostics = session.marathon_state.setdefault("diagnostics", {})
         if isinstance(diagnostics, dict):
-            rerun_guard = _find_recent_deterministic_green_llm_not_clean_run(
-                current_out_dir=out_dir,
-                task_id=task_id,
-                delivery_profile=delivery_profile,
-                security_profile=security_profile,
-                git_fingerprint=current_git,
-            )
+            rerun_guard: dict[str, Any] | None = None
+            if skip_deterministic:
+                rerun_guard = _find_repeated_review_needs_fix_guard(
+                    task_id=task_id,
+                    delivery_profile=delivery_profile,
+                    security_profile=security_profile,
+                )
+            else:
+                rerun_guard = _find_recent_deterministic_green_llm_not_clean_run(
+                    current_out_dir=out_dir,
+                    task_id=task_id,
+                    delivery_profile=delivery_profile,
+                    security_profile=security_profile,
+                    git_fingerprint=current_git,
+                )
+                if rerun_guard is None:
+                    repeat_guard = _find_repeated_deterministic_failure_guard(
+                        current_out_dir=out_dir,
+                        task_id=task_id,
+                        delivery_profile=delivery_profile,
+                        security_profile=security_profile,
+                    )
+                    if repeat_guard is not None:
+                        if bool(args.allow_repeat_deterministic_failures):
+                            repeat_guard = {
+                                **repeat_guard,
+                                "blocked": False,
+                                "override": "allow-repeat-deterministic-failures",
+                            }
+                        rerun_guard = repeat_guard
+
+                if rerun_guard is None:
+                    rerun_guard = _derive_chapter6_route_guard(
+                        task_id=task_id,
+                        delivery_profile=delivery_profile,
+                        security_profile=security_profile,
+                    )
+
             if rerun_guard is not None:
-                if bool(args.allow_full_rerun):
+                if bool(args.allow_full_rerun) and str(rerun_guard.get("kind") or "").strip() != "repeat_deterministic_failure":
                     rerun_guard = {
                         **rerun_guard,
                         "blocked": False,
@@ -1834,24 +2013,8 @@ def main() -> int:
                     force_full_rerun = True
                 diagnostics["rerun_guard"] = rerun_guard
             else:
-                repeat_guard = _find_repeated_deterministic_failure_guard(
-                    current_out_dir=out_dir,
-                    task_id=task_id,
-                    delivery_profile=delivery_profile,
-                    security_profile=security_profile,
-                )
-                if repeat_guard is not None:
-                    if bool(args.allow_repeat_deterministic_failures):
-                        repeat_guard = {
-                            **repeat_guard,
-                            "blocked": False,
-                            "override": "allow-repeat-deterministic-failures",
-                        }
-                    diagnostics["rerun_guard"] = repeat_guard
-                else:
-                    diagnostics.pop("rerun_guard", None)
-            active_guard = diagnostics.get("rerun_guard") if isinstance(diagnostics.get("rerun_guard"), dict) else None
-            if active_guard is None:
+                diagnostics.pop("rerun_guard", None)
+            if rerun_guard is None:
                 change_scope_guard = diagnostics.get("change_scope_ceiling") if isinstance(diagnostics.get("change_scope_ceiling"), dict) else None
                 if change_scope_guard is not None:
                     if bool(args.allow_large_change_scope_rerun):
@@ -1861,7 +2024,7 @@ def main() -> int:
                             "override": "allow-large-change-scope-rerun",
                         }
                     diagnostics["rerun_guard"] = change_scope_guard
-                    active_guard = change_scope_guard
+                    rerun_guard = change_scope_guard
             active_guard = diagnostics.get("rerun_guard") if isinstance(diagnostics.get("rerun_guard"), dict) else None
             rerun_forbidden = _derive_rerun_forbidden_payload(active_guard)
             if rerun_forbidden is not None:
@@ -1879,6 +2042,8 @@ def main() -> int:
                     event="rerun_blocked",
                     task_id=task_id,
                     run_id=run_id,
+                    turn_id=current_turn_id,
+                    turn_seq=current_turn_seq,
                     delivery_profile=delivery_profile,
                     security_profile=security_profile,
                     status="fail",
@@ -1891,6 +2056,8 @@ def main() -> int:
                     event="run_completed",
                     task_id=task_id,
                     run_id=run_id,
+                    turn_id=current_turn_id,
+                    turn_seq=current_turn_seq,
                     delivery_profile=delivery_profile,
                     security_profile=security_profile,
                     status="fail",

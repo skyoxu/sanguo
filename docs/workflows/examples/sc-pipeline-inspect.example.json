@@ -1,0 +1,96 @@
+{
+  "kind": "pipeline",
+  "status": "fail",
+  "task_id": "15",
+  "run_id": "run-15",
+  "latest_status": "fail",
+  "summary_status": "fail",
+  "repair_status": "needs-fix",
+  "failed_step": "sc-llm-review",
+  "failure": {
+    "code": "step-failed",
+    "message": "The producer pipeline failed at sc-llm-review.",
+    "severity": "soft"
+  },
+  "validation_errors": [],
+  "missing_artifacts": [],
+  "stale_latest": false,
+  "incomplete_run": false,
+  "recent_failure_summary": {
+    "latest_failure_family": "step-failed:sc-llm-review|review_pending",
+    "same_family_count": 1,
+    "recent_failure_count": 1,
+    "recent_window_size": 3,
+    "repeated_recent_failure": false,
+    "stop_full_rerun_recommended": false,
+    "recommendation_basis": "no repeated recent failure family detected",
+    "recent_run_ids": [
+      "run-15"
+    ],
+    "same_family_run_ids": [
+      "run-15"
+    ],
+    "recent_failed_step": "sc-llm-review"
+  },
+  "approval": {
+    "soft_gate": true,
+    "required_action": "fork",
+    "status": "pending",
+    "decision": "",
+    "reason": "Fork was requested.",
+    "request_id": "run-15:fork",
+    "request_path": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/approval-request.json",
+    "response_path": "",
+    "recommended_action": "pause",
+    "allowed_actions": [
+      "inspect",
+      "pause"
+    ],
+    "blocked_actions": [
+      "fork",
+      "resume",
+      "rerun"
+    ]
+  },
+  "latest_summary_signals": {
+    "reason": "review_pending",
+    "run_type": "deterministic-only",
+    "reuse_mode": "deterministic-only-reuse",
+    "artifact_integrity_kind": "",
+    "diagnostics_keys": []
+  },
+  "run_event_summary": {},
+  "paths": {
+    "latest": "logs/ci/2026-04-10/sc-review-pipeline-task-15/latest.json",
+    "out_dir": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15",
+    "summary": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/summary.json",
+    "execution_context": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/execution-context.json",
+    "repair_guide": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/repair-guide.json",
+    "repair_guide_md": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/repair-guide.md",
+    "run_events": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/run-events.jsonl"
+  },
+  "chapter6_hints": {
+    "next_action": "pause",
+    "can_skip_6_7": false,
+    "can_go_to_6_8": false,
+    "blocked_by": "approval_pending",
+    "rerun_forbidden": true,
+    "rerun_override_flag": ""
+  },
+  "recommended_action": "pause",
+  "candidate_commands": {
+    "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --latest logs/ci/2026-04-10/sc-review-pipeline-task-15/latest.json",
+    "resume": "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume",
+    "fork": "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork",
+    "rerun": "py -3 scripts/sc/run_review_pipeline.py --task-id 15",
+    "needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1"
+  },
+  "recommended_command": "",
+  "forbidden_commands": [
+    "py -3 scripts/sc/run_review_pipeline.py --task-id 15",
+    "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume",
+    "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork",
+    "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1"
+  ],
+  "recommended_action_why": "Await fork approval before continuing recovery."
+}

@@ -1,0 +1,17 @@
+{
+  "task_id": "15",
+  "run_id": "run-15",
+  "failure_code": "review-needs-fix",
+  "recommended_action": "needs-fix-fast",
+  "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --max-rounds 1",
+  "forbidden_commands": "py -3 scripts/sc/run_review_pipeline.py --task-id 15",
+  "latest_reason": "rerun_blocked:repeat_review_needs_fix",
+  "chapter6_next_action": "needs-fix-fast",
+  "blocked_by": "rerun_guard",
+  "approval_status": "pending",
+  "approval_recommended_action": "pause",
+  "approval_allowed_actions": "inspect | pause",
+  "approval_blocked_actions": "fork | resume | rerun",
+  "latest_turn": "run-15:turn-2",
+  "turn_count": "2"
+}

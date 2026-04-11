@@ -21,7 +21,9 @@ from _project_health_common import (
     task_triplet_paths,
     unit_test_files,
     write_project_health_record,
+    write_project_health_scan_payload,
 )
+from _project_health_schema import validate_project_health_scan_payload
 from solution_resolver import resolve_solution_path
 
 
@@ -359,9 +361,12 @@ def project_health_scan(root: Path | str | None = None) -> dict[str, Any]:
         overall = "fail"
     elif any(item.get("status") == "warn" for item in results):
         overall = "warn"
-    return {
+    payload = {
         "kind": "project-health-scan",
         "status": overall,
         "exit_code": exit_code,
         "results": results,
     }
+    validate_project_health_scan_payload(payload)
+    write_project_health_scan_payload(root=resolved_root, payload=payload)
+    return payload

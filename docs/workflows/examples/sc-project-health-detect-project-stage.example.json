@@ -1,0 +1,32 @@
+{
+  "kind": "detect-project-stage",
+  "status": "warn",
+  "stage": "triplet-missing",
+  "summary": "real task triplet is missing; repo is still relying on examples/taskmaster",
+  "exit_code": 0,
+  "generated_at": "2026-04-11T10:00:00+08:00",
+  "history_json": "logs/ci/2026-04-11/project-health/detect-project-stage-100000000000.json",
+  "latest_json": "logs/ci/project-health/detect-project-stage.latest.json",
+  "signals": {
+    "project_godot": true,
+    "readme": true,
+    "agents": true,
+    "real_task_triplet": false,
+    "example_task_triplet": true,
+    "overlay_indexes": 0,
+    "contract_files": 0,
+    "unit_test_files": 0
+  },
+  "paths": {
+    "real_task_triplet": {
+      "tasks.json": ".taskmaster/tasks/tasks.json",
+      "tasks_back.json": ".taskmaster/tasks/tasks_back.json",
+      "tasks_gameplay.json": ".taskmaster/tasks/tasks_gameplay.json"
+    },
+    "example_task_triplet": {
+      "tasks.json": "examples/taskmaster/tasks.json",
+      "tasks_back.json": "examples/taskmaster/tasks_back.json",
+      "tasks_gameplay.json": "examples/taskmaster/tasks_gameplay.json"
+    }
+  }
+}

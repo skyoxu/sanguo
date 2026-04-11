@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "10",
+  "run_id": "20260321T100000Z-10",
+  "action": "fork",
+  "request_id": "apr-20260321-001",
+  "decision": "approved",
+  "reviewer": "operator",
+  "reason": "Fork approved after reviewing the repair guide and the first-turn reviewer findings.",
+  "recommended_action": "fork",
+  "allowed_actions": [
+    "fork",
+    "inspect"
+  ],
+  "blocked_actions": [
+    "resume",
+    "rerun"
+  ]
+}

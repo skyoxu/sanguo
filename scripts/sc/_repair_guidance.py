@@ -60,6 +60,7 @@ def build_execution_context(
     status_short = [line for line in _run_git(["status", "--short"]).splitlines() if line.strip()]
     failed_step = next((step for step in summary.get("steps", []) if step.get("status") == "fail"), None)
     diagnostics = (marathon_state or {}).get("diagnostics")
+    candidate_commands = summary.get("candidate_commands") if isinstance(summary.get("candidate_commands"), dict) else {}
     return {
         "schema_version": "1.0.0",
         "cmd": "sc-review-pipeline",
@@ -129,6 +130,17 @@ def build_execution_context(
             "recommended_action": str((((marathon_state or {}).get("agent_review") or {}).get("recommended_action") or "")),
             "recommended_refresh_reasons": list((((marathon_state or {}).get("agent_review") or {}).get("recommended_refresh_reasons") or [])),
         },
+        "recommended_action": str(summary.get("recommended_action") or "").strip(),
+        "recommended_action_why": str(summary.get("recommended_action_why") or "").strip(),
+        "candidate_commands": {
+            str(key).strip(): str(value).strip()
+            for key, value in candidate_commands.items()
+            if str(key).strip() and str(value).strip()
+        },
+        "recommended_command": str(summary.get("recommended_command") or "").strip(),
+        "forbidden_commands": [str(item).strip() for item in list(summary.get("forbidden_commands") or []) if str(item).strip()],
+        "latest_summary_signals": dict(summary.get("latest_summary_signals") or {}) if isinstance(summary.get("latest_summary_signals"), dict) else {},
+        "chapter6_hints": dict(summary.get("chapter6_hints") or {}) if isinstance(summary.get("chapter6_hints"), dict) else {},
         "llm_review": dict(llm_review_context or {}),
         "approval": {
             "soft_gate": bool((approval_state or {}).get("soft_gate") or False),
@@ -139,6 +151,9 @@ def build_execution_context(
             "request_id": str((approval_state or {}).get("request_id") or ""),
             "request_path": str((approval_state or {}).get("request_path") or ""),
             "response_path": str((approval_state or {}).get("response_path") or ""),
+            "recommended_action": str((approval_state or {}).get("recommended_action") or "continue"),
+            "allowed_actions": [str(item).strip() for item in list((approval_state or {}).get("allowed_actions") or []) if str(item).strip()],
+            "blocked_actions": [str(item).strip() for item in list((approval_state or {}).get("blocked_actions") or []) if str(item).strip()],
         },
         "diagnostics": dict(diagnostics) if isinstance(diagnostics, dict) else {},
     }
@@ -237,9 +252,16 @@ def render_repair_guide_markdown(payload: dict[str, Any]) -> str:
         lines.append(f"- required_action: {approval.get('required_action', '')}")
         lines.append(f"- status: {approval_status}")
         lines.append(f"- decision: {approval.get('decision', '')}")
+        lines.append(f"- recommended_action: {approval.get('recommended_action', '')}")
         reason = str(approval.get("reason") or "").strip()
         if reason:
             lines.append(f"- reason: {reason}")
+        allowed_actions = [str(item).strip() for item in list(approval.get("allowed_actions") or []) if str(item).strip()]
+        blocked_actions = [str(item).strip() for item in list(approval.get("blocked_actions") or []) if str(item).strip()]
+        if allowed_actions:
+            lines.append(f"- allowed_actions: {', '.join(allowed_actions)}")
+        if blocked_actions:
+            lines.append(f"- blocked_actions: {', '.join(blocked_actions)}")
         request_path = str(approval.get("request_path") or "").strip()
         response_path = str(approval.get("response_path") or "").strip()
         if request_path:

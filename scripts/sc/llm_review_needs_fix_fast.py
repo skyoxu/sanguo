@@ -12,6 +12,7 @@ import argparse
 import json
 import re
 import shutil
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -1175,6 +1176,74 @@ def _derive_final_status(*, final_verdicts: dict[str, str], rounds: list[dict[st
     return "ok", "llm_review_clean"
 
 
+def _run_chapter6_route_preflight(*, task_id: str, out_dir: Path) -> dict[str, Any]:
+    latest_payload = resolve_latest_pipeline_payload(task_id)
+    latest_out_dir_raw = str(latest_payload.get("latest_out_dir") or "").strip()
+    if not latest_out_dir_raw:
+        return {}
+    latest_out_dir = Path(latest_out_dir_raw)
+    agent_review_path = latest_out_dir / "agent-review.json"
+    if not agent_review_path.exists():
+        return {}
+
+    python_dir = repo_root() / "scripts" / "python"
+    if str(python_dir) not in sys.path:
+        sys.path.insert(0, str(python_dir))
+
+    from chapter6_route import route_chapter6  # noqa: WPS433
+
+    _rc, payload = route_chapter6(
+        repo_root=repo_root(),
+        task_id=str(task_id),
+        record_residual=True,
+    )
+    if not isinstance(payload, dict):
+        return {}
+    write_json(out_dir / "chapter6-route.json", payload)
+    return payload
+
+
+def _build_chapter6_route_step(
+    *,
+    payload: dict[str, Any],
+    script_start: float,
+    budget_min: int,
+    proceed: bool,
+) -> dict[str, Any]:
+    preferred_lane = str(payload.get("preferred_lane") or "").strip() or "inspect-first"
+    remaining_before = remain_sec(script_start, budget_min)
+    return {
+        "name": "chapter6-route-preflight",
+        "status": "ok" if proceed else "blocked",
+        "rc": 0 if proceed else 1,
+        "duration_sec": 0.0,
+        "remaining_before_sec": int(max(0, remaining_before)),
+        "remaining_after_sec": int(remain_sec(script_start, budget_min)),
+        "cmd": ["py", "-3", "scripts/python/dev_cli.py", "chapter6-route", "--task-id", str(payload.get("task_id") or ""), "--recommendation-only"],
+        "log_file": "",
+        "reported_out_dir": "",
+        "summary_file": "",
+        "preferred_lane": preferred_lane,
+        "recommended_command": str(payload.get("recommended_command") or "").strip(),
+        "blocked_by": str(payload.get("blocked_by") or "").strip(),
+        "repo_noise_classification": str(payload.get("repo_noise_classification") or "").strip(),
+        "residual_recording": payload.get("residual_recording") if isinstance(payload.get("residual_recording"), dict) else {},
+    }
+
+
+def _chapter6_route_stop_outcome(payload: dict[str, Any]) -> tuple[str, str, int]:
+    preferred_lane = str(payload.get("preferred_lane") or "").strip() or "inspect-first"
+    if preferred_lane == "record-residual":
+        return "ok", "chapter6_route_recorded_residual", 0
+    if preferred_lane == "repo-noise-stop":
+        return "indeterminate", "chapter6_route_repo_noise_stop", 1
+    if preferred_lane == "fix-deterministic":
+        return "indeterminate", "chapter6_route_fix_deterministic_first", 1
+    if preferred_lane == "run-6.7":
+        return "indeterminate", "chapter6_route_run_6_7_first", 1
+    return "indeterminate", "chapter6_route_inspect_first", 1
+
+
 def main() -> int:
     parsed_args = build_parser().parse_args()
     explicit_flags = {
@@ -1204,6 +1273,7 @@ def main() -> int:
     write_text(out_dir / "run_id.txt", uuid.uuid4().hex + "\n")
 
     timeline: list[dict[str, Any]] = []
+    route_payload: dict[str, Any] = {}
     py = args.python
     if not bool(args.final_pass):
         clean_skip_step = try_skip_when_latest_pipeline_already_clean(
@@ -1261,6 +1331,38 @@ def main() -> int:
             write_json(out_dir / "summary.json", summary)
             print(f"SC_NEEDS_FIX_FAST status=indeterminate out={out_dir}")
             return 1
+        route_payload = _run_chapter6_route_preflight(task_id=str(args.task_id), out_dir=out_dir)
+        if route_payload:
+            route_preflight_step = _build_chapter6_route_step(
+                payload=route_payload,
+                script_start=script_start,
+                budget_min=args.time_budget_min,
+                proceed=str(route_payload.get("preferred_lane") or "").strip() == "run-6.8",
+            )
+            timeline.append(route_preflight_step)
+            if str(route_payload.get("preferred_lane") or "").strip() != "run-6.8":
+                status, reason, exit_code = _chapter6_route_stop_outcome(route_payload)
+                residual_recording = route_payload.get("residual_recording") if isinstance(route_payload.get("residual_recording"), dict) else {}
+                summary = {
+                    "cmd": "sc-needs-fix-fast",
+                    "task_id": str(args.task_id),
+                    "status": status,
+                    "reason": reason,
+                    "out_dir": str(out_dir),
+                    "elapsed_sec": elapsed_sec(script_start),
+                    "delivery_profile": str(args.delivery_profile),
+                    "timeline": list(timeline),
+                    "rounds": [],
+                    "votes": {agent: [] for agent in agents},
+                    "final_verdicts": {agent: ("OK" if status == "ok" else "Unknown") for agent in agents},
+                    "final_needs_fix_agents": [],
+                    "final_unknown_agents": [] if status == "ok" else list(agents),
+                    "route_preflight": route_payload,
+                    "residual_recording": residual_recording,
+                }
+                write_json(out_dir / "summary.json", summary)
+                print(f"SC_NEEDS_FIX_FAST status={status} out={out_dir}")
+                return exit_code
 
     deterministic_cmd = _build_deterministic_cmd(py=py, args=args)
     profile_floor_decision = {
@@ -1639,6 +1741,7 @@ def main() -> int:
         },
         "profile_floor": profile_floor_decision,
         "deterministic_plan": deterministic_plan,
+        "route_preflight": route_payload if not bool(args.final_pass) else {},
         "agent_timeout_override_history": round_agent_timeout_overrides_history,
         "llm_budget_prediction_history": llm_budget_prediction_history,
         "timeline": timeline,

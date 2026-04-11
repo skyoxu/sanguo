@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Project Health Dashboard</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; background: #f4f6f8; color: #1f2933; margin: 0; }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .hero { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+    .status { padding: 6px 12px; border-radius: 999px; font-weight: 700; text-transform: uppercase; }
+    .status.ok { background: #d1fae5; color: #065f46; }
+    .status.warn { background: #fef3c7; color: #92400e; }
+    .status.fail { background: #fee2e2; color: #991b1b; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
+    .card { background: #ffffff; border: 1px solid #d2d6dc; border-left-width: 6px; border-radius: 12px; padding: 18px; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08); }
+    .card.ok { border-left-color: #10b981; }
+    .card.warn { border-left-color: #f59e0b; }
+    .card.fail { border-left-color: #ef4444; }
+    .card h2 { margin: 0 0 10px; font-size: 18px; }
+    .badge { display: inline-block; margin-bottom: 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .meta { color: #52606d; font-size: 12px; margin-top: 8px; word-break: break-all; }
+    .hint { margin-top: 20px; color: #52606d; font-size: 13px; }
+    .actions { display: flex; gap: 8px; margin-top: 8px; }
+    .btn { border: 1px solid #cbd2d9; border-radius: 8px; background: #fff; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+    .btn:hover { background: #f8fafc; }
+    .table-wrap { margin-top: 18px; overflow: auto; background: #fff; border: 1px solid #d2d6dc; border-radius: 12px; }
+    .highlight-wrap { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+    .highlight-card { background: #fff; border: 1px solid #d2d6dc; border-radius: 12px; padding: 16px; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06); }
+    .highlight-card h3 { margin: 0 0 10px; font-size: 16px; }
+    .highlight-item { border-top: 1px solid #e5e7eb; padding-top: 10px; margin-top: 10px; }
+    .subhead { margin-top: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #52606d; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border-bottom: 1px solid #e5e7eb; text-align: left; padding: 8px; vertical-align: top; }
+    th { background: #f8fafc; position: sticky; top: 0; z-index: 1; }
+    .chip { display: inline-block; padding: 2px 6px; border-radius: 999px; font-weight: 700; }
+    .chip.ok { background: #d1fae5; color: #065f46; }
+    .chip.warn { background: #fef3c7; color: #92400e; }
+    .chip.fail { background: #fee2e2; color: #991b1b; }
+    .chip.invalid { background: #e5e7eb; color: #1f2933; }
+    .chip.unknown { background: #e0e7ff; color: #3730a3; }
+  </style>
+</head>
+<body>
+  <!-- 仪表盘说明：本页面不自动刷新，避免阅读过程中跳页。 -->
+  <!-- 报告索引说明：下方表格来自 logs/ci/** 的 JSON 报告聚合。 -->
+  <main>
+    <div class="hero">
+      <div>
+        <h1>项目健康总览</h1>
+        <div>该页面聚合项目健康检查结果 + logs/ci 下可整合的 JSON 报告索引。</div>
+        <div class="actions">
+          <button class="btn" onclick="window.location.reload()">手动刷新</button>
+        </div>
+      </div>
+      <div class="status warn">warn</div>
+    </div>
+    <div class="meta">generated_at: 2026-04-11T10:00:00+08:00</div>
+    <div class="grid">
+      <section class="card warn">
+<h2>detect-project-stage</h2>
+<div class="badge">warn</div>
+<p>triplet missing</p>
+<div class="meta">阶段: bootstrap</div>
+<div class="meta">历史: logs/ci/project-health/detect-project-stage-20260411T100000.json</div>
+<div class="meta">latest json: detect-project-stage.latest.json</div>
+</section>
+    </div>
+    <details open>
+      <summary>批量任务诊断摘录</summary>
+      <div class="hint">这里优先展示报告 JSON 里可直接消费的高价值字段，例如 extract family 建议动作、family hotspot、quarantine 范围。</div>
+      <div class="highlight-wrap">
+        <section class="highlight-card">
+<h3>project-health-dashboard</h3>
+<div class="meta">path: logs/ci/project-health/latest.json</div>
+<div class="meta">status: fail</div>
+</section>
+      </div>
+    </details>
+    <details open>
+      <summary>Active task clean state</summary>
+      <div class="hint">Top active task sidecars are summarized here so deterministic-green-but-LLM-not-clean tasks are visible without opening each run directory.</div>
+      <div class="hint">total=1 clean=0 deterministic_ok_llm_not_clean=0 deterministic_only=0 not_clean=0 profile_drift=0 unit_failed_but_engine_lane_ran=0 rerun_guard_blocked=1 rerun_forbidden=1 llm_retry_stop_loss_blocked=1 sc_test_retry_stop_loss_blocked=0 artifact_integrity_blocked=0 recent_failure_summary_blocked=1 artifact_integrity_planned_only_incomplete=0 latest_json_mismatch=0 latest_json_repaired=0 reuse_decision_present=0 deterministic_bundle_available=1 run_events_available=1 multi_turn_runs=1 turn_diff_available=1 turn_diff_reviewer_change=1 turn_diff_sidecar_change=1 turn_diff_approval_change=1 reviewer_activity_present=1 sidecar_activity_present=1 approval_activity_present=1 approval_contract_present=1 approval_pause_required=1 approval_fork_ready=0 approval_resume_ready=0 approval_inspect_required=0 run_type_planned_only=0 run_type_deterministic_only=1 run_type_full=0 run_type_llm_only=0 run_type_preflight_only=0 next_action_needs_fix_fast=1 next_action_inspect=0 next_action_resume=0 next_action_continue=0 chapter6_can_skip_6_7=1 chapter6_can_go_to_6_8=1</div>
+      <div class="highlight-wrap">
+        <section class="highlight-card">
+<h3>Task 15</h3>
+<div class="meta">clean_state: unknown</div>
+<div class="meta">deterministic_ok: None</div>
+<div class="meta">llm_status: unknown</div>
+<div class="meta">recommended_action: needs-fix-fast</div>
+<div class="meta">recommended_action_why: Repeat reviewer family is already deterministic.</div>
+<div class="meta">recommended_command: py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --max-rounds 1</div>
+<div class="meta">forbidden_commands: py -3 scripts/sc/run_review_pipeline.py --task-id 15</div>
+<div class="meta">latest_reason: n/a</div>
+<div class="meta">latest_run_type: n/a</div>
+<div class="meta">latest_reuse_mode: n/a</div>
+<div class="meta">latest_artifact_integrity: none</div>
+<div class="meta">latest_diagnostics_keys: none</div>
+<div class="meta">chapter6_next_action: n/a</div>
+<div class="meta">chapter6_can_skip_6_7: false</div>
+<div class="meta">chapter6_can_go_to_6_8: false</div>
+<div class="meta">chapter6_blocked_by: n/a</div>
+<div class="meta">chapter6_route_lane: n/a</div>
+<div class="meta">repo_noise_reason: n/a</div>
+<div class="meta">chapter6_rerun_override: n/a</div>
+<div class="meta">latest_json: logs/ci/2026-04-10/sc-review-pipeline-task-15/latest.json</div>
+<div class="meta">reported_latest_json: n/a</div>
+<div class="meta">latest_json_mismatch: false</div>
+<div class="meta">latest_json_repaired: false</div>
+<div class="meta">resume_summary_command: py -3 scripts/python/dev_cli.py resume-task --task-id 15</div>
+<div class="meta">inspect_command: py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15</div>
+<div class="meta">resume_command: py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume</div>
+<div class="meta">fork_command: py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork</div>
+<div class="meta">rerun_command: py -3 scripts/sc/run_review_pipeline.py --task-id 15</div>
+<div class="meta">needs_fix_command: py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --max-rounds 1</div>
+<div class="meta">needs_fix_agents: none</div>
+<div class="meta">unknown_agents: none</div>
+<div class="meta">timeout_agents: none</div>
+<div class="meta">recent_failure_summary: family=review-needs-fix same_family_count=2 stop_full_rerun_recommended=True</div>
+<div class="meta">deterministic_bundle: available=false reuse_mode=n/a</div>
+<div class="meta">approval_required_action: fork</div>
+<div class="meta">approval_status: pending</div>
+<div class="meta">approval_decision: n/a</div>
+<div class="meta">approval_recommended_action: pause</div>
+<div class="meta">approval_allowed_actions: inspect,pause</div>
+<div class="meta">approval_blocked_actions: fork,resume,rerun</div>
+<div class="meta">approval_reason: Waiting for operator approval.</div>
+<div class="meta">run_events_path: logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/run-events.jsonl</div>
+<div class="meta">run_events_event_count: 5</div>
+<div class="meta">run_events_turn_count: 2</div>
+<div class="meta">run_events_latest_turn: run-15:turn-2 seq=2</div>
+<div class="meta">run_events_previous_turn: n/a seq=0</div>
+<div class="meta">run_events_latest_event: sidecar_active_task_synced</div>
+<div class="meta">run_events_families: approval=1,reviewer=1,run=2,sidecar=1</div>
+<div class="meta">run_events_previous_turn_families: run=1</div>
+<div class="meta">run_events_latest_turn_families: approval=1,reviewer=1,run=1,sidecar=1</div>
+<div class="meta">run_events_turn_family_delta: approval=0,reviewer=0,sidecar=0</div>
+<div class="meta">run_events_new_reviewers: code-reviewer</div>
+<div class="meta">run_events_new_sidecars: task-active</div>
+<div class="meta">run_events_approval_changed: true</div>
+<div class="meta">reviewer_activity: code-reviewer:needs-fix/reviewer_completed</div>
+<div class="meta">sidecar_activity: task-active:ok/sidecar_active_task_synced</div>
+<div class="meta">approval_activity: pending/approval_request_written action=fork request_id=run-15:fork transition=created</div>
+<div class="meta">path: </div>
+</section>
+      </div>
+    </details>
+    <div class="hint">JSON 报告总数: 2；解析失败: 0；索引文件: logs/ci/project-health/report-catalog.latest.json</div>
+    <div class="hint">Auto-refresh is disabled. 页面不会自动刷新，请在执行扫描后手动刷新。</div>
+    <details>
+      <summary>展开查看全部 JSON 报告索引</summary>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>modified_at</th>
+              <th>kind</th>
+              <th>status</th>
+              <th>generated_at</th>
+              <th>path</th>
+              <th>summary</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+<td>2026-04-10T20:00:00+08:00</td>
+<td>sc-review-pipeline</td>
+<td><span class="chip fail">fail</span></td>
+<td>2026-04-10T12:00:00+00:00</td>
+<td>logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15/summary.json</td>
+<td>Repeat reviewer family is already deterministic.</td>
+</tr><tr>
+<td>2026-04-10T20:00:00+08:00</td>
+<td>project-health-dashboard</td>
+<td><span class="chip fail">fail</span></td>
+<td>2026-04-10T20:00:00+08:00</td>
+<td>logs/ci/project-health/latest.json</td>
+<td></td>
+</tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </main>
+</body>
+</html>

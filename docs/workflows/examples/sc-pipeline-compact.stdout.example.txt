@@ -1,0 +1,15 @@
+task_id=15
+run_id=run-15
+failure_code=step-failed
+recommended_action=pause
+recommended_command=n/a
+forbidden_commands=py -3 scripts/sc/run_review_pipeline.py --task-id 15 | py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume | py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork | py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
+latest_reason=review_pending
+chapter6_next_action=pause
+blocked_by=approval_pending
+approval_status=pending
+approval_recommended_action=pause
+approval_allowed_actions=inspect | pause
+approval_blocked_actions=fork | resume | rerun
+latest_turn=n/a
+turn_count=0

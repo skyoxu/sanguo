@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanguo.local/schemas/sc-project-health-dashboard.schema.json",
+  "title": "sc-project-health-dashboard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "status",
+    "generated_at",
+    "records",
+    "report_catalog_summary",
+    "active_task_summary"
+  ],
+  "properties": {
+    "kind": {
+      "const": "project-health-dashboard"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "warn", "fail"]
+    },
+    "generated_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "status", "summary", "stage", "latest_json", "history_json"],
+        "properties": {
+          "kind": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string" },
+          "stage": { "type": "string" },
+          "latest_json": { "type": "string", "minLength": 1 },
+          "history_json": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "report_catalog_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_json", "invalid_json", "catalog_json"],
+      "properties": {
+        "total_json": { "type": "integer", "minimum": 0 },
+        "invalid_json": { "type": "integer", "minimum": 0 },
+        "catalog_json": { "type": "string", "minLength": 1 }
+      }
+    },
+    "active_task_summary": {
+      "type": "object",
+      "required": ["total", "clean", "top_records"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "clean": { "type": "integer", "minimum": 0 },
+        "top_records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["task_id", "status", "recommended_action"],
+            "properties": {
+              "task_id": { "type": "string", "minLength": 1 },
+              "status": { "type": "string", "minLength": 1 },
+              "recommended_action": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

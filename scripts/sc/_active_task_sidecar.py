@@ -14,7 +14,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT / "scripts" / "python") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts" / "python"))
 
-from _chapter6_recovery_common import chapter6_stop_loss_note as _chapter6_stop_loss_note
+from _chapter6_recovery_common import (
+    candidate_commands as _shared_candidate_commands,
+    chapter6_stop_loss_note as _chapter6_stop_loss_note,
+    forbidden_commands as _shared_forbidden_commands,
+    recommended_command as _shared_recommended_command,
+)
+from _sidecar_schema import validate_active_task_payload
 
 
 def active_task_dir(root: Path | None = None) -> Path:
@@ -59,6 +65,134 @@ def _load_jsonl_soft(path: Path | None) -> list[dict[str, Any]]:
         if isinstance(payload, dict):
             rows.append(payload)
     return rows
+
+
+def _event_family(event: dict[str, Any]) -> str:
+    explicit = str(event.get("event_family") or "").strip().lower()
+    if explicit:
+        return explicit
+    name = str(event.get("event") or "").strip().lower().replace("-", "_")
+    if name.startswith("reviewer_") or name.startswith("agent_review_") or name.startswith("llm_review_"):
+        return "reviewer"
+    if name.startswith("sidecar_") or name.startswith("harness_"):
+        return "sidecar"
+    if name.startswith("approval_"):
+        return "approval"
+    if name.startswith("run_"):
+        return "run"
+    if name.startswith("step_"):
+        return "step"
+    return "custom"
+
+
+def _summarize_run_events(run_events_path: Path | None) -> dict[str, Any]:
+    events = _load_jsonl_soft(run_events_path)
+    if not events:
+        return {}
+    normalized: list[dict[str, Any]] = []
+    for item in events:
+        payload = dict(item)
+        payload["event_family"] = _event_family(payload)
+        normalized.append(payload)
+    latest_event = normalized[-1]
+    latest_turn_seq = max(int(item.get("turn_seq") or 1) for item in normalized)
+    latest_turn_events = [item for item in normalized if int(item.get("turn_seq") or 1) == latest_turn_seq]
+    family_counts: dict[str, int] = {}
+    latest_turn_family_counts: dict[str, int] = {}
+    reviewers: list[str] = []
+    sidecars: list[str] = []
+    approval_text = ""
+    for item in normalized:
+        family = str(item.get("event_family") or "").strip()
+        if family:
+            family_counts[family] = family_counts.get(family, 0) + 1
+    for item in latest_turn_events:
+        family = str(item.get("event_family") or "").strip()
+        if family:
+            latest_turn_family_counts[family] = latest_turn_family_counts.get(family, 0) + 1
+        details = item.get("details") if isinstance(item.get("details"), dict) else {}
+        if family == "reviewer":
+            reviewers.append(
+                f"{str(item.get('item_id') or details.get('reviewer') or 'unknown')}:{str(item.get('status') or 'n/a')}/{str(item.get('event') or 'n/a')}"
+            )
+        elif family == "sidecar":
+            sidecars.append(
+                f"{str(item.get('item_id') or details.get('sidecar') or 'unknown')}:{str(item.get('status') or 'n/a')}/{str(item.get('event') or 'n/a')}"
+            )
+        elif family == "approval":
+            approval_text = (
+                f"{str(item.get('status') or 'n/a')}/{str(item.get('event') or 'n/a')} "
+                f"action={str(details.get('action') or 'n/a')} "
+                f"request_id={str(details.get('request_id') or item.get('item_id') or 'n/a')} "
+                f"transition={str(details.get('transition') or 'n/a')}"
+            )
+    previous_turn_events: list[dict[str, Any]] = []
+    previous_turn_seq = 0
+    if latest_turn_seq > 1:
+        previous_turn_seq = max(int(item.get("turn_seq") or 1) for item in normalized if int(item.get("turn_seq") or 1) < latest_turn_seq)
+        previous_turn_events = [item for item in normalized if int(item.get("turn_seq") or 1) == previous_turn_seq]
+    previous_turn_id = str(previous_turn_events[-1].get("turn_id") or "").strip() if previous_turn_events else ""
+    previous_turn_family_counts: dict[str, int] = {}
+    previous_reviewers = {
+        str(item.get("item_id") or ((item.get("details") or {}) if isinstance(item.get("details"), dict) else {}).get("reviewer") or "").strip()
+        for item in previous_turn_events
+        if str(item.get("event_family") or "").strip() == "reviewer"
+    }
+    previous_sidecars = {
+        str(item.get("item_id") or ((item.get("details") or {}) if isinstance(item.get("details"), dict) else {}).get("sidecar") or "").strip()
+        for item in previous_turn_events
+        if str(item.get("event_family") or "").strip() == "sidecar"
+    }
+    previous_approval_text = ""
+    for item in previous_turn_events:
+        family = str(item.get("event_family") or "").strip()
+        if family:
+            previous_turn_family_counts[family] = previous_turn_family_counts.get(family, 0) + 1
+        if family == "approval":
+            details = item.get("details") if isinstance(item.get("details"), dict) else {}
+            previous_approval_text = (
+                f"{str(item.get('status') or 'n/a')}/{str(item.get('event') or 'n/a')} "
+                f"action={str(details.get('action') or 'n/a')} "
+                f"request_id={str(details.get('request_id') or item.get('item_id') or 'n/a')} "
+                f"transition={str(details.get('transition') or 'n/a')}"
+            )
+    latest_reviewers = {
+        str(item.get("item_id") or ((item.get("details") or {}) if isinstance(item.get("details"), dict) else {}).get("reviewer") or "").strip()
+        for item in latest_turn_events
+        if str(item.get("event_family") or "").strip() == "reviewer"
+    }
+    latest_sidecars = {
+        str(item.get("item_id") or ((item.get("details") or {}) if isinstance(item.get("details"), dict) else {}).get("sidecar") or "").strip()
+        for item in latest_turn_events
+        if str(item.get("event_family") or "").strip() == "sidecar"
+    }
+    family_delta: dict[str, int] = {}
+    for family in sorted(set(previous_turn_family_counts) | set(latest_turn_family_counts)):
+        delta = int(latest_turn_family_counts.get(family, 0)) - int(previous_turn_family_counts.get(family, 0))
+        if delta:
+            family_delta[family] = delta
+    latest_turn_id = str((latest_turn_events[-1] if latest_turn_events else latest_event).get("turn_id") or "").strip()
+    return {
+        "path": str(run_events_path).replace("\\", "/") if run_events_path is not None else "",
+        "event_count": len(normalized),
+        "turn_count": len({str(item.get("turn_id") or "").strip() for item in normalized if str(item.get("turn_id") or "").strip()}),
+        "latest_turn_id": latest_turn_id,
+        "latest_turn_seq": latest_turn_seq,
+        "latest_event": str(latest_event.get("event") or "").strip(),
+        "family_counts": family_counts,
+        "latest_turn_family_counts": latest_turn_family_counts,
+        "previous_turn_id": previous_turn_id,
+        "previous_turn_seq": previous_turn_seq,
+        "previous_turn_family_counts": previous_turn_family_counts,
+        "turn_family_delta": family_delta,
+        "new_reviewers": sorted(item for item in latest_reviewers if item and item not in previous_reviewers),
+        "new_sidecars": sorted(item for item in latest_sidecars if item and item not in previous_sidecars),
+        "approval_changed": bool(approval_text != previous_approval_text),
+        "previous_approval": previous_approval_text,
+        "reviewers": reviewers,
+        "sidecars": sidecars,
+        "approval": approval_text,
+    }
 
 
 def _normalize_llm_verdict(value: str | None) -> str:
@@ -278,6 +412,12 @@ def _signal_driven_recommendation(
                 "Rerun guard blocked another full 6.7 because deterministic steps are already green; continue with the narrow llm-only closure path.",
                 "rerun_guard",
             )
+        if kind == "repeat_review_needs_fix":
+            return (
+                "needs-fix-fast",
+                "Rerun guard blocked another reviewer-only rerun because recent runs already repeat the same Needs Fix family; continue with needs-fix-fast or record the remaining findings instead of reopening 6.7.",
+                "rerun_guard",
+            )
         if kind == "repeat_deterministic_failure":
             return (
                 "inspect",
@@ -372,6 +512,42 @@ def _chapter6_rerun_policy(*, blocked_by: str, diagnostics: dict[str, Any]) -> t
     if blocked in {"llm_retry_stop_loss", "sc_test_retry_stop_loss", "waste_signals", "recent_failure_summary"}:
         return True, ""
     return False, ""
+
+
+def _candidate_commands(*, task_id: str, latest_json_rel: str) -> dict[str, str]:
+    commands = dict(_shared_candidate_commands(str(task_id or "").strip(), str(latest_json_rel or "").strip()))
+    normalized_task_id = str(task_id or "").strip()
+    commands["resume_summary"] = ""
+    if normalized_task_id:
+        commands["resume_summary"] = f"py -3 scripts/python/dev_cli.py resume-task --task-id {normalized_task_id}"
+    return commands
+
+
+def _recommended_command(
+    recommended_action: str,
+    commands: dict[str, str],
+    chapter6_hints: dict[str, Any],
+    approval: dict[str, Any] | None = None,
+) -> str:
+    action = str(chapter6_hints.get("next_action") or "").strip().lower().replace("_", "-") or str(recommended_action or "").strip().lower().replace("_", "-")
+    if action in {"inspect", "continue"}:
+        return str(commands.get("resume_summary") or commands.get("inspect") or "").strip()
+    return _shared_recommended_command(recommended_action, commands, chapter6_hints, approval)
+
+
+def _forbidden_commands(
+    *,
+    recommended_action: str,
+    commands: dict[str, str],
+    chapter6_hints: dict[str, Any],
+    approval: dict[str, Any] | None = None,
+) -> list[str]:
+    return _shared_forbidden_commands(
+        recommended_action=recommended_action,
+        commands=commands,
+        chapter6_hints=chapter6_hints,
+        approval=approval,
+    )
 
 
 
@@ -523,6 +699,17 @@ def build_active_task_payload(
         "rerun_forbidden": rerun_forbidden,
         "rerun_override_flag": rerun_override_flag,
     }
+    approval = execution_context.get("approval") if isinstance(execution_context.get("approval"), dict) else {}
+    run_event_summary = _summarize_run_events(run_events_path)
+    latest_json_rel = _repo_rel(latest_json_path, root=resolved_root)
+    candidate_commands = _candidate_commands(task_id=str(task_id).strip(), latest_json_rel=latest_json_rel)
+    recommended_command = _recommended_command(recommended_action, candidate_commands, chapter6_hints, approval)
+    forbidden_commands = _forbidden_commands(
+        recommended_action=recommended_action,
+        commands=candidate_commands,
+        chapter6_hints=chapter6_hints,
+        approval=approval,
+    )
     return {
         "cmd": "active-task-sidecar",
         "task_id": str(task_id).strip(),
@@ -530,7 +717,7 @@ def build_active_task_payload(
         "status": effective_status,
         "updated_at_utc": datetime.now(timezone.utc).isoformat(),
         "paths": {
-            "latest_json": _repo_rel(latest_json_path, root=resolved_root),
+            "latest_json": latest_json_rel,
             "out_dir": _repo_rel(effective_out_dir, root=resolved_root),
             "summary_json": _repo_rel(summary_path, root=resolved_root),
             "execution_context_json": _repo_rel(execution_context_path, root=resolved_root),
@@ -544,17 +731,15 @@ def build_active_task_payload(
         "chapter6_hints": chapter6_hints,
         "recommended_action": recommended_action,
         "recommended_action_why": recommended_why,
-        "candidate_commands": {
-            "resume": f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id} --resume",
-            "fork": f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id} --fork",
-            "rerun": f"py -3 scripts/sc/run_review_pipeline.py --task-id {task_id}",
-            "needs_fix_fast": f"py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id {task_id} --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
-            "resume_summary": f"py -3 scripts/python/dev_cli.py resume-task --task-id {task_id}",
-        },
+        "candidate_commands": candidate_commands,
+        "recommended_command": recommended_command,
+        "forbidden_commands": forbidden_commands,
         "repair_status": str(repair_guide.get("status") or "").strip(),
         "agent_review_recommended_action": str(
             ((execution_context.get("agent_review") or {}).get("recommended_action")) or ""
         ).strip(),
+        "approval": approval,
+        "run_event_summary": run_event_summary,
     }
 
 
@@ -570,6 +755,8 @@ def render_active_task_markdown(payload: dict[str, Any]) -> str:
     reuse_decision = diagnostics.get("reuse_decision") if isinstance(diagnostics.get("reuse_decision"), dict) else {}
     llm_timeout_memory = diagnostics.get("llm_timeout_memory") if isinstance(diagnostics.get("llm_timeout_memory"), dict) else {}
     llm_retry_stop_loss = diagnostics.get("llm_retry_stop_loss") if isinstance(diagnostics.get("llm_retry_stop_loss"), dict) else {}
+    approval = payload.get("approval") if isinstance(payload.get("approval"), dict) else {}
+    run_event_summary = payload.get("run_event_summary") if isinstance(payload.get("run_event_summary"), dict) else {}
     latest_summary_signals = payload.get("latest_summary_signals") if isinstance(payload.get("latest_summary_signals"), dict) else {}
     chapter6_hints = payload.get("chapter6_hints") if isinstance(payload.get("chapter6_hints"), dict) else {}
     chapter6_stop_loss_note = _chapter6_stop_loss_note(chapter6_hints, latest_summary_signals)
@@ -602,7 +789,17 @@ def render_active_task_markdown(payload: dict[str, Any]) -> str:
         f"- Chapter6 rerun forbidden: {bool(chapter6_hints.get('rerun_forbidden'))}",
         f"- Chapter6 rerun override: {chapter6_hints.get('rerun_override_flag') or 'n/a'}",
         f"- Chapter6 stop-loss note: {chapter6_stop_loss_note or 'n/a'}",
+        f"- Approval required action: {approval.get('required_action') or 'n/a'}",
+        f"- Approval status: {approval.get('status') or 'n/a'}",
+        f"- Approval decision: {approval.get('decision') or 'n/a'}",
+        f"- Approval recommended action: {approval.get('recommended_action') or 'n/a'}",
+        f"- Approval allowed actions: {', '.join(str(item).strip() for item in list(approval.get('allowed_actions') or []) if str(item).strip()) or 'none'}",
+        f"- Approval blocked actions: {', '.join(str(item).strip() for item in list(approval.get('blocked_actions') or []) if str(item).strip()) or 'none'}",
+        f"- Approval reason: {approval.get('reason') or 'n/a'}",
+        f"- Recommended command: `{payload.get('recommended_command')}`" if payload.get("recommended_command") else "- Recommended command: n/a",
+        f"- Forbidden commands: {', '.join(f'`{item}`' for item in list(payload.get('forbidden_commands') or []))}" if list(payload.get("forbidden_commands") or []) else "- Forbidden commands: none",
         f"- Resume summary command: `{commands.get('resume_summary')}`" if commands.get("resume_summary") else "- Resume summary command: n/a",
+        f"- Inspect command: `{commands.get('inspect')}`" if commands.get("inspect") else "- Inspect command: n/a",
         f"- Resume command: `{commands.get('resume')}`" if commands.get("resume") else "- Resume command: n/a",
         f"- Fork command: `{commands.get('fork')}`" if commands.get("fork") else "- Fork command: n/a",
         f"- Rerun command: `{commands.get('rerun')}`" if commands.get("rerun") else "- Rerun command: n/a",
@@ -644,6 +841,37 @@ def render_active_task_markdown(payload: dict[str, Any]) -> str:
         lines.append(
             f"- Diagnostics recent_failure_summary: family={recent_failure_summary.get('latest_failure_family') or 'n/a'} same_family_count={int(recent_failure_summary.get('same_family_count') or 0)} stop_full_rerun_recommended={bool(recent_failure_summary.get('stop_full_rerun_recommended'))}"
         )
+    if run_event_summary:
+        family_counts = ", ".join(f"{key}={value}" for key, value in dict(run_event_summary.get("family_counts") or {}).items()) or "none"
+        latest_turn_family_counts = ", ".join(
+            f"{key}={value}" for key, value in dict(run_event_summary.get("latest_turn_family_counts") or {}).items()
+        ) or "none"
+        previous_turn_family_counts = ", ".join(
+            f"{key}={value}" for key, value in dict(run_event_summary.get("previous_turn_family_counts") or {}).items()
+        ) or "none"
+        turn_family_delta = ", ".join(
+            f"{key}={'+' if int(value) > 0 else ''}{int(value)}" for key, value in dict(run_event_summary.get("turn_family_delta") or {}).items()
+        ) or "none"
+        lines.extend(
+            [
+                f"- Run events path: `{run_event_summary.get('path')}`" if run_event_summary.get("path") else "- Run events path: n/a",
+                f"- Run events event count: {int(run_event_summary.get('event_count') or 0)}",
+                f"- Run events turn count: {int(run_event_summary.get('turn_count') or 0)}",
+                f"- Run events latest turn: {run_event_summary.get('latest_turn_id') or 'n/a'} seq={int(run_event_summary.get('latest_turn_seq') or 0)}",
+                f"- Run events previous turn: {run_event_summary.get('previous_turn_id') or 'n/a'} seq={int(run_event_summary.get('previous_turn_seq') or 0)}",
+                f"- Run events latest event: {run_event_summary.get('latest_event') or 'n/a'}",
+                f"- Run events families: {family_counts}",
+                f"- Run events previous turn families: {previous_turn_family_counts}",
+                f"- Run events latest turn families: {latest_turn_family_counts}",
+                f"- Run events turn family delta: {turn_family_delta}",
+                f"- Run events new reviewers: {', '.join(str(item) for item in list(run_event_summary.get('new_reviewers') or [])) or 'none'}",
+                f"- Run events new sidecars: {', '.join(str(item) for item in list(run_event_summary.get('new_sidecars') or [])) or 'none'}",
+                f"- Run events approval changed: {bool(run_event_summary.get('approval_changed'))}",
+                f"- Reviewer activity: {'; '.join(str(item) for item in list(run_event_summary.get('reviewers') or [])) or 'none'}",
+                f"- Sidecar activity: {'; '.join(str(item) for item in list(run_event_summary.get('sidecars') or [])) or 'none'}",
+                f"- Approval activity: {run_event_summary.get('approval') or 'none'}",
+            ]
+        )
     return "\n".join(lines) + "\n"
 
 
@@ -665,6 +893,7 @@ def write_active_task_sidecar(
         latest_json_path=latest_json_path,
         root=resolved_root,
     )
+    validate_active_task_payload(payload)
     json_path = active_task_json_path(task_id, resolved_root)
     md_path = active_task_md_path(task_id, resolved_root)
     write_json(json_path, payload)

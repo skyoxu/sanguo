@@ -42,6 +42,9 @@ def _validate_common_approval(payload: Any, *, base_path: str) -> list[str]:
         "request_id": str,
         "request_path": str,
         "response_path": str,
+        "recommended_action": str,
+        "allowed_actions": list,
+        "blocked_actions": list,
     }
     if not isinstance(payload, dict):
         return [f"{base_path}: must be object"]
@@ -55,6 +58,9 @@ def _validate_common_approval(payload: Any, *, base_path: str) -> list[str]:
         if typ is bool:
             if not isinstance(value, bool):
                 errors.append(f"{base_path}.{key}: must be boolean")
+        elif typ is list:
+            if not isinstance(value, list) or any(not _is_non_empty_string(item) for item in value):
+                errors.append(f"{base_path}.{key}: must be array of non-empty strings")
         elif not isinstance(value, str):
             errors.append(f"{base_path}.{key}: must be string")
     return errors
@@ -83,6 +89,13 @@ def validate_pipeline_execution_context_without_jsonschema(payload: dict[str, An
         "recovery",
         "marathon",
         "agent_review",
+        "recommended_action",
+        "recommended_action_why",
+        "candidate_commands",
+        "recommended_command",
+        "forbidden_commands",
+        "latest_summary_signals",
+        "chapter6_hints",
         "llm_review",
         "approval",
         "diagnostics",
@@ -124,6 +137,20 @@ def validate_pipeline_execution_context_without_jsonschema(payload: dict[str, An
     for key in ("paths", "git", "recovery", "marathon", "agent_review", "llm_review"):
         if key in payload and not isinstance(payload.get(key), dict):
             errors.append(f"$.{key}: must be object when present")
+    if "recommended_action" in payload and not _is_non_empty_string(payload.get("recommended_action")):
+        errors.append("$.recommended_action: must be non-empty string when present")
+    if "recommended_action_why" in payload and not _is_non_empty_string(payload.get("recommended_action_why")):
+        errors.append("$.recommended_action_why: must be non-empty string when present")
+    if "candidate_commands" in payload and not isinstance(payload.get("candidate_commands"), dict):
+        errors.append("$.candidate_commands: must be object when present")
+    if "recommended_command" in payload and not _is_non_empty_string(payload.get("recommended_command")):
+        errors.append("$.recommended_command: must be non-empty string when present")
+    if "forbidden_commands" in payload and not _is_string_list(payload.get("forbidden_commands"), allow_empty=True):
+        errors.append("$.forbidden_commands: must be array of non-empty strings when present")
+    if "latest_summary_signals" in payload and not isinstance(payload.get("latest_summary_signals"), dict):
+        errors.append("$.latest_summary_signals: must be object when present")
+    if "chapter6_hints" in payload and not isinstance(payload.get("chapter6_hints"), dict):
+        errors.append("$.chapter6_hints: must be object when present")
     if "delivery_profile" in payload and not _is_non_empty_string(payload.get("delivery_profile")):
         errors.append("$.delivery_profile: must be non-empty string when present")
     if "approval" in payload:
