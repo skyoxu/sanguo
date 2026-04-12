@@ -1062,6 +1062,8 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             validate_pipeline_latest_index_payload(latest)
             self.assertEqual("fail", summary["status"])
             self.assertEqual("rerun_blocked:deterministic_green_llm_not_clean", summary["reason"])
+            self.assertEqual("needs-fix-fast", summary["recommended_action"])
+            self.assertIn("llm-only closure", summary["recommended_action_why"].lower())
             self.assertEqual("none", summary["reuse_mode"])
             self.assertTrue(summary["diagnostics"]["rerun_guard"]["blocked"])
             self.assertEqual("llm-only", summary["diagnostics"]["rerun_guard"]["recommended_path"])
@@ -1224,16 +1226,19 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                         "cmd": cmd,
                         "rc": 0,
                         "status": "ok",
+                        "duration_sec": 2.0,
                         "log": str(out_dir / f"{name}.log"),
                         "reported_out_dir": str(out_dir / "acceptance-preflight"),
                         "summary_file": str(out_dir / "acceptance-preflight" / "summary.json"),
                     }
                 if name in {"sc-test", "sc-acceptance-check"}:
+                    duration = 11.0 if name == "sc-test" else 7.5
                     return {
                         "name": name,
                         "cmd": cmd,
                         "rc": 0,
                         "status": "ok",
+                        "duration_sec": duration,
                         "log": str(out_dir / f"{name}.log"),
                         "reported_out_dir": str(out_dir / name),
                         "summary_file": str(out_dir / name / "summary.json"),
@@ -1244,6 +1249,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                         "cmd": cmd,
                         "rc": 124,
                         "status": "fail",
+                        "duration_sec": 19.0,
                         "log": str(out_dir / f"{name}.log"),
                         "reported_out_dir": "",
                         "summary_file": "",
@@ -1288,6 +1294,16 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             latest = json.loads(latest_path.read_text(encoding="utf-8"))
             validate_pipeline_latest_index_payload(latest)
             self.assertEqual("fail", summary["status"])
+            self.assertEqual("sc-llm-review", summary["dominant_cost_phase"])
+            self.assertEqual(
+                {
+                    "sc-acceptance-check": 7.5,
+                    "sc-llm-review": 19.0,
+                    "sc-test": 11.0,
+                },
+                summary["step_duration_totals"],
+            )
+            self.assertEqual(summary["step_duration_totals"], summary["step_duration_avg"])
             self.assertTrue(latest["deterministic_bundle"]["available"])
             self.assertEqual("none", latest["deterministic_bundle"]["reuse_mode"])
             self.assertIn("sc-test", str(latest["deterministic_bundle"]["test_summary_path"]).replace("\\", "/"))
@@ -1534,6 +1550,8 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
             run_step_mock.assert_not_called()
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("rerun_blocked:repeat_review_needs_fix", summary["reason"])
+            self.assertEqual("needs-fix-fast", summary["recommended_action"])
+            self.assertIn("needs fix family", summary["recommended_action_why"].lower())
             self.assertEqual("repeat_review_needs_fix", summary["diagnostics"]["rerun_guard"]["kind"])
             self.assertTrue(summary["diagnostics"]["rerun_guard"]["blocked"])
             self.assertEqual("needs-fix-fast", summary["diagnostics"]["rerun_guard"]["recommended_path"])

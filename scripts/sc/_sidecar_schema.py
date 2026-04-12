@@ -219,6 +219,23 @@ def _validate_active_task_fallback(payload: dict[str, Any]) -> list[str]:
     for key in ("paths", "step_summary", "clean_state", "diagnostics", "latest_summary_signals", "chapter6_hints", "candidate_commands", "approval", "run_event_summary"):
         _require_object(payload, key, errors)
     _require_string_list(payload, "forbidden_commands", errors)
+    if "dominant_cost_phase" in payload and not isinstance(payload.get("dominant_cost_phase"), str):
+        errors.append("$.dominant_cost_phase: expected string")
+    for key in ("step_duration_totals", "step_duration_avg"):
+        metrics = payload.get(key) if isinstance(payload.get(key), dict) else {}
+        if key in payload and not isinstance(payload.get(key), dict):
+            errors.append(f"$.{key}: expected object")
+            continue
+        for metric_key, metric_value in metrics.items():
+            if not str(metric_key).strip() or isinstance(metric_value, bool) or not isinstance(metric_value, (int, float)) or float(metric_value) < 0:
+                errors.append(f"$.{key}.{metric_key}: expected number >= 0")
+    counts = payload.get("round_failure_kind_counts") if isinstance(payload.get("round_failure_kind_counts"), dict) else {}
+    if "round_failure_kind_counts" in payload and not isinstance(payload.get("round_failure_kind_counts"), dict):
+        errors.append("$.round_failure_kind_counts: expected object")
+    else:
+        for metric_key, metric_value in counts.items():
+            if not str(metric_key).strip() or not isinstance(metric_value, int) or metric_value < 0:
+                errors.append(f"$.round_failure_kind_counts.{metric_key}: expected integer >= 0")
     paths = payload.get("paths") if isinstance(payload.get("paths"), dict) else {}
     for key in ("latest_json", "out_dir", "summary_json", "execution_context_json", "repair_guide_json", "repair_guide_md"):
         _require_string(paths, key, errors)

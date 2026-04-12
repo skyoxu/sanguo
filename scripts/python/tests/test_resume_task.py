@@ -1189,6 +1189,92 @@ class ResumeTaskTests(unittest.TestCase):
         self.assertFalse(default_json.exists())
         self.assertFalse(default_md.exists())
 
+    def test_build_resume_payload_should_surface_bottleneck_fields_and_markdown(self) -> None:
+        inspection_payload = {
+            "task_id": "15",
+            "run_id": "run-15",
+            "status": "fail",
+            "failure": {
+                "code": "review-needs-fix",
+                "message": "Needs Fix remains after deterministic evidence stayed green.",
+            },
+            "paths": {
+                "latest": "logs/ci/2026-04-10/sc-review-pipeline-task-15/latest.json",
+                "out_dir": "logs/ci/2026-04-10/sc-review-pipeline-task-15-run-15",
+            },
+            "latest_summary_signals": {
+                "reason": "rerun_blocked:repeat_review_needs_fix",
+                "run_type": "full",
+                "reuse_mode": "none",
+                "artifact_integrity_kind": "",
+                "diagnostics_keys": ["rerun_guard"],
+            },
+            "chapter6_hints": {
+                "next_action": "needs-fix-fast",
+                "can_skip_6_7": True,
+                "can_go_to_6_8": True,
+                "blocked_by": "rerun_guard",
+                "rerun_forbidden": True,
+                "rerun_override_flag": "--allow-full-rerun",
+            },
+            "approval": {},
+            "candidate_commands": {
+                "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+                "resume": "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume",
+                "fork": "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork",
+                "rerun": "py -3 scripts/sc/run_review_pipeline.py --task-id 15",
+                "needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+            },
+            "recommended_action": "needs-fix-fast",
+            "recommended_action_why": "Deterministic evidence is already green; continue with the narrow 6.8 closure path.",
+            "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+            "forbidden_commands": ["py -3 scripts/sc/run_review_pipeline.py --task-id 15"],
+            "recent_failure_summary": {},
+            "run_event_summary": {
+                "latest_turn_id": "run-15:turn-2",
+                "turn_count": 2,
+            },
+            "dominant_cost_phase": "sc-llm-review",
+            "step_duration_totals": {
+                "sc-llm-review": 12.5,
+                "sc-test": 4.0,
+            },
+            "step_duration_avg": {
+                "sc-llm-review": 12.5,
+                "sc-test": 4.0,
+            },
+            "round_failure_kind_counts": {
+                "timeout": 2,
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            repo_root = Path(tmp_dir)
+            with (
+                mock.patch.object(resume_task, "inspect_run_artifacts", return_value=(1, inspection_payload)),
+                mock.patch.object(resume_task, "_load_active_task", return_value={}),
+                mock.patch.object(resume_task, "_load_optional_agent_review", return_value={}),
+                mock.patch.object(resume_task, "_load_pipeline_summary_from_inspection", return_value={}),
+                mock.patch.object(resume_task, "_find_related_docs", return_value=[]),
+            ):
+                rc, payload = resume_task.build_resume_payload(
+                    repo_root=repo_root,
+                    task_id="15",
+                    latest="",
+                    run_id="",
+                )
+
+            markdown = resume_task._render_markdown(payload)
+
+        self.assertEqual(1, rc)
+        self.assertEqual("sc-llm-review", payload["dominant_cost_phase"])
+        self.assertEqual({"sc-llm-review": 12.5, "sc-test": 4.0}, payload["step_duration_totals"])
+        self.assertEqual({"sc-llm-review": 12.5, "sc-test": 4.0}, payload["step_duration_avg"])
+        self.assertEqual({"timeout": 2}, payload["round_failure_kind_counts"])
+        self.assertIn("- Dominant cost phase: sc-llm-review", markdown)
+        self.assertIn("- Step duration totals: sc-llm-review=12.5, sc-test=4.0", markdown)
+        self.assertIn("- Round failure kind counts: timeout=2", markdown)
+
 
 if __name__ == "__main__":
     unittest.main()

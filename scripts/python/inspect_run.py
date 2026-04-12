@@ -28,6 +28,7 @@ from _pipeline_history import collect_recent_failure_summary  # noqa: E402
 from _chapter6_recovery_common import (  # noqa: E402
     compact_recommendation_fields,
     candidate_commands as build_candidate_commands,
+    extract_bottleneck_fields,
     forbidden_commands as build_forbidden_commands,
     recommended_command as build_recommended_command,
 )
@@ -931,6 +932,7 @@ def inspect_run_artifacts(
             "run_events": _to_posix(root, sidecar_paths.get("run_events")),
         },
     }
+    payload.update(extract_bottleneck_fields(summary))
     payload["chapter6_hints"] = _derive_chapter6_hints(
         failure=failure,
         latest_summary_signals=payload["latest_summary_signals"],

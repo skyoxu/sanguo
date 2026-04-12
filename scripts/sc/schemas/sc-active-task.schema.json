@@ -57,6 +57,19 @@
     "diagnostics": { "type": "object" },
     "latest_summary_signals": { "type": "object" },
     "chapter6_hints": { "type": "object" },
+    "dominant_cost_phase": { "type": "string", "minLength": 1 },
+    "step_duration_totals": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    },
+    "step_duration_avg": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    },
+    "round_failure_kind_counts": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
     "recommended_action": { "type": "string", "minLength": 1 },
     "recommended_action_why": { "type": "string" },
     "candidate_commands": {
