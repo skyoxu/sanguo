@@ -59,6 +59,47 @@ def _command_for_action(action: str, commands: dict[str, str]) -> str:
     return ""
 
 
+def _normalize_number_map(value: Any, *, integer: bool = False) -> dict[str, int] | dict[str, float]:
+    payload = value if isinstance(value, dict) else {}
+    normalized: dict[str, int] | dict[str, float] = {}
+    for raw_key, raw_value in payload.items():
+        key = str(raw_key or "").strip()
+        if not key or isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
+            continue
+        number = max(0.0, float(raw_value))
+        normalized[key] = int(number) if integer else round(number, 3)
+    return {key: normalized[key] for key in sorted(normalized)}
+
+
+def extract_bottleneck_fields(payload: dict[str, Any] | None) -> dict[str, Any]:
+    base = payload if isinstance(payload, dict) else {}
+    result: dict[str, Any] = {}
+    dominant_cost_phase = str(base.get("dominant_cost_phase") or "").strip()
+    if dominant_cost_phase:
+        result["dominant_cost_phase"] = dominant_cost_phase
+    step_duration_totals = _normalize_number_map(base.get("step_duration_totals"))
+    if step_duration_totals:
+        result["step_duration_totals"] = step_duration_totals
+    step_duration_avg = _normalize_number_map(base.get("step_duration_avg"))
+    if step_duration_avg:
+        result["step_duration_avg"] = step_duration_avg
+    round_failure_kind_counts = _normalize_number_map(base.get("round_failure_kind_counts"), integer=True)
+    if round_failure_kind_counts:
+        result["round_failure_kind_counts"] = round_failure_kind_counts
+    return result
+
+
+def format_metric_map(value: Any) -> str:
+    payload = value if isinstance(value, dict) else {}
+    items: list[str] = []
+    for raw_key, raw_value in payload.items():
+        key = str(raw_key or "").strip()
+        if not key:
+            continue
+        items.append(f"{key}={raw_value}")
+    return ", ".join(items)
+
+
 def recommended_command(
     recommended_action: str,
     commands: dict[str, str],

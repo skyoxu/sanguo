@@ -24,6 +24,8 @@ from _delivery_profile import (
     profile_needs_fix_fast_defaults,
     resolve_delivery_profile,
 )
+from _llm_review_cli import resolve_agents as resolve_llm_review_agents
+from _llm_backend import KNOWN_LLM_BACKENDS, resolve_llm_backend
 from _change_scope import classify_change_scope_between_snapshots
 from _risk_profile_floor import derive_delivery_profile_floor, requires_security_auditor_for_change_scope
 from _util import ci_dir, repo_root, run_cmd, split_csv, write_json, write_text
@@ -76,6 +78,10 @@ def normalize_verdict(value: str | None) -> str:
     if raw in {"needs fix", "needs_fix", "need fix", "fail", "failed"}:
         return "Needs Fix"
     return "Unknown"
+
+
+def resolve_configured_agents(raw_agents: str) -> list[str]:
+    return [str(agent).strip() for agent in resolve_llm_review_agents(str(raw_agents or "").strip(), "warn") if str(agent).strip()]
 
 
 def parse_out_dir(stdout: str) -> Path | None:
@@ -1164,6 +1170,15 @@ def _round_needs_fix_signature(round_result: dict[str, Any]) -> list[dict[str, s
     return signature
 
 
+def _round_verdict(verdicts: dict[str, str], *, rc: int) -> str:
+    normalized = {normalize_verdict(str(value or "")) for value in verdicts.values()}
+    if "Needs Fix" in normalized:
+        return "Needs Fix"
+    if rc == 0 and normalized and normalized.issubset({"OK"}):
+        return "OK"
+    return "Unknown"
+
+
 def _derive_final_status(*, final_verdicts: dict[str, str], rounds: list[dict[str, Any]]) -> tuple[str, str]:
     final_needs_fix = sorted([agent for agent, verdict in final_verdicts.items() if verdict == "Needs Fix"])
     final_unknown = sorted([agent for agent, verdict in final_verdicts.items() if verdict == "Unknown"])
@@ -1244,6 +1259,99 @@ def _chapter6_route_stop_outcome(payload: dict[str, Any]) -> tuple[str, str, int
     return "indeterminate", "chapter6_route_inspect_first", 1
 
 
+def _normalized_timeline_phase(name: str) -> str:
+    step_name = str(name or "").strip()
+    if step_name.startswith("pipeline-llm-round-"):
+        return "pipeline-llm-round"
+    return step_name
+
+
+def _build_timeline_bottleneck_summary(*, timeline: list[dict[str, Any]], rounds: list[dict[str, Any]]) -> dict[str, Any]:
+    totals: dict[str, float] = {}
+    counts: dict[str, int] = {}
+    failure_kind_counts: dict[str, int] = {}
+    for item in timeline:
+        if not isinstance(item, dict):
+            continue
+        phase = _normalized_timeline_phase(str(item.get("name") or ""))
+        duration_raw = item.get("duration_sec")
+        if not phase or not isinstance(duration_raw, (int, float)) or isinstance(duration_raw, bool):
+            continue
+        duration = round(max(0.0, float(duration_raw)), 3)
+        totals[phase] = round(totals.get(phase, 0.0) + duration, 3)
+        counts[phase] = counts.get(phase, 0) + 1
+    for item in rounds:
+        if not isinstance(item, dict):
+            continue
+        failure_kind = str(item.get("failure_kind") or "").strip()
+        if not failure_kind:
+            continue
+        failure_kind_counts[failure_kind] = failure_kind_counts.get(failure_kind, 0) + 1
+    if not totals and not failure_kind_counts:
+        return {}
+    payload: dict[str, Any] = {
+        "round_failure_kind_counts": {
+            key: failure_kind_counts[key]
+            for key in sorted(failure_kind_counts)
+        },
+    }
+    if totals:
+        payload["step_duration_totals"] = {
+            key: totals[key]
+            for key in sorted(totals)
+        }
+        payload["step_duration_counts"] = {
+            key: counts[key]
+            for key in sorted(counts)
+        }
+        payload["step_duration_avg"] = {
+            key: round(totals[key] / max(1, counts.get(key, 1)), 3)
+            for key in sorted(totals)
+        }
+        payload["dominant_cost_phase"] = max(sorted(totals.items()), key=lambda item: (item[1], item[0]))[0]
+    return payload
+
+
+def _derive_summary_recommendation(summary: dict[str, Any]) -> tuple[str, str]:
+    status = str(summary.get("status") or "").strip().lower()
+    reason = str(summary.get("reason") or "").strip().lower()
+    route_preflight = summary.get("route_preflight") if isinstance(summary.get("route_preflight"), dict) else {}
+    preferred_lane = str(route_preflight.get("preferred_lane") or "").strip().lower()
+    args_payload = summary.get("args") if isinstance(summary.get("args"), dict) else {}
+    final_unknown_agents = [str(item).strip() for item in list(summary.get("final_unknown_agents") or []) if str(item).strip()]
+    final_needs_fix_agents = [str(item).strip() for item in list(summary.get("final_needs_fix_agents") or []) if str(item).strip()]
+    stop_loss = summary.get("stop_loss") if isinstance(summary.get("stop_loss"), dict) else {}
+
+    if reason == "latest_pipeline_already_clean" or status == "ok":
+        return "continue", "The latest full pipeline is already clean for the current change scope; no extra 6.8 rerun is needed."
+    if reason == "no_anchor_fix_for_previous_llm_unknown":
+        return "inspect", "The previous reviewer result was Unknown and this change did not hit the reviewer anchors; inspect the current sidecars before spending more budget."
+    if preferred_lane == "inspect-first" or reason == "chapter6_route_inspect_first":
+        return "inspect", "Chapter 6 route says inspect first; do not pay for a new 6.8 run until the current evidence is reviewed."
+    if preferred_lane == "fix-deterministic" or reason == "chapter6_route_fix_deterministic":
+        return "fix-and-resume", "Chapter 6 route says a deterministic issue still blocks progress; fix that root cause before continuing 6.8."
+    if preferred_lane == "record-residual" or reason == "chapter6_route_record_residual":
+        return "record-residual", "Chapter 6 route says the remaining findings should be recorded as residual debt instead of paying for another 6.8 run."
+    if reason == "repeated_needs_fix_no_progress" or bool(stop_loss.get("triggered")):
+        return "record-residual", "Repeated Needs Fix rounds made no progress; record the remaining findings instead of looping another 6.8 run."
+    if final_unknown_agents:
+        if bool(args_payload.get("final_pass")):
+            return "inspect", "The final pass still ended with Unknown reviewers; inspect the latest reviewer artifacts before deciding on any further rerun."
+        return "final-pass", "Reviewer closure still has Unknown agents; if this is the last task-level cleanup, run one strict final pass next."
+    if final_needs_fix_agents:
+        return "record-residual", "Concrete Needs Fix findings remain after the narrow closure run; fix them directly or record them as residual debt."
+    if status == "indeterminate":
+        return "inspect", "The narrow closure run ended indeterminate; inspect route, reviewer, and timeout evidence before rerunning."
+    return "inspect", "Inspect the latest narrow closure artifacts before deciding whether to rerun or close the task."
+
+
+def _write_summary(out_dir: Path, summary: dict[str, Any]) -> None:
+    recommended_action, recommended_action_why = _derive_summary_recommendation(summary)
+    summary["recommended_action"] = recommended_action
+    summary["recommended_action_why"] = recommended_action_why
+    write_json(out_dir / "summary.json", summary)
+
+
 def main() -> int:
     parsed_args = build_parser().parse_args()
     explicit_flags = {
@@ -1263,7 +1371,7 @@ def main() -> int:
         print("[needs-fix-fast] ERROR: --max-rounds must be >= 1")
         return 2
 
-    agents = split_csv(args.agents)
+    agents = resolve_configured_agents(args.agents)
     if not agents:
         print("[needs-fix-fast] ERROR: --agents resolved to empty list")
         return 2
@@ -1275,34 +1383,36 @@ def main() -> int:
     timeline: list[dict[str, Any]] = []
     route_payload: dict[str, Any] = {}
     py = args.python
+    clean_skip_step = try_skip_when_latest_pipeline_already_clean(
+        task_id=str(args.task_id),
+        delivery_profile=str(args.delivery_profile),
+        security_profile=str(args.security_profile),
+        out_dir=out_dir,
+        script_start=script_start,
+        budget_min=args.time_budget_min,
+    )
+    if clean_skip_step is not None:
+        summary = {
+            "cmd": "sc-needs-fix-fast",
+            "task_id": str(args.task_id),
+            "status": "ok",
+            "reason": "latest_pipeline_already_clean",
+            "out_dir": str(out_dir),
+            "elapsed_sec": elapsed_sec(script_start),
+            "delivery_profile": str(args.delivery_profile),
+            "change_scope": clean_skip_step.get("change_scope") if isinstance(clean_skip_step.get("change_scope"), dict) else {},
+            "timeline": [clean_skip_step],
+            "rounds": [],
+            "votes": {agent: [] for agent in agents},
+            "final_verdicts": {agent: "OK" for agent in agents},
+            "final_needs_fix_agents": [],
+            "final_unknown_agents": [],
+        }
+        _write_summary(out_dir, summary)
+        print(f"SC_NEEDS_FIX_FAST status=ok out={out_dir}")
+        return 0
+
     if not bool(args.final_pass):
-        clean_skip_step = try_skip_when_latest_pipeline_already_clean(
-            task_id=str(args.task_id),
-            delivery_profile=str(args.delivery_profile),
-            security_profile=str(args.security_profile),
-            out_dir=out_dir,
-            script_start=script_start,
-            budget_min=args.time_budget_min,
-        )
-        if clean_skip_step is not None:
-            summary = {
-                "cmd": "sc-needs-fix-fast",
-                "task_id": str(args.task_id),
-                "status": "ok",
-                "reason": "latest_pipeline_already_clean",
-                "out_dir": str(out_dir),
-                "elapsed_sec": elapsed_sec(script_start),
-                "delivery_profile": str(args.delivery_profile),
-                "change_scope": clean_skip_step.get("change_scope") if isinstance(clean_skip_step.get("change_scope"), dict) else {},
-                "timeline": [clean_skip_step],
-                "rounds": [],
-                "votes": {agent: [] for agent in agents},
-                "final_verdicts": {agent: "OK" for agent in agents},
-                "final_needs_fix_agents": [],
-            }
-            write_json(out_dir / "summary.json", summary)
-            print(f"SC_NEEDS_FIX_FAST status=ok out={out_dir}")
-            return 0
         stop_loss_step = try_stop_when_latest_llm_unknown_without_anchor_fix(
             task_id=str(args.task_id),
             delivery_profile=str(args.delivery_profile),
@@ -1328,7 +1438,7 @@ def main() -> int:
                 "final_needs_fix_agents": [],
                 "final_unknown_agents": list(agents),
             }
-            write_json(out_dir / "summary.json", summary)
+            _write_summary(out_dir, summary)
             print(f"SC_NEEDS_FIX_FAST status=indeterminate out={out_dir}")
             return 1
         route_payload = _run_chapter6_route_preflight(task_id=str(args.task_id), out_dir=out_dir)
@@ -1360,7 +1470,7 @@ def main() -> int:
                     "route_preflight": route_payload,
                     "residual_recording": residual_recording,
                 }
-                write_json(out_dir / "summary.json", summary)
+                _write_summary(out_dir, summary)
                 print(f"SC_NEEDS_FIX_FAST status={status} out={out_dir}")
                 return exit_code
 
@@ -1453,7 +1563,7 @@ def main() -> int:
             "timeline": timeline,
             "elapsed_sec": elapsed_sec(script_start),
         }
-        write_json(out_dir / "summary.json", summary)
+        _write_summary(out_dir, summary)
         print(f"SC_NEEDS_FIX_FAST status=fail out={out_dir}")
         return 1
 
@@ -1516,7 +1626,7 @@ def main() -> int:
                     "elapsed_sec": elapsed_sec(script_start),
                     "delivery_profile": str(args.delivery_profile),
                 }
-                write_json(out_dir / "summary.json", summary)
+                _write_summary(out_dir, summary)
                 print(f"SC_NEEDS_FIX_FAST status=fail out={out_dir}")
                 return 1
             break
@@ -1588,7 +1698,7 @@ def main() -> int:
                     "delivery_profile": str(args.delivery_profile),
                     "llm_budget_prediction_history": llm_budget_prediction_history,
                 }
-                write_json(out_dir / "summary.json", summary)
+                _write_summary(out_dir, summary)
                 print(f"SC_NEEDS_FIX_FAST status=fail out={out_dir}")
                 return 1
             break
@@ -1633,12 +1743,20 @@ def main() -> int:
 
         round_result: dict[str, Any] = {
             "round": round_no,
-            "agents": run_agents,
+            "round_index": round_no,
+            "status": str(llm_step.get("status") or ""),
+            "agents": list(run_agents),
+            "run_agents": list(run_agents),
             "agent_source": initial_agent_source if round_no == 1 else ("previous-round-needs-fix" if args.rerun_failing_only else "configured-defaults"),
             "rc": llm_step["rc"],
+            "remaining_before_sec": int(llm_step.get("remaining_before_sec") or 0),
+            "remaining_after_sec": int(llm_step.get("remaining_after_sec") or 0),
+            "reported_out_dir": str(llm_step.get("reported_out_dir") or ""),
+            "log_file": str(llm_step.get("log_file") or ""),
             "summary_file": "",
             "verdicts": {},
             "needs_fix_agents": [],
+            "timeout_agents": [],
         }
         if round_agent_timeout_overrides:
             round_result["agent_timeout_overrides"] = round_agent_timeout_overrides
@@ -1675,8 +1793,8 @@ def main() -> int:
                 if int(llm_step.get("rc") or 0) == 124 and round_result["verdicts"].get(agent) == "Unknown"
             ]
         )
+        round_result["timeout_agents"] = timeout_agents
         if timeout_agents:
-            round_result["timeout_agents"] = timeout_agents
             if not round_result["summary_file"]:
                 round_result["failure_kind"] = "timeout-no-summary"
         elif int(llm_step.get("rc") or 0) == 124:
@@ -1685,6 +1803,7 @@ def main() -> int:
         needs_fix_agents = [a for a, v in round_result["verdicts"].items() if v == "Needs Fix"]
         round_result["needs_fix_agents"] = needs_fix_agents
         round_result["needs_fix_signature"] = _round_needs_fix_signature(round_result)
+        round_result["verdict"] = _round_verdict(round_result["verdicts"], rc=int(llm_step.get("rc") or 0))
         rounds.append(round_result)
 
         if len(rounds) >= 2:
@@ -1752,7 +1871,8 @@ def main() -> int:
         "final_needs_fix_agents": final_needs_fix,
         "final_unknown_agents": final_unknown,
     }
-    write_json(out_dir / "summary.json", summary)
+    summary.update(_build_timeline_bottleneck_summary(timeline=timeline, rounds=rounds))
+    _write_summary(out_dir, summary)
 
     if status == "ok":
         print(f"SC_NEEDS_FIX_FAST status=ok out={out_dir}")

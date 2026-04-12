@@ -22,6 +22,8 @@ from _chapter6_recovery_common import (  # noqa: E402
     compact_recommendation_fields,
     candidate_commands as _shared_candidate_commands,
     chapter6_stop_loss_note as _chapter6_stop_loss_note,
+    extract_bottleneck_fields as _extract_bottleneck_fields,
+    format_metric_map as _format_metric_map,
     forbidden_commands as _shared_forbidden_commands,
     recommended_command as _shared_recommended_command,
 )
@@ -515,6 +517,9 @@ def build_resume_payload(
     plans = _find_related_docs(repo_root, "execution-plans", task_id=resolved_task_id, run_id=resolved_run_id, latest_rel=latest_rel)
     logs = _find_related_docs(repo_root, "decision-logs", task_id=resolved_task_id, run_id=resolved_run_id, latest_rel=latest_rel)
     active_task_snapshot = _normalized_active_task_snapshot(active_task, inspection_latest=latest_rel)
+    bottleneck_fields = _extract_bottleneck_fields(inspection)
+    if not bottleneck_fields:
+        bottleneck_fields = _extract_bottleneck_fields(pipeline_summary)
 
     approval = inspection.get("approval") if isinstance(inspection.get("approval"), dict) else {}
     recommended_command = str(inspection.get("recommended_command") or "").strip() or str(pipeline_summary.get("recommended_command") or "").strip() or _recommended_command(
@@ -571,6 +576,7 @@ def build_resume_payload(
             "summary": str(((agent_review.get("explain") or {}).get("summary") or "")).strip(),
         },
         "active_task": active_task_snapshot,
+        **bottleneck_fields,
     }
     return inspection_rc, payload
 
@@ -582,6 +588,9 @@ def _render_markdown(payload: dict[str, Any]) -> str:
     commands = payload.get("candidate_commands") or {}
     latest_summary_signals = payload.get("latest_summary_signals") if isinstance(payload.get("latest_summary_signals"), dict) else {}
     chapter6_hints = payload.get("chapter6_hints") if isinstance(payload.get("chapter6_hints"), dict) else {}
+    step_duration_totals = payload.get("step_duration_totals") if isinstance(payload.get("step_duration_totals"), dict) else {}
+    step_duration_avg = payload.get("step_duration_avg") if isinstance(payload.get("step_duration_avg"), dict) else {}
+    round_failure_kind_counts = payload.get("round_failure_kind_counts") if isinstance(payload.get("round_failure_kind_counts"), dict) else {}
 
     approval = payload.get("approval") if isinstance(payload.get("approval"), dict) else {}
 
@@ -632,6 +641,10 @@ def _render_markdown(payload: dict[str, Any]) -> str:
             if list(latest_summary_signals.get("diagnostics_keys") or [])
             else "none",
         ),
+        _line("Dominant cost phase", str(payload.get("dominant_cost_phase") or "n/a")),
+        _line("Step duration totals", _format_metric_map(step_duration_totals) or "none"),
+        _line("Step duration avg", _format_metric_map(step_duration_avg) or "none"),
+        _line("Round failure kind counts", _format_metric_map(round_failure_kind_counts) or "none"),
         _line("Chapter6 next action", str(chapter6_hints.get("next_action") or "n/a")),
         _line("Chapter6 can skip 6.7", "yes" if bool(chapter6_hints.get("can_skip_6_7")) else "no"),
         _line("Chapter6 can go to 6.8", "yes" if bool(chapter6_hints.get("can_go_to_6_8")) else "no"),

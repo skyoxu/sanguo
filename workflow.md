@@ -381,11 +381,22 @@ py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-pr
 - 调整 extract prompt 或范围
 - 调整 timeout / shard size
 - 用 dashboard 看 `extract_family_recommended_actions`，而不是继续往 5.1 里堆逻辑
+
+何时不要继续加预算，而应直接止损：
+
+- 如果 `extract_fail_bucket_counts.hard_uncovered > 0`，不要先加 `--llm-timeout-sec`；先补 acceptance / refs / obligations，再重跑 `extract`。
+- 如果 `failure_category_counts` 的主导项不是 `timeout`，而是 `model-fail` / `coverage-gap` / `semantic-needs-fix`，默认先修内容，不要把 timeout 当通用解法。
+- 如果 batch summary 已经出现稳定的 `family_hotspots` 或 `quarantine_ranges`，优先切分任务段或只重跑热点 shard，不要整段继续扩预算。
+- 如果 `prompt_trimmed_count = 0` 且 `semantic_gate_budget_hits = []`，说明这轮瓶颈通常不在 semantic gate 预算；不要误把问题归因到 prompt 长度。
+- 只有当失败主因明确是 `extract timeout`，并且没有 `hard_uncovered` / `schema_error` / obligations fail 这类确定性问题时，才值得调大 timeout 或缩 shard size。
 ### 5.2 Batch instability lane
 
 补充口径：
 - 5.2 里每个任务在进入 `extract` 前，同样会先经过 `preflight_acceptance_extract_guard`
 - preflight fail-fast 只是为了节省批量耗时，不替代后续真正的质量判定
+- 读 batch summary 的最短路径：先看 `recommended_next_action` / `recommended_next_action_why`，再看 `extract_family_recommended_actions` / `failure_category_counts`，最后才看 `step_duration_totals` / `step_duration_avg` / `slowest_tasks`。
+- 如果 `recommended_next_action` 已经明确指向“补 acceptance / obligations / task context”或“切热点 shard / quarantine range”，不要先调大 timeout。
+
 
 只有当多个任务都表现出 obligations extraction 不稳定时才使用。
 
@@ -714,6 +725,8 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - `--llm-base` 的默认值现在是 `origin/main`；除非你明确需要对比别的基线，否则不要手工改回 `main`。
 - 只有当最近两轮 6.7 都出现总超时，或大部分 reviewer 持续 `rc=124`，且定向扩时仍然不够时，才手工加大总超时，例如：`py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship --llm-timeout-sec 900`。
 - 不要把大超时当作默认配置；首选仍然是“先按默认预算跑，再对命中过 timeout 的 reviewer 定向补时”。
+- 如果最近一轮已经写出 `diagnostics.llm_retry_stop_loss`、`diagnostics.sc_test_retry_stop_loss`，或 `Chapter6 blocked by` 明确要求止损，不要试图靠加预算绕过 stop-loss；先修 deterministic 根因，或切到 6.8 / residual。
+- 如果失败主因是 `artifact_integrity`、`planned_only_incomplete`、重复 deterministic failure family、repo noise、锁进程，这些都不是“再加 300 秒”能解决的问题；直接止损，先处理根因。
 - 如果首轮 6.7 在 `sc-test` 阶段就出现 `rc=124`，且此前没有稳定的 task-scoped 成功样本，不要连续多次 `--resume` 硬撞；先看 `run-events.jsonl`、`child-artifacts/sc-test/summary.json`、`sc-test.log`，修完根因再继续。
 - 如果同一个 run 已经连续两次在 `sc-test` 失败，默认视为“当前 run 无继续价值”；优先修问题后重新开新 run，而不是在同一个 run 上反复 resume。
 - 如果当前同一轮 `sc-test` 已经明确是 `unit` 失败，pipeline 现在会直接停掉同 run 的第二次同参重试；这类失败默认视为“已知根因”，先修 unit 再开新 run，不要指望同参数重试自愈。
@@ -874,7 +887,18 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
 py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile fast-ship --rerun-failing-only --step-timeout-sec 900 --min-llm-budget-min 8
 ```
 
+- 读 6.8 summary 的最短路径：先看 `reason` / `route_preflight.preferred_lane`，再看 `final_needs_fix_agents` / `final_unknown_agents` / `round_failure_kind_counts`，最后才看 `dominant_cost_phase` / `step_duration_totals` / `step_duration_avg`。
+- 如果 `round_failure_kind_counts` 的主导项不是 timeout，而是 `timeout-no-summary` 之外的内容型失败，默认先修 reviewer 命中的问题，不要先调预算。
+- 如果 `dominant_cost_phase` 不是 `pipeline-llm-round`，说明时间主要不耗在 reviewer round，本轮优先排查 deterministic 或路由侧问题。
+何时不要继续加预算，而应直接止损：
+
+- 如果上一轮 `final_needs_fix_agents = []` 且 `final_unknown_agents` 仍然主导，尤其是 `failure_kind = timeout-no-summary`，优先把它当观测不足；先看 sidecar，再决定是否换 lane，不要重复同参重跑。
+- 如果本轮改动没有命中上一轮 reviewer anchors，或 `chapter6-route --recommendation-only` 已给出 `record-residual` / `inspect-first`，不要靠加 `--step-timeout-sec` 继续硬跑 6.8。
+- 如果最近一轮已经是 clean pipeline，而当前只是 docs-only / 非任务语义变更，6.8 应直接复用 clean 结果；这时继续加预算属于重复付费。
+- 只有当 `timeout_agents` 稳定集中在少数 reviewer，且 deterministic 已 clean、这一轮又确实命中了对应 reviewer 的锚点修复时，才值得做定向扩时。
+
 - 如果这是最后一次收口，直接执行：
+
 
 ```powershell
 py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile standard --final-pass
@@ -1060,7 +1084,7 @@ Inspect these first after a failure:
 - `repair-guide.md`
 - `run-events.jsonl`
 - `sc-test.log`
-- `child-artifacts/sc-acceptance-check/summary.json`
+- 读 6.7 summary 的最短路径：先看 `reason` / `diagnostics.rerun_guard` / `diagnostics.rerun_forbidden`，再看 `dominant_cost_phase` / `step_duration_totals`，最后再决定是否需要加 reviewer 或 step timeout。
 
 ## 7. Profile 快速指引
 

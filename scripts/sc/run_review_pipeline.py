@@ -750,6 +750,74 @@ def _set_reuse_mode(summary: dict[str, Any], mode: str) -> None:
     summary["reuse_mode"] = "mixed-reuse"
 
 
+def _collect_pipeline_step_duration_summary(summary: dict[str, Any]) -> dict[str, Any]:
+    steps = summary.get("steps") if isinstance(summary.get("steps"), list) else []
+    totals: dict[str, float] = {}
+    counts: dict[str, int] = {}
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        step_name = str(step.get("name") or "").strip()
+        duration_raw = step.get("duration_sec")
+        if not step_name or not isinstance(duration_raw, (int, float)) or isinstance(duration_raw, bool):
+            continue
+        duration = round(max(0.0, float(duration_raw)), 3)
+        totals[step_name] = round(totals.get(step_name, 0.0) + duration, 3)
+        counts[step_name] = counts.get(step_name, 0) + 1
+    if not totals:
+        return {}
+    avg = {
+        key: round(totals[key] / max(1, counts.get(key, 1)), 3)
+        for key in sorted(totals)
+    }
+    dominant = max(sorted(totals.items()), key=lambda item: (item[1], item[0]))[0]
+    return {
+        "step_duration_totals": {key: totals[key] for key in sorted(totals)},
+        "step_duration_avg": avg,
+        "dominant_cost_phase": dominant,
+    }
+
+
+def _first_failed_step_name(summary: dict[str, Any]) -> str:
+    steps = summary.get("steps") if isinstance(summary.get("steps"), list) else []
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        if str(step.get("status") or "").strip().lower() != "fail":
+            continue
+        step_name = str(step.get("name") or "").strip()
+        if step_name:
+            return step_name
+    return ""
+
+
+def _derive_summary_recommendation(summary: dict[str, Any]) -> tuple[str, str]:
+    status = str(summary.get("status") or "").strip().lower()
+    reason = str(summary.get("reason") or "").strip().lower()
+    failed_step = _first_failed_step_name(summary)
+
+    if reason in {"pipeline_clean", "pipeline_ok"} or status == "ok":
+        return "continue", "Pipeline is green; continue the task or move to the next planned step."
+    if reason == "planned_only_incomplete":
+        return "rerun", "The latest bundle is planned-only evidence, not a completed producer run; start a fresh real run before continuing Chapter 6."
+    if reason.startswith("rerun_blocked:chapter6_route_run_6_8") or reason.startswith("rerun_blocked:deterministic_green_llm_not_clean") or reason.startswith("rerun_blocked:repeat_review_needs_fix"):
+        return "needs-fix-fast", "Deterministic evidence is already green; continue with the narrow Needs Fix closure path instead of reopening a full rerun."
+    if reason.startswith("rerun_blocked:chapter6_route_fix_deterministic"):
+        return "fix-and-resume", "Chapter 6 routing says a deterministic root cause still blocks progress; fix that first, then resume."
+    if reason.startswith("rerun_blocked:chapter6_route_inspect_first") or reason.startswith("rerun_blocked:chapter6_route_repo_noise_stop") or reason.startswith("rerun_blocked:repeat_deterministic_failure") or reason.startswith("rerun_blocked:dirty_worktree_") or reason.startswith("rerun_blocked:profile_drift_change_scope_ceiling"):
+        return "inspect", "The latest run is blocked by a rerun guard or repo-noise classification; inspect the current artifacts before paying for another rerun."
+    if reason == "in_progress" or status == "running":
+        return "resume", "The pipeline is still in progress; resume or inspect the latest run instead of starting a fresh one."
+    if reason.startswith("step_failed:") or failed_step:
+        step_label = failed_step or str(reason.split(":", 1)[1] if ":" in reason else "").strip()
+        if step_label:
+            return "fix-and-resume", f"The pipeline failed at {step_label}; fix that deterministic root cause first, then resume."
+        return "fix-and-resume", "The pipeline failed at a deterministic step; fix that root cause first, then resume."
+    if status == "aborted":
+        return "inspect", "The run was aborted; inspect the latest bundle and decide whether to resume or rerun."
+    return "rerun", "The latest pipeline bundle is not clean; inspect the failure and rerun the appropriate task entrypoint."
+
+
 def _refresh_summary_meta(summary: dict[str, Any], *, script_start_monotonic: float) -> None:
     if not str(summary.get("started_at_utc") or "").strip():
         summary["started_at_utc"] = _utc_now_iso()
@@ -761,6 +829,16 @@ def _refresh_summary_meta(summary: dict[str, Any], *, script_start_monotonic: fl
     summary["reason"] = _derive_summary_reason(summary)
     current_reuse = str(summary.get("reuse_mode") or "none").strip().lower() or "none"
     summary["reuse_mode"] = current_reuse if current_reuse in REUSE_MODES else "none"
+    duration_summary = _collect_pipeline_step_duration_summary(summary)
+    if duration_summary:
+        summary.update(duration_summary)
+    else:
+        summary.pop("step_duration_totals", None)
+        summary.pop("step_duration_avg", None)
+        summary.pop("dominant_cost_phase", None)
+    recommended_action, recommended_action_why = _derive_summary_recommendation(summary)
+    summary["recommended_action"] = recommended_action
+    summary["recommended_action_why"] = recommended_action_why
 
 
 def _find_reusable_sc_test_step(

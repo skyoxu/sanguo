@@ -751,6 +751,7 @@ class NeedsFixFastFinalPassTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             out_dir = root / "logs" / "ci" / "2026-03-31" / "sc-needs-fix-fast-task-56"
+            resolved_agents = needs_fix_fast.resolve_configured_agents("all")
 
             argv = [
                 "llm_review_needs_fix_fast.py",
@@ -773,7 +774,7 @@ class NeedsFixFastFinalPassTests(unittest.TestCase):
                     reported_out_dir, summary_file = _write_llm_pipeline_artifacts(
                         out_dir,
                         name,
-                        results=[{"agent": "all", "status": "ok", "rc": 0, "details": {"verdict": "OK"}}],
+                        results=[{"agent": agent, "status": "ok", "rc": 0, "details": {"verdict": "OK"}} for agent in resolved_agents],
                     )
                 return {
                     "name": name,
@@ -810,14 +811,16 @@ class NeedsFixFastFinalPassTests(unittest.TestCase):
             self.assertNotIn("--skip-test", calls[0][1])
             self.assertEqual("pipeline-llm-round-1", calls[1][0])
             llm_cmd = calls[1][1]
-            self.assertEqual("all", llm_cmd[llm_cmd.index("--llm-agents") + 1])
+            self.assertEqual(",".join(resolved_agents), llm_cmd[llm_cmd.index("--llm-agents") + 1])
             self.assertEqual("full", llm_cmd[llm_cmd.index("--llm-diff-mode") + 1])
 
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertTrue(summary["args"]["final_pass"])
             self.assertEqual("full-pipeline", summary["deterministic_plan"]["mode"])
-            self.assertEqual(["all"], summary["args"]["agents"])
+            self.assertEqual(resolved_agents, summary["args"]["agents"])
+            self.assertEqual(resolved_agents, summary["args"]["initial_run_agents"])
             self.assertEqual("final-pass", summary["args"]["initial_run_agents_source"])
+            self.assertEqual([], summary["final_unknown_agents"])
 
 
 class NeedsFixFastTargetedTimeoutTests(unittest.TestCase):
@@ -1042,6 +1045,25 @@ class NeedsFixFastTargetedTimeoutTests(unittest.TestCase):
             self.assertEqual("indeterminate", summary["status"])
             self.assertEqual("llm_review_verdict_unknown", summary["reason"])
             self.assertEqual(["code-reviewer"], summary["final_unknown_agents"])
+            self.assertEqual(1, len(summary["rounds"]))
+            round0 = summary["rounds"][0]
+            self.assertEqual(1, round0["round"])
+            self.assertEqual(1, round0["round_index"])
+            self.assertEqual("fail", round0["status"])
+            self.assertEqual(["code-reviewer"], round0["agents"])
+            self.assertEqual(["code-reviewer"], round0["run_agents"])
+            self.assertEqual("configured-defaults", round0["agent_source"])
+            self.assertEqual(124, round0["rc"])
+            self.assertEqual(1000, round0["remaining_before_sec"])
+            self.assertEqual(990, round0["remaining_after_sec"])
+            self.assertEqual("", round0["reported_out_dir"])
+            self.assertTrue(str(round0["log_file"]).endswith("pipeline-llm-round-1.log"))
+            self.assertEqual("", round0["summary_file"])
+            self.assertEqual({"code-reviewer": "Unknown"}, round0["verdicts"])
+            self.assertEqual("Unknown", round0["verdict"])
+            self.assertEqual([], round0["needs_fix_agents"])
+            self.assertEqual(["code-reviewer"], round0["timeout_agents"])
+            self.assertEqual("timeout-no-summary", round0["failure_kind"])
 
 
 class NeedsFixFastAlreadyCleanTests(unittest.TestCase):
@@ -1150,7 +1172,108 @@ class NeedsFixFastAlreadyCleanTests(unittest.TestCase):
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("ok", summary["status"])
             self.assertEqual("latest_pipeline_already_clean", summary["reason"])
+            self.assertEqual("continue", summary["recommended_action"])
+            self.assertIn("already clean", summary["recommended_action_why"].lower())
             self.assertEqual("reuse-latest", summary["change_scope"]["deterministic_strategy"])
+            self.assertEqual("pipeline-clean-skip", summary["timeline"][0]["name"])
+
+    def test_main_should_noop_for_final_pass_when_latest_pipeline_is_already_clean(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            latest_out_dir = root / "logs" / "ci" / "2026-04-05" / "sc-review-pipeline-task-56-run-ok"
+            latest_dir = root / "logs" / "ci" / "2026-04-05" / "sc-review-pipeline-task-56"
+            llm_dir = latest_out_dir / "sc-llm-review-artifacts"
+            latest_out_dir.mkdir(parents=True, exist_ok=True)
+            latest_dir.mkdir(parents=True, exist_ok=True)
+            llm_dir.mkdir(parents=True, exist_ok=True)
+            (latest_dir / "latest.json").write_text(
+                json.dumps(
+                    {
+                        "task_id": "56",
+                        "run_id": "run-ok",
+                        "status": "ok",
+                        "latest_out_dir": str(latest_out_dir),
+                        "summary_path": str(latest_out_dir / "summary.json"),
+                        "execution_context_path": str(latest_out_dir / "execution-context.json"),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (latest_out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "task_id": "56",
+                        "status": "ok",
+                        "steps": [
+                            {"name": "sc-test", "status": "ok", "rc": 0},
+                            {"name": "sc-acceptance-check", "status": "ok", "rc": 0},
+                            {
+                                "name": "sc-llm-review",
+                                "status": "ok",
+                                "rc": 0,
+                                "reported_out_dir": str(llm_dir),
+                                "summary_file": str(llm_dir / "summary.json"),
+                            },
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (llm_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "status": "ok",
+                        "results": [
+                            {"agent": "architect-reviewer", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                            {"agent": "code-reviewer", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                            {"agent": "security-auditor", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                            {"agent": "test-automator", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                            {"agent": "semantic-equivalence-auditor", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                            {"agent": "adr-compliance-checker", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                            {"agent": "performance-slo-validator", "status": "ok", "rc": 0, "details": {"verdict": "OK"}},
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (latest_out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "delivery_profile": "standard",
+                        "security_profile": "strict",
+                        "git": {"head": "same-head", "status_short": []},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (latest_out_dir / "agent-review.json").write_text(
+                json.dumps({"review_verdict": "pass", "findings": []}),
+                encoding="utf-8",
+            )
+
+            out_dir = root / "logs" / "ci" / "2026-04-06" / "sc-needs-fix-fast-task-56"
+            argv = [
+                "llm_review_needs_fix_fast.py",
+                "--task-id",
+                "56",
+                "--delivery-profile",
+                "standard",
+                "--final-pass",
+            ]
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(needs_fix_fast, "repo_root", return_value=root),
+                mock.patch.object(needs_fix_fast, "ci_dir", return_value=out_dir),
+                mock.patch.object(needs_fix_fast, "current_git_fingerprint", return_value={"head": "same-head", "status_short": []}),
+                mock.patch.object(needs_fix_fast, "run_step") as run_step_mock,
+            ):
+                rc = needs_fix_fast.main()
+
+            self.assertEqual(0, rc)
+            run_step_mock.assert_not_called()
+            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("ok", summary["status"])
+            self.assertEqual("latest_pipeline_already_clean", summary["reason"])
             self.assertEqual("pipeline-clean-skip", summary["timeline"][0]["name"])
 
 
@@ -1232,6 +1355,8 @@ class NeedsFixFastUnknownStopLossTests(unittest.TestCase):
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("indeterminate", summary["status"])
             self.assertEqual("no_anchor_fix_for_previous_llm_unknown", summary["reason"])
+            self.assertEqual("inspect", summary["recommended_action"])
+            self.assertIn("anchor", summary["recommended_action_why"].lower())
             self.assertEqual(["code-reviewer"], summary["final_unknown_agents"])
             self.assertEqual("pipeline-llm-unknown-stop-loss", summary["timeline"][0]["name"])
 
@@ -1276,6 +1401,8 @@ class NeedsFixFastChapter6RouteTests(unittest.TestCase):
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("indeterminate", summary["status"])
             self.assertEqual("chapter6_route_inspect_first", summary["reason"])
+            self.assertEqual("inspect", summary["recommended_action"])
+            self.assertIn("inspect first", summary["recommended_action_why"].lower())
             self.assertEqual("inspect-first", summary["route_preflight"]["preferred_lane"])
             self.assertEqual("chapter6-route-preflight", summary["timeline"][0]["name"])
 
@@ -1361,6 +1488,24 @@ class NeedsFixFastChapter6RouteTests(unittest.TestCase):
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("run-6.8", summary["route_preflight"]["preferred_lane"])
             self.assertEqual("ok", summary["status"])
+            self.assertEqual("pipeline-llm-round", summary["dominant_cost_phase"])
+            self.assertEqual(
+                {
+                    "chapter6-route-preflight": 0.0,
+                    "pipeline-deterministic": 0.0,
+                    "pipeline-llm-round": 1.0,
+                },
+                summary["step_duration_totals"],
+            )
+            self.assertEqual(
+                {
+                    "chapter6-route-preflight": 1,
+                    "pipeline-deterministic": 1,
+                    "pipeline-llm-round": 1,
+                },
+                summary["step_duration_counts"],
+            )
+            self.assertEqual({}, summary["round_failure_kind_counts"])
 
     def test_main_should_record_residual_and_stop_without_running_llm(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -1680,9 +1825,14 @@ class NeedsFixFastRepeatedNeedsFixStopLossTests(unittest.TestCase):
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("needs-fix", summary["status"])
             self.assertEqual("repeated_needs_fix_no_progress", summary["reason"])
+            self.assertEqual("record-residual", summary["recommended_action"])
+            self.assertIn("no progress", summary["recommended_action_why"].lower())
             self.assertTrue(summary["stop_loss"]["triggered"])
             self.assertEqual("repeated-needs-fix-signature", summary["stop_loss"]["kind"])
             self.assertEqual(2, summary["stop_loss"]["round"])
+            self.assertEqual("pipeline-llm-round", summary["dominant_cost_phase"])
+            self.assertEqual({"pipeline-deterministic": 1.0, "pipeline-llm-round": 2.0}, summary["step_duration_totals"])
+            self.assertEqual({}, summary["round_failure_kind_counts"])
 
 if __name__ == "__main__":
     unittest.main()

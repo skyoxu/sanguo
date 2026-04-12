@@ -743,6 +743,44 @@ class InspectRunTests(unittest.TestCase):
                 payload["candidate_commands"]["needs_fix_fast"],
             )
 
+    def test_inspect_run_should_surface_bottleneck_fields_from_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            latest_path, out_dir = _write_pipeline_bundle(
+                root,
+                task_id="14",
+                run_id="ffffffffffffffffffffffffffffffff",
+                status="fail",
+            )
+            summary = _read_json(out_dir / "summary.json")
+            summary["reason"] = "rerun_blocked:repeat_review_needs_fix"
+            summary["dominant_cost_phase"] = "sc-llm-review"
+            summary["step_duration_totals"] = {
+                "sc-llm-review": 12.5,
+                "sc-test": 4.0,
+            }
+            summary["step_duration_avg"] = {
+                "sc-llm-review": 12.5,
+                "sc-test": 4.0,
+            }
+            (out_dir / "summary.json").write_text(
+                json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+
+            rc, payload = inspect_run.inspect_run_artifacts(repo_root=root, latest=str(latest_path))
+
+            self.assertEqual(1, rc)
+            self.assertEqual("sc-llm-review", payload["dominant_cost_phase"])
+            self.assertEqual(
+                {"sc-llm-review": 12.5, "sc-test": 4.0},
+                payload["step_duration_totals"],
+            )
+            self.assertEqual(
+                {"sc-llm-review": 12.5, "sc-test": 4.0},
+                payload["step_duration_avg"],
+            )
+
 
     def test_inspect_run_should_route_llm_retry_stop_loss_from_execution_context_diagnostics(self) -> None:
         with tempfile.TemporaryDirectory() as td:

@@ -1611,6 +1611,68 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertEqual("waste_signals", payload["chapter6_hints"]["blocked_by"])
             self.assertIn("unit failure", payload["recommended_action_why"].lower())
 
+    def test_build_active_task_payload_should_surface_bottleneck_fields_in_payload_and_markdown(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_id = "ffffffffffffffffffffffffffffffff"
+            out_dir, latest_path = self._build_bundle(
+                root=root,
+                run_id=run_id,
+                summary_payload={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "14",
+                    "run_id": run_id,
+                    "status": "fail",
+                    "reason": "rerun_blocked:repeat_review_needs_fix",
+                    "reuse_mode": "none",
+                    "dominant_cost_phase": "sc-llm-review",
+                    "step_duration_totals": {
+                        "sc-llm-review": 12.5,
+                        "sc-test": 4.0,
+                    },
+                    "step_duration_avg": {
+                        "sc-llm-review": 12.5,
+                        "sc-test": 4.0,
+                    },
+                    "round_failure_kind_counts": {
+                        "timeout": 2,
+                    },
+                    "steps": [
+                        {"name": "sc-test", "status": "ok", "rc": 0},
+                        {"name": "sc-acceptance-check", "status": "ok", "rc": 0},
+                        {"name": "sc-llm-review", "status": "fail", "rc": 124},
+                    ],
+                },
+                execution_context_payload={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "14",
+                    "run_id": run_id,
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                    "diagnostics": {},
+                    "approval": {},
+                },
+            )
+
+            payload = active_task_sidecar.build_active_task_payload(
+                task_id="14",
+                run_id=run_id,
+                status="fail",
+                out_dir=out_dir,
+                latest_json_path=latest_path,
+                root=root,
+            )
+            validate_active_task_payload(payload)
+            markdown = active_task_sidecar.render_active_task_markdown(payload)
+
+            self.assertEqual("sc-llm-review", payload["dominant_cost_phase"])
+            self.assertEqual({"sc-llm-review": 12.5, "sc-test": 4.0}, payload["step_duration_totals"])
+            self.assertEqual({"sc-llm-review": 12.5, "sc-test": 4.0}, payload["step_duration_avg"])
+            self.assertEqual({"timeout": 2}, payload["round_failure_kind_counts"])
+            self.assertIn("- Dominant cost phase: sc-llm-review", markdown)
+            self.assertIn("- Step duration totals: sc-llm-review=12.5, sc-test=4.0", markdown)
+            self.assertIn("- Round failure kind counts: timeout=2", markdown)
+
 
 if __name__ == "__main__":
     unittest.main()
