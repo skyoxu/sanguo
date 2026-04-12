@@ -141,7 +141,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                     "task_id": 11,
                     "ok": False,
                     "failed_steps": ["extract"],
-                    "steps": [{"step": "extract", "rc": 124}],
+                    "steps": [{"step": "extract", "rc": 124, "duration_sec": 2.5}],
                 },
                 {
                     "task_id": 12,
@@ -151,6 +151,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                         {
                             "step": "coverage",
                             "rc": 1,
+                            "duration_sec": 3.25,
                             "inner_summary": {"status": "fail", "uncovered_subtask_ids": ["2"]},
                         }
                     ],
@@ -163,6 +164,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                         {
                             "step": "semantic_gate",
                             "rc": 1,
+                            "duration_sec": 4.0,
                             "inner_summary": {
                                 "status": "fail",
                                 "prompt_trimmed": True,
@@ -180,6 +182,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                         {
                             "step": "align",
                             "rc": 1,
+                            "duration_sec": 1.5,
                             "inner_summary": {"status": "fail", "error": "model_output_invalid"},
                         }
                     ],
@@ -192,6 +195,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                         {
                             "step": "extract",
                             "rc": 1,
+                            "duration_sec": 1.25,
                             "inner_summary": {"status": "fail", "hard_uncovered_count": 3},
                         }
                     ],
@@ -204,6 +208,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                         {
                             "step": "extract",
                             "rc": 1,
+                            "duration_sec": 1.75,
                             "inner_summary": {"status": "fail", "schema_error_count": 2},
                         }
                     ],
@@ -212,7 +217,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                     "task_id": 18,
                     "ok": False,
                     "failed_steps": ["extract"],
-                    "steps": [{"step": "extract", "rc": 1, "stderr_tail": "Model output invalid at line 42"}],
+                    "steps": [{"step": "extract", "rc": 1, "duration_sec": 1.0, "stderr_tail": "Model output invalid at line 42"}],
                 },
                 {
                     "task_id": 19,
@@ -222,6 +227,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                         {
                             "step": "extract",
                             "rc": 1,
+                            "duration_sec": 0.75,
                             "inner_summary": {
                                 "status": "fail",
                                 "error": "model_output_invalid",
@@ -237,6 +243,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                         {
                             "step": "extract",
                             "rc": 1,
+                            "duration_sec": 2.0,
                             "stdout_tail": "SC_LLM_OBLIGATIONS status=fail out=C:/buildgame/sanguo/logs/ci/2026-03-28/sc-llm-obligations-task-67",
                         }
                     ],
@@ -245,7 +252,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                     "task_id": 15,
                     "ok": True,
                     "failed_steps": [],
-                    "steps": [{"step": "extract", "rc": 0}],
+                    "steps": [{"step": "extract", "rc": 0, "duration_sec": 1.5}],
                 },
             ]
         }
@@ -336,6 +343,26 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
             ],
             summary["semantic_gate_budget_hits"],
         )
+        self.assertEqual({"align": 1.5, "coverage": 3.25, "extract": 10.75, "semantic_gate": 4.0}, summary["step_duration_totals"])
+        self.assertEqual({"align": 1.5, "coverage": 3.25, "extract": 1.536, "semantic_gate": 4.0}, summary["step_duration_avg"])
+        self.assertEqual({"align": 1, "coverage": 1, "extract": 7, "semantic_gate": 1}, summary["step_duration_task_counts"])
+        self.assertEqual(
+            [
+                {"task_id": 13, "duration_sec": 4.0, "first_failed_step": "", "ok": False},
+                {"task_id": 12, "duration_sec": 3.25, "first_failed_step": "", "ok": False},
+                {"task_id": 11, "duration_sec": 2.5, "first_failed_step": "", "ok": False},
+                {"task_id": 20, "duration_sec": 2.0, "first_failed_step": "", "ok": False},
+                {"task_id": 17, "duration_sec": 1.75, "first_failed_step": "", "ok": False},
+                {"task_id": 14, "duration_sec": 1.5, "first_failed_step": "", "ok": False},
+                {"task_id": 15, "duration_sec": 1.5, "first_failed_step": "", "ok": True},
+                {"task_id": 16, "duration_sec": 1.25, "first_failed_step": "", "ok": False},
+                {"task_id": 18, "duration_sec": 1.0, "first_failed_step": "", "ok": False},
+                {"task_id": 19, "duration_sec": 0.75, "first_failed_step": "", "ok": False},
+            ],
+            summary["slowest_tasks"],
+        )
+        self.assertEqual("fix-acceptance-then-rerun-extract", summary["recommended_next_action"])
+        self.assertIn("hard uncovered obligations", summary["recommended_next_action_why"])
 
     def test_taskmaster_tasks_path_should_fallback_to_examples(self) -> None:
         with tempfile.TemporaryDirectory() as td:

@@ -17,6 +17,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
@@ -529,25 +530,38 @@ def _rebuild_counts(summary: dict[str, Any]) -> None:
     semantic_gate_budget_hits: list[dict[str, Any]] = []
     skipped_step_counts: dict[str, int] = {}
     skipped_step_reason_counts: dict[str, int] = {}
+    step_duration_totals: dict[str, float] = {}
+    step_duration_counts: dict[str, int] = {}
+    slowest_tasks: list[dict[str, Any]] = []
     passed_tasks = 0
     failed_tasks = 0
     for row in results:
         task_raw = str(row.get("task_id") or "").strip()
+        task_duration_total = 0.0
         for step in row.get("steps", []) or []:
             if not isinstance(step, dict):
                 continue
+            step_name = str(step.get("step") or "").strip()
+            try:
+                duration_sec = float(step.get("duration_sec")) if step.get("duration_sec") is not None else None
+            except Exception:
+                duration_sec = None
+            if step_name and duration_sec is not None and duration_sec >= 0:
+                step_duration_totals[step_name] = step_duration_totals.get(step_name, 0.0) + duration_sec
+                step_duration_counts[step_name] = step_duration_counts.get(step_name, 0) + 1
+                task_duration_total += duration_sec
             if bool(step.get("skipped")):
-                key = str(step.get("step") or "").strip()
+                key = step_name
                 reason = str(step.get("skip_reason") or "").strip()
                 if key:
                     skipped_step_counts[key] = skipped_step_counts.get(key, 0) + 1
                 if reason:
                     skipped_step_reason_counts[reason] = skipped_step_reason_counts.get(reason, 0) + 1
             if int(step.get("rc") or 0) == 124:
-                key = str(step.get("step") or "").strip()
+                key = step_name
                 if key:
                     timeout_step_counts[key] = timeout_step_counts.get(key, 0) + 1
-            if str(step.get("step") or "").strip() == "semantic_gate":
+            if step_name == "semantic_gate":
                 inner_summary = step.get("inner_summary")
                 if isinstance(inner_summary, dict) and bool(inner_summary.get("prompt_trimmed")) and task_raw.isdigit():
                     task_id = int(task_raw)
@@ -561,7 +575,7 @@ def _rebuild_counts(summary: dict[str, Any]) -> None:
                                 "prompt_chars": inner_summary.get("prompt_chars"),
                             }
                         )
-            if str(step.get("step") or "").strip() == "extract" and int(step.get("rc") or 0) != 0 and task_raw.isdigit():
+            if step_name == "extract" and int(step.get("rc") or 0) != 0 and task_raw.isdigit():
                 bucket = _classify_extract_fail_bucket(step)
                 if bucket:
                     extract_fail_bucket_counts[bucket] = extract_fail_bucket_counts.get(bucket, 0) + 1
@@ -579,18 +593,27 @@ def _rebuild_counts(summary: dict[str, Any]) -> None:
                         extract_fail_family_by_task[task_raw] = family
         if bool(row.get("ok")):
             passed_tasks += 1
-            continue
-        failed_tasks += 1
-        category = _classify_failed_task(row)
-        if category and task_raw.isdigit():
-            failure_category_counts[category] = failure_category_counts.get(category, 0) + 1
-            failure_category_task_ids.setdefault(category, []).append(int(task_raw))
-            failure_category_by_task[task_raw] = category
-        for step in row.get("failed_steps", []) or []:
-            key = str(step).strip()
-            if not key:
-                continue
-            failed_step_counts[key] = failed_step_counts.get(key, 0) + 1
+        else:
+            failed_tasks += 1
+            category = _classify_failed_task(row)
+            if category and task_raw.isdigit():
+                failure_category_counts[category] = failure_category_counts.get(category, 0) + 1
+                failure_category_task_ids.setdefault(category, []).append(int(task_raw))
+                failure_category_by_task[task_raw] = category
+            for step in row.get("failed_steps", []) or []:
+                key = str(step).strip()
+                if not key:
+                    continue
+                failed_step_counts[key] = failed_step_counts.get(key, 0) + 1
+        if task_raw.isdigit() and task_duration_total > 0:
+            slowest_tasks.append(
+                {
+                    "task_id": int(task_raw),
+                    "duration_sec": round(task_duration_total, 3),
+                    "first_failed_step": str(row.get("first_failed_step") or "").strip(),
+                    "ok": bool(row.get("ok")),
+                }
+            )
     summary["processed_tasks"] = len(results)
     summary["passed_tasks"] = passed_tasks
     summary["failed_tasks"] = failed_tasks
@@ -635,6 +658,75 @@ def _rebuild_counts(summary: dict[str, Any]) -> None:
     summary["semantic_gate_budget_hits"] = semantic_gate_budget_hits
     summary["skipped_step_counts"] = skipped_step_counts
     summary["skipped_step_reason_counts"] = skipped_step_reason_counts
+    summary["step_duration_totals"] = {
+        key: round(value, 3) for key, value in sorted(step_duration_totals.items(), key=lambda item: item[0])
+    }
+    summary["step_duration_avg"] = {
+        key: round(step_duration_totals[key] / max(1, int(step_duration_counts.get(key) or 1)), 3)
+        for key in sorted(step_duration_totals)
+    }
+    summary["step_duration_task_counts"] = {
+        key: int(step_duration_counts.get(key) or 0) for key in sorted(step_duration_counts)
+    }
+    summary["slowest_tasks"] = sorted(
+        slowest_tasks,
+        key=lambda item: (-float(item.get("duration_sec") or 0.0), int(item.get("task_id") or 0)),
+    )[:10]
+    next_action = _derive_summary_next_action(summary)
+    summary["recommended_next_action"] = str(next_action.get("action") or "")
+    summary["recommended_next_action_why"] = str(next_action.get("why") or "")
+
+
+def _derive_summary_next_action(summary: dict[str, Any]) -> dict[str, str]:
+    if int(summary.get("failed_tasks") or 0) <= 0:
+        return {
+            "action": "continue-next-selected-slice",
+            "why": "Current 5.1 slice is clean; continue to the next selected task range or lane.",
+        }
+    extract_buckets = summary.get("extract_fail_bucket_counts") if isinstance(summary.get("extract_fail_bucket_counts"), dict) else {}
+    failure_categories = summary.get("failure_category_counts") if isinstance(summary.get("failure_category_counts"), dict) else {}
+    timeout_steps = summary.get("timeout_step_counts") if isinstance(summary.get("timeout_step_counts"), dict) else {}
+    failed_step_counts = summary.get("failed_step_counts") if isinstance(summary.get("failed_step_counts"), dict) else {}
+    top_family = ""
+    top_families = summary.get("extract_fail_top_families")
+    if isinstance(top_families, list) and top_families:
+        first = top_families[0]
+        if isinstance(first, dict):
+            top_family = str(first.get("family") or "").strip()
+    if int(extract_buckets.get("hard_uncovered") or 0) > 0:
+        return {
+            "action": "fix-acceptance-then-rerun-extract",
+            "why": "Extract reported hard uncovered obligations; complete required acceptance/refs before rerunning downstream steps.",
+        }
+    if int(timeout_steps.get("extract") or 0) > 0:
+        return {
+            "action": "retry-extract-only-with-timeout-backoff",
+            "why": "Extract timed out; retry extract first with a larger timeout or smaller task slice before spending more downstream work.",
+        }
+    if int(failure_categories.get("coverage-gap") or 0) > 0:
+        return {
+            "action": "fix-coverage-then-rerun-coverage",
+            "why": "Coverage gaps were detected; add or align task coverage before rerunning semantic checks.",
+        }
+    if int(failure_categories.get("semantic-needs-fix") or 0) > 0:
+        return {
+            "action": "fix-semantic-findings-then-rerun-soft-steps",
+            "why": "Semantic gate returned needs-fix; repair the flagged task text or refs, then rerun from the first soft failure.",
+        }
+    if top_family:
+        return {
+            "action": "inspect-dominant-extract-family",
+            "why": f"Most failures cluster under extract family '{top_family}'; inspect that family first and rerun only the affected slice.",
+        }
+    if int(failed_step_counts.get("align") or 0) > 0:
+        return {
+            "action": "resume-from-align",
+            "why": "Align is the first failing deterministic step; rerun from align instead of replaying the whole slice.",
+        }
+    return {
+        "action": "inspect-failed-tasks",
+        "why": "Failures are mixed; inspect the failed task rows before choosing a narrower rerun strategy.",
+    }
 
 
 def _select_task_ids(root: Path, args: argparse.Namespace) -> list[int]:
@@ -1126,6 +1218,8 @@ def _run_named_steps_for_task(
                 continue
 
         cmd = [part.format(id=task_id) for part in template]
+        step_started = dt.datetime.now()
+        step_started_monotonic = time.monotonic()
         rc, stdout, stderr, retry_meta = _run_step_with_retry(
             root=root,
             cmd=cmd,
@@ -1134,6 +1228,7 @@ def _run_named_steps_for_task(
             explicit_timeout_sec=explicit_timeout_sec,
             llm_timeout_sec=llm_timeout_sec,
         )
+        duration_sec = round(max(0.0, time.monotonic() - step_started_monotonic), 3)
         log_path = out_dir / f"t{task_id:04d}--{step_name}.log"
         attempts = retry_meta.get("attempts") or []
         if isinstance(attempts, list) and attempts:
@@ -1174,6 +1269,8 @@ def _run_named_steps_for_task(
         step_map[step_name] = {
             "step": step_name,
             "rc": rc,
+            "started_at": step_started.isoformat(timespec="seconds"),
+            "duration_sec": duration_sec,
             "log": _relative_to_root(root, log_path),
             "stdout_tail": stdout.strip().splitlines()[-1] if stdout.strip() else "",
             "stderr_tail": stderr.strip().splitlines()[-1] if stderr.strip() else "",
@@ -1323,6 +1420,24 @@ def main() -> int:
             "phase1_step_names": phase1_step_names,
             "phase2_step_names": phase2_step_names,
         }
+        _refresh_route_contract(
+            payload,
+            root=root,
+            selected=selected,
+            delivery_profile=str(args.delivery_profile),
+            align_apply=align_apply,
+            fill_refs_after_extract_fail=str(args.fill_refs_after_extract_fail),
+            fill_refs_mode=fill_refs_mode_resolved,
+            downstream_on_extract_fail=downstream_on_extract_fail_resolved,
+            downstream_on_extract_family_fail=downstream_on_extract_family_fail_resolved,
+            batch_lane=batch_lane_resolved,
+            wrapper_timeout_sec=args.timeout_sec,
+            llm_timeout_sec=args.llm_timeout_sec,
+            planning_mode=True,
+        )
+        next_action = _derive_summary_next_action(payload)
+        payload["recommended_next_action"] = str(next_action.get("action") or "")
+        payload["recommended_next_action_why"] = str(next_action.get("why") or "")
         _write_json(summary_path, payload)
         print(
             f"SINGLE_TASK_LIGHT_LANE_SELF_CHECK status=ok tasks={len(selected)} "

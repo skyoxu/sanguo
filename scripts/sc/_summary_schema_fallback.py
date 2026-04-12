@@ -87,6 +87,9 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         "candidate_commands",
         "recommended_command",
         "forbidden_commands",
+        "step_duration_totals",
+        "step_duration_avg",
+        "dominant_cost_phase",
     }
     for key in required:
         if key not in payload:
@@ -146,13 +149,27 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         errors.append("$.recommended_command: must be non-empty string when present")
     if "forbidden_commands" in payload and not _is_string_list(payload.get("forbidden_commands"), allow_empty=True):
         errors.append("$.forbidden_commands: must be array of non-empty strings when present")
+    for key in ("step_duration_totals", "step_duration_avg"):
+        value = payload.get(key)
+        if value is not None:
+            if not isinstance(value, dict):
+                errors.append(f"$.{key}: must be object when present")
+            else:
+                for sub_key, sub_value in value.items():
+                    if not _is_non_empty_string(sub_key):
+                        errors.append(f"$.{key}: keys must be non-empty strings")
+                        break
+                    if not isinstance(sub_value, (int, float)) or isinstance(sub_value, bool) or float(sub_value) < 0:
+                        errors.append(f"$.{key}.{sub_key}: must be number >= 0")
+    if "dominant_cost_phase" in payload and not _is_non_empty_string(payload.get("dominant_cost_phase")):
+        errors.append("$.dominant_cost_phase: must be non-empty string when present")
 
     steps = payload.get("steps")
     if not isinstance(steps, list):
         errors.append("$.steps: must be array")
         return errors
 
-    step_allowed = {"name", "cmd", "rc", "status", "log", "reported_out_dir", "summary_file"}
+    step_allowed = {"name", "cmd", "rc", "status", "duration_sec", "log", "reported_out_dir", "summary_file"}
     for index, step in enumerate(steps):
         base = f"$.steps[{index}]"
         if not isinstance(step, dict):
@@ -184,6 +201,10 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         for opt in ("log", "reported_out_dir", "summary_file"):
             if opt in step and not isinstance(step.get(opt), str):
                 errors.append(f"{base}.{opt}: must be string when present")
+        if "duration_sec" in step:
+            duration_value = step.get("duration_sec")
+            if not isinstance(duration_value, (int, float)) or isinstance(duration_value, bool) or float(duration_value) < 0:
+                errors.append(f"{base}.duration_sec: must be number >= 0 when present")
 
         if step_status in {"ok", "fail"} and "log" not in step:
             errors.append(f"{base}.log: required when status is ok/fail")

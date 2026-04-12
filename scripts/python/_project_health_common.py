@@ -524,6 +524,53 @@ def _compact_range_items(items: Any, *, limit: int = 6) -> list[dict[str, Any]]:
     return out
 
 
+def _compact_metric_map(value: Any, *, limit: int = 8) -> dict[str, float]:
+    if not isinstance(value, dict):
+        return {}
+    out: dict[str, float] = {}
+    for key in sorted(value.keys()):
+        if len(out) >= limit:
+            break
+        normalized_key = _normalize_report_value(key, limit=80)
+        if not normalized_key:
+            continue
+        raw = value.get(key)
+        if not isinstance(raw, (int, float)) or isinstance(raw, bool):
+            continue
+        out[normalized_key] = round(max(0.0, float(raw)), 3)
+    return out
+
+
+def _compact_slowest_tasks(items: Any, *, limit: int = 5) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    if not isinstance(items, list):
+        return out
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        task_id = _normalize_report_value(item.get("task_id"), limit=40)
+        if not task_id:
+            continue
+        total_duration = item.get("total_duration_sec")
+        slowest_duration = item.get("slowest_step_duration_sec")
+        if not isinstance(total_duration, (int, float)) or isinstance(total_duration, bool):
+            continue
+        if not isinstance(slowest_duration, (int, float)) or isinstance(slowest_duration, bool):
+            continue
+        out.append(
+            {
+                "task_id": task_id,
+                "total_duration_sec": round(max(0.0, float(total_duration)), 3),
+                "slowest_step": _normalize_report_value(item.get("slowest_step"), limit=80),
+                "slowest_step_duration_sec": round(max(0.0, float(slowest_duration)), 3),
+                "first_failed_step": _normalize_report_value(item.get("first_failed_step"), limit=80),
+            }
+        )
+        if len(out) >= limit:
+            break
+    return out
+
+
 def _extract_report_highlights(payload: dict[str, Any]) -> dict[str, Any]:
     highlights: dict[str, Any] = {}
     family_actions = _compact_extract_family_actions(payload.get("extract_family_recommended_actions"))
@@ -535,6 +582,24 @@ def _extract_report_highlights(payload: dict[str, Any]) -> dict[str, Any]:
     quarantine = _compact_range_items(payload.get("quarantine_ranges"))
     if quarantine:
         highlights["quarantine_ranges"] = quarantine
+    recommended_next_action = _normalize_report_value(payload.get("recommended_next_action"), limit=120)
+    if recommended_next_action:
+        highlights["recommended_next_action"] = recommended_next_action
+    recommended_next_action_why = _normalize_report_value(payload.get("recommended_next_action_why"), limit=200)
+    if recommended_next_action_why:
+        highlights["recommended_next_action_why"] = recommended_next_action_why
+    step_duration_totals = _compact_metric_map(payload.get("step_duration_totals"))
+    if step_duration_totals:
+        highlights["step_duration_totals"] = step_duration_totals
+    step_duration_avg = _compact_metric_map(payload.get("step_duration_avg"))
+    if step_duration_avg:
+        highlights["step_duration_avg"] = step_duration_avg
+    slowest_tasks = _compact_slowest_tasks(payload.get("slowest_tasks"))
+    if slowest_tasks:
+        highlights["slowest_tasks"] = slowest_tasks
+    dominant_cost_phase = _normalize_report_value(payload.get("dominant_cost_phase"), limit=80)
+    if dominant_cost_phase:
+        highlights["dominant_cost_phase"] = dominant_cost_phase
     if not highlights:
         return {}
     if "covered_count" in payload:
@@ -1309,6 +1374,56 @@ def dashboard_html(
                     f"<div class=\"meta\">{html.escape(str(item_range.get('family') or 'unknown'))}: "
                     f"T{int(item_range.get('task_id_start') or 0)}-T{int(item_range.get('task_id_end') or 0)} "
                     f"{html.escape(str(item_range.get('reason') or ''))}</div>"
+                )
+        recommended_next_action = str(highlights.get("recommended_next_action") or "").strip()
+        recommended_next_action_why = str(highlights.get("recommended_next_action_why") or "").strip()
+        step_duration_totals = highlights.get("step_duration_totals") if isinstance(highlights.get("step_duration_totals"), dict) else {}
+        step_duration_avg = highlights.get("step_duration_avg") if isinstance(highlights.get("step_duration_avg"), dict) else {}
+        slowest_tasks = highlights.get("slowest_tasks") if isinstance(highlights.get("slowest_tasks"), list) else []
+        dominant_cost_phase = str(highlights.get("dominant_cost_phase") or "").strip()
+        if recommended_next_action or recommended_next_action_why:
+            lines.append("<div class=\"subhead\">Recommended next action</div>")
+            if recommended_next_action:
+                lines.append(
+                    f"<div class=\"meta\">recommended_next_action: {html.escape(recommended_next_action)}</div>"
+                )
+            if recommended_next_action_why:
+                lines.append(
+                    f"<div class=\"meta\">recommended_next_action_why: {html.escape(recommended_next_action_why)}</div>"
+                )
+        if dominant_cost_phase or step_duration_totals or step_duration_avg or slowest_tasks:
+            lines.append("<div class=\"subhead\">Duration bottlenecks</div>")
+            if dominant_cost_phase:
+                lines.append(
+                    f"<div class=\"meta\">dominant_cost_phase: {html.escape(dominant_cost_phase)}</div>"
+                )
+            if step_duration_totals:
+                totals_text = "; ".join(
+                    f"{key}={value}s"
+                    for key, value in step_duration_totals.items()
+                )
+                lines.append(
+                    f"<div class=\"meta\">step_duration_totals: {html.escape(totals_text)}</div>"
+                )
+            if step_duration_avg:
+                avg_text = "; ".join(
+                    f"{key}={value}s"
+                    for key, value in step_duration_avg.items()
+                )
+                lines.append(
+                    f"<div class=\"meta\">step_duration_avg: {html.escape(avg_text)}</div>"
+                )
+            if slowest_tasks:
+                slowest_text = "; ".join(
+                    (
+                        f"T{item.get('task_id')} total={item.get('total_duration_sec')}s "
+                        f"slowest={item.get('slowest_step')}/{item.get('slowest_step_duration_sec')}s "
+                        f"first_failed={item.get('first_failed_step') or 'none'}"
+                    )
+                    for item in slowest_tasks
+                )
+                lines.append(
+                    f"<div class=\"meta\">slowest_tasks: {html.escape(slowest_text)}</div>"
                 )
         lines.append("</section>")
         highlight_sections.append("\n".join(lines))
