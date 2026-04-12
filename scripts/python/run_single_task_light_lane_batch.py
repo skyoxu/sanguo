@@ -423,6 +423,51 @@ def _build_extract_family_recommended_actions(merged_payload: dict[str, Any] | N
     return out
 
 
+def _derive_batch_next_action(summary: dict[str, Any]) -> dict[str, str]:
+    rolling_family = summary.get("rolling_family") if isinstance(summary.get("rolling_family"), dict) else {}
+    rolling_extract = summary.get("rolling_extract") if isinstance(summary.get("rolling_extract"), dict) else {}
+    if str(rolling_family.get("action") or "").strip() == "stop" and bool(rolling_family.get("triggered")):
+        return {
+            "action": "inspect-hotspot-and-rerun-quarantined-slice",
+            "why": "Repeated extract failure family triggered quarantine; inspect the hotspot first, then rerun only the quarantined slice.",
+        }
+    if str(rolling_extract.get("action") or "").strip() == "stop" and bool(rolling_extract.get("triggered")):
+        return {
+            "action": "reduce-shard-size-and-rerun-remaining-slice",
+            "why": "Rolling extract failure rate crossed the stop threshold; shrink shard scope or timeout budget before rerunning the remaining slice.",
+        }
+    if int(summary.get("failed_count") or 0) <= 0 and int(summary.get("missing_count") or 0) <= 0:
+        return {
+            "action": "continue-next-batch-slice",
+            "why": "Current batch slice merged cleanly; continue to the next planned task range.",
+        }
+    family_actions = summary.get("extract_family_recommended_actions")
+    if isinstance(family_actions, list) and family_actions:
+        first = family_actions[0] if isinstance(family_actions[0], dict) else {}
+        action = str(first.get("recommended_action") or "").strip()
+        reason = str(first.get("reason") or "").strip()
+        if action:
+            return {
+                "action": action,
+                "why": reason or "Dominant extract failure family already has a recommended action; fix that family first.",
+            }
+    failure_category_counts = summary.get("failure_category_counts") if isinstance(summary.get("failure_category_counts"), dict) else {}
+    if int(failure_category_counts.get("semantic-needs-fix") or 0) > 0:
+        return {
+            "action": "fix-semantic-findings-then-rerun-affected-shard",
+            "why": "Batch failures are dominated by semantic findings; repair those tasks before rerunning the affected shard.",
+        }
+    if int(failure_category_counts.get("coverage-gap") or 0) > 0:
+        return {
+            "action": "fix-coverage-then-rerun-affected-shard",
+            "why": "Coverage gaps remain in this batch slice; close them before rerunning downstream checks.",
+        }
+    return {
+        "action": "inspect-failed-shards",
+        "why": "Failures are mixed; inspect the failed shard summaries before choosing a narrower rerun plan.",
+    }
+
+
 def _new_rolling_extract_state(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "policy": str(args.rolling_extract_policy),
@@ -903,6 +948,10 @@ def main() -> int:
     if bool(args.self_check):
         summary["status"] = "ok"
         summary["finished_at"] = dt.datetime.now().isoformat(timespec="seconds")
+        _refresh_batch_route_contract(summary, args=args, selected=selected, planning_mode=True)
+        next_action = _derive_batch_next_action(summary)
+        summary["recommended_next_action"] = str(next_action.get("action") or "")
+        summary["recommended_next_action_why"] = str(next_action.get("why") or "")
         _write_json(summary_path, summary)
         print(
             "SINGLE_TASK_LIGHT_LANE_BATCH_SELF_CHECK "
@@ -1037,6 +1086,10 @@ def main() -> int:
             "prompt_trimmed_task_ids",
             "semantic_gate_budget_hits",
             "overridden_task_ids",
+            "step_duration_totals",
+            "step_duration_avg",
+            "step_duration_task_counts",
+            "slowest_tasks",
         ]:
             if key in merged_payload:
                 summary[key] = merged_payload.get(key)
@@ -1052,6 +1105,10 @@ def main() -> int:
         else "fail"
     )
     summary["finished_at"] = dt.datetime.now().isoformat(timespec="seconds")
+    _refresh_batch_route_contract(summary, args=args, selected=selected)
+    next_action = _derive_batch_next_action(summary)
+    summary["recommended_next_action"] = str(next_action.get("action") or "")
+    summary["recommended_next_action_why"] = str(next_action.get("why") or "")
     _write_json(summary_path, summary)
     print(
         "SINGLE_TASK_LIGHT_LANE_BATCH "

@@ -57,6 +57,14 @@ class RunSingleTaskLightLaneBatchTests(unittest.TestCase):
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("ok", payload["status"])
             self.assertEqual(3, payload["shard_count"])
+            self.assertEqual("run-5.1", payload["preferred_lane"])
+            self.assertEqual("continue", payload["recommended_action"])
+            self.assertIn("--task-ids 11,12,13,14,15", payload["recommended_command"])
+            self.assertEqual("self_check", payload["latest_reason"])
+            self.assertEqual("n/a", payload["blocked_by"])
+            self.assertEqual("", payload["artifact_integrity"])
+            self.assertEqual("no", payload["residual_recording"])
+            self.assertEqual("continue-next-batch-slice", payload["recommended_next_action"])
             self.assertEqual(
                 [
                     [11, 12],
@@ -170,7 +178,7 @@ class RunSingleTaskLightLaneBatchTests(unittest.TestCase):
                         "ok": True,
                         "failed_steps": [],
                         "first_failed_step": "",
-                        "steps": [{"step": "extract", "rc": 0}],
+                        "steps": [{"step": "extract", "rc": 0, "duration_sec": float(task_id)}],
                     }
                     for task_id in task_ids
                 ]
@@ -228,6 +236,11 @@ class RunSingleTaskLightLaneBatchTests(unittest.TestCase):
             self.assertEqual(5, merged["covered_count"])
             self.assertEqual([], merged["missing_task_ids"])
             self.assertEqual(["logs/ci/batch-run/shards/shard-001-t11-12/summary.json"], merged["task_source_candidates"]["11"])
+            self.assertEqual({"extract": 65.0}, merged["step_duration_totals"])
+            self.assertEqual({"extract": 13.0}, merged["step_duration_avg"])
+            self.assertEqual({"extract": 5}, merged["step_duration_task_counts"])
+            self.assertEqual({"extract": 65.0}, summary["step_duration_totals"])
+            self.assertEqual("continue-next-batch-slice", summary["recommended_next_action"])
 
     def test_main_should_surface_extract_signatures_from_merged_summary(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -655,6 +668,14 @@ class RunSingleTaskLightLaneBatchTests(unittest.TestCase):
             self.assertEqual(12, summary["family_hotspots"][0]["task_id_end"])
             self.assertEqual(1, len(summary["quarantine_ranges"]))
             self.assertEqual(2, len(summary["skipped_planned_shards"]))
+            self.assertEqual("split-batch", summary["preferred_lane"])
+            self.assertEqual("inspect", summary["recommended_action"])
+            self.assertEqual("", summary["recommended_command"])
+            self.assertEqual("rolling_family_stop", summary["latest_reason"])
+            self.assertEqual("recent_failure_summary", summary["blocked_by"])
+            self.assertEqual("", summary["artifact_integrity"])
+            self.assertEqual("no", summary["residual_recording"])
+            self.assertEqual("inspect-hotspot-and-rerun-quarantined-slice", summary["recommended_next_action"])
 
     def test_main_should_increase_timeout_and_reduce_next_shard_after_timeout_spike(self) -> None:
         with tempfile.TemporaryDirectory() as td:

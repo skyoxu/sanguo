@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import time
 from pathlib import Path
 from typing import Any
 
@@ -64,7 +65,9 @@ def _snapshot_child_artifacts(*, pipeline_out_dir: Path, step_name: str, reporte
 
 
 def run_step(*, out_dir: Path, name: str, cmd: list[str], timeout_sec: int) -> dict[str, Any]:
+    started = time.monotonic()
     rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=timeout_sec)
+    duration_sec = round(max(0.0, time.monotonic() - started), 3)
     log_path = out_dir / f"{name}.log"
     write_text(log_path, out)
     reported_out_dir = ""
@@ -89,6 +92,7 @@ def run_step(*, out_dir: Path, name: str, cmd: list[str], timeout_sec: int) -> d
         "cmd": cmd,
         "rc": rc,
         "status": "ok" if rc == 0 else "fail",
+        "duration_sec": duration_sec,
         "log": str(log_path),
         "reported_out_dir": reported_out_dir,
         "summary_file": summary_file,

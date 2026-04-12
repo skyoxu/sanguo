@@ -937,6 +937,32 @@ class ProjectHealthSupportTests(unittest.TestCase):
             _write(root / "logs" / "ci" / "2026-04-06" / "sc-review-pipeline-task-14-run-a" / "child-artifacts" / "sc-test" / "summary.json", json.dumps({"cmd": "sc-test", "status": "ok"}, ensure_ascii=False, indent=2) + "\n")
             _write(root / "logs" / "ci" / "2026-04-06" / "sc-review-pipeline-task-14-run-a" / "child-artifacts" / "sc-acceptance-check" / "summary.json", json.dumps({"cmd": "sc-acceptance-check", "status": "ok"}, ensure_ascii=False, indent=2) + "\n")
             _write(root / "logs" / "ci" / "2026-04-06" / "sc-review-pipeline-task-14-run-a" / "child-artifacts" / "sc-llm-review" / "summary.json", json.dumps({"status": "fail", "results": []}, ensure_ascii=False, indent=2) + "\n")
+            _write(
+                root / "logs" / "ci" / "2026-04-05" / "single-task-light-lane-v2-batch" / "summary.json",
+                json.dumps(
+                    {
+                        "kind": "single-task-light-lane-batch",
+                        "status": "fail",
+                        "summary": "batch failures need targeted rerun",
+                        "recommended_next_action": "inspect-hotspot-and-rerun-quarantined-slice",
+                        "recommended_next_action_why": "extract timeout dominates the current shard",
+                        "step_duration_totals": {"extract": 65.0, "semantic_gate": 12.0},
+                        "step_duration_avg": {"extract": 8.125, "semantic_gate": 4.0},
+                        "slowest_tasks": [
+                            {
+                                "task_id": "71",
+                                "total_duration_sec": 19.5,
+                                "slowest_step": "extract",
+                                "slowest_step_duration_sec": 12.0,
+                                "first_failed_step": "extract",
+                            }
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+            )
             project_health.write_project_health_record(
                 root=root,
                 kind="detect-project-stage",
@@ -1106,6 +1132,11 @@ class ProjectHealthSupportTests(unittest.TestCase):
             self.assertIn("approval_blocked_actions: fork,resume,rerun", latest_html)
             self.assertIn("approval_reason: Fork approval is still pending.", latest_html)
             self.assertIn("run_type_deterministic_only", latest_html)
+            self.assertIn("recommended_next_action: inspect-hotspot-and-rerun-quarantined-slice", latest_html)
+            self.assertIn("recommended_next_action_why: extract timeout dominates the current shard", latest_html)
+            self.assertIn("step_duration_totals: extract=65.0s; semantic_gate=12.0s", latest_html)
+            self.assertIn("step_duration_avg: extract=8.125s; semantic_gate=4.0s", latest_html)
+            self.assertIn("slowest_tasks: T71 total=19.5s slowest=extract/12.0s first_failed=extract", latest_html)
             self.assertNotIn("Task 88", latest_html)
             self.assertNotIn("Task 89", latest_html)
             self.assertIn("Auto-refresh is disabled", latest_html)

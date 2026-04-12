@@ -200,6 +200,57 @@ def _build_validation(
     }
 
 
+def _build_duration_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
+    step_duration_totals: dict[str, float] = {}
+    step_duration_counts: dict[str, int] = {}
+    slowest_tasks: list[dict[str, Any]] = []
+    for row in results:
+        if not isinstance(row, dict):
+            continue
+        task_raw = str(row.get("task_id") or "").strip()
+        task_duration_total = 0.0
+        for step in row.get("steps", []) or []:
+            if not isinstance(step, dict):
+                continue
+            step_name = str(step.get("step") or "").strip()
+            if not step_name:
+                continue
+            try:
+                duration_sec = float(step.get("duration_sec")) if step.get("duration_sec") is not None else None
+            except Exception:
+                duration_sec = None
+            if duration_sec is None or duration_sec < 0:
+                continue
+            step_duration_totals[step_name] = step_duration_totals.get(step_name, 0.0) + duration_sec
+            step_duration_counts[step_name] = step_duration_counts.get(step_name, 0) + 1
+            task_duration_total += duration_sec
+        if task_raw.isdigit() and task_duration_total > 0:
+            slowest_tasks.append(
+                {
+                    "task_id": int(task_raw),
+                    "duration_sec": round(task_duration_total, 3),
+                    "first_failed_step": str(row.get("first_failed_step") or "").strip(),
+                    "ok": bool(row.get("ok")),
+                }
+            )
+    return {
+        "step_duration_totals": {
+            key: round(value, 3) for key, value in sorted(step_duration_totals.items(), key=lambda item: item[0])
+        },
+        "step_duration_avg": {
+            key: round(step_duration_totals[key] / max(1, int(step_duration_counts.get(key) or 1)), 3)
+            for key in sorted(step_duration_totals)
+        },
+        "step_duration_task_counts": {
+            key: int(step_duration_counts.get(key) or 0) for key in sorted(step_duration_counts)
+        },
+        "slowest_tasks": sorted(
+            slowest_tasks,
+            key=lambda item: (-float(item.get("duration_sec") or 0.0), int(item.get("task_id") or 0)),
+        )[:10],
+    }
+
+
 def merge_summaries(root: Path, input_paths: list[Path]) -> dict[str, Any]:
     source_entries: list[dict[str, Any]] = []
     all_declared_ids: set[int] = set()
@@ -297,6 +348,7 @@ def merge_summaries(root: Path, input_paths: list[Path]) -> dict[str, Any]:
         "validation": validation,
         "results": results,
     }
+    merged.update(_build_duration_summary(results))
     return merged
 
 
