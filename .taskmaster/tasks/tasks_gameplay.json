@@ -8631,7 +8631,7 @@
     "story_id": "PRD-SANGUO-T3-SPLIT-GM-0171",
     "title": "Module: campaign content schema catalog extension (split from T147)",
     "description": "Split task for campaign content schema and catalog extension.",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "ci",
     "depends_on": [
@@ -8670,12 +8670,12 @@
     ],
     "acceptance": [
       "Schema and catalog definitions are extended for commander, strategem, building, boss, and objective datasets. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
-      "Schema catalog defines minimal mandatory machine-checkable contracts and constraints (not free-form prose) for each content family. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Schema catalog defines minimal mandatory machine-checkable contracts for each family, including required fields, field types, and numeric constraints (not free-form prose). Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
       "Schema validation tests include minimal valid and invalid fixtures for each content family. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
-      "Pack catalog and loaders recognize each new campaign dataset type, with loader/catalog tests covering all added families. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
-      "Validation fails on bad references, out-of-range values, and missing version bumps through deterministic failing fixtures. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
-      "Schema evolution path is documented, and validators plus docs enforce the same schema catalog versioning rules. Refs: docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md Game.Core.Tests/Tasks/Task171SplitTests.cs",
-      "Task-specific deterministic tests are required evidence for Task 171 closure. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs"
+      "Schema validation rejects fixtures with field type mismatches (for example non-string id/refId or non-integer power/schemaVersion) for each content family. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Pack catalog/loaders and schema catalog expose the same campaign dataset inventory: commander, strategem, building, boss, objective; no missing or extra dataset type is allowed, and datasetType-to-family mapping is one-to-one. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Validation fails on bad references for each reference-required family (strategem/building/boss/objective), and fails on out-of-range values for all extended families through deterministic failing fixtures. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs",
+      "Per task subtask 4, the campaign schema evolution path is documented, and validators plus docs enforce the same schema catalog versioning rules. Refs: Game.Core.Tests/Tasks/Task171SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."

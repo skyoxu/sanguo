@@ -238,8 +238,9 @@ def route_chapter6(
     chapter6_hints = payload.get("chapter6_hints") if isinstance(payload.get("chapter6_hints"), dict) else {}
     candidate_commands = payload.get("candidate_commands") if isinstance(payload.get("candidate_commands"), dict) else {}
     recommended_action = str(payload.get("recommended_action") or "").strip().lower()
+    chapter6_next_action = str(chapter6_hints.get("next_action") or "").strip().lower()
     repo_noise_classification, repo_noise_reason = _classify_repo_noise(payload)
-    six_eight_worthwhile = bool(chapter6_hints.get("can_go_to_6_8")) and recommended_action == "needs-fix-fast" and reviewer_anchor_hit
+    six_eight_worthwhile = bool(chapter6_hints.get("can_go_to_6_8")) and chapter6_next_action == "needs-fix-fast" and reviewer_anchor_hit
     full_67_recommended = (
         recommended_action in {"rerun", "fork"}
         and not bool(chapter6_hints.get("rerun_forbidden"))
