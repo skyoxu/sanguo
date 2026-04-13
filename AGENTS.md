@@ -114,3 +114,10 @@
 - 保持仓库标识为 `sanguo`，清理过期模板名与无效示例。
 - 不在 overlay 复制 Base/ADR 的阈值正文。
 - 契约字段用路径引用，不做文档内重复粘贴。
+
+## Prototype Lane Entrypoint
+
+- 文档：`docs/workflows/prototype-lane.md`
+- Playbook：`docs/workflows/prototype-lane-playbook.md`
+- TDD 细化：`docs/workflows/prototype-tdd.md`
+- 正式入口：`py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage <red|green|refactor> --dotnet-target <path> --filter <Expr>`

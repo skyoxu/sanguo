@@ -145,7 +145,13 @@ def validate_args(args: argparse.Namespace) -> list[str]:
         resolved_agents = resolve_agents(str(getattr(args, "agents", "") or ""), "skip")
         if "semantic-equivalence-auditor" not in resolved_agents:
             errors.append("--semantic-gate require needs semantic-equivalence-auditor in explicit --agents.")
-    requires_backend_ready = not bool(getattr(args, "prompts_only", False))
+    requires_backend_ready = not any(
+        (
+            bool(getattr(args, "self_check", False)),
+            bool(getattr(args, "dry_run_plan", False)),
+            bool(getattr(args, "prompts_only", False)),
+        )
+    )
     backend_info = inspect_llm_backend(getattr(args, "llm_backend", None))
     setattr(args, "_llm_backend_info", backend_info)
     if requires_backend_ready:

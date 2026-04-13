@@ -70,3 +70,15 @@ Promotion should add or update:
 2. Run only the minimum checks needed to keep the repo safe.
 3. Decide `discard`, `archive`, or `promote` quickly.
 4. If promoted, rewrite or relocate the result into the formal task pipeline instead of treating the prototype artifact as done.
+
+- Full operator flow: `docs/workflows/prototype-lane-playbook.md`
+
+## Prototype TDD Option
+If you still want TDD while staying in prototype lane, use the lightweight prototype entrypoint instead of formal Chapter 6 evidence:
+
+- `py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage red --dotnet-target Game.Core.Tests/Game.Core.Tests.csproj --filter <Expr>`
+- See: `docs/workflows/prototype-tdd.md`
+- It writes prototype notes under `docs/prototypes/` and local evidence under `logs/ci/<date>/prototype-tdd-<slug>-<stage>/`.
+- It does not consume Taskmaster triplets, acceptance refs, overlay refs, or review sidecars.
+- If the prototype is promoted, rerun the work through formal `6.3 -> 6.4 -> 6.5 -> 6.6` instead of treating prototype evidence as production evidence.
+

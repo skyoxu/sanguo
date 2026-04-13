@@ -104,8 +104,16 @@ jobs:
           $env:GODOT_DOTNET_CLI = (Get-Command dotnet).Path
           & "$env:GODOT_BIN" --headless --path . --quit
           & "$env:GODOT_BIN" --headless --path . --build-solutions --verbose --quit
-          dotnet restore GodotGame.csproj
-          dotnet build GodotGame.csproj -c Release -v minimal
+          $repoName = Split-Path -Leaf (Get-Location)
+          $solutionCandidates = @("Game.sln", "$repoName.sln")
+          $solution = $solutionCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $solution) {
+            $firstSln = Get-ChildItem -Filter *.sln -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($firstSln) { $solution = $firstSln.Name }
+          }
+          if (-not $solution) { throw "No solution file found for restore/build." }
+          dotnet restore $solution
+          dotnet build $solution -c Release -v minimal
 
       - name: Export Windows EXE
         if: always()
@@ -140,5 +148,4 @@ jobs:
           path: |
             build/Game.exe
             logs/ci/**
-
 

@@ -1318,7 +1318,7 @@ Notes:
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
-  - Model-backed steps require the repo's LLM runtime/CLI or an API backend. `--llm-backend openai-api` now validates package/key readiness during self-check and dry-run, and can execute through the minimal Responses API path when explicitly selected.
+  - Model-backed execution requires the repo's LLM runtime/CLI or an API backend. `--self-check`, `--dry-run-plan`, and `--prompts-only` stay backend-readiness-agnostic, while real execution still validates package/key readiness before calls.
 
 #### `scripts/sc/llm_review_needs_fix_fast.py`
 
