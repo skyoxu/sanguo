@@ -5414,7 +5414,7 @@
           "105",
           "109"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -5422,7 +5422,7 @@
             "description": "Specify required fields, types and constraints for commander, strategem, building, boss and objective content families.",
             "dependencies": [],
             "details": "The schema catalog should state only the minimal mandatory contract plus machine-checkable constraints, not free-form prose.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add schema validation tests for each content family with minimal valid and invalid fixtures.",
             "parentId": "171"
           },
@@ -5434,7 +5434,7 @@
               1
             ],
             "details": "A schema without loader/catalog awareness will pass CI but fail at runtime discovery.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add loader/catalog tests covering each new campaign dataset type.",
             "parentId": "171"
           },
@@ -5446,7 +5446,7 @@
               2
             ],
             "details": "This is where most content regressions actually happen, so keep the rules explicit and hard.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add failing fixtures for bad references, out-of-range values and missing version bumps.",
             "parentId": "171"
           },
@@ -5458,7 +5458,7 @@
               3
             ],
             "details": "Content schemas will change; the task is incomplete if there is no disciplined evolution path.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify validators and docs both reflect the same schema catalog versioning rules.",
             "parentId": "171"
           }

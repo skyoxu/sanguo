@@ -239,6 +239,16 @@ Gate-execution owner page for T80, T91~T92, T111~T112, and T151~T175. Semantic g
 
 
 
+## Campaign Content Schema Versioning Rule
+
+- Applies to `T171`/`T172` schema governance checks.
+
+- `versioning-rule: BreakingChangesRequireVersionBump`
+
+- Deterministic validators and overlay documentation must expose the same token so drift can be machine-checked.
+
+
+
 ## Governance Owner Handoff
 
 

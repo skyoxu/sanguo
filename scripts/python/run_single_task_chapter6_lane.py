@@ -238,11 +238,15 @@ def _initial_route_has_recovery_signal(route_payload: dict[str, Any] | None) -> 
 
 
 def _route_is_blocking(route_payload: dict[str, Any] | None) -> bool:
-    return _route_lane(route_payload) in {"repo-noise-stop", "fix-deterministic"}
+    return _route_lane(route_payload) in {"inspect-first", "record-residual", "repo-noise-stop", "fix-deterministic"}
 
 
 def _route_requires_needs_fix(route_payload: dict[str, Any] | None) -> bool:
     return _route_lane(route_payload) == "run-6.8"
+
+
+def _route_requires_full_rerun(route_payload: dict[str, Any] | None) -> bool:
+    return _route_lane(route_payload) == "run-6.7"
 
 
 def _build_step(name: str, cmd: list[str]) -> dict[str, Any]:
@@ -372,7 +376,20 @@ def _parse_json_stdout(stdout: str) -> dict[str, Any]:
     text = str(stdout or "").strip()
     if not text:
         return {}
-    payload = json.loads(text)
+    for line in text.splitlines():
+        candidate = line.strip()
+        if not candidate:
+            continue
+        try:
+            payload = json.loads(candidate)
+        except Exception:
+            continue
+        if isinstance(payload, dict):
+            return payload
+    try:
+        payload = json.loads(text)
+    except Exception:
+        return {}
     return payload if isinstance(payload, dict) else {}
 
 
@@ -549,7 +566,7 @@ def main() -> int:
             _write_json(out_dir / "summary.json", summary)
             print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={summary['stop_reason']}")
             return 1
-    else:
+    elif _route_requires_full_rerun(initial_route):
         full_path_steps = [
             ("check-tdd-plan", build_check_tdd_plan_cmd(task_id, profile_policy=profile_policy)),
             ("red-first", build_red_first_cmd(task_id, profile_policy=profile_policy, godot_bin=str(args.godot_bin))),
@@ -581,6 +598,12 @@ def main() -> int:
                 _write_json(out_dir / "summary.json", summary)
                 print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={summary['stop_reason']}")
                 return 1
+    else:
+        summary["status"] = "blocked"
+        summary["stop_reason"] = _route_lane(initial_route)
+        _write_json(out_dir / "summary.json", summary)
+        print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={summary['stop_reason']}")
+        return 1
 
     if not _run_required("local-hard-checks-preflight", build_local_hard_checks_preflight_cmd(profile_policy=profile_policy)):
         return 1
