@@ -23,7 +23,7 @@
 
 - `scripts/sc/config/delivery_profiles.json`
 
-当前本仓默认档位：
+当前模板仓默认档位：
 
 - `fast-ship`
 
@@ -262,6 +262,8 @@ Additional rules:
 
 - explicit CLI `--llm-*` arguments still win over task-tier defaults
 - the final effective tier and escalation reasons are written to `execution-context.json`
+- `fast-ship` low-risk `minimal` / `targeted` tiers narrow the default reviewer set to `code-reviewer,security-auditor`; `semantic-equivalence-auditor` is added back automatically when the tier escalates to `full`, or when you explicitly override reviewers from CLI
+- when the previous run already proved deterministic green and only reviewer/semantic-scope files changed, `playable-ea` / `fast-ship` can also narrow a later `6.7` rerun to the recent non-OK reviewers automatically; explicit `--llm-agents` disables that narrowing
 
 ## 8.3 `Needs Fix` and the Unified Technical Debt Register
 
@@ -278,4 +280,3 @@ Behavior:
 - when the same task completes `sc-llm-review` again, the task section is replaced instead of duplicated
 - `dry-run`, `skip-llm-review`, failed `llm-review`, or runs without low-priority findings do not overwrite the existing register entry
 - per-run sidecar: `logs/ci/<date>/sc-review-pipeline-task-<id>-<run_id>/llm-review-low-priority-findings.json`
-

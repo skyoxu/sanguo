@@ -56,6 +56,19 @@ class SubtasksCoverageCliGuardTests(unittest.TestCase):
         self.assertEqual(0, proc.returncode)
         self.assertIn("SC_LLM_SUBTASKS_COVERAGE_SELF_CHECK status=ok", proc.stdout or "")
 
+    def test_self_check_accepts_explicit_openai_backend(self) -> None:
+        proc = subprocess.run(
+            [sys.executable, str(SCRIPT), "--self-check", "--llm-backend", "openai-api"],
+            cwd=str(REPO_ROOT),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="ignore",
+        )
+        self.assertEqual(0, proc.returncode)
+        self.assertIn("SC_LLM_SUBTASKS_COVERAGE_SELF_CHECK status=ok", proc.stdout or "")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -30,6 +30,15 @@ py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks
 py -3 scripts/python/dev_cli.py serve-project-health
 ```
 
+如果这个新仓明确要试点 `openai-api`，不要在这份示例里手工维护底层自检命令，直接按下面的 bootstrap checklist 执行：
+
+- `docs/workflows/template-bootstrap-checklist.md`
+
+最短口径：
+
+- `openai-api` 仍然是显式 opt-in，不是默认 backend
+- 先让 checklist 里的 backend 自检通过，再考虑把 API transport 接进 CI 或日常默认入口
+
 目标：
 
 - 仓库名称、索引、路径已改干净
@@ -289,3 +298,16 @@ py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start 101 --t
 - 不要因为 Serena 暂时不可用就阻塞整项工作
 - 当 `run_review_pipeline.py` 已存在时，不要手工串 test + acceptance + llm review
 - 新仓不要等到第一笔业务提交前，才第一次跑 `run-local-hard-checks`
+
+
+## Optional prototype lane before formal tasking
+
+Use this only when the work is still exploratory and should not enter the formal Taskmaster loop yet.
+
+```powershell
+py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --create-record-only --hypothesis "<what are you proving>"
+py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage red --dotnet-target Game.Core.Tests/Game.Core.Tests.csproj --filter <Expr>
+py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage green --dotnet-target Game.Core.Tests/Game.Core.Tests.csproj --filter <Expr>
+```
+
+If the prototype proves worth promoting, then move back to `workflow.md` and enter the formal task loop.

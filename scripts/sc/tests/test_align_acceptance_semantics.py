@@ -33,15 +33,16 @@ class AcceptanceSemanticsRuntimeRetryTests(unittest.TestCase):
             task_out = Path(td)
             calls = {"n": 0}
 
-            def fake_run_codex_exec(*, prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:  # noqa: ARG001
+            def fake_run_codex_exec(*, backend: str = "codex-cli", prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:  # noqa: ARG001
                 calls["n"] += 1
+                self.assertEqual("codex-cli", backend)
                 if calls["n"] == 1:
                     return 124, "timeout"
                 out_last_message.write_text('{"task_id": 1, "mode": "rewrite-only"}', encoding="utf-8")
                 return 0, "ok"
 
             with patch.object(runtime, "run_codex_exec", side_effect=fake_run_codex_exec):
-                reason, out_obj, attempts = runtime._run_model_with_retry(prompt="p", task_out=task_out, timeout_sec=1)
+                reason, out_obj, attempts = runtime._run_model_with_retry(prompt="p", task_out=task_out, timeout_sec=1, llm_backend="codex-cli")
 
             self.assertEqual("ok", reason)
             self.assertEqual(2, attempts)
@@ -55,7 +56,7 @@ class AcceptanceSemanticsRuntimeRetryTests(unittest.TestCase):
             task_out = Path(td)
             calls = {"n": 0}
 
-            def fake_run_codex_exec(*, prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:  # noqa: ARG001
+            def fake_run_codex_exec(*, backend: str = "codex-cli", prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:  # noqa: ARG001
                 calls["n"] += 1
                 if calls["n"] == 1:
                     out_last_message.write_text("{invalid", encoding="utf-8")
@@ -64,7 +65,7 @@ class AcceptanceSemanticsRuntimeRetryTests(unittest.TestCase):
                 return 0, "ok"
 
             with patch.object(runtime, "run_codex_exec", side_effect=fake_run_codex_exec):
-                reason, out_obj, attempts = runtime._run_model_with_retry(prompt="p", task_out=task_out, timeout_sec=1)
+                reason, out_obj, attempts = runtime._run_model_with_retry(prompt="p", task_out=task_out, timeout_sec=1, llm_backend="codex-cli")
 
             self.assertEqual("ok", reason)
             self.assertEqual(2, attempts)
@@ -76,12 +77,12 @@ class AcceptanceSemanticsRuntimeRetryTests(unittest.TestCase):
             task_out = Path(td)
             calls = {"n": 0}
 
-            def fake_run_codex_exec(*, prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:  # noqa: ARG001
+            def fake_run_codex_exec(*, backend: str = "codex-cli", prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:  # noqa: ARG001
                 calls["n"] += 1
                 return 127, "codex executable not found"
 
             with patch.object(runtime, "run_codex_exec", side_effect=fake_run_codex_exec):
-                reason, out_obj, attempts = runtime._run_model_with_retry(prompt="p", task_out=task_out, timeout_sec=1)
+                reason, out_obj, attempts = runtime._run_model_with_retry(prompt="p", task_out=task_out, timeout_sec=1, llm_backend="codex-cli")
 
             self.assertEqual("codex_rc:127", reason)
             self.assertIsNone(out_obj)
@@ -133,6 +134,7 @@ class AcceptanceSemanticsRefsRestoreTests(unittest.TestCase):
                     out_dir=Path(td),
                     apply=True,
                     timeout_sec=1,
+                    llm_backend="codex-cli",
                     delivery_profile_context="",
                     max_failures=0,
                     structural_for_not_done=False,
@@ -180,6 +182,7 @@ class AcceptanceSemanticsRefsRestoreTests(unittest.TestCase):
                     out_dir=Path(td),
                     apply=True,
                     timeout_sec=1,
+                    llm_backend="codex-cli",
                     delivery_profile_context="",
                     max_failures=0,
                     structural_for_not_done=False,
@@ -284,6 +287,30 @@ class AlignAcceptanceCliGuardTests(unittest.TestCase):
         self.assertEqual(2, proc.returncode)
         self.assertIn("missing_task_ids_in_scope", proc.stdout or "")
 
+    def test_self_check_should_accept_explicit_openai_backend(self) -> None:
+        with staged_taskmaster_triplet(include_task1=True):
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--task-ids",
+                    "1",
+                    "--garbled-gate",
+                    "off",
+                    "--self-check",
+                    "--llm-backend",
+                    "openai-api",
+                ],
+                cwd=str(REPO_ROOT),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="ignore",
+            )
+        self.assertEqual(0, proc.returncode)
+        self.assertIn("SC_ALIGN_ACCEPTANCE_SELF_CHECK status=ok", proc.stdout or "")
+
 
 class AlignAcceptanceViewGuardTests(unittest.TestCase):
     def test_should_fail_when_missing_view_entries_and_flag_enabled(self) -> None:
@@ -343,6 +370,65 @@ class AlignAcceptanceViewGuardTests(unittest.TestCase):
 
         self.assertEqual(0, rc)
         self.assertIn("SC_ALIGN_ACCEPTANCE_SELF_CHECK status=ok", buf.getvalue())
+
+
+class AlignAcceptanceBackendTests(unittest.TestCase):
+    def test_apply_delivery_profile_defaults_should_resolve_default_llm_backend(self) -> None:
+        args = align_script.apply_delivery_profile_defaults(
+            align_script.argparse.Namespace(
+                delivery_profile="fast-ship",
+                llm_backend=None,
+                timeout_sec=None,
+                garbled_gate=None,
+            )
+        )
+
+        self.assertEqual("codex-cli", args.llm_backend)
+
+    def test_runtime_should_forward_explicit_llm_backend(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            master_index = {
+                7: runtime.MasterTaskInput(
+                    task_id=7,
+                    status="in-progress",
+                    title="Demo task",
+                    description="Demo description",
+                    details="Demo details",
+                    test_strategy="",
+                    subtasks=[],
+                )
+            }
+            back = [{"taskmaster_id": 7, "description": "old", "acceptance": ["ACC:T7.1 old text."]}]
+            seen: list[str] = []
+
+            def fake_run_codex_exec(*, backend: str = "codex-cli", prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:  # noqa: ARG001
+                seen.append(backend)
+                out_last_message.write_text(
+                    '{"task_id":7,"mode":"rewrite-only","back":{"description":"old","acceptance":["ACC:T7.1 old text."]},"gameplay":null,"notes":[]}',
+                    encoding="utf-8",
+                )
+                return 0, "ok"
+
+            with patch.object(runtime, "run_codex_exec", side_effect=fake_run_codex_exec):
+                result = runtime.run_alignment_tasks(
+                    task_ids=[7],
+                    master_index=master_index,
+                    semantic_hints={},
+                    back=back,
+                    gameplay=[],
+                    out_dir=Path(td),
+                    apply=False,
+                    timeout_sec=1,
+                    llm_backend="openai-api",
+                    delivery_profile_context="",
+                    max_failures=0,
+                    structural_for_not_done=False,
+                    append_only_for_done=False,
+                    align_view_descriptions_to_master=False,
+                )
+
+        self.assertEqual(["openai-api"], seen)
+        self.assertEqual(0, result["failed"])
 
 
 if __name__ == "__main__":

@@ -65,6 +65,24 @@
 如果工作仍处于探索阶段、尚未准备进入正式 Taskmaster 跟踪，请先走 prototype lane。
 参考：`docs/workflows/prototype-lane.md`
 
+最短入口：
+
+```powershell
+py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage red --dotnet-target Game.Core.Tests/Game.Core.Tests.csproj --filter <Expr>
+```
+
+使用 prototype-TDD 而不是正式 `6.3 -> 6.4 -> 6.5 -> 6.6` 的典型场景：
+
+- 你现在要回答的是“这套机制值不值得继续做”，而不是“这个正式任务是否已经达到交付标准”
+- 你还没有准备好写真实 `.taskmaster/tasks/*.json`、acceptance refs、overlay refs
+- 你希望保留 `red -> green -> refactor` 节奏，但暂时不想引入正式 review pipeline sidecars
+
+硬边界：
+
+- prototype 证据不能直接当成正式任务证据
+- prototype 被保留后，仍要回到正式 `6.3 -> 6.4 -> 6.5 -> 6.6` 重新走一遍
+- prototype lane 可以放宽 task/review/acceptance 编排，但不能绕过当前安全边界
+
 ## 2. Phase 0：仓库初始化（Repository Bootstrap）
 
 从模板创建新仓后，先执行这一阶段。
@@ -131,6 +149,21 @@ py -3 scripts/python/dev_cli.py project-health-scan --serve
 - 默认端口范围是 `8765-8799`
 - 同仓存在活跃服务时会复用
 - 选中的 URL 和 PID 会写入 `logs/ci/project-health/server.json`
+
+### 2.5 可选：OpenAI backend bootstrap
+
+只有当仓库明确要试点 `openai-api`，并且你希望把部分 LLM 脚本从 `codex-cli` 切到 API transport 时，才进入这一步。
+
+这里不要在 `workflow.md` 里重复维护底层脚本自检命令，统一按以下文档执行：
+
+- `docs/workflows/template-bootstrap-checklist.md`
+
+最短口径：
+
+- `openai-api` 仍然是显式 opt-in，不是默认 backend
+- 先让 checklist 里的 backend 自检通过，再考虑 test generation 或接 CI
+- `llm_generate_tests_from_acceptance_refs.py` 没有 deterministic `--self-check`，只适合在前面的 backend 自检已经稳定后再做 spot check
+- 如果 checklist 里的自检还没干净，不要把 `openai-api` 接进正式 CI 或日常默认命令
 
 ## 3. Phase 1：任务三联（Task Triplet）初始化
 
@@ -257,6 +290,12 @@ dotnet test Game.Core.Tests/Game.Core.Tests.csproj
 - 重复的 `Needs Fix` 指向 semantics，而不是代码实现
 
 ### 5.1 单任务轻量 lane
+
+第五章的顶层编排入口分两类：
+
+- 单任务或很小批次：`py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile <profile>`
+- 长区间、多任务、需要自动分 shard 与汇总：`py -3 scripts/python/run_single_task_light_lane_batch.py --task-id-start <start> --task-id-end <end> --batch-preset <preset> --delivery-profile <profile>`
+
 
 这一组脚本的目标不是“把所有语义脚本都再跑一遍”，而是用最小必要的包装，快速判断某个任务或一段任务是否值得继续投入语义修复。
 
@@ -718,8 +757,9 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - reviewer 超时扩时现在会继承最近同任务 / 同 profile 的 agent 级超时历史；继续 timeout 时只定向放大该 reviewer，而不是整体抬高全部 reviewer。
 - `run_review_pipeline.py` 会按 `DELIVERY_PROFILE` 自动决定第六章的默认强度：
   - `playable-ea`：默认 `max_step_retries = 1`，首轮 review 更轻，适合先验证可玩性。
-  - `fast-ship`：默认 `max_step_retries = 1`，首轮 review 聚焦 `code-reviewer + security-auditor + semantic-equivalence-auditor`。
+  - `fast-ship`：默认 `max_step_retries = 1`。低风险任务的 `minimal / targeted` tier 首轮 review 聚焦 `code-reviewer + security-auditor`；只有升到 `full` 或显式覆写 reviewer 时，才默认带上 `semantic-equivalence-auditor`。
   - `standard`：默认 `max_step_retries = 0`，保留更重的收口姿态，不自动帮你放宽执行节奏。
+- 当最近一轮已经是 `sc-test = ok + sc-acceptance-check = ok + sc-llm-review != clean`，且这轮改动只落在 `.taskmaster/**`、`examples/taskmaster/**`、`docs/architecture/**`、`docs/adr/**`、`docs/prd/**`、`execution-plans/**`、`decision-logs/**`、`workflow*.md`、`scripts/sc/templates/llm_review/**` 这类 reviewer/语义侧文件时，6.7 现在会自动把 reviewer 缩窄到“上一轮真正非 OK 的 agents”；显式传了 `--llm-agents` 时不启用这条自动收窄。
 - 新开 `6.7` 时，默认会继承最近同任务成功解析出来的 `delivery/security profile` 组合；如果你明确要切换 profile，必须显式传 `--reselect-profile`，否则会因 task 级 profile lock 失败。
 - 如果上一次同任务 `sc-llm-review` 里只有少数 reviewer 发生 `rc=124` timeout，6.7 会只对这些 reviewer 增加 `--agent-timeouts`，不会把全部 reviewer 一起扩时。
 - `--llm-base` 的默认值现在是 `origin/main`；除非你明确需要对比别的基线，否则不要手工改回 `main`。
@@ -838,6 +878,7 @@ py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id <id> --delivery-profile 
   - `playable-ea`：`agents=code-reviewer,semantic-equivalence-auditor`，`diff_mode=summary`，`max_rounds=1`，`time_budget_min=20`。
   - `fast-ship`：`agents=code-reviewer,security-auditor,semantic-equivalence-auditor`，`diff_mode=summary`，`max_rounds=2`，`time_budget_min=30`。
   - `standard`：`agents=all`，`diff_mode=full`，`max_rounds=2`，`time_budget_min=45`。
+- 注意区分 6.7 和 6.8：上面的 `fast-ship` 三 reviewer 是 `llm_review_needs_fix_fast.py` 的默认闭环集合；而 6.7 `run_review_pipeline.py` 在低风险 `minimal / targeted` tier 下会先收窄为 `code-reviewer + security-auditor`，只有升级到 `full` 或你显式传 reviewer 时，才会默认补 `semantic-equivalence-auditor`。
 - 快速清理脚本会把 `--delivery-profile` 继续透传给内部 `run_review_pipeline.py`，避免第 6.8 里外 profile 漂移。
 - 中间回合默认把 6.8 当作 `rerun-failing-only` 快路径：优先只重跑上轮命中的 reviewer，适合“修 Needs Fix、补 wording、补 refs、补局部测试断言”这类收敛回合。
 - 只要这一轮没有改实现、测试、contracts 或运行时资源，就不要急着回头重跑完整 6.7；先用 6.8 把命中的问题清干净。

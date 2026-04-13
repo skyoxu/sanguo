@@ -24,8 +24,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -39,6 +37,7 @@ def _bootstrap_imports() -> None:
 _bootstrap_imports()
 
 from _taskmaster import resolve_triplet  # noqa: E402
+from _llm_backend import KNOWN_LLM_BACKENDS, resolve_llm_backend, run_llm_exec  # noqa: E402
 from _util import ci_dir, repo_root, run_cmd, write_json, write_text  # noqa: E402
 
 
@@ -92,38 +91,14 @@ def _extract_testing_framework_excerpt() -> str:
     return excerpt
 
 
-def _run_codex_exec(*, prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str, list[str]]:
-    exe = shutil.which("codex")
-    if not exe:
-        return 127, "codex executable not found in PATH\n", ["codex"]
-    cmd = [
-        exe,
-        "exec",
-        "-s",
-        "read-only",
-        "-C",
-        str(repo_root()),
-        "--output-last-message",
-        str(out_last_message),
-        "-",
-    ]
-    try:
-        proc = subprocess.run(
-            cmd,
-            input=prompt,
-            text=True,
-            encoding="utf-8",
-            errors="ignore",
-            cwd=str(repo_root()),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout_sec,
-        )
-    except subprocess.TimeoutExpired:
-        return 124, "codex exec timeout\n", cmd
-    except Exception as exc:  # noqa: BLE001
-        return 1, f"codex exec failed to start: {exc}\n", cmd
-    return proc.returncode or 0, proc.stdout or "", cmd
+def _run_codex_exec(*, backend: str = "codex-cli", prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str, list[str]]:
+    return run_llm_exec(
+        backend=backend,
+        root=repo_root(),
+        prompt=prompt,
+        output_last_message=out_last_message,
+        timeout_sec=timeout_sec,
+    )
 
 
 def _build_prompt(*, task_id: str, context: dict[str, Any]) -> str:
@@ -204,11 +179,18 @@ def _build_prompt(*, task_id: str, context: dict[str, Any]) -> str:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Generate a task-aligned red test file using Codex CLI.")
+    ap = argparse.ArgumentParser(description="Generate a task-aligned red test file with an LLM backend.")
     ap.add_argument("--task-id", required=True, help="Task id (master id, e.g. 11).")
-    ap.add_argument("--timeout-sec", type=int, default=600, help="codex exec timeout in seconds (default: 600).")
+    ap.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="LLM transport backend. Default: env SC_LLM_BACKEND or codex-cli.",
+    )
+    ap.add_argument("--timeout-sec", type=int, default=600, help="LLM backend timeout in seconds (default: 600).")
     ap.add_argument("--verify-red", action="store_true", help="Run sc-build tdd --stage red after writing the file.")
     args = ap.parse_args()
+    args.llm_backend = resolve_llm_backend(getattr(args, "llm_backend", None))
 
     task_id = str(args.task_id).split(".", 1)[0].strip()
     if not task_id.isdigit():
@@ -278,15 +260,20 @@ def main() -> int:
 
     last_msg_path = out_dir / f"codex-last-message-{task_id}.txt"
     trace_path = out_dir / f"codex-trace-{task_id}.log"
-    rc, trace_out, cmd = _run_codex_exec(prompt=prompt, out_last_message=last_msg_path, timeout_sec=int(args.timeout_sec))
+    rc, trace_out, cmd = _run_codex_exec(
+        backend=str(args.llm_backend),
+        prompt=prompt,
+        out_last_message=last_msg_path,
+        timeout_sec=int(args.timeout_sec),
+    )
     write_text(trace_path, trace_out)
 
     last_msg = _read_text(last_msg_path) if last_msg_path.exists() else ""
-    meta = {"task_id": task_id, "rc": rc, "cmd": cmd, "prompt": str(prompt_path), "trace": str(trace_path), "last_msg": str(last_msg_path)}
+    meta = {"task_id": task_id, "rc": rc, "cmd": cmd, "llm_backend": str(args.llm_backend), "prompt": str(prompt_path), "trace": str(trace_path), "last_msg": str(last_msg_path)}
     write_json(out_dir / f"meta-{task_id}.json", meta)
 
     if rc != 0 or not last_msg.strip():
-        print(f"SC_LLM_RED_TEST ERROR: codex exec failed/empty rc={rc} out={out_dir}")
+        print(f"SC_LLM_RED_TEST ERROR: llm backend failed/empty rc={rc} out={out_dir}")
         return 1
 
     obj = _extract_json_object(last_msg)
@@ -302,7 +289,7 @@ def main() -> int:
 
     target = repo_root() / expected_path
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\r\n")
+    target.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
 
     print(f"SC_LLM_RED_TEST status=ok wrote={expected_path} out={out_dir}")
 

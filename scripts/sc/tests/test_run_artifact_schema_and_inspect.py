@@ -340,7 +340,11 @@ class RunArtifactSchemaTests(unittest.TestCase):
                 "llm_timeout_memory": {
                     "overrides": {
                         "code-reviewer": 480,
-                    }
+                    },
+                    "planned_agents": [
+                        "code-reviewer",
+                        "architecture-reviewer",
+                    ]
                 },
                 "llm_retry_stop_loss": {
                     "blocked": True,
@@ -500,8 +504,15 @@ class InspectRunTests(unittest.TestCase):
                     {
                         "cmd": "sc-review-pipeline",
                         "task_id": "56",
+                        "requested_run_id": "run-a",
                         "run_id": "run-a",
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
                         "status": "fail",
+                        "started_at_utc": "2026-04-06T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-06T00:00:05+00:00",
+                        "elapsed_sec": 5,
+                        "run_type": "full",
                         "reason": "rerun_blocked:deterministic_green_llm_not_clean",
                         "reuse_mode": "deterministic-only-reuse",
                         "diagnostics": {
@@ -523,8 +534,8 @@ class InspectRunTests(unittest.TestCase):
                         "status": "fail",
                         "schema_version": "1.0.0",
                         "date": "2026-04-06",
-                        "cmd": ["py", "-3", "scripts/sc/run_review_pipeline.py"],
-                        "approval": {"mode": "never"},
+                        "cmd": "sc-review-pipeline",
+                        "approval": {},
                         "delivery_profile": "fast-ship",
                         "security_profile": "host-safe",
                         "failed_step": "",
@@ -571,6 +582,7 @@ class InspectRunTests(unittest.TestCase):
                     "reason": "rerun_blocked:deterministic_green_llm_not_clean",
                     "run_type": "full",
                     "reuse_mode": "deterministic-only-reuse",
+                    "failure_kind": "step-failed",
                     "artifact_integrity_kind": "",
                     "diagnostics_keys": ["llm_timeout_memory", "rerun_guard"],
                 },
@@ -621,6 +633,7 @@ class InspectRunTests(unittest.TestCase):
                     "reason": "pipeline_clean",
                     "run_type": "deterministic-only",
                     "reuse_mode": "none",
+                    "failure_kind": "ok",
                     "artifact_integrity_kind": "",
                     "diagnostics_keys": [],
                 },
@@ -842,6 +855,7 @@ class InspectRunTests(unittest.TestCase):
                     "reason": "step_failed:sc-llm-review",
                     "run_type": "deterministic-only",
                     "reuse_mode": "none",
+                    "failure_kind": "step-failed",
                     "artifact_integrity_kind": "",
                     "diagnostics_keys": ["llm_retry_stop_loss"],
                 },
@@ -909,6 +923,7 @@ class InspectRunTests(unittest.TestCase):
                     "reason": "step_failed:sc-test",
                     "run_type": "deterministic-only",
                     "reuse_mode": "none",
+                    "failure_kind": "step-failed",
                     "artifact_integrity_kind": "",
                     "diagnostics_keys": ["sc_test_retry_stop_loss"],
                 },
@@ -1058,6 +1073,7 @@ class InspectRunTests(unittest.TestCase):
                     "reason": "planned_only_incomplete",
                     "run_type": "planned-only",
                     "reuse_mode": "none",
+                    "failure_kind": "artifact-incomplete",
                     "artifact_integrity_kind": "planned_only_incomplete",
                     "diagnostics_keys": [],
                 },

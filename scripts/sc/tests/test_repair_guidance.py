@@ -27,6 +27,7 @@ class RepairGuidanceTests(unittest.TestCase):
                 delivery_profile="fast-ship",
                 security_profile="host-safe",
                 llm_review_context={},
+                repair_guide={"status": "needs-fix"},
                 summary={
                     "status": "fail",
                     "steps": [{"name": "sc-test", "status": "fail"}],
@@ -68,8 +69,29 @@ class RepairGuidanceTests(unittest.TestCase):
                 ["py -3 scripts/sc/run_review_pipeline.py --task-id 1"],
                 payload["forbidden_commands"],
             )
+            self.assertEqual("step-failed", payload["failure_kind"])
             self.assertEqual("rerun_blocked:repeat_review_needs_fix", payload["latest_summary_signals"]["reason"])
             self.assertEqual("needs-fix-fast", payload["chapter6_hints"]["next_action"])
+
+    def test_build_execution_context_should_mark_review_needs_fix_failure_kind_for_clean_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            payload = build_execution_context(
+                task_id="1",
+                requested_run_id="abc",
+                run_id="def",
+                out_dir=out_dir,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                llm_review_context={},
+                repair_guide={"status": "needs-fix"},
+                summary={
+                    "status": "ok",
+                    "steps": [{"name": "sc-test", "status": "ok"}],
+                },
+            )
+
+            self.assertEqual("review-needs-fix", payload["failure_kind"])
 
     def test_build_repair_guide_should_mark_not_needed_when_no_failed_step(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

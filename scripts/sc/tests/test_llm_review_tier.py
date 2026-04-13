@@ -86,6 +86,48 @@ class LlmReviewTierPlanTests(unittest.TestCase):
         self.assertEqual("warn", plan["semantic_gate"])
         self.assertIn("contract_refs_present", plan["escalation_reasons"])
 
+    def test_fast_ship_minimal_should_narrow_reviewers_for_low_risk_task(self) -> None:
+        plan = resolve_llm_review_tier_plan(
+            delivery_profile="fast-ship",
+            triplet=_triplet(
+                priority="P2",
+                back={"semantic_review_tier": "minimal"},
+            ),
+            profile_defaults={
+                "agents": "code-reviewer,security-auditor,semantic-equivalence-auditor",
+                "semantic_gate": "warn",
+                "timeout_sec": 600,
+                "agent_timeout_sec": 180,
+                "strict": False,
+            },
+        )
+
+        self.assertEqual("minimal", plan["effective_tier"])
+        self.assertEqual("code-reviewer,security-auditor", plan["agents"])
+        self.assertEqual("skip", plan["semantic_gate"])
+        self.assertEqual([], plan["escalation_reasons"])
+
+    def test_fast_ship_targeted_should_keep_narrow_reviewers_for_low_risk_task(self) -> None:
+        plan = resolve_llm_review_tier_plan(
+            delivery_profile="fast-ship",
+            triplet=_triplet(
+                priority="P2",
+                back={"semantic_review_tier": "targeted"},
+            ),
+            profile_defaults={
+                "agents": "code-reviewer,security-auditor,semantic-equivalence-auditor",
+                "semantic_gate": "warn",
+                "timeout_sec": 600,
+                "agent_timeout_sec": 180,
+                "strict": False,
+            },
+        )
+
+        self.assertEqual("targeted", plan["effective_tier"])
+        self.assertEqual("code-reviewer,security-auditor", plan["agents"])
+        self.assertEqual("warn", plan["semantic_gate"])
+        self.assertEqual([], plan["escalation_reasons"])
+
     def test_priority_p1_should_escalate_minimal_to_targeted(self) -> None:
         plan = resolve_llm_review_tier_plan(
             delivery_profile="playable-ea",

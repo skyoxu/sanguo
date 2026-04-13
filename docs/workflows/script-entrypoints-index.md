@@ -587,46 +587,49 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - Direct local deps: `scripts/sc/_acceptance_semantics_align.py`, `scripts/sc/_acceptance_semantics_runtime.py`, `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
 - Transitive local deps: `scripts/sc/_acceptance_semantics_align.py`, `scripts/sc/_acceptance_semantics_runtime.py`, `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: `--delivery-profile`, `--scope`, `--task-ids`, `--fail-on-missing-task-ids`, `--fail-on-missing-views`, `--strict-task-selection`, `--apply`, `--preflight-migrate-optional-hints`, `--skip-preflight-migrate-optional-hints`, `--structural-for-not-done`, `--append-only-for-done`, `--align-view-descriptions-to-master`, `--semantic-findings-json`, `--timeout-sec`, `--max-failures`, `--garbled-gate`, `--self-check`
+- Declared args: `--delivery-profile`, `--llm-backend`, `--scope`, `--task-ids`, `--fail-on-missing-task-ids`, `--fail-on-missing-views`, `--strict-task-selection`, `--apply`, `--preflight-migrate-optional-hints`, `--skip-preflight-migrate-optional-hints`, `--structural-for-not-done`, `--append-only-for-done`, `--align-view-descriptions-to-master`, `--semantic-findings-json`, `--timeout-sec`, `--max-failures`, `--garbled-gate`, `--self-check`
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
-  - Model-backed steps require the repo's LLM runtime/CLI; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
+  - Model-backed steps require the repo's LLM runtime/CLI or an API backend; `--llm-backend openai-api` now uses the shared backend seam, while `--self-check` remains deterministic.
   - Write/apply flows mutate repository files; review diffs before and after execution.
 
 #### `scripts/sc/llm_check_subtasks_coverage.py`
 
-- Direct local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_obligations_extract_helpers.py`, `scripts/sc/_subtasks_coverage_garbled.py`, `scripts/sc/_subtasks_coverage_llm.py`, `scripts/sc/_subtasks_coverage_schema.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
-- Transitive local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_obligations_extract_helpers.py`, `scripts/sc/_subtasks_coverage_garbled.py`, `scripts/sc/_subtasks_coverage_llm.py`, `scripts/sc/_subtasks_coverage_schema.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
+- Direct local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_obligations_extract_helpers.py`, `scripts/sc/_subtasks_coverage_garbled.py`, `scripts/sc/_subtasks_coverage_llm.py`, `scripts/sc/_subtasks_coverage_schema.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
+- Transitive local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_obligations_extract_helpers.py`, `scripts/sc/_subtasks_coverage_garbled.py`, `scripts/sc/_subtasks_coverage_llm.py`, `scripts/sc/_subtasks_coverage_schema.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: `--task-id`, `--delivery-profile`, `--timeout-sec`, `--max-prompt-chars`, `--consensus-runs`, `--strict-view-selection`, `--garbled-gate`, `--max-schema-errors`, `--round-id`, `--self-check`
+- Declared args: `--task-id`, `--delivery-profile`, `--llm-backend`, `--timeout-sec`, `--max-prompt-chars`, `--consensus-runs`, `--strict-view-selection`, `--garbled-gate`, `--max-schema-errors`, `--round-id`, `--self-check`
+- Behavior notes: `--llm-backend codex-cli|openai-api` now routes semantic coverage rounds through the shared backend seam; `--self-check` stays deterministic.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
-  - Model-backed steps require the repo's LLM runtime/CLI; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
+  - Model-backed steps require the repo's LLM runtime/CLI or an API backend; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
 
 #### `scripts/sc/llm_fill_acceptance_refs.py`
 
-- Direct local deps: `scripts/sc/_acceptance_refs_contract.py`, `scripts/sc/_acceptance_refs_helpers.py`, `scripts/sc/_acceptance_refs_prompt.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
-- Transitive local deps: `scripts/sc/_acceptance_refs_contract.py`, `scripts/sc/_acceptance_refs_helpers.py`, `scripts/sc/_acceptance_refs_prompt.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
+- Direct local deps: `scripts/sc/_acceptance_refs_contract.py`, `scripts/sc/_acceptance_refs_helpers.py`, `scripts/sc/_acceptance_refs_prompt.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
+- Transitive local deps: `scripts/sc/_acceptance_refs_contract.py`, `scripts/sc/_acceptance_refs_helpers.py`, `scripts/sc/_acceptance_refs_prompt.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: `--all`, `--task-id`, `--write`, `--overwrite-existing`, `--rewrite-placeholders`, `--timeout-sec`, `--max-refs-per-item`, `--candidate-limit`, `--max-tasks`, `--consensus-runs`, `--self-check`
+- Declared args: `--all`, `--task-id`, `--llm-backend`, `--write`, `--overwrite-existing`, `--rewrite-placeholders`, `--timeout-sec`, `--max-refs-per-item`, `--candidate-limit`, `--max-tasks`, `--consensus-runs`, `--self-check`
+- Behavior notes: `--llm-backend codex-cli|openai-api` now routes the per-task consensus mapping call through the shared backend seam; `--self-check` stays deterministic.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
-  - Model-backed steps require the repo's LLM runtime/CLI; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
+  - Model-backed steps require the repo's LLM runtime/CLI or an API backend; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
   - Write/apply flows mutate repository files; review diffs before and after execution.
 
 #### `scripts/sc/llm_semantic_gate_all.py`
 
-- Direct local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_semantic_gate_all_contract.py`, `scripts/sc/_semantic_gate_all_runtime.py`, `scripts/sc/_util.py`
-- Transitive local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_semantic_gate_all_contract.py`, `scripts/sc/_semantic_gate_all_runtime.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
+- Direct local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_semantic_gate_all_contract.py`, `scripts/sc/_semantic_gate_all_runtime.py`, `scripts/sc/_util.py`
+- Transitive local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_semantic_gate_all_contract.py`, `scripts/sc/_semantic_gate_all_runtime.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: `--delivery-profile`, `--task-ids`, `--batch-size`, `--timeout-sec`, `--consensus-runs`, `--model-reasoning-effort`, `--max-acceptance-items`, `--max-prompt-chars`, `--max-tasks`, `--max-needs-fix`, `--max-unknown`, `--garbled-gate`, `--self-check`
+- Declared args: `--delivery-profile`, `--llm-backend`, `--task-ids`, `--batch-size`, `--timeout-sec`, `--consensus-runs`, `--model-reasoning-effort`, `--max-acceptance-items`, `--max-prompt-chars`, `--max-tasks`, `--max-needs-fix`, `--max-unknown`, `--garbled-gate`, `--self-check`
+- Behavior notes: `--llm-backend codex-cli|openai-api` now routes batch semantic gate calls through the shared backend seam; `--model-reasoning-effort` is still preserved through that transport layer.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
-  - Model-backed steps require the repo's LLM runtime/CLI; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
+  - Model-backed steps require the repo's LLM runtime/CLI or an API backend; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
 
 ### Obligations freeze and jitter toolkit
 
@@ -719,7 +722,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - Direct local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_obligations_artifacts.py`, `scripts/sc/_obligations_code_fingerprint.py`, `scripts/sc/_obligations_extract_helpers.py`, `scripts/sc/_obligations_guard.py`, `scripts/sc/_obligations_input_fingerprint.py`, `scripts/sc/_obligations_main_flow.py`, `scripts/sc/_obligations_prompt_acceptance.py`, `scripts/sc/_obligations_reuse_explain.py`, `scripts/sc/_obligations_reuse_index.py`, `scripts/sc/_obligations_runtime_helpers.py`, `scripts/sc/_obligations_self_check.py`, `scripts/sc/_security_profile.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
 - Transitive local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_garbled_gate.py`, `scripts/sc/_obligations_artifacts.py`, `scripts/sc/_obligations_code_fingerprint.py`, `scripts/sc/_obligations_extract_helpers.py`, `scripts/sc/_obligations_guard.py`, `scripts/sc/_obligations_input_fingerprint.py`, `scripts/sc/_obligations_main_flow.py`, `scripts/sc/_obligations_output_contract.py`, `scripts/sc/_obligations_prompt_acceptance.py`, `scripts/sc/_obligations_reuse_explain.py`, `scripts/sc/_obligations_reuse_index.py`, `scripts/sc/_obligations_runtime_helpers.py`, `scripts/sc/_obligations_self_check.py`, `scripts/sc/_obligations_text_rules.py`, `scripts/sc/_security_profile.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: `--task-id`, `--delivery-profile`, `--timeout-sec`, `--max-prompt-chars`, `--consensus-runs`, `--min-obligations`, `--round-id`, `--security-profile`, `--garbled-gate`, `--auto-escalate`, `--escalate-max-runs`, `--escalate-task-ids`, `--max-schema-errors`, `--reuse-last-ok`, `--explain-reuse-miss`, `--dry-run-fingerprint`, `--self-check`
+- Declared args: `--task-id`, `--delivery-profile`, `--llm-backend`, `--timeout-sec`, `--max-prompt-chars`, `--consensus-runs`, `--min-obligations`, `--round-id`, `--security-profile`, `--garbled-gate`, `--auto-escalate`, `--escalate-max-runs`, `--escalate-task-ids`, `--max-schema-errors`, `--reuse-last-ok`, `--explain-reuse-miss`, `--dry-run-fingerprint`, `--self-check`
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
@@ -907,8 +910,8 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 
 - Direct local deps: `scripts/python/dev_cli_builders.py`, `scripts/python/local_hard_checks_harness.py`
 - Transitive local deps: `scripts/python/dev_cli_builders.py`, `scripts/python/local_hard_checks_harness.py`, `scripts/python/local_hard_checks_support.py`
-- Subcommands: `run-ci-basic`, `run-quality-gates`, `run-local-hard-checks`, `run-local-hard-checks-preflight`, `run-gdunit-hard`, `run-gdunit-full`, `run-preflight`, `run-acceptance-preflight`, `run-smoke-strict`, `new-execution-plan`, `new-decision-log`, `resume-task`, `inspect-run`, `chapter6-route`, `run-single-task-chapter6`, `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, `serve-project-health`
-- Declared args: `--solution`, `--configuration`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--fix-through`, `--task-file`, `--out-dir`, `--run-id`, `--legacy-preflight`, `--build-solutions`, `--gdunit-hard`, `--smoke`, `--timeout-sec`, `--test-project`, `--title`, `--status`, `--goal`, `--scope`, `--current-step`, `--stop-loss`, `--next-action`, `--exit-criteria`, `--adr`, `--decision-log`, `--task-id`, `--stage`, `--latest-json`, `--output`, `--why-now`, `--context`, `--decision`, `--consequences`, `--recovery-impact`, `--validation`, `--supersedes`, `--superseded-by`, `--execution-plan`, `--repo-root`, `--latest`, `--kind`, `--record-residual`, `--out-json`, `--out-md`, `--recommendation-only`, `--recommendation-format`, `--serve`, `--port`, `--self-check`
+- Subcommands: `run-ci-basic`, `run-quality-gates`, `run-local-hard-checks`, `run-local-hard-checks-preflight`, `run-gdunit-hard`, `run-gdunit-full`, `run-preflight`, `run-acceptance-preflight`, `run-smoke-strict`, `run-prototype-tdd`, `new-execution-plan`, `new-decision-log`, `resume-task`, `inspect-run`, `chapter6-route`, `run-single-task-chapter6`, `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, `serve-project-health`
+- Declared args: `--solution`, `--configuration`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--fix-through`, `--task-file`, `--out-dir`, `--run-id`, `--legacy-preflight`, `--build-solutions`, `--gdunit-hard`, `--smoke`, `--timeout-sec`, `--test-project`, `--slug`, `--expect`, `--prototype-dir`, `--record-path`, `--skip-record`, `--owner`, `--related-task-id`, `--hypothesis`, `--scope-in`, `--scope-out`, `--success-criteria`, `--evidence`, `--next-step`, `--create-record-only`, `--dotnet-target`, `--filter`, `--gdunit-path`, `--title`, `--status`, `--goal`, `--scope`, `--current-step`, `--stop-loss`, `--next-action`, `--exit-criteria`, `--adr`, `--decision-log`, `--task-id`, `--stage`, `--latest-json`, `--output`, `--why-now`, `--context`, `--decision`, `--consequences`, `--recovery-impact`, `--validation`, `--supersedes`, `--superseded-by`, `--execution-plan`, `--repo-root`, `--latest`, `--kind`, `--record-residual`, `--out-json`, `--out-md`, `--recommendation-only`, `--recommendation-format`, `--serve`, `--port`, `--self-check`
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Engine-side options require a local Godot .NET console binary; without it, Godot/GdUnit/smoke stages will skip or fail depending on the script.
@@ -976,6 +979,18 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet and normal Chapter 6 entrypoint availability.
   - `--godot-bin` is strongly recommended because the lane includes repo-level hard checks and may need engine-side verification.
+
+#### `scripts/python/run_prototype_tdd.py`
+
+- Direct local deps: None.
+- Transitive local deps: None.
+- Subcommands: None.
+- Declared args: `--slug`, `--stage`, `--expect`, `--prototype-dir`, `--record-path`, `--skip-record`, `--owner`, `--related-task-id`, `--hypothesis`, `--scope-in`, `--scope-out`, `--success-criteria`, `--evidence`, `--next-step`, `--create-record-only`, `--dotnet-target`, `--filter`, `--configuration`, `--godot-bin`, `--gdunit-path`, `--timeout-sec`, `--out-dir`
+- Behavior notes: lightweight prototype-lane TDD entry; writes notes under `docs/prototypes/**` and evidence under `logs/ci/**` without publishing formal task recovery pointers.
+- Parameter prerequisites:
+  - Windows PowerShell + `py -3` from repo root.
+  - `--godot-bin` is required when `--gdunit-path` is used.
+  - `--create-record-only` is valid when you only want the prototype note scaffold without executing verification.
 
 #### `scripts/python/new_decision_log.py`
 
@@ -1203,26 +1218,28 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 
 #### `scripts/sc/llm_generate_red_test.py`
 
-- Direct local deps: `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
-- Transitive local deps: `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
+- Direct local deps: `scripts/sc/_llm_backend.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
+- Transitive local deps: `scripts/sc/_llm_backend.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: `--task-id`, `--timeout-sec`, `--verify-red`
+- Declared args: `--task-id`, `--llm-backend`, `--timeout-sec`, `--verify-red`
+- Behavior notes: `--llm-backend codex-cli|openai-api` now routes red-test drafting through the shared backend seam; `--verify-red` remains the deterministic follow-up after file write.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
-  - Model-backed steps require the repo's LLM runtime/CLI; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
+  - Model-backed steps require the repo's LLM runtime/CLI or an API backend; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
 
 #### `scripts/sc/llm_generate_tests_from_acceptance_refs.py`
 
-- Direct local deps: `scripts/sc/_acceptance_testgen_flow.py`, `scripts/sc/_acceptance_testgen_llm.py`, `scripts/sc/_acceptance_testgen_quality.py`, `scripts/sc/_acceptance_testgen_red.py`, `scripts/sc/_acceptance_testgen_refs.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
-- Transitive local deps: `scripts/sc/_acceptance_testgen_flow.py`, `scripts/sc/_acceptance_testgen_llm.py`, `scripts/sc/_acceptance_testgen_quality.py`, `scripts/sc/_acceptance_testgen_red.py`, `scripts/sc/_acceptance_testgen_refs.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
+- Direct local deps: `scripts/sc/_acceptance_testgen_flow.py`, `scripts/sc/_acceptance_testgen_llm.py`, `scripts/sc/_acceptance_testgen_quality.py`, `scripts/sc/_acceptance_testgen_red.py`, `scripts/sc/_acceptance_testgen_refs.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_util.py`
+- Transitive local deps: `scripts/sc/_acceptance_testgen_flow.py`, `scripts/sc/_acceptance_testgen_llm.py`, `scripts/sc/_acceptance_testgen_quality.py`, `scripts/sc/_acceptance_testgen_red.py`, `scripts/sc/_acceptance_testgen_refs.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: `--task-id`, `--timeout-sec`, `--select-timeout-sec`, `--tdd-stage`, `--verify`, `--godot-bin`, `--include-prd-context`, `--prd-context-path`
+- Declared args: `--task-id`, `--llm-backend`, `--timeout-sec`, `--select-timeout-sec`, `--tdd-stage`, `--verify`, `--godot-bin`, `--include-prd-context`, `--prd-context-path`
+- Behavior notes: `--llm-backend codex-cli|openai-api` now routes both primary-ref selection and per-file acceptance-test generation calls through the shared backend seam.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Engine-side options require a local Godot .NET console binary; without it, Godot/GdUnit/smoke stages will skip or fail depending on the script.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
-  - Model-backed steps require the repo's LLM runtime/CLI; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
+  - Model-backed steps require the repo's LLM runtime/CLI or an API backend; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
 
 #### `scripts/python/merge_single_task_light_lane_summaries.py`
 
@@ -1272,6 +1289,9 @@ Prerequisites:
 Notes:
 - shard runs use isolated subdirectories, so overlapping reruns do not mutate another shard's `last_task_id`
 - coordinator `summary.json` tracks shard-level status while `merged/summary.json` tracks task-level merged results
+- coordinator `summary.json` now also emits `preferred_lane`, `recommended_action`, `recommended_command`, `forbidden_commands`, `latest_reason`, and `recommended_action_why`
+- timeout/model/soft-step reruns now recommend batch-aware commands over failed task ids, instead of pointing operators back to the single-task wrapper
+- merge-validation failures and rolling stop-loss cutovers route to `inspect-first` or `split-batch` for safer recovery
 - merged output reuses the transparent source mapping from `merge_single_task_light_lane_summaries.py`
 - top-level and merged summaries surface both `extract_fail_signature_*` and `extract_fail_family_*`; prefer families for grouped extract triage and signatures for exact evidence
 
@@ -1287,24 +1307,25 @@ Notes:
   - Model-backed steps require the repo's LLM runtime/CLI for semantics-related stages.
   - Write/apply flow is controlled by `--no-align-apply`; default behavior includes `align --apply`.
   - Multi-task runs can resolve `--batch-lane auto` to `extract-first` and `--fill-refs-mode auto` to `none`.
+- Summary outputs now also expose `preferred_lane`, `recommended_action`, `recommended_command`, `forbidden_commands`, `latest_reason`, and `recommended_action_why` so recovery tooling can consume one stable route contract.
 
 #### `scripts/sc/llm_review.py`
 
 - Direct local deps: `scripts/sc/_llm_review_engine.py`
-- Transitive local deps: `scripts/sc/_acceptance_artifacts.py`, `scripts/sc/_delivery_profile.py`, `scripts/sc/_deterministic_review.py`, `scripts/sc/_llm_review_acceptance.py`, `scripts/sc/_llm_review_cli.py`, `scripts/sc/_llm_review_engine.py`, `scripts/sc/_llm_review_exec.py`, `scripts/sc/_llm_review_models.py`, `scripts/sc/_llm_review_prompting.py`, `scripts/sc/_security_profile.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
+- Transitive local deps: `scripts/sc/_acceptance_artifacts.py`, `scripts/sc/_delivery_profile.py`, `scripts/sc/_deterministic_review.py`, `scripts/sc/_llm_backend.py`, `scripts/sc/_llm_review_acceptance.py`, `scripts/sc/_llm_review_cli.py`, `scripts/sc/_llm_review_engine.py`, `scripts/sc/_llm_review_exec.py`, `scripts/sc/_llm_review_models.py`, `scripts/sc/_llm_review_prompting.py`, `scripts/sc/_security_profile.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: None.
+- Declared args: see engine-managed CLI in `scripts/sc/_llm_review_cli.py`; key runtime knobs include `--delivery-profile`, `--task-id`, `--agents`, `--diff-mode`, `--timeout-sec`, `--agent-timeout-sec`, `--semantic-gate`, `--prompt-budget-gate`, and `--llm-backend codex-cli|openai-api`.
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
-  - Model-backed steps require the repo's LLM runtime/CLI; deterministic-only or skip modes can reduce that requirement, but do not assume zero-model execution unless the script explicitly supports it.
+  - Model-backed steps require the repo's LLM runtime/CLI or an API backend. `--llm-backend openai-api` now validates package/key readiness during self-check and dry-run, and can execute through the minimal Responses API path when explicitly selected.
 
 #### `scripts/sc/llm_review_needs_fix_fast.py`
 
 - Direct local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_util.py`
 - Transitive local deps: `scripts/sc/_delivery_profile.py`, `scripts/sc/_util.py`
 - Subcommands: None.
-- Declared args: `--task-id`, `--delivery-profile`, `--security-profile`, `--agents`, `--review-template`, `--base`, `--diff-mode`, `--max-rounds`, `--rerun-failing-only`, `--no-rerun-failing-only`, `--time-budget-min`, `--llm-timeout-sec`, `--agent-timeout-sec`, `--step-timeout-sec`, `--min-llm-budget-min`, `--final-pass`, `--skip-sc-test`, `--python`
+- Declared args: `--task-id`, `--delivery-profile`, `--security-profile`, `--agents`, `--review-template`, `--base`, `--diff-mode`, `--llm-backend`, `--max-rounds`, `--rerun-failing-only`, `--no-rerun-failing-only`, `--time-budget-min`, `--llm-timeout-sec`, `--agent-timeout-sec`, `--step-timeout-sec`, `--min-llm-budget-min`, `--final-pass`, `--skip-sc-test`, `--python`
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.
   - Task-scoped parameters require a Taskmaster triplet; template fallback can read `examples/taskmaster/**`, but business repos should use real `.taskmaster/tasks/*.json`.
@@ -1313,6 +1334,7 @@ Notes:
   - Deterministic reuse can scan recent same-task pipeline artifacts across dates; git snapshot or security-profile mismatch still disables reuse.
   - `--final-pass` disables deterministic shortcuts and reviewer auto-shrink, forces a full reviewer set, and is intended for the last closure run before handoff/PR.
 - Behavior notes: round summaries now record `timeout_agents`; when `rc=124` and no child summary was produced, `failure_kind` becomes `timeout-no-summary` so timeout-only rounds are not misread as clean.
+- Behavior notes: `--llm-backend codex-cli|openai-api` now passes through to the nested `run_review_pipeline.py -> llm_review.py` call chain, so transport piloting does not require a custom wrapper.
 - Behavior notes: before paying for deterministic / LLM work, the script now consumes `chapter6-route` when a recoverable prior run already has `agent-review.json`; only `preferred_lane = run-6.8` may continue, while `inspect-first` / `repo-noise-stop` / `fix-deterministic` / `run-6.7` become controlled stop-loss exits and `record-residual` can auto-write follow-up docs.
 
 #### `scripts/sc/run_review_pipeline.py`
@@ -1320,9 +1342,10 @@ Notes:
 - Direct local deps: `scripts/sc/_active_task_sidecar.py`, `scripts/sc/_agent_review_policy.py`, `scripts/sc/_delivery_profile.py`, `scripts/sc/_harness_capabilities.py`, `scripts/sc/_llm_review_tier.py`, `scripts/sc/_marathon_policy.py`, `scripts/sc/_marathon_state.py`, `scripts/sc/_pipeline_approval.py`, `scripts/sc/_pipeline_events.py`, `scripts/sc/_pipeline_helpers.py`, `scripts/sc/_pipeline_plan.py`, `scripts/sc/_pipeline_session.py`, `scripts/sc/_pipeline_support.py`, `scripts/sc/_repair_guidance.py`, `scripts/sc/_summary_schema.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_technical_debt.py`, `scripts/sc/_util.py`, `scripts/sc/agent_to_agent_review.py`
 - Transitive local deps: `scripts/sc/_active_task_sidecar.py`, `scripts/sc/_agent_review_contract.py`, `scripts/sc/_agent_review_policy.py`, `scripts/sc/_approval_contract.py`, `scripts/sc/_artifact_schema.py`, `scripts/sc/_artifact_schema_fallback.py`, `scripts/sc/_delivery_profile.py`, `scripts/sc/_harness_capabilities.py`, `scripts/sc/_llm_review_tier.py`, `scripts/sc/_marathon_policy.py`, `scripts/sc/_marathon_state.py`, `scripts/sc/_pipeline_approval.py`, `scripts/sc/_pipeline_events.py`, `scripts/sc/_pipeline_helpers.py`, `scripts/sc/_pipeline_plan.py`, `scripts/sc/_pipeline_session.py`, `scripts/sc/_pipeline_support.py`, `scripts/sc/_repair_approval.py`, `scripts/sc/_repair_guidance.py`, `scripts/sc/_repair_recommendations.py`, `scripts/sc/_sidecar_schema.py`, `scripts/sc/_summary_schema.py`, `scripts/sc/_summary_schema_fallback.py`, `scripts/sc/_summary_schema_local_hard_checks.py`, `scripts/sc/_taskmaster.py`, `scripts/sc/_taskmaster_paths.py`, `scripts/sc/_technical_debt.py`, `scripts/sc/_util.py`, `scripts/sc/agent_to_agent_review.py`
 - Subcommands: None.
-- Declared args: `--task-id`, `--run-id`, `--fork-from-run-id`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--reselect-profile`, `--skip-test`, `--skip-acceptance`, `--skip-llm-review`, `--skip-agent-review`, `--allow-full-rerun`, `--allow-repeat-deterministic-failures`, `--allow-full-unit-fallback`, `--llm-agents`, `--llm-timeout-sec`, `--llm-agent-timeout-sec`, `--llm-agent-timeouts`, `--llm-semantic-gate`, `--llm-base`, `--llm-diff-mode`, `--llm-no-uncommitted`, `--llm-strict`, `--review-template`, `--resume`, `--abort`, `--fork`, `--max-step-retries`, `--max-wall-time-sec`, `--context-refresh-after-failures`, `--context-refresh-after-resumes`, `--context-refresh-after-diff-lines`, `--context-refresh-after-diff-categories`, `--dry-run`, `--allow-overwrite`, `--force-new-run-id`.
+- Declared args: `--task-id`, `--run-id`, `--fork-from-run-id`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--reselect-profile`, `--skip-test`, `--skip-acceptance`, `--skip-llm-review`, `--skip-agent-review`, `--allow-full-rerun`, `--allow-repeat-deterministic-failures`, `--allow-full-unit-fallback`, `--llm-agents`, `--llm-backend`, `--llm-timeout-sec`, `--llm-agent-timeout-sec`, `--llm-agent-timeouts`, `--llm-semantic-gate`, `--llm-base`, `--llm-diff-mode`, `--llm-no-uncommitted`, `--llm-strict`, `--review-template`, `--resume`, `--abort`, `--fork`, `--max-step-retries`, `--max-wall-time-sec`, `--context-refresh-after-failures`, `--context-refresh-after-resumes`, `--context-refresh-after-diff-lines`, `--context-refresh-after-diff-categories`, `--dry-run`, `--allow-overwrite`, `--force-new-run-id`.
 - Behavior notes: task-scoped previous timeout evidence can inject targeted `--agent-timeouts` for timed-out reviewers only; this is automatic and profile-aware.
 - Behavior notes: `--llm-agent-timeouts` is mainly for orchestration layers such as `llm_review_needs_fix_fast.py`; explicit values override auto-derived reviewer timeout bumps.
+- Behavior notes: `--llm-backend codex-cli|openai-api` now propagates into the internal `llm_review.py` invocation, so backend pilots can stay on the main task-level orchestration path.
 - Behavior notes: fresh non-resume runs inherit the latest same-task `delivery/security profile` lock; switching away from that lock requires explicit `--reselect-profile`.
 - Behavior notes: when deterministic is already green in the same invocation and `sc-llm-review` hits a first long timeout, the pipeline records `diagnostics.llm_retry_stop_loss` and skips a second long wait in that round.
 - Behavior notes: when the same invocation already proves a known `sc-test` unit failure, the pipeline records `diagnostics.sc_test_retry_stop_loss` and stops the same-run retry instead of paying for another identical attempt.

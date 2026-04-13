@@ -136,6 +136,35 @@ Notes:
 - if the repo changed contract or task layout, fix that before trusting the dry run
 - if the repo is still in template mode, keep the dry run as a structure check only
 
+## Step 8.5: Optional OpenAI Backend Bootstrap
+
+Only do this when the business repo deliberately wants to pilot model-backed workflow families away from `codex-cli`:
+
+```powershell
+py -3 -m pip install openai
+$env:OPENAI_API_KEY = "<your-key>"
+py -3 scripts/sc/llm_review.py --self-check --llm-backend openai-api
+py -3 scripts/sc/llm_extract_task_obligations.py --self-check --llm-backend openai-api
+py -3 scripts/sc/llm_align_acceptance_semantics.py --self-check --llm-backend openai-api
+py -3 scripts/sc/llm_fill_acceptance_refs.py --self-check --llm-backend openai-api
+py -3 scripts/sc/llm_check_subtasks_coverage.py --self-check --llm-backend openai-api
+py -3 scripts/sc/llm_semantic_gate_all.py --self-check --llm-backend openai-api
+```
+
+Optional TDD-family spot check after the semantic family is clean:
+
+```powershell
+py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --help
+```
+
+Notes:
+
+- current template behavior still defaults to `codex-cli`
+- `openai-api` is still an explicit opt-in backend rather than the default
+- the safest bootstrap order is: `llm_review` first, semantic family second, test generation last
+- treat `--self-check` as the first stop-loss; do not wire the backend into CI before self-check is clean
+- `llm_generate_tests_from_acceptance_refs.py` has no deterministic self-check mode yet, so use `--help` first and only pilot it after the semantic family is already stable on the chosen backend
+
 ## Step 9: Define First Success Criteria
 
 A copied repo is minimally aligned only when:

@@ -176,6 +176,27 @@ class PipelineApprovalTests(unittest.TestCase):
             self.assertEqual("approval_request_written", first["events"][0]["event"])
             self.assertEqual([], second["events"])
 
+    def test_sync_soft_approval_sidecars_should_not_create_new_request_inside_explicit_fork_run(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            out_dir = Path(td) / "logs" / "ci" / "2026-04-07" / "sc-review-pipeline-task-1-run2"
+            out_dir.mkdir(parents=True, exist_ok=True)
+
+            result = pipeline_approval.sync_soft_approval_sidecars(
+                out_dir=out_dir,
+                task_id="1",
+                run_id="run2",
+                summary={"status": "running", "steps": []},
+                repair_guide={"recommendations": []},
+                marathon_state={},
+                explicit_fork=True,
+            )
+
+            self.assertEqual("", result["required_action"])
+            self.assertEqual("not-needed", result["status"])
+            self.assertFalse((out_dir / "approval-request.json").exists())
+            self.assertFalse((out_dir / "approval-response.json").exists())
+            self.assertEqual([], result["events"])
+
     def test_resolve_approval_state_should_mark_mismatched_when_response_request_id_differs(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             out_dir = Path(td) / "logs" / "ci" / "2026-04-10" / "sc-review-pipeline-task-15-run1"

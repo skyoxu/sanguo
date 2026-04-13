@@ -84,6 +84,19 @@
         "mixed-reuse"
       ]
     },
+    "failure_kind": {
+      "type": "string",
+      "enum": [
+        "schema-invalid",
+        "stale-latest",
+        "artifact-missing",
+        "artifact-incomplete",
+        "aborted",
+        "step-failed",
+        "review-needs-fix",
+        "ok"
+      ]
+    },
     "diagnostics": {
       "type": "object"
     },

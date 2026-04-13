@@ -78,6 +78,7 @@ def build_pipeline_steps(
     llm_semantic_gate: str,
     llm_strict: bool,
     llm_diff_mode: str,
+    llm_backend: str | None = None,
 ) -> list[tuple[str, list[str], int, bool]]:
     steps: list[tuple[str, list[str], int, bool]] = []
 
@@ -128,6 +129,8 @@ def build_pipeline_steps(
     ]
     if str(llm_agent_timeouts).strip():
         llm_cmd += ["--agent-timeouts", str(llm_agent_timeouts).strip()]
+    if str(llm_backend or "").strip():
+        llm_cmd += ["--llm-backend", str(llm_backend).strip()]
     if not args.llm_no_uncommitted:
         llm_cmd.append("--uncommitted")
     if llm_strict:

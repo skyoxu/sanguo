@@ -88,6 +88,7 @@ def run_consensus_rounds(
     out_dir: Path,
     timeout_sec: int,
     repo_root_path: Path,
+    llm_backend: str,
     configured_runs: int,
     max_runs: int,
     auto_escalate_enabled: bool,
@@ -107,6 +108,7 @@ def run_consensus_rounds(
         run_last = out_dir / f"output-last-message-run-{run:02d}.txt"
         run_trace = out_dir / f"trace-run-{run:02d}.log"
         rc, trace, cmd = run_codex_exec(
+            backend=str(llm_backend or "codex-cli"),
             prompt=prompt,
             out_last_message=run_last,
             timeout_sec=int(timeout_sec),

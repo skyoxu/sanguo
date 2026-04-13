@@ -533,6 +533,9 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
                 mock.patch.object(run_review_pipeline_module, "_load_latest_task_execution_context", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_find_recent_deterministic_green_llm_not_clean_run", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_find_repeated_deterministic_failure_guard", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_derive_chapter6_route_guard", return_value=None), \
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step), \
                 mock.patch.object(run_review_pipeline_module, "write_agent_review", return_value=(payload, [], [])):
                 rc = run_review_pipeline_module.main()
@@ -1292,6 +1295,9 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 mock.patch.object(sys, "argv", argv), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "_find_recent_deterministic_green_llm_not_clean_run", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_find_repeated_deterministic_failure_guard", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_derive_chapter6_route_guard", return_value=None), \
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step):
                 rc = run_review_pipeline_module.main()
 
@@ -1375,6 +1381,9 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 mock.patch.object(sys, "argv", argv), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "_find_recent_deterministic_green_llm_not_clean_run", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_find_repeated_deterministic_failure_guard", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_derive_chapter6_route_guard", return_value=None), \
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=fake_run_step):
                 rc = run_review_pipeline_module.main()
 
@@ -1433,6 +1442,9 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
                 mock.patch.object(sys, "argv", argv1), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_run_dir", return_value=out_dir), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "_find_recent_deterministic_green_llm_not_clean_run", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_find_repeated_deterministic_failure_guard", return_value=None), \
+                mock.patch.object(run_review_pipeline_module, "_derive_chapter6_route_guard", return_value=None), \
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=first_run):
                 first_rc = run_review_pipeline_module.main()
 
@@ -1466,6 +1478,7 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
             with mock.patch.dict(os.environ, _stable_env(), clear=False), \
                 mock.patch.object(sys, "argv", argv2), \
                 mock.patch.object(run_review_pipeline_module, "_pipeline_latest_index_path", return_value=latest_path), \
+                mock.patch.object(run_review_pipeline_module, "resolve_approval_state", return_value={"required_action": "", "status": "not-needed"}), \
                 mock.patch.object(run_review_pipeline_module, "_run_step", side_effect=resumed_run):
                 second_rc = run_review_pipeline_module.main()
 
@@ -1692,6 +1705,11 @@ class RunReviewPipelineMarathonTests(unittest.TestCase):
             self.assertEqual(source_run_id, fork_state["forked_from_run_id"])
             self.assertEqual(str(source_out_dir), fork_state["forked_from_out_dir"])
             self.assertEqual(str(fork_out_dir / "marathon-state.json"), latest["marathon_state_path"])
+            self.assertFalse((fork_out_dir / "approval-request.json").exists())
+
+            fork_execution_context = json.loads((fork_out_dir / "execution-context.json").read_text(encoding="utf-8"))
+            self.assertEqual("", fork_execution_context["approval"]["required_action"])
+            self.assertEqual("not-needed", fork_execution_context["approval"]["status"])
 
 
 if __name__ == "__main__":

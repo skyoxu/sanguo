@@ -79,6 +79,7 @@ def validate_pipeline_execution_context_without_jsonschema(payload: dict[str, An
         "requested_run_id",
         "run_type",
         "reason",
+        "failure_kind",
         "reuse_mode",
         "started_at_utc",
         "finished_at_utc",
@@ -124,6 +125,17 @@ def validate_pipeline_execution_context_without_jsonschema(payload: dict[str, An
         errors.append("$.run_type: must be a known pipeline run type when present")
     if "reason" in payload and not _is_non_empty_string(payload.get("reason")):
         errors.append("$.reason: must be non-empty string when present")
+    if "failure_kind" in payload and str(payload.get("failure_kind") or "") not in {
+        "schema-invalid",
+        "stale-latest",
+        "artifact-missing",
+        "artifact-incomplete",
+        "aborted",
+        "step-failed",
+        "review-needs-fix",
+        "ok",
+    }:
+        errors.append("$.failure_kind: must be a known failure taxonomy code when present")
     if "reuse_mode" in payload and str(payload.get("reuse_mode") or "") not in {"none", "full-clean-reuse", "deterministic-only-reuse", "sc-test-reuse", "mixed-reuse"}:
         errors.append("$.reuse_mode: must be a known reuse mode when present")
     if "started_at_utc" in payload and not _is_non_empty_string(payload.get("started_at_utc")):
@@ -238,6 +250,7 @@ def validate_pipeline_latest_index_without_jsonschema(payload: dict[str, Any]) -
         "finished_at_utc",
         "run_type",
         "reason",
+        "failure_kind",
         "reuse_mode",
         "deterministic_bundle",
         "diagnostics",
@@ -264,6 +277,17 @@ def validate_pipeline_latest_index_without_jsonschema(payload: dict[str, Any]) -
         errors.append("$.run_type: must be a known pipeline run type when present")
     if "reason" in payload and not _is_non_empty_string(payload.get("reason")):
         errors.append("$.reason: must be non-empty string when present")
+    if "failure_kind" in payload and str(payload.get("failure_kind") or "") not in {
+        "schema-invalid",
+        "stale-latest",
+        "artifact-missing",
+        "artifact-incomplete",
+        "aborted",
+        "step-failed",
+        "review-needs-fix",
+        "ok",
+    }:
+        errors.append("$.failure_kind: must be a known failure taxonomy code when present")
     if "reuse_mode" in payload and str(payload.get("reuse_mode") or "") not in {"none", "full-clean-reuse", "deterministic-only-reuse", "sc-test-reuse", "mixed-reuse"}:
         errors.append("$.reuse_mode: must be a known reuse mode when present")
     if "deterministic_bundle" in payload:
@@ -289,7 +313,7 @@ def validate_pipeline_latest_index_without_jsonschema(payload: dict[str, Any]) -
                 errors.append("$.deterministic_bundle.reported_out_dirs: must be array of strings")
     if "diagnostics" in payload and not isinstance(payload.get("diagnostics"), dict):
         errors.append("$.diagnostics: must be object when present")
-    for key in allowed - {"task_id", "run_id", "status", "date", "reason", "reuse_mode", "deterministic_bundle", "diagnostics"}:
+    for key in allowed - {"task_id", "run_id", "status", "date", "reason", "failure_kind", "reuse_mode", "deterministic_bundle", "diagnostics"}:
         if key in payload and not isinstance(payload.get(key), str):
             errors.append(f"$.{key}: must be string when present")
     return errors

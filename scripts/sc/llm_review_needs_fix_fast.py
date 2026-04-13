@@ -958,6 +958,7 @@ def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namesp
     delivery_profile = resolve_delivery_profile(getattr(args, "delivery_profile", None))
     defaults = profile_needs_fix_fast_defaults(delivery_profile)
     args.delivery_profile = delivery_profile
+    args.llm_backend = resolve_llm_backend(getattr(args, "llm_backend", None))
     if not str(getattr(args, "security_profile", "") or "").strip():
         args.security_profile = default_security_profile_for_delivery(delivery_profile)
     if not str(getattr(args, "agents", "") or "").strip():
@@ -1065,6 +1066,12 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--review-template", default="scripts/sc/templates/llm_review/bmad-godot-review-template.txt")
     ap.add_argument("--base", default="origin/main", help="Git base for diff-mode full.")
     ap.add_argument("--diff-mode", default=None, help="llm_review diff mode (full/summary/none). Default follows delivery profile.")
+    ap.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="llm_review backend transport. Default: env SC_LLM_BACKEND or codex-cli.",
+    )
     ap.add_argument("--max-rounds", type=int, default=None, help="Maximum llm_review rounds (>=1). Default follows delivery profile.")
     rerun_group = ap.add_mutually_exclusive_group()
     rerun_group.add_argument(
@@ -1716,6 +1723,8 @@ def main() -> int:
             "--skip-acceptance",
             "--review-template",
             str(args.review_template),
+            "--llm-backend",
+            str(args.llm_backend),
             "--llm-agents",
             ",".join(run_agents),
             "--llm-diff-mode",

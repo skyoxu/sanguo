@@ -173,7 +173,18 @@
 
 - `code-reviewer`
 - `security-auditor`
-- `semantic-equivalence-auditor`
+
+但这里要分两层理解：
+
+- `run_review_pipeline.py` 在低风险 `minimal / targeted` tier 下，默认先收窄到 `code-reviewer + security-auditor`
+- `semantic-equivalence-auditor` 会在高风险任务、`contractRefs` 命中、P0/P1 升级、或 tier 升到 `full` 时自动补回
+- `llm_review_needs_fix_fast.py` remains the targeted 6.8 closure entrypoint; it can still rerun `semantic-equivalence-auditor` by issue family or by profile defaults.
+- Even when semantic reviewer is added back, `sc-llm-review` now runs primary reviewers first; semantic enters a second stage only after they are clean. This avoids paying the largest semantic prompt cost when code/security is already red.
+- If semantic is defer-skipped because an earlier reviewer is not clean yet, that row is ignored by the 6.7 reviewer auto-shrink logic instead of being treated as a fresh semantic failure signal.
+- If the latest deterministic pass is already green and this round only changes reviewer/semantic-side files, `run_review_pipeline.py` can still auto-narrow 6.7 to the reviewers that were truly non-OK last time; passing explicit `--llm-agents` disables that auto-shrink.
+è¥ semantic reviewer å åç½® reviewer æª clean èè¢« defer-skipï¼è¿æ¡è®°å½ä¸ä¼åè¢« 6.7 ç reviewer auto-shrink è¯¯å½ææ°ç semantic å¤±è´¥ä¿¡å·ã
+- `llm_review_needs_fix_fast.py` 作为第 6.8 定向收口脚本，仍可按问题类别或 profile 默认值补跑 `semantic-equivalence-auditor`
+- 如果最近一轮已经证明 deterministic 绿，只剩 reviewer 问题，且你这轮只改 reviewer/语义侧文件，`run_review_pipeline.py` 还会进一步把 6.7 自动收窄到“上一轮真正非 OK 的 reviewers”；只有显式传 `--llm-agents` 时才关闭这条自动缩窄
 
 默认 `diff_mode`：
 

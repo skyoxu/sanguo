@@ -96,6 +96,7 @@ _FULL_RISK_KEYWORD_ALIASES = {
     ),
 }
 _ALLOWED_WRITEBACK_MODES = {"conservative", "materialize"}
+_FAST_SHIP_NARROW_AGENTS = ("code-reviewer", "security-auditor")
 
 
 def _normalize_tier(value: Any) -> str | None:
@@ -231,16 +232,19 @@ def _config_for_tier(*, tier: str, profile_defaults: dict[str, Any]) -> dict[str
             "agent_timeout_sec": base_agent_timeout,
             "strict": base_strict,
         }
+    narrowed_agents = base_agents
+    if "semantic-equivalence-auditor" in {item.strip() for item in base_agents.split(",") if item.strip()}:
+        narrowed_agents = ",".join(_FAST_SHIP_NARROW_AGENTS)
     if tier == "targeted":
         return {
-            "agents": base_agents,
+            "agents": narrowed_agents,
             "semantic_gate": "warn",
             "timeout_sec": min(base_timeout, 420),
             "agent_timeout_sec": min(base_agent_timeout, 150),
             "strict": False,
         }
     return {
-        "agents": base_agents,
+        "agents": narrowed_agents,
         "semantic_gate": "skip",
         "timeout_sec": min(base_timeout, 300),
         "agent_timeout_sec": min(base_agent_timeout, 120),

@@ -164,6 +164,23 @@ REUSE_MODES = {
     "sc-test-reuse",
     "mixed-reuse",
 }
+_LLM_REVIEWER_NARROW_ALLOWED_PREFIXES = (
+    ".taskmaster/",
+    "examples/taskmaster/",
+    "docs/architecture/",
+    "docs/adr/",
+    "docs/prd/",
+    "execution-plans/",
+    "decision-logs/",
+    "scripts/sc/templates/llm_review/",
+)
+_LLM_REVIEWER_NARROW_ALLOWED_EXACT = {
+    "workflow.md",
+    "workflow.example.md",
+    "scripts/sc/run_review_pipeline.py",
+    "scripts/sc/llm_review_needs_fix_fast.py",
+    "scripts/sc/README.md",
+}
 
 
 def _utc_now_iso() -> str:
@@ -445,6 +462,129 @@ def _llm_step_is_clean(step: dict[str, Any]) -> bool:
         if rc != 0 or status != "ok" or verdict != "OK":
             return False
     return True
+
+
+def _change_scope_allows_llm_reviewer_narrowing(change_scope: dict[str, Any] | None) -> bool:
+    scope = change_scope if isinstance(change_scope, dict) else {}
+    changed_paths = [
+        str(item or "").strip().replace("\\", "/").lower()
+        for item in list(scope.get("changed_paths") or [])
+        if str(item or "").strip()
+    ]
+    unsafe_paths = [
+        str(item or "").strip().replace("\\", "/").lower()
+        for item in list(scope.get("unsafe_paths") or [])
+        if str(item or "").strip()
+    ]
+    if not changed_paths or unsafe_paths:
+        return False
+    return all(
+        path in _LLM_REVIEWER_NARROW_ALLOWED_EXACT
+        or any(path.startswith(prefix) for prefix in _LLM_REVIEWER_NARROW_ALLOWED_PREFIXES)
+        for path in changed_paths
+    )
+
+
+def _extract_non_ok_llm_agents_from_summary(summary_path: Path | None, planned_agents: list[str]) -> list[str]:
+    if summary_path is None or not summary_path.exists():
+        return []
+    payload = _read_json(summary_path)
+    results = payload.get("results") if isinstance(payload.get("results"), list) else []
+    if not results:
+        return []
+    planned_set = set(planned_agents)
+    hit_agents: list[str] = []
+    for row in results:
+        if not isinstance(row, dict):
+            continue
+        agent = str(row.get("agent") or "").strip()
+        if not agent or agent not in planned_set:
+            continue
+        status = str(row.get("status") or "").strip().lower()
+        rc = int(row.get("rc") or 0)
+        details = row.get("details") if isinstance(row.get("details"), dict) else {}
+        if status == "skipped" and str(details.get("reason_code") or "").strip() == "deferred_until_prior_reviewers_clean":
+            continue
+        verdict = _normalize_llm_verdict(str(details.get("verdict") or ""))
+        if rc != 0 or status != "ok" or verdict != "OK":
+            hit_agents.append(agent)
+    return [agent for agent in planned_agents if agent in set(hit_agents)]
+
+
+def _derive_llm_reviewer_subset_from_recent_signals(
+    *,
+    current_out_dir: Path,
+    task_id: str,
+    delivery_profile: str,
+    security_profile: str,
+    llm_agents: str,
+    llm_semantic_gate: str,
+    change_scope: dict[str, Any] | None,
+    explicit_llm_agents: bool,
+) -> dict[str, Any]:
+    if explicit_llm_agents:
+        return {"applied": False, "reason": "explicit_llm_agents"}
+    if str(delivery_profile or "").strip().lower() not in {"playable-ea", "fast-ship"}:
+        return {"applied": False, "reason": "profile_not_eligible"}
+    if str(llm_semantic_gate or "").strip().lower() == "require":
+        return {"applied": False, "reason": "semantic_gate_require"}
+    if not _change_scope_allows_llm_reviewer_narrowing(change_scope):
+        return {"applied": False, "reason": "change_scope_not_eligible"}
+
+    logs_root = repo_root() / "logs" / "ci"
+    if not logs_root.exists():
+        return {"applied": False, "reason": "logs_missing"}
+
+    planned_agents = resolve_agents(llm_agents, llm_semantic_gate)
+    if len(planned_agents) < 2:
+        return {"applied": False, "reason": "planned_agents_not_wide"}
+
+    current_out_dir_resolved = current_out_dir.resolve()
+    candidates = sorted(
+        [item for item in logs_root.rglob(f"sc-review-pipeline-task-{task_id}-*") if item.is_dir()],
+        key=lambda item: item.stat().st_mtime,
+        reverse=True,
+    )
+    for candidate in candidates:
+        if candidate.resolve() == current_out_dir_resolved:
+            continue
+        summary_path = candidate / "summary.json"
+        execution_context_path = candidate / "execution-context.json"
+        if not summary_path.exists() or not execution_context_path.exists():
+            continue
+        summary = _read_json(summary_path)
+        execution_context = _read_json(execution_context_path)
+        if not summary or not execution_context:
+            continue
+        if _normalize_profile_value(execution_context.get("delivery_profile")) != delivery_profile:
+            continue
+        if _normalize_profile_value(execution_context.get("security_profile")) != security_profile:
+            continue
+        step_map = _build_step_map(summary)
+        if str((step_map.get("sc-test") or {}).get("status") or "").strip().lower() != "ok":
+            continue
+        if str((step_map.get("sc-acceptance-check") or {}).get("status") or "").strip().lower() != "ok":
+            continue
+        llm_step = step_map.get("sc-llm-review")
+        if not isinstance(llm_step, dict):
+            continue
+        if _llm_step_is_clean(llm_step):
+            continue
+        llm_summary_path = _resolve_summary_path(str(llm_step.get("summary_file") or "").strip())
+        narrowed_agents = _extract_non_ok_llm_agents_from_summary(llm_summary_path, planned_agents)
+        if not narrowed_agents or len(narrowed_agents) >= len(planned_agents):
+            continue
+        return {
+            "applied": True,
+            "reason": "recent_llm_signals",
+            "agents": narrowed_agents,
+            "source_run_id": str(execution_context.get("run_id") or "").strip(),
+            "source_summary_file": str(summary_path),
+            "source_llm_summary_file": str(llm_summary_path) if llm_summary_path is not None else "",
+            "planned_agents": planned_agents,
+            "change_scope": dict(change_scope or {}),
+        }
+    return {"applied": False, "reason": "no_recent_subset_candidate"}
 
 
 def _build_step_map(summary: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -1848,6 +1988,19 @@ def main() -> int:
     llm_semantic_gate = str(args.llm_semantic_gate or llm_review_plan.get("semantic_gate") or llm_defaults.get("semantic_gate") or "require")
     llm_strict = bool(args.llm_strict) or bool(llm_review_plan.get("strict", False))
     llm_diff_mode = str(args.llm_diff_mode or llm_review_plan.get("diff_mode") or llm_defaults.get("diff_mode") or "full")
+    explicit_llm_agents = bool(str(args.llm_agents or "").strip())
+    llm_reviewer_subset = _derive_llm_reviewer_subset_from_recent_signals(
+        current_out_dir=out_dir,
+        task_id=task_id,
+        delivery_profile=delivery_profile,
+        security_profile=security_profile,
+        llm_agents=llm_agents,
+        llm_semantic_gate=llm_semantic_gate,
+        change_scope=change_scope_for_floor,
+        explicit_llm_agents=explicit_llm_agents,
+    )
+    if bool(llm_reviewer_subset.get("applied")):
+        llm_agents = ",".join([str(item).strip() for item in list(llm_reviewer_subset.get("agents") or []) if str(item).strip()])
     llm_execution_context = {
         **llm_review_plan,
         "agents": llm_agents,
@@ -1858,6 +2011,8 @@ def main() -> int:
         "diff_mode": llm_diff_mode,
         "task_id": task_id,
     }
+    if bool(llm_reviewer_subset.get("applied")):
+        llm_execution_context["derived_reviewer_subset"] = dict(llm_reviewer_subset)
 
     _prepare_env(run_id, delivery_profile, security_profile)
     write_text(out_dir / "run_id.txt", run_id + "\n")
@@ -2037,6 +2192,7 @@ def main() -> int:
         llm_semantic_gate=llm_semantic_gate,
         llm_strict=llm_strict,
         llm_diff_mode=llm_diff_mode,
+        llm_backend=getattr(args, "llm_backend", None),
     )
     force_full_rerun = False
     skip_deterministic = bool(args.skip_test and args.skip_acceptance and not args.skip_llm_review)

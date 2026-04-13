@@ -166,6 +166,7 @@ Why this is stable:
 - it now carries rerun stop-loss signals so repeated full reruns are blocked when deterministic is already green or when recent `sc-test` failures share the same fingerprint
 - it now consumes the same `chapter6-route` signal before a fresh full rerun, so `inspect-first`, `repo-noise-stop`, `fix-deterministic`, and `run-6.8` recommendations are enforced before refactor preflight and downstream cost
 - `--resume` and `--fork` also enforce the approval sidecar contract before step execution: pending approval pauses recovery, approved approval redirects to `--fork`, denied approval redirects to `--resume`, and invalid or mismatched approval evidence forces inspection first
+- when the review transport must be piloted explicitly, pass `--llm-backend codex-cli|openai-api`; the flag now propagates through the internal `sc-llm-review` stage instead of forcing operators to bypass `run_review_pipeline.py`
 - when the same invocation already proved a known `sc-test` unit root cause, it records `diagnostics.sc_test_retry_stop_loss` and stops the same-run retry instead of paying that cost again
 - exceptional overrides stay explicit: `--allow-full-rerun` and `--allow-repeat-deterministic-failures`
 - a fresh run now inherits the latest task-scoped profile lock unless you explicitly pass `--reselect-profile`
@@ -189,6 +190,9 @@ Why this is stable:
 - it is the top-level batch coordinator for workflow 5.1
 - it wraps the existing light-lane runner instead of duplicating lower-level semantics logic
 - merged/top-level summaries surface extract-failure signatures and failure families for faster batch triage
+- top-level `summary.json` now also emits `preferred_lane`, `recommended_action`, `recommended_command`, `forbidden_commands`, `latest_reason`, and `recommended_action_why`
+- batch recommendations are batch-aware: timeout/model/soft-step reruns point to failed task ids instead of suggesting a single-task command
+- merge-validation failures and rolling stop-loss cutovers route to `inspect-first` or `split-batch` instead of implying a blind full rerun
 - it supports rolling `warn|degrade|stop` behavior when cumulative extract failure rate becomes untrustworthy
 - it can also back off automatically after one shard times out heavily by increasing next-shard LLM timeout and reducing next-shard size
 - it can warn or stop on repeated extract failure families and emits `family_hotspots` / `quarantine_ranges` for later targeted reruns
@@ -206,6 +210,7 @@ Prerequisites:
 
 Why this is stable:
 - it is the direct wrapper for workflow 5.1 single-task / small-batch runs
+- its `summary.json` now emits `preferred_lane`, `recommended_action`, `recommended_command`, `forbidden_commands`, `latest_reason`, and `recommended_action_why` for recovery-aware reruns
 - it supports read-only lane mode (`--no-align-apply`), `extract-first` batch mode, and resume from `summary.json`
 
 ### `py -3 scripts/python/merge_single_task_light_lane_summaries.py --date <YYYY-MM-DD>`
@@ -237,6 +242,7 @@ Prerequisites:
 Why this is stable:
 - it is the recommended acceptance-to-test scaffold entrypoint
 - it already includes deterministic naming and strict-red guards
+- when test-generation transport must be piloted explicitly, pass `--llm-backend codex-cli|openai-api`; the flag now covers both primary-ref selection and per-file generation without bypassing this entrypoint
 
 ### `py -3 scripts/sc/check_tdd_execution_plan.py --task-id <id> --tdd-stage red-first --verify auto --execution-plan-policy <mode>`
 
@@ -250,6 +256,22 @@ Prerequisites:
 
 Why this is stable:
 - it is the preflight decision gate for long or mixed-surface TDD work
+
+### `py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage <red|green|refactor> ...`
+
+Use when:
+- the work is still in prototype lane but you want a disciplined red/green/refactor loop
+- you want prototype evidence without entering the formal Taskmaster pipeline
+- you need a lightweight note under `docs/prototypes/` plus local logs under `logs/ci/**`
+
+Prerequisites:
+- at least one verification target such as `--dotnet-target` or `--gdunit-path`, unless you intentionally use `--create-record-only`
+- `--godot-bin` when prototype verification includes Godot-side checks
+
+Why this is stable:
+- it is the recommended prototype-lane TDD entrypoint
+- it keeps prototype evidence separate from Chapter 6 producer artifacts
+- it pairs with `docs/workflows/prototype-lane-playbook.md` and `docs/workflows/prototype-tdd.md`
 
 ### `py -3 scripts/sc/build.py tdd --stage <red|green|refactor>`
 
@@ -333,7 +355,22 @@ These remain public and workflow-facing, but they are usually invoked through hi
 
 - `scripts/sc/acceptance_check.py`
 - `scripts/sc/llm_review.py`
+  - supports backend selection via `--llm-backend codex-cli|openai-api`; keep `codex-cli` as the default until the API path is explicitly piloted
 - `scripts/sc/test.py`
+- `scripts/sc/llm_extract_task_obligations.py`
+  - supports backend selection via `--llm-backend codex-cli|openai-api`; use it only when piloting semantic extract transport directly instead of through a higher-level wrapper
+- `scripts/sc/llm_align_acceptance_semantics.py`
+  - supports backend selection via `--llm-backend codex-cli|openai-api`; keep `codex-cli` as the default unless the repo is intentionally validating the API path
+- `scripts/sc/llm_fill_acceptance_refs.py`
+  - supports backend selection via `--llm-backend codex-cli|openai-api`; `--self-check` remains deterministic and is the first stop-loss before a real write run
+- `scripts/sc/llm_check_subtasks_coverage.py`
+  - supports backend selection via `--llm-backend codex-cli|openai-api`; this is useful when semantic preflight transport is being piloted in isolation
+- `scripts/sc/llm_semantic_gate_all.py`
+  - supports backend selection via `--llm-backend codex-cli|openai-api` while preserving `--model-reasoning-effort`
+- `scripts/sc/llm_generate_tests_from_acceptance_refs.py`
+  - supports backend selection via `--llm-backend codex-cli|openai-api`; both primary-ref selection and per-file generation follow the same backend
+- `scripts/sc/llm_generate_red_test.py`
+  - supports backend selection via `--llm-backend codex-cli|openai-api`; use it when you want the narrower red-test drafting helper without opening the broader acceptance-test generation flow
 - `scripts/python/run_gate_bundle.py`
 - `scripts/python/run_dotnet.py`
 - `scripts/python/run_gdunit.py`

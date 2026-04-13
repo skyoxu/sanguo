@@ -5,13 +5,12 @@ from __future__ import annotations
 import argparse
 import os
 import re
-import shutil
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
 from _delivery_profile import build_delivery_profile_context, profile_llm_semantic_gate_all_defaults, resolve_delivery_profile
 from _garbled_gate import parse_task_ids_csv, render_top_hits, scan_task_text_integrity
+from _llm_backend import KNOWN_LLM_BACKENDS, resolve_llm_backend, run_llm_exec
 from _semantic_gate_all_contract import (
     evaluate_semantic_gate_exit,
     run_semantic_gate_all_self_check,
@@ -32,6 +31,7 @@ def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namesp
     delivery_profile = resolve_delivery_profile(getattr(args, "delivery_profile", None))
     defaults = profile_llm_semantic_gate_all_defaults(delivery_profile)
     args.delivery_profile = delivery_profile
+    args.llm_backend = resolve_llm_backend(getattr(args, "llm_backend", None))
     if args.timeout_sec is None:
         args.timeout_sec = int(defaults.get("timeout_sec", 900) or 900)
     if args.consensus_runs is None:
@@ -49,40 +49,22 @@ def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namesp
     return args
 
 
-def _run_codex_exec(*, prompt: str, out_path: Path, timeout_sec: int, model_reasoning_effort: str) -> tuple[int, str]:
-    exe = shutil.which("codex")
-    if not exe:
-        return 127, "codex executable not found in PATH\n"
-    cmd = [
-        exe,
-        "exec",
-        "-c",
-        f'model_reasoning_effort="{model_reasoning_effort}"',
-        "-s",
-        "read-only",
-        "-C",
-        str(repo_root()),
-        "--output-last-message",
-        str(out_path),
-        "-",
-    ]
-    try:
-        proc = subprocess.run(
-            cmd,
-            input=prompt,
-            text=True,
-            encoding="utf-8",
-            errors="ignore",
-            cwd=str(repo_root()),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout_sec,
-        )
-    except subprocess.TimeoutExpired:
-        return 124, "codex exec timeout\n"
-    except Exception as exc:  # noqa: BLE001
-        return 1, f"codex exec failed: {exc}\n"
-    return proc.returncode or 0, proc.stdout or ""
+def _run_codex_exec(
+    *,
+    backend: str,
+    prompt: str,
+    out_path: Path,
+    timeout_sec: int,
+    model_reasoning_effort: str,
+) -> tuple[int, str, list[str]]:
+    return run_llm_exec(
+        backend=backend,
+        root=repo_root(),
+        prompt=prompt,
+        output_last_message=out_path,
+        timeout_sec=timeout_sec,
+        codex_configs=[f'model_reasoning_effort="{model_reasoning_effort}"'],
+    )
 
 
 def _parse_tsv_output(text: str) -> list[SemanticFinding]:
@@ -129,6 +111,12 @@ def main() -> int:
         default=None,
         choices=["playable-ea", "fast-ship", "standard"],
         help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).",
+    )
+    ap.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="LLM transport backend. Default: env SC_LLM_BACKEND or codex-cli.",
     )
     ap.add_argument("--task-ids", default="", help="Optional CSV ids, e.g. 1,14,22")
     ap.add_argument("--batch-size", type=int, default=8, help="Task ids per LLM call")
@@ -214,7 +202,8 @@ def main() -> int:
             suffix = f"-run-{run_idx:02d}" if runs > 1 else ""
             out_path = out_dir / f"batch-{idx:02d}{suffix}.tsv"
             trace_path = out_dir / f"batch-{idx:02d}{suffix}.trace.log"
-            rc, trace = _run_codex_exec(
+            rc, trace, cmd = _run_codex_exec(
+                backend=str(args.llm_backend),
                 prompt=prompt,
                 out_path=out_path,
                 timeout_sec=int(args.timeout_sec),
@@ -228,7 +217,7 @@ def main() -> int:
                 if tid not in run_map:
                     run_map[tid] = SemanticFinding(task_id=tid, verdict="Unknown", reason="no parseable verdict")
             per_run.append(run_map)
-            per_run_meta.append({"run": run_idx, "rc": rc, "parsed_lines": len(parsed)})
+            per_run_meta.append({"run": run_idx, "rc": rc, "parsed_lines": len(parsed), "cmd": cmd})
 
         for tid in batch:
             ok_votes = sum(1 for r in per_run if r[tid].verdict == "OK")
@@ -283,6 +272,7 @@ def main() -> int:
             "consensus_runs": int(consensus_runs),
             "timeout_sec": int(args.timeout_sec),
             "model_reasoning_effort": str(args.model_reasoning_effort),
+            "llm_backend": str(args.llm_backend),
             "max_acceptance_items": int(args.max_acceptance_items),
             "max_prompt_chars": int(max_prompt_chars),
             "garbled_gate": str(args.garbled_gate),

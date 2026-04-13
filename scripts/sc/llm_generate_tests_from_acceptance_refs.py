@@ -6,8 +6,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,6 +20,7 @@ import _acceptance_testgen_llm as _llm_helpers  # noqa: E402
 import _acceptance_testgen_quality as _quality_helpers  # noqa: E402
 import _acceptance_testgen_red as _red_helpers  # noqa: E402
 import _acceptance_testgen_refs as _refs_helpers  # noqa: E402
+from _llm_backend import KNOWN_LLM_BACKENDS, resolve_llm_backend, run_llm_exec  # noqa: E402
 from _taskmaster import resolve_triplet  # noqa: E402
 from _util import ci_dir, repo_root, run_cmd, write_json, write_text  # noqa: E402
 @dataclass(frozen=True)
@@ -47,38 +46,14 @@ def _extract_acceptance_refs_with_anchors(*, acceptance, task_id: str):
     return _refs_helpers.extract_acceptance_refs_with_anchors(acceptance=acceptance, task_id=task_id)
 
 
-def _run_codex_exec(*, prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str, list[str]]:
-    exe = shutil.which("codex")
-    if not exe:
-        return 127, "codex executable not found in PATH\n", ["codex"]
-    cmd = [
-        exe,
-        "exec",
-        "-s",
-        "read-only",
-        "-C",
-        str(repo_root()),
-        "--output-last-message",
-        str(out_last_message),
-        "-",
-    ]
-    try:
-        proc = subprocess.run(
-            cmd,
-            input=prompt,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=str(repo_root()),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout_sec,
-        )
-    except subprocess.TimeoutExpired:
-        return 124, "codex exec timeout\n", cmd
-    except Exception as exc:
-        return 1, f"codex exec failed to start: {exc}\n", cmd
-    return proc.returncode or 0, proc.stdout or "", cmd
+def _run_codex_exec(*, backend: str = "codex-cli", prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str, list[str]]:
+    return run_llm_exec(
+        backend=backend,
+        root=repo_root(),
+        prompt=prompt,
+        output_last_message=out_last_message,
+        timeout_sec=timeout_sec,
+    )
 
 
 def _extract_json_object(text: str):
@@ -153,7 +128,7 @@ def _select_primary_ref_prompt(*, task_id: str, title: str, candidates, context_
     )
 
 
-def _select_primary_ref_with_llm(*, task_id: str, title: str, by_ref, context_excerpt: str, timeout_sec: int, out_dir: Path):
+def _select_primary_ref_with_llm(*, task_id: str, title: str, by_ref, context_excerpt: str, timeout_sec: int, out_dir: Path, llm_backend: str = "codex-cli"):
     return _llm_helpers.select_primary_ref_with_llm(
         task_id=task_id,
         title=title,
@@ -163,7 +138,7 @@ def _select_primary_ref_with_llm(*, task_id: str, title: str, by_ref, context_ex
         out_dir=out_dir,
         is_allowed_test_path_fn=_is_allowed_test_path,
         build_prompt_fn=_select_primary_ref_prompt,
-        run_codex_exec_fn=_run_codex_exec,
+        run_codex_exec_fn=lambda **kwargs: _run_codex_exec(backend=str(llm_backend or "codex-cli"), **kwargs),
         read_text_fn=_read_text,
         write_text_fn=write_text,
     )
@@ -186,6 +161,7 @@ def _generate_missing_files(*, refs: list[str], by_ref, task_id: str, title: str
             context_excerpt=context_excerpt,
             timeout_sec=int(args.select_timeout_sec),
             out_dir=out_dir,
+            llm_backend=str(getattr(args, "llm_backend", "codex-cli") or "codex-cli"),
         )
         write_json(out_dir / f"primary-select.{task_id}.json", primary_meta)
 
@@ -211,7 +187,12 @@ def _generate_missing_files(*, refs: list[str], by_ref, task_id: str, title: str
         output_path = out_dir / f"codex-last-{task_id}-{token}.txt"
         trace_path = out_dir / f"codex-trace-{task_id}-{token}.log"
         write_text(prompt_path, prompt)
-        rc, trace_out, _cmd = _run_codex_exec(prompt=prompt, out_last_message=output_path, timeout_sec=int(args.timeout_sec))
+        rc, trace_out, _cmd = _run_codex_exec(
+            backend=str(getattr(args, "llm_backend", "codex-cli") or "codex-cli"),
+            prompt=prompt,
+            out_last_message=output_path,
+            timeout_sec=int(args.timeout_sec),
+        )
         write_text(trace_path, trace_out)
         last_msg = _read_text(output_path) if output_path.exists() else ""
         if rc != 0 or not last_msg.strip():
@@ -223,7 +204,7 @@ def _generate_missing_files(*, refs: list[str], by_ref, task_id: str, title: str
                     prompt_path=str(prompt_path),
                     trace_path=str(trace_path),
                     output_path=str(output_path),
-                    error="codex exec failed/empty output",
+                    error="llm backend failed/empty output",
                 )
             )
             continue
@@ -270,9 +251,15 @@ def _generate_missing_files(*, refs: list[str], by_ref, task_id: str, title: str
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Generate missing tests from acceptance Refs using Codex.")
+    ap = argparse.ArgumentParser(description="Generate missing tests from acceptance Refs with an LLM backend.")
     ap.add_argument("--task-id", required=True, help="Task id (master id, e.g. 11).")
-    ap.add_argument("--timeout-sec", type=int, default=600, help="Per-file codex exec timeout (seconds).")
+    ap.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="LLM transport backend. Default: env SC_LLM_BACKEND or codex-cli.",
+    )
+    ap.add_argument("--timeout-sec", type=int, default=600, help="Per-file LLM backend timeout (seconds).")
     ap.add_argument("--select-timeout-sec", type=int, default=120, help="LLM primary-ref selection timeout (seconds).")
     ap.add_argument("--tdd-stage", choices=["normal", "red-first"], default="normal")
     ap.add_argument("--verify", choices=["none", "unit", "all", "auto"], default="auto")
@@ -280,6 +267,7 @@ def main() -> int:
     ap.add_argument("--include-prd-context", action="store_true", help="Include PRD excerpt in primary-ref selection prompt.")
     ap.add_argument("--prd-context-path", default=".taskmaster/docs/prd.txt", help="Repo-relative PRD path.")
     args = ap.parse_args()
+    args.llm_backend = resolve_llm_backend(getattr(args, "llm_backend", None))
 
     task_id = str(args.task_id).split(".", 1)[0].strip()
     if not task_id.isdigit():
@@ -367,7 +355,7 @@ def main() -> int:
     sync_cmd = ["py", "-3", "scripts/python/update_task_test_refs_from_acceptance_refs.py", "--task-id", task_id, "--mode", "replace", "--write"]
     sync_rc, sync_out = run_cmd(sync_cmd, cwd=repo_root(), timeout_sec=60)
     write_text(out_dir / f"sync-test-refs-{task_id}.log", sync_out)
-    require_strict_red = str(args.tdd_stage) == "red-first"
+    require_strict_red = str(args.tdd_stage) == "red-first" and created > 0
     effective_verify = str(args.verify)
     if require_strict_red:
         effective_verify = "all" if any_gd else "unit"
@@ -394,6 +382,7 @@ def main() -> int:
         "sync_test_refs_rc": sync_rc,
         "verify_mode": verify_mode,
         "test_step": test_step,
+        "llm_backend": str(args.llm_backend),
         "results": [result.__dict__ for result in results],
         "out_dir": str(out_dir),
     }

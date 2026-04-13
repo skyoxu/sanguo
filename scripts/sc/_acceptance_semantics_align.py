@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-import shutil
-import subprocess
 import sys
 from copy import deepcopy
 from dataclasses import dataclass
@@ -20,6 +18,7 @@ def bootstrap_imports() -> None:
 bootstrap_imports()
 
 from _taskmaster import default_paths, iter_master_tasks, load_json  # noqa: E402
+from _llm_backend import run_llm_exec  # noqa: E402
 from _util import repo_root, write_text  # noqa: E402
 
 
@@ -219,38 +218,15 @@ def build_prompt(task_context: str, delivery_profile_context: str = "") -> str:
     return "\n".join(blocks).strip() + "\n"
 
 
-def run_codex_exec(*, prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:
-    exe = shutil.which("codex")
-    if not exe:
-        return 127, "codex executable not found in PATH\n"
-    cmd = [
-        exe,
-        "exec",
-        "-s",
-        "read-only",
-        "-C",
-        str(repo_root()),
-        "--output-last-message",
-        str(out_last_message),
-        "-",
-    ]
-    try:
-        proc = subprocess.run(
-            cmd,
-            input=prompt,
-            text=True,
-            encoding="utf-8",
-            errors="ignore",
-            cwd=str(repo_root()),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout_sec,
-        )
-    except subprocess.TimeoutExpired:
-        return 124, "codex exec timeout\n"
-    except Exception as exc:  # noqa: BLE001
-        return 1, f"codex exec failed to start: {exc}\n"
-    return proc.returncode or 0, proc.stdout or ""
+def run_codex_exec(*, backend: str = "codex-cli", prompt: str, out_last_message: Path, timeout_sec: int) -> tuple[int, str]:
+    rc, trace, _cmd = run_llm_exec(
+        backend=backend,
+        root=repo_root(),
+        prompt=prompt,
+        output_last_message=out_last_message,
+        timeout_sec=timeout_sec,
+    )
+    return rc, trace
 
 
 def safe_parse_json(text: str) -> dict[str, Any] | None:

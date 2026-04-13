@@ -50,6 +50,7 @@ from _obligations_runtime_helpers import (  # noqa: E402
     run_consensus_rounds,
 )
 from _obligations_self_check import run_self_check  # noqa: E402
+from _llm_backend import KNOWN_LLM_BACKENDS, resolve_llm_backend  # noqa: E402
 from _security_profile import build_security_profile_context, resolve_security_profile  # noqa: E402
 from _taskmaster import resolve_triplet  # noqa: E402
 from _util import ci_dir, repo_root, write_json, write_text  # noqa: E402
@@ -60,6 +61,7 @@ def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namesp
     delivery_profile = resolve_delivery_profile(getattr(args, "delivery_profile", None))
     defaults = profile_llm_obligations_defaults(delivery_profile)
     args.delivery_profile = delivery_profile
+    args.llm_backend = resolve_llm_backend(getattr(args, "llm_backend", None))
     if args.timeout_sec is None:
         args.timeout_sec = int(defaults.get("timeout_sec", 360) or 360)
     if args.max_prompt_chars is None:
@@ -79,6 +81,12 @@ def main() -> int:
         default=None,
         choices=["playable-ea", "fast-ship", "standard"],
         help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).",
+    )
+    parser.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="LLM transport backend. Default: env SC_LLM_BACKEND or codex-cli.",
     )
     parser.add_argument("--timeout-sec", type=int, default=None, help="codex exec timeout in seconds (default: profile).")
     parser.add_argument("--max-prompt-chars", type=int, default=None, help="Max prompt size (default: profile).")
@@ -140,6 +148,7 @@ def main() -> int:
     delivery_profile_context = build_delivery_profile_context(args.delivery_profile)
     security_profile_context = build_security_profile_context(security_profile)
     summary: dict[str, Any] = build_summary_base(task_id=str(triplet.task_id), title=title, prompt_version=PROMPT_VERSION, out_dir_rel=str(out_dir.relative_to(repo_root())).replace("\\", "/"), subtasks_total=len(subtasks), views_present=sorted(acceptance_by_view.keys()), acceptance_counts=acceptance_counts, security_profile=security_profile, garbled_gate=str(args.garbled_gate), auto_escalate=str(args.auto_escalate), reuse_last_ok=bool(args.reuse_last_ok), max_schema_errors=max_schema_errors)
+    summary["llm_backend"] = str(args.llm_backend)
     runtime_code_fingerprint, runtime_code_fingerprint_parts = build_runtime_code_fingerprint({"build_obligation_prompt": build_obligation_prompt, "apply_deterministic_guards": apply_deterministic_guards, "validate_verdict_schema": validate_verdict_schema})
     summary["runtime_code_fingerprint"] = runtime_code_fingerprint
     summary["runtime_code_fingerprint_parts"] = runtime_code_fingerprint_parts
@@ -284,6 +293,7 @@ def main() -> int:
         out_dir=out_dir,
         timeout_sec=int(args.timeout_sec),
         repo_root_path=repo_root(),
+        llm_backend=str(args.llm_backend),
         configured_runs=configured_runs,
         max_runs=max_runs,
         auto_escalate_enabled=auto_escalate_enabled,

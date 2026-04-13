@@ -37,12 +37,31 @@ from _taskmaster import resolve_triplet
 from _util import ci_dir, repo_rel, repo_root, write_json, write_text
 
 
-def _prompt_shape_for_agent(agent: str) -> dict[str, str]:
+_SEMANTIC_AGENT = "semantic-equivalence-auditor"
+_DEFERRED_REASON_CODE = "deferred_until_prior_reviewers_clean"
+
+
+def _prompt_shape_for_agent(
+    agent: str,
+    *,
+    delivery_profile: str | None = None,
+    resolved_agents: list[str] | None = None,
+    semantic_gate: str | None = None,
+) -> dict[str, str]:
     if agent == "semantic-equivalence-auditor":
         return {
             "task_context_mode": "semantic",
             "acceptance_semantic_profile": "semantic",
             "diff_position": "tail",
+        }
+    normalized_profile = str(delivery_profile or "").strip().lower()
+    normalized_gate = str(semantic_gate or "").strip().lower()
+    reviewer_set = {str(item).strip() for item in (resolved_agents or []) if str(item).strip()}
+    if normalized_profile in {"playable-ea", "fast-ship"} and "semantic-equivalence-auditor" not in reviewer_set and normalized_gate in {"skip", "warn"}:
+        return {
+            "task_context_mode": "compact",
+            "acceptance_semantic_profile": "none",
+            "diff_position": "before_acceptance_semantic",
         }
     return {
         "task_context_mode": "compact",
@@ -116,6 +135,49 @@ def _fit_prompt_context(
     return prompt, meta
 
 
+def _review_result_is_clean(result: ReviewResult | dict[str, Any]) -> bool:
+    if isinstance(result, ReviewResult):
+        status = str(result.status or "").strip().lower()
+        rc = int(result.rc or 0)
+        details = result.details if isinstance(result.details, dict) else {}
+    else:
+        status = str(result.get("status") or "").strip().lower()
+        rc = int(result.get("rc") or 0)
+        details = result.get("details") if isinstance(result.get("details"), dict) else {}
+    verdict = str(details.get("verdict") or "").strip().upper()
+    if status != "ok" or rc != 0:
+        return False
+    return verdict in {"", "OK"}
+
+
+def _build_agent_execution_plan(agents: list[str]) -> dict[str, Any]:
+    ordered_agents = [str(agent).strip() for agent in agents if str(agent).strip()]
+    llm_agents = [agent for agent in ordered_agents if agent not in DETERMINISTIC_AGENTS]
+    if _SEMANTIC_AGENT not in llm_agents or len(llm_agents) <= 1:
+        return {
+            "ordered_agents": ordered_agents,
+            "primary_agents": ordered_agents,
+            "deferred_agents": [],
+            "primary_llm_agents": llm_agents,
+            "stages": {agent: "primary" for agent in ordered_agents},
+            "semantic_deferred": False,
+        }
+
+    primary_agents = [agent for agent in ordered_agents if agent != _SEMANTIC_AGENT]
+    deferred_agents = [agent for agent in ordered_agents if agent == _SEMANTIC_AGENT]
+    return {
+        "ordered_agents": [*primary_agents, *deferred_agents],
+        "primary_agents": primary_agents,
+        "deferred_agents": deferred_agents,
+        "primary_llm_agents": [agent for agent in primary_agents if agent not in DETERMINISTIC_AGENTS],
+        "stages": {
+            agent: ("deferred" if agent == _SEMANTIC_AGENT else "primary")
+            for agent in ordered_agents
+        },
+        "semantic_deferred": True,
+    }
+
+
 def _run_self_check(args: argparse.Namespace) -> int:
     out_dir = ci_dir("sc-llm-review-self-check")
     security_profile = resolve_security_profile(args.security_profile)
@@ -145,7 +207,9 @@ def _run_dry_plan(args: argparse.Namespace) -> int:
             print(f"[sc-llm-review] ERROR: failed to resolve task: {exc}")
             return 2
 
-    agents = resolve_agents(args.agents, str(args.semantic_gate))
+    requested_agents = resolve_agents(args.agents, str(args.semantic_gate))
+    execution_plan = _build_agent_execution_plan(requested_agents)
+    agents = list(execution_plan["ordered_agents"])
     overrides = parse_agent_timeout_overrides(args.agent_timeouts)
     per_agent_timeout_sec = int(args.agent_timeout_sec)
     out_dir = ci_dir(f"sc-llm-review-dry-plan-task-{triplet.task_id}") if triplet else ci_dir("sc-llm-review-dry-plan")
@@ -157,6 +221,8 @@ def _run_dry_plan(args: argparse.Namespace) -> int:
                 "deterministic": agent in DETERMINISTIC_AGENTS,
                 "timeout_sec": overrides.get(agent, per_agent_timeout_sec),
                 "will_execute_llm": (not bool(args.prompts_only)) and agent not in DETERMINISTIC_AGENTS,
+                "execution_stage": str(execution_plan["stages"].get(agent) or "primary"),
+                "activation_condition": "all_prior_reviewers_clean" if agent in set(execution_plan["deferred_agents"]) else "always",
                 "prompt_budget_gate": str(args.prompt_budget_gate),
                 "prompt_max_chars": int(args.prompt_max_chars),
             }
@@ -164,6 +230,8 @@ def _run_dry_plan(args: argparse.Namespace) -> int:
     summary = summary_base(mode="dry-run-plan", out_dir=out_dir, args=args, security_profile=security_profile, status="ok")
     summary["task_id"] = triplet.task_id if triplet else None
     summary["agents"] = agents
+    summary["requested_agents"] = requested_agents
+    summary["execution_plan"] = execution_plan
     summary["plan"] = plan
     write_json(out_dir / "summary.json", summary)
     print(f"SC_LLM_REVIEW_DRY_RUN_PLAN status={summary['status']} out={repo_rel(out_dir)}")
@@ -205,7 +273,9 @@ def main() -> int:
     out_dir = ci_dir(f"sc-llm-review-task-{triplet.task_id}") if triplet else ci_dir("sc-llm-review")
     claude_agents_root = resolve_claude_agents_root(args.claude_agents_root)
     security_profile = resolve_security_profile(args.security_profile)
-    agents = resolve_agents(args.agents, str(args.semantic_gate or "skip").strip().lower())
+    requested_agents = resolve_agents(args.agents, str(args.semantic_gate or "skip").strip().lower())
+    execution_plan = _build_agent_execution_plan(requested_agents)
+    agents = list(execution_plan["ordered_agents"])
     per_agent_overrides = parse_agent_timeout_overrides(args.agent_timeouts)
     total_timeout_sec = int(args.timeout_sec)
     per_agent_timeout_sec = int(args.agent_timeout_sec)
@@ -255,6 +325,24 @@ def main() -> int:
     deadline_ts = time.monotonic() + total_timeout_sec
 
     for agent in agents:
+        execution_stage = str(execution_plan["stages"].get(agent) or "primary")
+        if execution_stage == "deferred":
+            blocked_by_agents = [result.agent for result in results if not _review_result_is_clean(result)]
+            if blocked_by_agents:
+                results.append(
+                    ReviewResult(
+                        agent=agent,
+                        status="skipped",
+                        rc=0,
+                        details={
+                            "execution_stage": execution_stage,
+                            "reason_code": _DEFERRED_REASON_CODE,
+                            "blocked_by_agents": blocked_by_agents,
+                            "note": "Deferred reviewer skipped because prior reviewers are not yet clean.",
+                        },
+                    )
+                )
+                continue
         remaining = int(deadline_ts - time.monotonic())
         if remaining <= 0:
             status = "fail" if args.strict else "skipped"
@@ -266,7 +354,7 @@ def main() -> int:
                     agent=agent,
                     status=status,
                     rc=124,
-                    details={"note": "Skipped due to total timeout budget exhausted.", "total_timeout_sec": total_timeout_sec, "agent_timeout_sec": per_agent_overrides.get(agent, per_agent_timeout_sec)},
+                    details={"execution_stage": execution_stage, "note": "Skipped due to total timeout budget exhausted.", "total_timeout_sec": total_timeout_sec, "agent_timeout_sec": per_agent_overrides.get(agent, per_agent_timeout_sec)},
                 )
             )
             continue
@@ -286,18 +374,23 @@ def main() -> int:
                     cmd=det.get("cmd"),
                     prompt_path=det.get("prompt_path"),
                     output_path=det.get("output_path"),
-                    details={"claude_agents_root": str(claude_agents_root), "agent_prompt_source": agent_prompt(agent, claude_agents_root=claude_agents_root, skip_agent_files=bool(args.skip_agent_prompts))[1].get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), **(det.get("details") or {}), "note": "Deterministic mapping: generated from sc-acceptance-check artifacts."},
+                    details={"execution_stage": execution_stage, "claude_agents_root": str(claude_agents_root), "agent_prompt_source": agent_prompt(agent, claude_agents_root=claude_agents_root, skip_agent_files=bool(args.skip_agent_prompts))[1].get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), **(det.get("details") or {}), "note": "Deterministic mapping: generated from sc-acceptance-check artifacts."},
                 )
             )
             continue
 
         base_prompt, prompt_meta = agent_prompt(agent, claude_agents_root=claude_agents_root, skip_agent_files=bool(args.skip_agent_prompts))
-        prompt_shape = _prompt_shape_for_agent(agent)
+        prompt_shape = _prompt_shape_for_agent(
+            agent,
+            delivery_profile=str(getattr(args, "delivery_profile", "") or ""),
+            resolved_agents=list(execution_plan["primary_llm_agents"]) if execution_stage == "primary" and bool(execution_plan["semantic_deferred"]) else agents,
+            semantic_gate=str(args.semantic_gate or "skip").strip().lower(),
+        )
         ctx = build_task_context(triplet, mode=prompt_shape["task_context_mode"])
         acceptance_semantic_ctx = ""
         acceptance_semantic_meta: dict[str, Any] | None = None
         acceptance_semantic_profile = prompt_shape["acceptance_semantic_profile"]
-        if triplet and not bool(args.no_acceptance_semantic):
+        if triplet and acceptance_semantic_profile != "none" and not bool(args.no_acceptance_semantic):
             if acceptance_semantic_profile not in acceptance_semantic_cache:
                 try:
                     acceptance_semantic_cache[acceptance_semantic_profile] = build_acceptance_semantic_context(
@@ -352,15 +445,22 @@ def main() -> int:
                     agent=agent,
                     status="skipped",
                     prompt_path=str(prompt_path.relative_to(repo_root())).replace("\\", "/"),
-                    details={"trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"), "claude_agents_root": str(claude_agents_root), "agent_prompt_source": prompt_meta.get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), "prompt_budget": budget_meta, "prompt_shape": {**prompt_shape, **prompt_fit_meta}, "acceptance_semantic_meta": acceptance_semantic_meta, "note": "--prompts-only: LLM execution skipped."},
+                    details={"execution_stage": execution_stage, "trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"), "claude_agents_root": str(claude_agents_root), "agent_prompt_source": prompt_meta.get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), "prompt_budget": budget_meta, "prompt_shape": {**prompt_shape, **prompt_fit_meta}, "acceptance_semantic_meta": acceptance_semantic_meta, "note": "--prompts-only: LLM execution skipped."},
                 )
             )
             write_text(trace_path, "--prompts-only: LLM execution skipped.\n")
             continue
 
         agent_cap = per_agent_overrides.get(agent, per_agent_timeout_sec)
-        effective_timeout = max(1, min(int(agent_cap), int(remaining)))
-        rc, trace_out, cmd = run_codex_exec(prompt=prompt_used, output_last_message=output_path, timeout_sec=effective_timeout, codex_configs=codex_configs)
+        remaining_before_sec = max(0, int(remaining))
+        effective_timeout = max(1, int(agent_cap))
+        rc, trace_out, cmd = run_codex_exec(
+            backend=str(args.llm_backend),
+            prompt=prompt_used,
+            output_last_message=output_path,
+            timeout_sec=effective_timeout,
+            codex_configs=codex_configs,
+        )
         write_text(trace_path, trace_out)
 
         last_msg = ""
@@ -375,7 +475,7 @@ def main() -> int:
             hard_fail = True
 
         semantic_gate = str(args.semantic_gate or "skip").strip().lower()
-        semantic_agent = "semantic-equivalence-auditor"
+        semantic_agent = _SEMANTIC_AGENT
         verdict = parse_verdict(last_msg)
         verdict_normalization: dict[str, Any] | None = None
         if last_msg and agent != semantic_agent:
@@ -405,7 +505,7 @@ def main() -> int:
                 cmd=cmd,
                 prompt_path=str(prompt_path.relative_to(repo_root())).replace("\\", "/"),
                 output_path=str(output_path.relative_to(repo_root())).replace("\\", "/"),
-                details={"trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"), "claude_agents_root": str(claude_agents_root), "agent_prompt_source": prompt_meta.get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), "total_timeout_sec": total_timeout_sec, "agent_timeout_sec": effective_timeout, "prompt_budget": budget_meta, "prompt_shape": {**prompt_shape, **prompt_fit_meta}, "acceptance_semantic_meta": acceptance_semantic_meta, "verdict": verdict, "verdict_normalization": verdict_normalization, "note": "This step is best-effort. Use --strict to make it a hard gate."},
+                details={"execution_stage": execution_stage, "trace": str(trace_path.relative_to(repo_root())).replace("\\", "/"), "claude_agents_root": str(claude_agents_root), "agent_prompt_source": prompt_meta.get("agent_prompt_source"), "security_profile": security_profile_payload(security_profile), "total_timeout_sec": total_timeout_sec, "agent_timeout_sec": effective_timeout, "remaining_before_sec": remaining_before_sec, "prompt_budget": budget_meta, "prompt_shape": {**prompt_shape, **prompt_fit_meta}, "acceptance_semantic_meta": acceptance_semantic_meta, "verdict": verdict, "verdict_normalization": verdict_normalization, "note": "This step is best-effort. Use --strict to make it a hard gate."},
             )
         )
 
@@ -425,6 +525,8 @@ def main() -> int:
             "template_meta": template_meta,
             "acceptance_meta": acceptance_meta,
             "acceptance_semantic_meta": acceptance_semantic_meta,
+            "requested_agents": requested_agents,
+            "execution_plan": execution_plan,
             "results": [r.__dict__ for r in results],
             "prompt_budget": {
                 "max_chars": int(args.prompt_max_chars),

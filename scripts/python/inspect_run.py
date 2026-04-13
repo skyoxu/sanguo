@@ -448,6 +448,14 @@ def _extract_latest_summary_signals(
         "reason": reason,
         "run_type": run_type,
         "reuse_mode": str(source.get("reuse_mode") or "").strip(),
+        "failure_kind": str(
+            execution_context_payload.get("failure_kind")
+            or summary_payload.get("failure_kind")
+            or raw_summary_payload.get("failure_kind")
+            or raw_latest_payload.get("failure_kind")
+            or latest_payload.get("failure_kind")
+            or ""
+        ).strip(),
         "artifact_integrity_kind": artifact_integrity_kind,
         "diagnostics_keys": sorted(str(key).strip() for key in diagnostics.keys() if str(key).strip()),
     }
@@ -939,6 +947,8 @@ def inspect_run_artifacts(
         recent_failure_summary=recent_failure_summary,
         approval=approval,
     )
+    if not str((payload.get("latest_summary_signals") or {}).get("failure_kind") or "").strip():
+        payload["latest_summary_signals"]["failure_kind"] = str(failure.get("code") or "").strip()
     summary_candidate_commands = summary.get("candidate_commands") if isinstance(summary.get("candidate_commands"), dict) else {}
     repair_action, repair_why, repair_command = _repair_guide_recommendation(repair_guide)
     if detected_kind == "local-hard-checks":
