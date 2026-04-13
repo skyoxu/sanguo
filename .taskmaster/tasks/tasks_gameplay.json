@@ -2977,7 +2977,7 @@
       "xUnit: integration closure verifies split task 114 remains wired through the module by preserving the delivered retention-window behavior. Refs: Game.Core.Tests/Tasks/Task71DiagnosticsRetentionTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task71SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task71DiagnosticsRetentionTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
