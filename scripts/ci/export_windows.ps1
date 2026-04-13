@@ -154,8 +154,17 @@ function Invoke-Export([string]$mode) {
 }
 
 # Skip --build-solutions when a solution is already present to reduce flakiness in CI
-$sln = Join-Path $ProjectDir 'GodotGame.sln'
-if (Test-Path $sln) {
+$repoName = Split-Path -Leaf (Resolve-Path $ProjectDir)
+$solutionCandidates = @(
+  (Join-Path $ProjectDir 'Game.sln'),
+  (Join-Path $ProjectDir ($repoName + '.sln'))
+)
+$sln = $solutionCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $sln) {
+  $firstSln = Get-ChildItem -Path $ProjectDir -Filter '*.sln' -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($firstSln) { $sln = $firstSln.FullName }
+}
+if ($sln) {
   Add-Content -Encoding UTF8 -Path $glog -Value "Solution detected at $sln, skipping --build-solutions."
 } else {
   $buildCode = Invoke-BuildSolutions

@@ -18,6 +18,8 @@
 - Stable public entrypoints: `docs/workflows/stable-public-entrypoints.md`
 - Script entrypoints index: `docs/workflows/script-entrypoints-index.md`
 - Prototype lane: `docs/workflows/prototype-lane.md`
+- Prototype lane playbook: `docs/workflows/prototype-lane-playbook.md`
+- Prototype TDD: `docs/workflows/prototype-tdd.md`
 
 ## Quick Start (Windows)
 
@@ -86,6 +88,8 @@ Recovery stop-loss rules:
   - `py -3 scripts/python/dev_cli.py chapter6-route --task-id <task-id> --recommendation-only`
 - Gate bundle only:
   - `py -3 scripts/python/run_gate_bundle.py --mode hard --task-files .taskmaster/tasks/tasks_back.json .taskmaster/tasks/tasks_gameplay.json`
+- Prototype-lane TDD entry:
+  - `py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage <red|green|refactor> ...`
 - Task review pipeline:
   - `py -3 scripts/sc/run_review_pipeline.py --task-id <task-id> --godot-bin "<godot-bin>"`
   - `py -3 scripts/sc/run_review_pipeline.py --task-id <task-id> --godot-bin "$env:GODOT_BIN"`

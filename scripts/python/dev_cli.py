@@ -35,6 +35,7 @@ from dev_cli_builders import (
     build_run_dotnet_cmd,
     build_run_gdunit_full_cmd,
     build_run_gdunit_hard_cmd,
+    build_run_prototype_tdd_cmd,
     build_serve_project_health_cmd,
     build_smoke_strict_cmd,
 )
@@ -209,6 +210,12 @@ def cmd_run_smoke_strict(args: argparse.Namespace) -> int:
     return run(build_smoke_strict_cmd(godot_bin=args.godot_bin, timeout_sec=args.timeout_sec))
 
 
+def cmd_run_prototype_tdd(args: argparse.Namespace) -> int:
+    """Run a lightweight prototype-lane TDD loop."""
+
+    return run(build_run_prototype_tdd_cmd(args))
+
+
 def cmd_new_execution_plan(args: argparse.Namespace) -> int:
     """Create a new execution plan scaffold."""
 
@@ -369,6 +376,35 @@ def build_parser() -> argparse.ArgumentParser:
     p_sm.add_argument("--godot-bin", required=True)
     p_sm.add_argument("--timeout-sec", type=int, default=5)
     p_sm.set_defaults(func=cmd_run_smoke_strict)
+
+    # run-prototype-tdd
+    p_proto = sub.add_parser(
+        "run-prototype-tdd",
+        help="run a lightweight prototype-lane TDD loop without entering the formal task pipeline",
+    )
+    p_proto.add_argument("--slug", required=True)
+    p_proto.add_argument("--stage", default="red", choices=["red", "green", "refactor"])
+    p_proto.add_argument("--expect", default="auto", choices=["auto", "fail", "pass"])
+    p_proto.add_argument("--prototype-dir", default="docs/prototypes")
+    p_proto.add_argument("--record-path", default="")
+    p_proto.add_argument("--skip-record", action="store_true")
+    p_proto.add_argument("--owner", default="operator")
+    p_proto.add_argument("--related-task-id", action="append", default=[])
+    p_proto.add_argument("--hypothesis", default="TODO: describe the prototype hypothesis.")
+    p_proto.add_argument("--scope-in", action="append", default=[])
+    p_proto.add_argument("--scope-out", action="append", default=[])
+    p_proto.add_argument("--success-criteria", action="append", default=[])
+    p_proto.add_argument("--evidence", action="append", default=[])
+    p_proto.add_argument("--next-step", default="Decide discard | archive | promote after the prototype result is clear.")
+    p_proto.add_argument("--create-record-only", action="store_true")
+    p_proto.add_argument("--dotnet-target", action="append", default=[])
+    p_proto.add_argument("--filter", default="")
+    p_proto.add_argument("--configuration", default="Debug")
+    p_proto.add_argument("--godot-bin", default="")
+    p_proto.add_argument("--gdunit-path", action="append", default=[])
+    p_proto.add_argument("--timeout-sec", type=int, default=300)
+    p_proto.add_argument("--out-dir", default="")
+    p_proto.set_defaults(func=cmd_run_prototype_tdd)
 
     # new-execution-plan
     p_ep = sub.add_parser("new-execution-plan", help="create an execution plan scaffold")

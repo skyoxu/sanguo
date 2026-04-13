@@ -189,8 +189,16 @@ jobs:
           $env:Path = "$HOME\.dotnet;" + $env:Path
           $env:GODOT_DOTNET_CLI = (Get-Command dotnet).Path
           try { & "$env:GODOT_BIN" --headless --path . --quit } catch { Write-Warning $_ }
-          dotnet restore GodotGame.csproj
-          dotnet build GodotGame.csproj -c Release -v minimal
+          $repoName = Split-Path -Leaf (Get-Location)
+          $solutionCandidates = @("Game.sln", "$repoName.sln")
+          $solution = $solutionCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $solution) {
+            $firstSln = Get-ChildItem -Filter *.sln -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($firstSln) { $solution = $firstSln.Name }
+          }
+          if (-not $solution) { throw "No solution file found for restore/build." }
+          dotnet restore $solution
+          dotnet build $solution -c Release -v minimal
 
       - name: Quality gates (Python)
         shell: pwsh
@@ -454,5 +462,5 @@ jobs:
         run: |
           $date = Get-Date -Format 'yyyy-MM-dd'
           $out = "logs/ci/${{ github.run_id }}/schema-dump.json"
-          py -3 scripts/python/db_schema_dump.py --glob "$env:APPDATA\Godot\app_userdata\GodotGame\*.db" --out "$out"
+          py -3 scripts/python/db_schema_dump.py --glob "$env:APPDATA\Godot\app_userdata\*\*.db" --out "$out"
           Write-Host "SCHEMA_DUMP_OUT=$out"

@@ -185,6 +185,59 @@ def build_smoke_strict_cmd(*, godot_bin: str, timeout_sec: int) -> list[str]:
     ]
 
 
+def build_run_prototype_tdd_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/run_prototype_tdd.py",
+        "--slug",
+        args.slug,
+        "--stage",
+        args.stage,
+    ]
+    if args.expect:
+        cmd += ["--expect", args.expect]
+    if args.prototype_dir:
+        cmd += ["--prototype-dir", args.prototype_dir]
+    if args.record_path:
+        cmd += ["--record-path", args.record_path]
+    if args.skip_record:
+        cmd.append("--skip-record")
+    if args.owner:
+        cmd += ["--owner", args.owner]
+    for item in args.related_task_id:
+        cmd += ["--related-task-id", item]
+    if args.hypothesis:
+        cmd += ["--hypothesis", args.hypothesis]
+    for item in args.scope_in:
+        cmd += ["--scope-in", item]
+    for item in args.scope_out:
+        cmd += ["--scope-out", item]
+    for item in args.success_criteria:
+        cmd += ["--success-criteria", item]
+    for item in args.evidence:
+        cmd += ["--evidence", item]
+    if args.next_step:
+        cmd += ["--next-step", args.next_step]
+    if args.create_record_only:
+        cmd.append("--create-record-only")
+    for item in args.dotnet_target:
+        cmd += ["--dotnet-target", item]
+    if args.filter:
+        cmd += ["--filter", args.filter]
+    if args.configuration:
+        cmd += ["--configuration", args.configuration]
+    if args.godot_bin:
+        cmd += ["--godot-bin", args.godot_bin]
+    for item in args.gdunit_path:
+        cmd += ["--gdunit-path", item]
+    if args.timeout_sec:
+        cmd += ["--timeout-sec", str(args.timeout_sec)]
+    if args.out_dir:
+        cmd += ["--out-dir", args.out_dir]
+    return cmd
+
+
 def build_new_execution_plan_cmd(args) -> list[str]:
     cmd = [
         "py",
