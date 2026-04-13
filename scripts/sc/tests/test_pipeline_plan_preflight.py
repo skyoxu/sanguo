@@ -111,6 +111,29 @@ class PipelinePlanPreflightTests(unittest.TestCase):
         test_cmd = steps[0][1]
         self.assertIn("--allow-full-unit-fallback", test_cmd)
 
+    def test_build_pipeline_steps_should_forward_llm_backend_to_llm_review(self) -> None:
+        steps = build_pipeline_steps(
+            args=self._args(),
+            task_id="56",
+            run_id="c" * 32,
+            delivery_profile="fast-ship",
+            security_profile="host-safe",
+            acceptance_defaults={},
+            triplet=self._triplet(back={"test_refs": ["Game.Core.Tests/Tasks/Task0056AcceptanceTests.cs"]}),
+            llm_agents="all",
+            llm_timeout_sec=600,
+            llm_agent_timeout_sec=180,
+            llm_agent_timeouts="",
+            llm_semantic_gate="warn",
+            llm_strict=False,
+            llm_diff_mode="summary",
+            llm_backend="openai-api",
+        )
+
+        llm_cmd = steps[2][1]
+        self.assertIn("--llm-backend", llm_cmd)
+        self.assertEqual("openai-api", llm_cmd[llm_cmd.index("--llm-backend") + 1])
+
     def test_build_parser_help_should_render_allow_full_unit_fallback_text(self) -> None:
         help_text = build_parser().format_help()
 

@@ -232,21 +232,179 @@ def _route_latest_reason(route_payload: dict[str, Any] | None) -> str:
     return str((route_payload or {}).get("latest_reason") or "").strip().lower()
 
 
+def _route_blocked_by(route_payload: dict[str, Any] | None) -> str:
+    return str((route_payload or {}).get("blocked_by") or "").strip().lower()
+
+
+def _route_run_type(route_payload: dict[str, Any] | None) -> str:
+    return str((route_payload or {}).get("latest_run_type") or (route_payload or {}).get("run_type") or "").strip().lower()
+
+
+def _route_forbidden_commands(route_payload: dict[str, Any] | None) -> list[str]:
+    route = route_payload or {}
+    return [str(item).strip() for item in list(route.get("forbidden_commands") or []) if str(item).strip()]
+
+
 def _initial_route_has_recovery_signal(route_payload: dict[str, Any] | None) -> bool:
     route = route_payload or {}
-    return bool(_route_run_id(route) not in {"", "n/a"} or _route_latest_reason(route) not in {"", "n/a", "none"})
+    return bool(
+        _route_run_id(route) not in {"", "n/a"}
+        or _route_latest_reason(route) not in {"", "n/a", "none"}
+        or _route_blocked_by(route) not in {"", "n/a", "none"}
+        or bool(_route_forbidden_commands(route))
+    )
+
+
+def _route_stop_reason(route_payload: dict[str, Any] | None) -> str:
+    if not _initial_route_has_recovery_signal(route_payload):
+        return ""
+    blocked_by = _route_blocked_by(route_payload)
+    latest_reason = _route_latest_reason(route_payload)
+    latest_run_type = _route_run_type(route_payload)
+    lane = _route_lane(route_payload)
+
+    if blocked_by == "artifact_integrity" or latest_reason == "planned_only_incomplete" or latest_run_type == "planned-only":
+        return "artifact-integrity"
+    if blocked_by in {"approval_pending", "approval_approved", "approval_invalid"}:
+        return blocked_by
+    if lane in {"repo-noise-stop", "fix-deterministic", "inspect-first", "record-residual"}:
+        return lane
+    return ""
 
 
 def _route_is_blocking(route_payload: dict[str, Any] | None) -> bool:
-    return _route_lane(route_payload) in {"inspect-first", "record-residual", "repo-noise-stop", "fix-deterministic"}
+    return bool(_route_stop_reason(route_payload))
 
 
 def _route_requires_needs_fix(route_payload: dict[str, Any] | None) -> bool:
     return _route_lane(route_payload) == "run-6.8"
 
 
-def _route_requires_full_rerun(route_payload: dict[str, Any] | None) -> bool:
-    return _route_lane(route_payload) == "run-6.7"
+def _stringify_cmd(cmd: list[str]) -> str:
+    return " ".join(str(item).strip() for item in list(cmd) if str(item).strip())
+
+
+def _command_is_forbidden(route_payload: dict[str, Any] | None, cmd: list[str]) -> bool:
+    cmd_text = _stringify_cmd(cmd)
+    forbidden = _route_forbidden_commands(route_payload)
+    return bool(cmd_text and cmd_text in forbidden)
+
+
+def _normalize_action(value: Any) -> str:
+    return str(value or "").strip().lower().replace("_", "-")
+
+
+def _approval_stop_reason(resume_payload: dict[str, Any] | None, *, desired_action: str) -> str:
+    payload = resume_payload if isinstance(resume_payload, dict) else {}
+    approval = payload.get("approval") if isinstance(payload.get("approval"), dict) else {}
+    required_action = _normalize_action(approval.get("required_action"))
+    if required_action != "fork":
+        return ""
+    status = _normalize_action(approval.get("status"))
+    allowed_actions = {
+        _normalize_action(item)
+        for item in list(approval.get("allowed_actions") or [])
+        if _normalize_action(item)
+    }
+    desired = _normalize_action(desired_action) or "resume"
+    if desired == "needs-fix-fast":
+        desired = "resume"
+    if status == "pending":
+        return "approval_pending"
+    if status == "approved":
+        return "approval_approved"
+    if status in {"invalid", "mismatched"}:
+        return "approval_invalid"
+    if status == "denied" and allowed_actions and desired not in allowed_actions:
+        return "approval_denied"
+    return ""
+
+
+def _no_increment_stop_reason(resume_payload: dict[str, Any] | None, route_payload: dict[str, Any] | None) -> str:
+    payload = resume_payload if isinstance(resume_payload, dict) else {}
+    run_event_summary = payload.get("run_event_summary") if isinstance(payload.get("run_event_summary"), dict) else {}
+    turn_count = int(run_event_summary.get("turn_count") or 0)
+    if turn_count < 2:
+        return ""
+    if list(run_event_summary.get("new_reviewers") or []):
+        return ""
+    if list(run_event_summary.get("new_sidecars") or []):
+        return ""
+    if bool(run_event_summary.get("approval_changed")):
+        return ""
+    recommended_action = _normalize_action(payload.get("recommended_action"))
+    latest_reason = _route_latest_reason(route_payload)
+    preferred_lane = _route_lane(route_payload)
+    reviewer_only_lane = recommended_action == "needs-fix-fast" or _route_requires_needs_fix(route_payload)
+    reviewer_only_reason = latest_reason.startswith("rerun_blocked:repeat_review_needs_fix") or latest_reason.startswith(
+        "rerun_blocked:deterministic_green_llm_not_clean"
+    )
+    if reviewer_only_lane or reviewer_only_reason or preferred_lane == "run-6.8":
+        return "record-residual"
+    return ""
+
+
+def _decide_phase(
+    route_payload: dict[str, Any] | None,
+    *,
+    allow_needs_fix: bool,
+    resume_payload: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    stop_reason = _route_stop_reason(route_payload)
+    if stop_reason:
+        return {
+            "action": "blocked",
+            "stop_reason": stop_reason,
+        }
+    approval_stop_reason = _approval_stop_reason(resume_payload, desired_action="resume")
+    if approval_stop_reason:
+        return {
+            "action": "blocked",
+            "stop_reason": approval_stop_reason,
+        }
+    no_increment_stop_reason = _no_increment_stop_reason(resume_payload, route_payload)
+    if no_increment_stop_reason:
+        return {
+            "action": "blocked",
+            "stop_reason": no_increment_stop_reason,
+        }
+    if allow_needs_fix and _route_requires_needs_fix(route_payload):
+        return {
+            "action": "needs-fix-fast",
+            "stop_reason": "",
+        }
+    return {
+        "action": "continue",
+        "stop_reason": "",
+    }
+
+
+def build_orchestration_decision(
+    *,
+    initial_route: dict[str, Any],
+    post_review_route: dict[str, Any],
+    final_route: dict[str, Any],
+    resume_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    initial_phase = _decide_phase(initial_route, allow_needs_fix=True, resume_payload=resume_payload)
+    if initial_phase["action"] == "continue" and not _initial_route_has_recovery_signal(initial_route):
+        initial_phase = {
+            "action": "full-path",
+            "stop_reason": "",
+        }
+    elif initial_phase["action"] == "continue":
+        initial_phase = {
+            "action": "full-path",
+            "stop_reason": "",
+        }
+
+    post_review_phase = _decide_phase(post_review_route, allow_needs_fix=True)
+    final_phase = _decide_phase(final_route, allow_needs_fix=True)
+    return {
+        "initial_phase": initial_phase,
+        "post_review_phase": post_review_phase,
+        "final_phase": final_phase,
+    }
 
 
 def _build_step(name: str, cmd: list[str]) -> dict[str, Any]:
@@ -261,27 +419,34 @@ def build_execution_plan(
     initial_route: dict[str, Any],
     post_review_route: dict[str, Any],
     final_route: dict[str, Any],
+    resume_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     record_residual = str(profile_policy.get("record_residual") or "").strip().lower() == "true"
+    decision = build_orchestration_decision(
+        initial_route=initial_route,
+        post_review_route=post_review_route,
+        final_route=final_route,
+        resume_payload=resume_payload,
+    )
     steps: list[dict[str, Any]] = [
         _build_step("resume-task", build_resume_task_cmd(task_id)),
         _build_step("chapter6-route-initial", build_chapter6_route_cmd(task_id, record_residual=record_residual)),
     ]
-    if _route_is_blocking(initial_route) and _initial_route_has_recovery_signal(initial_route):
+    if decision["initial_phase"]["action"] == "blocked":
         return {
             "status": "blocked",
-            "stop_reason": _route_lane(initial_route),
+            "stop_reason": str(decision["initial_phase"]["stop_reason"] or ""),
             "steps": steps,
         }
 
-    if _route_requires_needs_fix(initial_route) and _initial_route_has_recovery_signal(initial_route):
+    if decision["initial_phase"]["action"] == "needs-fix-fast":
         steps.extend(
             [
                 _build_step("needs-fix-fast", build_needs_fix_fast_cmd(task_id, profile_policy=profile_policy)),
                 _build_step("chapter6-route-post-needs-fix", build_chapter6_route_cmd(task_id, record_residual=record_residual)),
             ]
         )
-        if not _route_is_blocking(final_route):
+        if decision["final_phase"]["action"] == "continue":
             steps.extend(
                 [
                     _build_step("local-hard-checks-preflight", build_local_hard_checks_preflight_cmd(profile_policy=profile_policy)),
@@ -306,25 +471,26 @@ def build_execution_plan(
         ]
     )
 
-    if _route_requires_needs_fix(post_review_route):
+    if decision["post_review_phase"]["action"] == "needs-fix-fast":
         steps.extend(
             [
                 _build_step("needs-fix-fast", build_needs_fix_fast_cmd(task_id, profile_policy=profile_policy)),
                 _build_step("chapter6-route-post-needs-fix", build_chapter6_route_cmd(task_id, record_residual=record_residual)),
             ]
         )
-        if _route_is_blocking(final_route):
+        if decision["final_phase"]["action"] == "blocked":
             return {
                 "status": "blocked",
-                "stop_reason": _route_lane(final_route),
+                "stop_reason": str(decision["final_phase"]["stop_reason"] or ""),
                 "steps": steps,
             }
-    elif _route_is_blocking(post_review_route):
-        return {
-            "status": "blocked",
-            "stop_reason": _route_lane(post_review_route),
-            "steps": steps,
-        }
+    else:
+        if decision["post_review_phase"]["action"] == "blocked":
+            return {
+                "status": "blocked",
+                "stop_reason": str(decision["post_review_phase"]["stop_reason"] or ""),
+                "steps": steps,
+            }
 
     steps.extend(
         [
@@ -376,20 +542,7 @@ def _parse_json_stdout(stdout: str) -> dict[str, Any]:
     text = str(stdout or "").strip()
     if not text:
         return {}
-    for line in text.splitlines():
-        candidate = line.strip()
-        if not candidate:
-            continue
-        try:
-            payload = json.loads(candidate)
-        except Exception:
-            continue
-        if isinstance(payload, dict):
-            return payload
-    try:
-        payload = json.loads(text)
-    except Exception:
-        return {}
+    payload = json.loads(text)
     return payload if isinstance(payload, dict) else {}
 
 
@@ -458,6 +611,7 @@ def main() -> int:
             initial_route=placeholder_route,
             post_review_route={"preferred_lane": "inspect-first"},
             final_route={"preferred_lane": "inspect-first"},
+            resume_payload={},
         )
         payload = {
             "cmd": "run-single-task-chapter6",
@@ -518,6 +672,7 @@ def main() -> int:
         initial_route=initial_route,
         post_review_route={"preferred_lane": "inspect-first"},
         final_route={"preferred_lane": "inspect-first"},
+        resume_payload=resume_payload,
     )
     summary["planned_steps"] = [step["name"] for step in plan["steps"]]
     if plan["status"] == "blocked":
@@ -527,7 +682,21 @@ def main() -> int:
         print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={plan['stop_reason']}")
         return 1
 
+    post_review_route: dict[str, Any] = {}
+    final_route: dict[str, Any] = {}
+
     def _run_required(name: str, cmd: list[str]) -> bool:
+        route_payload: dict[str, Any] | None = None
+        if name in {"check-tdd-plan", "red-first", "green", "refactor", "review-pipeline"}:
+            route_payload = initial_route
+        elif name in {"local-hard-checks-preflight", "local-hard-checks"}:
+            route_payload = final_route if isinstance(final_route, dict) and final_route else post_review_route
+        if _command_is_forbidden(route_payload, cmd):
+            summary["status"] = "blocked"
+            summary["stop_reason"] = f"forbidden-command:{name}"
+            _write_json(out_dir / "summary.json", summary)
+            print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={summary['stop_reason']}")
+            return False
         step = _run_plain_step(out_dir, name=name, cmd=cmd)
         summary["steps"].append(step)
         if int(step["rc"]) != 0:
@@ -554,19 +723,31 @@ def main() -> int:
             return None
         return payload
 
-    if _route_requires_needs_fix(initial_route) and _initial_route_has_recovery_signal(initial_route):
+    decision = build_orchestration_decision(
+        initial_route=initial_route,
+        post_review_route={},
+        final_route={},
+        resume_payload=resume_payload,
+    )
+    if decision["initial_phase"]["action"] == "needs-fix-fast":
         if not _run_required("needs-fix-fast", build_needs_fix_fast_cmd(task_id, profile_policy=profile_policy)):
             return 1
         final_route = _run_route("chapter6-route-post-needs-fix")
         if final_route is None:
             return 1
-        if _route_is_blocking(final_route) or _route_requires_needs_fix(final_route):
+        final_decision = build_orchestration_decision(
+            initial_route=initial_route,
+            post_review_route={},
+            final_route=final_route,
+            resume_payload=resume_payload,
+        )
+        if final_decision["final_phase"]["action"] in {"blocked", "needs-fix-fast"}:
             summary["status"] = "blocked"
-            summary["stop_reason"] = _route_lane(final_route)
+            summary["stop_reason"] = str(final_decision["final_phase"]["stop_reason"] or _route_lane(final_route))
             _write_json(out_dir / "summary.json", summary)
             print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={summary['stop_reason']}")
             return 1
-    elif _route_requires_full_rerun(initial_route):
+    else:
         full_path_steps = [
             ("check-tdd-plan", build_check_tdd_plan_cmd(task_id, profile_policy=profile_policy)),
             ("red-first", build_red_first_cmd(task_id, profile_policy=profile_policy, godot_bin=str(args.godot_bin))),
@@ -580,30 +761,36 @@ def main() -> int:
         post_review_route = _run_route("chapter6-route-post-review")
         if post_review_route is None:
             return 1
-        if _route_is_blocking(post_review_route):
+        post_review_decision = build_orchestration_decision(
+            initial_route=initial_route,
+            post_review_route=post_review_route,
+            final_route={},
+            resume_payload=resume_payload,
+        )
+        if post_review_decision["post_review_phase"]["action"] == "blocked":
             summary["status"] = "blocked"
-            summary["stop_reason"] = _route_lane(post_review_route)
+            summary["stop_reason"] = str(post_review_decision["post_review_phase"]["stop_reason"] or "")
             _write_json(out_dir / "summary.json", summary)
             print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={summary['stop_reason']}")
             return 1
-        if _route_requires_needs_fix(post_review_route):
+        if post_review_decision["post_review_phase"]["action"] == "needs-fix-fast":
             if not _run_required("needs-fix-fast", build_needs_fix_fast_cmd(task_id, profile_policy=profile_policy)):
                 return 1
             final_route = _run_route("chapter6-route-post-needs-fix")
             if final_route is None:
                 return 1
-            if _route_is_blocking(final_route) or _route_requires_needs_fix(final_route):
+            final_decision = build_orchestration_decision(
+                initial_route=initial_route,
+                post_review_route=post_review_route,
+                final_route=final_route,
+                resume_payload=resume_payload,
+            )
+            if final_decision["final_phase"]["action"] in {"blocked", "needs-fix-fast"}:
                 summary["status"] = "blocked"
-                summary["stop_reason"] = _route_lane(final_route)
+                summary["stop_reason"] = str(final_decision["final_phase"]["stop_reason"] or _route_lane(final_route))
                 _write_json(out_dir / "summary.json", summary)
                 print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={summary['stop_reason']}")
                 return 1
-    else:
-        summary["status"] = "blocked"
-        summary["stop_reason"] = _route_lane(initial_route)
-        _write_json(out_dir / "summary.json", summary)
-        print(f"SINGLE_TASK_CHAPTER6 status=blocked task={task_id} stop={summary['stop_reason']}")
-        return 1
 
     if not _run_required("local-hard-checks-preflight", build_local_hard_checks_preflight_cmd(profile_policy=profile_policy)):
         return 1

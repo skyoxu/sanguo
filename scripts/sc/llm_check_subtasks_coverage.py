@@ -23,6 +23,7 @@ def _bootstrap_imports() -> None:
 _bootstrap_imports()
 
 from _delivery_profile import build_delivery_profile_context, profile_llm_semantic_gate_all_defaults, resolve_delivery_profile  # noqa: E402
+from _llm_backend import KNOWN_LLM_BACKENDS, resolve_llm_backend  # noqa: E402
 from _subtasks_coverage_llm import build_prompt, extract_json_object, format_acceptance, normalize_model_status, run_codex_exec, truncate_keep_ends  # noqa: E402
 from _taskmaster import resolve_triplet  # noqa: E402
 from _util import ci_dir, repo_root, write_json, write_text  # noqa: E402
@@ -48,6 +49,7 @@ def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namesp
     delivery_profile = resolve_delivery_profile(getattr(args, "delivery_profile", None))
     defaults = profile_llm_semantic_gate_all_defaults(delivery_profile)
     args.delivery_profile = delivery_profile
+    args.llm_backend = resolve_llm_backend(getattr(args, "llm_backend", None))
     if args.timeout_sec is None:
         args.timeout_sec = int(defaults.get("timeout_sec", 300) or 300)
     if args.max_prompt_chars is None:
@@ -67,6 +69,12 @@ def main() -> int:
         default=None,
         choices=["playable-ea", "fast-ship", "standard"],
         help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).",
+    )
+    ap.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="LLM transport backend. Default: env SC_LLM_BACKEND or codex-cli.",
     )
     ap.add_argument("--timeout-sec", type=int, default=None, help="codex exec timeout in seconds (default: profile).")
     ap.add_argument("--max-prompt-chars", type=int, default=None, help="Max prompt size (default: profile).")
@@ -138,6 +146,7 @@ def main() -> int:
         "out_dir": str(out_dir.relative_to(repo_root())).replace("\\", "/"),
         "selection_policy": selection_policy,
         "garbled_gate": garbled_gate,
+        "llm_backend": str(args.llm_backend),
         "max_schema_errors": max_schema_errors,
         "error": None,
     }
@@ -203,6 +212,7 @@ def main() -> int:
         run_last = out_dir / f"output-last-message-run-{i:02d}.txt"
         run_trace = out_dir / f"trace-run-{i:02d}.log"
         rc, trace, cmd = run_codex_exec(
+            backend=str(args.llm_backend),
             prompt=prompt,
             out_last_message=run_last,
             timeout_sec=int(args.timeout_sec),

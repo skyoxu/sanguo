@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from _failure_taxonomy import derive_producer_failure_kind
 from _repair_approval import apply_approval_to_recommendations
 from _repair_recommendations import (
     build_runtime_recommendations,
@@ -51,6 +52,7 @@ def build_execution_context(
     security_profile: str,
     llm_review_context: dict[str, Any] | None,
     summary: dict[str, Any],
+    repair_guide: dict[str, Any] | None = None,
     marathon_state: dict[str, Any] | None = None,
     approval_state: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -61,6 +63,7 @@ def build_execution_context(
     failed_step = next((step for step in summary.get("steps", []) if step.get("status") == "fail"), None)
     diagnostics = (marathon_state or {}).get("diagnostics")
     candidate_commands = summary.get("candidate_commands") if isinstance(summary.get("candidate_commands"), dict) else {}
+    failure_kind = derive_producer_failure_kind(summary_payload=summary, repair_payload=repair_guide)
     return {
         "schema_version": "1.0.0",
         "cmd": "sc-review-pipeline",
@@ -69,6 +72,7 @@ def build_execution_context(
         "requested_run_id": requested_run_id,
         "run_id": run_id,
         "status": str(summary.get("status") or "fail"),
+        "failure_kind": failure_kind,
         "run_type": str(summary.get("run_type") or "").strip(),
         "reason": str(summary.get("reason") or "").strip(),
         "reuse_mode": str(summary.get("reuse_mode") or "").strip(),

@@ -87,6 +87,19 @@ class ObligationsCliGuardTests(unittest.TestCase):
         payload = json.loads(fingerprint_path.read_text(encoding="utf-8"))
         self.assertEqual("strict", payload.get("security_profile"))
 
+    def test_self_check_should_accept_explicit_openai_backend(self) -> None:
+        proc = subprocess.run(
+            [sys.executable, str(SCRIPT), "--self-check", "--llm-backend", "openai-api"],
+            cwd=str(REPO_ROOT),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="ignore",
+        )
+        self.assertEqual(0, proc.returncode, proc.stdout)
+        self.assertIn("SC_LLM_OBLIGATIONS_SELF_CHECK status=ok", proc.stdout or "")
+
 
 if __name__ == "__main__":
     unittest.main()

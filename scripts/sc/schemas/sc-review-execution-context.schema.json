@@ -72,6 +72,19 @@
         "fail"
       ]
     },
+    "failure_kind": {
+      "type": "string",
+      "enum": [
+        "schema-invalid",
+        "stale-latest",
+        "artifact-missing",
+        "artifact-incomplete",
+        "aborted",
+        "step-failed",
+        "review-needs-fix",
+        "ok"
+      ]
+    },
     "delivery_profile": {
       "type": "string",
       "minLength": 1
@@ -287,7 +300,7 @@
             }
           }
         },
-        "llm_retry_stop_loss": {
+        "change_scope_ceiling": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -297,10 +310,70 @@
             "blocked": {
               "type": "boolean"
             },
+            "recommended_path": {
+              "type": "string"
+            },
+            "deterministic_strategy": {
+              "type": "string"
+            },
+            "changed_paths_count": {
+              "type": "integer"
+            },
+            "unsafe_paths_count": {
+              "type": "integer"
+            },
+            "allow_override_flag": {
+              "type": "string"
+            },
+            "changed_paths_sample": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "unsafe_paths_sample": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "profile_drift_present": {
+              "type": "boolean"
+            },
+            "ceilings": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "changed_paths": {
+                  "type": "integer"
+                },
+                "unsafe_paths": {
+                  "type": "integer"
+                },
+                "profile_drift_changed_paths": {
+                  "type": "integer"
+                },
+                "profile_drift_unsafe_paths": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "llm_retry_stop_loss": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "blocked": {
+              "type": "boolean"
+            },
+            "step_name": {
+              "type": "string"
+            },
             "timed_out_step": {
               "type": "string"
             },
-            "step_name": {
+            "kind": {
               "type": "string"
             },
             "retry_count": {
@@ -315,17 +388,20 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "kind": {
-              "type": "string"
-            },
             "blocked": {
               "type": "boolean"
             },
             "step_name": {
               "type": "string"
             },
+            "kind": {
+              "type": "string"
+            },
             "retry_count": {
               "type": "integer"
+            },
+            "deterministic_ok": {
+              "type": "boolean"
             }
           }
         }

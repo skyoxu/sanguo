@@ -31,7 +31,7 @@ def _stable_unique(values: list[str]) -> list[str]:
 
 def _fork_requested(summary: dict[str, Any], repair_guide: dict[str, Any], marathon_state: dict[str, Any], *, explicit_fork: bool) -> tuple[bool, str]:
     if explicit_fork:
-        return True, "Operator requested a forked continuation run."
+        return False, ""
     approval = repair_guide.get("approval") if isinstance(repair_guide.get("approval"), dict) else {}
     approval_required_action = str(approval.get("required_action") or "").strip().lower()
     approval_status = str(approval.get("status") or "").strip().lower()

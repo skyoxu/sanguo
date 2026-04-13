@@ -317,6 +317,11 @@ class RunSingleTaskLightLaneBatchTests(unittest.TestCase):
             self.assertEqual(1, rc)
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual({"stderr:model output invalid at line <num>": 1}, summary["extract_fail_signature_counts"])
+            self.assertEqual("retry-extract-only", summary["preferred_lane"])
+            self.assertEqual("rerun", summary["recommended_action"])
+            self.assertIn("--task-ids 11", summary["recommended_command"])
+            self.assertNotIn("--task-ids 11,12", summary["recommended_command"])
+            self.assertEqual("extract_model_fail", summary["latest_reason"])
             self.assertEqual(
                 [{"signature": "stderr:model output invalid at line <num>", "count": 1, "task_ids": [11]}],
                 summary["extract_fail_top_signatures"],
@@ -434,6 +439,13 @@ class RunSingleTaskLightLaneBatchTests(unittest.TestCase):
             self.assertEqual("fail", summary["status"])
             self.assertEqual("fail", summary["merge_validation"]["status"])
             self.assertEqual(2, summary["merge_validation"]["hard_issue_count"])
+            self.assertEqual("inspect-first", summary["preferred_lane"])
+            self.assertEqual("inspect", summary["recommended_action"])
+            self.assertEqual("", summary["recommended_command"])
+            self.assertEqual("merge_validation_failed", summary["latest_reason"])
+            self.assertEqual("artifact_integrity", summary["blocked_by"])
+            self.assertEqual("merge_validation_failed", summary["artifact_integrity"])
+            self.assertEqual("no", summary["residual_recording"])
 
     def test_main_should_degrade_future_shards_after_rolling_extract_trigger(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -585,6 +597,13 @@ class RunSingleTaskLightLaneBatchTests(unittest.TestCase):
             self.assertEqual("stop", summary["rolling_extract"]["action"])
             self.assertEqual(2, len(summary["skipped_planned_shards"]))
             self.assertEqual([12], summary["skipped_planned_shards"][0]["task_ids"])
+            self.assertEqual("split-batch", summary["preferred_lane"])
+            self.assertEqual("inspect", summary["recommended_action"])
+            self.assertEqual("", summary["recommended_command"])
+            self.assertEqual("rolling_extract_stop", summary["latest_reason"])
+            self.assertEqual("recent_failure_summary", summary["blocked_by"])
+            self.assertEqual("", summary["artifact_integrity"])
+            self.assertEqual("no", summary["residual_recording"])
 
     def test_main_should_stop_future_shards_after_repeated_failure_family(self) -> None:
         with tempfile.TemporaryDirectory() as td:

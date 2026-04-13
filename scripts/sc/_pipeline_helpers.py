@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from _approval_contract import approval_request_path, approval_response_path
+from _failure_taxonomy import derive_producer_failure_kind
 from _harness_capabilities import harness_capabilities_path
+from _llm_backend import KNOWN_LLM_BACKENDS
 from _pipeline_events import run_events_path
 from _util import repo_root, today_str, write_json, write_text
 
@@ -52,6 +54,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Pass through to sc-test: when task-scoped unit coverage is 0.0%%, retry once without the task filter.",
     )
     parser.add_argument("--llm-agents", default=None, help="llm_review --agents value. Default follows delivery profile.")
+    parser.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="llm_review backend transport. Default: env SC_LLM_BACKEND or codex-cli.",
+    )
     parser.add_argument("--llm-timeout-sec", type=int, default=None, help="llm_review total timeout. Default follows delivery profile.")
     parser.add_argument("--llm-agent-timeout-sec", type=int, default=None, help="llm_review per-agent timeout. Default follows delivery profile.")
     parser.add_argument("--llm-agent-timeouts", default="", help="llm_review per-agent timeout overrides: agent=sec,agent=sec.")
@@ -314,8 +322,10 @@ def write_latest_index(
     path = latest_index_path_fn(task_id)
     summary_payload: dict[str, Any] = {}
     execution_context_payload: dict[str, Any] = {}
+    repair_guide_payload: dict[str, Any] = {}
     summary_path = out_dir / "summary.json"
     execution_context_path = out_dir / "execution-context.json"
+    repair_guide_path = out_dir / "repair-guide.json"
     if summary_path.exists():
         try:
             loaded = json.loads(summary_path.read_text(encoding="utf-8"))
@@ -330,6 +340,13 @@ def write_latest_index(
                 execution_context_payload = loaded
         except Exception:
             execution_context_payload = {}
+    if repair_guide_path.exists():
+        try:
+            loaded = json.loads(repair_guide_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                repair_guide_payload = loaded
+        except Exception:
+            repair_guide_payload = {}
     effective_status = effective_pipeline_publish_status(
         status=status,
         out_dir=out_dir,
@@ -356,6 +373,12 @@ def write_latest_index(
         status=effective_status,
         out_dir=out_dir,
         run_id=run_id,
+    )
+    payload["failure_kind"] = derive_producer_failure_kind(
+        summary_payload=summary_payload,
+        repair_payload=repair_guide_payload,
+        latest_status=effective_status,
+        run_completed=_has_run_completed_event(out_dir=out_dir, run_id=run_id),
     )
     payload["run_type"] = derive_pipeline_run_type(summary_payload)
     payload["reuse_mode"] = _derive_latest_reuse_mode(summary_payload)

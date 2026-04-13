@@ -13,7 +13,7 @@ if str(SC_DIR) not in sys.path:
     sys.path.insert(0, str(SC_DIR))
 
 from _llm_review_acceptance import build_acceptance_semantic_context  # noqa: E402
-from _llm_review_engine import _fit_prompt_context, _prompt_shape_for_agent  # noqa: E402
+from _llm_review_engine import _build_agent_execution_plan, _fit_prompt_context, _prompt_shape_for_agent  # noqa: E402
 from _llm_review_prompting import build_task_context  # noqa: E402
 from _taskmaster import TaskmasterTriplet  # noqa: E402
 
@@ -90,6 +90,34 @@ class LlmReviewPromptShapingTests(unittest.TestCase):
         self.assertEqual("semantic", semantic["task_context_mode"])
         self.assertEqual("semantic", semantic["acceptance_semantic_profile"])
         self.assertEqual("tail", semantic["diff_position"])
+
+    def test_prompt_shape_should_drop_acceptance_semantic_for_low_risk_narrow_reviewers(self) -> None:
+        normal = _prompt_shape_for_agent(
+            "code-reviewer",
+            delivery_profile="fast-ship",
+            resolved_agents=["code-reviewer", "security-auditor"],
+            semantic_gate="warn",
+        )
+
+        self.assertEqual("compact", normal["task_context_mode"])
+        self.assertEqual("none", normal["acceptance_semantic_profile"])
+        self.assertEqual("before_acceptance_semantic", normal["diff_position"])
+
+    def test_prompt_shape_should_drop_acceptance_semantic_for_primary_stage_when_semantic_reviewer_is_deferred(self) -> None:
+        execution_plan = _build_agent_execution_plan(
+            ["code-reviewer", "semantic-equivalence-auditor", "security-auditor"]
+        )
+
+        normal = _prompt_shape_for_agent(
+            "code-reviewer",
+            delivery_profile="fast-ship",
+            resolved_agents=list(execution_plan["primary_llm_agents"]),
+            semantic_gate="warn",
+        )
+
+        self.assertTrue(bool(execution_plan["semantic_deferred"]))
+        self.assertEqual(["code-reviewer", "security-auditor"], execution_plan["primary_llm_agents"])
+        self.assertEqual("none", normal["acceptance_semantic_profile"])
 
     def test_fit_prompt_context_should_fallback_to_summary_diff_before_budget_truncation(self) -> None:
         prompt, meta = _fit_prompt_context(

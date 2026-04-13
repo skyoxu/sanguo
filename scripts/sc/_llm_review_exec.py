@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Git diff and codex execution helpers for llm_review.
+Git diff and LLM execution helpers for llm_review.
 """
 
 from __future__ import annotations
 
 import argparse
-import shutil
-import subprocess
 from pathlib import Path
 
+from _llm_backend import run_llm_exec
 from _llm_review_acceptance import truncate
 from _util import repo_root, run_cmd
 
@@ -93,46 +92,17 @@ def build_diff_context(args: argparse.Namespace) -> str:
 
 def run_codex_exec(
     *,
+    backend: str = "codex-cli",
     prompt: str,
     output_last_message: Path,
     timeout_sec: int,
     codex_configs: list[str] | None = None,
 ) -> tuple[int, str, list[str]]:
-    exe = shutil.which("codex")
-    if not exe:
-        return 127, "codex executable not found in PATH\n", ["codex"]
-
-    extra_config = [c for c in (codex_configs or []) if str(c).strip()]
-    extra_config_args: list[str] = []
-    for c in extra_config:
-        extra_config_args.extend(["-c", str(c)])
-
-    cmd = [
-        exe,
-        "exec",
-        *extra_config_args,
-        "-s",
-        "read-only",
-        "-C",
-        str(repo_root()),
-        "--output-last-message",
-        str(output_last_message),
-        "-",
-    ]
-    try:
-        proc = subprocess.run(
-            cmd,
-            input=prompt,
-            text=True,
-            encoding="utf-8",
-            errors="ignore",
-            cwd=str(repo_root()),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout_sec,
-        )
-    except subprocess.TimeoutExpired:
-        return 124, "codex exec timeout\n", cmd
-    except Exception as exc:  # noqa: BLE001
-        return 1, f"codex exec failed to start: {exc}\n", cmd
-    return proc.returncode or 0, proc.stdout or "", cmd
+    return run_llm_exec(
+        backend=backend,
+        root=repo_root(),
+        prompt=prompt,
+        output_last_message=output_last_message,
+        timeout_sec=timeout_sec,
+        codex_configs=codex_configs,
+    )

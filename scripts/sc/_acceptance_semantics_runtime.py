@@ -45,11 +45,16 @@ def _should_retry_exec(rc: int, trace: str) -> bool:
     return any(marker in lower for marker in _TRANSIENT_TRACE_MARKERS)
 
 
-def _run_model_with_retry(*, prompt: str, task_out: Path, timeout_sec: int) -> tuple[str, dict[str, Any] | None, int]:
+def _run_model_with_retry(*, prompt: str, task_out: Path, timeout_sec: int, llm_backend: str) -> tuple[str, dict[str, Any] | None, int]:
     max_attempts = 2
     last_msg_path = task_out / "output.json"
     for attempt in range(1, max_attempts + 1):
-        rc, trace = run_codex_exec(prompt=prompt, out_last_message=last_msg_path, timeout_sec=int(timeout_sec))
+        rc, trace = run_codex_exec(
+            backend=str(llm_backend or "codex-cli"),
+            prompt=prompt,
+            out_last_message=last_msg_path,
+            timeout_sec=int(timeout_sec),
+        )
         write_text(task_out / f"trace-attempt-{attempt}.log", trace)
         if attempt == 1:
             write_text(task_out / "trace.log", trace)
@@ -159,6 +164,7 @@ def run_alignment_tasks(
     out_dir: Path,
     apply: bool,
     timeout_sec: int,
+    llm_backend: str,
     delivery_profile_context: str,
     max_failures: int,
     structural_for_not_done: bool,
@@ -207,6 +213,7 @@ def run_alignment_tasks(
             prompt=prompt,
             task_out=task_out,
             timeout_sec=int(timeout_sec),
+            llm_backend=str(llm_backend or "codex-cli"),
         )
         if reason != "ok" or not out_obj:
             failed += 1

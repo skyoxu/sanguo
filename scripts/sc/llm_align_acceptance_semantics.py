@@ -21,6 +21,7 @@ import argparse
 import os
 
 from _delivery_profile import build_delivery_profile_context, profile_llm_semantic_gate_all_defaults, resolve_delivery_profile
+from _llm_backend import KNOWN_LLM_BACKENDS, resolve_llm_backend
 
 from _taskmaster import default_paths, load_json  # type: ignore
 from _util import ci_dir, repo_root, run_cmd, today_str, write_json, write_text  # type: ignore
@@ -37,6 +38,7 @@ def apply_delivery_profile_defaults(args: argparse.Namespace) -> argparse.Namesp
     delivery_profile = resolve_delivery_profile(getattr(args, "delivery_profile", None))
     defaults = profile_llm_semantic_gate_all_defaults(delivery_profile)
     args.delivery_profile = delivery_profile
+    args.llm_backend = resolve_llm_backend(getattr(args, "llm_backend", None))
     if args.timeout_sec is None:
         args.timeout_sec = int(defaults.get("timeout_sec", 240) or 240)
     if not str(args.garbled_gate or "").strip():
@@ -51,6 +53,12 @@ def main() -> int:
         default=None,
         choices=["playable-ea", "fast-ship", "standard"],
         help="Delivery profile (default: env DELIVERY_PROFILE or fast-ship).",
+    )
+    ap.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="LLM transport backend. Default: env SC_LLM_BACKEND or codex-cli.",
     )
     ap.add_argument("--scope", default="all", choices=["all", "done", "not-done"])
     ap.add_argument("--task-ids", default="", help="Optional CSV task ids override.")
@@ -242,6 +250,7 @@ def main() -> int:
         out_dir=out_dir,
         apply=bool(args.apply),
         timeout_sec=int(args.timeout_sec),
+        llm_backend=str(args.llm_backend),
         delivery_profile_context=delivery_profile_context,
         max_failures=max_failures,
         structural_for_not_done=bool(args.structural_for_not_done),
@@ -289,6 +298,7 @@ def main() -> int:
             "date": today_str(),
             "apply": bool(args.apply),
             "scope": str(args.scope),
+            "llm_backend": str(args.llm_backend),
             "preflight": {
                 "migrate_optional_hints": bool(preflight_enabled),
                 "dry_run": bool(preflight_dry_run),

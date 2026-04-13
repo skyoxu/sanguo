@@ -157,6 +157,272 @@ def _build_lane_command(args: argparse.Namespace, shard_task_ids: list[int], sha
     return cmd
 
 
+def _build_batch_command(
+    args: argparse.Namespace,
+    *,
+    task_ids: list[int],
+    llm_timeout_sec: int | None = None,
+    max_tasks_per_shard: int | None = None,
+) -> str:
+    cmd: list[str] = [
+        "py",
+        "-3",
+        "scripts/python/run_single_task_light_lane_batch.py",
+        "--task-ids",
+        ",".join(str(task_id) for task_id in list(task_ids)),
+        "--max-tasks-per-shard",
+        str(int(max_tasks_per_shard) if max_tasks_per_shard is not None else int(args.max_tasks_per_shard)),
+        "--delivery-profile",
+        str(args.delivery_profile),
+        "--fill-refs-after-extract-fail",
+        str(args.fill_refs_after_extract_fail),
+        "--fill-refs-mode",
+        str(args.fill_refs_mode),
+        "--downstream-on-extract-fail",
+        str(args.downstream_on_extract_fail),
+        "--downstream-on-extract-family-fail",
+        str(args.downstream_on_extract_family_fail),
+        "--batch-lane",
+        str(args.batch_lane),
+        "--resume-failed-task-from",
+        str(args.resume_failed_task_from),
+    ]
+    batch_preset = str(getattr(args, "batch_preset", "none") or "none").strip()
+    if batch_preset and batch_preset != "none":
+        cmd.extend(["--batch-preset", batch_preset])
+    if args.timeout_sec is not None:
+        cmd.extend(["--timeout-sec", str(int(args.timeout_sec))])
+    if llm_timeout_sec is None:
+        llm_timeout_sec = args.llm_timeout_sec
+    if llm_timeout_sec is not None:
+        cmd.extend(["--llm-timeout-sec", str(int(llm_timeout_sec))])
+    if bool(args.no_resume):
+        cmd.append("--no-resume")
+    if bool(args.stop_on_step_failure):
+        cmd.append("--stop-on-step-failure")
+    if bool(args.no_align_apply):
+        cmd.append("--no-align-apply")
+    cmd.extend(
+        [
+            "--rolling-extract-policy",
+            str(args.rolling_extract_policy),
+            "--rolling-extract-rate-threshold",
+            str(args.rolling_extract_rate_threshold),
+            "--rolling-extract-min-observed-tasks",
+            str(args.rolling_extract_min_observed_tasks),
+            "--rolling-family-policy",
+            str(args.rolling_family_policy),
+            "--rolling-family-streak-threshold",
+            str(args.rolling_family_streak_threshold),
+            "--rolling-timeout-backoff-threshold",
+            str(args.rolling_timeout_backoff_threshold),
+            "--rolling-timeout-backoff-min-observed-tasks",
+            str(args.rolling_timeout_backoff_min_observed_tasks),
+            "--rolling-timeout-backoff-sec",
+            str(args.rolling_timeout_backoff_sec),
+            "--rolling-timeout-backoff-max-llm-timeout-sec",
+            str(args.rolling_timeout_backoff_max_llm_timeout_sec),
+            "--rolling-shard-reduction-factor",
+            str(args.rolling_shard_reduction_factor),
+        ]
+    )
+    return " ".join(cmd)
+
+
+def _recommended_shard_size_for_timeout(args: argparse.Namespace) -> int:
+    base_size = max(1, int(args.max_tasks_per_shard))
+    reduction = float(args.rolling_shard_reduction_factor)
+    return max(1, int(math.ceil(float(base_size) * reduction)))
+
+
+def _derive_batch_route_explanation(route_contract: dict[str, Any]) -> str:
+    reason = str(route_contract.get("latest_reason") or "").strip().lower()
+    if reason == "lane_clean":
+        return "Current batch summary is clean; continue with the normal 5.1 batch lane."
+    if reason == "extract_timeout":
+        return "Extract timed out in the batch; rerun only failed tasks with a larger LLM timeout and smaller shard size."
+    if reason == "extract_model_fail":
+        return "Only extract/model-family failures remain; rerun only failed tasks instead of reopening the full batch."
+    if reason == "soft_steps_failed":
+        return "Only coverage or semantic soft steps failed; rerun only failed tasks from the batch."
+    if reason == "preflight_gap":
+        return "Acceptance preflight failed deterministically; inspect task views and refs before rerunning the batch."
+    if reason == "merge_validation_failed":
+        return "Merged batch summary failed validation; inspect shard summaries before any rerun."
+    if reason == "rolling_extract_stop":
+        return "Rolling extract stop-loss cut the batch; split the remaining tasks or inspect the hotspot before rerunning."
+    if reason == "rolling_family_stop":
+        return "Repeated failure family triggered quarantine; inspect the hotspot and then rerun only the affected slice."
+    if reason == "mixed_failure_families":
+        return "Mixed failure families were observed in the batch; inspect before spending more LLM cost."
+    if reason == "no_processed_tasks":
+        return "No batch shard has been processed yet."
+    return "Inspect the latest batch summary before deciding whether to rerun 5.1."
+
+
+def _refresh_batch_route_contract(
+    summary: dict[str, Any],
+    *,
+    args: argparse.Namespace,
+    selected: list[int],
+    planning_mode: bool = False,
+) -> dict[str, Any]:
+    selected_ids = [int(task_id) for task_id in list(selected)]
+    base_command = _build_batch_command(args, task_ids=selected_ids)
+    if planning_mode:
+        route_contract = {
+            "preferred_lane": "run-5.1",
+            "recommended_action": "continue",
+            "recommended_command": base_command,
+            "forbidden_commands": [],
+            "latest_reason": "self_check",
+            "blocked_by": "n/a",
+            "artifact_integrity": "",
+            "residual_recording": "no",
+        }
+    else:
+        failed_task_ids = [int(task_id) for task_id in list(summary.get("failed_task_ids") or []) if str(task_id).strip()]
+        failure_category_counts = summary.get("failure_category_counts") if isinstance(summary.get("failure_category_counts"), dict) else {}
+        categories = {
+            str(key).strip()
+            for key, value in failure_category_counts.items()
+            if str(key).strip() and int(value or 0) > 0
+        }
+        merge_validation = summary.get("merge_validation") if isinstance(summary.get("merge_validation"), dict) else {}
+        merge_hard_issue_count = int(merge_validation.get("hard_issue_count") or 0)
+        skipped_planned_shards = list(summary.get("skipped_planned_shards") or [])
+        rolling_extract = summary.get("rolling_extract") if isinstance(summary.get("rolling_extract"), dict) else {}
+        rolling_family = summary.get("rolling_family") if isinstance(summary.get("rolling_family"), dict) else {}
+        covered_count = int(summary.get("covered_count") or 0)
+        failed_count = int(summary.get("failed_count") or 0)
+
+        route_contract = {
+            "preferred_lane": "run-5.1",
+            "recommended_action": "continue",
+            "recommended_command": base_command,
+            "forbidden_commands": [],
+            "latest_reason": "lane_clean",
+            "blocked_by": "",
+            "artifact_integrity": "",
+            "residual_recording": "no",
+        }
+        if covered_count <= 0:
+            route_contract.update(
+                {
+                    "preferred_lane": "inspect-first",
+                    "recommended_action": "inspect",
+                    "recommended_command": "",
+                    "latest_reason": "no_processed_tasks",
+                    "blocked_by": "n/a",
+                }
+            )
+        elif merge_hard_issue_count > 0 or bool(summary.get("merged_summary_missing")):
+            route_contract.update(
+                {
+                    "preferred_lane": "inspect-first",
+                    "recommended_action": "inspect",
+                    "recommended_command": "",
+                    "latest_reason": "merge_validation_failed",
+                    "blocked_by": "artifact_integrity",
+                    "artifact_integrity": "merge_validation_failed",
+                }
+            )
+        elif skipped_planned_shards and str(rolling_extract.get("action") or "").strip().lower() == "stop":
+            route_contract.update(
+                {
+                    "preferred_lane": "split-batch",
+                    "recommended_action": "inspect",
+                    "recommended_command": "",
+                    "latest_reason": "rolling_extract_stop",
+                    "blocked_by": "recent_failure_summary",
+                }
+            )
+        elif skipped_planned_shards and str(rolling_family.get("action") or "").strip().lower() == "stop":
+            route_contract.update(
+                {
+                    "preferred_lane": "split-batch",
+                    "recommended_action": "inspect",
+                    "recommended_command": "",
+                    "latest_reason": "rolling_family_stop",
+                    "blocked_by": "recent_failure_summary",
+                }
+            )
+        elif failed_count <= 0:
+            route_contract.update({"preferred_lane": "run-5.1", "recommended_action": "continue", "latest_reason": "lane_clean"})
+        elif "timeout" in categories:
+            rerun_ids = failed_task_ids or selected_ids
+            route_contract.update(
+                {
+                    "preferred_lane": "timeout-backoff-then-rerun",
+                    "recommended_action": "rerun",
+                    "recommended_command": _build_batch_command(
+                        args,
+                        task_ids=rerun_ids,
+                        llm_timeout_sec=int(args.llm_timeout_sec) + int(_LANE._RETRY_TIMEOUT_BOOST_SEC)
+                        if args.llm_timeout_sec is not None
+                        else int(args.rolling_timeout_backoff_sec) + int(_LANE._profile_step_llm_timeout_sec(_repo_root(), step_name="extract", delivery_profile=str(args.delivery_profile))),
+                        max_tasks_per_shard=_recommended_shard_size_for_timeout(args),
+                    ),
+                    "forbidden_commands": [base_command],
+                    "latest_reason": "extract_timeout",
+                }
+            )
+        elif categories and categories <= {"model-fail"}:
+            rerun_ids = failed_task_ids or selected_ids
+            route_contract.update(
+                {
+                    "preferred_lane": "retry-extract-only",
+                    "recommended_action": "rerun",
+                    "recommended_command": _build_batch_command(args, task_ids=rerun_ids),
+                    "latest_reason": "extract_model_fail",
+                }
+            )
+        elif categories and categories <= {"coverage-gap", "semantic-needs-fix"}:
+            rerun_ids = failed_task_ids or selected_ids
+            route_contract.update(
+                {
+                    "preferred_lane": "retry-soft-steps-only",
+                    "recommended_action": "rerun",
+                    "recommended_command": _build_batch_command(args, task_ids=rerun_ids),
+                    "latest_reason": "soft_steps_failed",
+                }
+            )
+        elif categories and categories <= {"preflight-gap"}:
+            route_contract.update(
+                {
+                    "preferred_lane": "inspect-first",
+                    "recommended_action": "inspect",
+                    "recommended_command": "",
+                    "latest_reason": "preflight_gap",
+                    "blocked_by": "deterministic_failure",
+                }
+            )
+        elif failed_count > 0:
+            route_contract.update(
+                {
+                    "preferred_lane": "inspect-first",
+                    "recommended_action": "inspect",
+                    "recommended_command": "",
+                    "latest_reason": "mixed_failure_families",
+                    "blocked_by": "recent_failure_summary",
+                }
+            )
+    summary["preferred_lane"] = str(route_contract.get("preferred_lane") or "").strip()
+    summary["recommended_action"] = str(route_contract.get("recommended_action") or "").strip()
+    summary["recommended_command"] = str(route_contract.get("recommended_command") or "").strip()
+    summary["forbidden_commands"] = [
+        str(item).strip()
+        for item in list(route_contract.get("forbidden_commands") or [])
+        if str(item).strip()
+    ]
+    summary["latest_reason"] = str(route_contract.get("latest_reason") or "").strip()
+    summary["blocked_by"] = str(route_contract.get("blocked_by") or "").strip()
+    summary["artifact_integrity"] = str(route_contract.get("artifact_integrity") or "").strip()
+    summary["residual_recording"] = str(route_contract.get("residual_recording") or "").strip() or "no"
+    summary["recommended_action_why"] = _derive_batch_route_explanation(route_contract)
+    return route_contract
+
+
 def _copy_args_with_overrides(args: argparse.Namespace, **overrides: Any) -> argparse.Namespace:
     data = vars(args).copy()
     data.update(overrides)
@@ -1094,6 +1360,8 @@ def main() -> int:
             if key in merged_payload:
                 summary[key] = merged_payload.get(key)
         summary["extract_family_recommended_actions"] = _build_extract_family_recommended_actions(merged_payload)
+    else:
+        summary["merged_summary_missing"] = True
 
     shard_rc_failures = [entry for entry in shard_entries if int(entry.get("rc") or 0) not in {0, 1}]
     shard_missing_summary = [entry for entry in shard_entries if not bool(entry.get("summary_exists"))]
@@ -1104,6 +1372,8 @@ def main() -> int:
         if not shard_rc_failures and not shard_missing_summary and not merged_missing and merge_hard_issues == 0 and int(summary.get("failed_count") or 0) == 0
         else "fail"
     )
+    if shard_missing_summary:
+        summary["merged_summary_missing"] = True
     summary["finished_at"] = dt.datetime.now().isoformat(timespec="seconds")
     _refresh_batch_route_contract(summary, args=args, selected=selected)
     next_action = _derive_batch_next_action(summary)

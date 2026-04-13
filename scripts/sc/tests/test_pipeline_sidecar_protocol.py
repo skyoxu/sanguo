@@ -206,12 +206,14 @@ class PipelineSidecarProtocolTests(unittest.TestCase):
                 "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
                 summary_payload["recommended_command"],
             )
+            self.assertEqual("step-failed", summary_payload["failure_kind"])
             self.assertEqual(
                 ["py -3 scripts/sc/run_review_pipeline.py --task-id 1"],
                 summary_payload["forbidden_commands"],
             )
             self.assertEqual("needs-fix-fast", summary_payload["chapter6_hints"]["next_action"])
             self.assertEqual("needs-fix-fast", execution_context_payload["recommended_action"])
+            self.assertEqual("step-failed", execution_context_payload["failure_kind"])
             self.assertEqual(
                 "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 1 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
                 execution_context_payload["recommended_command"],
@@ -592,6 +594,7 @@ class PipelineSidecarProtocolTests(unittest.TestCase):
             latest = json.loads(latest_path.read_text(encoding="utf-8"))
             self.assertEqual("running", latest["status"])
             self.assertEqual("in_progress", latest["reason"])
+            self.assertEqual("artifact-incomplete", latest["failure_kind"])
 
             append_run_event(
                 out_dir=out_dir,
@@ -614,6 +617,119 @@ class PipelineSidecarProtocolTests(unittest.TestCase):
             latest = json.loads(latest_path.read_text(encoding="utf-8"))
             self.assertEqual("ok", latest["status"])
             self.assertEqual("pipeline_clean", latest["reason"])
+            self.assertEqual("ok", latest["failure_kind"])
+
+    def test_write_latest_index_should_emit_review_needs_fix_failure_kind(self) -> None:
+        run_id = uuid.uuid4().hex
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            out_dir = tmp_root / f"sc-review-pipeline-task-1-{run_id}"
+            latest_path = tmp_root / "sc-review-pipeline-task-1" / "latest.json"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "cmd": "sc-review-pipeline",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "allow_overwrite": False,
+                        "force_new_run_id": False,
+                        "status": "ok",
+                        "steps": [
+                            {
+                                "name": "sc-test",
+                                "cmd": ["py", "-3", "scripts/sc/test.py"],
+                                "rc": 0,
+                                "status": "ok",
+                                "log": str(out_dir / "sc-test.log"),
+                            }
+                        ],
+                        "started_at_utc": "2026-04-08T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-08T00:00:05+00:00",
+                        "elapsed_sec": 5,
+                        "run_type": "deterministic-only",
+                        "reason": "pipeline_clean",
+                        "reuse_mode": "none",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "execution-context.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "cmd": "sc-review-pipeline",
+                        "date": "2026-04-08",
+                        "task_id": "1",
+                        "requested_run_id": run_id,
+                        "run_id": run_id,
+                        "status": "ok",
+                        "run_type": "deterministic-only",
+                        "reason": "pipeline_clean",
+                        "reuse_mode": "none",
+                        "started_at_utc": "2026-04-08T00:00:00+00:00",
+                        "finished_at_utc": "2026-04-08T00:00:05+00:00",
+                        "delivery_profile": "fast-ship",
+                        "security_profile": "host-safe",
+                        "failed_step": "",
+                        "paths": {},
+                        "git": {},
+                        "recovery": {},
+                        "marathon": {},
+                        "agent_review": {},
+                        "llm_review": {},
+                        "approval": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "repair-guide.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "status": "needs-fix",
+                        "task_id": "1",
+                        "summary_status": "ok",
+                        "failed_step": "",
+                        "approval": {},
+                        "recommendations": [{"id": "fix", "title": "Fix", "why": "Needs follow-up"}],
+                        "generated_from": {},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            append_run_event(
+                out_dir=out_dir,
+                event="run_completed",
+                task_id="1",
+                run_id=run_id,
+                delivery_profile="fast-ship",
+                security_profile="host-safe",
+                status="ok",
+                details={"agent_review_rc": 0},
+            )
+
+            write_latest_index(
+                task_id="1",
+                run_id=run_id,
+                out_dir=out_dir,
+                status="ok",
+                latest_index_path_fn=lambda _task_id: latest_path,
+            )
+
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            self.assertEqual("ok", latest["status"])
+            self.assertEqual("review-needs-fix", latest["failure_kind"])
 
     def test_write_latest_index_should_mark_planned_only_terminal_run_as_incomplete(self) -> None:
         run_id = uuid.uuid4().hex

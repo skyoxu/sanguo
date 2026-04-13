@@ -38,15 +38,90 @@ def _write_master_tasks(path: Path, tasks: list[dict[str, object]]) -> None:
 
 
 class RunSingleTaskLightLaneTests(unittest.TestCase):
-    def test_relative_to_root_should_fallback_to_original_when_path_is_outside_repo(self) -> None:
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td) / "repo"
-            root.mkdir(parents=True, exist_ok=True)
-            outside_path = Path(td) / "outside-artifacts" / "summary.json"
+    def test_derive_route_contract_should_recommend_timeout_backoff_then_rerun(self) -> None:
+        route = lane._derive_route_contract(
+            {
+                "status": "fail",
+                "processed_tasks": 2,
+                "failed_tasks": 1,
+                "failure_category_counts": {"timeout": 1},
+            },
+            selected=[11, 12],
+            delivery_profile="fast-ship",
+            align_apply=True,
+            fill_refs_after_extract_fail="skip",
+            fill_refs_mode="none",
+            downstream_on_extract_fail="skip-soft",
+            downstream_on_extract_family_fail="auto",
+            batch_lane="extract-first",
+            wrapper_timeout_sec=None,
+            llm_timeout_sec=None,
+            root=REPO_ROOT,
+        )
 
-            result = lane._relative_to_root(root, outside_path)
+        self.assertEqual("timeout-backoff-then-rerun", route["preferred_lane"])
+        self.assertEqual("rerun", route["recommended_action"])
+        self.assertIn("--resume-failed-task-from first-failed-step", route["recommended_command"])
+        self.assertIn("--llm-timeout-sec", route["recommended_command"])
+        self.assertEqual(1, len(route["forbidden_commands"]))
+        self.assertEqual("", route["blocked_by"])
+        self.assertEqual("", route["artifact_integrity"])
+        self.assertEqual("no", route["residual_recording"])
 
-            self.assertEqual(str(outside_path).replace("\\", "/"), result)
+    def test_derive_route_contract_should_recommend_retry_soft_steps_only(self) -> None:
+        route = lane._derive_route_contract(
+            {
+                "status": "fail",
+                "processed_tasks": 1,
+                "failed_tasks": 1,
+                "failure_category_counts": {"semantic-needs-fix": 1},
+            },
+            selected=[11],
+            delivery_profile="fast-ship",
+            align_apply=True,
+            fill_refs_after_extract_fail="skip",
+            fill_refs_mode="write-verify",
+            downstream_on_extract_fail="continue",
+            downstream_on_extract_family_fail="auto",
+            batch_lane="standard",
+            wrapper_timeout_sec=None,
+            llm_timeout_sec=None,
+            root=REPO_ROOT,
+        )
+
+        self.assertEqual("retry-soft-steps-only", route["preferred_lane"])
+        self.assertEqual("rerun", route["recommended_action"])
+        self.assertIn("--resume-failed-task-from first-failed-step", route["recommended_command"])
+        self.assertEqual([], route["forbidden_commands"])
+
+    def test_derive_route_contract_should_require_inspection_for_preflight_gap(self) -> None:
+        route = lane._derive_route_contract(
+            {
+                "status": "fail",
+                "processed_tasks": 1,
+                "failed_tasks": 1,
+                "failure_category_counts": {"preflight-gap": 1},
+            },
+            selected=[11],
+            delivery_profile="fast-ship",
+            align_apply=True,
+            fill_refs_after_extract_fail="skip",
+            fill_refs_mode="write-verify",
+            downstream_on_extract_fail="continue",
+            downstream_on_extract_family_fail="auto",
+            batch_lane="standard",
+            wrapper_timeout_sec=None,
+            llm_timeout_sec=None,
+            root=REPO_ROOT,
+        )
+
+        self.assertEqual("inspect-first", route["preferred_lane"])
+        self.assertEqual("inspect", route["recommended_action"])
+        self.assertEqual("", route["recommended_command"])
+        self.assertEqual([], route["forbidden_commands"])
+        self.assertEqual("deterministic_failure", route["blocked_by"])
+        self.assertEqual("", route["artifact_integrity"])
+        self.assertEqual("no", route["residual_recording"])
 
     def test_summary_scope_matches_should_fail_when_selected_ids_change(self) -> None:
         scope = lane._build_resume_scope(
@@ -436,37 +511,14 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
             self.assertEqual(["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"], payload["steps"])
             self.assertEqual(11, payload["task_id_start"])
             self.assertEqual(11, payload["task_id_end"])
-            self.assertEqual(["preflight_extract_guard", "extract", "align"], payload["phase1_step_names"])
-            self.assertEqual(["coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"], payload["phase2_step_names"])
-
-    def test_main_self_check_should_include_preflight_in_phase1_for_multi_task_extract_first(self) -> None:
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            tasks_path = root / ".taskmaster" / "tasks" / "tasks.json"
-            _write_master_tasks(
-                tasks_path,
-                [
-                    {"id": 11, "status": "in-progress"},
-                    {"id": 12, "status": "pending"},
-                ],
-            )
-            out_dir = root / "logs" / "ci" / "self-check-multi"
-            argv = [
-                "run_single_task_light_lane.py",
-                "--task-ids",
-                "11,12",
-                "--out-dir",
-                str(out_dir),
-                "--self-check",
-            ]
-
-            with mock.patch.object(sys, "argv", argv), mock.patch.object(lane, "_repo_root", return_value=root):
-                rc = lane.main()
-
-            self.assertEqual(0, rc)
-            payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
-            self.assertEqual(["preflight_extract_guard", "extract", "align"], payload["phase1_step_names"])
-            self.assertEqual(["coverage", "semantic_gate"], payload["phase2_step_names"])
+            self.assertEqual("run-5.1", payload["preferred_lane"])
+            self.assertEqual("continue", payload["recommended_action"])
+            self.assertIn("--task-ids 11", payload["recommended_command"])
+            self.assertEqual([], payload["forbidden_commands"])
+            self.assertEqual("self_check", payload["latest_reason"])
+            self.assertEqual("n/a", payload["blocked_by"])
+            self.assertEqual("", payload["artifact_integrity"])
+            self.assertEqual("no", payload["residual_recording"])
 
     def test_snapshot_inner_artifacts_should_copy_summary_and_task_subdir(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -719,7 +771,7 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
                 rc = lane.main()
 
             self.assertEqual(1, rc)
-            self.assertGreaterEqual(run_step_mock.call_count, 7)
+            self.assertEqual(7, run_step_mock.call_count)
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("skip-soft", payload["downstream_on_extract_fail_resolved"])
             self.assertEqual("extract-first", payload["batch_lane_resolved"])
@@ -801,13 +853,74 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             row = payload["results"][0]
             self.assertEqual("preflight-gap", payload["failure_category_by_task"]["11"])
+            self.assertEqual("inspect-first", payload["preferred_lane"])
+            self.assertEqual("inspect", payload["recommended_action"])
+            self.assertEqual("", payload["recommended_command"])
+            self.assertEqual("preflight_gap", payload["latest_reason"])
+            self.assertEqual("deterministic_failure", payload["blocked_by"])
+            self.assertEqual("", payload["artifact_integrity"])
+            self.assertEqual("no", payload["residual_recording"])
             self.assertEqual("preflight_extract_guard", row["first_failed_step"])
             self.assertEqual(
                 ["preflight_extract_guard", "extract", "align", "coverage", "semantic_gate", "fill_refs_dry", "fill_refs_write", "fill_refs_verify"],
                 [item["step"] for item in row["steps"]],
             )
-            skipped = {item["step"]: item for item in row["steps"][1:]}
-            self.assertTrue(all(str(item.get("skip_reason")) == "preflight_extract_guard_failed" for item in skipped.values()))
+            self.assertEqual(1, row["steps"][0]["rc"])
+            for item in row["steps"][1:]:
+                self.assertTrue(bool(item.get("skipped")))
+                self.assertEqual("preflight_extract_guard_failed", str(item.get("skip_reason")))
+
+    def test_main_should_emit_retry_soft_steps_route_for_semantic_only_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            tasks_path = root / ".taskmaster" / "tasks" / "tasks.json"
+            _write_master_tasks(tasks_path, [{"id": 11, "status": "in-progress"}])
+            out_dir = root / "logs" / "ci" / "semantic-only"
+            argv = [
+                "run_single_task_light_lane.py",
+                "--task-ids",
+                "11",
+                "--out-dir",
+                str(out_dir),
+            ]
+            responses = [
+                (0, "SC_ACCEPTANCE_EXTRACT_PREFLIGHT status=ok out=fake", ""),
+                (0, "SC_LLM_OBLIGATIONS status=ok out=fake", ""),
+                (0, "SC_ALIGN_ACCEPTANCE status=ok out=fake", ""),
+                (0, "SC_COVERAGE status=ok out=fake", ""),
+                (1, "SC_SEMANTIC_GATE status=fail out=fake", ""),
+                (0, "SC_FILL_REFS status=ok out=fake", ""),
+                (0, "SC_FILL_REFS status=ok out=fake", ""),
+                (0, "SC_FILL_REFS status=ok out=fake", ""),
+            ]
+
+            def _fake_run_step(_root: Path, _cmd: list[str], *, timeout_sec: int):
+                return responses.pop(0)
+
+            def _fake_snapshot_inner_artifacts(*_args, **_kwargs):
+                step_name = str(_kwargs.get("step_name") or "")
+                if step_name == "semantic_gate":
+                    return {"inner_summary": {"status": "fail", "prompt_trimmed": False}}
+                if step_name == "coverage":
+                    return {"inner_summary": {"status": "ok", "uncovered_subtask_ids": []}}
+                return {"inner_summary": {"status": "ok"}}
+
+            with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(lane, "_repo_root", return_value=root), \
+                mock.patch.object(lane, "_run_step", side_effect=_fake_run_step), \
+                mock.patch.object(lane, "_snapshot_inner_artifacts", side_effect=_fake_snapshot_inner_artifacts):
+                rc = lane.main()
+
+            self.assertEqual(1, rc)
+            payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("retry-soft-steps-only", payload["preferred_lane"])
+            self.assertEqual("rerun", payload["recommended_action"])
+            self.assertIn("--resume-failed-task-from first-failed-step", payload["recommended_command"])
+            self.assertEqual([], payload["forbidden_commands"])
+            self.assertEqual("soft_steps_failed", payload["latest_reason"])
+            self.assertEqual("", payload["blocked_by"])
+            self.assertEqual("", payload["artifact_integrity"])
+            self.assertEqual("no", payload["residual_recording"])
 
 
 if __name__ == "__main__":

@@ -79,6 +79,7 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         "reuse_mode",
     }
     allowed = required | {
+        "failure_kind",
         "diagnostics",
         "latest_summary_signals",
         "chapter6_hints",
@@ -130,6 +131,17 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         errors.append("$.run_type: must be a known pipeline run type")
     if not _is_non_empty_string(payload.get("reason")):
         errors.append("$.reason: must be non-empty string")
+    if "failure_kind" in payload and str(payload.get("failure_kind") or "") not in {
+        "schema-invalid",
+        "stale-latest",
+        "artifact-missing",
+        "artifact-incomplete",
+        "aborted",
+        "step-failed",
+        "review-needs-fix",
+        "ok",
+    }:
+        errors.append("$.failure_kind: must be a known failure taxonomy code when present")
     reuse_mode = payload.get("reuse_mode")
     if not isinstance(reuse_mode, str) or reuse_mode not in PIPELINE_REUSE_MODE:
         errors.append(f"$.reuse_mode: must be one of {sorted(PIPELINE_REUSE_MODE)}")

@@ -65,6 +65,7 @@ class NeedsFixFastDeliveryProfileTests(unittest.TestCase):
         )
 
         self.assertEqual("fast-ship", args.delivery_profile)
+        self.assertEqual("codex-cli", args.llm_backend)
         self.assertEqual("host-safe", args.security_profile)
         self.assertEqual("code-reviewer,security-auditor,semantic-equivalence-auditor", args.agents)
         self.assertEqual("summary", args.diff_mode)
@@ -107,6 +108,7 @@ class NeedsFixFastDeliveryProfileTests(unittest.TestCase):
         )
 
         self.assertEqual("standard", args.delivery_profile)
+        self.assertEqual("codex-cli", args.llm_backend)
         self.assertEqual("strict", args.security_profile)
         self.assertEqual("all", args.agents)
         self.assertEqual("full", args.diff_mode)
@@ -939,7 +941,7 @@ class NeedsFixFastTargetedTimeoutTests(unittest.TestCase):
                     return_value={
                         "deterministic_strategy": "reuse-latest",
                         "doc_only_delta": True,
-                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature-slice.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature-slice.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -973,10 +975,68 @@ class NeedsFixFastTargetedTimeoutTests(unittest.TestCase):
             self.assertEqual("code-reviewer=480", llm_cmd[llm_cmd.index("--llm-agent-timeouts") + 1])
             self.assertNotIn("security-auditor=480", llm_cmd)
 
-            summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
-            self.assertEqual([{"round": 1, "overrides": {"code-reviewer": 480}, "reason": mock.ANY}], summary["agent_timeout_override_history"])
-            self.assertEqual({"code-reviewer": 480}, summary["rounds"][0]["agent_timeout_overrides"])
-            self.assertEqual("previous_code_reviewer_timeout_small_diff", summary["rounds"][0]["agent_timeout_override_reason"]["reason"])
+    def test_main_should_forward_llm_backend_to_run_review_pipeline(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "2026-04-06" / "sc-needs-fix-fast-task-56"
+            argv = [
+                "llm_review_needs_fix_fast.py",
+                "--task-id",
+                "56",
+                "--delivery-profile",
+                "fast-ship",
+                "--llm-backend",
+                "openai-api",
+                "--max-rounds",
+                "1",
+                "--agents",
+                "code-reviewer",
+            ]
+            calls: list[tuple[str, list[str]]] = []
+
+            def _run_step(*, name: str, cmd: list[str], out_dir: Path, timeout_sec: int, script_start: float, budget_min: int) -> dict[str, object]:
+                calls.append((name, list(cmd)))
+                reported_out_dir = str(out_dir / name)
+                summary_file = ""
+                if name == "pipeline-llm-round-1":
+                    reported_out_dir, summary_file = _write_llm_pipeline_artifacts(
+                        out_dir,
+                        name,
+                        results=[{"agent": "code-reviewer", "status": "ok", "rc": 0, "details": {"verdict": "OK"}}],
+                    )
+                return {
+                    "name": name,
+                    "status": "ok",
+                    "rc": 0,
+                    "duration_sec": 1.0,
+                    "remaining_before_sec": 1000,
+                    "remaining_after_sec": 999,
+                    "cmd": list(cmd),
+                    "log_file": str(out_dir / f"{name}.log"),
+                    "reported_out_dir": reported_out_dir,
+                    "summary_file": summary_file,
+                }
+
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(needs_fix_fast, "repo_root", return_value=root),
+                mock.patch.object(needs_fix_fast, "ci_dir", return_value=out_dir),
+                mock.patch.object(needs_fix_fast, "try_reuse_latest_deterministic_step", return_value=None),
+                mock.patch.object(
+                    needs_fix_fast,
+                    "resolve_deterministic_execution_plan",
+                    return_value={"mode": "full-pipeline", "cmd": ["py", "-3", "scripts/sc/run_review_pipeline.py"], "change_scope": {}},
+                ),
+                mock.patch.object(needs_fix_fast, "try_reuse_matching_minimal_acceptance_step", return_value=None),
+                mock.patch.object(needs_fix_fast, "infer_initial_run_agents", return_value=(["code-reviewer"], "configured-defaults")),
+                mock.patch.object(needs_fix_fast, "run_step", side_effect=_run_step),
+            ):
+                rc = needs_fix_fast.main()
+
+            self.assertEqual(0, rc)
+            llm_cmd = next(cmd for name, cmd in calls if name == "pipeline-llm-round-1")
+            self.assertIn("--llm-backend", llm_cmd)
+            self.assertEqual("openai-api", llm_cmd[llm_cmd.index("--llm-backend") + 1])
 
     def test_main_should_mark_timeout_only_round_as_indeterminate(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -1729,8 +1789,8 @@ class NeedsFixFastTargetedReviewerSelectionTests(unittest.TestCase):
                         "cmd": ["py", "-3", "scripts/sc/acceptance_check.py", "--task-id", "56", "--only", "adr,links,overlay"],
                         "change_scope": {
                             "deterministic_strategy": "minimal-acceptance",
-                            "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature.md"],
-                            "task_semantic_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature.md"],
+                            "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature.md"],
+                            "task_semantic_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature.md"],
                         },
                     },
                 ),

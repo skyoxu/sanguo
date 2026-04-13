@@ -76,6 +76,19 @@
       "type": "string",
       "minLength": 1
     },
+    "failure_kind": {
+      "type": "string",
+      "enum": [
+        "schema-invalid",
+        "stale-latest",
+        "artifact-missing",
+        "artifact-incomplete",
+        "aborted",
+        "step-failed",
+        "review-needs-fix",
+        "ok"
+      ]
+    },
     "reuse_mode": {
       "type": "string",
       "enum": [

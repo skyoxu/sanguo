@@ -131,9 +131,11 @@ def _summarize_run_events(run_events_path: Path | None) -> dict[str, Any]:
     previous_turn_events: list[dict[str, Any]] = []
     previous_turn_seq = 0
     if latest_turn_seq > 1:
-        previous_turn_candidates = [int(item.get("turn_seq") or 1) for item in normalized if int(item.get("turn_seq") or 1) < latest_turn_seq]
-        if previous_turn_candidates:
-            previous_turn_seq = max(previous_turn_candidates)
+        prior_turns = sorted(
+            {int(item.get("turn_seq") or 1) for item in normalized if int(item.get("turn_seq") or 1) < latest_turn_seq}
+        )
+        if prior_turns:
+            previous_turn_seq = prior_turns[-1]
             previous_turn_events = [item for item in normalized if int(item.get("turn_seq") or 1) == previous_turn_seq]
     previous_turn_id = str(previous_turn_events[-1].get("turn_id") or "").strip() if previous_turn_events else ""
     previous_turn_family_counts: dict[str, int] = {}

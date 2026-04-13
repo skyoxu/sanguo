@@ -36,6 +36,7 @@ from _acceptance_refs_helpers import (  # noqa: E402
     run_codex_exec,
 )
 from _acceptance_refs_prompt import build_prompt  # noqa: E402
+from _llm_backend import KNOWN_LLM_BACKENDS, resolve_llm_backend  # noqa: E402
 from _taskmaster import default_paths, iter_master_tasks, load_json  # noqa: E402
 from _util import ci_dir, repo_root, today_str, write_json, write_text  # noqa: E402
 
@@ -102,6 +103,7 @@ def _run_consensus_for_task(
     timeout_sec: int,
     max_refs_per_item: int,
     consensus_runs: int,
+    llm_backend: str,
 ) -> tuple[bool, dict[str, dict[int, list[str]]], list[dict[str, Any]], list[str]]:
     run_results: list[dict[str, Any]] = []
     cmd_ref: list[str] = []
@@ -109,7 +111,13 @@ def _run_consensus_for_task(
         suffix = f"-run-{run_index:02d}" if consensus_runs > 1 else ""
         last_msg_path = out_dir / f"codex-last-{task_id}{suffix}.txt"
         trace_path = out_dir / f"codex-trace-{task_id}{suffix}.log"
-        rc, trace_out, cmd = run_codex_exec(root=root, prompt=prompt, out_last_message=last_msg_path, timeout_sec=timeout_sec)
+        rc, trace_out, cmd = run_codex_exec(
+            backend=str(llm_backend or "codex-cli"),
+            root=root,
+            prompt=prompt,
+            out_last_message=last_msg_path,
+            timeout_sec=timeout_sec,
+        )
         write_text(trace_path, trace_out)
         if not cmd_ref:
             cmd_ref = cmd
@@ -142,9 +150,15 @@ def _run_consensus_for_task(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Fill acceptance Refs: using Codex CLI (LLM).")
+    ap = argparse.ArgumentParser(description="Fill acceptance Refs with an LLM backend.")
     ap.add_argument("--all", action="store_true", help="Process all tasks in tasks_back/tasks_gameplay.")
     ap.add_argument("--task-id", default=None, help="Process a single task id (master id).")
+    ap.add_argument(
+        "--llm-backend",
+        default=None,
+        choices=KNOWN_LLM_BACKENDS,
+        help="LLM transport backend. Default: env SC_LLM_BACKEND or codex-cli.",
+    )
     ap.add_argument("--write", action="store_true", help="Write JSON files in-place. Without this flag, dry-run.")
     ap.add_argument("--overwrite-existing", action="store_true", help="Overwrite existing Refs: in acceptance items.")
     ap.add_argument("--rewrite-placeholders", action="store_true", help="Rewrite existing placeholder-like Refs.")
@@ -155,6 +169,7 @@ def main() -> int:
     ap.add_argument("--consensus-runs", type=int, default=1, help="Run per-task LLM proposal N times and take majority-success (default: 1).")
     ap.add_argument("--self-check", action="store_true", help="Run deterministic local self-check only.")
     args = ap.parse_args()
+    args.llm_backend = resolve_llm_backend(getattr(args, "llm_backend", None))
 
     if bool(args.self_check):
         out_dir = ci_dir("sc-llm-acceptance-refs-self-check")
@@ -238,6 +253,7 @@ def main() -> int:
             timeout_sec=int(args.timeout_sec),
             max_refs_per_item=int(args.max_refs_per_item),
             consensus_runs=consensus_runs,
+            llm_backend=str(args.llm_backend),
         )
 
         task_result: dict[str, Any] = {
@@ -317,6 +333,7 @@ def main() -> int:
         "out_dir": str(out_dir),
         "status": status,
         "consensus_runs": consensus_runs,
+        "llm_backend": str(args.llm_backend),
         "prd_source": prd_source,
     }
     schema_ok, schema_errors, checked_summary = validate_fill_acceptance_summary(summary)
