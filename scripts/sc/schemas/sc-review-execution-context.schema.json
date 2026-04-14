@@ -265,6 +265,21 @@
             "override": {
               "type": "string"
             },
+            "allow_override_flag": {
+              "type": "string"
+            },
+            "family": {
+              "type": "string"
+            },
+            "same_family_count": {
+              "type": "integer"
+            },
+            "same_family_run_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "fingerprint": {
               "type": "string"
             }

@@ -5565,11 +5565,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task116SplitTests.cs",
       "Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs"
     ],
     "acceptance": [
-      "Fallback audit file rotation enforces the rotation cap and bounded total size policy with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs"
+      "ACC:T116.1: Under repeated fallback writes, retained fallback payloads are trimmed deterministically with oldest-first removal so that both constraints hold simultaneously: retained count <= rotation cap and UTF-8 total bytes <= bounded total size. Refs: Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs",
+      "ACC:T116.2: When primary audit sink write fails, audit write must fallback to fallback sink and still succeed deterministically (return true), emitting fallback warning evidence and preserving deterministic write-order evidence on fallback path. Refs: Game.Core.Tests/Tasks/Task116AuditFallbackRotationCapTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
