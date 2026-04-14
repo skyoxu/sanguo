@@ -3076,9 +3076,9 @@
     "acceptance": [
       "Given synthetic before-and-after contract sets, the CI contract-compatibility gate accepts additive contract changes by default, uses stable identifiers and field-level comparison to classify removals or renames as breaking changes, rejects those breaking changes unless explicit deprecation-window and migration-plan evidence is provided, and on rejection returns a failing CI result plus a summary naming the violating contract and the missing migration evidence. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
       "Compatibility decisions must not rely on filename or path drift: when stable identifiers and compared fields are unchanged, filename/path-only changes must not flip compatibility outcomes. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
-      "Acceptance requires both script-level and xUnit-wrapper coverage for the compatibility checker and CI summary output paths; missing either layer keeps the task failing. Refs: scripts/python/check_domain_contracts.py Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
-      "Focused tests must cover the compatibility rule evaluator with additive and breaking samples, and regression tests must feed synthetic before/after contract sets directly into the diff checker. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
-      "A breaking-change fixture must verify both CI summary generation and a non-zero process exit code for the gate run. Refs: scripts/python/check_domain_contracts.py Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs"
+      "On breaking-change rejection, the compatibility gate returns a non-zero process exit code and emits a machine-readable summary naming the violated stable identifier and missing migration evidence. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "A stable-identifier rename between before/after contract sets is classified as a breaking change and must fail the gate unless both deprecation-window and migration-plan evidence are present for that same stable identifier. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "Migration evidence must be target-bound: evidence that does not match the violated stable identifier must not unblock remove/rename rejection. Refs: Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs"
