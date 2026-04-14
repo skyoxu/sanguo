@@ -6866,7 +6866,7 @@
       "Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
     ],
     "acceptance": [
-      "Deterministic tests show that when writing to the primary audit sink fails, the audit write falls back to user:// and the runtime does not abort. Refs: Game.Core.Tests/Utilities/SecureSavePathPolicyTests.cs"
+      "Deterministic tests show that when writing to the primary audit sink fails, the audit write falls back to user:// and the runtime does not abort. Refs: Game.Core.Tests/Tasks/Task115SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."

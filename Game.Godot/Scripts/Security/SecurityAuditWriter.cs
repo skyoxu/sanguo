@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Game.Core.Security;
 
 namespace Game.Godot.Scripts.Security;
 
@@ -17,14 +18,12 @@ internal static class SecurityAuditWriter
         string? eventId = null,
         object? details = null)
     {
+        const string fallbackDir = "user://logs/security";
+        const string fallbackPath = fallbackDir + "/security-audit.jsonl";
+        var primaryPath = string.IsNullOrWhiteSpace(target) ? fallbackPath : target;
+
         try
         {
-            const string userDir = "user://logs/security";
-            const string userPath = userDir + "/security-audit.jsonl";
-
-            var absDir = ProjectSettings.GlobalizePath(userDir).Replace('\\', '/');
-            DirAccess.MakeDirRecursiveAbsolute(absDir);
-
             var record = new Dictionary<string, object?>
             {
                 ["ts"] = DateTimeOffset.UtcNow.ToString("O"),
@@ -54,24 +53,55 @@ internal static class SecurityAuditWriter
                 record["details"] = details;
             }
 
-            var exists = FileAccess.FileExists(userPath);
-            using var f = FileAccess.Open(userPath, exists ? FileAccess.ModeFlags.ReadWrite : FileAccess.ModeFlags.Write);
-            if (f == null)
-            {
-                throw new InvalidOperationException("FileAccess.Open returned null");
-            }
+            var line = JsonSerializer.Serialize(record) + System.Environment.NewLine;
+            var written = SecurityAuditFallbackPolicy.TryWriteWithFallback(
+                primarySinkPath: primaryPath,
+                fallbackSinkPath: fallbackPath,
+                tryWrite: path => TryWriteLine(path, line),
+                warningSink: message => GD.PushWarning($"SecurityAuditWriter: {message}"));
 
-            if (exists)
+            if (!written)
             {
-                f.SeekEnd();
+                GD.PushWarning("SecurityAuditWriter: both primary and fallback audit writes failed.");
             }
-
-            f.StoreString(JsonSerializer.Serialize(record) + System.Environment.NewLine);
-            f.Flush();
         }
         catch (Exception ex)
         {
             GD.PushWarning($"SecurityAuditWriter: write failed: {ex.Message}");
         }
+    }
+
+    private static bool TryWriteLine(string sinkPath, string line)
+    {
+        EnsureDirectory(sinkPath);
+        var exists = FileAccess.FileExists(sinkPath);
+        using var file = FileAccess.Open(sinkPath, exists ? FileAccess.ModeFlags.ReadWrite : FileAccess.ModeFlags.Write);
+        if (file == null)
+        {
+            return false;
+        }
+
+        if (exists)
+        {
+            file.SeekEnd();
+        }
+
+        file.StoreString(line);
+        file.Flush();
+        return true;
+    }
+
+    private static void EnsureDirectory(string sinkPath)
+    {
+        var normalized = sinkPath.Replace('\\', '/');
+        var idx = normalized.LastIndexOf('/');
+        if (idx <= 0)
+        {
+            return;
+        }
+
+        var dirPath = normalized[..idx];
+        var absDir = ProjectSettings.GlobalizePath(dirPath).Replace('\\', '/');
+        DirAccess.MakeDirRecursiveAbsolute(absDir);
     }
 }

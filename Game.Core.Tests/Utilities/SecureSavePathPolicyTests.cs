@@ -29,7 +29,7 @@ public class SecureSavePathPolicyTests
     [InlineData("user://saves/../evil.json")]
     [InlineData("user://saves\\..\\evil.json")]
     [InlineData("user://../evil.json")]
-    public void ShouldRejectPathTraversal_WhenResolvingSavePath(string input)
+    public void ShouldRejectPathTraversalWhenResolvingSavePath(string input)
     {
         var ok = SecureSavePathPolicyApi.TryResolve("user://saves", input, out var resolved);
 
