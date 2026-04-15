@@ -9188,7 +9188,6 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task156GovernanceTests.cs",
       "Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs"
     ],
     "acceptance": [
