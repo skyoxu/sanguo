@@ -7,8 +7,23 @@ namespace Game.Core.Tests.Contracts;
 
 public sealed class SanguoEventOrderingRulesTests
 {
+    // ACC:T91.1
     [Fact]
-    public void Validate_ShouldThrow_WhenEventTypesNull()
+    [Trait("acceptance", "ACC:T91.1")]
+    public void ShouldExposeDeterministicTurnOrderRuleSet_WhenTask91RunnerBuildsCoreGateUnits()
+    {
+        SanguoEventOrderingRules.EventTypeOrderIndex.Should().ContainKey(SanguoGameTurnStarted.EventType);
+        SanguoEventOrderingRules.EventTypeOrderIndex.Should().ContainKey(SanguoPlayerStateChanged.EventType);
+        SanguoEventOrderingRules.EventTypeOrderIndex.Should().ContainKey(SanguoGameTurnEnded.EventType);
+
+        SanguoEventOrderingRules.EventTypeOrderIndex[SanguoGameTurnStarted.EventType]
+            .Should().BeLessThan(SanguoEventOrderingRules.EventTypeOrderIndex[SanguoPlayerStateChanged.EventType]);
+        SanguoEventOrderingRules.EventTypeOrderIndex[SanguoPlayerStateChanged.EventType]
+            .Should().BeLessThan(SanguoEventOrderingRules.EventTypeOrderIndex[SanguoGameTurnEnded.EventType]);
+    }
+
+    [Fact]
+    public void ShouldThrowArgumentNullException_WhenEventTypesIsNull()
     {
         Action act = () => SanguoEventOrderingRules.Validate(null!);
 
@@ -16,13 +31,13 @@ public sealed class SanguoEventOrderingRulesTests
     }
 
     [Fact]
-    public void Validate_ShouldReturn_WhenEventTypesEmpty()
+    public void ShouldNotThrow_WhenEventTypesIsEmpty()
     {
         SanguoEventOrderingRules.Validate(Array.Empty<string>());
     }
 
     [Fact]
-    public void Validate_ShouldThrow_WhenPlayerStatePrecedesTurnStarted()
+    public void ShouldThrowInvalidOperationException_WhenPlayerStatePrecedesTurnStarted()
     {
         var events = new[]
         {
@@ -36,7 +51,7 @@ public sealed class SanguoEventOrderingRulesTests
     }
 
     [Fact]
-    public void Validate_ShouldThrow_WhenTurnEndedNotLast()
+    public void ShouldThrowInvalidOperationException_WhenTurnEndedIsNotLast()
     {
         var events = new[]
         {
@@ -51,7 +66,7 @@ public sealed class SanguoEventOrderingRulesTests
     }
 
     [Fact]
-    public void Validate_ShouldPass_WhenEventsOrdered()
+    public void ShouldNotThrow_WhenEventsAreOrdered()
     {
         var events = new[]
         {
