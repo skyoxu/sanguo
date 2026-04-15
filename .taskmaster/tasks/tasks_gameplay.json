@@ -4180,12 +4180,10 @@
       "A-008~A-012"
     ],
     "acceptance": [
-      "This split must explicitly implement and exercise the UI assertion gate runner (split from T80), scoped to A-008~A-012 only, and completion is shown by task-specific deterministic evidence for this runner path. Refs: Game.Core.Tests/Tasks/Task92SplitTests.cs Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_additional_details.gd"
+      "This split must explicitly implement and exercise the UI assertion gate runner (split from T80), scoped to A-008~A-012 only, and completion is shown by task-specific deterministic evidence for this runner path. Refs: Game.Core.Tests/Tasks/Task92SplitTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task92SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs",
-      "Tests.Godot/tests/UI/test_event_log_additional_details.gd"
+      "Game.Core.Tests/Tasks/Task92SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
