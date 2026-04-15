@@ -7182,11 +7182,11 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task121SplitTests.cs",
-      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd",
-      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "Tests.Godot/tests/UI/test_task121_new_game_setup_constraints_and_start.gd",
+      "Tests.Godot/tests/UI/test_task121_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "Campaign setup applies the commander roster lock/open/default availability model so locked commanders are unavailable, open commanders are selectable, and default availability remains unchanged when no lock or open override applies. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "Campaign setup applies the commander roster lock/open/default availability model so locked commanders are unavailable, open commanders are selectable, and default availability remains unchanged when no lock or open override applies. Refs: Game.Core.Tests/Tasks/Task121SplitTests.cs Tests.Godot/tests/UI/test_task121_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/test_task121_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
