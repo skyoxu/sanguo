@@ -3480,10 +3480,12 @@
       "A-020"
     ],
     "acceptance": [
-      "Task 80 is accepted only when integration closure is confirmed from evidence produced by split tasks 91 and 92, with no new implementation required in this task. Refs: Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs"
+      "Task 80 is accepted only when integration closure is confirmed from evidence produced by split tasks 91 and 92, with no new implementation required in this task. Refs: Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs",
+      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
@@ -6795,12 +6797,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task138SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
-      "Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
+      "Game.Core.Tests/Tasks/Task138SplitTests.cs"
     ],
     "acceptance": [
-      "Deterministic evidence shows skip is permitted only for rule-blocked scenarios, and non-eligible cases publish a deterministic blocked reason instead of skipping. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs"
+      "Deterministic evidence shows skip is allowed only when no blocking rule is active; when skip eligibility is false, EvaluateSkip rejects the action and publishes a deterministic blocked reason (custom reason if provided, otherwise \"rule-blocked\"). Refs: Game.Core.Tests/Tasks/Task138SplitTests.cs",
+      "Deterministic evidence shows mandatory event-resolution blocking takes precedence over general skip eligibility: when event resolution is active, EvaluateSkip must reject skip and publish \"mandatory-event-resolution-active\" even if eligibility was previously set to true. Refs: Game.Core.Tests/Tasks/Task138SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
