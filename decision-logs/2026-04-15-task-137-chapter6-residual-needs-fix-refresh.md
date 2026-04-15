@@ -1,0 +1,27 @@
+# task-137-chapter6-residual-needs-fix-refresh
+
+- Title: task-137-chapter6-residual-needs-fix-refresh
+- Date: 2026-04-15
+- Status: accepted
+- Supersedes: decision-logs/2026-04-15-task-137-chapter6-residual-needs-fix.md
+- Superseded by: none
+- Branch: task/T137
+- Git Head: 13f95b4250802a12b3fe90319c329d28f58636ca
+- Why now: Task 137 semantic P1 root cause was fixed in task views, but Chapter 6 pipeline still reports reviewer Needs Fix from reused stale artifacts.
+- Context: Deterministic acceptance for task 137 is green (`SC_ACCEPTANCE status=ok`), and subtasks coverage is now `status=ok` for all subtasks. The fork run `e6bb1063ee584a8a94d6423aaa61b3b4` completed in ~3s and reused prior run artifacts from `71b04f6901084881bd17315e8a8b221c` instead of producing new sc-llm-review evidence.
+- Decision: Keep residual Needs Fix open as a protocol stop-loss item; do not pay additional full 6.7/6.8 cost until route exits `inspect-first` / `blocked_by=recent_failure_summary` and a run can produce fresh reviewer artifacts.
+- Consequences: Task has fixed deterministic semantics but cannot be marked fully closed by pipeline reviewer gate in this turn.
+- Recovery impact: Recovery must continue from inspect-first and avoid forbidden full reruns; next closure attempt should prioritize obtaining fresh reviewer outputs rather than repeating cached summaries.
+- Validation:
+  - `py -3 scripts/sc/acceptance_check.py --task-id 137 --out-per-task --delivery-profile fast-ship --security-profile host-safe --require-task-test-refs --subtasks-coverage warn --perf-p95-ms 33 --godot-bin "$env:GODOT_BIN"`
+  - `py -3 scripts/python/dev_cli.py resume-task --task-id 137 --recommendation-only`
+  - `py -3 scripts/python/dev_cli.py chapter6-route --task-id 137 --recommendation-only`
+- Related ADRs: none yet
+- Related execution plans: execution-plans/2026-04-15-task-137-chapter6-residual-followup-refresh.md
+- Related task id(s): `137`
+- Related run id(s): `71b04f6901084881bd17315e8a8b221c`, `e6bb1063ee584a8a94d6423aaa61b3b4`, `81f493c30e67437a8bf5803c1f4b88c6`
+- Related latest.json: `logs/ci/2026-04-15/sc-review-pipeline-task-137/latest.json`
+- Related pipeline artifacts:
+  - `logs/ci/2026-04-15/sc-review-pipeline-task-137-71b04f6901084881bd17315e8a8b221c`
+  - `logs/ci/2026-04-15/sc-review-pipeline-task-137-e6bb1063ee584a8a94d6423aaa61b3b4`
+  - `logs/ci/2026-04-15/sc-acceptance-check-task-137`

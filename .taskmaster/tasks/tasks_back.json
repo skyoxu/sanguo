@@ -8092,12 +8092,12 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task137SplitTests.cs",
-      "Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd"
+      "Tests.Godot/tests/UI/test_task137_event_tile_guard.gd"
     ],
     "acceptance": [
-      "Deterministic core and integration evidence verifies landing on an event tile immediately enters mandatory event resolution. Refs: Game.Core.Tests/Tasks/Task137SplitTests.cs Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd",
-      "UI tests prove skip and unrelated actions are disabled during event-tile resolution. Refs: Tests.Godot/tests/UI/test_task137_event_tile_guard.gd",
-      "Integration tests verify popup text and triggered event name localization during auto-trigger resolution. Refs: Tests.Godot/tests/UI/test_task137_event_tile_guard.gd"
+      "Deterministic core evidence verifies landing on an event tile immediately enters mandatory event resolution and keeps turn closure paused. Refs: Game.Core.Tests/Tasks/Task137SplitTests.cs",
+      "Deterministic core tests prove skip/end-turn/unrelated actions are rejected while mandatory event resolution is active, and refused actions must not close the turn or change mandatory-resolution state. Refs: Game.Core.Tests/Tasks/Task137SplitTests.cs",
+      "Godot UI integration tests verify auto-triggered event outcomes publish visible localized feedback via popup text and localized event name, so mandatory trigger resolution is clearly communicated to players. Refs: Tests.Godot/tests/UI/test_task137_event_tile_guard.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
