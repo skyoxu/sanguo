@@ -8,23 +8,14 @@
 - Scope: Task 137 acceptance semantic alignment (ACC1/ACC2/ACC3) and reviewer gate closure.
 - Current step: Deterministic and subtasks-coverage evidence is green; waiting for Chapter 6 route to allow a non-stale reviewer refresh path.
 - Last completed step: Updated Task 137 acceptance ACC3 in `tasks_back.json` / `tasks_gameplay.json` to localized feedback semantics and revalidated `sc-acceptance-check-task-137`.
-- Stop-loss:
-  - Keep honoring `forbidden_commands=py -3 scripts/sc/run_review_pipeline.py --task-id 137`.
-  - Do not reopen full 6.7 while `preferred_lane=inspect-first` and `blocked_by=recent_failure_summary` persists.
-  - Do not treat cached reviewer markdown as fresh closure evidence.
-- Next action:
-  - `py -3 scripts/python/dev_cli.py resume-task --task-id 137 --recommendation-only`
-  - `py -3 scripts/python/dev_cli.py chapter6-route --task-id 137 --recommendation-only`
-  - If route still inspect-first: continue residual mode and wait for allowed fresh reviewer lane.
+- Stop-loss: Keep honoring `forbidden_commands=py -3 scripts/sc/run_review_pipeline.py --task-id 137`, avoid full 6.7 under `inspect-first` + `recent_failure_summary`, and do not treat cached reviewer markdown as fresh closure evidence.
+- Next action: Run `py -3 scripts/python/dev_cli.py resume-task --task-id 137 --recommendation-only` then `py -3 scripts/python/dev_cli.py chapter6-route --task-id 137 --recommendation-only`; if route remains inspect-first, continue residual mode.
 - Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 137 --resume`
-- Open questions:
-  - What exact route state will permit a fresh reviewer generation without violating rerun guard?
-- Exit criteria:
-  - Agent-review no longer reports `llm-code-reviewer-needs-fix` / `llm-security-auditor-needs-fix` for task 137, and chapter6 route exits inspect-first stop-loss.
+- Open questions: Which exact route/approval state will allow fresh reviewer generation without violating rerun guards.
+- Exit criteria: Agent-review no longer reports `llm-code-reviewer-needs-fix` and `llm-security-auditor-needs-fix`, and chapter6 route exits inspect-first stop-loss for task 137.
+- Related ADRs: `ADR-0004`, `ADR-0005`, `ADR-0020`
 - Related decision logs: `decision-logs/2026-04-15-task-137-chapter6-residual-needs-fix-refresh.md`
 - Related task id(s): `137`
-- Related run id(s): `71b04f6901084881bd17315e8a8b221c`, `e6bb1063ee584a8a94d6423aaa61b3b4`
-- Related artifacts:
-  - `logs/ci/2026-04-15/sc-review-pipeline-task-137-e6bb1063ee584a8a94d6423aaa61b3b4/summary.json`
-  - `logs/ci/2026-04-15/sc-review-pipeline-task-137-e6bb1063ee584a8a94d6423aaa61b3b4/run-events.jsonl`
-  - `logs/ci/2026-04-15/sc-acceptance-check-task-137/summary.json`
+- Related run id: `71b04f6901084881bd17315e8a8b221c`, `e6bb1063ee584a8a94d6423aaa61b3b4`
+- Related latest.json: `logs/ci/2026-04-15/sc-review-pipeline-task-137/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-04-15/sc-review-pipeline-task-137-e6bb1063ee584a8a94d6423aaa61b3b4/summary.json`, `logs/ci/2026-04-15/sc-review-pipeline-task-137-e6bb1063ee584a8a94d6423aaa61b3b4/run-events.jsonl`, `logs/ci/2026-04-15/sc-acceptance-check-task-137/summary.json`
