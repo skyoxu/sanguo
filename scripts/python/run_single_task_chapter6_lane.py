@@ -542,8 +542,26 @@ def _parse_json_stdout(stdout: str) -> dict[str, Any]:
     text = str(stdout or "").strip()
     if not text:
         return {}
-    payload = json.loads(text)
-    return payload if isinstance(payload, dict) else {}
+    # dev_cli may append helper lines (for example: "[dev_cli] running: ...")
+    # after emitting a JSON payload. Parse the first JSON object and ignore
+    # trailing diagnostics to keep the orchestrator robust.
+    try:
+        payload = json.loads(text)
+        return payload if isinstance(payload, dict) else {}
+    except json.JSONDecodeError:
+        pass
+
+    decoder = json.JSONDecoder()
+    for idx, ch in enumerate(text):
+        if ch != "{":
+            continue
+        try:
+            payload, _end = decoder.raw_decode(text[idx:])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(payload, dict):
+            return payload
+    return {}
 
 
 def _run_json_step(out_dir: Path, *, name: str, cmd: list[str]) -> tuple[dict[str, Any], dict[str, Any]]:

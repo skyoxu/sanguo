@@ -8,6 +8,26 @@ namespace Game.Core.Tests.Contracts;
 
 public sealed class SanguoEventContractsTests
 {
+    // ACC:T91.5
+    [Fact]
+    [Trait("acceptance", "ACC:T91.5")]
+    public void ShouldExposeTask91CoreContractEventTypes_WhenCoreAssertionRunnerRequiresA020Coverage()
+    {
+        var task91RelevantEvents = new[]
+        {
+            SanguoGameStarted.EventType,
+            SanguoGameSaved.EventType,
+            SanguoGameLoaded.EventType,
+            SanguoBossChallengePrompted.EventType,
+            SanguoGameEnded.EventType,
+        };
+
+        task91RelevantEvents.Should().OnlyContain(eventType =>
+            !string.IsNullOrWhiteSpace(eventType) &&
+            eventType.StartsWith("core.sanguo.", StringComparison.Ordinal));
+        task91RelevantEvents.Should().OnlyHaveUniqueItems();
+    }
+
     [Fact]
     public void ShouldExposeExpectedEventTypes_WhenReadingSanguoContractConstants()
     {
