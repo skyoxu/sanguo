@@ -182,12 +182,12 @@ public static class CoreAssertionGateRunner
         var payload = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["authToken"] = "token-abc-123",
-            ["eventType"] = "core.traceability.checked",
+            ["eventType"] = EventTypes.TraceabilityChecked,
         };
         var sanitized = DiagnosticPayloadDesensitizationPolicy.Apply("release", payload);
         var ok = sanitized.TryGetValue("authToken", out var tokenValue) &&
                  tokenValue.StartsWith("[masked:", StringComparison.Ordinal) &&
-                 string.Equals(sanitized["eventType"], "core.traceability.checked", StringComparison.Ordinal);
+                 string.Equals(sanitized["eventType"], EventTypes.TraceabilityChecked, StringComparison.Ordinal);
 
         return ok
             ? new CoreAssertionGateEvaluation(true, "Release-mode payload desensitization is active.")
@@ -205,14 +205,14 @@ public static class CoreAssertionGateRunner
         var diagnostics = new[]
         {
             new DomainEvent(
-                Type: "core.traceability.checked",
-                Source: "core.gate.runner",
+                Type: EventTypes.TraceabilityChecked,
+                Source: EventTypes.GateRunnerSource,
                 Data: new RunnerEventData("expired"),
                 Timestamp: settlementUtc.AddDays(-5),
                 Id: "run-expired"),
             new DomainEvent(
-                Type: "core.traceability.checked",
-                Source: "core.gate.runner",
+                Type: EventTypes.TraceabilityChecked,
+                Source: EventTypes.GateRunnerSource,
                 Data: new RunnerEventData("in-window"),
                 Timestamp: settlementUtc.AddHours(-4),
                 Id: "run-in-window"),
