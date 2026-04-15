@@ -10,7 +10,11 @@ public enum EventTileType
 
 public sealed class EventTileAutoTriggerEnforcementModule
 {
+    public const string SkipBlockedReasonMandatoryEventResolutionActive = "mandatory-event-resolution-active";
+    public const string SkipBlockedReasonRuleBlocked = "rule-blocked";
+
     private readonly List<string> auditTrail = new();
+    private string? ruleBlockedSkipReason = SkipBlockedReasonRuleBlocked;
 
     public bool IsAwaitingMandatoryEventResolution { get; private set; }
 
@@ -23,6 +27,7 @@ public sealed class EventTileAutoTriggerEnforcementModule
     public bool IsShopEnabled { get; private set; } = true;
 
     public IReadOnlyList<string> AuditTrail => auditTrail;
+    public string? LastSkipBlockedReason { get; private set; }
 
     public void OnPlayerLanded(EventTileType tileType)
     {
@@ -33,6 +38,7 @@ public sealed class EventTileAutoTriggerEnforcementModule
             IsAwaitingMandatoryEventResolution = true;
             IsTurnClosed = false;
             IsSkipEnabled = false;
+            ruleBlockedSkipReason = SkipBlockedReasonMandatoryEventResolutionActive;
             IsEndTurnEnabled = false;
             IsShopEnabled = false;
             auditTrail.Add("MandatoryEventResolutionEntered");
@@ -42,14 +48,43 @@ public sealed class EventTileAutoTriggerEnforcementModule
         IsAwaitingMandatoryEventResolution = false;
         IsTurnClosed = true;
         IsSkipEnabled = true;
+        ruleBlockedSkipReason = null;
         IsEndTurnEnabled = true;
         IsShopEnabled = true;
         auditTrail.Add("TurnEnded");
     }
 
-    public bool TrySkip() => !IsAwaitingMandatoryEventResolution && IsSkipEnabled;
+    public void SetSkipEligibility(bool isEligible, string? blockedReason = null)
+    {
+        IsSkipEnabled = isEligible;
+        ruleBlockedSkipReason = isEligible
+            ? null
+            : string.IsNullOrWhiteSpace(blockedReason) ? SkipBlockedReasonRuleBlocked : blockedReason.Trim();
+    }
+
+    public SkipAttemptDecision EvaluateSkip()
+    {
+        if (IsAwaitingMandatoryEventResolution)
+        {
+            LastSkipBlockedReason = SkipBlockedReasonMandatoryEventResolutionActive;
+            return new SkipAttemptDecision(false, LastSkipBlockedReason);
+        }
+
+        if (!IsSkipEnabled)
+        {
+            LastSkipBlockedReason = ruleBlockedSkipReason ?? SkipBlockedReasonRuleBlocked;
+            return new SkipAttemptDecision(false, LastSkipBlockedReason);
+        }
+
+        LastSkipBlockedReason = null;
+        return new SkipAttemptDecision(true, null);
+    }
+
+    public bool TrySkip() => EvaluateSkip().IsAllowed;
 
     public bool TryEndTurn() => !IsAwaitingMandatoryEventResolution && IsEndTurnEnabled;
 
     public bool TryOpenShop() => !IsAwaitingMandatoryEventResolution && IsShopEnabled;
 }
+
+public readonly record struct SkipAttemptDecision(bool IsAllowed, string? BlockedReason);
