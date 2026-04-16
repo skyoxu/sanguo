@@ -5649,11 +5649,11 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task94SplitIntegrationTests.cs",
-      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd",
-      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "Tests.Godot/tests/UI/test_task94_new_game_setup_constraints_and_start.gd",
+      "Tests.Godot/tests/UI/test_task94_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "This master task is accepted only when the commander roster and strategem pick flow integration is evidenced by the completed outputs of split tasks 121 and 122; without that split-task evidence, the integration closure is not accepted. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "This master task is accepted only when the commander roster and strategem pick flow integration is evidenced by the completed outputs of split tasks 121 and 122; without that split-task evidence, the integration closure is not accepted. Refs: Game.Core.Tests/Tasks/Task94SplitIntegrationTests.cs Tests.Godot/tests/UI/test_task94_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/test_task94_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
