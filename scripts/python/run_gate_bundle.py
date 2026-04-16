@@ -218,6 +218,16 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
             "cmd": ["py", "-3", "scripts/sc/check_acceptance_garbled.py"],
         },
         {
+            "name": "signal_compliance_workflow_hard_gate",
+            "cmd": [
+                "py",
+                "-3",
+                "scripts/python/check_signal_compliance_workflow_hard_gate.py",
+                "--task-files",
+                *task_files,
+            ],
+        },
+        {
             "name": "no_hardcoded_core_events",
             "cmd": ["py", "-3", "scripts/python/check_no_hardcoded_core_events.py"],
         },

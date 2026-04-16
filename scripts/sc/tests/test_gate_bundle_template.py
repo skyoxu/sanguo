@@ -55,6 +55,27 @@ class GateBundleTemplateTests(unittest.TestCase):
         )
         self.assertEqual("missing_task_files", skip_reason)
 
+    def test_hard_mode_should_include_signal_compliance_workflow_gate(self) -> None:
+        commands = gate_bundle._hard_gate_commands_with_options(
+            [".taskmaster/tasks/tasks_back.json", ".taskmaster/tasks/tasks_gameplay.json"],
+            False,
+            -1,
+        )
+        by_name = {str(item["name"]): item for item in commands}
+
+        self.assertIn("signal_compliance_workflow_hard_gate", by_name)
+        self.assertEqual(
+            [
+                "py",
+                "-3",
+                "scripts/python/check_signal_compliance_workflow_hard_gate.py",
+                "--task-files",
+                ".taskmaster/tasks/tasks_back.json",
+                ".taskmaster/tasks/tasks_gameplay.json",
+            ],
+            by_name["signal_compliance_workflow_hard_gate"]["cmd"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
