@@ -21,7 +21,10 @@ public sealed record SanguoSaveSnapshot(
     long TreasuryMinorUnits,
     string ContentPackId = "",
     int ContentPackVersion = 0,
-    IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>>? ActionCardsByPlayerId = null
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>>? ActionCardsByPlayerId = null,
+    string RunMode = "campaign",
+    string CommanderId = "c_liu_bei",
+    int RandomSeed = 0
 );
 
 /// <summary>
@@ -43,4 +46,3 @@ public sealed record SanguoSaveCityEconomy(
     decimal BasePrice,
     decimal BaseToll
 );
-

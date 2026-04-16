@@ -53,6 +53,9 @@ public sealed class SanguoEventContractsTests
             StartingMoneyPreset: 10000,
             GlobalEventIntervalTurns: 10,
             RandomSeed: 123,
+            RunMode: "campaign",
+            CommanderId: "c_liu_bei",
+            Difficulty: "normal",
             PlayerOrder: new[] { "p1", "ai-1", "ai-2", "ai-3" },
             CharacterAssignments: new Dictionary<string, string>
             {

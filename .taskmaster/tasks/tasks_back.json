@@ -5586,18 +5586,17 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task93V3Tests.cs",
-      "Tests.Godot/tests/UI/test_task93_campaign_ui_visibility.gd",
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
-      "Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs"
+      "Game.Core.Tests/Tasks/Task93V3Tests.cs",
+      "Tests.Godot/tests/UI/test_task93_campaign_ui_visibility.gd"
     ],
     "acceptance": [
-      "A campaign run start uses an additive start config and game-start payload that explicitly include campaign run mode, commander, strategems, map, and seed with defined defaults instead of relying on transient UI state. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "A campaign run start uses an additive start config and game-start payload that explicitly include campaign run mode, commander, strategems, map, and seed with defined defaults instead of relying on transient UI state. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task93V3Tests.cs",
       "The campaign start payload remains additive and forward-compatible so future campaign-only fields do not require a breaking start-flow rewrite. Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs",
       "Integration tests start a campaign run and assert runtime state contains all start payload fields after bootstrap handoff (including mode, commander, strategems, map, seed, and difficulty). Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs",
       "Save header remains sufficient to explain and reproduce the run context without inspecting transient UI state after save/load. Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs",
       "Save/load regression tests verify campaign header persistence keeps mode identity, selected commander, and seed so run context remains reproducible after reload. Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs",
-      "Verification includes task-specific xUnit mapping/default checks and GdUnit NewGameConfig serialization plus start handoff checks for the same payload contract. Refs: Tests.Godot/tests/UI/test_task93_campaign_ui_visibility.gd"
+      "Verification includes task-specific xUnit mapping/default checks and GdUnit NewGameConfig serialization plus start handoff checks for the same payload contract. Refs: Game.Core.Tests/Tasks/Task93V3Tests.cs Tests.Godot/tests/UI/test_task93_campaign_ui_visibility.gd"
     ],
     "test_strategy": [
       "xUnit validates payload mapping and defaults; GdUnit validates NewGameConfig serialization and start handoff."

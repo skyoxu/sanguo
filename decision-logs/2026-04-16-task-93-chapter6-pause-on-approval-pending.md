@@ -1,0 +1,21 @@
+# Task 93 Chapter6 pause on approval pending
+
+- Title: Task 93 Chapter6 pause on approval pending
+- Date: 2026-04-16
+- Status: proposed
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T93
+- Git Head: e3406548a849411d1bf15c81a609e5390566c815
+- Why now: Task 93 chapter6 pipeline run a48da94d06a14e69acd4cdb0cb222af6 is blocked by approval pending and forbids rerun/resume/fork commands.
+- Context: resume-task/chapter6-route both report blocked_by=approval_pending and next_action=pause after 6.7 preflight stop-loss.
+- Decision: Pause Chapter6 execution for Task 93 and wait for approval sidecar transition before any fork/resume/rerun.
+- Consequences: No further 6.7 or 6.8 cost is paid in this state. Implementation and deterministic tests remain completed but task closure is pending approval-gated review continuation.
+- Recovery impact: Follow approval state machine strictly: pending->pause, approved->fork, denied->resume, invalid/mismatched->inspect. Use latest summary/repair-guide/run-events as evidence.
+- Validation: Evidence paths: logs/ci/2026-04-16/sc-review-pipeline-task-93-a48da94d06a14e69acd4cdb0cb222af6/{summary.json,repair-guide.json,run-events.jsonl}; logs/ci/2026-04-16/task-resume/task-93-resume-summary.json
+- Related ADRs: none yet
+- Related execution plans: `execution-plans/2026-04-16-task-93-module-campaign-run-mode-and-start-payload-completion-acceptance-test-generation-plan.md`
+- Related task id(s): `93`
+- Related run id: `a48da94d06a14e69acd4cdb0cb222af6`
+- Related latest.json: `logs/ci/2026-04-16/sc-review-pipeline-task-93/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-04-16/sc-review-pipeline-task-93-a48da94d06a14e69acd4cdb0cb222af6`
