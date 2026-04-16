@@ -168,7 +168,7 @@ class ResumeTaskTests(unittest.TestCase):
             approval=approval,
         )
 
-        self.assertEqual("", recommended)
+        self.assertEqual(commands["inspect"], recommended)
         self.assertIn(commands["resume"], forbidden)
         self.assertIn(commands["fork"], forbidden)
         self.assertIn(commands["rerun"], forbidden)
@@ -724,7 +724,7 @@ class ResumeTaskTests(unittest.TestCase):
             "latest_decision_log": "",
             "agent_review": {},
             "active_task": {},
-            "recommended_command": "",
+            "recommended_command": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
             "forbidden_commands": [
                 "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume",
                 "py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork",
@@ -740,6 +740,7 @@ class ResumeTaskTests(unittest.TestCase):
         self.assertIn("- Approval allowed actions: inspect, pause", text)
         self.assertIn("- Approval blocked actions: fork, resume, rerun", text)
         self.assertIn("- Approval reason: Await fork approval before continuing recovery.", text)
+        self.assertIn("- Recommended command: `py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15`", text)
 
     def test_build_resume_payload_should_append_recent_failure_signals(self) -> None:
         inspection = {

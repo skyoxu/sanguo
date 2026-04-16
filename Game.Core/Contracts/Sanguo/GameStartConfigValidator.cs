@@ -30,6 +30,16 @@ public static class GameStartConfigValidator
             list.Add("map_id_empty");
         }
 
+        if (string.IsNullOrWhiteSpace(cfg.ActiveStrategemId))
+        {
+            list.Add("active_strategem_id_empty");
+        }
+
+        if (string.IsNullOrWhiteSpace(cfg.PassiveStrategemId))
+        {
+            list.Add("passive_strategem_id_empty");
+        }
+
         if (!AllowedPlayersCounts.Contains(cfg.PlayersCount))
         {
             list.Add($"players_count_invalid:{cfg.PlayersCount}");
@@ -79,4 +89,3 @@ public static class GameStartConfigValidator
         return list.Count == 0;
     }
 }
-

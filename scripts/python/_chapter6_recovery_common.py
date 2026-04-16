@@ -114,7 +114,7 @@ def recommended_command(
     if action in blocked_actions or (allowed_actions and action not in allowed_actions):
         action = "inspect"
     if action == "pause":
-        return ""
+        return str(commands.get("inspect") or "").strip()
     return _command_for_action(action, commands)
 
 

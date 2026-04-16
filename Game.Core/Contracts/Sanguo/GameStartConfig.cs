@@ -19,6 +19,7 @@ public sealed record GameStartConfig(
     [property: JsonPropertyName("starting_money_preset")] int StartingMoneyPreset,
     [property: JsonPropertyName("global_event_interval_turns")] int GlobalEventIntervalTurns,
     [property: JsonPropertyName("random_seed")] int RandomSeed,
-    [property: JsonPropertyName("character_assignments")] IReadOnlyDictionary<string, string> CharacterAssignments
+    [property: JsonPropertyName("character_assignments")] IReadOnlyDictionary<string, string> CharacterAssignments,
+    [property: JsonPropertyName("active_strategem_id")] string ActiveStrategemId = "strat_active_default",
+    [property: JsonPropertyName("passive_strategem_id")] string PassiveStrategemId = "strat_passive_default"
 );
-

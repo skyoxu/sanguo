@@ -971,20 +971,30 @@ def inspect_run_artifacts(
             candidate_commands=payload["candidate_commands"],
         )
     else:
-        payload["recommended_action"] = str(summary.get("recommended_action") or payload["chapter6_hints"].get("next_action") or "").strip()
+        chapter6_next_action = str(payload["chapter6_hints"].get("next_action") or "").strip()
+        summary_recommended_action = str(summary.get("recommended_action") or "").strip()
+        if str(failure.get("code") or "").strip().lower() == "ok":
+            payload["recommended_action"] = chapter6_next_action or "continue"
+        else:
+            payload["recommended_action"] = summary_recommended_action or chapter6_next_action
         if not str(payload.get("recommended_action") or "").strip():
             payload["recommended_action"] = repair_action
         payload["candidate_commands"] = _merge_candidate_commands(
             build_candidate_commands(payload["task_id"], payload["paths"]["latest"]),
             summary_candidate_commands,
         )
-        payload["recommended_command"] = str(summary.get("recommended_command") or "").strip() or repair_command or build_recommended_command(
+        summary_recommended_command = str(summary.get("recommended_command") or "").strip()
+        if str(failure.get("code") or "").strip().lower() == "ok":
+            summary_recommended_command = ""
+        payload["recommended_command"] = summary_recommended_command or repair_command or build_recommended_command(
             payload["recommended_action"],
             payload["candidate_commands"],
             payload["chapter6_hints"],
             approval,
         )
         summary_forbidden_commands = [str(item).strip() for item in list(summary.get("forbidden_commands") or []) if str(item).strip()]
+        if str(failure.get("code") or "").strip().lower() == "ok":
+            summary_forbidden_commands = []
         payload["forbidden_commands"] = summary_forbidden_commands or build_forbidden_commands(
             recommended_action=payload["recommended_action"],
             commands=payload["candidate_commands"],

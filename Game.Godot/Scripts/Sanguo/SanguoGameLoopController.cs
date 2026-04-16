@@ -700,7 +700,9 @@ public partial class SanguoGameLoopController : Node
             StartingMoneyPreset: 0,
             GlobalEventIntervalTurns: 0,
             RandomSeed: 0,
-            CharacterAssignments: new Dictionary<string, string>());
+            CharacterAssignments: new Dictionary<string, string>(),
+            ActiveStrategemId: string.Empty,
+            PassiveStrategemId: string.Empty);
         error = string.Empty;
 
         if (string.IsNullOrWhiteSpace(json))
@@ -783,8 +785,9 @@ public partial class SanguoGameLoopController : Node
             StartingMoneyPreset: DefaultStartingMoneyPreset,
             GlobalEventIntervalTurns: DefaultGlobalEventIntervalTurns,
             RandomSeed: randomSeed,
-            CharacterAssignments: assignments
-        );
+            CharacterAssignments: assignments,
+            ActiveStrategemId: "strat_active_default",
+            PassiveStrategemId: "strat_passive_default");
     }
 
     private void PublishGameStarted(GameStartConfig cfg)

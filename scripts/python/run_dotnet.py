@@ -86,6 +86,50 @@ def pick_latest_existing(paths):
     return max(existing, key=lambda p: os.path.getmtime(p))
 
 
+def _parse_solution_project_paths(solution_path):
+    try:
+        text = Path(solution_path).read_text(encoding='utf-8-sig', errors='ignore')
+    except OSError:
+        return []
+    paths = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith('Project('):
+            continue
+        parts = [part.strip().strip('"') for part in line.split('=', 1)[-1].split(',')]
+        if len(parts) < 2:
+            continue
+        candidate = parts[1].replace('\\\\', '\\')
+        if candidate.lower().endswith('.csproj'):
+            paths.append(candidate)
+    return paths
+
+
+def _looks_like_test_project(project_path):
+    normalized = str(project_path or '').replace('\\', '/').lower()
+    if 'test' in normalized:
+        return True
+    try:
+        text = Path(project_path).read_text(encoding='utf-8', errors='ignore').lower()
+    except OSError:
+        return False
+    return '<istestproject>true</istestproject>' in text
+
+
+def resolve_dotnet_test_target(resolved_solution, *, root):
+    target = Path(resolved_solution)
+    if target.suffix.lower() != '.sln':
+        return resolved_solution
+    solution_path = target if target.is_absolute() else Path(root) / target
+    projects = _parse_solution_project_paths(solution_path)
+    for project in projects:
+        project_path = Path(project)
+        disk_path = project_path if project_path.is_absolute() else Path(root) / project_path
+        if _looks_like_test_project(disk_path):
+            return str(project_path)
+    return resolved_solution
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--solution', default='')
@@ -96,6 +140,7 @@ def main():
 
     root = os.getcwd()
     resolved_solution = resolve_test_solution_arg(args.solution, root=Path(root))
+    test_target = resolve_dotnet_test_target(resolved_solution, root=root)
     date = dt.date.today().strftime('%Y-%m-%d')
     out_dir = args.out_dir or os.path.join(root, 'logs', 'unit', date)
     ensure_dir(out_dir)
@@ -103,6 +148,7 @@ def main():
     summary = {
         'solution': resolved_solution,
         'solution_input': args.solution,
+        'test_target': test_target,
         'configuration': args.configuration,
         'filter': args.filter or '',
         'out_dir': out_dir,
@@ -110,7 +156,10 @@ def main():
     }
 
     # Restore
-    rc, out = run_cmd(['dotnet', 'restore', resolved_solution], cwd=root)
+    rc, out = run_cmd(
+        ['dotnet', 'restore', resolved_solution, '--property:RestoreBuildInParallel=false'],
+        cwd=root,
+    )
     with io.open(os.path.join(out_dir, 'dotnet-restore.log'), 'w', encoding='utf-8') as f:
         f.write(out)
     summary['restore_rc'] = rc
@@ -121,8 +170,9 @@ def main():
         return 1
 
     # Test with coverage
-    test_cmd = ['dotnet', 'test', resolved_solution,
+    test_cmd = ['dotnet', 'test', test_target,
                 f'-c', args.configuration,
+                '--no-restore',
                 '--collect:XPlat Code Coverage',
                 '--logger', 'trx;LogFileName=tests.trx']
     if args.filter:
@@ -140,8 +190,14 @@ def main():
     cov_src = pick_latest_existing(artifacts.get('coverage_paths') or [])
 
     # Fallback: search inside Game.Core.Tests/TestResults only (avoid logs/**).
+    test_target_path = Path(test_target)
+    if test_target_path.suffix.lower() == '.csproj':
+        test_results_root = str((test_target_path if test_target_path.is_absolute() else Path(root) / test_target_path).parent / 'TestResults')
+    else:
+        test_results_root = os.path.join(root, 'Game.Core.Tests', 'TestResults')
+
     if not trx_src:
-        fallback_trx_root = os.path.join(root, 'Game.Core.Tests', 'TestResults')
+        fallback_trx_root = test_results_root
         if os.path.isdir(fallback_trx_root):
             candidates = []
             for cur_root, _, files in os.walk(fallback_trx_root):
@@ -151,7 +207,7 @@ def main():
             trx_src = pick_latest_existing(candidates)
 
     if not cov_src:
-        fallback_cov_root = os.path.join(root, 'Game.Core.Tests', 'TestResults')
+        fallback_cov_root = test_results_root
         if os.path.isdir(fallback_cov_root):
             candidates = []
             for cur_root, _, files in os.walk(fallback_cov_root):

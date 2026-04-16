@@ -210,6 +210,20 @@ def _normalize_llm_verdict(value: str | None) -> str:
     return "Unknown"
 
 
+def _is_nonblocking_skipped_llm_result(row: dict[str, Any]) -> bool:
+    status = str(row.get("status") or "").strip().lower()
+    if status != "skipped":
+        return False
+    details = row.get("details") if isinstance(row.get("details"), dict) else {}
+    reason_code = str(details.get("reason_code") or "").strip().lower()
+    if reason_code == "deferred_until_prior_reviewers_clean":
+        return True
+    note = str(details.get("note") or "").strip().lower()
+    if "best-effort" in note and "hard gate" in note:
+        return True
+    return False
+
+
 def _resolve_path(raw: str, *, root: Path) -> Path | None:
     raw_text = str(raw or "").strip()
     if not raw_text:
@@ -341,14 +355,17 @@ def _derive_clean_state(*, summary: dict[str, Any], out_dir: Path, root: Path) -
             if not isinstance(row, dict):
                 continue
             agent = str(row.get("agent") or "").strip()
+            if not agent:
+                continue
             verdict = _normalize_llm_verdict(str(((row.get("details") or {}) if isinstance(row.get("details"), dict) else {}).get("verdict") or ""))
             rc = int(row.get("rc") or 0)
             status = str(row.get("status") or "").strip().lower()
-            if verdict == "Needs Fix" and agent:
+            nonblocking_skipped = _is_nonblocking_skipped_llm_result(row)
+            if verdict == "Needs Fix":
                 needs_fix_agents.append(agent)
-            if (verdict == "Unknown" or status not in {"ok", "skipped"} or rc != 0) and agent:
+            if not nonblocking_skipped and (verdict == "Unknown" or status not in {"ok", "skipped"} or rc != 0):
                 unknown_agents.append(agent)
-            if rc == 124 and agent:
+            if rc == 124:
                 timeout_agents.append(agent)
     deterministic_ok = test_status == "ok" and acceptance_status == "ok"
     llm_clean = llm_status == "ok" and not needs_fix_agents and not unknown_agents

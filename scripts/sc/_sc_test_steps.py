@@ -9,6 +9,10 @@ from _sc_test_refs import build_dotnet_filter_from_cs_refs, task_scoped_cs_refs,
 from _util import repo_root, run_cmd, today_str, write_text
 
 
+def _godot_log_file_path(*, date: str, name: str) -> Path:
+    return repo_root() / "logs" / "ci" / date / "godot-logs" / f"{name}.log"
+
+
 def run_unit(
     out_dir: Path,
     solution: str,
@@ -125,6 +129,7 @@ def run_gdunit_hard(
 ) -> dict[str, Any]:
     date = today_str()
     report_dir = Path("logs") / "e2e" / date / "sc-test" / "gdunit-hard"
+    log_file = _godot_log_file_path(date=date, name=f"gdunit-hard-{run_id}")
     os.environ["AUDIT_LOG_ROOT"] = str(repo_root() / "logs" / "ci" / date)
     add_dirs: list[str] = []
     tests_project = repo_root() / "Tests.Godot"
@@ -171,6 +176,8 @@ def run_gdunit_hard(
         godot_bin,
         "--project",
         "Tests.Godot",
+        "--log-file",
+        str(log_file),
     ]
     for add_dir in add_dirs:
         cmd += ["--add", add_dir]
@@ -216,6 +223,8 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = N
         scene,
         "--timeout-sec",
         "5",
+        "--log-file",
+        str(_godot_log_file_path(date=today_str(), name=f"smoke-{str(task_id or 'taskless').strip() or 'taskless'}")),
     ]
     if strict:
         cmd.append("--strict")

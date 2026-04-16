@@ -432,7 +432,7 @@ class InspectRunTests(unittest.TestCase):
             self.assertEqual("pause", payload["recommended_action"])
             self.assertEqual("pause", payload["chapter6_hints"]["next_action"])
             self.assertEqual("approval_pending", payload["chapter6_hints"]["blocked_by"])
-            self.assertEqual("", payload["recommended_command"])
+            self.assertEqual(payload["candidate_commands"]["inspect"], payload["recommended_command"])
             self.assertIn("py -3 scripts/sc/run_review_pipeline.py --task-id 15 --resume", payload["forbidden_commands"])
             self.assertIn("py -3 scripts/sc/run_review_pipeline.py --task-id 15 --fork", payload["forbidden_commands"])
             self.assertEqual("pending", payload["approval"]["status"])

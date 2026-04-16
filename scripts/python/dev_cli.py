@@ -43,9 +43,18 @@ from local_hard_checks_harness import run_local_hard_checks
 from solution_resolver import resolve_solution_path, resolve_test_solution_path
 
 
+def _normalize_python_launcher(cmd: list[str]) -> list[str]:
+    """Use the current interpreter when a child command asks for py -3."""
+
+    if len(cmd) >= 2 and cmd[0].lower() == "py" and cmd[1] == "-3":
+        return [sys.executable, *cmd[2:]]
+    return cmd
+
+
 def run(cmd: list[str]) -> int:
     """Run a subprocess and return its exit code."""
 
+    cmd = _normalize_python_launcher(cmd)
     print(f"[dev_cli] running: {' '.join(cmd)}")
     proc = subprocess.run(cmd, text=True)
     return proc.returncode
