@@ -225,10 +225,10 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
     def test_decision_should_require_needs_fix_after_post_review_run_68(self) -> None:
         decision = lane.build_orchestration_decision(
             initial_route={
-                "preferred_lane": "run-6.7",
-                "run_id": "run-15",
-                "latest_reason": "step_failed:sc-test",
-                "blocked_by": "",
+                "preferred_lane": "inspect-first",
+                "run_id": "n/a",
+                "latest_reason": "n/a",
+                "blocked_by": "n/a",
             },
             post_review_route={
                 "preferred_lane": "run-6.8",
@@ -241,6 +241,91 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
 
         self.assertEqual("full-path", decision["initial_phase"]["action"])
         self.assertEqual("needs-fix-fast", decision["post_review_phase"]["action"])
+
+    def test_decision_should_stop_initial_phase_when_route_requests_run_67_recovery(self) -> None:
+        decision = lane.build_orchestration_decision(
+            initial_route={
+                "preferred_lane": "run-6.7",
+                "run_id": "run-15",
+                "latest_reason": "step_failed:sc-test",
+                "blocked_by": "",
+            },
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual("blocked", decision["initial_phase"]["action"])
+        self.assertEqual("run-6.7", decision["initial_phase"]["stop_reason"])
+
+    def test_decision_should_complete_when_next_action_is_continue_even_if_lane_is_inspect_first(self) -> None:
+        decision = lane.build_orchestration_decision(
+            initial_route={
+                "preferred_lane": "inspect-first",
+                "run_id": "run-15",
+                "latest_reason": "pipeline_clean",
+                "blocked_by": "",
+                "chapter6_next_action": "continue",
+            },
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual("complete", decision["initial_phase"]["action"])
+        self.assertEqual("continue", decision["initial_phase"]["stop_reason"])
+
+    def test_decision_should_not_force_full_path_when_recovery_signal_exists_but_route_only_allows_continue(self) -> None:
+        decision = lane.build_orchestration_decision(
+            initial_route={
+                "preferred_lane": "run-6.8",
+                "run_id": "run-15",
+                "latest_reason": "review_pending",
+                "blocked_by": "",
+                "chapter6_next_action": "",
+            },
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual("needs-fix-fast", decision["initial_phase"]["action"])
+        self.assertEqual("", decision["initial_phase"]["stop_reason"])
+
+    def test_decision_should_preserve_continue_when_recovery_signal_exists(self) -> None:
+        with (
+            mock.patch.object(
+                lane,
+                "_decide_phase",
+                side_effect=[
+                    {"action": "continue", "stop_reason": ""},
+                    {"action": "continue", "stop_reason": ""},
+                    {"action": "continue", "stop_reason": ""},
+                ],
+            ),
+            mock.patch.object(lane, "_initial_route_has_recovery_signal", return_value=True),
+        ):
+            decision = lane.build_orchestration_decision(
+                initial_route={"preferred_lane": "run-6.7", "run_id": "run-15"},
+                post_review_route={"preferred_lane": "inspect-first"},
+                final_route={"preferred_lane": "inspect-first"},
+            )
+
+        self.assertEqual("continue", decision["initial_phase"]["action"])
+        self.assertEqual("", decision["initial_phase"]["stop_reason"])
+
+    def test_decision_should_stop_initial_phase_when_next_action_requests_resume(self) -> None:
+        decision = lane.build_orchestration_decision(
+            initial_route={
+                "preferred_lane": "inspect-first",
+                "run_id": "run-15",
+                "latest_reason": "review_pending",
+                "blocked_by": "",
+                "chapter6_next_action": "resume",
+            },
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual("blocked", decision["initial_phase"]["action"])
+        self.assertEqual("resume", decision["initial_phase"]["stop_reason"])
 
     def test_decision_should_stop_initial_phase_when_needs_fix_path_has_no_increment(self) -> None:
         decision = lane.build_orchestration_decision(
@@ -289,7 +374,7 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
         self.assertEqual("blocked", decision["initial_phase"]["action"])
         self.assertEqual("approval_pending", decision["initial_phase"]["stop_reason"])
 
-    def test_decision_should_allow_initial_phase_when_fork_approval_was_denied(self) -> None:
+    def test_decision_should_defer_to_route_when_fork_approval_was_denied(self) -> None:
         decision = lane.build_orchestration_decision(
             initial_route={
                 "preferred_lane": "run-6.7",
@@ -310,7 +395,51 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
             },
         )
 
-        self.assertEqual("full-path", decision["initial_phase"]["action"])
+        self.assertEqual("blocked", decision["initial_phase"]["action"])
+        self.assertEqual("run-6.7", decision["initial_phase"]["stop_reason"])
+
+    def test_plan_should_stop_after_run_67_recovery_signal(self) -> None:
+        initial_route = {
+            "preferred_lane": "run-6.7",
+            "run_id": "run-15",
+            "latest_reason": "step_failed:sc-test",
+            "blocked_by": "",
+        }
+
+        plan = lane.build_execution_plan(
+            task_id="15",
+            godot_bin="C:/Godot/Godot.exe",
+            profile_policy=lane.resolve_profile_policy("fast-ship"),
+            initial_route=initial_route,
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual(["resume-task", "chapter6-route-initial"], [step["name"] for step in plan["steps"]])
+        self.assertEqual("blocked", plan["status"])
+        self.assertEqual("run-6.7", plan["stop_reason"])
+
+    def test_plan_should_complete_when_next_action_is_continue(self) -> None:
+        initial_route = {
+            "preferred_lane": "inspect-first",
+            "run_id": "run-15",
+            "latest_reason": "pipeline_clean",
+            "blocked_by": "",
+            "chapter6_next_action": "continue",
+        }
+
+        plan = lane.build_execution_plan(
+            task_id="15",
+            godot_bin="C:/Godot/Godot.exe",
+            profile_policy=lane.resolve_profile_policy("fast-ship"),
+            initial_route=initial_route,
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual(["resume-task", "chapter6-route-initial"], [step["name"] for step in plan["steps"]])
+        self.assertEqual("complete", plan["status"])
+        self.assertEqual("continue", plan["stop_reason"])
 
     def test_main_self_check_should_write_summary(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -340,7 +469,7 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
             self.assertEqual("P1", payload["profile_policy"]["fix_through"])
             self.assertEqual("check-tdd-plan", payload["steps"][2]["name"])
 
-    def test_main_should_stop_before_running_forbidden_review_pipeline_command(self) -> None:
+    def test_main_should_stop_early_when_route_requests_run_67_recovery(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             out_dir = root / "logs" / "ci" / "chapter6-forbidden"
@@ -355,11 +484,6 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
                 "--out-dir",
                 str(out_dir),
             ]
-            review_cmd = lane.build_review_pipeline_cmd(
-                "15",
-                profile_policy=lane.resolve_profile_policy("fast-ship"),
-                godot_bin="C:/Godot/Godot.exe",
-            )
             executed_steps: list[str] = []
 
             json_steps = iter(
@@ -389,7 +513,7 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
                             "run_id": "run-15",
                             "latest_reason": "step_failed:sc-test",
                             "blocked_by": "",
-                            "forbidden_commands": [" ".join(review_cmd)],
+                            "forbidden_commands": [],
                         },
                     ),
                 ]
@@ -418,10 +542,89 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
                 rc = lane.main()
 
             self.assertEqual(1, rc)
-            self.assertEqual(["check-tdd-plan", "red-first", "green", "refactor"], executed_steps)
+            self.assertEqual([], executed_steps)
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("blocked", payload["status"])
-            self.assertEqual("forbidden-command:review-pipeline", payload["stop_reason"])
+            self.assertEqual("run-6.7", payload["stop_reason"])
+
+    def test_main_should_finish_cleanly_when_next_action_is_continue(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "chapter6-continue"
+            argv = [
+                "run_single_task_chapter6_lane.py",
+                "--task-id",
+                "15",
+                "--godot-bin",
+                "C:/Godot/Godot.exe",
+                "--delivery-profile",
+                "fast-ship",
+                "--out-dir",
+                str(out_dir),
+            ]
+            executed_steps: list[str] = []
+
+            json_steps = iter(
+                [
+                    (
+                        {
+                            "name": "resume-task",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "resume.log",
+                        },
+                        {"task_id": "15", "recommended_action": "continue"},
+                    ),
+                    (
+                        {
+                            "name": "chapter6-route-initial",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "route-initial.log",
+                        },
+                        {
+                            "preferred_lane": "inspect-first",
+                            "run_id": "run-15",
+                            "latest_reason": "pipeline_clean",
+                            "blocked_by": "",
+                            "chapter6_next_action": "continue",
+                            "forbidden_commands": [],
+                        },
+                    ),
+                ]
+            )
+
+            def fake_run_json_step(*_args, **_kwargs):
+                return next(json_steps)
+
+            def fake_run_plain_step(*_args, name, cmd, **_kwargs):
+                executed_steps.append(str(name))
+                return {
+                    "name": name,
+                    "cmd": list(cmd),
+                    "rc": 0,
+                    "stdout_tail": "",
+                    "stderr_tail": "",
+                    "log": f"{name}.log",
+                }
+
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(lane, "_repo_root", return_value=root),
+                mock.patch.object(lane, "_run_json_step", side_effect=fake_run_json_step),
+                mock.patch.object(lane, "_run_plain_step", side_effect=fake_run_plain_step),
+            ):
+                rc = lane.main()
+
+            self.assertEqual(0, rc)
+            self.assertEqual([], executed_steps)
+            payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("complete", payload["status"])
+            self.assertEqual("continue", payload["stop_reason"])
 
     def test_main_should_stop_before_expensive_steps_when_no_increment_converged(self) -> None:
         with tempfile.TemporaryDirectory() as td:

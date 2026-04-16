@@ -253,6 +253,9 @@ Problem:
 - when route returns `preferred_lane=record-residual` or `preferred_lane=inspect-first`, the top-level orchestrator may still continue into `review-pipeline`
 - this means route is treated as a hint, not as an execution contract
 
+Status:
+- fixed in the current top-level Chapter 6 orchestrator; these lanes now stop before downstream expensive steps
+
 Required fix:
 - add a single execution gate before every downstream step
 - if route lane is not executable for the next step, stop immediately
