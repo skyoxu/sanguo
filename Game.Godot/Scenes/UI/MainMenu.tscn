@@ -221,6 +221,20 @@ text = "Global Event Interval"
 [node name="GlobalEventIntervalOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 
+[node name="ActiveStrategemLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
+layout_mode = 2
+text = "Active Strategem"
+
+[node name="ActiveStrategemOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="PassiveStrategemLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
+layout_mode = 2
+text = "Passive Strategem"
+
+[node name="PassiveStrategemOption" type="OptionButton" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
+layout_mode = 2
+
 [node name="AiFillLabel" type="Label" parent="ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox"]
 layout_mode = 2
 text = "AI slots: -"

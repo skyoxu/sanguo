@@ -355,7 +355,8 @@ def main() -> int:
     sync_cmd = ["py", "-3", "scripts/python/update_task_test_refs_from_acceptance_refs.py", "--task-id", task_id, "--mode", "replace", "--write"]
     sync_rc, sync_out = run_cmd(sync_cmd, cwd=repo_root(), timeout_sec=60)
     write_text(out_dir / f"sync-test-refs-{task_id}.log", sync_out)
-    require_strict_red = str(args.tdd_stage) == "red-first" and created > 0
+    red_first_mode = str(args.tdd_stage) == "red-first"
+    require_strict_red = red_first_mode and created > 0
     effective_verify = str(args.verify)
     if require_strict_red:
         effective_verify = "all" if any_gd else "unit"
@@ -387,7 +388,8 @@ def main() -> int:
         "out_dir": str(out_dir),
     }
 
-    if require_strict_red:
+    should_evaluate_red_verify = red_first_mode and verify_mode != "none"
+    if should_evaluate_red_verify:
         verify_log = out_dir / f"verify-{task_id}.log"
         verify_out = _read_text(verify_log) if verify_log.is_file() else ""
         red_verify = _evaluate_red_verification(
@@ -399,7 +401,7 @@ def main() -> int:
         summary["red_verify"] = red_verify
     write_json(out_dir / f"summary-{task_id}.json", summary)
 
-    if require_strict_red:
+    if should_evaluate_red_verify:
         gen_fail = any(result.status == "fail" for result in results) or sync_rc != 0
         red_verify = summary.get("red_verify") if isinstance(summary.get("red_verify"), dict) else {}
         hard_fail = gen_fail or str(red_verify.get("status")) != "ok"

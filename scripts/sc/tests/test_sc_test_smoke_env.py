@@ -48,6 +48,11 @@ class ScTestSmokeEnvTests(unittest.TestCase):
         self.assertEqual("1", observed.get("exit_on_ready"))
         self.assertEqual("0.25", observed.get("exit_delay"))
         self.assertIn("--strict", observed.get("cmd", []))
+        self.assertIn("--log-file", observed.get("cmd", []))
+        self.assertEqual(
+            str(REPO_ROOT / "logs" / "ci" / MODULE.today_str() / "godot-logs" / "smoke-1.log"),
+            observed["cmd"][observed["cmd"].index("--log-file") + 1],
+        )
         self.assertNotIn("GD_SMOKE_EXIT_ON_READY", os.environ)
         self.assertNotIn("GD_SMOKE_EXIT_DELAY_SEC", os.environ)
 
@@ -89,6 +94,7 @@ class ScTestSmokeEnvTests(unittest.TestCase):
         self.assertEqual(None, observed.get("exit_on_ready"))
         self.assertEqual(None, observed.get("exit_delay"))
         self.assertNotIn("--strict", observed.get("cmd", []))
+        self.assertIn("--log-file", observed.get("cmd", []))
         self.assertNotIn("GD_SMOKE_EXIT_ON_READY", os.environ)
         self.assertNotIn("GD_SMOKE_EXIT_DELAY_SEC", os.environ)
 

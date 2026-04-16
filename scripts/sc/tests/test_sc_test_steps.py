@@ -213,6 +213,32 @@ class ScTestStepsUnitFallbackTests(unittest.TestCase):
             self.assertEqual(refs, [cmd[idx + 1] for idx, token in enumerate(cmd[:-1]) if token == "--add"])
             self.assertNotIn("tests/Scenes", cmd)
 
+    def test_run_gdunit_hard_should_redirect_godot_log_file_into_repo_logs(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci"
+            captured: list[list[str]] = []
+
+            def fake_run_cmd(cmd, *, cwd=None, timeout_sec=0):  # noqa: ANN001
+                captured.append(list(cmd))
+                return 0, "ok\n"
+
+            with (
+                mock.patch.object(sc_steps, "repo_root", return_value=root),
+                mock.patch.object(sc_steps, "today_str", return_value="2026-04-16"),
+                mock.patch.object(sc_steps, "task_scoped_gdunit_refs", return_value=["tests/UI/test_task122_a.gd"]),
+                mock.patch.object(sc_steps, "run_cmd", side_effect=fake_run_cmd),
+            ):
+                step = sc_steps.run_gdunit_hard(out_dir, "godot.exe", 120, run_id="run122", task_id="122")
+
+            self.assertEqual(0, int(step["rc"]))
+            cmd = captured[0]
+            self.assertIn("--log-file", cmd)
+            self.assertEqual(
+                str(root / "logs" / "ci" / "2026-04-16" / "godot-logs" / "gdunit-hard-run122.log"),
+                cmd[cmd.index("--log-file") + 1],
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

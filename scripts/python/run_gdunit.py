@@ -143,6 +143,7 @@ def main():
     ap.add_argument('--timeout-sec', type=int, default=600, help='Timeout seconds for test run (default 600)')
     ap.add_argument('--prewarm', action='store_true', help='Prewarm: build solutions before running tests')
     ap.add_argument('--rd', dest='report_dir', default=None, help='Custom destination to copy reports into (defaults to logs/e2e/<date>/gdunit-reports)')
+    ap.add_argument('--log-file', default='', help='Absolute or project-relative Godot log file path override.')
     args = ap.parse_args()
     godot_bin = os.path.expandvars(args.godot_bin).strip().strip('"')
     auto_prewarm = False
@@ -177,7 +178,10 @@ def main():
     prewarm_rc = None
     prewarm_note = None
     if args.prewarm:
-        pre_cmd = [godot_bin, '--headless', '--path', proj, '--build-solutions', '--quit']
+        pre_cmd = [godot_bin, '--headless', '--path', proj]
+        if args.log_file:
+            pre_cmd += ['--log-file', args.log_file]
+        pre_cmd += ['--build-solutions', '--quit']
         _rcp, _outp = run_cmd(pre_cmd, cwd=proj, timeout=300_000)
         prewarm_attempts = 1
         prewarm_rc = _rcp
@@ -228,7 +232,10 @@ def main():
         shutil.rmtree(reports_dir, ignore_errors=True)
 
     # Build command with optional -a filters
-    cmd = [godot_bin, '--headless', '--path', proj, '-s', '-d', 'res://addons/gdUnit4/bin/GdUnitCmdTool.gd', '--ignoreHeadlessMode']
+    cmd = [godot_bin, '--headless', '--path', proj]
+    if args.log_file:
+        cmd += ['--log-file', args.log_file]
+    cmd += ['-s', '-d', 'res://addons/gdUnit4/bin/GdUnitCmdTool.gd', '--ignoreHeadlessMode']
     for a in args.add:
         apath = a
         if not apath.startswith('res://'):
@@ -241,7 +248,11 @@ def main():
         f.write(out)
 
     # Generate HTML log frame (optional)
-    _rc2, _out2 = run_cmd([godot_bin, '--headless', '--path', proj, '--quiet', '-s', 'res://addons/gdUnit4/bin/GdUnitCopyLog.gd'], cwd=proj)
+    copy_cmd = [godot_bin, '--headless', '--path', proj]
+    if args.log_file:
+        copy_cmd += ['--log-file', args.log_file]
+    copy_cmd += ['--quiet', '-s', 'res://addons/gdUnit4/bin/GdUnitCopyLog.gd']
+    _rc2, _out2 = run_cmd(copy_cmd, cwd=proj)
 
     # Archive reports
     dest = args.report_dir if args.report_dir else os.path.join(out_dir, 'gdunit-reports')

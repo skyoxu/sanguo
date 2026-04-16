@@ -32,6 +32,8 @@ public partial class MainMenu : Control
     private const string MenuCharacterLabelKey = "ui.menu.character";
     private const string MenuStartingMoneyLabelKey = "ui.menu.starting_money";
     private const string MenuGlobalEventIntervalLabelKey = "ui.menu.global_event_interval";
+    private const string MenuActiveStrategemLabelKey = "ui.menu.active_strategem";
+    private const string MenuPassiveStrategemLabelKey = "ui.menu.passive_strategem";
     private const string MenuAiSlotsLabelKey = "ui.menu.ai_slots";
     private const string MenuBackLabelKey = "ui.menu.back";
     private const string MenuStatusStartingKey = "ui.menu.status.starting";
@@ -78,6 +80,8 @@ public partial class MainMenu : Control
     private Label _characterLabel = default!;
     private Label _moneyLabel = default!;
     private Label _globalEventLabel = default!;
+    private Label _activeStrategemLabel = default!;
+    private Label _passiveStrategemLabel = default!;
     private TextureRect _characterPortrait = default!;
     private Label _characterName = default!;
     private Label _characterDesc = default!;
@@ -100,6 +104,8 @@ public partial class MainMenu : Control
     private OptionButton _playersOption = default!;
     private OptionButton _startingMoneyOption = default!;
     private OptionButton _globalEventIntervalOption = default!;
+    private OptionButton _activeStrategemOption = default!;
+    private OptionButton _passiveStrategemOption = default!;
     private Label _aiFillLabel = default!;
     private ResourceLoaderAdapter? _fallbackResourceLoader;
 
@@ -145,6 +151,8 @@ public partial class MainMenu : Control
         _characterLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterLabel");
         _moneyLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/MoneyLabel");
         _globalEventLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/GlobalEventLabel");
+        _activeStrategemLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/ActiveStrategemLabel");
+        _passiveStrategemLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/PassiveStrategemLabel");
 
         _characterPortrait = GetNode<TextureRect>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/Portrait");
         _characterName = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/CharacterInfo/Margin/VBox/CharacterName");
@@ -168,6 +176,8 @@ public partial class MainMenu : Control
         _playersOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/PlayersOption");
         _startingMoneyOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/StartingMoneyOption");
         _globalEventIntervalOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/GlobalEventIntervalOption");
+        _activeStrategemOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/ActiveStrategemOption");
+        _passiveStrategemOption = GetNode<OptionButton>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/PassiveStrategemOption");
         _aiFillLabel = GetNode<Label>("ConfigCenter/NewGameConfig/Margin/Root/TopRow/OptionsPanel/Margin/VBox/AiFillLabel");
 
         _bus = GetNodeOrNull<EventBusAdapter>("/root/EventBus");
@@ -307,6 +317,8 @@ public partial class MainMenu : Control
                 // We still block for clearly user-driven missing selections to avoid starting with defaults silently.
                 if (string.Equals(error, "map_missing", StringComparison.Ordinal) ||
                     string.Equals(error, "character_missing", StringComparison.Ordinal) ||
+                    string.Equals(error, "active_strategem_missing", StringComparison.Ordinal) ||
+                    string.Equals(error, "passive_strategem_missing", StringComparison.Ordinal) ||
                     string.Equals(error, "players_count_invalid", StringComparison.Ordinal))
                 {
                     _startPending = false;
@@ -481,6 +493,8 @@ public partial class MainMenu : Control
         _playersOption.ItemSelected += _ => RefreshStartAvailability();
         _startingMoneyOption.ItemSelected += _ => RefreshStartAvailability();
         _globalEventIntervalOption.ItemSelected += _ => RefreshStartAvailability();
+        _activeStrategemOption.ItemSelected += _ => RefreshStartAvailability();
+        _passiveStrategemOption.ItemSelected += _ => RefreshStartAvailability();
         _mapOption.ItemSelected += _ => RefreshStartAvailability();
 
         _btnCharPrev.Pressed += () => ShiftCharacterCarousel(-1);
@@ -516,6 +530,8 @@ public partial class MainMenu : Control
                 _globalEventIntervalOption.AddItem(n.ToString(), n);
             }
 
+            PopulateStrategemOptions();
+
             _mapOption.Clear();
             var loader = ResolveResourceLoader();
             var pack = ResolveContentPack(loader);
@@ -541,6 +557,8 @@ public partial class MainMenu : Control
             _startingMoneyOption.Select(1);
             _globalEventIntervalOption.Select(1);
             _mapOption.Select(0);
+            _activeStrategemOption.Select(0);
+            _passiveStrategemOption.Select(0);
 
             PopulateCharacters(loader, pack);
 
@@ -698,6 +716,8 @@ public partial class MainMenu : Control
         _characterLabel.Text = TranslateOrFallback(MenuCharacterLabelKey, "Player Character");
         _moneyLabel.Text = TranslateOrFallback(MenuStartingMoneyLabelKey, "Starting Money");
         _globalEventLabel.Text = TranslateOrFallback(MenuGlobalEventIntervalLabelKey, "Global Event Interval");
+        _activeStrategemLabel.Text = TranslateOrFallback(MenuActiveStrategemLabelKey, "Active Strategem");
+        _passiveStrategemLabel.Text = TranslateOrFallback(MenuPassiveStrategemLabelKey, "Passive Strategem");
         _aiSlotsLabel = TranslateOrFallback(MenuAiSlotsLabelKey, "AI slots");
 
         _combatKey.Text = TranslateOrFallback("ui.menu.character.combat", "Combat");
@@ -724,6 +744,8 @@ public partial class MainMenu : Control
             "map_missing" => TranslateOrFallback(MenuErrorMapMissingKey, error),
             "character_missing" => TranslateOrFallback(MenuErrorCharacterMissingKey, error),
             "players_count_invalid" => TranslateOrFallback(MenuErrorPlayersInvalidKey, error),
+            "active_strategem_missing" => error,
+            "passive_strategem_missing" => error,
             _ => error,
         };
     }
@@ -743,6 +765,20 @@ public partial class MainMenu : Control
         var playersCount = GetSelectedPlayersCount();
         var startingMoney = GetSelectedStartingMoneyPreset();
         var interval = GetSelectedGlobalEventIntervalTurns();
+        var activeStrategemId = GetSelectedActiveStrategemId();
+        if (string.IsNullOrWhiteSpace(activeStrategemId))
+        {
+            error = "active_strategem_missing";
+            return false;
+        }
+
+        var passiveStrategemId = GetSelectedPassiveStrategemId();
+        if (string.IsNullOrWhiteSpace(passiveStrategemId))
+        {
+            error = "passive_strategem_missing";
+            return false;
+        }
+
         var playerCharacterId = GetSelectedCharacterId();
         if (string.IsNullOrWhiteSpace(playerCharacterId))
         {
@@ -767,7 +803,9 @@ public partial class MainMenu : Control
             StartingMoneyPreset: startingMoney,
             GlobalEventIntervalTurns: interval,
             RandomSeed: seed,
-            CharacterAssignments: assigns);
+            CharacterAssignments: assigns,
+            ActiveStrategemId: activeStrategemId,
+            PassiveStrategemId: passiveStrategemId);
 
         if (!GameStartConfigValidator.TryValidate(cfg, out var errors))
         {
@@ -777,6 +815,22 @@ public partial class MainMenu : Control
 
         json = JsonSerializer.Serialize(cfg);
         return true;
+    }
+
+    private void PopulateStrategemOptions()
+    {
+        _activeStrategemOption.Clear();
+        _passiveStrategemOption.Clear();
+
+        AddStrategemOption(_activeStrategemOption, "Default Active", "strat_active_default");
+        AddStrategemOption(_passiveStrategemOption, "Default Passive", "strat_passive_default");
+    }
+
+    private static void AddStrategemOption(OptionButton option, string label, string strategemId)
+    {
+        var idx = option.ItemCount;
+        option.AddItem(label);
+        option.SetItemMetadata(idx, strategemId);
     }
 
     private static IReadOnlyDictionary<string, string>? BuildCharacterAssignments(
@@ -1035,6 +1089,27 @@ public partial class MainMenu : Control
 
         var value = _globalEventIntervalOption.GetItemId(_globalEventIntervalOption.Selected);
         return value > 0 ? value : 0;
+    }
+
+    private string GetSelectedActiveStrategemId()
+    {
+        return GetSelectedStrategemId(_activeStrategemOption);
+    }
+
+    private string GetSelectedPassiveStrategemId()
+    {
+        return GetSelectedStrategemId(_passiveStrategemOption);
+    }
+
+    private static string GetSelectedStrategemId(OptionButton option)
+    {
+        if (option.ItemCount == 0 || option.Selected < 0)
+        {
+            return string.Empty;
+        }
+
+        var meta = option.GetItemMetadata(option.Selected);
+        return meta.VariantType == Variant.Type.String ? meta.AsString() : string.Empty;
     }
 
     private static string? TryExtractStartFailedReason(string dataJson)

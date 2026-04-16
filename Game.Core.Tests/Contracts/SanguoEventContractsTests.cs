@@ -61,6 +61,8 @@ public sealed class SanguoEventContractsTests
                 ["ai-2"] = "c_sun_quan",
                 ["ai-3"] = "c_yuan_shao",
             },
+            ActiveStrategemId: "strat_active_default",
+            PassiveStrategemId: "strat_passive_default",
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: "cmd-1");

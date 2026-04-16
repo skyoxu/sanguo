@@ -483,7 +483,7 @@ class ActiveTaskSidecarTests(unittest.TestCase):
 
             self.assertEqual("pause", payload["approval"]["recommended_action"])
             self.assertEqual(["inspect", "pause"], payload["approval"]["allowed_actions"])
-            self.assertEqual("", payload["recommended_command"])
+            self.assertEqual(payload["candidate_commands"]["inspect"], payload["recommended_command"])
             self.assertIn(payload["candidate_commands"]["resume"], payload["forbidden_commands"])
             self.assertIn(payload["candidate_commands"]["fork"], payload["forbidden_commands"])
             self.assertIn(payload["candidate_commands"]["rerun"], payload["forbidden_commands"])
@@ -725,6 +725,119 @@ class ActiveTaskSidecarTests(unittest.TestCase):
             self.assertIn(payload["candidate_commands"]["rerun"], payload["forbidden_commands"])
 
             self.assertIn("needs fix family", payload["recommended_action_why"].lower())
+
+    def test_build_active_task_payload_should_not_route_best_effort_skipped_reviewers_to_needs_fix_fast(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            run_id = "dddddddddddddddddddddddddddddddd"
+            out_dir, latest_path = self._build_bundle(
+                root=root,
+                task_id="14",
+                run_id=run_id,
+                summary_payload={
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "14",
+                    "run_id": run_id,
+                    "status": "ok",
+                    "reason": "pipeline_clean",
+                    "reuse_mode": "none",
+                    "steps": [
+                        {"name": "sc-test", "status": "ok"},
+                        {"name": "sc-acceptance-check", "status": "ok"},
+                        {
+                            "name": "sc-llm-review",
+                            "status": "ok",
+                            "summary_file": str(
+                                root
+                                / "logs"
+                                / "ci"
+                                / "2026-04-07"
+                                / f"sc-review-pipeline-task-14-{run_id}"
+                                / "child-artifacts"
+                                / "sc-llm-review"
+                                / "summary.json"
+                            ),
+                        },
+                    ],
+                },
+                execution_context_payload={
+                    "schema_version": "1.0.0",
+                    "cmd": "sc-review-pipeline",
+                    "date": "2026-04-07",
+                    "task_id": "14",
+                    "requested_run_id": run_id,
+                    "run_id": run_id,
+                    "status": "ok",
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                    "failed_step": "",
+                    "paths": {},
+                    "git": {},
+                    "recovery": {},
+                    "marathon": {},
+                    "agent_review": {"review_verdict": "pass", "recommended_action": "none"},
+                    "llm_review": {},
+                    "approval": {"status": "not-needed", "recommended_action": "continue"},
+                    "diagnostics": {},
+                },
+                repair_guide_payload={
+                    "schema_version": "1.0.0",
+                    "status": "not-needed",
+                    "task_id": "14",
+                    "summary_status": "ok",
+                    "failed_step": "",
+                    "approval": {"status": "not-needed", "recommended_action": "continue"},
+                    "generated_from": {},
+                    "recommendations": [],
+                },
+                extra_files={
+                    "child-artifacts/sc-llm-review/summary.json": {
+                        "status": "warn",
+                        "strict": False,
+                        "results": [
+                            {
+                                "agent": "code-reviewer",
+                                "status": "skipped",
+                                "rc": 1,
+                                "details": {
+                                    "verdict": None,
+                                    "note": "This step is best-effort. Use --strict to make it a hard gate.",
+                                },
+                            },
+                            {
+                                "agent": "security-auditor",
+                                "status": "skipped",
+                                "rc": 1,
+                                "details": {
+                                    "verdict": None,
+                                    "note": "This step is best-effort. Use --strict to make it a hard gate.",
+                                },
+                            },
+                            {
+                                "agent": "semantic-equivalence-auditor",
+                                "status": "skipped",
+                                "rc": 0,
+                                "details": {"reason_code": "deferred_until_prior_reviewers_clean"},
+                            },
+                        ],
+                    },
+                },
+            )
+
+            payload = active_task_sidecar.build_active_task_payload(
+                task_id="14",
+                run_id=run_id,
+                status="ok",
+                out_dir=out_dir,
+                latest_json_path=latest_path,
+                root=root,
+            )
+
+            self.assertEqual("continue", payload["recommended_action"])
+            self.assertEqual("clean", payload["clean_state"]["state"])
+            self.assertEqual([], payload["clean_state"]["unknown_agents"])
+            self.assertEqual("continue", payload["chapter6_hints"]["next_action"])
+            self.assertFalse(payload["chapter6_hints"]["can_go_to_6_8"])
 
     def test_build_active_task_payload_should_block_planned_only_terminal_bundle(self) -> None:
         with tempfile.TemporaryDirectory() as td:

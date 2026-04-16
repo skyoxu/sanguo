@@ -17,6 +17,8 @@ public sealed record SanguoGameStarted(
     int RandomSeed,
     System.Collections.Generic.IReadOnlyList<string> PlayerOrder,
     System.Collections.Generic.IReadOnlyDictionary<string, string> CharacterAssignments,
+    string ActiveStrategemId,
+    string PassiveStrategemId,
     System.DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId

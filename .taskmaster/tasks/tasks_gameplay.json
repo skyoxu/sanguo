@@ -5887,11 +5887,11 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task122SplitTests.cs",
-      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd",
-      "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "Tests.Godot/tests/UI/test_task122_new_game_setup_constraints_and_start.gd",
+      "Tests.Godot/tests/UI/test_task122_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "acceptance": [
-      "Campaign start commit is refused until both an active strategem and a passive strategem have been selected, and deterministic evidence verifies the refusal and successful commit once both picks are present. Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd"
+      "Campaign start commit is refused until both an active strategem and a passive strategem have been selected, and deterministic evidence verifies the refusal and successful commit once both picks are present. Refs: Tests.Godot/tests/UI/test_task122_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/test_task122_new_game_setup_starts_game_with_selected_players_and_money.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."

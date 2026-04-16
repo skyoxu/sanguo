@@ -202,7 +202,11 @@ def _run_smoke(godot_bin: str, project_path: str, scene: str, timeout_sec: int, 
     err_path = dest / "headless.err.log"
     log_path = dest / "headless.log"
 
-    base_args = ["--headless", "--path", project_path, "--scene", scene]
+    base_args = ["--headless", "--path", project_path]
+    log_file = os.environ.get("GODOT_LOG_FILE", "").strip()
+    if log_file:
+        base_args += ["--log-file", log_file]
+    base_args += ["--scene", scene]
     if bin_path.suffix.lower() in (".cmd", ".bat"):
         cmd = ["cmd.exe", "/c", str(bin_path)] + base_args
     else:
@@ -326,9 +330,12 @@ def main() -> int:
     parser.add_argument("--mode", choices=["loose", "strict"], default="loose", help="Gate mode")
     parser.add_argument("--strict", action="store_true", help="Compatibility alias for --mode strict")
     parser.add_argument("--task-id", type=int, default=None, help="Optional task id (accepted for compatibility)")
+    parser.add_argument("--log-file", default="", help="Absolute or project-relative Godot log file path override.")
 
     args = parser.parse_args()
     godot_bin = os.path.expandvars(args.godot_bin).strip().strip('"')
+    if args.log_file:
+        os.environ["GODOT_LOG_FILE"] = os.path.expandvars(args.log_file).strip().strip('"')
     mode = "strict" if args.strict else args.mode
     return _run_smoke(godot_bin, args.project_path, args.scene, args.timeout_sec, mode)
 
