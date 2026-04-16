@@ -9532,7 +9532,9 @@
       "Game.Core.Tests/Tasks/Task162SplitTests.cs"
     ],
     "acceptance": [
-      "Deterministic aggregation produces one signal compliance report covering naming, documentation, and lifecycle checks and verifies R11, PH9-B4 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs"
+      "Deterministic aggregation produces exactly one signal compliance report per task, and when naming, documentation, and lifecycle checks all pass, that single report is compliant, covers all three checks, and carries deterministic evidence for R11 and PH9-B4. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs",
+      "Deterministic aggregation refuses compliance when any required check among naming, documentation, or lifecycle is missing: the single task report remains non-compliant and lists the missing checks deterministically. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs",
+      "Deterministic aggregation refuses compliance when any required check among naming, documentation, or lifecycle is present but not passed: the single task report remains non-compliant and lists that failed check deterministically. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
