@@ -267,6 +267,17 @@
     "ui.hud.cards.close": "Close",
     "ui.hud.cards.confirm_text": "Use card",
     "ui.hud.cards.confirm_use": "Use",
-    "ui.hud.cards.confirm_cancel": "Cancel"
+    "ui.hud.cards.confirm_cancel": "Cancel",
+    "ui.hud.campaign.commander": "Commander",
+    "ui.hud.campaign.strategems": "Strategems",
+    "ui.hud.campaign.difficulty": "Difficulty",
+    "ui.hud.campaign.round": "Round",
+    "ui.hud.campaign.boss_pressure": "Boss Pressure",
+    "campaign.strategem.strat_active_default.name": "Default Active",
+    "campaign.strategem.strat_passive_default.name": "Default Passive",
+    "campaign.difficulty.normal.name": "Normal",
+    "campaign.difficulty.easy.name": "Easy",
+    "campaign.difficulty.hard.name": "Hard",
+    "campaign.boss.boss_yellow_turban.name": "Yellow Turban Leader"
   }
 }

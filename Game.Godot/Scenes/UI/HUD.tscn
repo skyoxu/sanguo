@@ -212,6 +212,58 @@ text = "Players"
 [node name="PlayersList" type="VBoxContainer" parent="TopBar/TopStack/PlayersPanel/VBox"]
 layout_mode = 2
 
+[node name="CampaignParamsPanel" type="PanelContainer" parent="TopBar/TopStack"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="TopBar/TopStack/CampaignParamsPanel"]
+layout_mode = 2
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 380.0
+offset_bottom = 112.0
+
+[node name="CommanderKey" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "Commander"
+
+[node name="CommanderValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "Unknown commander"
+
+[node name="StrategemsKey" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "Strategems"
+
+[node name="StrategemsValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "Unknown strategem / Unknown strategem"
+
+[node name="DifficultyKey" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "Difficulty"
+
+[node name="DifficultyValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "Unknown difficulty"
+
+[node name="RoundKey" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "Round"
+
+[node name="RoundValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "R1"
+
+[node name="BossPressureKey" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "Boss Pressure"
+
+[node name="BossPressureValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+text = "No boss pressure"
+
 [node name="SettingsMenu" type="Control" parent="."]
 visible = false
 layout_mode = 3

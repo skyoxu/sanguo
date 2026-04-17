@@ -120,7 +120,17 @@ public static class HudEventHandlerRegistry
         controller.Register(SanguoRegionLost.EventType, _ => handlers.HandleUiOnly());
         controller.Register(SanguoRandomEventApplied.EventType, _ => handlers.HandleUiOnly());
         controller.Register(SanguoCityTollSynergyPaid.EventType, _ => handlers.HandleUiOnly());
-        controller.Register(SanguoBossChallengePrompted.EventType, _ => handlers.HandleUiOnly());
+        controller.Register(SanguoBossChallengePrompted.EventType, root =>
+        {
+            if (HudEventDtoMapper.TryParseBossChallengePrompted(root, out var dto))
+            {
+                handlers.HandleBossChallengePrompted(dto);
+            }
+            else
+            {
+                handlers.HandleUiOnly();
+            }
+        });
         controller.Register(SanguoObjectiveSkipped.EventType, _ => handlers.HandleUiOnly());
         controller.Register(SanguoGameEnded.EventType, _ => handlers.HandleGameEnded());
     }

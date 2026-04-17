@@ -148,6 +148,12 @@
     "ui.hud.settings.return": "返回主菜单",
     "ui.hud.log": "日志",
     "event_pool.default.name": "地块池",
-    "event_pool.global.name": "全局池"
+    "event_pool.global.name": "全局池",
+    "campaign.strategem.strat_active_default.name": "默认主动",
+    "campaign.strategem.strat_passive_default.name": "默认被动",
+    "campaign.difficulty.normal.name": "普通",
+    "campaign.difficulty.easy.name": "简单",
+    "campaign.difficulty.hard.name": "困难",
+    "campaign.boss.boss_yellow_turban.name": "黄巾首领"
   }
 }

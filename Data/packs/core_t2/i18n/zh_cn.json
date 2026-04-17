@@ -267,6 +267,17 @@
     "ui.hud.cards.close": "关闭",
     "ui.hud.cards.confirm_text": "确认使用卡牌",
     "ui.hud.cards.confirm_use": "使用",
-    "ui.hud.cards.confirm_cancel": "取消"
+    "ui.hud.cards.confirm_cancel": "取消",
+    "ui.hud.campaign.commander": "指挥官",
+    "ui.hud.campaign.strategems": "谋略",
+    "ui.hud.campaign.difficulty": "难度",
+    "ui.hud.campaign.round": "回合",
+    "ui.hud.campaign.boss_pressure": "Boss 压力",
+    "campaign.strategem.strat_active_default.name": "默认主动",
+    "campaign.strategem.strat_passive_default.name": "默认被动",
+    "campaign.difficulty.normal.name": "普通",
+    "campaign.difficulty.easy.name": "简单",
+    "campaign.difficulty.hard.name": "困难",
+    "campaign.boss.boss_yellow_turban.name": "黄巾首领"
   }
 }

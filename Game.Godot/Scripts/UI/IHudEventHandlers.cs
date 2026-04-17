@@ -11,6 +11,7 @@ public interface IHudEventHandlers
     void HandleCityTollPaid(HudCityTollPaidDto dto);
     void HandleCityBought(HudCityBoughtDto dto);
     void HandleTokenMoved(HudTokenMovedDto dto);
+    void HandleBossChallengePrompted(HudBossChallengePromptedDto dto);
     void HandleGameEnded();
     void HandleUiOnly();
 }
