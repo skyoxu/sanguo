@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 8,
+  "version": 9,
   "locale": "en-US",
   "strings": {
     "building.building_barracks.desc": "Boosts toll income, ideal for military cities.",
