@@ -25,6 +25,7 @@ REQUIRED_GATE_SCRIPTS = {
     'scripts/python/check_tasks_all_refs.py',
     'scripts/python/check_gate_bundle_consistency.py',
     'scripts/python/check_workflow_gate_enforcement.py',
+    'scripts/python/check_signal_compliance_workflow_hard_gate.py',
     'scripts/sc/check_acceptance_garbled.py',
 }
 SCRIPT_RE = re.compile(r'^scripts/[A-Za-z0-9_./-]+\.py$')
