@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 8,
+  "version": 9,
   "locale": "en-US",
   "strings": {
     "building.building_barracks.desc": "Boosts toll income, ideal for military cities.",
@@ -147,6 +147,17 @@
     "relic.relic_prosperity_scroll.desc": "Increase economy steps by two.",
     "ui.hud.settings.return": "Back to Main Menu",
     "ui.hud.log": "Log",
+    "ui.hud.campaign.commander": "Commander",
+    "ui.hud.campaign.strategems": "Strategems",
+    "ui.hud.campaign.difficulty": "Difficulty",
+    "ui.hud.campaign.round": "Round",
+    "ui.hud.campaign.boss_pressure": "Boss Pressure",
+    "campaign.strategem.strat_active_default.name": "Default Active",
+    "campaign.strategem.strat_passive_default.name": "Default Passive",
+    "campaign.difficulty.normal.name": "Normal",
+    "campaign.difficulty.easy.name": "Easy",
+    "campaign.difficulty.hard.name": "Hard",
+    "campaign.boss.boss_yellow_turban.name": "Yellow Turban Leader",
     "event_pool.default.name": "Tile Event Pool",
     "event_pool.global.name": "Global Event Pool"
   }

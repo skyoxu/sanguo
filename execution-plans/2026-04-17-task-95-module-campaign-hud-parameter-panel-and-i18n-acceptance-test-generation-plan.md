@@ -1,0 +1,21 @@
+# Task 95 Module: campaign HUD parameter panel and i18n acceptance-test generation plan
+
+- Title: Task 95 Module: campaign HUD parameter panel and i18n acceptance-test generation plan
+- Status: active
+- Branch: task/T95
+- Git Head: 41cffaa135cceef1d7c06a57f805867fe4d663e5
+- Goal: Control acceptance-driven test generation complexity for task 95.
+- Scope: 1 missing refs across 1 test roots; seed refs: Tests.Godot/tests/UI/test_task95_campaign_integration.gd
+- Current step: Review missing acceptance refs and choose the first safe red step.
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: Do not start Codex test generation until the ref mix and verify mode are explicit.
+- Next action: Run llm_generate_tests_from_acceptance_refs.py after confirming the sequence for missing refs.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 95 --resume`
+- Open questions: none recorded yet
+- Exit criteria: The next acceptance-driven test generation step is explicit and low-ambiguity.
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `95`
+- Related run id: n/a (no pipeline run id linked yet)
+- Related latest.json: n/a (no task-scoped latest.json pointer resolved yet)
+- Related pipeline artifacts: n/a (no pipeline artifact directory resolved yet)

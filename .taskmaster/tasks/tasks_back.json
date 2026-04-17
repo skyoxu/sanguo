@@ -5708,13 +5708,12 @@
     "owner": "gameplay",
     "test_refs": [
       "Tests.Godot/tests/UI/test_task95_campaign_integration.gd",
-      "Tests.Godot/tests/Integration/test_hud_integration.gd",
-      "Tests.Godot/tests/UI/test_hud_scene.gd"
+      "Game.Core.Tests/Tasks/Task95CampaignHudParameterViewModelMapperTests.cs"
     ],
     "acceptance": [
-      "When campaign runtime state provides commander, strategems, boss pressure context, and round markers, the HUD parameter panel shows each field with zh/en localized labels and values derived from campaign runtime state; in release mode it must not display raw transport/save-header artifacts, raw event codes, or raw localization keys, and malformed localization input must resolve to safe output. Refs: Tests.Godot/tests/Integration/test_hud_integration.gd Tests.Godot/tests/UI/test_hud_scene.gd",
-      "A stable campaign HUD view model is required between runtime state and rendering so HUD behavior does not depend directly on transport events or save headers, and field rendering must stay in the shared HUD layer instead of widget-specific overrides. Refs: Tests.Godot/tests/UI/test_task95_campaign_integration.gd",
-      "Acceptance requires task-specific mapper tests plus GdUnit release-mode regression coverage for localized HUD summary rendering and malformed/missing localization inputs. Refs: Tests.Godot/tests/UI/test_task95_campaign_integration.gd"
+      "When campaign runtime state provides commander, strategems, boss pressure context, and round markers, the HUD parameter panel shows each field with zh/en localized labels and values derived from campaign runtime state; in release mode it must not display raw transport/save-header artifacts, raw event codes, or raw localization keys, and malformed localization input must resolve to safe output. Refs: Tests.Godot/tests/UI/test_task95_campaign_integration.gd",
+      "A stable campaign HUD view model is required between runtime state and rendering so HUD behavior does not depend directly on transport events or save headers, and field rendering must stay in the shared HUD layer instead of widget-specific overrides. Refs: Game.Core.Tests/Tasks/Task95CampaignHudParameterViewModelMapperTests.cs Tests.Godot/tests/UI/test_task95_campaign_integration.gd",
+      "Acceptance requires task-specific mapper tests plus GdUnit release-mode regression coverage for localized HUD summary rendering and malformed/missing localization inputs. Refs: Game.Core.Tests/Tasks/Task95CampaignHudParameterViewModelMapperTests.cs Tests.Godot/tests/UI/test_task95_campaign_integration.gd"
     ],
     "test_strategy": [
       "GdUnit locks localized HUD summary rendering for campaign key fields in release mode."

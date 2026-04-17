@@ -55,6 +55,11 @@ public partial class HUD : Control, IHudEventHandlers
     private const string UiHudSettingsQuitKey = "ui.hud.settings.quit";
     private const string UiHudActionTitleKey = "ui.hud.action.title";
     private const string UiHudActionSkipKey = "ui.hud.action.skip";
+    private const string UiHudCampaignCommanderKey = "ui.hud.campaign.commander";
+    private const string UiHudCampaignStrategemsKey = "ui.hud.campaign.strategems";
+    private const string UiHudCampaignDifficultyKey = "ui.hud.campaign.difficulty";
+    private const string UiHudCampaignRoundKey = "ui.hud.campaign.round";
+    private const string UiHudCampaignBossPressureKey = "ui.hud.campaign.boss_pressure";
     private const string UiHudGuideTitleKey = "ui.hud.guide.title";
     private const string UiHudGuideStepKey = "ui.hud.guide.step";
     private const string UiHudToastChooseActionKey = "ui.hud.toast.choose_action_or_skip";
@@ -90,6 +95,16 @@ public partial class HUD : Control, IHudEventHandlers
     private Label _activePlayer = default!;
     private Label _date = default!;
     private Label _money = default!;
+    private Label? _campaignCommanderKey;
+    private Label? _campaignCommanderValue;
+    private Label? _campaignStrategemsKey;
+    private Label? _campaignStrategemsValue;
+    private Label? _campaignDifficultyKey;
+    private Label? _campaignDifficultyValue;
+    private Label? _campaignRoundKey;
+    private Label? _campaignRoundValue;
+    private Label? _campaignBossPressureKey;
+    private Label? _campaignBossPressureValue;
     private TextureRect? _avatar;
     private Button _diceButton = default!;
     private Button _btnSave = default!;
@@ -150,6 +165,11 @@ public partial class HUD : Control, IHudEventHandlers
     private string _diceWaitingLabel = "Waiting...";
     private string _diceAiLabel = "AI Turn";
     private string _diceValueLabel = "Dice";
+    private string _campaignCommanderValueText = "Unknown commander";
+    private string _campaignStrategemsValueText = "Unknown strategem / Unknown strategem";
+    private string _campaignDifficultyValueText = "Unknown difficulty";
+    private string _campaignRoundValueText = "R1";
+    private string _campaignBossPressureValueText = "No boss pressure";
 
     public override void _Ready()
     {
@@ -161,6 +181,16 @@ public partial class HUD : Control, IHudEventHandlers
         _activePlayer = GetNode<Label>("TopBar/TopStack/HBox/ActivePlayerLabel");
         _date = GetNode<Label>("TopBar/TopStack/HBox/DateLabel");
         _money = GetNode<Label>("TopBar/TopStack/HBox/MoneyLabel");
+        _campaignCommanderKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/CommanderKey");
+        _campaignCommanderValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/CommanderValue");
+        _campaignStrategemsKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/StrategemsKey");
+        _campaignStrategemsValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/StrategemsValue");
+        _campaignDifficultyKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/DifficultyKey");
+        _campaignDifficultyValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/DifficultyValue");
+        _campaignRoundKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/RoundKey");
+        _campaignRoundValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/RoundValue");
+        _campaignBossPressureKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/BossPressureKey");
+        _campaignBossPressureValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/BossPressureValue");
         _avatar = GetNodeOrNull<TextureRect>("TopBar/TopStack/HBox/Avatar");
         _diceButton = GetNode<Button>("TopBar/TopStack/HBox/DiceButton");
         _diceButton.Pressed += OnDicePressed;
@@ -743,6 +773,26 @@ public partial class HUD : Control, IHudEventHandlers
         _score.Text = $"{_scorePrefix}: 0";
         _health.Text = $"{_healthPrefix}: 100";
         _diceButton.Text = _diceWaitingLabel;
+        if (_campaignCommanderKey != null)
+        {
+            _campaignCommanderKey.Text = TranslateOrFallback(UiHudCampaignCommanderKey, "Commander");
+        }
+        if (_campaignStrategemsKey != null)
+        {
+            _campaignStrategemsKey.Text = TranslateOrFallback(UiHudCampaignStrategemsKey, "Strategems");
+        }
+        if (_campaignDifficultyKey != null)
+        {
+            _campaignDifficultyKey.Text = TranslateOrFallback(UiHudCampaignDifficultyKey, "Difficulty");
+        }
+        if (_campaignRoundKey != null)
+        {
+            _campaignRoundKey.Text = TranslateOrFallback(UiHudCampaignRoundKey, "Round");
+        }
+        if (_campaignBossPressureKey != null)
+        {
+            _campaignBossPressureKey.Text = TranslateOrFallback(UiHudCampaignBossPressureKey, "Boss Pressure");
+        }
 
         gameSettingsButton.Text = TranslateOrFallback(UiHudGameSettingsKey, "Game Settings");
         logButton.Text = TranslateOrFallback(UiHudLogKey, "Log");
@@ -811,6 +861,8 @@ public partial class HUD : Control, IHudEventHandlers
         {
             guideText.Text = TranslateOrFallback(UiHudGuideStepKey, "Step");
         }
+
+        UpdateCampaignParameterPanel();
     }
 
     private Control? FindControlByPath(string path)
@@ -1090,6 +1142,34 @@ public partial class HUD : Control, IHudEventHandlers
         UpdateActivePlayerIdentityDisplay();
         UpdatePlayersList();
         RefreshCardsList();
+        UpdateCampaignParametersFromStartConfig(dto);
+    }
+
+    public void HandleBossChallengePrompted(HudBossChallengePromptedDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.BossId))
+        {
+            return;
+        }
+
+        var mapperVm = CampaignHudParameterViewModelMapper.Map(
+            commanderId: _campaignCommanderValueText,
+            activeStrategemId: string.Empty,
+            passiveStrategemId: string.Empty,
+            difficultyCode: _campaignDifficultyValueText,
+            turnNumber: dto.RoundNumber,
+            bossId: dto.BossId,
+            bossRoundNumber: dto.RoundNumber,
+            nextRoundPressureForecast: dto.NextRoundPressureForecast,
+            releaseMode: true,
+            resolveCommanderLabel: _ => null,
+            resolveStrategemLabel: _ => null,
+            resolveDifficultyLabel: _ => null,
+            resolveBossLabel: ResolveBossLabel);
+
+        _campaignRoundValueText = mapperVm.RoundMarker;
+        _campaignBossPressureValueText = mapperVm.BossPressureContext;
+        UpdateCampaignParameterPanel();
     }
 
     private void TryLoadCharacterCatalog()
@@ -1527,6 +1607,122 @@ public partial class HUD : Control, IHudEventHandlers
         }
 
         return playerId;
+    }
+
+    private void UpdateCampaignParametersFromStartConfig(HudGameStartedDto dto)
+    {
+        var mapperVm = CampaignHudParameterViewModelMapper.Map(
+            commanderId: dto.CommanderId,
+            activeStrategemId: dto.ActiveStrategemId,
+            passiveStrategemId: dto.PassiveStrategemId,
+            difficultyCode: dto.DifficultyCode,
+            turnNumber: 1,
+            bossId: string.Empty,
+            bossRoundNumber: 0,
+            nextRoundPressureForecast: 0,
+            releaseMode: true,
+            resolveCommanderLabel: ResolveCharacterLabel,
+            resolveStrategemLabel: ResolveStrategemLabel,
+            resolveDifficultyLabel: ResolveDifficultyLabel,
+            resolveBossLabel: ResolveBossLabel);
+
+        _campaignCommanderValueText = mapperVm.Commander;
+        _campaignStrategemsValueText = mapperVm.Strategems;
+        _campaignDifficultyValueText = mapperVm.Difficulty;
+        _campaignRoundValueText = mapperVm.RoundMarker;
+        _campaignBossPressureValueText = mapperVm.BossPressureContext;
+        UpdateCampaignParameterPanel();
+    }
+
+    private void UpdateCampaignParameterPanel()
+    {
+        if (_campaignCommanderValue != null)
+        {
+            _campaignCommanderValue.Text = _campaignCommanderValueText;
+        }
+        if (_campaignStrategemsValue != null)
+        {
+            _campaignStrategemsValue.Text = _campaignStrategemsValueText;
+        }
+        if (_campaignDifficultyValue != null)
+        {
+            _campaignDifficultyValue.Text = _campaignDifficultyValueText;
+        }
+        if (_campaignRoundValue != null)
+        {
+            _campaignRoundValue.Text = _campaignRoundValueText;
+        }
+        if (_campaignBossPressureValue != null)
+        {
+            _campaignBossPressureValue.Text = _campaignBossPressureValueText;
+        }
+    }
+
+    private string? ResolveCharacterLabel(string characterId)
+    {
+        if (string.IsNullOrWhiteSpace(characterId))
+        {
+            return null;
+        }
+
+        if (_characterNameKeyById.TryGetValue(characterId, out var nameKey) && !string.IsNullOrWhiteSpace(nameKey))
+        {
+            return TranslateOrFallback(nameKey, characterId);
+        }
+
+        return TranslateOrFallback($"character.{characterId}.name", characterId);
+    }
+
+    private string? ResolveStrategemLabel(string strategemId)
+    {
+        if (string.IsNullOrWhiteSpace(strategemId))
+        {
+            return null;
+        }
+
+        var key = strategemId switch
+        {
+            "strat_active_default" => "campaign.strategem.strat_active_default.name",
+            "strat_passive_default" => "campaign.strategem.strat_passive_default.name",
+            _ => null,
+        };
+
+        return string.IsNullOrWhiteSpace(key) ? null : TranslateOrFallback(key, strategemId);
+    }
+
+    private string? ResolveDifficultyLabel(string difficultyCode)
+    {
+        if (string.IsNullOrWhiteSpace(difficultyCode))
+        {
+            return null;
+        }
+
+        var key = difficultyCode switch
+        {
+            "normal" => "campaign.difficulty.normal.name",
+            "easy" => "campaign.difficulty.easy.name",
+            "hard" => "campaign.difficulty.hard.name",
+            _ => null,
+        };
+
+        return string.IsNullOrWhiteSpace(key) ? null : TranslateOrFallback(key, difficultyCode);
+    }
+
+    private string? ResolveBossLabel(string bossId)
+    {
+        if (string.IsNullOrWhiteSpace(bossId))
+        {
+            return null;
+        }
+
+        var key = bossId switch
+        {
+            "campaign.boss.boss_yellow_turban.name" => "campaign.boss.boss_yellow_turban.name",
+            "boss_yellow_turban" => "campaign.boss.boss_yellow_turban.name",
+            _ => null,
+        };
+
+        return string.IsNullOrWhiteSpace(key) ? null : TranslateOrFallback(key, bossId);
     }
 
     private IResourceLoader ResolveResourceLoader()

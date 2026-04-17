@@ -12,37 +12,45 @@ public static class HudEventDtoMapper
             new Dictionary<string, string>(StringComparer.Ordinal),
             Array.Empty<string>(),
             0,
-            0);
+            0,
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            string.Empty);
 
         if (!root.TryGetProperty("game_start_config", out var configElement) || configElement.ValueKind != JsonValueKind.Object)
         {
             return false;
         }
 
-        if (!configElement.TryGetProperty("character_assignments", out var assignmentsElement)
-            || assignmentsElement.ValueKind != JsonValueKind.Object)
-        {
-            return false;
-        }
-
         var assignments = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var property in assignmentsElement.EnumerateObject())
+        if (configElement.TryGetProperty("character_assignments", out var assignmentsElement)
+            && assignmentsElement.ValueKind == JsonValueKind.Object)
         {
-            var playerId = property.Name ?? string.Empty;
-            var characterId = property.Value.ValueKind == JsonValueKind.String
-                ? (property.Value.GetString() ?? string.Empty)
-                : string.Empty;
-
-            if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(characterId))
+            foreach (var property in assignmentsElement.EnumerateObject())
             {
-                continue;
-            }
+                var playerId = property.Name ?? string.Empty;
+                var characterId = property.Value.ValueKind == JsonValueKind.String
+                    ? (property.Value.GetString() ?? string.Empty)
+                    : string.Empty;
 
-            assignments[playerId] = characterId;
+                if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(characterId))
+                {
+                    continue;
+                }
+
+                assignments[playerId] = characterId;
+            }
         }
 
         var playersCount = TryGetInt(configElement, "players_count", out var parsedCount) ? parsedCount : assignments.Count;
         var startingMoney = TryGetInt(configElement, "starting_money_preset", out var parsedMoney) ? parsedMoney : 0;
+        var commanderId = TryGetString(configElement, "commander_id", out var parsedCommanderId) ? parsedCommanderId : string.Empty;
+        var activeStrategemId = TryGetString(configElement, "active_strategem_id", out var parsedActiveStrategemId) ? parsedActiveStrategemId : string.Empty;
+        var passiveStrategemId = TryGetString(configElement, "passive_strategem_id", out var parsedPassiveStrategemId) ? parsedPassiveStrategemId : string.Empty;
+        var difficultyCode = TryGetString(configElement, "difficulty", out var parsedDifficultyCode) ? parsedDifficultyCode : string.Empty;
+        var runMode = TryGetString(configElement, "run_mode", out var parsedRunMode) ? parsedRunMode : string.Empty;
         var playerIds = new List<string>(assignments.Keys);
         playerIds.Sort(StringComparer.Ordinal);
         if (playerIds.Count == 0 && playersCount > 0)
@@ -53,7 +61,31 @@ public static class HudEventDtoMapper
             }
         }
 
-        dto = new HudGameStartedDto(assignments, playerIds, playersCount, startingMoney);
+        dto = new HudGameStartedDto(
+            assignments,
+            playerIds,
+            playersCount,
+            startingMoney,
+            commanderId,
+            activeStrategemId,
+            passiveStrategemId,
+            difficultyCode,
+            runMode);
+        return true;
+    }
+
+    public static bool TryParseBossChallengePrompted(JsonElement root, out HudBossChallengePromptedDto dto)
+    {
+        dto = default;
+        if (!TryGetRequiredString(root, "BossId", out var bossId))
+        {
+            return false;
+        }
+
+        var roundNumber = TryGetInt(root, "RoundNumber", out var parsedRoundNumber) ? parsedRoundNumber : 0;
+        var pressureForecast = TryGetInt(root, "NextRoundPressureForecast", out var parsedPressureForecast) ? parsedPressureForecast : 0;
+
+        dto = new HudBossChallengePromptedDto(bossId, roundNumber, pressureForecast);
         return true;
     }
 
