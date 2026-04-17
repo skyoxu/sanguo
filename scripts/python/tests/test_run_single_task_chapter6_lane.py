@@ -327,6 +327,38 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
         self.assertEqual("blocked", decision["initial_phase"]["action"])
         self.assertEqual("resume", decision["initial_phase"]["stop_reason"])
 
+    def test_decision_should_prioritize_needs_fix_next_action_over_inspect_first_lane(self) -> None:
+        decision = lane.build_orchestration_decision(
+            initial_route={
+                "preferred_lane": "inspect-first",
+                "run_id": "run-15",
+                "latest_reason": "rerun_blocked:deterministic_green_llm_not_clean",
+                "blocked_by": "rerun_guard",
+                "chapter6_next_action": "needs-fix-fast",
+            },
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual("needs-fix-fast", decision["initial_phase"]["action"])
+        self.assertEqual("", decision["initial_phase"]["stop_reason"])
+
+    def test_decision_should_map_fix_and_resume_next_action_to_fix_deterministic(self) -> None:
+        decision = lane.build_orchestration_decision(
+            initial_route={
+                "preferred_lane": "inspect-first",
+                "run_id": "run-15",
+                "latest_reason": "step_failed:sc-test",
+                "blocked_by": "deterministic_failure",
+                "chapter6_next_action": "fix-and-resume",
+            },
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual("blocked", decision["initial_phase"]["action"])
+        self.assertEqual("fix-deterministic", decision["initial_phase"]["stop_reason"])
+
     def test_decision_should_stop_initial_phase_when_needs_fix_path_has_no_increment(self) -> None:
         decision = lane.build_orchestration_decision(
             initial_route={
@@ -440,6 +472,38 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
         self.assertEqual(["resume-task", "chapter6-route-initial"], [step["name"] for step in plan["steps"]])
         self.assertEqual("complete", plan["status"])
         self.assertEqual("continue", plan["stop_reason"])
+
+    def test_plan_should_run_needs_fix_fast_when_next_action_requests_it_even_if_lane_is_inspect_first(self) -> None:
+        initial_route = {
+            "preferred_lane": "inspect-first",
+            "run_id": "run-15",
+            "latest_reason": "rerun_blocked:deterministic_green_llm_not_clean",
+            "blocked_by": "rerun_guard",
+            "chapter6_next_action": "needs-fix-fast",
+        }
+
+        plan = lane.build_execution_plan(
+            task_id="15",
+            godot_bin="C:/Godot/Godot.exe",
+            profile_policy=lane.resolve_profile_policy("fast-ship"),
+            initial_route=initial_route,
+            post_review_route={"preferred_lane": "inspect-first"},
+            final_route={"preferred_lane": "inspect-first"},
+        )
+
+        self.assertEqual("planned", plan["status"])
+        self.assertEqual(
+            [
+                "resume-task",
+                "chapter6-route-initial",
+                "needs-fix-fast",
+                "chapter6-route-post-needs-fix",
+                "local-hard-checks-preflight",
+                "local-hard-checks",
+                "inspect-local-hard-checks",
+            ],
+            [step["name"] for step in plan["steps"]],
+        )
 
     def test_main_self_check_should_write_summary(self) -> None:
         with tempfile.TemporaryDirectory() as td:
