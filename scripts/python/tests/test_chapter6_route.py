@@ -122,7 +122,10 @@ class Chapter6RouteTests(unittest.TestCase):
             "recommended_action": "needs-fix-fast",
             "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15",
             "forbidden_commands": ["py -3 scripts/sc/run_review_pipeline.py --task-id 15"],
-            "candidate_commands": {"needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15"},
+            "candidate_commands": {
+                "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+                "needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15",
+            },
             "latest_summary_signals": {"reason": "rerun_blocked:repeat_review_needs_fix"},
             "chapter6_hints": {
                 "next_action": "needs-fix-fast",
@@ -146,6 +149,10 @@ class Chapter6RouteTests(unittest.TestCase):
         self.assertEqual("inspect-first", route["preferred_lane"])
         self.assertFalse(route["six_eight_worthwhile"])
         self.assertFalse(route["reviewer_anchor_hit"])
+        self.assertEqual(
+            "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+            route["recommended_command"],
+        )
 
     def test_should_classify_repo_noise_when_lock_contention_is_detected(self) -> None:
         payload = {
@@ -262,7 +269,10 @@ class Chapter6RouteTests(unittest.TestCase):
             "recommended_action": "rerun",
             "recommended_command": "py -3 scripts/sc/run_review_pipeline.py --task-id 15",
             "forbidden_commands": [],
-            "candidate_commands": {"rerun": "py -3 scripts/sc/run_review_pipeline.py --task-id 15"},
+            "candidate_commands": {
+                "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+                "rerun": "py -3 scripts/sc/run_review_pipeline.py --task-id 15",
+            },
             "latest_summary_signals": {"reason": "planned_only_incomplete", "artifact_integrity_kind": "planned_only_incomplete"},
             "chapter6_hints": {
                 "next_action": "rerun",
@@ -282,6 +292,10 @@ class Chapter6RouteTests(unittest.TestCase):
 
         self.assertEqual("inspect-first", route["preferred_lane"])
         self.assertFalse(route["full_67_recommended"])
+        self.assertEqual(
+            "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+            route["recommended_command"],
+        )
 
     def test_should_record_residual_docs_when_only_low_priority_findings_remain(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

@@ -533,6 +533,119 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
             self.assertEqual("P1", payload["profile_policy"]["fix_through"])
             self.assertEqual("check-tdd-plan", payload["steps"][2]["name"])
 
+    def test_main_should_fallback_to_full_path_when_resume_and_route_have_no_latest(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "chapter6-fresh-start"
+            argv = [
+                "run_single_task_chapter6_lane.py",
+                "--task-id",
+                "15",
+                "--godot-bin",
+                "C:/Godot/Godot.exe",
+                "--delivery-profile",
+                "fast-ship",
+                "--out-dir",
+                str(out_dir),
+            ]
+            executed_steps: list[str] = []
+            json_steps = iter(
+                [
+                    (
+                        {
+                            "name": "resume-task",
+                            "cmd": [],
+                            "rc": 2,
+                            "stdout_tail": "ERROR: failed to build task resume summary: No latest run index found.",
+                            "stderr_tail": "",
+                            "log": "resume.log",
+                        },
+                        {},
+                    ),
+                    (
+                        {
+                            "name": "chapter6-route-initial",
+                            "cmd": [],
+                            "rc": 2,
+                            "stdout_tail": "ERROR: failed to route chapter6 recovery: No latest run index found.",
+                            "stderr_tail": "",
+                            "log": "route-initial.log",
+                        },
+                        {},
+                    ),
+                    (
+                        {
+                            "name": "chapter6-route-post-review",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "route-post-review.log",
+                        },
+                        {
+                            "preferred_lane": "inspect-first",
+                            "run_id": "run-15",
+                            "latest_reason": "pipeline_clean",
+                            "blocked_by": "",
+                            "chapter6_next_action": "continue",
+                            "forbidden_commands": [],
+                        },
+                    ),
+                    (
+                        {
+                            "name": "inspect-local-hard-checks",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "inspect-local-hard-checks.log",
+                        },
+                        {"recommended_action": "continue"},
+                    ),
+                ]
+            )
+
+            def fake_run_json_step(*_args, **_kwargs):
+                return next(json_steps)
+
+            def fake_run_plain_step(*_args, name, cmd, **_kwargs):
+                step_name = str(name)
+                executed_steps.append(step_name)
+                return {
+                    "name": step_name,
+                    "cmd": list(cmd),
+                    "rc": 0,
+                    "stdout_tail": "",
+                    "stderr_tail": "",
+                    "log": f"{step_name}.log",
+                }
+
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(lane, "_repo_root", return_value=root),
+                mock.patch.object(lane, "_run_json_step", side_effect=fake_run_json_step),
+                mock.patch.object(lane, "_run_plain_step", side_effect=fake_run_plain_step),
+            ):
+                rc = lane.main()
+
+            self.assertEqual(0, rc)
+            self.assertEqual(
+                [
+                    "check-tdd-plan",
+                    "red-first",
+                    "green",
+                    "refactor",
+                    "review-pipeline",
+                    "local-hard-checks-preflight",
+                    "local-hard-checks",
+                ],
+                executed_steps,
+            )
+            payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("ok", payload["status"])
+            self.assertEqual("fresh-start-no-latest", payload["resume_recovery_mode"])
+            self.assertEqual("fresh-start-no-latest", payload["route_recovery_mode"])
+
     def test_main_should_stop_early_when_route_requests_run_67_recovery(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

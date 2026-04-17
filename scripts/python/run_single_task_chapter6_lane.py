@@ -600,8 +600,21 @@ def _run_json_step(out_dir: Path, *, name: str, cmd: list[str]) -> tuple[dict[st
         "stderr_tail": stderr.strip().splitlines()[-1] if stderr.strip() else "",
         "log": log_path,
     }
-    payload = _parse_json_stdout(stdout) if rc == 0 else {}
+    payload = _parse_json_stdout(stdout)
     return step, payload
+
+
+def _is_no_latest_index_error(step: dict[str, Any] | None) -> bool:
+    payload = step if isinstance(step, dict) else {}
+    stdout_tail = str(payload.get("stdout_tail") or "").strip().lower()
+    stderr_tail = str(payload.get("stderr_tail") or "").strip().lower()
+    markers = (
+        "no latest run index found",
+        "failed to build task resume summary",
+        "failed to route chapter6 recovery",
+    )
+    text = f"{stdout_tail}\n{stderr_tail}"
+    return any(marker in text for marker in markers)
 
 
 def _run_plain_step(out_dir: Path, *, name: str, cmd: list[str]) -> dict[str, Any]:
@@ -686,12 +699,16 @@ def main() -> int:
     resume_step, resume_payload = _run_json_step(out_dir, name="resume-task", cmd=build_resume_task_cmd(task_id))
     summary["steps"].append(resume_step)
     summary["resume"] = resume_payload
-    if int(resume_step["rc"]) != 0:
+    resume_missing_latest = int(resume_step["rc"]) != 0 and _is_no_latest_index_error(resume_step)
+    if int(resume_step["rc"]) != 0 and not resume_missing_latest:
         summary["status"] = "fail"
         summary["stop_reason"] = "resume-task"
         _write_json(out_dir / "summary.json", summary)
         print(f"SINGLE_TASK_CHAPTER6 status=fail task={task_id} stop=resume-task")
         return 1
+    if resume_missing_latest:
+        resume_payload = {}
+        summary["resume_recovery_mode"] = "fresh-start-no-latest"
 
     record_residual = str(profile_policy["record_residual"]).strip().lower() == "true"
     initial_route_step, initial_route = _run_json_step(
@@ -701,12 +718,28 @@ def main() -> int:
     )
     summary["steps"].append(initial_route_step)
     summary["initial_route"] = initial_route
-    if int(initial_route_step["rc"]) != 0:
+    initial_route_missing_latest = int(initial_route_step["rc"]) != 0 and _is_no_latest_index_error(initial_route_step)
+    if int(initial_route_step["rc"]) != 0 and not initial_route_missing_latest:
         summary["status"] = "fail"
         summary["stop_reason"] = "chapter6-route-initial"
         _write_json(out_dir / "summary.json", summary)
         print(f"SINGLE_TASK_CHAPTER6 status=fail task={task_id} stop=chapter6-route-initial")
         return 1
+    if initial_route_missing_latest:
+        if not resume_missing_latest:
+            summary["status"] = "fail"
+            summary["stop_reason"] = "chapter6-route-initial"
+            _write_json(out_dir / "summary.json", summary)
+            print(f"SINGLE_TASK_CHAPTER6 status=fail task={task_id} stop=chapter6-route-initial")
+            return 1
+        initial_route = {
+            "preferred_lane": "inspect-first",
+            "run_id": "n/a",
+            "latest_reason": "n/a",
+            "blocked_by": "n/a",
+        }
+        summary["initial_route"] = initial_route
+        summary["route_recovery_mode"] = "fresh-start-no-latest"
 
     plan = build_execution_plan(
         task_id=task_id,

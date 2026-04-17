@@ -539,12 +539,20 @@ def build_resume_payload(
     if inspection_is_clean:
         recommended_command = ""
     else:
-        recommended_command = str(inspection.get("recommended_command") or "").strip() or str(pipeline_summary.get("recommended_command") or "").strip() or _recommended_command(
+        resolved_recommended_command = _recommended_command(
             recommended_action,
             candidate_commands,
             chapter6_hints,
             approval,
         )
+        hinted_action = str(chapter6_hints.get("next_action") or "").strip().lower().replace("_", "-")
+        if resolved_recommended_command or hinted_action == "pause":
+            recommended_command = resolved_recommended_command
+        else:
+            recommended_command = (
+                str(inspection.get("recommended_command") or "").strip()
+                or str(pipeline_summary.get("recommended_command") or "").strip()
+            )
     forbidden_commands = [str(item).strip() for item in list(inspection.get("forbidden_commands") or []) if str(item).strip()]
     if not forbidden_commands and not inspection_is_clean:
         forbidden_commands = [str(item).strip() for item in list(pipeline_summary.get("forbidden_commands") or []) if str(item).strip()]
