@@ -138,6 +138,6 @@ public static class CampaignHudParameterViewModelMapper
             return true;
         }
 
-        return value.StartsWith("core.sanguo.", StringComparison.OrdinalIgnoreCase);
+        return false;
     }
 }
