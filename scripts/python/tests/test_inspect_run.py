@@ -810,6 +810,74 @@ class InspectRunTests(unittest.TestCase):
             )
             self.assertIn("deterministic evidence is sufficient", payload["recommended_action_why"].lower())
 
+    def test_inspect_run_artifacts_should_prefer_hint_action_over_stale_summary_action(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            latest = root / "logs" / "ci" / "2026-04-10" / "sc-review-pipeline-task-15" / "latest.json"
+            out_dir = root / "logs" / "ci" / "2026-04-10" / "sc-review-pipeline-task-15-run-15"
+            _write_json(
+                latest,
+                {
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "15",
+                    "run_id": "run-15",
+                    "status": "fail",
+                    "latest_out_dir": str(out_dir),
+                    "summary_path": str(out_dir / "summary.json"),
+                    "execution_context_path": str(out_dir / "execution-context.json"),
+                    "repair_guide_json_path": str(out_dir / "repair-guide.json"),
+                },
+            )
+            _write_json(
+                out_dir / "summary.json",
+                {
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "15",
+                    "run_id": "run-15",
+                    "status": "fail",
+                    "reason": "pipeline_clean",
+                    "recommended_action": "needs-fix-fast",
+                    "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                    "candidate_commands": {
+                        "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+                        "needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 15 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                    },
+                    "steps": [],
+                },
+            )
+            _write_json(
+                out_dir / "execution-context.json",
+                {
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "15",
+                    "run_id": "run-15",
+                    "status": "fail",
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                    "diagnostics": {},
+                },
+            )
+            _write_json(
+                out_dir / "repair-guide.json",
+                {
+                    "status": "needs-fix",
+                    "task_id": "15",
+                    "summary_status": "fail",
+                    "failed_step": "",
+                    "recommendations": [],
+                },
+            )
+
+            rc, payload = inspect_run.inspect_run_artifacts(repo_root=root, kind="pipeline", task_id="15")
+
+            self.assertEqual(1, rc)
+            self.assertEqual("rerun", payload["chapter6_hints"]["next_action"])
+            self.assertEqual("rerun", payload["recommended_action"])
+            self.assertEqual(
+                "py -3 scripts/sc/run_review_pipeline.py --task-id 15",
+                payload["recommended_command"],
+            )
+
     def test_inspect_run_artifacts_should_surface_planned_only_recovery_hints(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)

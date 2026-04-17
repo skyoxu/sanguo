@@ -783,6 +783,59 @@ class ResumeTaskTests(unittest.TestCase):
         self.assertIn("recent_failure.same_family_count=2", payload["blocking_signals"])
         self.assertIn("recent_failure.stop_full_rerun_recommended=true", payload["blocking_signals"])
 
+    def test_build_resume_payload_should_prefer_hint_derived_command_over_stale_inspection_command(self) -> None:
+        inspection = {
+            "task_id": "14",
+            "run_id": "run-14",
+            "failure": {"code": "review-needs-fix"},
+            "recommended_action": "needs-fix-fast",
+            "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 14 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+            "candidate_commands": {
+                "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 14",
+                "needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 14 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1",
+                "resume": "py -3 scripts/sc/run_review_pipeline.py --task-id 14 --resume",
+                "rerun": "py -3 scripts/sc/run_review_pipeline.py --task-id 14",
+                "fork": "py -3 scripts/sc/run_review_pipeline.py --task-id 14 --fork",
+            },
+            "paths": {
+                "latest": "logs/ci/2026-04-06/sc-review-pipeline-task-14/latest.json",
+                "out_dir": "logs/ci/2026-04-06/sc-review-pipeline-task-14-run-14",
+            },
+            "latest_summary_signals": {
+                "reason": "pipeline_clean",
+                "run_type": "full",
+                "reuse_mode": "none",
+                "artifact_integrity_kind": "",
+                "diagnostics_keys": [],
+            },
+            "chapter6_hints": {
+                "next_action": "inspect",
+                "can_skip_6_7": False,
+                "can_go_to_6_8": False,
+                "blocked_by": "review-needs-fix",
+                "rerun_forbidden": False,
+                "rerun_override_flag": "",
+            },
+            "approval": {},
+            "forbidden_commands": [],
+            "run_event_summary": {},
+            "recommended_action_why": "",
+        }
+
+        with tempfile.TemporaryDirectory() as tmp_dir, mock.patch.object(resume_task, "inspect_run_artifacts", return_value=(1, inspection)):
+            _, payload = resume_task.build_resume_payload(
+                repo_root=Path(tmp_dir),
+                task_id="14",
+                latest="",
+                run_id="",
+            )
+
+        self.assertEqual("inspect", payload["chapter6_hints"]["next_action"])
+        self.assertEqual(
+            "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 14",
+            payload["recommended_command"],
+        )
+
     def test_chapter6_stop_loss_note_should_explain_llm_retry_stop_loss(self) -> None:
         text = resume_task._chapter6_stop_loss_note(
             {"blocked_by": "llm_retry_stop_loss"},
