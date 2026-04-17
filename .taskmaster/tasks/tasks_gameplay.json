@@ -7889,13 +7889,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task162SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task163SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Task 157 is satisfied only when split tasks 162 and 163 provide completion evidence for moved implementation; missing either evidence keeps closure incomplete. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs Game.Core.Tests/Tasks/Task163SplitTests.cs",
-      "Closure check is integrated into CI signal compliance workflow as a hard gate, not a generic evidence note. Refs: .github/workflows/ci-windows.yml scripts/python/ci_pipeline.py"
+      "Task 157 integration completes PH9-B4 closure only when closure evidence from both split tasks 162 and 163 is present, and completion signature remains deterministic under evidence reordering. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
+      "CI hard-gate integration for signal compliance closure is validated by task-scoped deterministic tests instead of non-test workflow/script paths. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
+      "Task 157 integration must remain incomplete when closure evidence is missing for either split task 162 or 163. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
