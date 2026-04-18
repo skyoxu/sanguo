@@ -19,3 +19,4 @@
 - Related run id: `6f6a829325a14222b0e8b8a55971011b`
 - Related latest.json: `logs/ci/2026-04-18/sc-review-pipeline-task-76/latest.json`
 - Related pipeline artifacts: `logs/ci/2026-04-18/sc-review-pipeline-task-76-6f6a829325a14222b0e8b8a55971011b`
+- CI retrigger note: pushed a trace update on 2026-04-19 to reactivate PR checks for `task/T76`.
