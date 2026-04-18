@@ -325,6 +325,27 @@ public sealed class SanguoTurnManager
                 Timestamp: occurredAt.UtcDateTime,
                 Id: Guid.NewGuid().ToString("N"));
             await _bus.PublishAsync(rejected);
+
+            var explained = new DomainEvent(
+                Type: "core.sanguo.action.explain",
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new
+                {
+                    GameId = _gameId,
+                    TurnNumber = _turnNumber,
+                    RoundNumber = ComputeRoundNumber(_turnNumber),
+                    PlayerId = activePlayerId,
+                    Phase = SanguoTurnPhase.BeforeRoll.ToString(),
+                    CardId = cardId,
+                    ReasonCode = SanguoActionCardPlayRejected.ReasonAlreadyPlayedThisTurn,
+                    ExplainCode = "second_action_refused",
+                    OccurredAt = occurredAt,
+                    CorrelationId = correlationId,
+                    CausationId = causationId
+                }),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(explained);
             return false;
         }
 

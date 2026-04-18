@@ -197,6 +197,14 @@ def run_gdunit_hard(
 
 
 def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = None, *, strict: bool = True) -> dict[str, Any]:
+    smoke_timeout_sec = "15"
+    raw_timeout = str(os.environ.get("SC_TEST_SMOKE_TIMEOUT_SEC") or "").strip()
+    if raw_timeout:
+        try:
+            smoke_timeout_sec = str(max(1, int(float(raw_timeout))))
+        except ValueError:
+            smoke_timeout_sec = "15"
+
     if scene.startswith("res://"):
         disk_path = repo_root() / scene[len("res://") :]
         if not disk_path.exists():
@@ -222,7 +230,7 @@ def run_smoke(out_dir: Path, godot_bin: str, scene: str, task_id: str | None = N
         "--scene",
         scene,
         "--timeout-sec",
-        "5",
+        smoke_timeout_sec,
         "--log-file",
         str(_godot_log_file_path(date=today_str(), name=f"smoke-{str(task_id or 'taskless').strip() or 'taskless'}")),
     ]

@@ -5883,10 +5883,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task98V3Tests.cs",
-      "Tests.Godot/tests/UI/test_task98_campaign_ui_visibility.gd",
       "Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs",
-      "Game.Core.Tests/Services/SanguoTurnTileActionTests.cs"
+      "Game.Core.Tests/Services/SanguoTurnTileActionTests.cs",
+      "Game.Core.Tests/Tasks/Task98V3Tests.cs",
+      "Tests.Godot/tests/UI/test_task98_campaign_ui_visibility.gd"
     ],
     "acceptance": [
       "If a camp attempts a second action in the same round, the action is refused, camp state does not change, and the event log includes deterministic blocked reason code plus explanatory refusal entry. Refs: Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs Game.Core.Tests/Services/SanguoTurnTileActionTests.cs",
