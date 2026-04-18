@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 9,
+  "version": 10,
   "locale": "zh-CN",
   "strings": {
     "building.building_barracks.desc": "提升过路费，适合军事风格的城池。",
@@ -154,6 +154,11 @@
     "campaign.difficulty.normal.name": "普通",
     "campaign.difficulty.easy.name": "简单",
     "campaign.difficulty.hard.name": "困难",
-    "campaign.boss.boss_yellow_turban.name": "黄巾首领"
+    "campaign.boss.boss_yellow_turban.name": "黄巾首领",
+    "ui.hud.campaign.commander": "主将",
+    "ui.hud.campaign.strategems": "谋略",
+    "ui.hud.campaign.difficulty": "难度",
+    "ui.hud.campaign.round": "回合",
+    "ui.hud.campaign.boss_pressure": "首领压力"
   }
 }
