@@ -1355,6 +1355,52 @@ public sealed class SanguoTurnManager
         return true;
     }
 
+    private async Task PublishBuildingSetBDeterministicEffectEvidenceAsync(
+        string playerId,
+        string buildingId,
+        string correlationId,
+        DateTimeOffset occurredAt,
+        string causationEventId)
+    {
+        if (_gameId is null)
+        {
+            return;
+        }
+
+        int? moneyDelta = null;
+        int? stepDelta = null;
+        var effectKind = "fallback_noop";
+
+        if (string.Equals(buildingId, "building_training_ground", StringComparison.Ordinal))
+        {
+            effectKind = SanguoEffectKinds.EconomyStepDelta;
+            stepDelta = 1;
+        }
+        else if (string.Equals(buildingId, "building_war_hall", StringComparison.Ordinal))
+        {
+            effectKind = SanguoEffectKinds.MoneyDelta;
+            moneyDelta = 40;
+        }
+
+        var evt = new DomainEvent(
+            Type: SanguoRelicApplied.EventType,
+            Source: nameof(SanguoTurnManager),
+            Data: JsonElementEventData.FromObject(new SanguoRelicApplied(
+                GameId: _gameId,
+                PlayerId: playerId,
+                RelicId: buildingId,
+                EffectKind: effectKind,
+                MoneyDelta: moneyDelta,
+                StepDelta: stepDelta,
+                OccurredAt: occurredAt,
+                CorrelationId: correlationId,
+                CausationId: causationEventId)),
+            Timestamp: occurredAt.UtcDateTime,
+            Id: Guid.NewGuid().ToString("N"));
+
+        await _bus.PublishAsync(evt);
+    }
+
     private async Task TryBuildOrUpgradeCityAsync(
         string playerId,
         City city,
@@ -1462,6 +1508,12 @@ public sealed class SanguoTurnManager
             Id: Guid.NewGuid().ToString("N"));
 
         await _bus.PublishAsync(evt);
+        await PublishBuildingSetBDeterministicEffectEvidenceAsync(
+            playerId: playerId,
+            buildingId: picked.BuildingId,
+            correlationId: correlationId,
+            occurredAt: occurredAt,
+            causationEventId: evt.Id);
 
         await PublishPlayerStateChangedAsync(
             playerId: playerId,
