@@ -878,6 +878,124 @@ class InspectRunTests(unittest.TestCase):
                 payload["recommended_command"],
             )
 
+    def test_derive_chapter6_hints_should_prefer_continue_when_failure_is_ok_even_if_summary_hints_are_stale(self) -> None:
+        hints = inspect_run._derive_chapter6_hints(
+            failure={"code": "ok"},
+            latest_summary_signals={
+                "reason": "pipeline_clean",
+                "artifact_integrity_kind": "",
+                "diagnostics_keys": ["recent_failure_summary"],
+            },
+            recent_failure_summary={
+                "same_family_count": 3,
+                "stop_full_rerun_recommended": True,
+            },
+            approval={"status": "not-needed"},
+            summary_hints={
+                "next_action": "inspect",
+                "blocked_by": "recent_failure_summary",
+                "rerun_forbidden": True,
+            },
+        )
+
+        self.assertEqual("continue", hints["next_action"])
+        self.assertEqual("", hints["blocked_by"])
+        self.assertFalse(hints["rerun_forbidden"])
+
+    def test_inspect_run_artifacts_should_prefer_continue_over_stale_summary_inspect_for_clean_pipeline(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            latest = root / "logs" / "ci" / "2026-04-10" / "sc-review-pipeline-task-15" / "latest.json"
+            out_dir = root / "logs" / "ci" / "2026-04-10" / "sc-review-pipeline-task-15-run-15"
+            _write_json(
+                latest,
+                {
+                    "task_id": "15",
+                    "run_id": "run-15",
+                    "status": "ok",
+                    "date": "2026-04-10",
+                    "latest_out_dir": str(out_dir),
+                    "summary_path": str(out_dir / "summary.json"),
+                    "execution_context_path": str(out_dir / "execution-context.json"),
+                    "repair_guide_json_path": str(out_dir / "repair-guide.json"),
+                    "reason": "pipeline_clean",
+                    "run_type": "full",
+                    "reuse_mode": "none",
+                },
+            )
+            _write_json(
+                out_dir / "summary.json",
+                {
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "15",
+                    "requested_run_id": "run-15",
+                    "run_id": "run-15",
+                    "allow_overwrite": False,
+                    "force_new_run_id": False,
+                    "status": "ok",
+                    "run_type": "full",
+                    "reason": "pipeline_clean",
+                    "reuse_mode": "none",
+                    "recommended_action": "inspect",
+                    "recommended_command": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+                    "forbidden_commands": ["py -3 scripts/sc/run_review_pipeline.py --task-id 15"],
+                    "chapter6_hints": {
+                        "next_action": "inspect",
+                        "blocked_by": "recent_failure_summary",
+                        "rerun_forbidden": True,
+                    },
+                    "started_at_utc": "2026-04-10T00:00:00+00:00",
+                    "finished_at_utc": "2026-04-10T00:01:00+00:00",
+                    "elapsed_sec": 60,
+                    "steps": [],
+                },
+            )
+            _write_json(
+                out_dir / "execution-context.json",
+                {
+                    "cmd": "sc-review-pipeline",
+                    "task_id": "15",
+                    "run_id": "run-15",
+                    "status": "ok",
+                    "delivery_profile": "fast-ship",
+                    "security_profile": "host-safe",
+                    "failed_step": "",
+                    "diagnostics": {},
+                },
+            )
+            _write_json(
+                out_dir / "repair-guide.json",
+                {
+                    "status": "not-needed",
+                    "task_id": "15",
+                    "summary_status": "ok",
+                    "failed_step": "",
+                    "recommendations": [],
+                },
+            )
+            (out_dir / "run-events.jsonl").write_text(
+                json.dumps(
+                    {
+                        "event": "run_completed",
+                        "task_id": "15",
+                        "run_id": "run-15",
+                        "status": "ok",
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+
+            rc, payload = inspect_run.inspect_run_artifacts(repo_root=root, kind="pipeline", task_id="15")
+
+            self.assertEqual(0, rc)
+            self.assertEqual("continue", payload["chapter6_hints"]["next_action"])
+            self.assertEqual("continue", payload["recommended_action"])
+            self.assertEqual("", payload["recommended_command"])
+            self.assertEqual([], payload["forbidden_commands"])
+
     def test_inspect_run_artifacts_should_surface_planned_only_recovery_hints(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)

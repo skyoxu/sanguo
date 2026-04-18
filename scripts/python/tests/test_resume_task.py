@@ -836,6 +836,72 @@ class ResumeTaskTests(unittest.TestCase):
             payload["recommended_command"],
         )
 
+    def test_build_resume_payload_should_prefer_continue_hint_from_inspection_over_stale_summary_action(self) -> None:
+        inspection = {
+            "task_id": "14",
+            "run_id": "run-14",
+            "failure": {"code": "ok"},
+            "recommended_action": "inspect",
+            "recommended_action_why": "Inspection is green; continue local work without reopening the full review pipeline.",
+            "recommended_command": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 14",
+            "forbidden_commands": ["py -3 scripts/sc/run_review_pipeline.py --task-id 14"],
+            "candidate_commands": {
+                "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 14",
+                "resume": "py -3 scripts/sc/run_review_pipeline.py --task-id 14 --resume",
+                "rerun": "py -3 scripts/sc/run_review_pipeline.py --task-id 14",
+            },
+            "paths": {
+                "latest": "logs/ci/2026-04-06/sc-review-pipeline-task-14/latest.json",
+                "out_dir": "logs/ci/2026-04-06/sc-review-pipeline-task-14-run-14",
+            },
+            "latest_summary_signals": {
+                "reason": "pipeline_clean",
+                "run_type": "full",
+                "reuse_mode": "none",
+                "artifact_integrity_kind": "",
+                "diagnostics_keys": ["recent_failure_summary"],
+            },
+            "chapter6_hints": {
+                "next_action": "continue",
+                "can_skip_6_7": True,
+                "can_go_to_6_8": False,
+                "blocked_by": "",
+                "rerun_forbidden": False,
+                "rerun_override_flag": "",
+            },
+            "approval": {"status": "not-needed", "recommended_action": "continue"},
+            "run_event_summary": {},
+            "recent_failure_summary": {
+                "same_family_count": 3,
+                "stop_full_rerun_recommended": True,
+            },
+        }
+
+        pipeline_summary = {
+            "recommended_action": "inspect",
+            "recommended_action_why": "stale active task recommendation",
+            "forbidden_commands": ["py -3 scripts/sc/run_review_pipeline.py --task-id 14"],
+        }
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            summary_path = root / "logs" / "ci" / "2026-04-06" / "sc-review-pipeline-task-14-run-14" / "summary.json"
+            summary_path.parent.mkdir(parents=True, exist_ok=True)
+            summary_path.write_text(json.dumps(pipeline_summary, ensure_ascii=False) + "\n", encoding="utf-8")
+            inspection["paths"]["summary"] = str(summary_path.relative_to(root)).replace("\\", "/")
+
+            with mock.patch.object(resume_task, "inspect_run_artifacts", return_value=(0, inspection)):
+                _, payload = resume_task.build_resume_payload(
+                    repo_root=root,
+                    task_id="14",
+                    latest="",
+                    run_id="",
+                )
+
+        self.assertEqual("continue", payload["recommended_action"])
+        self.assertEqual("", payload["recommended_command"])
+        self.assertEqual([], payload["forbidden_commands"])
+
     def test_chapter6_stop_loss_note_should_explain_llm_retry_stop_loss(self) -> None:
         text = resume_task._chapter6_stop_loss_note(
             {"blocked_by": "llm_retry_stop_loss"},

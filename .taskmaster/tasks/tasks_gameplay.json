@@ -4475,13 +4475,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task97SplitIntegrationTests.cs",
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
-      "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
+      "Game.Core.Tests/Tasks/Task97SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Integration closure is complete only when recorded evidence from split tasks 125 and 126, taken together, explicitly proves camp building slot integration and durability model integration are both covered without unresolved gaps. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
-      "Acceptance fails if either camp building slot integration evidence or durability model integration evidence is missing, only indirectly inferred, or leaves unresolved interface/model linkage gaps. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
+      "Integration closure is complete only when recorded evidence from split tasks 125 and 126, taken together, explicitly proves camp building slot integration and durability model integration are both covered without unresolved gaps. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task97SplitIntegrationTests.cs",
+      "Acceptance fails if either camp building slot integration evidence or durability model integration evidence is missing, only indirectly inferred, or leaves unresolved interface/model linkage gaps. Refs: Game.Core.Tests/Tasks/Task97SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."

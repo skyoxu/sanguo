@@ -299,7 +299,12 @@ def route_chapter6(
 
     # Keep command and lane coherent in compact route output.
     if preferred_lane in {"inspect-first", "repo-noise-stop", "record-residual", "fix-deterministic"}:
-        recommended_command = inspect_command or recommended_command
+        next_action = str(chapter6_hints.get("next_action") or "").strip().lower()
+        failure_code = str(failure.get("code") or "").strip().lower()
+        if next_action == "continue" and failure_code == "ok":
+            recommended_command = str(payload.get("recommended_command") or "").strip() or "n/a"
+        else:
+            recommended_command = inspect_command or recommended_command
     elif preferred_lane == "run-6.7":
         recommended_command = rerun_command or recommended_command
     elif preferred_lane == "run-6.8":
