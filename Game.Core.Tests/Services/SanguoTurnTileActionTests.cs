@@ -15,7 +15,7 @@ namespace Game.Core.Tests.Services;
 public sealed class SanguoTurnTileActionTests
 {
     [Fact]
-    public async Task GivenUnownedCity_WhenExecuteHumanTileActionBuyLand_ThenPublishesCityBoughtAndStateChanged()
+    public async Task ShouldPublishCityBoughtAndStateChanged_WhenExecuteHumanTileActionBuyLandOnUnownedCity()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -47,7 +47,7 @@ public sealed class SanguoTurnTileActionTests
     }
 
     [Fact]
-    public async Task GivenUnownedCity_WhenExecuteHumanTileActionHouseBuild_ThenPublishesCityBoughtAndStateChanged()
+    public async Task ShouldPublishCityBoughtAndStateChanged_WhenExecuteHumanTileActionHouseBuildOnUnownedCity()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -90,7 +90,7 @@ public sealed class SanguoTurnTileActionTests
     }
 
     [Fact]
-    public async Task GivenUnownedCity_WhenExecuteHumanTileActionSkip_ThenNoPurchaseEventPublished()
+    public async Task ShouldNotPublishPurchaseEvent_WhenExecuteHumanTileActionSkipOnUnownedCity()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -109,7 +109,7 @@ public sealed class SanguoTurnTileActionTests
     }
 
     [Fact]
-    public async Task GivenUnownedCity_WhenExecuteHumanTileActionIsUnsupported_ThenNoOp()
+    public async Task ShouldNoOp_WhenExecuteUnsupportedHumanTileActionOnUnownedCity()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -128,7 +128,7 @@ public sealed class SanguoTurnTileActionTests
     }
 
     [Fact]
-    public async Task GivenPlayerNotOnCity_WhenExecuteHumanTileActionHouseBuild_ThenNoOp()
+    public async Task ShouldNoOp_WhenExecuteHumanTileActionHouseBuildAndPlayerNotOnCity()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -148,7 +148,7 @@ public sealed class SanguoTurnTileActionTests
     }
 
     [Fact]
-    public async Task GivenInsufficientFunds_WhenExecuteHumanTileActionHouseBuild_ThenNoPurchaseEventPublished()
+    public async Task ShouldNotPublishPurchaseEvent_WhenExecuteHumanTileActionHouseBuildAndFundsInsufficient()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -168,7 +168,7 @@ public sealed class SanguoTurnTileActionTests
     }
 
     [Fact]
-    public async Task GivenCityAlreadyOwned_WhenExecuteHumanTileActionHouseBuild_ThenNoPurchaseEventPublished()
+    public async Task ShouldNotPublishPurchaseEvent_WhenExecuteHumanTileActionHouseBuildAndCityAlreadyOwned()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -188,7 +188,7 @@ public sealed class SanguoTurnTileActionTests
     }
 
     [Fact]
-    public async Task GivenActivePlayerIsAi_WhenExecuteHumanTileActionHouseBuild_ThenNoOp()
+    public async Task ShouldNoOp_WhenExecuteHumanTileActionHouseBuildAndActivePlayerIsAi()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -203,6 +203,66 @@ public sealed class SanguoTurnTileActionTests
         var before = bus.Published.Count;
         await mgr.ExecuteHumanTileActionAsync(action: "house_build", correlationId: "corr-action", causationId: "ui.sanguo.tile.action.selected");
         bus.Published.Skip(before).Should().BeEmpty();
+    }
+
+    // ACC:T98.1
+    [Fact]
+    public async Task ShouldRejectSecondActionCardAttemptAndKeepTurnState_WhenSecondActionIsAttemptedInSameRound()
+    {
+        var bus = new RecordingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var rules = SanguoEconomyRules.Default;
+        var p1 = new SanguoPlayer(playerId: "p1", money: 1000m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(
+            players: new[] { p1 },
+            citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var cards = new SanguoActionCardsCatalog(
+            SchemaVersion: 1,
+            Version: 1,
+            Cards: Array.AsReadOnly(new[]
+            {
+                new SanguoActionCardCatalogEntry(
+                    CardId: "ac_step_down",
+                    NameKey: "card.ac_step_down.name",
+                    DescriptionKey: "card.ac_step_down.desc",
+                    EffectKind: "economyStepDelta",
+                    StepDelta: -1,
+                    DurationRounds: 3),
+                new SanguoActionCardCatalogEntry(
+                    CardId: "ac_step_up",
+                    NameKey: "card.ac_step_up.name",
+                    DescriptionKey: "card.ac_step_up.desc",
+                    EffectKind: "economyStepDelta",
+                    StepDelta: 2,
+                    DurationRounds: 3),
+            }));
+
+        var mgr = new SanguoTurnManager(
+            bus: bus,
+            economy: economy,
+            boardState: boardState,
+            treasury: new SanguoTreasury(),
+            totalPositionsHint: 10,
+            actionCardsCatalog: cards);
+
+        await mgr.StartNewGameAsync("g1", new[] { "p1" }, 1, 1, 1, "corr-start", null);
+
+        var first = await mgr.TryPlayHumanActionCardAsync("ac_step_down", "corr-first", "ut.first");
+        first.Should().BeTrue();
+        var stateAfterFirst = mgr.GetTurnAppliedMultipliersSnapshot("p1");
+        var beforeSecond = bus.Published.Count;
+
+        var second = await mgr.TryPlayHumanActionCardAsync("ac_step_up", "corr-second", "ut.second");
+        second.Should().BeFalse();
+
+        var secondEvents = bus.Published.Skip(beforeSecond).ToList();
+        secondEvents.Should().ContainSingle(e => e.Type == SanguoActionCardPlayRejected.EventType);
+        secondEvents.Should().ContainSingle(e => e.Type == "core.sanguo.action.explain");
+        secondEvents.Should().NotContain(e => e.Type == SanguoActionCardPlayed.EventType);
+
+        var stateAfterSecond = mgr.GetTurnAppliedMultipliersSnapshot("p1");
+        stateAfterSecond.ActionCardStepDelta.Should().Be(stateAfterFirst.ActionCardStepDelta);
     }
 
     [Fact]

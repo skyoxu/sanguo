@@ -288,6 +288,17 @@ def _route_stop_reason(route_payload: dict[str, Any] | None) -> str:
         return blocked_by
     if blocked_by == "approval_approved" and next_action not in {"fork", "continue"}:
         return blocked_by
+    # `chapter6_next_action=inspect` is a generic safety fallback. When the route lane
+    # already converged to a stricter action under `recent_failure_summary`, trust the lane.
+    if blocked_by == "recent_failure_summary" and lane in {
+        "run-6.7",
+        "fix-deterministic",
+        "repo-noise-stop",
+        "record-residual",
+    }:
+        return lane
+    if blocked_by == "recent_failure_summary" and lane == "run-6.8":
+        return ""
     if next_action == "continue":
         return ""
     if next_action == "needs-fix-fast":
@@ -310,9 +321,13 @@ def _route_requires_needs_fix(route_payload: dict[str, Any] | None) -> bool:
     next_action = _route_next_action(route_payload)
     if next_action == "needs-fix-fast":
         return True
-    if next_action in {"continue", "inspect", "pause", "fork", "resume", "rerun", "fix-and-resume"}:
+    if next_action in {"pause", "fork", "resume", "rerun", "fix-and-resume"}:
         return False
-    return _route_lane(route_payload) == "run-6.8"
+    if _route_lane(route_payload) == "run-6.8":
+        return True
+    if next_action in {"continue", "inspect"}:
+        return False
+    return False
 
 
 def _stringify_cmd(cmd: list[str]) -> str:

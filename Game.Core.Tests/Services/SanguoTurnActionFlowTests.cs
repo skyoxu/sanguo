@@ -191,6 +191,81 @@ public sealed class SanguoTurnActionFlowTests
         published.Should().Contain(e => e.Type == SanguoPlayerStateChanged.EventType && ((JsonElementEventData)e.Data!).Value.GetProperty("PlayerId").GetString() == "p2");
     }
 
+    // ACC:T98.1
+    [Fact]
+    public async Task ShouldRejectSecondActionCardAttemptAndEmitDeterministicExplain_WhenSameTurnSecondActionIsAttempted()
+    {
+        var bus = new RecordingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+        var rules = SanguoEconomyRules.Default;
+        var p1 = new SanguoPlayer(playerId: "p1", money: 1000m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(players: new[] { p1 }, citiesById: new Dictionary<string, City>(StringComparer.Ordinal));
+
+        var cards = new SanguoActionCardsCatalog(
+            SchemaVersion: 1,
+            Version: 1,
+            Cards: Array.AsReadOnly(new[]
+            {
+                new SanguoActionCardCatalogEntry(
+                    CardId: "ac_step_down",
+                    NameKey: "card.ac_step_down.name",
+                    DescriptionKey: "card.ac_step_down.desc",
+                    EffectKind: "economyStepDelta",
+                    StepDelta: -1,
+                    DurationRounds: 3),
+                new SanguoActionCardCatalogEntry(
+                    CardId: "ac_step_up",
+                    NameKey: "card.ac_step_up.name",
+                    DescriptionKey: "card.ac_step_up.desc",
+                    EffectKind: "economyStepDelta",
+                    StepDelta: 2,
+                    DurationRounds: 3),
+            }));
+
+        var mgr = new SanguoTurnManager(
+            bus: bus,
+            economy: economy,
+            boardState: boardState,
+            treasury: new SanguoTreasury(),
+            totalPositionsHint: 10,
+            actionCardsCatalog: cards);
+
+        await mgr.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p1" },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: "corr-start",
+            causationId: "ui.menu.start");
+
+        var first = await mgr.TryPlayHumanActionCardAsync("ac_step_down", "corr-first", "ut.first");
+        first.Should().BeTrue();
+        var stateAfterFirst = mgr.GetTurnAppliedMultipliersSnapshot("p1");
+        var beforeSecond = bus.Published.Count;
+
+        var second = await mgr.TryPlayHumanActionCardAsync("ac_step_up", "corr-second", "ut.second");
+        second.Should().BeFalse();
+
+        var deltaEvents = bus.Published.Skip(beforeSecond).ToList();
+        deltaEvents.Should().ContainSingle(e => e.Type == SanguoActionCardPlayRejected.EventType);
+        deltaEvents.Should().ContainSingle(e => e.Type == "core.sanguo.action.explain");
+        deltaEvents.Should().NotContain(e => e.Type == SanguoActionCardPlayed.EventType);
+
+        var rejected = deltaEvents.Single(e => e.Type == SanguoActionCardPlayRejected.EventType);
+        var rejectedPayload = ((JsonElementEventData)rejected.Data!).Value;
+        rejectedPayload.GetProperty("ReasonCode").GetString().Should().Be(SanguoActionCardPlayRejected.ReasonAlreadyPlayedThisTurn);
+
+        var explain = deltaEvents.Single(e => e.Type == "core.sanguo.action.explain");
+        var explainPayload = ((JsonElementEventData)explain.Data!).Value;
+        explainPayload.GetProperty("ReasonCode").GetString().Should().Be(SanguoActionCardPlayRejected.ReasonAlreadyPlayedThisTurn);
+        explainPayload.GetProperty("ExplainCode").GetString().Should().Be("second_action_refused");
+        explainPayload.GetProperty("CorrelationId").GetString().Should().Be("corr-second");
+
+        var stateAfterSecond = mgr.GetTurnAppliedMultipliersSnapshot("p1");
+        stateAfterSecond.ActionCardStepDelta.Should().Be(stateAfterFirst.ActionCardStepDelta);
+    }
+
     [Fact]
     public async Task ShouldNotPublishTollPaidOrCityBought_WhenExecutingHumanRollDiceAndHumanLandsOnOwnCity()
     {
