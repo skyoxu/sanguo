@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Game.Core.Tests.Services;
 
-internal sealed class RecordingDataStore : IDataStore
+internal sealed record RecordingDataStore : IDataStore
 {
     private readonly Dictionary<string, string> _dict = new(StringComparer.Ordinal);
 
@@ -42,7 +42,7 @@ internal sealed class RecordingDataStore : IDataStore
     }
 }
 
-internal sealed class FlakySaveDataStore : IDataStore
+internal sealed record FlakySaveDataStore : IDataStore
 {
     private readonly Dictionary<string, string> _dict = new(StringComparer.Ordinal);
 
@@ -84,7 +84,7 @@ internal sealed class FlakySaveDataStore : IDataStore
 public sealed class SanguoSaveLoadServiceTests
 {
     [Fact]
-    public void GivenNullBus_WhenConstructing_ThenThrows()
+    public void ShouldThrowArgumentNullException_WhenConstructingWithNullBus()
     {
         var store = new RecordingDataStore();
         Action act = () => _ = new SanguoSaveLoadService(bus: null!, store: store);
@@ -92,7 +92,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public void GivenNullStore_WhenConstructing_ThenThrows()
+    public void ShouldThrowArgumentNullException_WhenConstructingWithNullStore()
     {
         var bus = new RecordingEventBus();
         Action act = () => _ = new SanguoSaveLoadService(bus: bus, store: null!);
@@ -139,13 +139,25 @@ public sealed class SanguoSaveLoadServiceTests
             },
             TreasuryMinorUnits: 0,
             ContentPackId: "core_t2",
-            ContentPackVersion: 7
+            ContentPackVersion: 7,
+            BuildingLevelsByCityId: new Dictionary<string, IReadOnlyDictionary<string, int>>(StringComparer.Ordinal)
+            {
+                ["c1"] = new Dictionary<string, int>(StringComparer.Ordinal)
+                {
+                    ["building_market"] = 2,
+                    ["building_farm"] = 1,
+                },
+                ["c2"] = new Dictionary<string, int>(StringComparer.Ordinal)
+                {
+                    ["building_market"] = 3,
+                },
+            }
         );
     }
 
     // ACC:T18.3
     [Fact]
-    public async Task GivenMissingOrCorruptedSave_WhenLoading_ThenThrowsAndDoesNotPublishLoadedEvent()
+    public async Task ShouldThrowAndNotPublishLoadedEvent_WhenLoadingMissingOrCorruptedSave()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -174,7 +186,7 @@ public sealed class SanguoSaveLoadServiceTests
 
     // ACC:T18.4
     [Fact]
-    public async Task GivenSnapshot_WhenSaving_ThenPersistsReadableJsonAndReturnsSlotId()
+    public async Task ShouldPersistReadableJsonAndReturnSlotId_WhenSavingSnapshot()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -202,13 +214,17 @@ public sealed class SanguoSaveLoadServiceTests
         snapProp.GetProperty("GameId").GetString().Should().Be("g1");
         snapProp.GetProperty("ContentPackId").GetString().Should().Be("core_t2");
         snapProp.GetProperty("ContentPackVersion").GetInt32().Should().Be(7);
+        snapProp.TryGetProperty("BuildingLevelsByCityId", out var buildingLevelsProp).Should().BeTrue();
+        buildingLevelsProp.GetProperty("c1").GetProperty("building_market").GetInt32().Should().Be(2);
+        buildingLevelsProp.GetProperty("c1").GetProperty("building_farm").GetInt32().Should().Be(1);
+        buildingLevelsProp.GetProperty("c2").GetProperty("building_market").GetInt32().Should().Be(3);
 
         bus.Published.Should().ContainSingle(e => e.Type == SanguoGameSaved.EventType);
     }
 
     // ACC:T18.5
     [Fact]
-    public async Task GivenSavedSnapshot_WhenLoading_ThenReturnsSnapshotAndPublishesSavedAndLoadedEvents()
+    public async Task ShouldReturnSnapshotAndPublishSavedAndLoadedEvents_WhenLoadingSavedSnapshot()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -254,7 +270,7 @@ public sealed class SanguoSaveLoadServiceTests
 
     // ACC:T18.6
     [Fact]
-    public async Task GivenSavedSnapshot_WhenSavingThenLoading_ThenSnapshotRoundTrips()
+    public async Task ShouldRoundTripSnapshot_WhenSavingThenLoadingSavedSnapshot()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -273,11 +289,15 @@ public sealed class SanguoSaveLoadServiceTests
             causationId: "ui.hud.load");
 
         loaded.Should().BeEquivalentTo(original);
+        loaded.BuildingLevelsByCityId.Should().NotBeNull();
+        loaded.BuildingLevelsByCityId!["c1"]["building_market"].Should().Be(2);
+        loaded.BuildingLevelsByCityId!["c1"]["building_farm"].Should().Be(1);
+        loaded.BuildingLevelsByCityId!["c2"]["building_market"].Should().Be(3);
     }
 
     // ACC:T18.7
     [Fact]
-    public async Task GivenIncompatibleSave_WhenLoading_ThenFailsAndDoesNotPublishLoadedEvent()
+    public async Task ShouldFailAndNotPublishLoadedEvent_WhenLoadingIncompatibleSave()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -308,7 +328,7 @@ public sealed class SanguoSaveLoadServiceTests
     [Theory]
     [InlineData("")]
     [InlineData("  ")]
-    public async Task GivenEmptyCorrelationId_WhenSavingGame_ThenThrows(string correlationId)
+    public async Task ShouldThrowArgumentException_WhenSavingGameWithEmptyCorrelationId(string correlationId)
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -326,7 +346,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenEmptySnapshotGameId_WhenSavingGame_ThenThrows()
+    public async Task ShouldThrowArgumentException_WhenSavingGameWithEmptySnapshotGameId()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -344,7 +364,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenChecksumMismatch_WhenLoadingGame_ThenThrowsAndDoesNotPublishLoadedEvent()
+    public async Task ShouldThrowAndNotPublishLoadedEvent_WhenLoadingGameWithChecksumMismatch()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -387,7 +407,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenTooLongSaveSlotId_WhenSavingGame_ThenThrows()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenSavingGameWithTooLongSaveSlotId()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -407,7 +427,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenTooLongGameId_WhenSavingGame_ThenThrows()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenSavingGameWithTooLongGameId()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -429,7 +449,7 @@ public sealed class SanguoSaveLoadServiceTests
     [Theory]
     [InlineData("")]
     [InlineData("  ")]
-    public async Task GivenEmptyCorrelationId_WhenLoadingGame_ThenThrows(string correlationId)
+    public async Task ShouldThrowArgumentException_WhenLoadingGameWithEmptyCorrelationId(string correlationId)
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -445,7 +465,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenEmptySaveSlotId_WhenSavingGame_ThenThrows()
+    public async Task ShouldThrowArgumentException_WhenSavingGameWithEmptySaveSlotId()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -463,7 +483,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenEmptySaveSlotId_WhenLoadingGame_ThenThrows()
+    public async Task ShouldThrowArgumentException_WhenLoadingGameWithEmptySaveSlotId()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -479,7 +499,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenTooLongSaveSlotId_WhenLoadingGame_ThenThrows()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenLoadingGameWithTooLongSaveSlotId()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -496,7 +516,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenJsonNull_WhenLoadingGame_ThenThrowsSaveDataInvalid()
+    public async Task ShouldThrowSaveDataInvalid_WhenLoadingGameWithJsonNull()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -516,7 +536,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenNullSnapshot_WhenLoadingGame_ThenThrowsSaveFileCorrupted()
+    public async Task ShouldThrowSaveFileCorrupted_WhenLoadingGameWithNullSnapshot()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -544,7 +564,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenOversizedPayload_WhenSavingGame_ThenThrows()
+    public async Task ShouldThrowInvalidOperationException_WhenSavingGameWithOversizedPayload()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -572,7 +592,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenMissingChecksum_WhenLoadingGame_ThenThrowsSaveFileCorrupted()
+    public async Task ShouldThrowSaveFileCorrupted_WhenLoadingGameWithMissingChecksum()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();
@@ -600,7 +620,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     [Fact]
-    public async Task GivenMissingVersion_WhenLoadingGame_ThenThrowsSaveFileCorrupted()
+    public async Task ShouldThrowSaveFileCorrupted_WhenLoadingGameWithMissingVersion()
     {
         var store = new RecordingDataStore();
         var bus = new RecordingEventBus();

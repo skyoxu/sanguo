@@ -58,7 +58,34 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
         public double NextDouble() => 0.0;
     }
 
-    private static SanguoTurnManager CreateTurnManager(RecordingEventBus bus, IRandomNumberGenerator rng)
+    private static SanguoBuildingsCatalog CreateTestBuildingsCatalog(int tollStepDelta)
+    {
+        return new SanguoBuildingsCatalog(
+            SchemaVersion: 1,
+            Version: 1,
+            Buildings: new[]
+            {
+                new SanguoBuildingDefinition(
+                    BuildingId: "building_market",
+                    NameKey: "building.building_market.name",
+                    DescriptionKey: "building.building_market.desc",
+                    MaxLevel: 3,
+                    BuildCostBase: 0,
+                    UpgradeCostBase: 0,
+                    SettlementIncomeBase: 0,
+                    EconomyStepDeltas: new SanguoEconomyStepDeltas(
+                        BuyPrice: 0,
+                        Toll: tollStepDelta,
+                        IncomeSettlement: 0,
+                        BuildCost: 0,
+                        UpgradeCost: 0))
+            });
+    }
+
+    private static SanguoTurnManager CreateTurnManager(
+        RecordingEventBus bus,
+        IRandomNumberGenerator rng,
+        SanguoBuildingsCatalog? buildingsCatalog = null)
     {
         var economyRules = SanguoEconomyRules.Default;
         var players = new[]
@@ -82,11 +109,12 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
             boardState: boardState,
             treasury: treasury,
             rng: rng,
-            totalPositionsHint: 8);
+            totalPositionsHint: 8,
+            buildingsCatalog: buildingsCatalog);
     }
 
     [Fact]
-    public async Task ExportSaveSnapshot_ShouldCaptureTurnDatePlayersCityEconomyAndTreasury()
+    public async Task ShouldCaptureTurnDatePlayersCityEconomyAndTreasury_WhenExportingSaveSnapshot()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -115,7 +143,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_ShouldRoundTripState()
+    public async Task ShouldRoundTripState_WhenRestoringFromSaveSnapshot()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -141,8 +169,56 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
         restored.Should().BeEquivalentTo(saved);
     }
 
+    // ACC:T126.1
     [Fact]
-    public async Task RestoreFromSaveSnapshot_GivenUnknownCityOwnership_ThenThrowsAndDoesNotMutateState()
+    public async Task ShouldPreserveBuildingTollStepDelta_WhenRestoringSnapshotAfterCampBuild()
+    {
+        var bus = new RecordingEventBus();
+        var tm = CreateTurnManager(bus, rng: new FixedRng(2), buildingsCatalog: CreateTestBuildingsCatalog(tollStepDelta: 2));
+
+        await tm.StartNewGameAsync(
+            gameId: "g1",
+            playerOrder: new[] { "p1", "ai-1" },
+            year: 3,
+            month: 2,
+            day: 1,
+            correlationId: "corr-start",
+            causationId: "ui.menu.start");
+
+        var baseline = tm.ExportSaveSnapshot();
+        var seeded = baseline with
+        {
+            Players = baseline.Players
+                .Select(player => player.PlayerId == "p1"
+                    ? player with { PositionIndex = 2, OwnedCityIds = new[] { "c1" } }
+                    : player with { PositionIndex = 0, OwnedCityIds = Array.Empty<string>() })
+                .ToArray(),
+        };
+        tm.RestoreFromSaveSnapshot(seeded);
+
+        await tm.ExecuteHumanTileActionAsync(action: "build", correlationId: "corr-build", causationId: "ui.action");
+        bus.Published.Should().Contain(evt => evt.Type == SanguoBuildingBuilt.EventType);
+
+        var saved = tm.ExportSaveSnapshot();
+
+        var restoredBus = new RecordingEventBus();
+        var restored = CreateTurnManager(
+            restoredBus,
+            rng: new FixedRng(2),
+            buildingsCatalog: CreateTestBuildingsCatalog(tollStepDelta: 2));
+        restored.RestoreFromSaveSnapshot(saved);
+
+        await restored.AdvanceTurnAsync(correlationId: "corr-advance", causationId: "ui.hud.next_turn");
+
+        var tollEvt = restoredBus.Published.LastOrDefault(evt => evt.Type == SanguoCityTollPaid.EventType);
+        tollEvt.Should().NotBeNull();
+        tollEvt!.Data.Should().BeOfType<JsonElementEventData>();
+        var payload = ((JsonElementEventData)tollEvt.Data!).Value;
+        payload.GetProperty("AppliedMultipliers").GetProperty("BuildingStepDelta").GetInt32().Should().Be(2);
+    }
+
+    [Fact]
+    public async Task ShouldThrowAndNotMutateState_WhenRestoringWithUnknownCityOwnership()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -174,7 +250,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task PublishStateSnapshotAsync_ShouldPublishTurnStartedBeforeActivePlayerStateChanged()
+    public async Task ShouldPublishTurnStartedBeforeActivePlayerStateChanged_WhenPublishingStateSnapshotAsync()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -201,7 +277,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_GivenDuplicatePlayerOrder_ThenThrows()
+    public async Task ShouldThrowArgumentException_WhenRestoringWithDuplicatePlayerOrder()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -223,7 +299,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_GivenDuplicateCityOwnershipClaims_ThenThrows()
+    public async Task ShouldThrowArgumentException_WhenRestoringWithDuplicateCityOwnershipClaims()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -251,7 +327,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_GivenUnknownCityEconomyEntry_ThenThrows()
+    public async Task ShouldThrowArgumentException_WhenRestoringWithUnknownCityEconomyEntry()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -274,7 +350,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public void ExportSaveSnapshot_BeforeStart_ThenThrows()
+    public void ShouldThrowInvalidOperationException_WhenExportingSaveSnapshotBeforeStart()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -284,7 +360,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_GivenInvalidTurnNumber_ThenThrows()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenRestoringWithInvalidTurnNumber()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -306,7 +382,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_GivenOutOfRangeActivePlayerIndex_ThenThrows()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenRestoringWithOutOfRangeActivePlayerIndex()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -328,7 +404,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_GivenNegativeTreasuryMinorUnits_ThenThrows()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenRestoringWithNegativeTreasuryMinorUnits()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
@@ -350,7 +426,7 @@ public sealed class SanguoTurnManagerSaveSnapshotTests
     }
 
     [Fact]
-    public async Task PublishStateSnapshotAsync_GivenEmptyCorrelationId_ThenThrows()
+    public async Task ShouldThrowArgumentException_WhenPublishingStateSnapshotAsyncWithEmptyCorrelationId()
     {
         var bus = new RecordingEventBus();
         var tm = CreateTurnManager(bus, rng: new FixedRng(2));
