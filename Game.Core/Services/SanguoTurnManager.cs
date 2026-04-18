@@ -3506,6 +3506,7 @@ public sealed class SanguoTurnManager
             TreasuryMinorUnits: _treasury.MinorUnits,
             ContentPackId: _contentPackId,
             ContentPackVersion: _contentPackVersion,
+            BuildingLevelsByCityId: BuildBuildingLevelsSnapshot(),
             ActionCardsByPlayerId: BuildActionCardsSnapshot()
         );
     }
@@ -3640,6 +3641,7 @@ public sealed class SanguoTurnManager
         ResetTurnScopedEventStepDeltas();
         _globalRoundGate = new SanguoGlobalEventRoundGate();
         ResetRegionCaptureState();
+        RestoreBuildingLevels(snapshot.BuildingLevelsByCityId, citiesById);
         RestoreActionCardInventory(snapshot.ActionCardsByPlayerId, order);
     }
 
@@ -3707,6 +3709,53 @@ public sealed class SanguoTurnManager
         }
     }
 
+    private void RestoreBuildingLevels(
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>>? snapshot,
+        IReadOnlyDictionary<string, City> citiesById)
+    {
+        _buildingLevelsByCityId.Clear();
+
+        if (snapshot is null || snapshot.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var (cityIdRaw, levelsByBuilding) in snapshot.OrderBy(k => k.Key, StringComparer.Ordinal))
+        {
+            var cityId = (cityIdRaw ?? string.Empty).Trim();
+            if (cityId.Length == 0 || !citiesById.ContainsKey(cityId) || levelsByBuilding is null)
+            {
+                continue;
+            }
+
+            var restoredLevels = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var (buildingIdRaw, levelRaw) in levelsByBuilding.OrderBy(k => k.Key, StringComparer.Ordinal))
+            {
+                var buildingId = (buildingIdRaw ?? string.Empty).Trim();
+                if (buildingId.Length == 0 || levelRaw <= 0)
+                {
+                    continue;
+                }
+
+                if (!_buildingsById.TryGetValue(buildingId, out var def))
+                {
+                    continue;
+                }
+
+                var clampedLevel = Math.Min(levelRaw, def.MaxLevel);
+                if (clampedLevel > 0)
+                {
+                    restoredLevels[buildingId] = clampedLevel;
+                }
+            }
+
+            if (restoredLevels.Count > 0)
+            {
+                _buildingLevelsByCityId[cityId] = restoredLevels;
+            }
+        }
+    }
+
     private void RestoreActionCardInventory(
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>>? snapshot,
         string[] playerOrder)
@@ -3768,6 +3817,34 @@ public sealed class SanguoTurnManager
             if (copy.Count > 0)
             {
                 snapshot[playerId] = copy;
+            }
+        }
+
+        return snapshot;
+    }
+
+    private IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> BuildBuildingLevelsSnapshot()
+    {
+        if (_buildingLevelsByCityId.Count == 0)
+        {
+            return new Dictionary<string, IReadOnlyDictionary<string, int>>(StringComparer.Ordinal);
+        }
+
+        var snapshot = new Dictionary<string, IReadOnlyDictionary<string, int>>(StringComparer.Ordinal);
+        foreach (var (cityId, levelsByBuilding) in _buildingLevelsByCityId)
+        {
+            var copy = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var (buildingId, level) in levelsByBuilding.OrderBy(k => k.Key, StringComparer.Ordinal))
+            {
+                if (level > 0)
+                {
+                    copy[buildingId] = level;
+                }
+            }
+
+            if (copy.Count > 0)
+            {
+                snapshot[cityId] = copy;
             }
         }
 

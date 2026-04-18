@@ -6111,7 +6111,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task126SplitTests.cs",
       "Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs",
       "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
