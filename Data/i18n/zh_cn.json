@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": 9,
+  "version": 10,
   "locale": "zh-CN",
   "strings": {
     "building.building_barracks.desc": "提升过路费，适合军事风格的城池。",
