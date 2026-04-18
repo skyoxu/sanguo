@@ -2862,8 +2862,30 @@ public sealed class SanguoTurnManager
             Id: lootEvtId);
         await _bus.PublishAsync(loot);
 
-        if (!validPicked || picked is null)
+        if (picked is null)
             return false;
+
+        if (!validPicked)
+        {
+            var fallbackApplied = new DomainEvent(
+                Type: SanguoRelicApplied.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRelicApplied(
+                    GameId: gameId,
+                    PlayerId: playerId,
+                    RelicId: picked.RelicId,
+                    EffectKind: "fallback_noop",
+                    MoneyDelta: 0,
+                    StepDelta: 0,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: lootEvtId
+                )),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(fallbackApplied);
+            return false;
+        }
 
         _grantedRelicIds.Add(picked.RelicId);
         if (!_relicIdsByPlayerId.TryGetValue(playerId, out var owned))
