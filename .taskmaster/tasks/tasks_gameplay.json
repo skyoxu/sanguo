@@ -6167,7 +6167,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task127SplitTests.cs",
       "Game.Core.Tests/Tasks/Task127CampBuildingEffectSetATests.cs"
     ],
     "acceptance": [
