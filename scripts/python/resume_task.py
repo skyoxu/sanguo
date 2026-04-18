@@ -346,11 +346,6 @@ def _load_pipeline_summary_from_inspection(repo_root: Path, inspection: dict[str
 
 
 def _recommendation_from_pipeline_summary(summary_payload: dict[str, Any]) -> tuple[str, str, list[str]] | None:
-    status = str(summary_payload.get("status") or "").strip().lower()
-    chapter6_hints = summary_payload.get("chapter6_hints") if isinstance(summary_payload.get("chapter6_hints"), dict) else {}
-    repair_status = str(summary_payload.get("repair_status") or "").strip().lower()
-    if status == "ok" and str(chapter6_hints.get("next_action") or "").strip().lower() in {"", "continue"} and repair_status in {"", "not-needed"}:
-        return None
     recommended_action = str(summary_payload.get("recommended_action") or "").strip().lower()
     if not recommended_action or recommended_action in {"continue", "none"}:
         return None
@@ -364,6 +359,7 @@ def _recommendation_from_pipeline_summary(summary_payload: dict[str, Any]) -> tu
     reason = str(latest_summary_signals.get("reason") or "").strip()
     if reason:
         signals.append(f"pipeline_summary.latest_reason={reason}")
+    chapter6_hints = summary_payload.get("chapter6_hints") if isinstance(summary_payload.get("chapter6_hints"), dict) else {}
     blocked_by = str(chapter6_hints.get("blocked_by") or "").strip()
     if blocked_by:
         signals.append(f"pipeline_summary.blocked_by={blocked_by}")
@@ -371,12 +367,19 @@ def _recommendation_from_pipeline_summary(summary_payload: dict[str, Any]) -> tu
 
 
 def _recommendation_from_inspection(inspection: dict[str, Any]) -> tuple[str, str, list[str]] | None:
+    recommended_action = str(inspection.get("recommended_action") or "").strip().lower()
     failure = inspection.get("failure") if isinstance(inspection.get("failure"), dict) else {}
     failure_code = str(failure.get("code") or "").strip().lower()
     chapter6_hints = inspection.get("chapter6_hints") if isinstance(inspection.get("chapter6_hints"), dict) else {}
-    if failure_code == "ok" and str(chapter6_hints.get("next_action") or "").strip().lower() in {"", "continue"}:
-        return None
-    recommended_action = str(inspection.get("recommended_action") or "").strip().lower()
+    hinted_action = str(chapter6_hints.get("next_action") or "").strip().lower().replace("_", "-")
+    if hinted_action == "continue" and failure_code == "ok":
+        why = str(inspection.get("recommended_action_why") or "").strip() or "Inspection payload supplied the recovery recommendation."
+        signals = ["inspection.hinted_action=continue"]
+        latest_summary_signals = inspection.get("latest_summary_signals") if isinstance(inspection.get("latest_summary_signals"), dict) else {}
+        reason = str(latest_summary_signals.get("reason") or "").strip()
+        if reason:
+            signals.append(f"inspection.latest_reason={reason}")
+        return "continue", why, signals
     if not recommended_action or recommended_action in {"continue", "none"}:
         return None
     why = str(inspection.get("recommended_action_why") or "").strip()
@@ -389,7 +392,6 @@ def _recommendation_from_inspection(inspection: dict[str, Any]) -> tuple[str, st
     if blocked_by:
         signals.append(f"inspection.blocked_by={blocked_by}")
     return recommended_action, (why or "Inspection payload supplied the recovery recommendation."), signals
-
 
 def _candidate_commands(task_id: str, latest: str) -> dict[str, str]:
     return _shared_candidate_commands(task_id, latest)
@@ -492,14 +494,8 @@ def build_resume_payload(
         value_text = str(value or "").strip()
         if key_text and value_text:
             candidate_commands[key_text] = value_text
-    inspection_failure = inspection.get("failure") if isinstance(inspection.get("failure"), dict) else {}
-    inspection_failure_code = str(inspection_failure.get("code") or "").strip().lower()
-    inspection_next_action = str(chapter6_hints.get("next_action") or "").strip().lower()
-    inspection_is_clean = inspection_failure_code == "ok" and inspection_next_action in {"", "continue"}
     inspection_signal = _recommendation_from_inspection(inspection)
-    if inspection_is_clean:
-        recommended_action, recommendation_source, recommendation_reason, blocking_signals = _fallback_recommendation(inspection, resolved_task_id)
-    elif inspection_signal is not None:
+    if inspection_signal is not None:
         recommended_action, recommendation_reason, blocking_signals = inspection_signal
         recommendation_source = "inspection"
     else:
@@ -536,33 +532,33 @@ def build_resume_payload(
         bottleneck_fields = _extract_bottleneck_fields(pipeline_summary)
 
     approval = inspection.get("approval") if isinstance(inspection.get("approval"), dict) else {}
-    if inspection_is_clean:
-        recommended_command = ""
+    resolved_recommended_command = _recommended_command(
+        recommended_action,
+        candidate_commands,
+        chapter6_hints,
+        approval,
+    )
+    hinted_action = str(chapter6_hints.get("next_action") or "").strip().lower().replace("_", "-")
+    if resolved_recommended_command or hinted_action == "pause":
+        recommended_command = resolved_recommended_command
     else:
-        resolved_recommended_command = _recommended_command(
-            recommended_action,
-            candidate_commands,
-            chapter6_hints,
-            approval,
+        recommended_command = (
+            str(inspection.get("recommended_command") or "").strip()
+            or str(pipeline_summary.get("recommended_command") or "").strip()
         )
-        hinted_action = str(chapter6_hints.get("next_action") or "").strip().lower().replace("_", "-")
-        if resolved_recommended_command or hinted_action == "pause":
-            recommended_command = resolved_recommended_command
-        else:
-            recommended_command = (
-                str(inspection.get("recommended_command") or "").strip()
-                or str(pipeline_summary.get("recommended_command") or "").strip()
-            )
     forbidden_commands = [str(item).strip() for item in list(inspection.get("forbidden_commands") or []) if str(item).strip()]
-    if not forbidden_commands and not inspection_is_clean:
+    if not forbidden_commands:
         forbidden_commands = [str(item).strip() for item in list(pipeline_summary.get("forbidden_commands") or []) if str(item).strip()]
-    if not forbidden_commands and not inspection_is_clean:
+    if not forbidden_commands:
         forbidden_commands = _forbidden_commands(
             recommended_action=recommended_action,
             commands=candidate_commands,
             chapter6_hints=chapter6_hints,
             approval=approval,
         )
+    if str(recommended_action or "").strip().lower() == "continue":
+        recommended_command = ""
+        forbidden_commands = []
 
     payload: dict[str, Any] = {
         "task_id": resolved_task_id,

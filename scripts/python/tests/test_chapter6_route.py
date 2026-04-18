@@ -297,6 +297,40 @@ class Chapter6RouteTests(unittest.TestCase):
             route["recommended_command"],
         )
 
+    def test_should_keep_continue_command_when_preferred_lane_falls_back_to_inspect_first_for_clean_run(self) -> None:
+        payload = {
+            "task_id": "15",
+            "run_id": "run-15",
+            "recommended_action": "continue",
+            "recommended_command": "n/a",
+            "forbidden_commands": [],
+            "candidate_commands": {
+                "inspect": "py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --task-id 15",
+            },
+            "latest_summary_signals": {"reason": "pipeline_clean"},
+            "chapter6_hints": {
+                "next_action": "continue",
+                "can_skip_6_7": True,
+                "can_go_to_6_8": False,
+                "blocked_by": "",
+                "rerun_forbidden": False,
+            },
+            "inspection": {
+                "failure": {"code": "ok", "message": ""},
+                "paths": {"latest": "logs/ci/2026-04-10/sc-review-pipeline-task-15/latest.json"},
+            },
+        }
+
+        with (
+            mock.patch.object(chapter6_route, "build_resume_payload", return_value=(0, payload)),
+            mock.patch.object(chapter6_route, "_derive_change_scope", return_value={"changed_paths": ["docs/architecture/overlays/PRD-1/08/overview.md"]}),
+        ):
+            _, route = chapter6_route.route_chapter6(repo_root=REPO_ROOT, task_id="15")
+
+        self.assertEqual("inspect-first", route["preferred_lane"])
+        self.assertEqual("continue", route["chapter6_next_action"])
+        self.assertEqual("n/a", route["recommended_command"])
+
     def test_should_record_residual_docs_when_only_low_priority_findings_remain(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
