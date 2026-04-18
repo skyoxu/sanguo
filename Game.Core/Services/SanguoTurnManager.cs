@@ -327,7 +327,7 @@ public sealed class SanguoTurnManager
             await _bus.PublishAsync(rejected);
 
             var explained = new DomainEvent(
-                Type: "core.sanguo.action.explain",
+                Type: EventTypes.SanguoActionExplain,
                 Source: nameof(SanguoTurnManager),
                 Data: JsonElementEventData.FromObject(new
                 {
