@@ -7943,12 +7943,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task158SplitIntegrationTests.cs",
-      "Tests.Godot/tests/Adapters/test_task164_runtime_signal_subscription_lifecycle_guard.gd",
-      "Tests.Godot/tests/Adapters/test_task165_signal_lifecycle_leak_fixtures.gd"
+      "Tests.Godot/tests/Adapters/test_task158_runtime_signal_subscription_lifecycle_guard.gd",
+      "Tests.Godot/tests/Adapters/test_task158_signal_lifecycle_leak_fixtures.gd",
+      "Game.Core.Tests/Tasks/Task158SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Task 158 is accepted only when split-task evidence confirms tasks 164 and 165 complete the moved implementation and no additional implementation work remains in this master task. Refs: Tests.Godot/tests/Adapters/test_task164_runtime_signal_subscription_lifecycle_guard.gd Tests.Godot/tests/Adapters/test_task165_signal_lifecycle_leak_fixtures.gd"
+      "Task 158 is accepted only when split-task evidence confirms tasks 164 and 165 complete the moved implementation and no additional implementation work remains in this master task. Refs: Tests.Godot/tests/Adapters/test_task158_runtime_signal_subscription_lifecycle_guard.gd Tests.Godot/tests/Adapters/test_task158_signal_lifecycle_leak_fixtures.gd Game.Core.Tests/Tasks/Task158SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
