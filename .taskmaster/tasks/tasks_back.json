@@ -7626,12 +7626,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task129SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs",
-      "Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs"
+      "Game.Core.Tests/Tasks/Task129SplitTests.cs"
     ],
     "acceptance": [
-      "When a camp durability fatal condition collides with other events, the resolved outcome follows the global priority chain, verified against R3, A-001 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs"
+      "When a camp durability fatal condition collides with other events in the same resolution batch, the resolver applies the global priority chain by promoting CampDurabilityFatal ahead of all non-fatal events; R3 and A-001 are included as required covered examples. Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs (anchor: ACC:T129.1)",
+      "When no camp durability fatal event exists, the resolver preserves the original relative order of non-fatal events (no preemption side effect). Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs (anchor: ACC:T129.2)"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
