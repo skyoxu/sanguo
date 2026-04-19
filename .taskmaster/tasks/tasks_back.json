@@ -7288,11 +7288,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task123SplitTests.cs",
-      "Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs"
+      "Game.Core.Tests/Tasks/Task123SplitTests.cs"
     ],
     "acceptance": [
-      "Given the camp -> pressure -> board transition path, the system deterministically follows the frozen phase order, routes transition triggers and side effects through one sequencer path, emits ordered checkpoints with reason codes for nominal and preempted flows, and preserves the defined behavior for boss-preempted and standard board-entry branches without phase drift. Refs: Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs"
+      "[ACC:T123.1] Given camp -> pressure -> board nominal flow replay, the sequencer must use exactly one transition path id, preserve frozen phase order, and end at standard board-entry checkpoint with the expected reason code. Refs: Game.Core.Tests/Tasks/Task123SplitTests.cs",
+      "[ACC:T123.2] Given boss-preempted replay, the sequencer must emit ordered checkpoints and reason codes without phase drift, and the preempted branch must remain behaviorally distinct from standard board-entry only at the defined branch point. Refs: Game.Core.Tests/Tasks/Task123SplitTests.cs",
+      "[ACC:T123.3] For both nominal and boss-preempted replays, transition side effects must be produced by the same sequencer path and asserted by observable outputs, not only path-id/count checks. Refs: Game.Core.Tests/Tasks/Task123SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
