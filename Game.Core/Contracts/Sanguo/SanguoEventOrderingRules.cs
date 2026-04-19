@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Core.Contracts;
 
 namespace Game.Core.Contracts.Sanguo;
 
@@ -35,6 +36,12 @@ namespace Game.Core.Contracts.Sanguo;
 /// </summary>
 public static class SanguoEventOrderingRules
 {
+    public readonly record struct ReplayStableEvent(
+        int RoundNumber,
+        long Tick,
+        string EventType,
+        int SourceOrder);
+
     /// <summary>
     /// The primary ordering scope key used by this project for turn progression.
     /// </summary>
@@ -61,6 +68,72 @@ public static class SanguoEventOrderingRules
             throw new InvalidOperationException($"{SanguoGameTurnEnded.EventType} must be the last event within the same turn scope.");
     }
 
+    public static IReadOnlyList<string> BuildReplayStableSnapshot(IEnumerable<ReplayStableEvent> events)
+    {
+        if (events is null)
+            throw new ArgumentNullException(nameof(events));
+
+        var normalized = events.Select(item =>
+        {
+            if (item.RoundNumber <= 0)
+                throw new ArgumentOutOfRangeException(nameof(events), "RoundNumber must be >= 1.");
+            if (item.Tick < 0)
+                throw new ArgumentOutOfRangeException(nameof(events), "Tick must be >= 0.");
+            if (item.SourceOrder < 0)
+                throw new ArgumentOutOfRangeException(nameof(events), "SourceOrder must be >= 0.");
+            if (string.IsNullOrWhiteSpace(item.EventType))
+                throw new ArgumentException("EventType must be non-empty.", nameof(events));
+            return item;
+        }).ToArray();
+
+        var ordered = normalized
+            .OrderBy(item => item.RoundNumber)
+            .ThenBy(item => item.Tick)
+            .ThenBy(item => ResolveEventTypeOrder(item.EventType))
+            .ThenBy(item => item.EventType, StringComparer.Ordinal)
+            .ThenBy(item => item.SourceOrder)
+            .ToArray();
+
+        var result = new List<string>(ordered.Length);
+        foreach (var item in ordered)
+        {
+            var order = ResolveEventTypeOrder(item.EventType);
+            var slot = order == int.MaxValue ? "UNK" : order.ToString("D4");
+            result.Add(
+                $"round={item.RoundNumber:D4}|tick={item.Tick:D8}|slot={slot}|source={item.SourceOrder:D4}|type={item.EventType}");
+        }
+
+        return result;
+    }
+
+    public static void AssertReplayStableSnapshot(
+        IEnumerable<string> expectedSnapshot,
+        IEnumerable<string> actualSnapshot)
+    {
+        if (expectedSnapshot is null)
+            throw new ArgumentNullException(nameof(expectedSnapshot));
+        if (actualSnapshot is null)
+            throw new ArgumentNullException(nameof(actualSnapshot));
+
+        var expected = expectedSnapshot.ToArray();
+        var actual = actualSnapshot.ToArray();
+
+        if (expected.Length != actual.Length)
+        {
+            throw new InvalidOperationException(
+                $"replay snapshot drift: length mismatch expected={expected.Length} actual={actual.Length}");
+        }
+
+        for (var i = 0; i < expected.Length; i++)
+        {
+            if (!StringComparer.Ordinal.Equals(expected[i], actual[i]))
+            {
+                throw new InvalidOperationException(
+                    $"replay snapshot drift at index {i}: expected='{expected[i]}' actual='{actual[i]}'");
+            }
+        }
+    }
+
     private static int IndexOfFirst(string[] list, string eventType)
     {
         for (var i = 0; i < list.Length; i++)
@@ -72,6 +145,13 @@ public static class SanguoEventOrderingRules
         return -1;
     }
 
+    private static int ResolveEventTypeOrder(string eventType)
+    {
+        if (EventTypeOrderIndex.TryGetValue(eventType, out var order))
+            return order;
+        return int.MaxValue;
+    }
+
     private static IReadOnlyDictionary<string, int> BuildEventTypeOrderIndex()
     {
         var ordered = new[]
@@ -80,6 +160,7 @@ public static class SanguoEventOrderingRules
             SanguoGameTurnStarted.EventType,
             SanguoPlayerStateChanged.EventType,
             SanguoGameTurnEnded.EventType,
+            EventTypes.RunStateTransitioned,
         };
 
         var dict = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -89,4 +170,3 @@ public static class SanguoEventOrderingRules
         return dict;
     }
 }
-

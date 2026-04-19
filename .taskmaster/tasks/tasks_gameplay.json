@@ -5995,7 +5995,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task124SplitTests.cs",
       "Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs",
       "Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs"
     ],
