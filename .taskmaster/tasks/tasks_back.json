@@ -7570,12 +7570,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task128SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs",
-      "Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs"
+      "Game.Core.Tests/Tasks/Task128BuildingConfigAndEffectsTests.cs",
+      "Game.Core.Tests/Tasks/Task128BuildingBuildWindowTests.cs"
     ],
     "acceptance": [
-      "War hall and training ground in the second building effect set produce deterministic effect outputs, and when a defined effect cannot be applied the fallback output is used, with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs"
+      "War hall and training ground in the second building effect set produce deterministic effect outputs, and when a defined effect cannot be applied the fallback output is used, with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task128BuildingConfigAndEffectsTests.cs Game.Core.Tests/Tasks/Task128BuildingBuildWindowTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
