@@ -7682,11 +7682,10 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task130SplitTests.cs",
-      "Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"
+      "Tests.Godot/tests/UI/test_task130_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "acceptance": [
-      "A fatal camp condition routes to defeat settlement without loop deadlock, and the result is verified under R3 with deterministic evidence. Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"
+      "A fatal camp condition routes to defeat settlement without loop deadlock, and the result is verified under R3 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task130SplitTests.cs Tests.Godot/tests/UI/test_task130_settlement_screen_driven_by_game_ended_event.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
