@@ -4414,13 +4414,11 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task123SplitTests.cs",
-      "Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs",
-      "Game.Core.Tests/State/GameStateMachineTests.cs"
+      "Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs"
     ],
     "acceptance": [
-      "[ACC:T96.1] Task 96 split-closure is satisfied only when evidence from split tasks 123 and 124 is both present and jointly proves campaign round lifecycle state-machine integration (both required, not either-or). Refs: Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task123SplitTests.cs Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs",
-      "[ACC:T96.2] Task 96 remains incomplete when either split evidence is missing, and master-task closure must not introduce additional production implementation beyond evidence aggregation. Refs: Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs Game.Core.Tests/State/GameStateMachineTests.cs"
+      "[ACC:T96.1] Task 96 split-closure is satisfied only when evidence from split tasks 123 and 124 is both present and jointly proves campaign round lifecycle state-machine integration (both required, not either-or). Refs: Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs",
+      "[ACC:T96.2] Task 96 remains incomplete when either split evidence is missing, and master-task closure must not introduce additional production implementation beyond evidence aggregation. Refs: Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."

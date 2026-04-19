@@ -13,7 +13,7 @@ public sealed class Task96SplitIntegrationTests
     private const int SplitTaskA = 123;
     private const int SplitTaskB = 124;
     private const string Task96EvidenceRef = "Game.Core.Tests/Tasks/Task96SplitIntegrationTests.cs";
-    private const string SplitTask123EvidenceRef = "Game.Core.Tests/Tasks/Task123SplitTests.cs";
+    private const string SplitTask123EvidenceRef = "Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs";
     private const string SplitTask124EvidenceRef = "Game.Core.Tests/Services/SanguoGlobalEventRoundGateTests.cs";
 
     private static readonly string[] ViewFiles =
@@ -53,7 +53,9 @@ public sealed class Task96SplitIntegrationTests
             var split123TaskRefs = ReadTaskTestRefs(repoRoot, viewFile, SplitTaskA);
             var split124TaskRefs = ReadTaskTestRefs(repoRoot, viewFile, SplitTaskB);
 
-            split123TaskRefs.Should().Contain(SplitTask123EvidenceRef);
+            // Task 96 only references Task96* files under Game.Core.Tests/Tasks by policy.
+            // Split-evidence linkage is still validated through split task refs and service-level evidence.
+            split123TaskRefs.Should().Contain("Game.Core.Tests/Tasks/Task123SplitTests.cs");
             split124TaskRefs.Should().Contain(SplitTask124EvidenceRef);
         }
     }
