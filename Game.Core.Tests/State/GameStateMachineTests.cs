@@ -6,7 +6,6 @@ namespace Game.Core.Tests.State;
 
 public class GameStateMachineTests
 {
-    // ACC:T96.2
     [Fact]
     public void ShouldReachGameOver_WhenFollowingHappyPathTransitions()
     {
@@ -23,7 +22,6 @@ public class GameStateMachineTests
         calls.Should().Be(4);
     }
 
-    // ACC:T96.2
     [Fact]
     public void ShouldRejectTransition_WhenStateFlowIsInvalid()
     {
