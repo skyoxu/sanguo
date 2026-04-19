@@ -4590,11 +4590,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task99SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
+      "Game.Core.Tests/Tasks/Task99SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "The minimum camp building effects integration is accepted only when evidence from both split tasks 127 and 128 shows the combined work is complete; if evidence from either split task is missing, acceptance fails. Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs"
+      "The minimum camp building effects integration is accepted only when evidence from both split tasks 127 and 128 shows the combined work is complete; if evidence from either split task is missing, acceptance fails. Refs: Game.Core.Tests/Tasks/Task99SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."

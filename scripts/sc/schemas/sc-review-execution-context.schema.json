@@ -282,6 +282,24 @@
             },
             "fingerprint": {
               "type": "string"
+            },
+            "source_run_id": {
+              "type": "string"
+            },
+            "source_out_dir": {
+              "type": "string"
+            },
+            "source_summary_path": {
+              "type": "string"
+            },
+            "exact_git_match": {
+              "type": "boolean"
+            },
+            "change_scope": {
+              "type": "object"
+            },
+            "llm_step_status": {
+              "type": "string"
             }
           }
         },
