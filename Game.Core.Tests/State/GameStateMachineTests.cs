@@ -7,7 +7,7 @@ namespace Game.Core.Tests.State;
 public class GameStateMachineTests
 {
     [Fact]
-    public void TransitionsFollowHappyPathAndFireEvents()
+    public void ShouldReachGameOver_WhenFollowingHappyPathTransitions()
     {
         var fsm = new GameStateMachine();
         int calls = 0;
@@ -19,11 +19,11 @@ public class GameStateMachineTests
         fsm.End().Should().BeTrue();
 
         fsm.State.Should().Be(GameFlowState.GameOver);
-        (calls >= 3).Should().BeTrue();
+        calls.Should().Be(4);
     }
 
     [Fact]
-    public void InvalidTransitionsAreRejected()
+    public void ShouldRejectTransition_WhenStateFlowIsInvalid()
     {
         var fsm = new GameStateMachine();
         fsm.Resume().Should().BeFalse();
