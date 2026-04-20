@@ -18,7 +18,7 @@ public sealed class SanguoTurnEliminationFlowTests
 {
     // ACC:T26.5
     [Fact]
-    public async Task ExecuteHumanRollDice_WhenLandingOnOwnedCityWithInsufficientFunds_ShouldPublishTollAndEndGame()
+    public async Task ShouldPublishTollAndEndGame_WhenExecuteHumanRollDiceAndLandingOnOwnedCityWithInsufficientFunds()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -81,7 +81,7 @@ public sealed class SanguoTurnEliminationFlowTests
 
     // ACC:T26.6
     [Fact]
-    public async Task AdvanceTurn_WhenActiveAiEliminatedDuringItsTurn_ShouldPruneAndAdvanceToNextHuman()
+    public async Task ShouldPruneAndAdvanceToNextHuman_WhenAdvanceTurnAfterActiveAiIsEliminatedDuringItsTurn()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
