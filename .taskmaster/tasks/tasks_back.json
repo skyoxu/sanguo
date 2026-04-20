@@ -5996,12 +5996,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task100SplitIntegrationTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
-      "Game.Core.Tests/Services/SanguoTurnEliminationFlowTests.cs"
+      "Game.Core.Tests/Tasks/Task100SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Integration closure is complete only when split-task evidence from tasks 129 and 130 shows this module's work is finished and task 100 requires no additional implementation beyond that closure check. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnEliminationFlowTests.cs"
+      "Integration closure is complete only when split-task evidence from tasks 129 and 130 shows this module's work is finished and task 100 requires no additional implementation beyond that closure check. Refs: Game.Core.Tests/Tasks/Task100SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
