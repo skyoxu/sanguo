@@ -4703,13 +4703,13 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs",
-      "Game.Core.Tests/Services/SanguoDiceServiceTests.cs"
+      "Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+      "Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Integration closure for Task 101 is valid only when split-task evidence from tasks 131 and 132 is both present and passing. Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
-      "Closure evidence must explicitly cover boss dice profile integration by difficulty tier and verify profile resolution across configured difficulty bands. Refs: Game.Core.Tests/Tasks/Task131V3Tests.cs",
-      "Closure evidence must explicitly cover duration-target integration and confirm run configuration drives the intended duration-target pressure behavior. Refs: Game.Core.Tests/Tasks/Task132V3Tests.cs"
+      "Integration closure for Task 101 is valid only when split-task evidence from tasks 131 and 132 is both present and passing. Refs: Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs",
+      "Closure evidence must explicitly cover boss dice profile integration by difficulty tier and verify profile resolution across configured difficulty bands. Refs: Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs",
+      "Closure evidence must explicitly cover duration-target integration and confirm run configuration drives the intended duration-target pressure behavior. Refs: Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
