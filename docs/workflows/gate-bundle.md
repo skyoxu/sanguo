@@ -81,6 +81,7 @@ py -3 scripts/python/remind_overlay_task_drift.py --write --overlay-index docs/a
 - `obligations unittest suite`（`test_obligations_guard.py` / `test_obligations_extract_helpers.py` / `test_obligations_code_fingerprint.py` / `test_obligations_output_contract.py` / `test_obligations_cli_guards.py` / `test_obligations_pipeline_order.py`）
 - `check_gate_bundle_consistency.py`
 - `check_workflow_gate_enforcement.py`
+- `validate_chapter7_ui_wiring.py`
 
 ### Soft Gates
 

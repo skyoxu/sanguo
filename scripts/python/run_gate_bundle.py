@@ -339,6 +339,10 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
             "name": "check_workflow_gate_enforcement",
             "cmd": ["py", "-3", "scripts/python/check_workflow_gate_enforcement.py"],
         },
+        {
+            "name": "chapter7_ui_wiring_gate",
+            "cmd": ["py", "-3", "scripts/python/validate_chapter7_ui_wiring.py"],
+        },
     ]
     if task_links_max_warnings >= 0:
         commands.append(

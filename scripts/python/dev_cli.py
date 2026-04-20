@@ -31,6 +31,7 @@ from dev_cli_builders import (
     build_project_health_scan_cmd,
     build_resume_task_cmd,
     build_run_single_task_chapter6_cmd,
+    build_run_chapter7_ui_wiring_cmd,
     build_quality_gates_cmd,
     build_run_dotnet_cmd,
     build_run_gdunit_full_cmd,
@@ -219,6 +220,12 @@ def cmd_run_smoke_strict(args: argparse.Namespace) -> int:
     return run(build_smoke_strict_cmd(godot_bin=args.godot_bin, timeout_sec=args.timeout_sec))
 
 
+def cmd_run_chapter7_ui_wiring(args: argparse.Namespace) -> int:
+    """Run the Chapter 7 UI wiring orchestrator."""
+
+    return run(build_run_chapter7_ui_wiring_cmd(args))
+
+
 def cmd_run_prototype_tdd(args: argparse.Namespace) -> int:
     """Run a lightweight prototype-lane TDD loop."""
 
@@ -385,6 +392,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_sm.add_argument("--godot-bin", required=True)
     p_sm.add_argument("--timeout-sec", type=int, default=5)
     p_sm.set_defaults(func=cmd_run_smoke_strict)
+
+
+
+    # run-chapter7-ui-wiring
+    p_ch7 = sub.add_parser(
+        "run-chapter7-ui-wiring",
+        help="run the Chapter 7 UI wiring orchestrator with task-triplet collection, GDD validation, and gate-ready outputs",
+    )
+    p_ch7.add_argument("--repo-root", default=".")
+    p_ch7.add_argument("--delivery-profile", default="")
+    p_ch7.add_argument("--write-doc", action="store_true")
+    p_ch7.add_argument("--out-json", default="")
+    p_ch7.add_argument("--self-check", action="store_true")
+    p_ch7.set_defaults(func=cmd_run_chapter7_ui_wiring)
 
     # run-prototype-tdd
     p_proto = sub.add_parser(

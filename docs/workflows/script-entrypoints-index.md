@@ -42,6 +42,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/python/serve_project_health.py`
 - `scripts/python/resume_task.py`
 - `scripts/python/run_single_task_chapter6_lane.py`
+- `scripts/python/run_chapter7_ui_wiring.py`
 
 ### Repo hard gates
 
@@ -65,6 +66,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/python/run_single_task_light_lane_batch.py`
 - `scripts/python/run_single_task_light_lane.py`
 - `scripts/python/run_single_task_chapter6_lane.py`
+- `scripts/python/run_chapter7_ui_wiring.py`
 - `scripts/python/merge_single_task_light_lane_summaries.py`
 
 ### Taskmaster / semantics / overlay
@@ -74,6 +76,8 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/python/validate_task_master_triplet.py`
 - `scripts/python/validate_contracts.py`
 - `scripts/python/check_domain_contracts.py`
+- `scripts/python/collect_ui_wiring_inputs.py`
+- `scripts/python/validate_chapter7_ui_wiring.py`
 - `scripts/python/sync_task_overlay_refs.py`
 - `scripts/sc/llm_generate_overlays_batch.py`
 
@@ -101,6 +105,8 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/python/check_directory_boundaries.py`
 - `scripts/python/check_docs_utf8_integrity.py`
 - `scripts/python/check_domain_contracts.py`
+- `scripts/python/collect_ui_wiring_inputs.py`
+- `scripts/python/validate_chapter7_ui_wiring.py`
 - `scripts/python/check_encoding.py`
 - `scripts/python/check_gate_bundle_consistency.py`
 - `scripts/python/check_no_hardcoded_core_events.py`
@@ -182,6 +188,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/python/quality_gates.py`
 - `scripts/python/resume_task.py`
 - `scripts/python/run_single_task_chapter6_lane.py`
+- `scripts/python/run_chapter7_ui_wiring.py`
 - `scripts/python/run_dotnet.py`
 - `scripts/python/run_gate_bundle.py`
 - `scripts/python/run_gdunit.py`
@@ -203,6 +210,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/sc/llm_generate_tests_from_acceptance_refs.py`
 - `scripts/python/run_single_task_light_lane.py`
 - `scripts/python/run_single_task_chapter6_lane.py`
+- `scripts/python/run_chapter7_ui_wiring.py`
 - `scripts/sc/llm_review.py`
 - `scripts/sc/llm_review_needs_fix_fast.py`
 - `scripts/sc/run_review_pipeline.py`
@@ -910,7 +918,7 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 
 - Direct local deps: `scripts/python/dev_cli_builders.py`, `scripts/python/local_hard_checks_harness.py`
 - Transitive local deps: `scripts/python/dev_cli_builders.py`, `scripts/python/local_hard_checks_harness.py`, `scripts/python/local_hard_checks_support.py`
-- Subcommands: `run-ci-basic`, `run-quality-gates`, `run-local-hard-checks`, `run-local-hard-checks-preflight`, `run-gdunit-hard`, `run-gdunit-full`, `run-preflight`, `run-acceptance-preflight`, `run-smoke-strict`, `run-prototype-tdd`, `new-execution-plan`, `new-decision-log`, `resume-task`, `inspect-run`, `chapter6-route`, `run-single-task-chapter6`, `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, `serve-project-health`
+- Subcommands: `run-ci-basic`, `run-quality-gates`, `run-local-hard-checks`, `run-local-hard-checks-preflight`, `run-gdunit-hard`, `run-gdunit-full`, `run-preflight`, `run-acceptance-preflight`, `run-smoke-strict`, `run-prototype-tdd`, `new-execution-plan`, `new-decision-log`, `resume-task`, `inspect-run`, `chapter6-route`, `run-single-task-chapter6`, `run-chapter7-ui-wiring`, `detect-project-stage`, `doctor-project`, `check-directory-boundaries`, `project-health-scan`, `serve-project-health`
 - Declared args: `--solution`, `--configuration`, `--godot-bin`, `--delivery-profile`, `--security-profile`, `--fix-through`, `--task-file`, `--out-dir`, `--run-id`, `--legacy-preflight`, `--build-solutions`, `--gdunit-hard`, `--smoke`, `--timeout-sec`, `--test-project`, `--slug`, `--expect`, `--prototype-dir`, `--record-path`, `--skip-record`, `--owner`, `--related-task-id`, `--hypothesis`, `--scope-in`, `--scope-out`, `--success-criteria`, `--evidence`, `--next-step`, `--create-record-only`, `--dotnet-target`, `--filter`, `--gdunit-path`, `--title`, `--status`, `--goal`, `--scope`, `--current-step`, `--stop-loss`, `--next-action`, `--exit-criteria`, `--adr`, `--decision-log`, `--task-id`, `--stage`, `--latest-json`, `--output`, `--why-now`, `--context`, `--decision`, `--consequences`, `--recovery-impact`, `--validation`, `--supersedes`, `--superseded-by`, `--execution-plan`, `--repo-root`, `--latest`, `--kind`, `--record-residual`, `--out-json`, `--out-md`, `--recommendation-only`, `--recommendation-format`, `--serve`, `--port`, `--self-check`
 - Parameter prerequisites:
   - Windows PowerShell + `py -3` from repo root.

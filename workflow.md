@@ -1127,7 +1127,120 @@ Inspect these first after a failure:
 - `sc-test.log`
 - 读 6.7 summary 的最短路径：先看 `reason` / `diagnostics.rerun_guard` / `diagnostics.rerun_forbidden`，再看 `dominant_cost_phase` / `step_duration_totals`，最后再决定是否需要加 reviewer 或 step timeout。
 
-## 7. Profile 快速指引
+
+## 7. Phase 5: Chapter 7 UI Wiring Closure
+
+Chapter 7 runs after the formal task backlog has been completed through Chapter 6. Its purpose is to convert completed domain and gameplay capabilities into player-facing UI wiring based on `docs/gdd/ui-gdd-flow.md`.
+
+### 7.1 Entry Conditions
+
+Enter Chapter 7 only when all of the following are true:
+
+1. The target backlog slice in `.taskmaster/tasks/tasks.json` has been completed through the earlier workflow chapters.
+2. There is no unrecorded `P0/P1 Needs Fix` from Chapter 6.
+3. `docs/gdd/ui-gdd-flow.md` exists and is treated as the UI wiring GDD SSoT.
+4. `.taskmaster/tasks/tasks.json` remains the only source of truth for completed task status.
+5. `.taskmaster/tasks/tasks_back.json` and `.taskmaster/tasks/tasks_gameplay.json` are enrichment views joined by `taskmaster_id`, not completion-state authorities.
+
+If Chapter 6 still has unresolved `P0/P1 Needs Fix`, stop and return to Chapter 6 before doing UI wiring.
+
+### 7.2 Top-Level Orchestrator
+
+Default entry:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile fast-ship
+```
+
+Self-check entry:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile fast-ship --self-check
+```
+
+The orchestrator must run these steps in order:
+
+1. `collect_ui_wiring_inputs.py` collects the completed-task UI wiring input set.
+2. `validate_chapter7_ui_wiring.py` validates the governed UI GDD artifact.
+3. `run_chapter7_ui_wiring.py` writes `logs/ci/<date>/chapter7-ui-wiring/summary.json`.
+
+### 7.3 Input Collection Rules
+
+Collector entry:
+
+```powershell
+py -3 scripts/python/collect_ui_wiring_inputs.py
+```
+
+Rules:
+
+1. Read `.taskmaster/tasks/tasks.json` from `master.tasks[]`.
+2. Include only tasks whose master status is `done`.
+3. Join view rows from `.taskmaster/tasks/tasks_back.json` and `.taskmaster/tasks/tasks_gameplay.json` by `taskmaster_id`.
+4. Emit completed task count, missing view mappings, candidate UI wiring features, test refs, acceptance refs, and contract refs.
+5. Write the default summary to `logs/ci/<date>/chapter7-ui-wiring-inputs/summary.json`.
+
+Do not infer done-state from the two view files.
+
+### 7.4 UI/GDD Flow Design Rules
+
+`docs/gdd/ui-gdd-flow.md` must reorganize capabilities by player experience rather than by technical module. It must cover at least:
+
+1. Main menu to in-game entry flow.
+2. Core map movement, settlement, event, economy, round, save, and result loops.
+3. Money, ownership, turn order, prompt, log, and feedback presentation rules.
+4. UI wiring points for every completed system.
+5. A list of completed features that are not yet wired to UI.
+6. Automated or manual validation for each flow.
+7. A `Feature -> UI Surface -> Player Action -> System Response -> Test Refs` wiring matrix.
+
+The design may use board-game economy / dice / event loops as the primary genre reference, but it must document this project's own scenes, contracts, tests, and acceptance evidence.
+
+### 7.5 Hard Gate
+
+Hard gate entry:
+
+```powershell
+py -3 scripts/python/validate_chapter7_ui_wiring.py
+```
+
+The hard gate requires:
+
+1. `docs/gdd/ui-gdd-flow.md` exists.
+2. The document contains the UI wiring matrix, unwired UI feature list, and next UI wiring task candidates.
+3. Every `status = done` task in `.taskmaster/tasks/tasks.json` is referenced in `ui-gdd-flow.md` as `T<id>`.
+4. The task triplet can be parsed successfully.
+5. `run_gate_bundle.py --mode hard` includes `chapter7_ui_wiring_gate`.
+
+If this gate fails, the Chapter 7 artifact is not complete.
+
+### 7.6 Task Generation Rules
+
+When generating the next UI wiring tasks from Chapter 7:
+
+1. Each task must link back to a concrete flow or matrix row in `ui-gdd-flow.md`.
+2. Each task must state UI entry, player action, system response, failure or empty state, and completion result.
+3. Each task must include test refs or an explicit new test entry.
+4. Prefer standalone scene assets for surfaces such as `MainMenu`, `MapBoard`, `PlayerPanel`, `SettlementPanel`, `EventPanel`, `EconomySummary`, `SaveLoad`, and `RoundSummary`.
+5. Do not mix P2 polish, animation, or skin work into P0/P1 wiring tasks required for the playable loop.
+
+### 7.7 Stop And Inspect
+
+Stop Chapter 7 and inspect artifacts when any of these happen:
+
+1. The task triplet cannot be parsed.
+2. `taskmaster_id` mappings are missing at a scale that prevents UI wiring scope decisions.
+3. `ui-gdd-flow.md` lacks required hard-gate sections.
+4. Completed tasks are not covered by the UI GDD.
+5. Chapter 6 still has unresolved `P0/P1 Needs Fix`.
+
+Inspect these artifacts first:
+
+1. `logs/ci/<date>/chapter7-ui-wiring-inputs/summary.json`
+2. `logs/ci/<date>/chapter7-ui-wiring-gate/summary.json`
+3. `logs/ci/<date>/chapter7-ui-wiring/summary.json`
+
+## 8. Profile 快速指引
 
 ### 7.1 playable-ea
 
@@ -1159,7 +1272,7 @@ py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile standard
 ```
 
-## 8. 止损规则（Stop-Loss Rules）
+## 9. 止损规则（Stop-Loss Rules）
 
 - 在 triplet 有效前，不要开始 overlays
 - 默认不要跑重型 obligations freeze toolchain
@@ -1171,7 +1284,7 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - 不要因为 Serena 暂时不可用就阻塞整项工作
 - 不要把 `run-local-hard-checks` 拖到新仓迁移结束时才跑
 
-## 9. 最佳默认路径（Best Default）
+## 10. 最佳默认路径（Best Default）
 
 对本仓的大多数真实工作，使用这条默认路径：
 
