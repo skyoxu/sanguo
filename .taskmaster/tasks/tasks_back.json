@@ -6954,11 +6954,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task117SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs"
+      "Game.Core.Tests/Tasks/Task117SplitTests.cs"
     ],
     "acceptance": [
-      "Under a fixed seed and the applicable mode constraints, per-round objective generation produces the same objective output across repeated runs, verified with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs"
+      "Under a fixed seed and the applicable mode constraints, per-round objective generation produces the same objective output across repeated runs, verified with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task117SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
