@@ -229,7 +229,16 @@ public static class SanguoCampaignContentSchemaCatalog
     {
         ArgumentNullException.ThrowIfNull(rawFixture);
 
+        var definition = DefinitionsMap[family];
         var errors = new List<string>();
+
+        foreach (var fieldName in rawFixture.Keys.OrderBy(name => name, StringComparer.Ordinal))
+        {
+            if (!definition.FieldTypes.ContainsKey(fieldName))
+            {
+                errors.Add($"UnknownField:{fieldName}");
+            }
+        }
 
         string id = string.Empty;
         if (!rawFixture.TryGetValue("id", out var idValue))

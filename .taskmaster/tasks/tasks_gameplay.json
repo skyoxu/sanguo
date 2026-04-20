@@ -6386,11 +6386,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task131SplitTests.cs",
       "Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "acceptance": [
-      "Boss difficulty profile data is deterministically validated against the defined schema so that profiles using the task-defined fields with values inside the allowed bounds pass validation and profiles with out-of-bounds values fail validation. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
+      "Boss difficulty profile data is deterministically validated against the defined schema: fixtures with all required task-defined fields and valid field types/refs and values within bounds pass validation; fixtures with out-of-bounds values, unknown fields, missing required fields, invalid field types, or unresolved refId fail validation. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs (anchor: ACC:T131.1)"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
