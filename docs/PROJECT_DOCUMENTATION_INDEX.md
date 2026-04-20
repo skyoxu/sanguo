@@ -39,6 +39,7 @@ This file is the top-level navigation for project docs.
 - Local hard checks: `docs/workflows/local-hard-checks.md`
 - Stable entrypoint index: `docs/workflows/stable-public-entrypoints.md`
 - Script entrypoint index: `docs/workflows/script-entrypoints-index.md`
+- UI wiring GDD board: `docs/gdd/ui-gdd-flow.md`
 - Prototype lane: `docs/workflows/prototype-lane.md`
 - Prototype lane playbook: `docs/workflows/prototype-lane-playbook.md`
 - Prototype TDD: `docs/workflows/prototype-tdd.md`

@@ -148,6 +148,22 @@ Why this is stable:
 - by default it records residual `P2/P3` findings instead of repeatedly paying for the same-shape closure loop
 - it keeps `6.9` behind the same orchestrator, so repo-level hard checks are still part of the normal closeout path
 
+### `py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile <profile>`
+
+Use when:
+- Chapter 6 has already closed the currently completed task slice and you want the top-level Chapter 7 UI wiring route
+- you need one stable entrypoint that collects done-task inputs and validates the governed UI wiring GDD artifact
+- you want a cheap self-check before editing `docs/gdd/ui-gdd-flow.md`
+
+Prerequisites:
+- task triplet available
+- `docs/gdd/ui-gdd-flow.md` exists or is about to be created as the governed Chapter 7 artifact
+
+Why this is stable:
+- it is the top-level Chapter 7 UI wiring orchestrator
+- it runs the collector and validator in fixed order
+- it writes `logs/ci/<date>/chapter7-ui-wiring/summary.json` as the canonical Chapter 7 execution summary
+
 ### `py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile <profile>`
 
 Use when:

@@ -419,6 +419,25 @@ def build_run_single_task_chapter6_cmd(args) -> list[str]:
     return cmd
 
 
+def build_run_chapter7_ui_wiring_cmd(args) -> list[str]:
+    cmd = [
+        "py",
+        "-3",
+        "scripts/python/run_chapter7_ui_wiring.py",
+    ]
+    if getattr(args, 'repo_root', ''):
+        cmd += ["--repo-root", args.repo_root]
+    if getattr(args, 'delivery_profile', ''):
+        cmd += ["--delivery-profile", args.delivery_profile]
+    if getattr(args, 'write_doc', False):
+        cmd.append("--write-doc")
+    if getattr(args, 'out_json', ''):
+        cmd += ["--out-json", args.out_json]
+    if getattr(args, 'self_check', False):
+        cmd.append("--self-check")
+    return cmd
+
+
 def build_detect_project_stage_cmd(args) -> list[str]:
     cmd = [
         "py",
