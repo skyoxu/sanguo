@@ -6492,7 +6492,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task133SplitTests.cs",
       "Game.Core.Tests/Tasks/Task133BossEliteAttackPressureResolverTests.cs"
     ],
     "acceptance": [
