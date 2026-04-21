@@ -45,6 +45,7 @@ public static class SanguoObjectiveGenerationDeterminismEngine
             seed.ToString(),
             "_ROUND_",
             normalizedRound.ToString(),
+            "_LIFECYCLE_CLOSED",
             "_OBJ_",
             objectiveCode);
     }

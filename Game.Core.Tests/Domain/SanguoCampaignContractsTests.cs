@@ -13,11 +13,31 @@ public sealed class SanguoCampaignContractsTests
         SanguoBossChallengePrompted.EventType.Should().Be("core.sanguo.boss.challenge.prompted");
     }
 
+    // ACC:T118.1
     [Fact]
     public void ShouldExposeStableEventType_WhenObjectiveIsSkipped()
     {
         SanguoObjectiveSkipped.EventType.Should().Be("core.sanguo.objective.skipped");
         SanguoObjectiveSkipped.ReasonRunEndedInBoss.Should().Be("run_ended_in_boss");
+    }
+
+    [Fact]
+    public void ShouldExposeDeterministicSkipSemanticsReason_WhenRunEndedInBoss()
+    {
+        var skipped = new SanguoObjectiveSkipped(
+            GameId: "game-1",
+            ObjectiveId: "obj-1",
+            RoundNumber: 6,
+            Reason: SanguoObjectiveSkipped.ReasonRunEndedInBoss,
+            BossId: "boss-1",
+            OccurredAt: DateTimeOffset.UtcNow,
+            CorrelationId: "corr-1",
+            CausationId: "boss-battle-1");
+
+        skipped.Reason.Should().Be(SanguoObjectiveSkipped.ReasonRunEndedInBoss,
+            "objective skip semantics should remain deterministic for boss-ending flow");
+        skipped.BossId.Should().NotBeNullOrWhiteSpace(
+            "boss-ending objective skip should preserve boss context for replay-safe diagnostics");
     }
 
     [Fact]
