@@ -5656,8 +5656,8 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task118SplitTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Tasks/Task118V3Tests.cs"
     ],
     "acceptance": [
       "Objective lifecycle closure applies deterministic settle timing, skip semantics, and replay-safe ordering, with deterministic evidence for R8. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
