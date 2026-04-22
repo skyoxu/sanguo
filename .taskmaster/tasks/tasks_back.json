@@ -7947,7 +7947,7 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task135SplitTests.cs",
-      "Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
+      "Tests.Godot/tests/UI/test_task135_delayed_pressure_summary.gd"
     ],
     "acceptance": [
       "Deterministic core rule tests cover delayed, failed, and resumed boss-pressure scenarios, including stacked pressure behavior across round transitions. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs",
