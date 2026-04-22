@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -69,6 +70,138 @@ def _merge_refs(*refs_lists: list[str]) -> list[str]:
     return merged
 
 
+def _read_text_if_exists(path: Path) -> str:
+    try:
+        return path.read_text(encoding='utf-8')
+    except FileNotFoundError:
+        return ''
+
+
+def _overlay_manifest_path(repo_root: Path) -> Path | None:
+    overlay_base = repo_root / 'docs' / 'architecture' / 'overlays'
+    manifests = sorted(overlay_base.glob('*/08/overlay-manifest.json'))
+    if not manifests:
+        return None
+
+    repo_slug = re.sub(r'[^a-z0-9]+', '', repo_root.name.lower())
+    preferred: list[Path] = []
+    for manifest in manifests:
+        try:
+            payload = _read_json(manifest)
+        except Exception:
+            continue
+        prd_id = str(payload.get('prd_id') or manifest.parent.parent.name).lower() if isinstance(payload, dict) else manifest.parent.parent.name.lower()
+        if repo_slug and repo_slug in re.sub(r'[^a-z0-9]+', '', prd_id):
+            preferred.append(manifest)
+    return (preferred or manifests)[0]
+
+
+def _overlay_file_map(repo_root: Path) -> dict[str, Path]:
+    manifest_path = _overlay_manifest_path(repo_root)
+    if manifest_path is None:
+        return {}
+    payload = _read_json(manifest_path)
+    files = payload.get('files', {}) if isinstance(payload, dict) else {}
+    result: dict[str, Path] = {}
+    for key, value in files.items():
+        if isinstance(value, str) and value.strip():
+            result[key] = manifest_path.parent / value
+    return result
+
+
+def _task_ids_from_scope(scope_text: str) -> set[int]:
+    hits: set[int] = set()
+    for match in re.finditer(r'\bT0*(\d{1,4})\b', scope_text):
+        hits.add(int(match.group(1)))
+    for match in re.finditer(r'\b(\d+)\s*-\s*(\d+)\b', scope_text):
+        start = int(match.group(1))
+        end = int(match.group(2))
+        if 0 < start <= end <= 9999:
+            hits.update(range(start, end + 1))
+    if not hits:
+        for match in re.finditer(r'\b(\d{1,4})\b', scope_text):
+            value = int(match.group(1))
+            if 0 < value <= 9999:
+                hits.add(value)
+    return hits
+
+
+def _collect_overlay_requirement_mapping(repo_root: Path) -> dict[int, list[dict[str, Any]]]:
+    files = _overlay_file_map(repo_root)
+    text = _read_text_if_exists(files.get('testing', Path('__missing__')))
+    mapping: dict[int, list[dict[str, Any]]] = {}
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith('| RQ-'):
+            continue
+        cells = [cell.strip() for cell in stripped.strip('|').split('|')]
+        if len(cells) < 4:
+            continue
+        requirement_id, task_scope, tests, expected_logs = cells[:4]
+        task_ids = _task_ids_from_scope(task_scope)
+        tests_list = [item.strip('` ') for item in tests.split(',') if item.strip()]
+        logs_list = [item.strip('` ') for item in expected_logs.split(',') if item.strip()]
+        row = {
+            'requirement_id': requirement_id,
+            'task_scope': task_scope,
+            'tests': tests_list,
+            'expected_logs': logs_list,
+        }
+        for task_id in task_ids:
+            mapping.setdefault(task_id, []).append(row)
+    return mapping
+
+
+def _collect_overlay_evidence_mapping(repo_root: Path) -> dict[int, list[dict[str, Any]]]:
+    files = _overlay_file_map(repo_root)
+    text = _read_text_if_exists(files.get('observability', Path('__missing__')))
+    mapping: dict[int, list[dict[str, Any]]] = {}
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith('| `T'):
+            continue
+        cells = [cell.strip() for cell in stripped.strip('|').split('|')]
+        if len(cells) < 3:
+            continue
+        task_scope, required_artifact, minimum_fields = cells[:3]
+        task_ids = _task_ids_from_scope(task_scope)
+        row = {
+            'task_scope': task_scope,
+            'required_artifact': required_artifact.strip('` '),
+            'minimum_fields': [item.strip('` ') for item in minimum_fields.split(',') if item.strip()],
+        }
+        for task_id in task_ids:
+            mapping.setdefault(task_id, []).append(row)
+    return mapping
+
+
+def _collect_overlay_acceptance_notes(repo_root: Path) -> dict[int, list[str]]:
+    files = _overlay_file_map(repo_root)
+    text = _read_text_if_exists(files.get('feature', Path('__missing__')))
+    mapping: dict[int, list[str]] = {}
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith('-'):
+            continue
+        task_ids = _task_ids_from_scope(stripped)
+        if not task_ids:
+            continue
+        note = stripped.lstrip('-').strip().replace('`', '')
+        lowered = note.lower()
+        if (
+            lowered.startswith('adr-')
+            or lowered.startswith('docs/')
+            or lowered.startswith('taskmaster ids ')
+            or lowered.startswith('key tasks:')
+            or lowered.startswith('scope:')
+            or lowered.startswith('contract anchor:')
+        ):
+            continue
+        for task_id in task_ids:
+            mapping.setdefault(task_id, []).append(note)
+    return mapping
+
+
 def build_summary(*, repo_root: Path) -> dict[str, Any]:
     master_tasks = _load_master_tasks(repo_root)
     done_master = [task for task in master_tasks if str(task.get('status') or '').lower() == 'done']
@@ -84,6 +217,9 @@ def build_summary(*, repo_root: Path) -> dict[str, Any]:
         tm = item.get('taskmaster_id')
         if isinstance(tm, int):
             gameplay_by_tm.setdefault(tm, []).append(item)
+    overlay_requirement_map = _collect_overlay_requirement_mapping(repo_root)
+    overlay_evidence_map = _collect_overlay_evidence_mapping(repo_root)
+    overlay_acceptance_map = _collect_overlay_acceptance_notes(repo_root)
 
     needed: list[dict[str, Any]] = []
     for task in done_master:
@@ -92,6 +228,9 @@ def build_summary(*, repo_root: Path) -> dict[str, Any]:
         back_views = back_by_tm.get(task_id, [])
         gameplay_view = gameplay_views[0] if gameplay_views else None
         back_view = back_views[0] if back_views else None
+        overlay_requirements = overlay_requirement_map.get(task_id, [])
+        overlay_evidence = overlay_evidence_map.get(task_id, [])
+        overlay_acceptance_notes = overlay_acceptance_map.get(task_id, [])
         needed.append({
             'task_id': task_id,
             'task_title': str(task.get('title') or ''),
@@ -104,6 +243,13 @@ def build_summary(*, repo_root: Path) -> dict[str, Any]:
             'test_refs': _merge_refs(*[item.get('test_refs') or [] for item in [*gameplay_views, *back_views]]),
             'acceptance': _merge_refs(*[item.get('acceptance') or [] for item in [*gameplay_views, *back_views]]),
             'contract_refs': _merge_refs(*[item.get('contractRefs') or [] for item in [*gameplay_views, *back_views]]),
+            'overlay_requirement_ids': _merge_refs(*[[item['requirement_id']] for item in overlay_requirements]),
+            'overlay_expected_logs': _merge_refs(
+                *[[value for value in item.get('expected_logs', [])] for item in overlay_requirements],
+                *[[item.get('required_artifact', '')] for item in overlay_evidence],
+            ),
+            'overlay_minimum_fields': _merge_refs(*[[value for value in item.get('minimum_fields', [])] for item in overlay_evidence]),
+            'overlay_acceptance_notes': _merge_refs(overlay_acceptance_notes),
         })
 
     families: dict[str, int] = {}

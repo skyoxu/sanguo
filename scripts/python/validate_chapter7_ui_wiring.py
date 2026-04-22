@@ -14,8 +14,8 @@ from collect_ui_wiring_inputs import UI_GDD_FLOW, build_summary
 
 REQUIRED_SECTIONS = [
     '## 5. UI Wiring Matrix',
-    '## 9. Unwired UI Feature List',
-    '## 10. Next UI Wiring Task Candidates',
+    '## 10. Unwired UI Feature List',
+    '## 11. Next UI Wiring Task Candidates',
 ]
 
 
