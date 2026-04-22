@@ -1,0 +1,234 @@
+{
+  "generated_at": "2026-04-22",
+  "source_gdd": "docs/gdd/ui-gdd-flow.md",
+  "completed_master_tasks_count": 58,
+  "needed_wiring_features_count": 58,
+  "candidates": [
+    {
+      "bucket": "entry",
+      "screen_group": "MainMenu And Boot Flow",
+      "matrix_link": "## 5. UI Wiring Matrix row Entry And Bootstrap (T01, T11, T21)",
+      "scope_task_ids": [
+        1,
+        11,
+        21
+      ],
+      "scope_task_refs": "T01, T11, T21",
+      "ui_entry": "MainMenu / Boot Flow",
+      "candidate_type": "task-shaped UI wiring spec",
+      "player_action": "Launch, continue, retry bootstrap, or enter a run",
+      "system_response": "Show canonical startup path, valid continue behavior, and explicit startup failure recovery",
+      "empty_state": "show no active run state until runtime data is available.",
+      "failure_state": "startup failure must remain visible and recoverable instead of failing silently.",
+      "completion_result": "UI 日期显示应清晰表达年/月/日；当游戏日期连续变化多次时，每一次日期变化都能在可观察层面反映为日期文本的对应更新，并且日期文本始终反映最新游戏日期（不出现回退为旧值或停滞不更新等可观察异常）。",
+      "requirement_ids": [],
+      "validation_artifact_targets": [],
+      "suggested_standalone_surfaces": [
+        "MainMenu",
+        "BootStatusPanel",
+        "ContinueGateDialog"
+      ],
+      "test_refs": [
+        "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+        "Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs",
+        "Game.Core.Tests/Tasks/Task1WindowsPlatformGateTests.cs",
+        "Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs"
+      ]
+    },
+    {
+      "bucket": "loop",
+      "screen_group": "Runtime HUD And Outcome Surfaces",
+      "matrix_link": "## 5. UI Wiring Matrix row Core Loop State And Outcome (T03, T07, T08, T09, T10, T18, T19, T23, T24, T63)",
+      "scope_task_ids": [
+        3,
+        7,
+        8,
+        9,
+        10,
+        18,
+        19,
+        23,
+        24,
+        63
+      ],
+      "scope_task_refs": "T03, T07, T08, T09, T10, T18, T19, T23, T24, T63",
+      "ui_entry": "HUD / Prompt / Outcome Surfaces",
+      "candidate_type": "task-shaped UI wiring spec",
+      "player_action": "Play a run, observe timing, rewards, prompts, and terminal transitions",
+      "system_response": "Render readable phase, timer, HP, reward, prompt, and win/lose state from runtime events",
+      "empty_state": "show no active run state until runtime data is available.",
+      "failure_state": "Minimum 'important events' set for this task: core.sanguo.dice.rolled + core.sanguo.city.bought; log retains history across hide/show; invalid/malformed JSON payloads do not crash and do not append misleading log entries.",
+      "completion_result": "包含城池占有状态显示的 UI 场景与控件在 headless 冒烟测试中可被实例化并加载完成（无崩溃/无报错），且界面上存在用于呈现“占有状态”的可见元素。",
+      "requirement_ids": [],
+      "validation_artifact_targets": [],
+      "suggested_standalone_surfaces": [
+        "RuntimeHud",
+        "OutcomePanel",
+        "RuntimePromptPanel"
+      ],
+      "test_refs": [
+        "Game.Core.Tests/Domain/CityTests.cs",
+        "Game.Core.Tests/Services/SanguoEconomyManagerTests.cs",
+        "Game.Core.Tests/Services/EventBusTests.cs",
+        "Tests.Godot/tests/UI/test_hud_scene.gd"
+      ]
+    },
+    {
+      "bucket": "combat",
+      "screen_group": "Combat Pressure And Interaction Surfaces",
+      "matrix_link": "## 5. UI Wiring Matrix row Combat Pressure And Interaction (T04, T05, T06, T20, T22, T53, T59)",
+      "scope_task_ids": [
+        4,
+        5,
+        6,
+        20,
+        22,
+        53,
+        59
+      ],
+      "scope_task_refs": "T04, T05, T06, T20, T22, T53, T59",
+      "ui_entry": "Combat HUD / Pressure / Camera Feedback",
+      "candidate_type": "task-shaped UI wiring spec",
+      "player_action": "Fight, observe pressure, targeting, pathing, and camera responses",
+      "system_response": "Render enemy pressure, targeting, combat outcomes, and camera interaction without hidden state",
+      "empty_state": "GdUnit4: Provide and run a scene/UI test that verifies tile name is visible and falls back to nameKey when i18n is missing.",
+      "failure_state": "xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid.",
+      "completion_result": "xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid.",
+      "requirement_ids": [],
+      "validation_artifact_targets": [],
+      "suggested_standalone_surfaces": [
+        "CombatHud",
+        "PressurePanel",
+        "CameraControlOverlay"
+      ],
+      "test_refs": [
+        "Game.Core.Tests/Domain/SanguoPlayerTests.cs",
+        "Game.Core.Tests/Services/SanguoDiceServiceTests.cs",
+        "Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+        "Tests.Godot/tests/UI/test_hud_scene.gd"
+      ]
+    },
+    {
+      "bucket": "economy",
+      "screen_group": "Economy And Progression Panels",
+      "matrix_link": "## 5. UI Wiring Matrix row Economy Build And Progression (T12, T13, T14, T15, T16, T17)",
+      "scope_task_ids": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "scope_task_refs": "T12, T13, T14, T15, T16, T17",
+      "ui_entry": "Resource / Build / Progression Panels",
+      "candidate_type": "task-shaped UI wiring spec",
+      "player_action": "Spend resources, place/build, train, upgrade, repair, or pick rewards",
+      "system_response": "Render deterministic resource, build, queue, upgrade, and progression changes with clear invalid-state feedback",
+      "empty_state": "show no active economy state until owned runtime data is available.",
+      "failure_state": "回合循环正确处理出局者：已出局 NPC 会从后续轮转中跳过且不再行动；真人玩家一旦出局，回合循环立即停止并触发游戏结束；游戏结束后进一步调用 AdvanceTurn/AdvanceTurnAsync 必须被拒绝（抛出 InvalidOperationException）且不得推进日期/轮转行动者/发布新事件；NPC 出局后其状态锁定，且其已占领城池被释放为无人占领。",
+      "completion_result": "player can read deterministic resource and progression outcomes from UI state.",
+      "requirement_ids": [],
+      "validation_artifact_targets": [],
+      "suggested_standalone_surfaces": [
+        "ResourcePanel",
+        "BuildPanel",
+        "ProgressionPanel"
+      ],
+      "test_refs": [
+        "Game.Core.Tests/Domain/SanguoPlayerTests.cs",
+        "Game.Core.Tests/Domain/CityTests.cs",
+        "Game.Core.Tests/Domain/SanguoBoardStateTests.cs",
+        "Game.Core.Tests/Services/SanguoEconomyManagerTests.cs"
+      ]
+    },
+    {
+      "bucket": "meta",
+      "screen_group": "Save, Settings, And Meta Surfaces",
+      "matrix_link": "## 5. UI Wiring Matrix row Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171)",
+      "scope_task_ids": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        42,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        54,
+        55,
+        56,
+        57,
+        58,
+        60,
+        61,
+        62,
+        64,
+        65,
+        66,
+        67,
+        114,
+        171
+      ],
+      "scope_task_refs": "T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171",
+      "ui_entry": "Settings / Save / Meta Surfaces",
+      "candidate_type": "task-shaped UI wiring spec",
+      "player_action": "Save, load, localize, tune audio, or inspect platform/runtime status",
+      "system_response": "Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces",
+      "empty_state": "在 gameplay 流程中，玩家于 TurnPhase.BeforeRoll 阶段每回合最多只能成功打出 1 张行动卡；同回合第二次尝试必须被拒绝且不产生任何 multiplier_step_delta/效果输出，并与 back 视图的窗口锁死语义一致。",
+      "failure_state": "在回合/循环结算时，若真人玩家因资金不足以支付全额过路费而出局（破产结算）：其剩余资金必须转移给收款方，玩家资金归零并标记出局；立即进入 GameOver 且后续回合推进必须被拒绝（再次调用 AdvanceTurnAsync 抛出 InvalidOperationException，且消息包含 \"GameOver\"）。若 NPC 因资金不足以支付全额过路费而出局：同样进行破产结算后退出本局并从后续轮转中移除（状态锁定，后续不会再成为 ActivePlayerId），其已占领城池状态变更为无人占领。",
+      "completion_result": "开始游戏启动失败时（例如地图配置加载失败），主菜单必须恢复为可交互状态并显示可观测错误提示（例如 StatusLabel 显示“Start failed”），避免出现“菜单消失但游戏未开始”的死路。",
+      "requirement_ids": [],
+      "validation_artifact_targets": [],
+      "suggested_standalone_surfaces": [
+        "SettingsMenu",
+        "SavePanel",
+        "RunSummaryPanel"
+      ],
+      "test_refs": [
+        "Game.Core.Tests/Tasks/Task25AiTests.cs",
+        "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+        "Game.Core.Tests/Services/PlayerEliminationTests.cs",
+        "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd"
+      ]
+    },
+    {
+      "bucket": "governance",
+      "screen_group": "Config Audit And Migration Surfaces",
+      "matrix_link": "## 5. UI Wiring Matrix row Config Governance And Audit (T02, T33, T38, T39)",
+      "scope_task_ids": [
+        2,
+        33,
+        38,
+        39
+      ],
+      "scope_task_refs": "T02, T33, T38, T39",
+      "ui_entry": "Config Summary / Audit / Migration Surfaces",
+      "candidate_type": "task-shaped UI wiring spec",
+      "player_action": "Inspect config state, validation, governance, migration, and report metadata",
+      "system_response": "Render active config, schema status, fallback policy, migration status, and audit metadata without relying on logs-only evidence",
+      "empty_state": "show no active run state until runtime data is available.",
+      "failure_state": "`quality_gates.py` 在统一门禁流程中读取上述两份报告并应用 Phase-13 约定的阈值规则输出 PASS/FAIL（示例：Dup% ≤ 2%，最大圈复杂度 ≤ 10，平均圈复杂度 ≤ 5）；当任一报告缺失/不可解析/缺少必要字段时必须判定为 FAIL，并输出可定位原因的错误信息。",
+      "completion_result": "operator or player can inspect config, validation, migration, and audit state from governed surfaces.",
+      "requirement_ids": [],
+      "validation_artifact_targets": [],
+      "suggested_standalone_surfaces": [
+        "ConfigAuditPanel",
+        "MigrationStatusDialog",
+        "ReportMetadataPanel"
+      ],
+      "test_refs": [
+        "Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs",
+        "Game.Core.Tests/Tasks/Task33WindowsBuildArtifactsTests.cs",
+        "Game.Core.Tests/Tasks/Task33WindowsReleaseWorkflowTests.cs",
+        "Game.Core.Tests/Tasks/Task33BuildMetadataDocsTests.cs"
+      ]
+    }
+  ]
+}

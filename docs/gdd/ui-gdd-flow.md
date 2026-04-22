@@ -1,192 +1,380 @@
-# UI GDD Flow - SANGUO Chapter 7 Wiring Board
+---
+GDD-ID: GDD-SANGUO-UI-WIRING-V1
+Title: Sanguo Chapter 7 UI Wiring Board
+Status: Draft
+Owner: codex
+Last Updated: 2026-04-22
+Encoding: UTF-8
+Applies-To:
+  - .taskmaster/tasks/tasks.json
+  - docs/gdd/ui-gdd-flow.md
+ADR-Refs:
+  - ADR-0005
+  - ADR-0011
+  - ADR-0018
+  - ADR-0015
+  - ADR-0020
+  - ADR-0021
+  - ADR-0024
+  - ADR-0025
+  - ADR-0026
+  - ADR-0028
+  - ADR-0022
+  - ADR-0030
+Test-Refs:
+  - Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd
+  - Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs
+  - Game.Core.Tests/Tasks/Task1WindowsPlatformGateTests.cs
+  - Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs
+  - Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs
+  - Game.Core.Tests/Domain/CityTests.cs
+  - Game.Core.Tests/Domain/SanguoPlayerTests.cs
+  - Game.Core.Tests/Services/SanguoDiceServiceTests.cs
+---
 
-## 1. Scope And Single Goal
+# Sanguo Chapter 7 UI Wiring Board
 
-This document is the Chapter 7 UI wiring board for `sanguo`. It converts completed domain and gameplay systems into player-facing UI flows and serves as the governed artifact for post-task UI wiring.
+## 1. Design Goals
 
-Single goal: connect the minimum playable loop of `main menu -> enter board -> roll / move -> city ownership and toll -> economy settlement -> event / round feedback -> save and continue` before any polish-heavy screen work.
+### 1.1 Experience Pillars
+- Stable entry: startup, continue, and runtime entry must be explicit and recoverable.
+- Readable loop: phase, pressure, resources, HP, prompts, and outcomes must be understandable from the UI alone.
+- Explainable systems: config, governance, save, migration, and audit state must have visible ownership instead of hiding in logs.
+- Deterministic recovery: failure, invalid action, persistence, and fallback states must be reproducible and visible.
 
-## 2. Player Loop Spine
+### 1.2 Target Use
+- Provide one governed planning surface for all currently completed task capabilities.
+- Keep Chapter 7 focused on player-facing or operator-facing surface ownership before polish-only work.
 
-The currently completed systems already define a strong gameplay spine:
+## 2. Core Player Loop
 
-1. Launch the Godot project and enter the board game runtime.
-2. Initialize player, city, dice, and round systems.
-3. Roll dice and move player pieces on the ring map.
-4. Buy land, pay tolls, and update money state.
-5. Process monthly, quarterly, and yearly economy or event changes.
-6. Persist and resume the game with save/load.
-
-If any of those steps is invisible or unclear to the player, the loop is not yet a complete player-facing UI loop.
+1. Launch or continue from a stable entry surface.
+2. Enter the runtime loop with readable phase, timing, pressure, and survival state.
+3. Interact with combat, economy, progression, and meta systems through governed surfaces.
+4. Resolve win, loss, save/load, config-governance, and migration outcomes with visible feedback.
 
 ## 3. Completed Capability Inventory
 
-Completion state comes only from `.taskmaster/tasks/tasks.json`. The two view files enrich the completed tasks with test, acceptance, and contract context.
+| Capability Slice | Audience | Task IDs | Player-Facing Meaning | Primary UI Need |
+| --- | --- | --- | --- | --- |
+| Entry And Bootstrap | player-facing | T01, T11, T21 | Show canonical startup path, valid continue behavior, and explicit startup failure recovery | MainMenu / Boot Flow |
+| Core Loop State And Outcome | player-facing | T03, T07, T08, T09, T10, T18, T19, T23, T24, T63 | Render readable phase, timer, HP, reward, prompt, and win/lose state from runtime events | HUD / Prompt / Outcome Surfaces |
+| Combat Pressure And Interaction | player-facing | T04, T05, T06, T20, T22, T53, T59 | Render enemy pressure, targeting, combat outcomes, and camera interaction without hidden state | Combat HUD / Pressure / Camera Feedback |
+| Economy Build And Progression | player-facing | T12, T13, T14, T15, T16, T17 | Render deterministic resource, build, queue, upgrade, and progression changes with clear invalid-state feedback | Resource / Build / Progression Panels |
+| Meta Systems And Platform | player-facing or mixed | T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171 | Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces | Settings / Save / Meta Surfaces |
+| Config Governance And Audit | operator-facing or mixed | T02, T33, T38, T39 | Render active config, schema status, fallback policy, migration status, and audit metadata without relying on logs-only evidence | Config Summary / Audit / Migration Surfaces |
 
-| Capability Group | Task IDs | Player-Facing Meaning | Primary UI Need |
-| --- | --- | --- | --- |
-| Runtime bootstrap and board setup | T01, T09 | Player can launch the game and expects a visible board-game UI shell | MainMenu, board root scene, startup failure feedback |
-| Core board and actor systems | T02, T03, T04, T05, T06 | Map, city, player, dice, and turn rules define the core board loop | Board view, player panel, dice result prompt, turn order HUD |
-| Economy and system settlement | T07, T12, T13, T14, T15, T16 | Buying land, paying tolls, monthly revenue, quarterly events, and annual value changes shape the economy loop | Money HUD, city ownership panel, toll prompt, settlement summary |
-| Movement, AI, and round loop | T10, T11, T17 | Players and AI move through turns across the ring map | Move animation surface, AI action log, round/turn progression strip |
-| Save, prompts, and money display | T18, T19, T20 | Save/load, event prompts, and currency display support session continuity and decision feedback | Save/load modal, prompt center, persistent money HUD |
-| Event bus and global event visibility | T08, T63, T66, T67 | Domain events, global events, and forced challenge prompt summaries must be observable from player-facing logs or HUD summaries | Event log, prompt center, boss challenge summary strip |
-| Combat, settlement, AI, relic, and regional economy extensions | T59, T60, T61, T62, T64, T65 | Combat round-trips, game end settlement, deterministic AI evidence, relic rewards, region capture, and synergy tolls add new mid-run feedback obligations | Combat result screen, settlement screen, AI action log, relic inventory, region/toll breakdown panel |
-| Diagnostics and campaign content support | T114, T171 | Diagnostic retention and campaign schema catalogs are support systems that must remain inspectable for validation and authoring workflows | Diagnostics/audit view, content catalog validation report surface |
-| Additional completed domain slices | T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36, T37, T38, T39, T40, T41, T42, T43, T44, T45, T46, T47, T48, T49, T50, T51, T52, T53, T54, T55, T56, T57, T58 | Completed features must still be discoverable from a player surface once wired | Feature-specific panels, logs, prompts, summaries, and overlays |
+## 4. Flow Recomposition
 
-## 4. Player Flow Recomposition
+### Entry And Bootstrap
 
-### 4.1 Entry Flow
+- T01 `设置Godot项目`
+- T11 `实现AI行为`
+- T21 `实现UI日期显示`
+### Core Loop State And Outcome
 
-Player intent: enter the game and understand how a new or resumed session begins.
+- T03 `实现城池类`
+- T07 `实现经济结算管理器`
+- T08 `实现事件管理器`
+- T09 `设计UI界面`
+- T10 `实现玩家棋子移动`
+- T18 `实现存档功能`
+- T19 `实现UI事件提示`
+- T23 `实现UI城池状态显示`
+- T24 `实现UI事件日志`
+- T63 `模块: 全局事件触发机制（RoundNumber）`
+### Combat Pressure And Interaction
 
-1. MainMenu shows start, continue, settings, and quit.
-2. Continue is available only when a save exists.
-3. On success, the player enters the board scene with visible money, turn, and active player context.
-4. On failure, startup or save-load problems are shown visibly.
+- T04 `实现玩家类`
+- T05 `实现骰子机制`
+- T06 `实现回合管理器`
+- T20 `实现UI资金显示`
+- T22 `实现UI骰子结果显示`
+- T53 `模块: 地图配置（多文件）与 Tile 语义`
+- T59 `模块: 战斗（PVE）触发与回主循环`
+### Economy Build And Progression
 
-### 4.2 Board Turn Flow
+- T12 `实现土地购买逻辑`
+- T13 `实现过路费支付逻辑`
+- T14 `实现月末收益结算`
+- T15 `实现季度环境事件`
+- T16 `实现年度地价调整`
+- T17 `实现回合循环`
+### Meta Systems And Platform
 
-Player intent: understand whose turn it is, what dice result occurred, and where the player moved.
+- T25 `实现AI策略优化`
+- T26 `实现游戏结束条件`
+- T27 `实现音效和音乐`
+- T28 `实现游戏主菜单`
+- T29 `实现游戏设置菜单`
+- T30 `实现游戏帮助和教程`
+- T42 `独立性能门禁 CI 工作流（performance-gates.yml）`
+- T46 `Python 版 headless smoke 封装与 strict 模式开关`
+- T47 `扩展 quality_gates.py 覆盖率阈值与 GdUnit4 集成`
+- T48 `Godot 安全适配层增强：外链白名单、文件访问与 OS.execute 守卫`
+- T49 `Headless smoke strict 稳健化：防 marker 假阳性（smoke session 可自退出）`
+- T50 `Spine: GameStartConfig 与可复现开局输入`
+- T51 `Spine: 倍率合成规则与 applied_multipliers 事件快照`
+- T52 `Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序`
+- T54 `模块: 新游戏配置界面（地图/人数/资金档/全局事件间隔/选角）`
+- T55 `模块: 角色配置（≥8 角色）与初始资金口径`
+- T56 `模块: 随机事件池（事件格 + 每N回合全局事件）`
+- T57 `模块: 行动卡（BeforeRoll）止损版`
+- T58 `模块: 建筑扩展（买地后建造类型）`
+- T60 `模块: 每局胜利与结算界面`
+- T61 `模块: AI 最小确定性策略（止损版）`
+- T62 `模块: 宝物系统（relics）止损版`
+- T64 `模块: 州郡（regions）配置与全占增益`
+- T65 `模块: 州郡连协收费（经济型止损版）`
+- T66 `Module: A-006 Forced Challenge Prompt UI Integration Tests`
+- T67 `Module: A-007 Forced Challenge Fail-to-Camp UI Integration Tests`
+- T114 `Module: diagnostic retention window enforcement (split from T71)`
+- T171 `Module: campaign content schema catalog extension (split from T147)`
+### Config Governance And Audit
 
-1. Turn HUD shows active player and round stage.
-2. Dice roll is visible and understandable.
-3. Movement along the map is visible and tied to the dice outcome.
-4. Landing on a tile triggers the correct city/event/economy surface.
-
-### 4.3 Economy And Ownership Flow
-
-Player intent: understand money changes, city ownership, tolls, and periodic settlements.
-
-1. Current funds are always visible.
-2. City ownership changes are visible and queryable.
-3. Toll payments and land purchase prompts explain what happened and why.
-4. Monthly, quarterly, and yearly settlement results are summarized visibly.
-
-### 4.4 Persistence And Feedback Flow
-
-Player intent: save, resume, and understand the latest important game events.
-
-1. Save/load is reachable from a visible UI surface.
-2. Event prompts are visible and actionable.
-3. Recent important actions are preserved in logs, prompts, or summary panels.
+- T02 `创建环形地图数据结构`
+- T33 `Python 构建驱动脚本与 Windows Release Workflow 整合`
+- T38 `代码重复率与圈复杂度门禁`
+- T39 `性能 P95 与审计 JSONL 校验`
 
 ## 5. UI Wiring Matrix
 
 | Feature | UI Surface | Player Action | System Response | Test Refs |
 | --- | --- | --- | --- | --- |
-| T01/T09 runtime and UI shell | MainMenu / board root | Launch game | Enter the canonical game shell and show visible startup failure feedback when the board cannot initialize | `Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd`, `Tests.Godot/tests/Tasks/test_task0001_acceptance.gd`, `Tests.Godot/tests/Tasks/test_task0009_acceptance.gd` |
-| T02/T03/T04 board, city, and player state | Board view / player panel | Start a session and inspect the board | Show cities, players, and current board state in a player-readable layout | `Game.Core.Tests/Tasks/Task0002AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0003AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0004AcceptanceTests.cs` |
-| T05/T10 dice and movement | Dice panel / move animation surface | Roll and move | Present dice outcome, movement path, and landing result clearly | `Game.Core.Tests/Tasks/Task0005AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0010AcceptanceTests.cs` |
-| T06/T11/T17 turn loop and AI | Turn HUD / action log | Advance turns | Show active player, AI actions, and round progression | `Game.Core.Tests/Tasks/Task0006AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0011AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0017AcceptanceTests.cs` |
-| T07/T12/T13/T14/T15/T16/T20 economy and settlement | Money HUD / city prompt / settlement summary | Buy land, pay toll, pass monthly or seasonal checkpoints | Update visible funds, ownership, toll outcomes, and settlement summaries | `Game.Core.Tests/Tasks/Task0007AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0012AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0013AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0014AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0015AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0016AcceptanceTests.cs`, `Tests.Godot/tests/Tasks/test_task0020_acceptance.gd` |
-| T18/T19 save and event prompts | Save/load modal / prompt center | Save, load, or respond to an event | Persist game state and surface event feedback clearly | `Game.Core.Tests/Tasks/Task0018AcceptanceTests.cs`, `Tests.Godot/tests/Tasks/test_task0019_acceptance.gd` |
-| T08/T63 event bus and global event routing | Event log / prompt center | Trigger or inspect domain events | Show event source, event id, replay context, and global event outcome without hiding failures in debug-only logs | `Game.Core.Tests/Services/EventBusTests.cs`, `Game.Core.Tests/Tasks/Task63GlobalEventsTests.cs` |
-| T59/T60 combat round-trip and game end settlement | Combat result screen / settlement screen | Enter combat, finish combat, or finish a run | Return cleanly to the map after combat, write rewards or penalties back to map state, and render game-ended payload data on settlement | `Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs`, `Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs`, `Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd`, `Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs`, `Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd` |
-| T61 deterministic AI strategy | Turn HUD / AI action log | Observe AI turns | Render AI decisions as replayable action-log entries with decision context, without skipping player-equivalent flow stages | `Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs` |
-| T62 relic system | Relic inventory / reward summary | Receive or inspect relics | Show unique relic drops, empty-drop exhaustion, and deterministic effect application order in run feedback | `Game.Core.Tests/Tasks/Task62RelicsTests.cs` |
-| T64/T65 region capture and synergy tolls | Region overlay / city toll breakdown panel | Inspect owned regions or land on a region city | Show captured/lost region state, active bonuses, synergy toll total, and stable per-city breakdown | `Game.Core.Tests/Tasks/Task64RegionsTests.cs`, `Game.Core.Tests/Tasks/Task65RegionSynergyTollTests.cs`, `Game.Core.Tests/Tasks/Task65SynergyTollDomainEventTests.cs` |
-| T66/T67 forced challenge summary path | HUD summary / event log | Trigger boss challenge prompt or fail-to-camp consequence | Render summary-only challenge evidence, localized fail consequence, pressure forecast, and loss context without opening blocking UI in deferred scope | `Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd`, `Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd`, `Game.Core.Tests/Contracts/SanguoEventContractsTests.cs`, `Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd`, `Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd` |
-| T114/T171 diagnostics retention and campaign schema catalog | Diagnostics report / content authoring validation report | Inspect retained diagnostics or validate campaign data | Keep cleanup and schema validation results visible as governed support output for QA and content authoring | `Game.Core.Tests/Services/DiagnosticRetentionWindowTests.cs`, `Game.Core.Tests/Tasks/Task114V3Tests.cs`, `Game.Core.Tests/Tasks/Task171SplitTests.cs` |
+| Entry And Bootstrap (T01, T11, T21) | MainMenu / Boot Flow | Launch, continue, retry bootstrap, or enter a run | Show canonical startup path, valid continue behavior, and explicit startup failure recovery | `Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd`, `Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs`, `Game.Core.Tests/Tasks/Task1WindowsPlatformGateTests.cs`, `Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs` |
+| Core Loop State And Outcome (T03, T07, T08, T09, T10, T18, T19, T23, T24, T63) | HUD / Prompt / Outcome Surfaces | Play a run, observe timing, rewards, prompts, and terminal transitions | Render readable phase, timer, HP, reward, prompt, and win/lose state from runtime events | `Game.Core.Tests/Domain/CityTests.cs`, `Game.Core.Tests/Services/SanguoEconomyManagerTests.cs`, `Game.Core.Tests/Services/EventBusTests.cs`, `Tests.Godot/tests/UI/test_hud_scene.gd` |
+| Combat Pressure And Interaction (T04, T05, T06, T20, T22, T53, T59) | Combat HUD / Pressure / Camera Feedback | Fight, observe pressure, targeting, pathing, and camera responses | Render enemy pressure, targeting, combat outcomes, and camera interaction without hidden state | `Game.Core.Tests/Domain/SanguoPlayerTests.cs`, `Game.Core.Tests/Services/SanguoDiceServiceTests.cs`, `Game.Core.Tests/Services/SanguoTurnManagerTests.cs`, `Tests.Godot/tests/UI/test_hud_scene.gd` |
+| Economy Build And Progression (T12, T13, T14, T15, T16, T17) | Resource / Build / Progression Panels | Spend resources, place/build, train, upgrade, repair, or pick rewards | Render deterministic resource, build, queue, upgrade, and progression changes with clear invalid-state feedback | `Game.Core.Tests/Domain/SanguoPlayerTests.cs`, `Game.Core.Tests/Domain/CityTests.cs`, `Game.Core.Tests/Domain/SanguoBoardStateTests.cs`, `Game.Core.Tests/Services/SanguoEconomyManagerTests.cs` |
+| Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171) | Settings / Save / Meta Surfaces | Save, load, localize, tune audio, or inspect platform/runtime status | Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces | `Game.Core.Tests/Tasks/Task25AiTests.cs`, `Game.Core.Tests/Utilities/NoGodotDependencyTests.cs`, `Game.Core.Tests/Services/PlayerEliminationTests.cs`, `Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd` |
+| Config Governance And Audit (T02, T33, T38, T39) | Config Summary / Audit / Migration Surfaces | Inspect config state, validation, governance, migration, and report metadata | Render active config, schema status, fallback policy, migration status, and audit metadata without relying on logs-only evidence | `Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs`, `Game.Core.Tests/Tasks/Task33WindowsBuildArtifactsTests.cs`, `Game.Core.Tests/Tasks/Task33WindowsReleaseWorkflowTests.cs`, `Game.Core.Tests/Tasks/Task33BuildMetadataDocsTests.cs` |
 
-## 6. Screen Contracts
+## 6. Screen And Surface Requirements
 
-### 6.1 MainMenu
+### Entry And Bootstrap
+- Audience: player-facing.
+- Empty state: show no active run state until runtime data is available.
+- Failure state: startup failure must remain visible and recoverable instead of failing silently.
+- Completion result: UI 日期显示应清晰表达年/月/日；当游戏日期连续变化多次时，每一次日期变化都能在可观察层面反映为日期文本的对应更新，并且日期文本始终反映最新游戏日期（不出现回退为旧值或停滞不更新等可观察异常）。
 
-- Must expose start, continue, settings, and quit.
-- Must show save availability for continue.
-- Must show startup or load failure visibly.
+### Core Loop State And Outcome
+- Audience: player-facing.
+- Empty state: show no active run state until runtime data is available.
+- Failure state: Minimum 'important events' set for this task: core.sanguo.dice.rolled + core.sanguo.city.bought; log retains history across hide/show; invalid/malformed JSON payloads do not crash and do not append misleading log entries.
+- Completion result: 包含城池占有状态显示的 UI 场景与控件在 headless 冒烟测试中可被实例化并加载完成（无崩溃/无报错），且界面上存在用于呈现“占有状态”的可见元素。
 
-### 6.2 Board View
+### Combat Pressure And Interaction
+- Audience: player-facing.
+- Empty state: GdUnit4: Provide and run a scene/UI test that verifies tile name is visible and falls back to nameKey when i18n is missing.
+- Failure state: xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid.
+- Completion result: xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid.
 
-- Must show current player, round/turn, and money.
-- Must make board position and tile ownership visible.
-- Must present dice and movement results as player-facing feedback.
+### Economy Build And Progression
+- Audience: player-facing.
+- Empty state: show no active economy state until owned runtime data is available.
+- Failure state: 回合循环正确处理出局者：已出局 NPC 会从后续轮转中跳过且不再行动；真人玩家一旦出局，回合循环立即停止并触发游戏结束；游戏结束后进一步调用 AdvanceTurn/AdvanceTurnAsync 必须被拒绝（抛出 InvalidOperationException）且不得推进日期/轮转行动者/发布新事件；NPC 出局后其状态锁定，且其已占领城池被释放为无人占领。
+- Completion result: player can read deterministic resource and progression outcomes from UI state.
 
-### 6.3 Prompt And Summary Surfaces
+### Meta Systems And Platform
+- Audience: player-facing or mixed.
+- Empty state: 在 gameplay 流程中，玩家于 TurnPhase.BeforeRoll 阶段每回合最多只能成功打出 1 张行动卡；同回合第二次尝试必须被拒绝且不产生任何 multiplier_step_delta/效果输出，并与 back 视图的窗口锁死语义一致。
+- Failure state: 在回合/循环结算时，若真人玩家因资金不足以支付全额过路费而出局（破产结算）：其剩余资金必须转移给收款方，玩家资金归零并标记出局；立即进入 GameOver 且后续回合推进必须被拒绝（再次调用 AdvanceTurnAsync 抛出 InvalidOperationException，且消息包含 "GameOver"）。若 NPC 因资金不足以支付全额过路费而出局：同样进行破产结算后退出本局并从后续轮转中移除（状态锁定，后续不会再成为 ActivePlayerId），其已占领城池状态变更为无人占领。
+- Completion result: 开始游戏启动失败时（例如地图配置加载失败），主菜单必须恢复为可交互状态并显示可观测错误提示（例如 StatusLabel 显示“Start failed”），避免出现“菜单消失但游戏未开始”的死路。
 
-- Must explain toll, purchase, event, and settlement outcomes.
-- Must keep important economy changes visible to the player.
-- Must not hide crucial decisions in logs only.
+### Config Governance And Audit
+- Audience: operator-facing or mixed.
+- Empty state: show no active run state until runtime data is available.
+- Failure state: `quality_gates.py` 在统一门禁流程中读取上述两份报告并应用 Phase-13 约定的阈值规则输出 PASS/FAIL（示例：Dup% ≤ 2%，最大圈复杂度 ≤ 10，平均圈复杂度 ≤ 5）；当任一报告缺失/不可解析/缺少必要字段时必须判定为 FAIL，并输出可定位原因的错误信息。
+- Completion result: operator or player can inspect config, validation, migration, and audit state from governed surfaces.
 
-## 7. Explainability And Prompt Contract
+- Operator-facing read surfaces are allowed when player-facing interaction is not appropriate.
 
-- Critical state: active player, current funds, current tile, current round.
-- Critical feedback: dice result, land purchase, toll payment, event trigger, monthly settlement.
-- Prompt style should explain what changed and why.
+## 7. Screen-Level Contracts
 
-## 8. Flow-Level State And Feedback Contract
+### 7.1 MainMenu And Boot Flow
+- Covered slice: Entry And Bootstrap.
+- Must show: start, continue, retry bootstrap, and platform-start validation state.
+- Must not hide: startup failure, continue-gate denial, or export/runtime startup issues behind logs only.
+- Validation focus: boot path, continue gate, retry flow, and startup validation evidence.
 
-- Empty state: before entering a game, show MainMenu instead of a blank board.
-- Failure state: startup and save/load failures must be visible.
-- Completion state: once in game, board, money, turn, and prompt surfaces must all be coherent.
+### 7.2 Runtime HUD And Outcome Surfaces
+- Covered slice: Core Loop State And Outcome.
+- Must show: phase, timer, HP, prompts, reward entry, invalid-action prompts, speed state, and terminal outcomes.
+- Must not hide: terminal or prompt state transitions that occur without visible HUD or outcome feedback.
+- Validation focus: HUD state changes, prompts, reward visibility, and win/lose transitions.
 
-## 9. Unwired UI Feature List
+### 7.3 Combat Pressure And Interaction Surfaces
+- Covered slice: Combat Pressure And Interaction.
+- Must show: pressure, spawn cadence, targeting, pathing fallback, combat resolution, and camera interaction state.
+- Must not hide: combat pressure or targeting changes that only appear in logs or traces.
+- Validation focus: combat feedback, pressure visibility, pathing fallback evidence, and camera interaction smoke checks.
 
-The following completed systems still need governed UI wiring:
+### 7.4 Economy And Progression Panels
+- Covered slice: Economy Build And Progression.
+- Must show: resource totals, build placement state, queue state, upgrade/repair state, tech state, and progression results.
+- Must not hide: invalid spend/build/progression transitions without governed feedback.
+- Validation focus: resource determinism, build validation, queue behavior, and progression surface evidence.
 
-- Board and city systems need a formal ownership and tile-detail surface.
-- Dice and movement need a polished but deterministic player-facing result surface.
-- Turn and AI progression need a formal action log and turn strip.
-- Economy and settlement systems need governed summaries rather than scattered prompts only.
-- Save/load and event prompts need a stable menu and modal architecture.
-- Combat, settlement, relic, region, boss challenge, and campaign-content support flows need explicit UI surfaces rather than relying on core events or test-only evidence.
-- Diagnostic retention and content schema validation need a governed report surface so support-system failures are inspectable outside raw logs.
+### 7.5 Save, Settings, And Meta Surfaces
+- Covered slice: Meta Systems And Platform.
+- Must show: save/load status, cloud state, localization state, audio state, performance state, and platform/runtime status.
+- Must not hide: persistence or settings failures that are only visible in lower-level logs.
+- Validation focus: save/load flow, cloud sync, localization/audio controls, and platform status visibility.
 
-## 10. Next UI Wiring Task Candidates
+### 7.6 Config Audit And Migration Surfaces
+- Covered slice: Config Governance And Audit.
+- Must show: active config, schema status, fallback status, migration state, config audit metadata, and report metadata.
+- Must not hide: validation, fallback, or migration outcomes that do not surface on a governed read surface.
+- Validation focus: config validation, governance, migration, and audit metadata evidence.
 
-1. MainMenu plus continue and settings wiring.
-2. Board HUD vertical slice for player, round, money, and tile context.
-3. Dice and movement feedback surface.
-4. Land ownership / toll / city detail panel.
-5. Settlement and event summary surface.
-6. Save/load modal and resume feedback flow.
-7. Combat round-trip and settlement-result screens driven by core events.
-8. Relic inventory, region overlay, synergy toll breakdown, and boss challenge summary surfaces.
-9. Diagnostics and campaign schema validation report surfaces for QA/content authoring.
+## 8. Screen State Matrix
 
-## 11. Current Implementation Audit
+| Screen Group | Entry State | Interaction State | Failure State | Recovery / Exit |
+| --- | --- | --- | --- | --- |
+| MainMenu And Boot Flow | show start, continue, and startup readiness before any run begins. | allow start, continue, retry bootstrap, and acknowledgement of startup state. | show startup failure, continue denial, or runtime-start validation failure explicitly. | retry bootstrap, acknowledge, or return to menu. |
+| Runtime HUD And Outcome Surfaces | show no active run state until runtime data is available. | show phase, timer, HP, prompts, reward entry, invalid-action prompts, speed state, and terminal outcomes. | show prompt/terminal failure state instead of leaving the HUD stale or blank. | acknowledge outcome, continue the run, or return to menu. |
+| Combat Pressure And Interaction Surfaces | show no active combat state until combat data and camera ownership are ready. | show pressure, targeting, pathing fallback, combat resolution, and camera interaction state. | show blocked targeting, missing path, or hidden pressure failure explicitly. | retry, acknowledge, or return to the governed combat-ready surface. |
+| Economy And Progression Panels | show no owned economy state until resource/build/progression data is available. | show resource totals, build placement state, queue state, upgrade/repair state, tech state, and progression results. | show invalid spend/build/progression state without mutating deterministic ownership silently. | acknowledge invalid state, retry the action, or return to menu. |
+| Save, Settings, And Meta Surfaces | show no persisted/platform state until save, cloud, or settings services are available. | show save/load status, cloud state, localization state, audio state, performance state, and platform/runtime status. | show persistence or settings failure instead of only writing low-level logs. | retry, acknowledge, or return to menu. |
+| Config Audit And Migration Surfaces | show no active run state until config, validation, and migration data is available. | show active config, schema status, fallback status, migration state, config audit metadata, and report metadata. | show validation, fallback, or migration failure on the governed read surface. | retry, acknowledge, or return to menu after review. |
 
-- The repo already has a large completed domain surface across board, city, player, economy, events, and save.
-- The repo previously had no governed Chapter 7 UI artifact and no Chapter 7 orchestrator.
-- The highest-value next wiring work is MainMenu, Board HUD, ownership/economy panels, and save/load flow.
-- The completed master-task inventory also includes combat, settlement, relic, regional economy, forced challenge, diagnostics, and campaign schema support obligations that must be represented by explicit UI or report surfaces.
+## 9. Scope And Non-Goals
 
-## 12. Flow Validation Matrix
+- Chapter 7 covers UI or governed visible-surface ownership for every completed task in `.taskmaster/tasks/tasks.json`.
+- It does not require final production polish, animation, skinning, or marketing-grade copy.
 
-| Flow | Automated Validation | Manual Validation | Evidence / Output |
-| --- | --- | --- | --- |
-| Entry Flow | `Tests.Godot/tests/Tasks/test_task0001_acceptance.gd`, `Tests.Godot/tests/Tasks/test_task0009_acceptance.gd` | Launch game, enter board shell, verify visible entry actions | GdUnit evidence and startup logs under `logs/ci/<date>/**` |
-| Board Turn Flow | `Game.Core.Tests/Tasks/Task0005AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0010AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0017AcceptanceTests.cs` | Roll, move, and verify turn progression feedback | xUnit logs and optional UI smoke evidence |
-| Economy Flow | `Game.Core.Tests/Tasks/Task0012AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0013AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0014AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0015AcceptanceTests.cs`, `Game.Core.Tests/Tasks/Task0016AcceptanceTests.cs` | Buy land, pay toll, advance settlement checkpoints, verify money and summary surfaces | xUnit acceptance logs and summary evidence |
-| Save And Prompt Flow | `Game.Core.Tests/Tasks/Task0018AcceptanceTests.cs`, `Tests.Godot/tests/Tasks/test_task0019_acceptance.gd` | Save, load, trigger prompt, and verify visible feedback | Save evidence and prompt UI output |
+### 9.1 In Scope
 
-## 13. Formal GDD And UX Distillation Rules
+- Surface ownership for startup, loop, combat, economy, meta, and governance capabilities.
+- Empty state, failure state, and completion state for each major slice.
+- Task alignment and validation references back to completed backlog items.
 
-This document is a Chapter 7 wiring board, not the final screen-by-screen UX spec. A flow can move into formal GDD or UX docs only when:
+### 9.2 Non-Goals
+- Final UX polish, visual theming, animation tuning, and cosmetic-only layout work.
+- Replacing source-of-truth task status outside `.taskmaster/tasks/tasks.json`.
 
-- At least one automated validation covers the main path.
-- At least one manual script confirms the player can interpret state and feedback.
-- Critical player-facing state is visible on governed UI surfaces.
+## 10. Unwired UI Feature List
 
-## 14. Immediate UI Integration Backlog
+- Entry And Bootstrap: define concrete scene ownership, empty/failure states, and validation evidence for T01, T11, T21.
+- Core Loop State And Outcome: define concrete scene ownership, empty/failure states, and validation evidence for T03, T07, T08, T09, T10, T18, T19, T23, T24, T63.
+- Combat Pressure And Interaction: define concrete scene ownership, empty/failure states, and validation evidence for T04, T05, T06, T20, T22, T53, T59.
+- Economy Build And Progression: define concrete scene ownership, empty/failure states, and validation evidence for T12, T13, T14, T15, T16, T17.
+- Meta Systems And Platform: define concrete scene ownership, empty/failure states, and validation evidence for T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171.
+- Config Governance And Audit: define concrete scene ownership, empty/failure states, and validation evidence for T02, T33, T38, T39.
 
-- MainMenu, continue, and settings shell.
-- Board HUD for player, turn, round, and money.
-- Dice and move result surface.
-- Ownership, toll, and city detail panel.
-- Settlement and event summary surfaces.
-- Save/load modal and resume feedback flow.
+## 11. Next UI Wiring Task Candidates
 
-## 15. Validation Plan
+### Candidate Slice MainMenu And Boot Flow
 
-- After every `ui-gdd-flow.md` update, run `py -3 scripts/python/validate_chapter7_ui_wiring.py`.
-- After every orchestrator or CLI change, run `py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile fast-ship --self-check`.
-- Before submission, run `py -3 scripts/python/run_gate_bundle.py --mode hard --task-files .taskmaster/tasks/tasks_back.json .taskmaster/tasks/tasks_gameplay.json`.
+- Matrix link: `## 5. UI Wiring Matrix row Entry And Bootstrap (T01, T11, T21)`.
+- Scope: T01, T11, T21.
+- UI entry: MainMenu / Boot Flow.
+- Candidate type: task-shaped UI wiring spec.
+- Screen group: MainMenu And Boot Flow.
+- Player action: Launch, continue, retry bootstrap, or enter a run.
+- System response: Show canonical startup path, valid continue behavior, and explicit startup failure recovery.
+- Empty state: show no active run state until runtime data is available.
+- Failure state: startup failure must remain visible and recoverable instead of failing silently.
+- Completion result: UI 日期显示应清晰表达年/月/日；当游戏日期连续变化多次时，每一次日期变化都能在可观察层面反映为日期文本的对应更新，并且日期文本始终反映最新游戏日期（不出现回退为旧值或停滞不更新等可观察异常）。
+- Requirement IDs: `Add requirement mapping before implementation.`
+- Validation artifact targets: `Add artifact target before implementation.`
+- Suggested standalone surfaces: `MainMenu`, `BootStatusPanel`, `ContinueGateDialog`.
+- Test refs: `Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd`, `Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs`, `Game.Core.Tests/Tasks/Task1WindowsPlatformGateTests.cs`, `Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs`.
+### Candidate Slice Runtime HUD And Outcome Surfaces
 
-## 16. Open Questions
+- Matrix link: `## 5. UI Wiring Matrix row Core Loop State And Outcome (T03, T07, T08, T09, T10, T18, T19, T23, T24, T63)`.
+- Scope: T03, T07, T08, T09, T10, T18, T19, T23, T24, T63.
+- UI entry: HUD / Prompt / Outcome Surfaces.
+- Candidate type: task-shaped UI wiring spec.
+- Screen group: Runtime HUD And Outcome Surfaces.
+- Player action: Play a run, observe timing, rewards, prompts, and terminal transitions.
+- System response: Render readable phase, timer, HP, reward, prompt, and win/lose state from runtime events.
+- Empty state: show no active run state until runtime data is available.
+- Failure state: Minimum 'important events' set for this task: core.sanguo.dice.rolled + core.sanguo.city.bought; log retains history across hide/show; invalid/malformed JSON payloads do not crash and do not append misleading log entries.
+- Completion result: 包含城池占有状态显示的 UI 场景与控件在 headless 冒烟测试中可被实例化并加载完成（无崩溃/无报错），且界面上存在用于呈现“占有状态”的可见元素。
+- Requirement IDs: `Add requirement mapping before implementation.`
+- Validation artifact targets: `Add artifact target before implementation.`
+- Suggested standalone surfaces: `RuntimeHud`, `OutcomePanel`, `RuntimePromptPanel`.
+- Test refs: `Game.Core.Tests/Domain/CityTests.cs`, `Game.Core.Tests/Services/SanguoEconomyManagerTests.cs`, `Game.Core.Tests/Services/EventBusTests.cs`, `Tests.Godot/tests/UI/test_hud_scene.gd`.
+### Candidate Slice Combat Pressure And Interaction Surfaces
 
-- How to group player, city, and ownership info without overwhelming the board view.
-- Whether event prompts should be modal-first or log-first.
-- Whether settlement summaries should appear inline, as overlays, or as end-of-period reports.
+- Matrix link: `## 5. UI Wiring Matrix row Combat Pressure And Interaction (T04, T05, T06, T20, T22, T53, T59)`.
+- Scope: T04, T05, T06, T20, T22, T53, T59.
+- UI entry: Combat HUD / Pressure / Camera Feedback.
+- Candidate type: task-shaped UI wiring spec.
+- Screen group: Combat Pressure And Interaction Surfaces.
+- Player action: Fight, observe pressure, targeting, pathing, and camera responses.
+- System response: Render enemy pressure, targeting, combat outcomes, and camera interaction without hidden state.
+- Empty state: GdUnit4: Provide and run a scene/UI test that verifies tile name is visible and falls back to nameKey when i18n is missing.
+- Failure state: xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid.
+- Completion result: xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid.
+- Requirement IDs: `Add requirement mapping before implementation.`
+- Validation artifact targets: `Add artifact target before implementation.`
+- Suggested standalone surfaces: `CombatHud`, `PressurePanel`, `CameraControlOverlay`.
+- Test refs: `Game.Core.Tests/Domain/SanguoPlayerTests.cs`, `Game.Core.Tests/Services/SanguoDiceServiceTests.cs`, `Game.Core.Tests/Services/SanguoTurnManagerTests.cs`, `Tests.Godot/tests/UI/test_hud_scene.gd`.
+### Candidate Slice Economy And Progression Panels
+
+- Matrix link: `## 5. UI Wiring Matrix row Economy Build And Progression (T12, T13, T14, T15, T16, T17)`.
+- Scope: T12, T13, T14, T15, T16, T17.
+- UI entry: Resource / Build / Progression Panels.
+- Candidate type: task-shaped UI wiring spec.
+- Screen group: Economy And Progression Panels.
+- Player action: Spend resources, place/build, train, upgrade, repair, or pick rewards.
+- System response: Render deterministic resource, build, queue, upgrade, and progression changes with clear invalid-state feedback.
+- Empty state: show no active economy state until owned runtime data is available.
+- Failure state: 回合循环正确处理出局者：已出局 NPC 会从后续轮转中跳过且不再行动；真人玩家一旦出局，回合循环立即停止并触发游戏结束；游戏结束后进一步调用 AdvanceTurn/AdvanceTurnAsync 必须被拒绝（抛出 InvalidOperationException）且不得推进日期/轮转行动者/发布新事件；NPC 出局后其状态锁定，且其已占领城池被释放为无人占领。
+- Completion result: player can read deterministic resource and progression outcomes from UI state.
+- Requirement IDs: `Add requirement mapping before implementation.`
+- Validation artifact targets: `Add artifact target before implementation.`
+- Suggested standalone surfaces: `ResourcePanel`, `BuildPanel`, `ProgressionPanel`.
+- Test refs: `Game.Core.Tests/Domain/SanguoPlayerTests.cs`, `Game.Core.Tests/Domain/CityTests.cs`, `Game.Core.Tests/Domain/SanguoBoardStateTests.cs`, `Game.Core.Tests/Services/SanguoEconomyManagerTests.cs`.
+### Candidate Slice Save, Settings, And Meta Surfaces
+
+- Matrix link: `## 5. UI Wiring Matrix row Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171)`.
+- Scope: T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171.
+- UI entry: Settings / Save / Meta Surfaces.
+- Candidate type: task-shaped UI wiring spec.
+- Screen group: Save, Settings, And Meta Surfaces.
+- Player action: Save, load, localize, tune audio, or inspect platform/runtime status.
+- System response: Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces.
+- Empty state: 在 gameplay 流程中，玩家于 TurnPhase.BeforeRoll 阶段每回合最多只能成功打出 1 张行动卡；同回合第二次尝试必须被拒绝且不产生任何 multiplier_step_delta/效果输出，并与 back 视图的窗口锁死语义一致。
+- Failure state: 在回合/循环结算时，若真人玩家因资金不足以支付全额过路费而出局（破产结算）：其剩余资金必须转移给收款方，玩家资金归零并标记出局；立即进入 GameOver 且后续回合推进必须被拒绝（再次调用 AdvanceTurnAsync 抛出 InvalidOperationException，且消息包含 "GameOver"）。若 NPC 因资金不足以支付全额过路费而出局：同样进行破产结算后退出本局并从后续轮转中移除（状态锁定，后续不会再成为 ActivePlayerId），其已占领城池状态变更为无人占领。
+- Completion result: 开始游戏启动失败时（例如地图配置加载失败），主菜单必须恢复为可交互状态并显示可观测错误提示（例如 StatusLabel 显示“Start failed”），避免出现“菜单消失但游戏未开始”的死路。
+- Requirement IDs: `Add requirement mapping before implementation.`
+- Validation artifact targets: `Add artifact target before implementation.`
+- Suggested standalone surfaces: `SettingsMenu`, `SavePanel`, `RunSummaryPanel`.
+- Test refs: `Game.Core.Tests/Tasks/Task25AiTests.cs`, `Game.Core.Tests/Utilities/NoGodotDependencyTests.cs`, `Game.Core.Tests/Services/PlayerEliminationTests.cs`, `Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd`.
+### Candidate Slice Config Audit And Migration Surfaces
+
+- Matrix link: `## 5. UI Wiring Matrix row Config Governance And Audit (T02, T33, T38, T39)`.
+- Scope: T02, T33, T38, T39.
+- UI entry: Config Summary / Audit / Migration Surfaces.
+- Candidate type: task-shaped UI wiring spec.
+- Screen group: Config Audit And Migration Surfaces.
+- Player action: Inspect config state, validation, governance, migration, and report metadata.
+- System response: Render active config, schema status, fallback policy, migration status, and audit metadata without relying on logs-only evidence.
+- Empty state: show no active run state until runtime data is available.
+- Failure state: `quality_gates.py` 在统一门禁流程中读取上述两份报告并应用 Phase-13 约定的阈值规则输出 PASS/FAIL（示例：Dup% ≤ 2%，最大圈复杂度 ≤ 10，平均圈复杂度 ≤ 5）；当任一报告缺失/不可解析/缺少必要字段时必须判定为 FAIL，并输出可定位原因的错误信息。
+- Completion result: operator or player can inspect config, validation, migration, and audit state from governed surfaces.
+- Requirement IDs: `Add requirement mapping before implementation.`
+- Validation artifact targets: `Add artifact target before implementation.`
+- Suggested standalone surfaces: `ConfigAuditPanel`, `MigrationStatusDialog`, `ReportMetadataPanel`.
+- Test refs: `Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs`, `Game.Core.Tests/Tasks/Task33WindowsBuildArtifactsTests.cs`, `Game.Core.Tests/Tasks/Task33WindowsReleaseWorkflowTests.cs`, `Game.Core.Tests/Tasks/Task33BuildMetadataDocsTests.cs`.
+
+## 12. Copy And Accessibility
+
+- Visible text should remain explicit and actionable.
+- Failure messages must tell the player or operator what happened and what to do next.
+- Do not rely on color only to convey terminal, invalid, or route-selection state.
+
+## 13. Test And Acceptance
+
+- Chapter 7 validation must keep `## 5. UI Wiring Matrix`, `## 10. Unwired UI Feature List`, and `## 11. Next UI Wiring Task Candidates` intact.
+- Evidence should resolve back to xUnit, GdUnit, smoke, or CI outputs already referenced by task views.
+- Any new UI slice should add or name a concrete validation path before implementation.
+
+
+## 14. Task Alignment
+
+- Completed task count currently expected by Chapter 7: 58.
+- Chapter 7 uses `.taskmaster/tasks/tasks.json` as the completion-state SSoT.
+- View files remain enrichment sources for test refs, acceptance, labels, and contract context.
