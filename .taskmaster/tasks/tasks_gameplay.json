@@ -6657,8 +6657,8 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task136SplitTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Tasks/Task136SplitTests.cs"
     ],
     "acceptance": [
       "When pressure reaches the hard cap at the leave-camp edge, leaving camp triggers forced challenge preemption. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",

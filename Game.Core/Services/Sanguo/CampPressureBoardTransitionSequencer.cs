@@ -15,6 +15,11 @@ public static class CampPressureBoardTransitionSequencer
     private const string BossPreemptedBoardEntryBranch = "boss_preempted_board_entry";
 
     public static CampPressureBoardTransitionReplayResult ReplayEventTypes(IEnumerable<string> eventTypes)
+        => ReplayEventTypes(eventTypes, hardCapReachedAtLeaveCampEdge: false);
+
+    public static CampPressureBoardTransitionReplayResult ReplayEventTypes(
+        IEnumerable<string> eventTypes,
+        bool hardCapReachedAtLeaveCampEdge)
     {
         ArgumentNullException.ThrowIfNull(eventTypes);
 
@@ -25,6 +30,7 @@ public static class CampPressureBoardTransitionSequencer
 
         var campEntered = false;
         var pressureEntered = false;
+        var bossChallengePrompted = false;
         var bossPreempted = false;
 
         foreach (var eventType in eventTypes)
@@ -48,8 +54,12 @@ public static class CampPressureBoardTransitionSequencer
                     AddCheckpoint(pathIds, checkpoints, reasonCodes, "pressure_entered", "nominal");
                 }
 
-                bossPreempted = true;
-                AddCheckpoint(pathIds, checkpoints, reasonCodes, "pressure_preempted_by_boss", "boss_preempted");
+                bossChallengePrompted = true;
+                if (hardCapReachedAtLeaveCampEdge)
+                {
+                    bossPreempted = true;
+                    AddCheckpoint(pathIds, checkpoints, reasonCodes, "pressure_preempted_by_boss", "boss_preempted");
+                }
                 continue;
             }
 
@@ -70,9 +80,30 @@ public static class CampPressureBoardTransitionSequencer
                 continue;
             }
 
+            if (string.Equals(eventType, SanguoGameTurnEnded.EventType, StringComparison.Ordinal))
+            {
+                // Task 136 hard-cap preemption closes the leave-camp boundary at turn end.
+                // If board traversal was marked earlier in the same preempted sequence,
+                // remove that checkpoint so normal board entry does not continue.
+                if (hardCapReachedAtLeaveCampEdge && bossPreempted)
+                {
+                    RemoveLastCheckpoint(checkpoints, reasonCodes, pathIds, "board_entered", "boss_preempted");
+                }
+
+                continue;
+            }
+
             if (string.Equals(eventType, SanguoCombatStarted.EventType, StringComparison.Ordinal) ||
                 string.Equals(eventType, SanguoCombatEnded.EventType, StringComparison.Ordinal))
             {
+                if (string.Equals(eventType, SanguoCombatStarted.EventType, StringComparison.Ordinal) &&
+                    bossChallengePrompted &&
+                    !bossPreempted)
+                {
+                    bossPreempted = true;
+                    AddCheckpoint(pathIds, checkpoints, reasonCodes, "pressure_preempted_by_boss", "boss_preempted");
+                }
+
                 pathIds.Add(SequencerPathId);
             }
         }
@@ -100,6 +131,36 @@ public static class CampPressureBoardTransitionSequencer
         pathIds.Add(SequencerPathId);
         checkpoints.Add(checkpoint);
         reasonCodes.Add(reasonCode);
+    }
+
+    private static void RemoveLastCheckpoint(
+        List<string> checkpoints,
+        List<string> reasonCodes,
+        List<string> pathIds,
+        string checkpoint,
+        string reasonCode)
+    {
+        for (var index = checkpoints.Count - 1; index >= 0; index--)
+        {
+            if (!string.Equals(checkpoints[index], checkpoint, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (index >= reasonCodes.Count || !string.Equals(reasonCodes[index], reasonCode, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            checkpoints.RemoveAt(index);
+            reasonCodes.RemoveAt(index);
+            if (index < pathIds.Count)
+            {
+                pathIds.RemoveAt(index);
+            }
+
+            return;
+        }
     }
 }
 

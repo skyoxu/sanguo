@@ -7,7 +7,9 @@ namespace Game.Core.Tests.Domain;
 
 public sealed class SanguoCampaignContractsTests
 {
+    // ACC:T136.1
     [Fact]
+    [Trait("acceptance", "ACC:T136.1")]
     public void ShouldExposeStableEventType_WhenBossChallengeIsPrompted()
     {
         SanguoBossChallengePrompted.EventType.Should().Be("core.sanguo.boss.challenge.prompted");
