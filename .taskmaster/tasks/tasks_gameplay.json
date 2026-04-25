@@ -4811,12 +4811,11 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs",
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
-      "Task 103 is closed only when the integration outcome from split tasks 135 and 136 is confirmed by their recorded evidence, and this task does not claim standalone implementation beyond that closure check. Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
-      "Split-task closure evidence must explicitly prove the combined outcome is the boss reveal delay challenge and hard-cap forcing integration pack behavior defined by Task 103 title/scope. Refs: Game.Core.Tests/Tasks/Task135V3Tests.cs Game.Core.Tests/Tasks/Task136V3Tests.cs"
+      "Task 103 is closed only when the integration outcome from split tasks 135 and 136 is confirmed by their recorded evidence, and this task does not claim standalone implementation beyond that closure check. Refs: Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Split-task closure evidence must explicitly prove the combined outcome is the boss reveal delay challenge and hard-cap forcing integration pack behavior defined by Task 103 title/scope. Refs: Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -4832,7 +4831,12 @@
       "A-007"
     ],
     "semantic_review_tier": "full",
-    "evidence_refs": []
+    "evidence_refs": [
+      "Game.Core.Tests/Tasks/Task135SplitTests.cs",
+      "Tests.Godot/tests/UI/test_task135_delayed_pressure_summary.gd",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Tasks/Task136SplitTests.cs"
+    ]
   },
   {
     "id": "GM-0104",
