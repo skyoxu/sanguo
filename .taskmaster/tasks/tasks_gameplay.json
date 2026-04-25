@@ -3371,6 +3371,7 @@
       "Integration closure must explicitly verify the 3-choice draft requirement: RewardDraftEngine evidence from tasks 119 and 120 must show each draft exposes exactly three candidate options; missing or non-3-choice evidence keeps task 78 open. Refs: Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
     ],
     "test_refs": [
+      "Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs",
       "Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
     ],
     "test_strategy": [

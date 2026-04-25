@@ -39,7 +39,7 @@ public static class RewardDraftCandidateDeterminismEngine
         SanguoActionCardsCatalog? actionCardsCatalog,
         SanguoRelicsCatalog? relicsCatalog)
     {
-        var normalizedChoiceCount = Math.Max(1, choiceCount);
+        var normalizedChoiceCount = Math.Clamp(choiceCount, 1, 3);
         var normalizedSource = string.IsNullOrWhiteSpace(source) ? "objective_reward" : source.Trim();
 
         var pool = BuildCandidatePool(actionCardsCatalog, relicsCatalog);
