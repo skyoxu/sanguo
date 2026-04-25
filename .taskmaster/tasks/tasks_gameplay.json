@@ -3316,7 +3316,8 @@
       "GdUnit: Task 77 is accepted only when gameplay-facing integration-closure verification confirms the split implementation evidence for task 118 is present and passes the Task 77 UI/explain-chain closure check; if that evidence is missing or fails, Task 77 is not accepted. Refs: Tests.Godot/tests/UI/test_task77_random_objective_hud_visibility.gd"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task77SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task77RandomObjectiveEngineTests.cs",
+      "Tests.Godot/tests/UI/test_task77_random_objective_hud_visibility.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
