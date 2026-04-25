@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 
 namespace Game.Core.Services.Sanguo;
@@ -63,6 +64,46 @@ public static class RewardDraftCandidateDeterminismEngine
             .ToArray();
     }
 
+    /// <summary>
+    /// Task 120 split scope entrypoint for deterministic reward draft commit + source-tag explainability.
+    /// </summary>
+    public static RewardDraftCommitResult CommitRewardDraft(
+        IReadOnlyList<string> candidateIds,
+        IReadOnlyList<string> selectedCandidateIds,
+        string sourceTag)
+    {
+        var normalizedSourceTag = string.IsNullOrWhiteSpace(sourceTag) ? "objective_reward" : sourceTag.Trim();
+        var normalizedCandidates = NormalizeIds(candidateIds);
+        var normalizedSelections = NormalizeIds(selectedCandidateIds);
+
+        var validSingleSelection = normalizedSelections.Length == 1 &&
+                                   normalizedCandidates.Contains(normalizedSelections[0], StringComparer.Ordinal);
+
+        if (!validSingleSelection)
+        {
+            var rejectionCode = "reward_draft_commit_rejected_multi_select";
+            var rejectionEvent = BuildExplainEvent(normalizedSourceTag, rejectionCode);
+            return new RewardDraftCommitResult(
+                SelectedCandidateIds: Array.Empty<string>(),
+                DomainEvents: new[] { rejectionEvent },
+                SourceTags: new[] { normalizedSourceTag },
+                ExplainCodes: new[] { rejectionCode },
+                WasRejected: true);
+        }
+
+        var selectedId = normalizedSelections[0];
+        var selectedEvent = BuildRewardSelectedEvent(selectedId, normalizedSourceTag);
+        var explainCodeAccepted = "reward_draft_commit_selected";
+        var explainEvent = BuildExplainEvent(normalizedSourceTag, explainCodeAccepted);
+
+        return new RewardDraftCommitResult(
+            SelectedCandidateIds: new[] { selectedId },
+            DomainEvents: new[] { selectedEvent, explainEvent },
+            SourceTags: new[] { normalizedSourceTag },
+            ExplainCodes: new[] { explainCodeAccepted },
+            WasRejected: false);
+    }
+
     private static List<string> BuildCandidatePool(
         SanguoActionCardsCatalog? actionCardsCatalog,
         SanguoRelicsCatalog? relicsCatalog)
@@ -105,4 +146,54 @@ public static class RewardDraftCandidateDeterminismEngine
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return BitConverter.ToUInt64(bytes, 0);
     }
+
+    private static string[] NormalizeIds(IReadOnlyList<string>? ids)
+    {
+        if (ids is null || ids.Count == 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        return ids
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static DomainEvent BuildRewardSelectedEvent(string selectedCandidateId, string sourceTag)
+    {
+        return new DomainEvent(
+            Type: EventTypes.RewardOfferSelected,
+            Source: nameof(RewardDraftCandidateDeterminismEngine),
+            Data: JsonElementEventData.FromObject(new
+            {
+                SelectedCandidateId = selectedCandidateId,
+                RewardId = selectedCandidateId,
+                SourceTag = sourceTag,
+            }),
+            Timestamp: DateTime.UtcNow,
+            Id: Guid.NewGuid().ToString("N"));
+    }
+
+    private static DomainEvent BuildExplainEvent(string sourceTag, string explainCode)
+    {
+        return new DomainEvent(
+            Type: EventTypes.SanguoActionExplain,
+            Source: nameof(RewardDraftCandidateDeterminismEngine),
+            Data: JsonElementEventData.FromObject(new
+            {
+                ExplainCode = explainCode,
+                SourceTag = sourceTag,
+            }),
+            Timestamp: DateTime.UtcNow,
+            Id: Guid.NewGuid().ToString("N"));
+    }
 }
+
+public sealed record RewardDraftCommitResult(
+    IReadOnlyList<string> SelectedCandidateIds,
+    IReadOnlyList<DomainEvent> DomainEvents,
+    IReadOnlyList<string> SourceTags,
+    IReadOnlyList<string> ExplainCodes,
+    bool WasRejected);

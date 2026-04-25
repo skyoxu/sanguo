@@ -5765,12 +5765,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task120SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
-      "Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
+      "Game.Core.Tests/Tasks/Task120SplitTests.cs"
     ],
     "acceptance": [
-      "Committing a reward draft must select exactly one reward per commit and produce source-tag explainability output, verified against R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
+      "Committing a reward draft must select exactly one reward per commit and produce source-tag explainability output, verified against R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task120SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
