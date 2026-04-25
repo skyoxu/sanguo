@@ -7063,7 +7063,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task119SplitTests.cs",
       "Game.Core.Tests/Tasks/Task119RewardDraftCandidateDeterminismTests.cs"
     ],
     "acceptance": [
