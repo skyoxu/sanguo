@@ -5187,7 +5187,7 @@
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task86SplitTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task140SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -6162,7 +6162,7 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task140SplitTests.cs"
     ],
     "acceptance": [
       "Task 103 is closed only when the integration outcome from split tasks 135 and 136 is confirmed by their recorded evidence, and this task does not claim standalone implementation beyond that closure check. Refs: Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
@@ -8240,11 +8240,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task140SplitTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task140SplitTests.cs"
     ],
     "acceptance": [
-      "Previous objective settles at camp and new objective publish is suppressed when the game ends, verifying R8 with deterministic evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Previous objective settles at camp and new objective publish is suppressed when the game ends, verifying R8 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task140SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."

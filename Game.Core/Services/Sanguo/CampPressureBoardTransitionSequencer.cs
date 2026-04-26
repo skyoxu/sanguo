@@ -34,6 +34,7 @@ public static class CampPressureBoardTransitionSequencer
         var bossPreempted = false;
         var bossBranchCompleted = false;
         var objectivePublished = false;
+        var gameEnded = false;
 
         foreach (var eventType in eventTypes)
         {
@@ -43,6 +44,7 @@ public static class CampPressureBoardTransitionSequencer
                 {
                     campEntered = true;
                     AddCheckpoint(pathIds, checkpoints, reasonCodes, "camp_entered", "nominal");
+                    AddCheckpoint(pathIds, checkpoints, reasonCodes, "objective_settled", "nominal");
                 }
 
                 continue;
@@ -73,7 +75,7 @@ public static class CampPressureBoardTransitionSequencer
                     AddCheckpoint(pathIds, checkpoints, reasonCodes, "pressure_entered", "nominal");
                 }
 
-                if (bossChallengePrompted && bossBranchCompleted && !objectivePublished)
+                if (bossChallengePrompted && bossBranchCompleted && !objectivePublished && !gameEnded)
                 {
                     AddCheckpoint(
                         pathIds,
@@ -90,6 +92,13 @@ public static class CampPressureBoardTransitionSequencer
                     reasonCodes,
                     "board_entered",
                     bossPreempted ? "boss_preempted" : "nominal");
+                continue;
+            }
+
+            if (string.Equals(eventType, SanguoGameEnded.EventType, StringComparison.Ordinal))
+            {
+                gameEnded = true;
+                pathIds.Add(SequencerPathId);
                 continue;
             }
 
