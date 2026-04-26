@@ -6838,8 +6838,7 @@
       "Game.Core.Tests/Tasks/Task139SplitTests.cs"
     ],
     "acceptance": [
-      "In the camp-leave timeline, the objective remains unpublished until the boss branch is completed, and it becomes published after that completion. Refs: Game.Core.Tests/Tasks/Task139SplitTests.cs",
-      "Task-specific deterministic tests are required evidence for Task 139 closure. Refs: Game.Core.Tests/Tasks/Task139SplitTests.cs"
+      "In the camp-leave timeline, the objective remains unpublished until the boss branch is completed, and it becomes published after that completion. Refs: Game.Core.Tests/Tasks/Task139SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
