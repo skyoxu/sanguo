@@ -17,6 +17,7 @@ public sealed class SanguoCampaignContractsTests
 
     // ACC:T118.1
     [Fact]
+    [Trait("acceptance", "ACC:T118.1")]
     public void ShouldExposeStableEventType_WhenObjectiveIsSkipped()
     {
         SanguoObjectiveSkipped.EventType.Should().Be("core.sanguo.objective.skipped");
