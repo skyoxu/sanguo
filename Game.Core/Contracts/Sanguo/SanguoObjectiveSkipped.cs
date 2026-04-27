@@ -27,4 +27,8 @@ public sealed record SanguoObjectiveSkipped(
     /// CloudEvents type for this domain event.
     /// </summary>
     public const string EventType = "core.sanguo.objective.skipped";
+
+    public int TurnNumber => RoundNumber;
+
+    public string ActivePlayerId => string.Empty;
 }
