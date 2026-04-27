@@ -194,6 +194,8 @@ public sealed record SanguoGameEnded(
 
     public const string ReasonLastActorStanding = "last_actor_standing";
 
+    public const string ReasonFinalBossDefeated = "final_boss_defeated";
+
     /// <summary>
     /// CloudEvents type for this domain event.
     /// </summary>
