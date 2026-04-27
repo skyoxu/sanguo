@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using FluentAssertions;
 using Game.Core.Contracts.Sanguo;
 using Xunit;
@@ -107,5 +108,57 @@ public sealed class SanguoCampaignContractsTests
     {
         SanguoGameEnded.EventType.Should().Be("core.sanguo.game.ended");
         SanguoPlayerEliminated.EventType.Should().Be("core.sanguo.player.eliminated");
+    }
+
+    // ACC:T145.1
+    [Fact]
+    [Trait("acceptance", "ACC:T145.1")]
+    public void ShouldCloseIntegrationFromSplitTasks_WhenValidatingDeterministicCampaignContractEvidence()
+    {
+        var splitTask169Evidence = ReadFileFromRepository("Game.Core.Tests/Tasks/Task169SplitTests.cs");
+        var splitTask170Evidence = ReadFileFromRepository("Game.Core.Tests/Tasks/Task170SplitTests.cs");
+        var mergedEvidence = splitTask169Evidence + Environment.NewLine + splitTask170Evidence;
+
+        mergedEvidence.Should().Contain("ACC:T169.1",
+            "task 145 closure must include deterministic evidence from split task 169.");
+        mergedEvidence.Should().Contain("ACC:T169.6",
+            "task 145 closure should preserve split task 169 versioning evidence.");
+        mergedEvidence.Should().Contain("ACC:T170.1",
+            "task 145 closure must include deterministic evidence from split task 170.");
+        mergedEvidence.Should().Contain("R9",
+            "task 145 acceptance requires deterministic evidence for requirement R9.");
+        mergedEvidence.Should().Contain("A-020",
+            "task 145 acceptance requires deterministic compatibility evidence for A-020.");
+    }
+
+    private static string ReadFileFromRepository(string relativePath)
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var normalizedRelativePath = relativePath.Replace('/', Path.DirectorySeparatorChar);
+        var absolutePath = Path.Combine(repositoryRoot, normalizedRelativePath);
+
+        File.Exists(absolutePath).Should().BeTrue($"Expected evidence file '{relativePath}' to exist.");
+
+        return File.ReadAllText(absolutePath);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (current is not null)
+        {
+            var hasTaskmaster = Directory.Exists(Path.Combine(current.FullName, ".taskmaster"));
+            var hasCoreTests = Directory.Exists(Path.Combine(current.FullName, "Game.Core.Tests"));
+
+            if (hasTaskmaster && hasCoreTests)
+            {
+                return current.FullName;
+            }
+
+            current = current.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Unable to locate repository root from test execution directory.");
     }
 }
