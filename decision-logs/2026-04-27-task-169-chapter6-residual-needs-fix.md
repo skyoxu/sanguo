@@ -1,0 +1,21 @@
+# task-169-chapter6-residual-needs-fix
+
+- Title: task-169-chapter6-residual-needs-fix
+- Date: 2026-04-27
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T169
+- Git Head: 6bae9fcf9c139667f8b0eb655e1d68ba8ca0cf6f
+- Why now: Chapter 6 routing determined that another immediate 6.8 rerun would not be cost-effective.
+- Context: Reviewer output still reports Needs Fix while deterministic gates are green. The current reviewer markdown timestamps are older than the latest code changes, so at least one residual appears to be stale evidence. A true remaining medium item still exists for ACC:T169.1 coverage breadth (P2).
+- Decision: Record the residual Needs Fix items and stop the current fast-ship closure loop until a later change hits the same reviewer anchors.
+- Consequences: The task keeps explicit follow-up evidence instead of paying for another same-shape 6.8 rerun.
+- Recovery impact: Recovery should prefer the recorded follow-up plan over reopening 6.7 or repeating 6.8 without fresh anchor hits.
+- Validation: py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --latest logs/ci/2026-04-27/sc-review-pipeline-task-169/latest.json
+- Related ADRs: none yet
+- Related execution plans: none yet
+- Related task id(s): `169`
+- Related run id: `0bbe22e6d15348b1ac634a357e9fe3b2`
+- Related latest.json: `logs/ci/2026-04-27/sc-review-pipeline-task-169/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-04-27/sc-review-pipeline-task-169-0bbe22e6d15348b1ac634a357e9fe3b2`
