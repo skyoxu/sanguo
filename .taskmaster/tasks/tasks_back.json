@@ -5187,7 +5187,7 @@
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task86SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task140SplitTests.cs"
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8351,7 +8351,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task142SplitTests.cs",
       "Game.Core.Tests/Tasks/Task142ObjectiveRewardDraftDeterminismTests.cs"
     ],
     "acceptance": [
