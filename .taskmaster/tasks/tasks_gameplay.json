@@ -4987,12 +4987,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs",
-      "Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
+      "Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "The master task is satisfied only when split-task evidence confirms that the implementation moved to both tasks 141 and 142 is complete and their combined integration closure is achieved; evidence from only one split task does not satisfy this item. Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs Game.Core.Tests/Tasks/Task56RandomEventCoverageTests.cs"
+      "The master task is satisfied only when split-task evidence confirms that the implementation moved to both tasks 141 and 142 is complete and their combined integration closure is achieved; evidence from only one split task does not satisfy this item. Refs: Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
