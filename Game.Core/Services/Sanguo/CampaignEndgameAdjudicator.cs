@@ -74,6 +74,22 @@ public static class CampaignEndgameAdjudicator
 
         return CampaignEndgameAdjudicationOutcome.None();
     }
+
+    public static CampaignEndgameAdjudicationOutcome EvaluateFinalBossDefeatVictory(
+        bool isFinalBossDefeated,
+        string? winnerPlayerId)
+    {
+        if (!isFinalBossDefeated)
+        {
+            return CampaignEndgameAdjudicationOutcome.None();
+        }
+
+        return new CampaignEndgameAdjudicationOutcome(
+            ShouldEndGame: true,
+            EndReason: SanguoGameEnded.ReasonFinalBossDefeated,
+            WinnerPlayerId: winnerPlayerId,
+            SplitScope: SplitScopeR3);
+    }
 }
 
 public sealed record CampaignEndgameAdjudicationOutcome(
