@@ -8530,9 +8530,9 @@
     "acceptance": [
       "Campaign contract surface is fully inventoried by domain events and DTOs. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs",
       "Registry tests verify expected campaign contracts are declared and discoverable. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs",
-      "New contract types follow repository contract template strictly, include XML docs, and compile tests for added contract types pass. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs docs/workflows/contracts-template-v1.md",
-      "Versioning hooks and deprecation metadata are explicitly wired for the campaign contract set; task must not advance when explicit versioning hooks are absent. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs Game.Core/Contracts/EventTypes.cs",
-      "validate_contracts regression coverage includes new contract types, compatibility tests cover additive evolution plus prohibited breaking changes, and overlay/back-link checks pass against expanded set. Refs: scripts/python/validate_contracts.py docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "New contract types follow repository contract template strictly, include XML docs, and compile tests for added contract types pass. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs",
+      "Versioning hooks and deprecation metadata are explicitly wired for the campaign contract set; task must not advance when explicit versioning hooks are absent. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs",
+      "validate_contracts regression coverage includes new contract types, compatibility tests cover additive evolution plus prohibited breaking changes, and overlay/back-link checks pass against expanded set. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs",
       "Task-specific deterministic tests are required evidence for Task 169 closure. Refs: Game.Core.Tests/Tasks/Task169SplitTests.cs"
     ],
     "test_strategy": [

@@ -65,6 +65,29 @@ public sealed record SanguoActionCardPlayRejected(
 }
 
 /// <summary>
+/// Domain event payload contract for core.sanguo.action.explain.
+/// Description: Structured explainability payload used by deterministic action-flow decisions.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004, ADR-0005, ADR-0020.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md.
+/// </remarks>
+public sealed record SanguoActionExplainEventData(
+    string ExplainCode,
+    string SourceTag,
+    string? ReasonCode = null,
+    string? GameId = null,
+    int? TurnNumber = null,
+    int? RoundNumber = null,
+    string? PlayerId = null,
+    string? Phase = null,
+    string? CardId = null,
+    DateTimeOffset? OccurredAt = null,
+    string? CorrelationId = null,
+    string? CausationId = null
+) : IEventData;
+
+/// <summary>
 /// Domain event: core.sanguo.random_event.applied
 /// Description: Emitted when a random event is applied (tile event or global event).
 /// </summary>

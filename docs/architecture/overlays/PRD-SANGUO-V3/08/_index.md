@@ -381,7 +381,7 @@ Some filenames intentionally keep old T2-oriented names so the task triplet can 
 <!-- TASK_BASELINE_START -->
 ```json
 {
-  "generated_at": "2026-04-27T07:52:28.337127+00:00",
+  "generated_at": "2026-04-27T08:28:44.106737+00:00",
   "files": [
     {
       "path": ".taskmaster/tasks/tasks.json",
@@ -392,14 +392,14 @@ Some filenames intentionally keep old T2-oriented names so the task triplet can 
     {
       "path": ".taskmaster/tasks/tasks_back.json",
       "exists": true,
-      "sha256": "e0df628c01430d4f5e4dc8f1356ba15dcda900f185048b9def23bff6a154ace5",
-      "bytes": 489725
+      "sha256": "c85f4bf2731582f90a3b97de8e1233bfa0b6886cf62b682dc31520900e9066b8",
+      "bytes": 489603
     },
     {
       "path": ".taskmaster/tasks/tasks_gameplay.json",
       "exists": true,
-      "sha256": "f3f81d76763191883a847e8b3f0570047437a51ee2fd1af827810004815bf6aa",
-      "bytes": 395289
+      "sha256": "c2df303716e9e8892eb71d220c30dce0fc960a336136262e9e00fe5d6282fd5a",
+      "bytes": 395167
     }
   ]
 }
