@@ -6281,12 +6281,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task105SplitIntegrationTests.cs",
-      "Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task105SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Task 105 is accepted only when split-task evidence shows tasks 139 and 140 together provide the integrated closure for this module and no remaining implementation is left in this master task; if either split task lacks closure evidence, this task is not complete. Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Integration closure is complete only when split-task evidence from tasks 139 and 140 confirms this module is closed and task 105 requires no additional implementation. Refs: Game.Core.Tests/Tasks/Task105SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
