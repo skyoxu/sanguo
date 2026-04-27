@@ -8459,12 +8459,12 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task144SplitTests.cs",
       "Game.Core.Tests/Services/SanguoTurnManagerBranchCoverageTests.cs",
-      "Game.Core.Tests/Services/SanguoTurnManagerTests.cs"
+      "Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "Game.Core.Tests/Tasks/Task144SplitTests.cs"
     ],
     "acceptance": [
-      "When camp durability reaches the fatal condition, the campaign is adjudicated through the camp-failure defeat branch with deterministic evidence. Refs: Game.Core.Tests/Services/SanguoTurnManagerBranchCoverageTests.cs Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "When camp durability reaches the fatal condition, the campaign is adjudicated through the camp-failure defeat branch with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task144SplitTests.cs",
       "When camp durability is not in fatal condition, the camp-failure defeat branch is not adjudicated and campaign defeat must not trigger from that branch. Refs: Game.Core.Tests/Tasks/Task144SplitTests.cs"
     ],
     "test_strategy": [

@@ -90,6 +90,21 @@ public static class CampaignEndgameAdjudicator
             WinnerPlayerId: winnerPlayerId,
             SplitScope: SplitScopeR3);
     }
+
+    public static CampaignEndgameAdjudicationOutcome EvaluateCampFailureDefeat(
+        bool isCampDurabilityFatal)
+    {
+        if (!isCampDurabilityFatal)
+        {
+            return CampaignEndgameAdjudicationOutcome.None();
+        }
+
+        return new CampaignEndgameAdjudicationOutcome(
+            ShouldEndGame: true,
+            EndReason: CampFailSettlementRouter.EndReasonCampDurabilityFatal,
+            WinnerPlayerId: null,
+            SplitScope: SplitScopeR3);
+    }
 }
 
 public sealed record CampaignEndgameAdjudicationOutcome(
