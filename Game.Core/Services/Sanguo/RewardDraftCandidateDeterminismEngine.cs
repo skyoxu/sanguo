@@ -13,6 +13,9 @@ namespace Game.Core.Services.Sanguo;
 /// </summary>
 public static class RewardDraftCandidateDeterminismEngine
 {
+    private const string ObjectiveRewardSourceTag = "objective_reward";
+    private const string ObjectiveRewardEvidenceSignature = "R8:event|elite|boss";
+
     private static readonly string[] DefaultRewardPool =
     {
         "reward.alpha",
@@ -178,14 +181,23 @@ public static class RewardDraftCandidateDeterminismEngine
 
     private static DomainEvent BuildExplainEvent(string sourceTag, string explainCode)
     {
-        return new DomainEvent(
-            Type: EventTypes.SanguoActionExplain,
-            Source: nameof(RewardDraftCandidateDeterminismEngine),
-            Data: JsonElementEventData.FromObject(new
+        object payload = string.Equals(sourceTag, ObjectiveRewardSourceTag, StringComparison.Ordinal)
+            ? new
             {
                 ExplainCode = explainCode,
                 SourceTag = sourceTag,
-            }),
+                EvidenceSignature = ObjectiveRewardEvidenceSignature,
+            }
+            : new
+            {
+                ExplainCode = explainCode,
+                SourceTag = sourceTag,
+            };
+
+        return new DomainEvent(
+            Type: EventTypes.SanguoActionExplain,
+            Source: nameof(RewardDraftCandidateDeterminismEngine),
+            Data: JsonElementEventData.FromObject(payload),
             Timestamp: DateTime.UtcNow,
             Id: Guid.NewGuid().ToString("N"));
     }
