@@ -89,6 +89,26 @@ public static class HudEventDtoMapper
         return true;
     }
 
+    public static bool TryParseObjectiveSkipped(JsonElement root, out HudObjectiveSkippedDto dto)
+    {
+        dto = default;
+        if (!TryGetRequiredString(root, "ObjectiveId", out var objectiveId))
+        {
+            return false;
+        }
+
+        if (!TryGetRequiredString(root, "Reason", out var reason))
+        {
+            return false;
+        }
+
+        var bossId = TryGetString(root, "BossId", out var parsedBossId) ? parsedBossId : string.Empty;
+        var roundNumber = TryGetInt(root, "RoundNumber", out var parsedRound) ? parsedRound : 0;
+
+        dto = new HudObjectiveSkippedDto(objectiveId, reason, bossId, roundNumber);
+        return true;
+    }
+
     public static bool TryParseScore(JsonElement root, out HudScoreDto dto)
     {
         var value = 0;

@@ -26,4 +26,11 @@
     <Compile Include="..\Scripts\Core\Contracts\Guild\*.cs" Link="Contracts\Guild\%(FileName)%(Extension)" />
     <Compile Include="..\Scripts\Core\Contracts\Sanguo\*.cs" Link="Contracts\Sanguo\%(FileName)%(Extension)" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Game.Godot\Scripts\UI\HudEventHandlersController.cs" Link="Adapters\UI\HudEventHandlersController.cs" />
+    <Compile Include="..\Game.Godot\Scripts\UI\HudEventHandlerRegistry.cs" Link="Adapters\UI\HudEventHandlerRegistry.cs" />
+    <Compile Include="..\Game.Godot\Scripts\UI\HudEventDtoMapper.cs" Link="Adapters\UI\HudEventDtoMapper.cs" />
+    <Compile Include="..\Game.Godot\Scripts\UI\HudEventDtos.cs" Link="Adapters\UI\HudEventDtos.cs" />
+    <Compile Include="..\Game.Godot\Scripts\UI\IHudEventHandlers.cs" Link="Adapters\UI\IHudEventHandlers.cs" />
+  </ItemGroup>
 </Project>

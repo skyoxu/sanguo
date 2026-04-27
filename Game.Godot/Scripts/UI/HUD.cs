@@ -1172,6 +1172,33 @@ public partial class HUD : Control, IHudEventHandlers
         UpdateCampaignParameterPanel();
     }
 
+    public void HandleObjectiveSkipped(HudObjectiveSkippedDto dto)
+    {
+        if (!string.Equals(dto.Reason, SanguoObjectiveSkipped.ReasonRunEndedInBoss, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var mapperVm = CampaignHudParameterViewModelMapper.Map(
+            commanderId: _campaignCommanderValueText,
+            activeStrategemId: string.Empty,
+            passiveStrategemId: string.Empty,
+            difficultyCode: _campaignDifficultyValueText,
+            turnNumber: dto.RoundNumber,
+            bossId: dto.BossId,
+            bossRoundNumber: dto.RoundNumber,
+            nextRoundPressureForecast: 0,
+            releaseMode: true,
+            resolveCommanderLabel: _ => null,
+            resolveStrategemLabel: _ => null,
+            resolveDifficultyLabel: _ => null,
+            resolveBossLabel: ResolveBossLabel);
+
+        _campaignRoundValueText = mapperVm.RoundMarker;
+        _campaignBossPressureValueText = mapperVm.BossPressureContext;
+        UpdateCampaignParameterPanel();
+    }
+
     private void TryLoadCharacterCatalog()
     {
         _characterNameKeyById.Clear();
