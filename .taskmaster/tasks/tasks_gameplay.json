@@ -7056,11 +7056,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task143SplitTests.cs",
-      "Game.Core.Tests/Services/SanguoTurnManagerBranchCoverageTests.cs"
+      "Game.Core.Tests/Tasks/Task143SplitTests.cs"
     ],
     "acceptance": [
-      "Campaign victory is adjudicated as a win only on the final boss defeat branch, and outcomes outside that branch do not produce that victory result, verified with deterministic evidence R3. Refs: Game.Core.Tests/Services/SanguoTurnManagerBranchCoverageTests.cs"
+      "Campaign victory is adjudicated as a win only on the final boss defeat branch, and outcomes outside that branch do not produce that victory result, verified with deterministic evidence R3. Refs: Game.Core.Tests/Tasks/Task143SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
