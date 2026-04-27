@@ -699,8 +699,9 @@ public class SanguoTurnManagerTests
         treasury.MinorUnits.Should().Be(treasuryBeforeAdvance, "treasury changes must be rolled back when publish fails");
     }
 
+    // ACC:T105.1
     [Fact]
-    public async Task ExportSaveSnapshot_ShouldIncludeContentPackMetadata_WhenProvided()
+    public async Task ShouldIncludeContentPackMetadata_WhenContentPackMetadataIsProvided()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -734,7 +735,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_ShouldFail_WhenContentPackIdDoesNotMatch()
+    public async Task ShouldFailRestoreFromSaveSnapshot_WhenContentPackIdDoesNotMatch()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -770,7 +771,7 @@ public class SanguoTurnManagerTests
     }
 
     [Fact]
-    public async Task RestoreFromSaveSnapshot_ShouldFail_WhenContentPackVersionDoesNotMatch()
+    public async Task ShouldFailRestoreFromSaveSnapshot_WhenContentPackVersionDoesNotMatch()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
