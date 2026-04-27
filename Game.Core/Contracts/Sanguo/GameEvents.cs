@@ -31,6 +31,12 @@ public sealed record SanguoGameStarted(
     /// CloudEvents type for this domain event.
     /// </summary>
     public const string EventType = "core.sanguo.game.started";
+
+    public int TurnNumber => 1;
+
+    public int RoundNumber => 1;
+
+    public string ActivePlayerId => PlayerOrder.Count > 0 ? PlayerOrder[0] : string.Empty;
 }
 
 /// <summary>
@@ -60,6 +66,8 @@ public sealed record SanguoGameTurnStarted(
     /// CloudEvents type for this domain event.
     /// </summary>
     public const string EventType = "core.sanguo.game.turn.started";
+
+    public int RoundNumber => TurnNumber;
 }
 
 /// <summary>
