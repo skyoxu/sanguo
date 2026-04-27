@@ -9,7 +9,7 @@ namespace Game.Core.Tests.Domain;
 public sealed class SanguoContractInstantiationTests
 {
     [Fact]
-    public void CanInstantiateBoardEvents()
+    public void ShouldInstantiateBoardEvents_WhenPayloadIsDeterministic()
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -53,7 +53,7 @@ public sealed class SanguoContractInstantiationTests
     }
 
     [Fact]
-    public void CanInstantiateGameEvents()
+    public void ShouldInstantiateGameEvents_WhenPayloadIsDeterministic()
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -163,7 +163,7 @@ public sealed class SanguoContractInstantiationTests
     }
 
     [Fact]
-    public void CanInstantiatePlayerAndAiEvents()
+    public void ShouldInstantiatePlayerAndAiEvents_WhenPayloadIsDeterministic()
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -211,7 +211,7 @@ public sealed class SanguoContractInstantiationTests
     }
 
     [Fact]
-    public void CanInstantiateEconomyEvents()
+    public void ShouldInstantiateEconomyEvents_WhenPayloadIsDeterministic()
     {
         var now = DateTimeOffset.UtcNow;
 
