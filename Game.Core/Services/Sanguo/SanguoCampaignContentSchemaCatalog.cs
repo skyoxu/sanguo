@@ -183,6 +183,14 @@ public static class SanguoCampaignContentSchemaCatalog
         return true;
     }
 
+    public static bool CanAdvanceTaskWithVersioningMetadata(string markdown)
+    {
+        var hasVersioningHook = TryReadVersionRuleFromDocumentation(markdown, out _);
+        var hasDeprecationMetadata = !string.IsNullOrWhiteSpace(markdown)
+            && markdown.Contains("deprecation", StringComparison.OrdinalIgnoreCase);
+        return hasVersioningHook && hasDeprecationMetadata;
+    }
+
     public static SanguoCampaignContentValidationResult ValidateFixture(
         SanguoCampaignContentFamily family,
         SanguoCampaignContentFixture fixture,
