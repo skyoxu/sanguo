@@ -131,7 +131,17 @@ public static class HudEventHandlerRegistry
                 handlers.HandleUiOnly();
             }
         });
-        controller.Register(SanguoObjectiveSkipped.EventType, _ => handlers.HandleUiOnly());
+        controller.Register(SanguoObjectiveSkipped.EventType, root =>
+        {
+            if (HudEventDtoMapper.TryParseObjectiveSkipped(root, out var dto))
+            {
+                handlers.HandleObjectiveSkipped(dto);
+            }
+            else
+            {
+                handlers.HandleUiOnly();
+            }
+        });
         controller.Register(SanguoGameEnded.EventType, _ => handlers.HandleGameEnded());
     }
 }

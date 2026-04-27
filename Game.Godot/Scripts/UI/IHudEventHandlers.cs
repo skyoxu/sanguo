@@ -12,6 +12,7 @@ public interface IHudEventHandlers
     void HandleCityBought(HudCityBoughtDto dto);
     void HandleTokenMoved(HudTokenMovedDto dto);
     void HandleBossChallengePrompted(HudBossChallengePromptedDto dto);
+    void HandleObjectiveSkipped(HudObjectiveSkippedDto dto);
     void HandleGameEnded();
     void HandleUiOnly();
 }
