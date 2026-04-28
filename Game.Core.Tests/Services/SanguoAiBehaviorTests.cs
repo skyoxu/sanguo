@@ -212,6 +212,53 @@ public sealed class SanguoAiBehaviorTests
         bus.Published.Should().NotContain(e => e.Type == SanguoCityTollPaid.EventType);
     }
 
+    // ACC:T108.1
+    [Fact]
+    public async Task ShouldPublishBlockedDiagnosticAndNoAiAction_WhenCampaignModeAdvancesIntoAiTurn()
+    {
+        var bus = new CapturingEventBus();
+        var economy = new SanguoEconomyManager(bus);
+
+        var gameId = "g-t108-campaign-anchor";
+        var humanId = "p1";
+        var aiId = "ai-1";
+        var correlationId = "corr-t108-anchor";
+
+        var rules = SanguoEconomyRules.Default;
+        var city = new City(id: "c1", name: "City1", regionId: "r1", basePrice: Money.FromMajorUnits(100), baseToll: Money.FromMajorUnits(10), positionIndex: 3);
+        var cities = new Dictionary<string, City>(StringComparer.Ordinal) { [city.Id] = city };
+        var human = new SanguoPlayer(playerId: humanId, money: 200m, positionIndex: 0, economyRules: rules);
+        var ai = new SanguoPlayer(playerId: aiId, money: 200m, positionIndex: 0, economyRules: rules);
+        var boardState = new SanguoBoardState(players: new[] { human, ai }, citiesById: cities);
+        var treasury = new SanguoTreasury();
+
+        var mgr = new SanguoTurnManager(
+            bus,
+            economy,
+            boardState,
+            treasury,
+            rng: new FixedRng(3),
+            totalPositionsHint: 10);
+
+        await mgr.StartNewGameAsync(
+            gameId: gameId,
+            playerOrder: new[] { humanId, aiId },
+            year: 1,
+            month: 1,
+            day: 1,
+            correlationId: correlationId,
+            causationId: null);
+
+        await mgr.AdvanceTurnAsync(correlationId, causationId: "cmd-advance");
+
+        bus.Published.Should().Contain(e => e.Type == EventTypes.RunContinueBlocked);
+        bus.Published.Should().NotContain(e => e.Type == SanguoAiDecisionMade.EventType);
+        bus.Published.Should().NotContain(e => e.Type == SanguoDiceRolled.EventType);
+        bus.Published.Should().NotContain(e => e.Type == SanguoTokenMoved.EventType);
+        bus.Published.Should().NotContain(e => e.Type == SanguoCityBought.EventType);
+        bus.Published.Should().NotContain(e => e.Type == SanguoCityTollPaid.EventType);
+    }
+
     private static JsonElement GetJsonPayload(DomainEvent evt)
     {
         evt.Data.Should().BeOfType<JsonElementEventData>();

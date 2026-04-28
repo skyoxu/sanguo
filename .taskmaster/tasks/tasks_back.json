@@ -6450,15 +6450,13 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task108V3Tests.cs",
-      "Tests.Godot/tests/UI/test_task108_campaign_ui_visibility.gd",
-      "Game.Core.Tests/Services/SanguoAiExecutionTests.cs",
-      "Game.Core.Tests/Services/SanguoAiBehaviorTests.cs"
+      "Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "Game.Core.Tests/Tasks/Task108V3Tests.cs"
     ],
     "acceptance": [
-      "In campaign mode, invoking any AI decision entrypoint is blocked, no AI action is executed or emitted during rounds, and an explicit blocked diagnostic is recorded. Refs: Game.Core.Tests/Services/SanguoAiExecutionTests.cs Game.Core.Tests/Services/SanguoAiBehaviorTests.cs",
+      "In campaign mode, when turn-advance runtime enters an AI turn, the AI decision path is blocked, no AI action is executed or emitted, and an explicit blocked diagnostic event is recorded. Refs: Game.Core.Tests/Services/SanguoAiBehaviorTests.cs Game.Core.Tests/Tasks/Task108V3Tests.cs",
       "xUnit validates AI decision entrypoint guard by run mode (campaign and non-campaign modes), not only a single campaign-only case. Refs: Game.Core.Tests/Tasks/Task108V3Tests.cs",
-      "Integration coverage validates that campaign rounds emit no AI action events when AI is hard-disabled. Refs: Game.Core.Tests/Tasks/Task108V3Tests.cs"
+      "Integration coverage validates that across consecutive campaign round advances with hard-disable enabled, no AI action events are emitted while blocked diagnostics are emitted for blocked AI turns. Refs: Game.Core.Tests/Tasks/Task108V3Tests.cs"
     ],
     "test_strategy": [
       "xUnit validates AI entrypoint guard by run mode; integration validates no AI action events in campaign rounds."

@@ -3350,7 +3350,25 @@ public sealed class SanguoTurnManager
             return;
 
         if (IsCampaignRunmodeAiIsolationActive())
+        {
+            var blockedDiagnostic = new DomainEvent(
+                Type: EventTypes.RunContinueBlocked,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new
+                {
+                    GameId = _gameId,
+                    PlayerId = activePlayerId,
+                    Reason = "campaign_runmode_ai_hard_disabled",
+                    CorrelationId = correlationId,
+                    CausationId = causationId,
+                    OccurredAt = occurredAt,
+                }),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+
+            await _bus.PublishAsync(blockedDiagnostic);
             return;
+        }
 
         if (!_boardState.TryGetPlayer(activePlayerId, out var aiPlayer) || aiPlayer is null)
             return;
