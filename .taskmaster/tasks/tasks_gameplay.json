@@ -5159,7 +5159,6 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task109SplitIntegrationTests.cs",
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
       "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs"
     ],

@@ -8,7 +8,7 @@ namespace Game.Core.Tests.Contracts;
 public sealed class JsonEventDataContractsTests
 {
     [Fact]
-    public void RawJsonEventData_ShouldCarryJsonString()
+    public void ShouldCarryJsonString_WhenUsingRawJsonEventData()
     {
         var payload = new RawJsonEventData("{\"a\":1}");
         payload.Json.Should().Be("{\"a\":1}");
@@ -16,7 +16,7 @@ public sealed class JsonEventDataContractsTests
     }
 
     [Fact]
-    public void JsonElementEventData_FromObject_ShouldProduceJsonElement()
+    public void ShouldProduceJsonElement_WhenJsonElementEventDataIsCreatedFromObject()
     {
         var payload = JsonElementEventData.FromObject(new { a = 1 });
         payload.Should().BeAssignableTo<IEventData>();
@@ -25,4 +25,3 @@ public sealed class JsonEventDataContractsTests
         payload.Value.GetProperty("a").GetInt32().Should().Be(1);
     }
 }
-

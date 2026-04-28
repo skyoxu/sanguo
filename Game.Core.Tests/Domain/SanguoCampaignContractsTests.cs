@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using FluentAssertions;
+using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Xunit;
 
@@ -8,6 +9,33 @@ namespace Game.Core.Tests.Domain;
 
 public sealed class SanguoCampaignContractsTests
 {
+    // ACC:T109.1
+    [Fact]
+    [Trait("acceptance", "ACC:T109.1")]
+    public void ShouldExposeDeterministicCampaignContractsAndJsonEventDataCompatibility_WhenSplitIntegrationClosureRuns()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var prompted = new SanguoBossChallengePrompted(
+            GameId: "game-109",
+            BossId: "boss-109",
+            RoundNumber: 9,
+            WinRateTier: SanguoBossChallengePrompted.WinRateTierMid,
+            NextRoundPressureForecast: 3,
+            KeyLossSummary: "contract_shape_guard",
+            FailConsequence: SanguoBossChallengePrompted.FailConsequenceReturnToCampAndEndRound,
+            OccurredAt: now,
+            CorrelationId: "corr-109",
+            CausationId: "cause-109");
+
+        prompted.GameId.Should().Be("game-109");
+        prompted.BossId.Should().Be("boss-109");
+        prompted.FailConsequence.Should().Be(SanguoBossChallengePrompted.FailConsequenceReturnToCampAndEndRound);
+
+        var jsonPayload = JsonElementEventData.FromObject(new { kind = SanguoBossChallengePrompted.EventType, round = prompted.RoundNumber });
+        jsonPayload.Should().BeAssignableTo<IEventData>();
+        jsonPayload.Value.GetProperty("kind").GetString().Should().Be(SanguoBossChallengePrompted.EventType);
+    }
+
     // ACC:T136.1
     [Fact]
     [Trait("acceptance", "ACC:T136.1")]
