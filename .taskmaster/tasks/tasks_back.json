@@ -10040,12 +10040,14 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task172SplitTests.cs",
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
       "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "acceptance": [
-      "Task verifies R9, R11 with deterministic evidence by rejecting campaign content packs with invalid cross-table references, missing required i18n keys, or violated version bump invariants. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
+      "Reject fixture when cross-table reference cannot be resolved for reference-required campaign families, and accept when the reference resolves. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Reject campaign content pack when required i18n section or i18n locale paths are missing, and accept when required i18n paths exist. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs",
+      "Reject fixture when breaking change occurs without required version bump, and accept when required bump is applied. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Acceptance anchors must map to concrete assertions: ACC:T172.1 ACC:T172.2 ACC:T172.3 ACC:T172.4 ACC:T172.5. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
