@@ -1,0 +1,94 @@
+using FluentAssertions;
+using Game.Core.Contracts.Sanguo;
+using Game.Core.Services.Sanguo;
+using Xunit;
+
+namespace Game.Core.Tests.Tasks;
+
+public sealed class Task107SplitIntegrationTests
+{
+    // ACC:T107.1
+    [Fact]
+    [Trait("acceptance", "ACC:T107.1")]
+    public void ShouldCloseIntegration_WhenSplitEvidenceFromTask143AndTask144IsComplete()
+    {
+        var closureEvidence = CampaignWinLoseAdjudicatorIntegrationPack.EvaluateSplitEvidence(
+            hasTask143Evidence: true,
+            hasTask144Evidence: true,
+            additionalImplementationRequired: false,
+            CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT143,
+            CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT144);
+
+        closureEvidence.Task143Delivered.Should().BeTrue();
+        closureEvidence.Task144Delivered.Should().BeTrue();
+        closureEvidence.IsClosureComplete.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ShouldKeepClosureIncomplete_WhenTask143SplitEvidenceIsMissing()
+    {
+        var closureEvidence = CampaignWinLoseAdjudicatorIntegrationPack.EvaluateSplitEvidence(
+            hasTask143Evidence: false,
+            hasTask144Evidence: true,
+            additionalImplementationRequired: false,
+            CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT143,
+            CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT144);
+
+        closureEvidence.IsClosureComplete.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ShouldKeepClosureIncomplete_WhenTask144SplitEvidenceIsMissing()
+    {
+        var closureEvidence = CampaignWinLoseAdjudicatorIntegrationPack.EvaluateSplitEvidence(
+            hasTask143Evidence: true,
+            hasTask144Evidence: false,
+            additionalImplementationRequired: false,
+            CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT143,
+            CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT144);
+
+        closureEvidence.IsClosureComplete.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ShouldKeepClosureIncomplete_WhenAdditionalStandaloneImplementationIsClaimed()
+    {
+        var closureEvidence = CampaignWinLoseAdjudicatorIntegrationPack.EvaluateSplitEvidence(
+            hasTask143Evidence: true,
+            hasTask144Evidence: true,
+            additionalImplementationRequired: true,
+            CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT143,
+            CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT144);
+
+        closureEvidence.IsClosureComplete.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ShouldValidateSplitBranchBehavior_WhenCampaignWinLoseAdjudicatorIsIntegrated()
+    {
+        var bossVictory = CampaignEndgameAdjudicator.EvaluateFinalBossDefeatVictory(
+            isFinalBossDefeated: true,
+            winnerPlayerId: "player-a");
+        var campFatalDefeat = CampaignEndgameAdjudicator.EvaluateCampFailureDefeat(
+            isCampDurabilityFatal: true);
+        var campNonFatal = CampaignEndgameAdjudicator.EvaluateCampFailureDefeat(
+            isCampDurabilityFatal: false);
+
+        bossVictory.ShouldEndGame.Should().BeTrue();
+        bossVictory.EndReason.Should().Be(SanguoGameEnded.ReasonFinalBossDefeated);
+        bossVictory.WinnerPlayerId.Should().Be("player-a");
+        bossVictory.SplitScope.Should().Be(CampaignEndgameAdjudicator.SplitScopeR3);
+
+        campFatalDefeat.ShouldEndGame.Should().BeTrue();
+        campFatalDefeat.EndReason.Should().Be(CampFailSettlementRouter.EndReasonCampDurabilityFatal);
+        campFatalDefeat.WinnerPlayerId.Should().BeNull();
+        campFatalDefeat.SplitScope.Should().Be(CampaignEndgameAdjudicator.SplitScopeR3);
+
+        campNonFatal.ShouldEndGame.Should().BeFalse();
+        campNonFatal.EndReason.Should().BeNull();
+        campNonFatal.WinnerPlayerId.Should().BeNull();
+        campNonFatal.SplitScope.Should().Be(CampaignEndgameAdjudicator.SplitScopeR3);
+
+        CampFailSettlementRouter.EndReasonCampDurabilityFatal.Should().NotBe(SanguoGameEnded.ReasonFinalBossDefeated);
+    }
+}

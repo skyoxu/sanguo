@@ -5043,11 +5043,10 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task107SplitIntegrationTests.cs",
-      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task107SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "The master integration closure is satisfied only when evidence from split tasks 143 and 144 confirms the campaign win/lose adjudicator obligations have been completed; if that evidence is missing or does not support completion, this task is not complete. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
+      "The master integration closure is satisfied only when evidence from split tasks 143 and 144 confirms the campaign win/lose adjudicator obligations have been completed; if that evidence is missing or does not support completion, this task is not complete. Refs: Game.Core.Tests/Tasks/Task107SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7223,7 +7222,7 @@
       "Game.Core.Tests/Engine/HudSceneTests.cs"
     ],
     "acceptance": [
-      "Deterministic evidence shows the HUD mapper registers campaign events and no longer depends on raw payload coupling paths, satisfying R9. Refs: Game.Core.Tests/Tasks/Task146SplitTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Engine/HudSceneTests.cs"
+      "Deterministic evidence shows the HUD mapper registers campaign events and no longer depends on raw payload coupling paths, satisfying R9. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Engine/HudSceneTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
