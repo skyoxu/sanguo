@@ -22,3 +22,4 @@ public readonly record struct HudCityTollPaidDto(decimal TreasuryOverflow, strin
 public readonly record struct HudCityBoughtDto(string BuyerId, string CityId);
 public readonly record struct HudTokenMovedDto(string PlayerId, int ToIndex, string CorrelationId);
 public readonly record struct HudBossChallengePromptedDto(string BossId, int RoundNumber, int NextRoundPressureForecast);
+public readonly record struct HudObjectiveSkippedDto(string ObjectiveId, string Reason, string BossId, int RoundNumber);

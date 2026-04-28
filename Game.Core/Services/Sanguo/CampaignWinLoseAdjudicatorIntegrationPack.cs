@@ -1,0 +1,51 @@
+using System;
+using System.Linq;
+
+namespace Game.Core.Services.Sanguo;
+
+/// <summary>
+/// Task 107 closure artifact: aggregates split evidence from T143 (final boss victory)
+/// and T144 (camp-failure adjudication branch).
+/// </summary>
+public static class CampaignWinLoseAdjudicatorIntegrationPack
+{
+    public const string SplitScopeT143 = "T143-R3-FinalBossVictory";
+    public const string SplitScopeT144 = "T144-R3-CampFailureDefeat";
+
+    public static CampaignWinLoseAdjudicatorIntegrationEvidence EvaluateSplitEvidence(
+        bool hasTask143Evidence,
+        bool hasTask144Evidence,
+        bool additionalImplementationRequired,
+        params string[] splitScopes)
+    {
+        var normalizedScopes = splitScopes
+            .Where(scope => !string.IsNullOrWhiteSpace(scope))
+            .Select(scope => scope.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(scope => scope, StringComparer.Ordinal)
+            .ToArray();
+
+        return new CampaignWinLoseAdjudicatorIntegrationEvidence(
+            Task143Delivered: hasTask143Evidence,
+            Task144Delivered: hasTask144Evidence,
+            AdditionalImplementationRequired: additionalImplementationRequired,
+            SplitScopes: normalizedScopes);
+    }
+}
+
+public readonly record struct CampaignWinLoseAdjudicatorIntegrationEvidence(
+    bool Task143Delivered,
+    bool Task144Delivered,
+    bool AdditionalImplementationRequired,
+    string[] SplitScopes)
+{
+    public bool HasScope(string splitScope) =>
+        SplitScopes.Any(scope => string.Equals(scope, splitScope, StringComparison.Ordinal));
+
+    public bool IsClosureComplete =>
+        Task143Delivered &&
+        Task144Delivered &&
+        !AdditionalImplementationRequired &&
+        HasScope(CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT143) &&
+        HasScope(CampaignWinLoseAdjudicatorIntegrationPack.SplitScopeT144);
+}
