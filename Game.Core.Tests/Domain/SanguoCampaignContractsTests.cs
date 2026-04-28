@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
+using Game.Core.Services.Sanguo;
 using Xunit;
 
 namespace Game.Core.Tests.Domain;
@@ -128,6 +130,58 @@ public sealed class SanguoCampaignContractsTests
     {
         SanguoBossChallengePrompted.FailConsequenceReturnToCampAndEndRound
             .Should().Be("return_to_camp_end_round");
+    }
+
+    // ACC:T172.1
+    [Trait("acceptance", "ACC:T172.1")]
+    [Fact]
+    public void ShouldRejectCrossTableReferenceAndVersionBumpInvariant_WhenFixtureViolatesR9AndR11()
+    {
+        var knownReferences = new HashSet<string>(StringComparer.Ordinal);
+        var fixture = new SanguoCampaignContentFixture(
+            Id: "strategem-1",
+            Power: 10,
+            SchemaVersion: 1,
+            RefId: "missing-objective-ref");
+
+        var result = SanguoCampaignContentSchemaCatalog.ValidateFixture(
+            SanguoCampaignContentFamily.Strategem,
+            fixture,
+            knownReferences,
+            previousCatalogVersion: 3,
+            currentCatalogVersion: 3,
+            hasBreakingChange: true);
+
+        result.IsValid.Should().BeFalse();
+        result.ErrorCodes.Should().Contain(SanguoCampaignContentSchemaCatalog.BadReferenceError);
+        result.ErrorCodes.Should().Contain(SanguoCampaignContentSchemaCatalog.MissingVersionBumpError);
+    }
+
+    // ACC:T172.5
+    [Trait("acceptance", "ACC:T172.5")]
+    [Fact]
+    public void ShouldAcceptFixture_WhenReferenceResolvesAndVersionBumpIsApplied()
+    {
+        var knownReferences = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "objective-1",
+        };
+        var fixture = new SanguoCampaignContentFixture(
+            Id: "strategem-2",
+            Power: 12,
+            SchemaVersion: 2,
+            RefId: "objective-1");
+
+        var result = SanguoCampaignContentSchemaCatalog.ValidateFixture(
+            SanguoCampaignContentFamily.Strategem,
+            fixture,
+            knownReferences,
+            previousCatalogVersion: 3,
+            currentCatalogVersion: 4,
+            hasBreakingChange: true);
+
+        result.IsValid.Should().BeTrue();
+        result.ErrorCodes.Should().BeEmpty();
     }
 
     // ACC:T86.1

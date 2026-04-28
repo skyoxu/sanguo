@@ -12,7 +12,7 @@ public sealed class SanguoContentPackResolverTests
     private const string PackPath = "res://Data/packs/core_a/pack.json";
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenIndexMissing()
+    public void ShouldFailResolveDefaultPack_WhenIndexMissing()
     {
         var loader = new FakeResourceLoader(new Dictionary<string, string?>());
 
@@ -23,7 +23,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenIndexJsonInvalid()
+    public void ShouldFailResolveDefaultPack_WhenIndexJsonInvalid()
     {
         var loader = new FakeResourceLoader(new Dictionary<string, string?>
         {
@@ -37,7 +37,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenNoEnabledPack()
+    public void ShouldFailResolveDefaultPack_WhenNoEnabledPack()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":false}]}";
         var loader = new FakeResourceLoader(new Dictionary<string, string?>
@@ -52,7 +52,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenIndexRootInvalid()
+    public void ShouldFailResolveDefaultPack_WhenIndexRootInvalid()
     {
         var loader = new FakeResourceLoader(new Dictionary<string, string?>
         {
@@ -66,7 +66,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenPacksMissing()
+    public void ShouldFailResolveDefaultPack_WhenPacksMissing()
     {
         var loader = new FakeResourceLoader(new Dictionary<string, string?>
         {
@@ -80,7 +80,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenPackEntryInvalid()
+    public void ShouldFailResolveDefaultPack_WhenPackEntryInvalid()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"path\":1,\"enabled\":true,\"order\":1}]}";
         var loader = new FakeResourceLoader(new Dictionary<string, string?>
@@ -95,7 +95,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenPackEntryNotObject()
+    public void ShouldFailResolveDefaultPack_WhenPackEntryNotObject()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[1]}";
         var loader = new FakeResourceLoader(new Dictionary<string, string?>
@@ -110,7 +110,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenPackMissing()
+    public void ShouldFailResolveDefaultPack_WhenPackMissing()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var loader = new FakeResourceLoader(new Dictionary<string, string?>
@@ -125,7 +125,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenPackJsonInvalid()
+    public void ShouldFailResolveDefaultPack_WhenPackJsonInvalid()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var loader = new FakeResourceLoader(new Dictionary<string, string?>
@@ -141,7 +141,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenPackIdMismatch()
+    public void ShouldFailResolveDefaultPack_WhenPackIdMismatch()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var packJson = BuildPackJson(packId: "core_b");
@@ -158,7 +158,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenPackSchemaInvalid()
+    public void ShouldFailResolveDefaultPack_WhenPackSchemaInvalid()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var packJson = BuildPackJson(schemaVersion: 0);
@@ -175,7 +175,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenPackVersionInvalid()
+    public void ShouldFailResolveDefaultPack_WhenPackVersionInvalid()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var packJson = BuildPackJson(version: 0);
@@ -192,7 +192,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenContentMissing()
+    public void ShouldFailResolveDefaultPack_WhenContentMissing()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var packJson = "{\"schemaVersion\":1,\"version\":1,\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"enabledByDefault\":true,\"compatibility\":{\"minGameVersion\":\"0.2.0\",\"maxGameVersion\":null},\"dependencies\":[],\"tags\":[\"core\"]}";
@@ -209,7 +209,7 @@ public sealed class SanguoContentPackResolverTests
     }
 
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenContentPathsMissing()
+    public void ShouldFailResolveDefaultPack_WhenContentPathsMissing()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var packJson = "{\"schemaVersion\":1,\"version\":1,\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"enabledByDefault\":true,\"compatibility\":{\"minGameVersion\":\"0.2.0\",\"maxGameVersion\":null},\"dependencies\":[],\"tags\":[\"core\"],\"content\":{\"maps\":[],\"characters\":[],\"events\":[],\"cards\":[],\"buildings\":[],\"relics\":[],\"regions\":[],\"facilities\":[],\"i18n\":{}}}";
@@ -225,8 +225,10 @@ public sealed class SanguoContentPackResolverTests
         error.Should().Be("content_pack_missing_content_paths");
     }
 
+    // ACC:T172.2
+    [Trait("acceptance", "ACC:T172.2")]
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenI18nMissing()
+    public void ShouldFailResolveDefaultPack_WhenI18nMissing()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var packJson = "{\"schemaVersion\":1,\"version\":1,\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"enabledByDefault\":true,\"compatibility\":{\"minGameVersion\":\"0.2.0\",\"maxGameVersion\":null},\"dependencies\":[],\"tags\":[\"core\"],\"content\":{\"maps\":[\"res://Data/packs/core_a/maps/_index.json\"],\"characters\":[\"res://Data/packs/core_a/characters.json\"],\"events\":[\"res://Data/packs/core_a/random_events.json\"],\"cards\":[\"res://Data/packs/core_a/action_cards.json\"],\"buildings\":[\"res://Data/packs/core_a/buildings.json\"],\"relics\":[\"res://Data/packs/core_a/relics.json\"],\"regions\":[\"res://Data/packs/core_a/regions.json\"],\"facilities\":[\"res://Data/packs/core_a/facilities.json\"]}}";
@@ -242,8 +244,10 @@ public sealed class SanguoContentPackResolverTests
         error.Should().Be("content_pack_missing_i18n");
     }
 
+    // ACC:T172.3
+    [Trait("acceptance", "ACC:T172.3")]
     [Fact]
-    public void TryResolveDefaultPack_ShouldFail_WhenI18nPathsMissing()
+    public void ShouldFailResolveDefaultPack_WhenI18nPathsMissing()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var packJson = "{\"schemaVersion\":1,\"version\":1,\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"enabledByDefault\":true,\"compatibility\":{\"minGameVersion\":\"0.2.0\",\"maxGameVersion\":null},\"dependencies\":[],\"tags\":[\"core\"],\"content\":{\"maps\":[\"res://Data/packs/core_a/maps/_index.json\"],\"characters\":[\"res://Data/packs/core_a/characters.json\"],\"events\":[\"res://Data/packs/core_a/random_events.json\"],\"cards\":[\"res://Data/packs/core_a/action_cards.json\"],\"buildings\":[\"res://Data/packs/core_a/buildings.json\"],\"relics\":[\"res://Data/packs/core_a/relics.json\"],\"regions\":[\"res://Data/packs/core_a/regions.json\"],\"facilities\":[\"res://Data/packs/core_a/facilities.json\"],\"i18n\":{}}}";
@@ -259,8 +263,10 @@ public sealed class SanguoContentPackResolverTests
         error.Should().Be("content_pack_missing_i18n_paths");
     }
 
+    // ACC:T172.4
+    [Trait("acceptance", "ACC:T172.4")]
     [Fact]
-    public void TryResolveDefaultPack_ShouldSelectEnabledPack()
+    public void ShouldResolveDefaultPack_WhenEnabledPackExists()
     {
         var indexJson = "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_b\",\"nameKey\":\"pack.core_b.name\",\"descriptionKey\":\"pack.core_b.desc\",\"path\":\"res://Data/packs/core_b/pack.json\",\"order\":2,\"enabled\":true},{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
         var packJson = BuildPackJson();
