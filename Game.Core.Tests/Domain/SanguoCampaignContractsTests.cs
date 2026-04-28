@@ -4,6 +4,7 @@ using System.IO;
 using FluentAssertions;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
+using Game.Core.Ports;
 using Game.Core.Services.Sanguo;
 using Xunit;
 
@@ -213,6 +214,53 @@ public sealed class SanguoCampaignContractsTests
             "task 145 acceptance requires deterministic compatibility evidence for A-020.");
     }
 
+    // ACC:T147.1
+    [Trait("acceptance", "ACC:T147.1")]
+    [Fact]
+    public void ShouldCloseIntegrationFromSplitTasks171And172_WhenTask147RequiresR9Evidence()
+    {
+        var expectedDatasetTypes = new[] { "commander", "strategem", "building", "boss", "objective" };
+
+        var strictCatalogOk = SanguoCampaignContentSchemaCatalog.TryBuildStrictLoaderCatalog(
+            expectedDatasetTypes,
+            out var strictCatalog,
+            out var strictCatalogError);
+        strictCatalogOk.Should().BeTrue(strictCatalogError);
+        strictCatalog["strategem"].Should().Be(SanguoCampaignContentFamily.Strategem);
+
+        var knownReferences = new HashSet<string>(StringComparer.Ordinal);
+        var invalidFixture = new SanguoCampaignContentFixture(
+            Id: "strategem-r9",
+            Power: 12,
+            SchemaVersion: 1,
+            RefId: "missing-objective-ref");
+        var invalidResult = SanguoCampaignContentSchemaCatalog.ValidateFixture(
+            SanguoCampaignContentFamily.Strategem,
+            invalidFixture,
+            knownReferences,
+            previousCatalogVersion: 3,
+            currentCatalogVersion: 3,
+            hasBreakingChange: true);
+        invalidResult.IsValid.Should().BeFalse();
+        invalidResult.ErrorCodes.Should().Contain(SanguoCampaignContentSchemaCatalog.BadReferenceError);
+        invalidResult.ErrorCodes.Should().Contain(SanguoCampaignContentSchemaCatalog.MissingVersionBumpError);
+
+        var indexJson =
+            "{\"schemaVersion\":1,\"version\":1,\"packs\":[{\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"path\":\"res://Data/packs/core_a/pack.json\",\"order\":1,\"enabled\":true}]}";
+        var missingI18nPackJson =
+            "{\"schemaVersion\":1,\"version\":1,\"packId\":\"core_a\",\"nameKey\":\"pack.core_a.name\",\"descriptionKey\":\"pack.core_a.desc\",\"enabledByDefault\":true,\"compatibility\":{\"minGameVersion\":\"0.2.0\",\"maxGameVersion\":null},\"dependencies\":[],\"tags\":[\"core\"],\"content\":{\"maps\":[\"res://Data/packs/core_a/maps/_index.json\"],\"characters\":[\"res://Data/packs/core_a/characters.json\"],\"events\":[\"res://Data/packs/core_a/random_events.json\"],\"cards\":[\"res://Data/packs/core_a/action_cards.json\"],\"buildings\":[\"res://Data/packs/core_a/buildings.json\"],\"relics\":[\"res://Data/packs/core_a/relics.json\"],\"regions\":[\"res://Data/packs/core_a/regions.json\"],\"facilities\":[\"res://Data/packs/core_a/facilities.json\"]}}";
+        var loader = new InMemoryResourceLoader(
+            new Dictionary<string, string?>
+            {
+                [SanguoContentPackResolver.PacksIndexResPath] = indexJson,
+                ["res://Data/packs/core_a/pack.json"] = missingI18nPackJson,
+            });
+
+        var resolverOk = SanguoContentPackResolver.TryResolveDefaultPack(loader, out _, out var resolverError);
+        resolverOk.Should().BeFalse("split task 172 requires i18n payloads as mandatory content-pack fields.");
+        resolverError.Should().Be("content_pack_missing_i18n");
+    }
+
     private static string ReadFileFromRepository(string relativePath)
     {
         var repositoryRoot = FindRepositoryRoot();
@@ -242,5 +290,25 @@ public sealed class SanguoCampaignContractsTests
         }
 
         throw new DirectoryNotFoundException("Unable to locate repository root from test execution directory.");
+    }
+
+    private sealed class InMemoryResourceLoader : IResourceLoader
+    {
+        private readonly Dictionary<string, string?> files;
+
+        public InMemoryResourceLoader(Dictionary<string, string?> files)
+        {
+            this.files = files;
+        }
+
+        public string? LoadText(string path)
+        {
+            return files.TryGetValue(path, out var content) ? content : null;
+        }
+
+        public byte[]? LoadBytes(string path)
+        {
+            return null;
+        }
     }
 }
