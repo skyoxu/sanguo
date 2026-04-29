@@ -7380,16 +7380,15 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task149SplitTests.cs",
       "Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_boss_victory.gd"
+      "Tests.Godot/tests/Scenes/Sanguo/test_task149_sanguo_campaign_full_loop_boss_victory.gd"
     ],
     "acceptance": [
-      "A deterministic end-to-end campaign scenario runs from campaign start to final boss victory and verifies milestone order plus visible summaries. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_boss_victory.gd",
-      "End-to-end fixture deterministically seeds both campaign content and runtime state, and scenario setup minimizes randomness to reduce flaky outcomes. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
-      "Integration assertions verify milestone order, visible summaries, and end-state markers for final victory. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
-      "End-to-end run emits expected summary artifacts and acceptance anchors consumable by CI without manual inspection. Refs: logs/ci/README.md scripts/sc/acceptance_check.py",
-      "Scenario checks include i18n cleanliness, replay markers, and final adjudication consistency, and guard against cross-cutting regressions beyond pure victory-state bugs. Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_boss_victory.gd"
+      "Final boss defeat adjudication must produce campaign victory outcome with winner identity and final boss end reason. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
+      "Repeated final boss defeat inputs must produce stable deterministic adjudication outcomes. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
+      "When final boss defeat condition is false, adjudication must not end the game and must not emit final boss victory reason. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
+      "Final boss victory reason and camp-failure reason must stay distinct across adjudication branches. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs",
+      "Task149 anchors are bound in both C# and Godot test assets consumed by CI acceptance validators. Refs: Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs Tests.Godot/tests/Scenes/Sanguo/test_task149_sanguo_campaign_full_loop_boss_victory.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
