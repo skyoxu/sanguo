@@ -240,6 +240,7 @@ Test-Refs:
 ## 9. Scope And Non-Goals
 
 - Chapter 7 covers UI or governed visible-surface ownership for every completed task in `.taskmaster/tasks/tasks.json`.
+- Cross-check note: T150 is tracked as a completed deterministic campaign outcome task and is included in Chapter 7 UI wiring governance references.
 - It does not require final production polish, animation, skinning, or marketing-grade copy.
 
 ### 9.1 In Scope
