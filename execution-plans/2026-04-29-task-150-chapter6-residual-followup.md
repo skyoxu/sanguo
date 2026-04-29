@@ -1,0 +1,21 @@
+# task-150-chapter6-residual-followup
+
+- Title: task-150-chapter6-residual-followup
+- Status: completed
+- Branch: task/T150
+- Git Head: d6cadcdacf274d67e7a8dfdb128fe938467e703f
+- Goal: Close the recorded residual reviewer findings for Task 150.
+- Scope: No low priority findings were captured.
+- Current step: Completed; residual reviewer findings were cleared by targeted 6.8 follow-up.
+- Last completed step: Targeted 6.8 closure reached clean reviewer verdicts and Chapter 6 moved to continue.
+- Stop-loss: Do not reopen 6.7 without a fresh deterministic failure. Do not rerun 6.8 when current edits do not hit the recorded reviewer anchors.
+- Next action: none; proceed with normal workflow after clean Chapter 6 closure.
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 150 --recommendation-only`
+- Open questions: none recorded yet
+- Exit criteria: met (recorded findings cleared by targeted 6.8 pass).
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-04-29-task-150-chapter6-residual-needs-fix.md`
+- Related task id(s): `150`
+- Related run id: `4b8654e0140b4b6d9a5830a5a8ec0df2`
+- Related latest.json: `logs/ci/2026-04-29/sc-review-pipeline-task-150/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-04-29/sc-review-pipeline-task-150-4b8654e0140b4b6d9a5830a5a8ec0df2`
