@@ -9095,7 +9095,6 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task155V3Tests.cs",
       "Game.Core.Tests/Tasks/Task155FreezeChangeControlGateTests.cs"
     ],
     "acceptance": [
