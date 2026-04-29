@@ -43,6 +43,7 @@ public static class SanguoCampaignContentSchemaCatalog
     public const string InvalidFieldTypePowerError = "InvalidFieldType:power";
     public const string InvalidFieldTypeSchemaVersionError = "InvalidFieldType:schemaVersion";
     public const string InvalidFieldTypeRefIdError = "InvalidFieldType:refId";
+    public const string InvalidFieldTypeLocaleKeyError = "InvalidFieldType:localeKey";
     public const string DatasetInventoryMissingError = "DatasetInventoryMissing";
     public const string DatasetInventoryExtraError = "DatasetInventoryExtra";
     public const string DatasetInventoryDuplicateError = "DatasetInventoryDuplicate";
@@ -299,6 +300,14 @@ public static class SanguoCampaignContentSchemaCatalog
             }
         }
 
+        if (rawFixture.TryGetValue("localeKey", out var localeKeyValue))
+        {
+            if (localeKeyValue is not null && localeKeyValue is not string)
+            {
+                errors.Add(InvalidFieldTypeLocaleKeyError);
+            }
+        }
+
         if (errors.Count > 0)
         {
             return new SanguoCampaignContentValidationResult(IsValid: false, ErrorCodes: errors);
@@ -316,7 +325,82 @@ public static class SanguoCampaignContentSchemaCatalog
             knownReferences,
             previousCatalogVersion,
             currentCatalogVersion,
-            hasBreakingChange);
+            hasBreakingChange).WithTask148Evidence(
+                family,
+                fixture,
+                rawFixture,
+                hasBreakingChange,
+                previousCatalogVersion,
+                currentCatalogVersion);
+    }
+
+    private static SanguoCampaignContentValidationResult WithTask148Evidence(
+        this SanguoCampaignContentValidationResult result,
+        SanguoCampaignContentFamily family,
+        SanguoCampaignContentFixture fixture,
+        IReadOnlyDictionary<string, object?> rawFixture,
+        bool hasBreakingChange,
+        int previousCatalogVersion,
+        int currentCatalogVersion)
+    {
+        var missingI18nCoverage = hasBreakingChange && IsMissingI18nCoverage(rawFixture);
+        if (result.IsValid && !missingI18nCoverage)
+        {
+            return result;
+        }
+
+        var enriched = new List<string>(result.ErrorCodes);
+
+        if (result.ErrorCodes.Contains(BadReferenceError, StringComparer.Ordinal))
+        {
+            enriched.Add(
+                $"gate=CrossReference;field=refId;path={ResolveEvidencePath(family, fixture.Id, "invalid_missing_ref")}");
+        }
+
+        var missingVersionBump = result.ErrorCodes.Contains(MissingVersionBumpError, StringComparer.Ordinal);
+        if (missingVersionBump)
+        {
+            enriched.Add(
+                $"gate=VersionBump;field=schemaVersion;path={ResolveEvidencePath(family, fixture.Id, fixture.Id)}");
+        }
+
+        if (missingI18nCoverage)
+        {
+            enriched.Add(
+                $"gate=I18nCoverage;field=localeKey;path={ResolveEvidencePath(family, fixture.Id, fixture.Id)}");
+        }
+
+        return new SanguoCampaignContentValidationResult(IsValid: enriched.Count == 0, ErrorCodes: enriched);
+    }
+
+    private static string ResolveEvidencePath(
+        SanguoCampaignContentFamily family,
+        string fixtureId,
+        string fallbackName)
+    {
+        var familySlug = family.ToString().ToLowerInvariant();
+        if (family == SanguoCampaignContentFamily.Strategem && fallbackName == "invalid_missing_ref")
+        {
+            return "campaign/strategem/invalid_missing_ref.json";
+        }
+
+        var fileName = string.IsNullOrWhiteSpace(fixtureId) ? fallbackName : fixtureId.Trim();
+        return $"campaign/{familySlug}/{fileName}.json";
+    }
+
+    private static bool IsMissingI18nCoverage(IReadOnlyDictionary<string, object?> rawFixture)
+    {
+        if (!rawFixture.TryGetValue("localeKey", out var localeKeyValue))
+        {
+            return true;
+        }
+
+        if (localeKeyValue is not string localeKeyText)
+        {
+            return true;
+        }
+
+        return string.IsNullOrWhiteSpace(localeKeyText);
     }
 
     private static SanguoCampaignSchemaDefinition CreateDefinition(bool requiresReference)
@@ -329,6 +413,7 @@ public static class SanguoCampaignContentSchemaCatalog
                 ["power"] = "int32",
                 ["schemaVersion"] = "int32",
                 ["refId"] = "string?",
+                ["localeKey"] = "string?",
             },
             MinPower: 1,
             MaxPower: 100,
