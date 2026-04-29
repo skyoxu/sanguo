@@ -261,6 +261,72 @@ public sealed class SanguoCampaignContractsTests
         resolverError.Should().Be("content_pack_missing_i18n");
     }
 
+    // ACC:T110.1
+    [Trait("acceptance", "ACC:T110.1")]
+    [Fact]
+    public void ShouldCloseMasterIntegration_WhenSplitTask147And148EvidenceAreBothPresent()
+    {
+        var expectedDatasetTypes = new[] { "commander", "strategem", "building", "boss", "objective" };
+        var strictCatalogOk = SanguoCampaignContentSchemaCatalog.TryBuildStrictLoaderCatalog(
+            expectedDatasetTypes,
+            out _,
+            out var strictCatalogError);
+        strictCatalogOk.Should().BeTrue(strictCatalogError);
+
+        var strictCatalogMissingObjective = SanguoCampaignContentSchemaCatalog.TryBuildStrictLoaderCatalog(
+            new[] { "commander", "strategem", "building", "boss" },
+            out _,
+            out var missingCatalogError);
+        strictCatalogMissingObjective.Should().BeFalse();
+        missingCatalogError.Should().Be(SanguoCampaignContentSchemaCatalog.DatasetInventoryMissingError);
+
+        var knownReferences = new HashSet<string>(StringComparer.Ordinal);
+        var invalidFixture = new SanguoCampaignContentFixture(
+            Id: "strategem-t110",
+            Power: 12,
+            SchemaVersion: 1,
+            RefId: "missing-objective-ref");
+        var invalidFixtureResult = SanguoCampaignContentSchemaCatalog.ValidateFixture(
+            SanguoCampaignContentFamily.Strategem,
+            invalidFixture,
+            knownReferences,
+            previousCatalogVersion: 3,
+            currentCatalogVersion: 3,
+            hasBreakingChange: true);
+
+        invalidFixtureResult.IsValid.Should().BeFalse();
+        invalidFixtureResult.ErrorCodes.Should().Contain(SanguoCampaignContentSchemaCatalog.BadReferenceError);
+        invalidFixtureResult.ErrorCodes.Should().Contain(SanguoCampaignContentSchemaCatalog.MissingVersionBumpError);
+
+        var rawFixture = new Dictionary<string, object?>
+        {
+            ["id"] = "objective-110",
+            ["power"] = 40,
+            ["schemaVersion"] = 3,
+            ["refId"] = "objective-ref",
+            ["localeKey"] = string.Empty,
+        };
+        var knownRawReferences = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "objective-ref",
+        };
+        var rawFixtureResult = SanguoCampaignContentSchemaCatalog.ValidateRawFixture(
+            SanguoCampaignContentFamily.Objective,
+            rawFixture,
+            knownRawReferences,
+            previousCatalogVersion: 3,
+            currentCatalogVersion: 3,
+            hasBreakingChange: true);
+
+        rawFixtureResult.IsValid.Should().BeFalse();
+        rawFixtureResult.ErrorCodes.Should().Contain(code =>
+            code.Contains("gate=VersionBump", StringComparison.Ordinal) &&
+            code.Contains("field=schemaVersion", StringComparison.Ordinal));
+        rawFixtureResult.ErrorCodes.Should().Contain(code =>
+            code.Contains("gate=I18nCoverage", StringComparison.Ordinal) &&
+            code.Contains("field=localeKey", StringComparison.Ordinal));
+    }
+
     private static string ReadFileFromRepository(string relativePath)
     {
         var repositoryRoot = FindRepositoryRoot();

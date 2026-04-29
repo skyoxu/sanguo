@@ -6562,7 +6562,6 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task110SplitIntegrationTests.cs",
       "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
       "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs"
     ],
