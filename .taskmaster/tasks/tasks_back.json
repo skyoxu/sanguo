@@ -9038,12 +9038,11 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task154V3Tests.cs",
       "Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs",
-      "Tests.Godot/tests/Integration/Security/test_non_crash_feedback_suppression.gd"
+      "Tests.Godot/tests/Integration/Security/test_task154_non_crash_feedback_suppression.gd"
     ],
     "acceptance": [
-      "Freeze 1.2 policy is executable: automated tests and CI checks verify only crash-category issues can trigger user-facing feedback flow, while non-crash diagnostics remain logs/audit only. Refs: Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs Tests.Godot/tests/Integration/Security/test_non_crash_feedback_suppression.gd",
+      "Freeze 1.2 policy is executable: automated tests and CI checks verify only crash-category issues can trigger user-facing feedback flow, while non-crash diagnostics remain logs/audit only. Refs: Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs Tests.Godot/tests/Integration/Security/test_task154_non_crash_feedback_suppression.gd",
       "Rule tests cover crash, non-crash, and mixed diagnostic categories with deterministic outcomes. Refs: Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs",
       "Feedback suppression guard is enforced at routing choke point rather than individual call sites. Refs: Game.Core.Tests/Tasks/Task154NonCrashFeedbackSuppressionTests.cs"
     ],
