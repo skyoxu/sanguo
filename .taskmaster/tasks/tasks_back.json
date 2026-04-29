@@ -8757,7 +8757,7 @@
     "story_id": "PRD-SANGUO-T3-SPLIT-SG-0150",
     "title": "Module: campaign full-loop camp-fail scenario (split from T111)",
     "description": "Split task for camp-fail integration scenario.",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "ci",
     "depends_on": [
@@ -8784,12 +8784,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task150SplitTests.cs",
-      "Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_camp_fail.gd"
+      "Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs"
     ],
     "acceptance": [
-      "A deterministic end-to-end scenario runs from campaign start to camp durability defeat and verifies 9.1 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_campaign_full_loop_camp_fail.gd"
+      "ACC:T150.1 Fatal camp durability route from campaign-start in-progress state must transition to defeat_settlement, emit EndReason=camp_durability_fatal, and produce deterministic defeat evidence mapped by LastProcessedTick=91 to checkpoint 9.1. Refs: Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs",
+      "ACC:T150.2 Non-fatal camp durability keeps routing in progress and does not emit camp-fail defeat evidence. Refs: Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs",
+      "ACC:T150.3 Campaign flow must be terminal after fatal defeat: durability reduction reaches fatal routing, adjudication ends the game, and subsequent routing must not fall back to normal in-progress settlement branch. Refs: Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."

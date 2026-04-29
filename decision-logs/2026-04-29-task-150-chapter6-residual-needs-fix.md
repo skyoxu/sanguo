@@ -1,0 +1,21 @@
+# task-150-chapter6-residual-needs-fix
+
+- Title: task-150-chapter6-residual-needs-fix
+- Date: 2026-04-29
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T150
+- Git Head: d6cadcdacf274d67e7a8dfdb128fe938467e703f
+- Why now: Chapter 6 routing determined that another immediate 6.8 rerun would not be cost-effective.
+- Context: Remaining findings are low priority reviewer items after deterministic evidence was already sufficient. No low priority findings were captured.
+- Decision: Residual Needs Fix was recorded first, then cleared by targeted 6.8 follow-up with reviewer-anchor-hit changes.
+- Consequences: The residual record remains as history, and the latest Chapter 6 state is clean.
+- Recovery impact: Prefer the latest clean summary for Task 150; this record is historical and no longer blocks closure.
+- Validation: py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --latest logs/ci/2026-04-29/sc-review-pipeline-task-150/latest.json
+- Related ADRs: none yet
+- Related execution plans: none yet
+- Related task id(s): `150`
+- Related run id: `4b8654e0140b4b6d9a5830a5a8ec0df2`
+- Related latest.json: `logs/ci/2026-04-29/sc-review-pipeline-task-150/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-04-29/sc-review-pipeline-task-150-4b8654e0140b4b6d9a5830a5a8ec0df2`

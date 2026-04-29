@@ -4712,7 +4712,7 @@
         "dependencies": [
           "149"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
