@@ -8673,16 +8673,15 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task148SplitTests.cs",
       "Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs",
       "Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs"
     ],
     "acceptance": [
       "Campaign content validation defines mandatory cross-ref, version-bump, and i18n-coverage checks per campaign dataset type, and deterministic evidence rejects invalid fixtures with pinpointed file path, field, and gate name in CI outputs. Refs: Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
       "Each campaign content quality rule has validator tests with minimal failing fixtures. Refs: Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs",
-      "Campaign dataset validation reuses existing validation infrastructure instead of introducing campaign-only ad hoc scripts. Refs: scripts/python/validate_campaign_content.py scripts/python/ci_pipeline.py",
+      "Campaign dataset validation reuses existing validation infrastructure instead of introducing campaign-only ad hoc scripts. Refs: Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
       "Regression fixtures exist for each campaign dataset category and are included in deterministic gate coverage. Refs: Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs",
-      "Campaign content validation is a hard CI gate; failing content checks must block CI instead of passing as non-blocking evidence. Refs: .github/workflows/ci-windows.yml scripts/python/ci_pipeline.py"
+      "Campaign content validation is a hard CI gate; failing content checks must block CI instead of passing as non-blocking evidence. Refs: Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
