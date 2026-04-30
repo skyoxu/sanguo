@@ -1,41 +1,21 @@
-# Task 151 Execution Plan
+# Task 151 Module: core assertion hard-gate closure (split from T112) integration pack acceptance-test generation plan
 
-## Goal
-Close Task 151 Chapter 6 integration pack with deterministic test evidence and acceptance refs consistency, while resolving in-branch blockers surfaced by hard checks.
-
-## Scope
-- Update task view acceptance refs for Task 151 in `.taskmaster/tasks/tasks_back.json` and `.taskmaster/tasks/tasks_gameplay.json`.
-- Add deterministic Task151 integration/closure tests:
-  - `Game.Core.Tests/Tasks/Task151SplitIntegrationTests.cs`
-  - `Game.Core.Tests/Tasks/Task151SplitClosureTests.cs`
-- Resolve in-branch blockers encountered during closure:
-  - Task111 assertion mismatch in `Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs`
-  - Overlay baseline drift in `docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md`
-
-## Chapter 6 Protocol Decisions
-- Recovery order executed per protocol:
-  1. `resume-task --recommendation-only`
-  2. `chapter6-route --recommendation-only`
-  3. `inspect-run --kind pipeline --recommendation-only` only when route fields were insufficient.
-- Approval sidecar state machine handled as required:
-  - pending -> pause
-  - approved -> fork
-- Entered 6.8 only when `preferred_lane=run-6.8` with real `Needs Fix`.
-
-## Evidence
-- Clean fork pipeline run:
-  - `logs/ci/2026-04-30/sc-review-pipeline-task-151-722c745586c149d88975e1f8d6d61a11`
-- Local hard checks pass:
-  - run_id: `cf30f879e1d9494ba7a6be1744b1bc4d`
-
-## Risks and Mitigations
-- Risk: re-running full 6.7 after deterministic closure wastes budget/time.
-  - Mitigation: follow route recommendations and stop-loss signals; use narrow closure lane.
-- Risk: repo-noise masks task-scope closure.
-  - Mitigation: fix blockers in-branch and keep evidence paths explicit.
-
-## Done Criteria
-- Task151 acceptance refs consistent across task views and point to Task151 artifacts.
-- Task151 deterministic integration/closure tests stable green.
-- Chapter6 pipeline clean with no open P0/P1 Needs Fix in task scope.
-- Local hard checks pass and evidence is archived under `logs/**`.
+- Title: Task 151 Module: core assertion hard-gate closure (split from T112) integration pack acceptance-test generation plan
+- Status: active
+- Branch: task/T151
+- Git Head: 2f0774b55c5cf69fea7ad5d4bc013262046f2139
+- Goal: Control acceptance-driven test generation complexity for task 151.
+- Scope: 4 missing refs across 1 test roots; seed refs: Game.Core.Tests/Tasks/Task151SplitClosureTests.cs, Game.Core.Tests/Tasks/Task173SplitTests.cs, Game.Core.Tests/Tasks/Task174SplitTests.cs, ...
+- Current step: Review missing acceptance refs and choose the first safe red step.
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: Do not start Codex test generation until the ref mix and verify mode are explicit.
+- Next action: Run llm_generate_tests_from_acceptance_refs.py after confirming the sequence for missing refs.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 151 --resume`
+- Open questions: none recorded yet
+- Exit criteria: The next acceptance-driven test generation step is explicit and low-ambiguity.
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `151`
+- Related run id: n/a (no pipeline run id linked yet)
+- Related latest.json: n/a (no task-scoped latest.json pointer resolved yet)
+- Related pipeline artifacts: n/a (no pipeline artifact directory resolved yet)
