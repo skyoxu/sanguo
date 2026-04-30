@@ -9386,9 +9386,9 @@
       "Game.Core.Tests/Tasks/Task160GovernanceTests.cs"
     ],
     "acceptance": [
-      "Executable lint-like gate requires logging-guidelines baseline to document mandatory structured logging, redaction rules, and traceability fields. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs",
-      "Validation includes both documentation checks and configuration checks consumed by observability scripts/tests. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs",
-      "Regression fixtures verify lint-like checks fail when mandatory sections are missing. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs"
+      "Executable lint-like gate requires logging-guidelines baseline to document mandatory structured logging, redaction rules, and required traceability fields traceId, spanId, and taskId. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs",
+      "Validation report must expose documentation checks and configuration checks as one shared baseline contract consumed by observability scripts/tests, covering structured-logging, redaction-rules, traceability-fields, and baseline-path entries. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs",
+      "Regression fixtures verify lint-like checks fail when the baseline path, redaction rules, or required traceability fields are missing from configuration, when baseline path does not match the validated logging-guidelines baseline document, and when structured logging, redaction rules, or required traceability fields are missing from the baseline document. Refs: Game.Core.Tests/Tasks/Task160GovernanceTests.cs"
     ],
     "test_strategy": [
       "Lint-like documentation and config checks with regression fixtures for missing mandatory sections."

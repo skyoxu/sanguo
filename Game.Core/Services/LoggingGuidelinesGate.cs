@@ -7,6 +7,8 @@ namespace Game.Core.Services;
 
 public static class LoggingGuidelinesGate
 {
+    public const string ExpectedBaselinePath = "docs/observability/logging-guidelines.md";
+
     public static LoggingGuidelinesGateReport Validate(string documentation, string configurationJson)
     {
         var missingRequirements = new List<string>();
@@ -49,7 +51,8 @@ public static class LoggingGuidelinesGate
                 checks: checks);
         }
 
-        if (!TryReadNonEmptyString(config, "loggingGuidelinesBaseline", out _))
+        if (!TryReadNonEmptyString(config, "loggingGuidelinesBaseline", out var baselinePath)
+            || !BaselinePathMatchesExpected(baselinePath))
         {
             missingRequirements.Add("config:baseline-path");
         }
@@ -121,6 +124,12 @@ public static class LoggingGuidelinesGate
     private static bool Contains(string source, string value)
     {
         return source.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private static bool BaselinePathMatchesExpected(string value)
+    {
+        var normalized = value.Replace('\\', '/').Trim();
+        return string.Equals(normalized, ExpectedBaselinePath, StringComparison.OrdinalIgnoreCase);
     }
 }
 

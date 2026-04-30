@@ -61,6 +61,20 @@ public sealed class Task160GovernanceTests
     }
 
     // ACC:T160.3
+    [Fact]
+    [Trait("acceptance", "ACC:T160.3")]
+    public void ShouldFailLintCheck_WhenBaselinePathDoesNotMatchDocumentationContract()
+    {
+        var documentation = LoadLoggingGuidelinesBaseline();
+        var configuration = BuildConfigurationJsonWithOverrideBaselinePath("docs/observability/other-guidelines.md");
+
+        var report = LoggingGuidelinesGate.Validate(documentation, configuration);
+
+        report.IsSuccess.Should().BeFalse();
+        report.MissingRequirements.Should().Contain("config:baseline-path");
+    }
+
+    // ACC:T160.3
     [Theory]
     [Trait("acceptance", "ACC:T160.3")]
     [InlineData("structured", "doc:structured-logging")]
@@ -141,5 +155,16 @@ public sealed class Task160GovernanceTests
             "traceabilityFields" => BuildConfigurationJson(includeTraceabilityFields: false),
             _ => throw new ArgumentOutOfRangeException(nameof(missingKey), missingKey, "Unsupported configuration key."),
         };
+    }
+
+    private static string BuildConfigurationJsonWithOverrideBaselinePath(string baselinePath)
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["loggingGuidelinesBaseline"] = baselinePath,
+            ["redactionRules"] = new[] { "email", "token" },
+            ["traceabilityFields"] = new[] { "traceId", "spanId", "taskId" },
+        };
+        return JsonSerializer.Serialize(payload);
     }
 }
