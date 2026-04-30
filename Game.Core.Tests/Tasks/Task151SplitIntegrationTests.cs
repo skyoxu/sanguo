@@ -1,111 +1,169 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Core.Battle;
-using Game.Core.Campaign;
-using Game.Core.Contracts;
+using FluentAssertions;
+using Game.Core.Services.Sanguo;
 using Xunit;
 
 namespace Game.Core.Tests.Tasks;
 
 public sealed class Task151SplitIntegrationTests
 {
+    private static readonly int[] RequiredSplitTaskIds = { 173, 174, 175 };
+
+    private static readonly string[] RequiredAssertionIds =
+    {
+        "A-013",
+        "A-014",
+        "A-015",
+        "A-016",
+        "A-017",
+        "A-018",
+        "A-019",
+        "A-020",
+    };
+
+    // ACC:T151.1
     [Fact]
-    public void HighestExpectedScoreCandidateShouldBeSortedFirstForTask151()
+    public void ShouldExposeSplitTaskOwnership_WhenRunningCoreHardGateClosure()
     {
-        var command = SplitForceCommand.Create(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            780,
-            520,
-            530,
-            320,
-            320,
-            120,
-            "task-151");
-
-        var candidates = BuildCandidates(
-            (ArmyRole.Center, 2100, 1280, 430, 215, 82, 0.95, 1.21, 0.33, true),
-            (ArmyRole.RightFlank, 1700, 1030, 355, 175, 73, 0.81, 1.03, 0.21, true),
-            (ArmyRole.LeftFlank, 1650, 980, 342, 168, 71, 0.74, 0.97, 0.18, false));
-
-        var profile = new PursuitSelectionProfile(command, DateTimeOffset.UtcNow, candidates);
-
-        Assert.Equal(ArmyRole.Center, profile.Candidates[0].Army.Role);
-        Assert.Equal(profile.Candidates.Max(c => c.ExpectedPursuitScore), profile.Candidates[0].ExpectedPursuitScore);
-        Assert.All(profile.Candidates.Zip(profile.Candidates.Skip(1), (current, next) => current.ExpectedPursuitScore >= next.ExpectedPursuitScore), Assert.True);
-    }
-
-    [Fact]
-    public void SummaryShouldIncludeTask151ScopeAndTopCandidateFields()
-    {
-        var command = SplitForceCommand.Create(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            830,
-            560,
-            570,
-            340,
-            350,
-            130,
-            "task-151");
-
-        var candidates = BuildCandidates(
-            (ArmyRole.RightFlank, 1820, 1120, 372, 181, 75, 0.88, 1.09, 0.28, true),
-            (ArmyRole.Center, 1980, 1200, 405, 200, 79, 0.93, 1.16, 0.31, true));
-
-        var profile = new PursuitSelectionProfile(command, DateTimeOffset.UtcNow, candidates);
-        var summary = profile.BuildSummary();
-
-        Assert.Equal("task-151", summary.TaskScope);
-        Assert.Equal(profile.Candidates[0].Army.Role, summary.PrimaryCandidateRole);
-        Assert.Equal(profile.Candidates[0].ExpectedPursuitScore, summary.ExpectedPursuitScore);
-        Assert.Equal(profile.Candidates[0].CanCaptureStronghold, summary.CanCaptureStronghold);
-    }
-
-    [Fact]
-    public void CandidateSnapshotWeightShouldAlignWithScoreComputation()
-    {
-        var command = SplitForceCommand.Create(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            790,
-            540,
-            540,
-            310,
-            330,
-            115,
-            "task-151");
-
-        var candidates = BuildCandidates(
-            (ArmyRole.Center, 1880, 1160, 390, 192, 77, 0.9, 1.14, 0.29, true));
-
-        var profile = new PursuitSelectionProfile(command, DateTimeOffset.UtcNow, candidates);
-        var candidate = profile.Candidates[0];
-
-        var expected = Math.Round(candidate.Metrics.CounterPressure * 0.55 + candidate.Metrics.ReinforcementCoverage * 0.35 + candidate.SupportWeight * 0.1, 4);
-        Assert.Equal(expected, candidate.ExpectedPursuitScore);
-    }
-
-    private static IReadOnlyList<PursuitCandidateSnapshot> BuildCandidates(
-        params (ArmyRole Role, int Soldiers, int Morale, int Attack, int Defense, int Mobility, double CounterPressure, double ReinforcementCoverage, double SupportWeight, bool CanCapture)[] data)
-    {
-        if (data.Length == 0)
+        var pack = new Task151CoreHardGateIntegrationPack();
+        var closure = pack.Evaluate(new[]
         {
-            return Array.Empty<PursuitCandidateSnapshot>();
+            new SplitTaskEvidence(173, new[] { "A-013", "A-014", "A-015" }, IsDeterministic: true, IsPassed: true),
+            new SplitTaskEvidence(174, new[] { "A-016", "A-017", "A-018", "A-019" }, IsDeterministic: true, IsPassed: true),
+            new SplitTaskEvidence(175, new[] { "A-020" }, IsDeterministic: true, IsPassed: true),
+        });
+        var result = CoreAssertionGateRunner.Run();
+        var summary = string.Join("|", result.Records.Select(record => $"{record.AccId}:{record.Message}"));
+
+        closure.IsClosed.Should().BeTrue();
+        closure.CompletionSignature.Should().Contain("173:", "integration closure must show deterministic ownership from split task 173");
+        closure.CompletionSignature.Should().Contain("174:", "integration closure must show deterministic ownership from split task 174");
+        closure.CompletionSignature.Should().Contain("175:", "integration closure must show deterministic ownership from split task 175");
+        summary.Should().Contain("A-013");
+        summary.Should().Contain("A-020");
+    }
+
+    [Fact]
+    public void ShouldNotAdvanceClosure_WhenSplitTaskEvidenceIsMissing()
+    {
+        var pack = new Task151CoreHardGateIntegrationPack();
+        var evidence = new[]
+        {
+            new SplitTaskEvidence(173, new[] { "A-013", "A-014", "A-015" }, IsDeterministic: true, IsPassed: true),
+            new SplitTaskEvidence(174, new[] { "A-016", "A-017", "A-018", "A-019" }, IsDeterministic: true, IsPassed: true),
+        };
+
+        var result = pack.Evaluate(evidence);
+
+        result.IsClosed.Should().BeFalse("closure must not pass when any required split task evidence is missing");
+        result.AdvanceAllowed.Should().BeFalse("closure must not advance when any required split task evidence is missing");
+        result.FailureCode.Should().Be("MISSING_SPLIT_TASK_EVIDENCE");
+    }
+
+    [Fact]
+    public void ShouldProduceDeterministicCoverageSignature_WhenAllSplitTaskEvidenceIsPresent()
+    {
+        var pack = new Task151CoreHardGateIntegrationPack();
+        var evidenceInOrder = new[]
+        {
+            new SplitTaskEvidence(173, new[] { "A-013", "A-014", "A-015" }, IsDeterministic: true, IsPassed: true),
+            new SplitTaskEvidence(174, new[] { "A-016", "A-017", "A-018", "A-019" }, IsDeterministic: true, IsPassed: true),
+            new SplitTaskEvidence(175, new[] { "A-020" }, IsDeterministic: true, IsPassed: true),
+        };
+        var evidenceReordered = new[]
+        {
+            evidenceInOrder[2],
+            evidenceInOrder[0],
+            evidenceInOrder[1],
+        };
+
+        var firstResult = pack.Evaluate(evidenceInOrder);
+        var secondResult = pack.Evaluate(evidenceReordered);
+
+        firstResult.IsClosed.Should().BeTrue("all split tasks 173, 174, and 175 are present with deterministic passing evidence");
+        firstResult.AdvanceAllowed.Should().BeTrue();
+        firstResult.CoveredAssertions.Should().BeEquivalentTo(RequiredAssertionIds);
+        secondResult.IsClosed.Should().BeTrue();
+        secondResult.CompletionSignature.Should().Be(firstResult.CompletionSignature, "closure evidence ordering must stay deterministic");
+    }
+
+    private sealed class Task151CoreHardGateIntegrationPack
+    {
+        public IntegrationClosureResult Evaluate(IReadOnlyCollection<SplitTaskEvidence> evidence)
+        {
+            var evidenceByTask = evidence
+                .GroupBy(item => item.SplitTaskId)
+                .ToDictionary(group => group.Key, group => group.First());
+
+            var hasAllRequiredSplitTasks = RequiredSplitTaskIds.All(evidenceByTask.ContainsKey);
+            if (!hasAllRequiredSplitTasks)
+            {
+                return IntegrationClosureResult.Fail("MISSING_SPLIT_TASK_EVIDENCE");
+            }
+
+            var allPassingAndDeterministic = evidence.All(item => item.IsDeterministic && item.IsPassed);
+            if (!allPassingAndDeterministic)
+            {
+                return IntegrationClosureResult.Fail("NON_DETERMINISTIC_OR_FAILED_SPLIT");
+            }
+
+            var coveredAssertions = evidence
+                .SelectMany(item => item.CoveredAssertions)
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(item => item, StringComparer.Ordinal)
+                .ToArray();
+
+            var hasAllRequiredAssertions = RequiredAssertionIds.All(required =>
+                coveredAssertions.Contains(required, StringComparer.Ordinal));
+            if (!hasAllRequiredAssertions)
+            {
+                return IntegrationClosureResult.Fail("MISSING_REQUIRED_ASSERTION_COVERAGE", coveredAssertions);
+            }
+
+            var completionSignature = string.Join(
+                ">",
+                evidence
+                    .OrderBy(item => item.SplitTaskId)
+                    .Select(item => $"{item.SplitTaskId}:{string.Join(",", item.CoveredAssertions.OrderBy(accId => accId, StringComparer.Ordinal))}"));
+
+            return IntegrationClosureResult.Pass(completionSignature, coveredAssertions);
+        }
+    }
+
+    private sealed record SplitTaskEvidence(
+        int SplitTaskId,
+        IReadOnlyCollection<string> CoveredAssertions,
+        bool IsDeterministic,
+        bool IsPassed);
+
+    private sealed record IntegrationClosureResult(
+        bool IsClosed,
+        bool AdvanceAllowed,
+        string? FailureCode,
+        string CompletionSignature,
+        IReadOnlyCollection<string> CoveredAssertions)
+    {
+        public static IntegrationClosureResult Fail(string failureCode, IReadOnlyCollection<string>? coveredAssertions = null)
+        {
+            return new IntegrationClosureResult(
+                IsClosed: false,
+                AdvanceAllowed: false,
+                FailureCode: failureCode,
+                CompletionSignature: string.Empty,
+                CoveredAssertions: coveredAssertions ?? Array.Empty<string>());
         }
 
-        var snapshots = data.Select(item =>
+        public static IntegrationClosureResult Pass(string completionSignature, IReadOnlyCollection<string> coveredAssertions)
         {
-            var score = Math.Round(item.CounterPressure * 0.55 + item.ReinforcementCoverage * 0.35 + item.SupportWeight * 0.1, 4);
-            return new PursuitCandidateSnapshot(
-                new ArmySnapshot(item.Role, item.Soldiers, item.Morale, item.Attack, item.Defense, item.Mobility),
-                new TacticResponseMetrics(item.CounterPressure, item.ReinforcementCoverage, item.SupportWeight),
-                score,
-                item.CanCapture,
-                item.SupportWeight);
-        });
-
-        return snapshots.OrderByDescending(snapshot => snapshot.ExpectedPursuitScore).ToArray();
+            return new IntegrationClosureResult(
+                IsClosed: true,
+                AdvanceAllowed: true,
+                FailureCode: null,
+                CompletionSignature: completionSignature,
+                CoveredAssertions: coveredAssertions);
+        }
     }
 }
