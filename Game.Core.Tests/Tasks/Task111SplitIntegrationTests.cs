@@ -14,6 +14,8 @@ public sealed class Task111SplitIntegrationTests
     private const int SplitTask149 = 149;
     private const int SplitTask150 = 150;
     private const string Task111Ref = "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs";
+    private const string Task52Ref = "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs";
+    private const string DiceFlowRef = "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd";
     private const string SplitTask149Ref = "Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs";
     private const string SplitTask150Ref = "Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs";
 
@@ -40,16 +42,15 @@ public sealed class Task111SplitIntegrationTests
 
             acceptance.Should().HaveCount(2);
             acceptance[0].Should().Contain("split tasks 149 and 150");
-            acceptance[0].Should().Contain("marked completed");
-            acceptance[0].Should().Contain("same closure signature");
-            acceptance[0].Should().Contain("deterministic failure semantics");
-            acceptance[0].Should().Contain("Task111SplitIntegrationTests.cs");
-            acceptance[1].Should().Contain("scope is limited to integration-closure orchestration");
-            acceptance[1].Should().Contain("integration-closure orchestration");
-            acceptance[1].Should().Contain("must not be added under Task 111");
-            acceptance[1].Should().Contain("Task111SplitIntegrationTests.cs");
+            acceptance[0].Should().Contain("verified by deterministic acceptance evidence");
+            acceptance[0].Should().Contain("not accepted if either split task lacks closure evidence");
+            acceptance[1].Should().Contain("scope is limited to integration closure of split-task evidence");
+            acceptance[1].Should().Contain("independent implementation belongs to split tasks 149 and 150");
+            acceptance[1].Should().Contain("must not be introduced here");
 
-            testRefs.Should().ContainSingle().Which.Should().Be(Task111Ref);
+            testRefs.Should().Contain(Task111Ref);
+            testRefs.Should().Contain(Task52Ref);
+            testRefs.Should().Contain(DiceFlowRef);
             task149Refs.Should().Contain(SplitTask149Ref);
             task150Refs.Should().Contain(SplitTask150Ref);
 
@@ -73,10 +74,9 @@ public sealed class Task111SplitIntegrationTests
             var acceptance = ReadStringArray(task, "acceptance");
 
             acceptance.Should().HaveCount(2);
-            acceptance[1].Should().Contain("scope is limited to integration-closure orchestration");
-            acceptance[1].Should().Contain("independent feature implementation belongs to tasks 149 and 150");
-            acceptance[1].Should().Contain("must not be added under Task 111");
-            acceptance[1].Should().Contain("Task111SplitIntegrationTests.cs");
+            acceptance[1].Should().Contain("scope is limited to integration closure of split-task evidence");
+            acceptance[1].Should().Contain("independent implementation belongs to split tasks 149 and 150");
+            acceptance[1].Should().Contain("must not be introduced here");
         }
     }
 

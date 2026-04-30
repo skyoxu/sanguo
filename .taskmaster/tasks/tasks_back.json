@@ -8843,10 +8843,11 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task151SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task151SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task151SplitClosureTests.cs"
     ],
     "acceptance": [
-      "Integration closure shows the combined outcome of split tasks 173, 174, and 175, and verifies A-013 through A-020 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs Game.Core.Tests/Tasks/Task174SplitTests.cs Game.Core.Tests/Tasks/Task175SplitTests.cs",
+      "Integration closure shows the combined outcome of split tasks 173, 174, and 175, and verifies A-013 through A-020 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task151SplitIntegrationTests.cs",
       "Integration closure check must not pass or advance when split-task evidence is missing for any of tasks 173, 174, 175. Refs: Game.Core.Tests/Tasks/Task151SplitClosureTests.cs"
     ],
     "test_strategy": [
