@@ -8906,15 +8906,14 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task152SplitTests.cs",
-      "Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
+      "Game.Core.Tests/Tasks/Task152UiHardGateTests.cs"
     ],
     "acceptance": [
-      "CI hard gate explicitly covers UI explainability assertions and i18n exposure assertions with deterministic pass/fail outcomes. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
-      "Task-specific deterministic tests are required evidence for this gate package. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
-      "UI gate inventory is explicit and owned; assertion registry/manifest tests verify required UI checks are enumerated and later additions cannot silently bypass CI. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
-      "Summary-generation tests from representative UI fixtures verify CI gate decision relies only on a narrow and stable UI summary, not arbitrary log parsing. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
-      "Failing UI fixtures produce hard-gate failures with actionable CI messages. Refs: .github/workflows/ci-windows.yml Game.Core.Tests/Tasks/Task152UiHardGateTests.cs"
+      "CI hard gate explicitly covers UI explainability assertions and i18n-facing obligations for localized summary exposure and raw-key suppression, with deterministic pass/fail outcomes. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
+      "For repeated identical UI fixtures, hard-gate outcomes and machine-readable summaries remain deterministic so CI conclusions do not drift across reruns. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
+      "UI gate inventory is explicit and owned; assertion registry/manifest tests verify required explainability and i18n-facing checks are enumerated so later additions cannot silently bypass CI. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
+      "Summary-generation tests verify gate decisions rely only on a narrow and stable UI summary contract from representative fixtures, and unrelated raw log noise does not alter pass/fail decisions. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs",
+      "When explainability obligations are missing, the hard gate fails for A-011; when i18n-facing obligations represented by A-012 are missing, the hard gate fails for A-012; when both are missing, both A-011 and A-012 are reported in deterministic order, and diagnostics identify the responsible failing check for follow-up evidence. Refs: Game.Core.Tests/Tasks/Task152UiHardGateTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -9438,7 +9437,6 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task161SplitIntegrationTests.cs",
       "Game.Core.Tests/Tasks/Task161SplitClosureTests.cs"
     ],
     "acceptance": [
