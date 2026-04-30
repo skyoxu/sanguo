@@ -1,0 +1,122 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using FluentAssertions;
+using Game.Core.Services;
+using Xunit;
+
+namespace Game.Core.Tests.Tasks;
+
+public sealed class Task160GovernanceTests
+{
+    // ACC:T160.1
+    [Fact]
+    [Trait("acceptance", "ACC:T160.1")]
+    public void ShouldRequireStructuredLoggingRedactionAndTraceabilityFields_WhenValidatingLoggingGuidelinesBaseline()
+    {
+        var documentation = LoadLoggingGuidelinesBaseline();
+        var configuration = BuildConfigurationJson(includeTraceabilityFields: false);
+
+        var report = LoggingGuidelinesGate.Validate(documentation, configuration);
+
+        report.IsSuccess.Should().BeFalse();
+        report.MissingRequirements.Should().Contain("config:traceability-fields");
+    }
+
+    // ACC:T160.2
+    [Fact]
+    [Trait("acceptance", "ACC:T160.2")]
+    public void ShouldExposeDocumentationAndConfigurationChecks_WhenBuildingObservabilityValidationReport()
+    {
+        var documentation = LoadLoggingGuidelinesBaseline();
+        var configuration = BuildConfigurationJson();
+
+        var report = LoggingGuidelinesGate.Validate(documentation, configuration);
+
+        report.IsSuccess.Should().BeTrue();
+        report.Checks.Should().ContainSingle(check => check.Kind == "documentation" && check.Code == "structured-logging");
+        report.Checks.Should().ContainSingle(check => check.Kind == "documentation" && check.Code == "redaction-rules");
+        report.Checks.Should().ContainSingle(check => check.Kind == "documentation" && check.Code == "traceability-fields");
+        report.Checks.Should().ContainSingle(check => check.Kind == "configuration" && check.Code == "baseline-path");
+        report.Checks.Should().ContainSingle(check => check.Kind == "configuration" && check.Code == "redaction-rules");
+        report.Checks.Should().ContainSingle(check => check.Kind == "configuration" && check.Code == "traceability-fields");
+    }
+
+    // ACC:T160.3
+    [Theory]
+    [Trait("acceptance", "ACC:T160.3")]
+    [InlineData("loggingGuidelinesBaseline", "config:baseline-path")]
+    [InlineData("redactionRules", "config:redaction-rules")]
+    [InlineData("traceabilityFields", "config:traceability-fields")]
+    public void ShouldFailLintCheck_WhenMandatoryConfigurationInputIsMissing(string missingKey, string expectedRequirement)
+    {
+        var documentation = LoadLoggingGuidelinesBaseline();
+        var configuration = BuildConfigurationJsonWithMissingKey(missingKey);
+
+        var report = LoggingGuidelinesGate.Validate(documentation, configuration);
+
+        report.IsSuccess.Should().BeFalse();
+        report.MissingRequirements.Should().Contain(expectedRequirement);
+    }
+
+    private static string LoadLoggingGuidelinesBaseline()
+    {
+        var repoRoot = FindRepoRoot();
+        var baselinePath = Path.Combine(repoRoot, "docs", "observability", "logging-guidelines.md");
+        File.Exists(baselinePath).Should().BeTrue("Task 160 baseline documentation must exist.");
+        return File.ReadAllText(baselinePath);
+    }
+
+    private static string FindRepoRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var markerPath = Path.Combine(directory.FullName, ".taskmaster", "tasks", "tasks.json");
+            if (File.Exists(markerPath))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Repo root not found (missing .taskmaster/tasks/tasks.json).");
+    }
+
+    private static string BuildConfigurationJson(
+        bool includeBaselinePath = true,
+        bool includeRedactionRules = true,
+        bool includeTraceabilityFields = true)
+    {
+        var payload = new Dictionary<string, object?>();
+        if (includeBaselinePath)
+        {
+            payload["loggingGuidelinesBaseline"] = "docs/observability/logging-guidelines.md";
+        }
+
+        if (includeRedactionRules)
+        {
+            payload["redactionRules"] = new[] { "email", "token" };
+        }
+
+        if (includeTraceabilityFields)
+        {
+            payload["traceabilityFields"] = new[] { "traceId", "spanId", "taskId" };
+        }
+
+        return JsonSerializer.Serialize(payload);
+    }
+
+    private static string BuildConfigurationJsonWithMissingKey(string missingKey)
+    {
+        return missingKey switch
+        {
+            "loggingGuidelinesBaseline" => BuildConfigurationJson(includeBaselinePath: false),
+            "redactionRules" => BuildConfigurationJson(includeRedactionRules: false),
+            "traceabilityFields" => BuildConfigurationJson(includeTraceabilityFields: false),
+            _ => throw new ArgumentOutOfRangeException(nameof(missingKey), missingKey, "Unsupported configuration key."),
+        };
+    }
+}
