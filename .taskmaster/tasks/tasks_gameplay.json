@@ -7969,16 +7969,16 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task159GovernanceTests.cs",
       "Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs"
+      "Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs",
+      "Game.Core.Tests/Tasks/Task159PrivacyComplianceCiSummaryTests.cs"
     ],
     "acceptance": [
       "Campaign telemetry privacy-compliance baseline document is authored and machine-checkable, defining data minimization, retention bounds, and non-crash feedback suppression linkage. Refs: Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
       "Document validation tests/fixtures ensure required privacy sections exist. Refs: Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
       "Policy gate script verifies required privacy clauses and cross-links to freeze/assertion artifacts. Refs: Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs",
-      "Tests verify policy parsing and rule evaluation against representative fixtures, and implementation plus CI consume the same policy clauses. Refs: Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs scripts/python/ci_pipeline.py",
-      "CI summary surfaces privacy policy gate results, violated clause, and offending artifact. Refs: .github/workflows/ci-windows.yml Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs"
+      "Tests verify policy parsing and rule evaluation against representative fixtures, and implementation plus CI consume the same policy clauses. Refs: Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs",
+      "CI summary surfaces privacy policy gate results, violated clause, and offending artifact. Refs: Game.Core.Tests/Tasks/Task159PrivacyCompliancePolicyGateTests.cs Game.Core.Tests/Tasks/Task159PrivacyComplianceCiSummaryTests.cs"
     ],
     "test_strategy": [
       "Policy gate script verifies required clauses and cross-links to freeze/assertion artifacts."
