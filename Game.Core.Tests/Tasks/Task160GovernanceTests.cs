@@ -60,6 +60,29 @@ public sealed class Task160GovernanceTests
         report.MissingRequirements.Should().Contain(expectedRequirement);
     }
 
+    // ACC:T160.3
+    [Theory]
+    [Trait("acceptance", "ACC:T160.3")]
+    [InlineData("structured", "doc:structured-logging")]
+    [InlineData("redaction", "doc:redaction-rules")]
+    [InlineData("traceability", "doc:traceability-fields")]
+    public void ShouldFailLintCheck_WhenMandatoryDocumentationSectionIsMissing(string mode, string expectedRequirement)
+    {
+        var documentation = mode switch
+        {
+            "structured" => "# Logging Guidelines\n\n## Redaction Rules\nSensitive fields include email and token.\n\n## Traceability Fields\ntraceId spanId taskId",
+            "redaction" => "# Logging Guidelines\n\n## Structured Logging\nUse structured logging for production events.\n\n## Traceability Fields\ntraceId spanId taskId",
+            "traceability" => "# Logging Guidelines\n\n## Structured Logging\nUse structured logging for production events.\n\n## Redaction Rules\nSensitive fields include email and token.",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unsupported documentation mode."),
+        };
+        var configuration = BuildConfigurationJson();
+
+        var report = LoggingGuidelinesGate.Validate(documentation, configuration);
+
+        report.IsSuccess.Should().BeFalse();
+        report.MissingRequirements.Should().Contain(expectedRequirement);
+    }
+
     private static string LoadLoggingGuidelinesBaseline()
     {
         var repoRoot = FindRepoRoot();
