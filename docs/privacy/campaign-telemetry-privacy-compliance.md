@@ -1,4 +1,4 @@
-﻿# Privacy Compliance
+# Privacy Compliance
 
 ## Data Minimization
 Collect only aggregate campaign telemetry counters and anonymized runtime diagnostics required for balancing and stability analysis.
