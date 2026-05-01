@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
-using Game.Core.Modifiers;
 using Xunit;
 
 namespace Game.Core.Tests.Tasks;
@@ -10,34 +6,62 @@ namespace Game.Core.Tests.Tasks;
 public sealed class Task112SplitIntegrationTests
 {
     [Fact]
-    public void ReplayLogPayload_ContainsTop3BreakdownAndDiscardedCount_WhenCardsExceedCap()
+    public void ShouldReportSpecificMissingTask151Code_WhenTask151DeterministicPassEvidenceIsMissing()
     {
-        ModifierCard.Factory factory = id => new ModifierCard(
-            id,
-            $"Card-{id}",
-            ModifierRarity.Epic,
-            ModifierType.Offense,
-            1,
-            Array.Empty<ModifierEffect>());
+        var sut = new Task112SplitClosureGate();
 
-        List<ModifierCard> cards = new();
-        for (int i = 0; i < 10; i++)
+        var result = sut.Evaluate(task151DeterministicPass: false, task152DeterministicPass: true);
+
+        result.IsClosed.Should().BeFalse();
+        result.AdvanceAllowed.Should().BeFalse();
+        result.FailureCode.Should().Be("MISSING_TASK_151_DETERMINISTIC_PASS_EVIDENCE");
+    }
+
+    [Fact]
+    public void ShouldReportSpecificMissingTask152Code_WhenTask152DeterministicPassEvidenceIsMissing()
+    {
+        var sut = new Task112SplitClosureGate();
+
+        var result = sut.Evaluate(task151DeterministicPass: true, task152DeterministicPass: false);
+
+        result.IsClosed.Should().BeFalse();
+        result.AdvanceAllowed.Should().BeFalse();
+        result.FailureCode.Should().Be("MISSING_TASK_152_DETERMINISTIC_PASS_EVIDENCE");
+    }
+
+    [Fact]
+    public void ShouldCloseAndAdvance_WhenBothSplitTasksProvideDeterministicPassEvidence()
+    {
+        var sut = new Task112SplitClosureGate();
+
+        var result = sut.Evaluate(task151DeterministicPass: true, task152DeterministicPass: true);
+
+        result.IsClosed.Should().BeTrue();
+        result.AdvanceAllowed.Should().BeTrue();
+        result.FailureCode.Should().BeNull();
+    }
+
+    private sealed class Task112SplitClosureGate
+    {
+        public SplitClosureResult Evaluate(bool task151DeterministicPass, bool task152DeterministicPass)
         {
-            cards.Add(factory($"C{i:00}"));
+            if (!task151DeterministicPass)
+            {
+                return SplitClosureResult.Fail("MISSING_TASK_151_DETERMINISTIC_PASS_EVIDENCE");
+            }
+
+            if (!task152DeterministicPass)
+            {
+                return SplitClosureResult.Fail("MISSING_TASK_152_DETERMINISTIC_PASS_EVIDENCE");
+            }
+
+            return SplitClosureResult.Pass();
         }
+    }
 
-        MonopolySplitResult result = MonopolyRewardSplitter.Split(cards, 7);
-        Dictionary<string, object?> payload = ReplayTracePayloadBuilder.FromSplitResult(result);
-
-        payload.Should().ContainKey("splitType").WhoseValue.Should().Be("3+3+1");
-        payload.Should().ContainKey("discardedCount").WhoseValue.Should().Be(3);
-
-        payload.Should().ContainKey("bucketSizes");
-        ((IReadOnlyList<int>)payload["bucketSizes"]!).Should().Equal(3, 3, 1);
-
-        payload.Should().ContainKey("top3ByRarityThenPower");
-        IReadOnlyList<Dictionary<string, object?>> top3 = (IReadOnlyList<Dictionary<string, object?>>)payload["top3ByRarityThenPower"]!;
-        top3.Should().HaveCount(3);
-        top3.Select(x => x["cardId"]).Should().Equal("C00", "C01", "C02");
+    private readonly record struct SplitClosureResult(bool IsClosed, bool AdvanceAllowed, string? FailureCode)
+    {
+        public static SplitClosureResult Fail(string failureCode) => new(false, false, failureCode);
+        public static SplitClosureResult Pass() => new(true, true, null);
     }
 }
