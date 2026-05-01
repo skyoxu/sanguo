@@ -8455,9 +8455,11 @@
       "Game.Core.Tests/Tasks/Task168SplitTests.cs"
     ],
     "acceptance": [
-      "CI hard gate runs the compatibility report validator and emits standardized failure diagnostics on validation failures. Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs .github/workflows/ci-windows.yml",
-      "When compatibility validation fails, CI hard gate must fail and refuse to advance pipeline stages. Refs: .github/workflows/ci-windows.yml scripts/python/ci_pipeline.py",
-      "Task-specific deterministic tests are required evidence for CI hard-gate integration behavior. Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs"
+      "ACC:T168.1 CI hard gate integration: when CI executes the hard-gate stage through the pipeline entry path, the compatibility report validator must be invoked exactly once for the current report and its failure must be surfaced as standardized diagnostics (code=COMPAT_VALIDATION_FAILED, message prefix=[compat-validator]). Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs",
+      "ACC:T168.2 When compatibility validation fails, CI hard gate must fail and refuse to advance pipeline stages. (pipeline implementation references: .github/workflows/ci-windows.yml, scripts/python/ci_pipeline.py). Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs",
+      "ACC:T168.3 For the same invalid compatibility report input, the CI hard gate must return deterministic and identical failure diagnostics/state (including code, message prefix, stage state, and exit code) across repeated evaluations. Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs",
+      "ACC:T168.4 When compatibility validation succeeds, the CI hard gate must allow pipeline stage advancement and return a non-blocked stage outcome with success exit code. Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs",
+      "ACC:T168.5 Rollout semantics: in rollout mode for this split task, compatibility CI hard gate is enabled by default for the target CI lane and cannot silently downgrade to non-blocking on validation failure; failed validation must keep stage state blocked with exit code 1. Refs: Game.Core.Tests/Tasks/Task168SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
