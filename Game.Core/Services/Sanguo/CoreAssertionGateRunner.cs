@@ -29,13 +29,65 @@ public static class CoreAssertionGateRunner
         new("A-019", "A-019.AuditRotationCap", "AuditFallbackAndRotation", true),
         new("A-020", "A-020.ContractCompatibility", "ContractCompatibilityPolicy", true),
     };
+    private static readonly CoreAssertionGateUnit[] ReplayIntegrityBundleGateUnits = RequiredGateUnits
+        .Where(static unit => unit.AccId is "A-013" or "A-014" or "A-015")
+        .ToArray();
 
     public static IReadOnlyList<CoreAssertionGateUnit> GetRequiredGateUnits()
     {
         return RequiredGateUnits;
     }
 
+    public static IReadOnlyList<CoreAssertionGateUnit> GetReplayIntegrityBundleGateUnits()
+    {
+        return ReplayIntegrityBundleGateUnits;
+    }
+
     public static CoreAssertionGateRunResult Run(CoreAssertionGateExecutionInputs? inputs = null)
+    {
+        return RunCore(RequiredGateUnits, inputs);
+    }
+
+    public static CoreAssertionGateRunResult RunReplayIntegrityBundle(CoreAssertionGateExecutionInputs? inputs = null)
+    {
+        return RunCore(ReplayIntegrityBundleGateUnits, inputs);
+    }
+
+    public static CoreAssertionGateRunResult RunWithForcedFailures(IEnumerable<string> failingAccIds)
+    {
+        ArgumentNullException.ThrowIfNull(failingAccIds);
+
+        return RunCore(
+            RequiredGateUnits,
+            CoreAssertionGateExecutionInputs.AllPassing with
+            {
+                ForcedFailAccIds = failingAccIds
+                    .Where(static id => !string.IsNullOrWhiteSpace(id))
+                    .Select(static id => id.Trim())
+                    .Distinct(StringComparer.Ordinal)
+                    .ToArray(),
+            });
+    }
+
+    public static CoreAssertionGateRunResult RunReplayIntegrityBundleWithForcedFailures(IEnumerable<string> failingAccIds)
+    {
+        ArgumentNullException.ThrowIfNull(failingAccIds);
+
+        return RunCore(
+            ReplayIntegrityBundleGateUnits,
+            CoreAssertionGateExecutionInputs.AllPassing with
+            {
+                ForcedFailAccIds = failingAccIds
+                    .Where(static id => !string.IsNullOrWhiteSpace(id))
+                    .Select(static id => id.Trim())
+                    .Distinct(StringComparer.Ordinal)
+                    .ToArray(),
+            });
+    }
+
+    private static CoreAssertionGateRunResult RunCore(
+        IReadOnlyList<CoreAssertionGateUnit> gateUnits,
+        CoreAssertionGateExecutionInputs? inputs)
     {
         var effectiveInputs = inputs ?? CoreAssertionGateExecutionInputs.AllPassing;
         var forcedFailures = new HashSet<string>(
@@ -48,8 +100,8 @@ public static class CoreAssertionGateRunner
             ReplayIntegrityIntegrationPack.SplitScopeT83,
             ReplayIntegrityIntegrationPack.SplitScopeT84);
 
-        var records = new List<CoreAssertionGateRecord>(RequiredGateUnits.Length);
-        foreach (var unit in RequiredGateUnits)
+        var records = new List<CoreAssertionGateRecord>(gateUnits.Count);
+        foreach (var unit in gateUnits)
         {
             if (ShouldSkipUnit(unit.AccId, effectiveInputs))
             {
@@ -91,20 +143,6 @@ public static class CoreAssertionGateRunner
             Status: status,
             Records: records,
             MachineReadableSummaryJson: summaryJson);
-    }
-
-    public static CoreAssertionGateRunResult RunWithForcedFailures(IEnumerable<string> failingAccIds)
-    {
-        ArgumentNullException.ThrowIfNull(failingAccIds);
-
-        return Run(CoreAssertionGateExecutionInputs.AllPassing with
-        {
-            ForcedFailAccIds = failingAccIds
-                .Where(static id => !string.IsNullOrWhiteSpace(id))
-                .Select(static id => id.Trim())
-                .Distinct(StringComparer.Ordinal)
-                .ToArray(),
-        });
     }
 
     private static CoreAssertionGateEvaluation EvaluateUnit(
