@@ -1,0 +1,22 @@
+﻿# task-166-chapter6-residual-followup
+
+- Title: task-166-chapter6-residual-followup
+- Status: active
+- Branch: task/T166
+- Git Head: f8187c4632c49b65fadda434c8ef5e71531cd867
+- Goal: Close the recorded residual reviewer findings for Task 166.
+- Scope: Remaining findings are medium-priority reviewer suggestions around ACC:T166.1 test strength.
+- Current step: Residual Needs Fix recorded; pause Chapter 6 reruns until new edits hit the same reviewer anchor.
+- Last completed step: 6.8 one-round needs-fix-fast completed with deterministic green and reviewer-side residual only.
+- Stop-loss: Do not reopen 6.7 while rerun_guard/recent-failure-summary persists. Do not rerun 6.8 without fresh anchor-hit edits.
+- Next action: py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --latest logs/ci/2026-05-01/sc-review-pipeline-task-166/latest.json
+- Recovery command: `py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 166 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1`
+- Open questions: none recorded yet
+- Exit criteria: Either residual reviewer finding is cleared by targeted 6.8 after anchor-hit changes, or a newer run supersedes this residual record.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-05-01-task-166-chapter6-residual-needs-fix.md`
+- Related task id(s): `166`
+- Related run id: `a89e2104b36e41bd9c6cdc4bbb06880d`
+- Related latest.json: `logs/ci/2026-05-01/sc-review-pipeline-task-166/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-05-01/sc-review-pipeline-task-166-a89e2104b36e41bd9c6cdc4bbb06880d`
+- Evidence (review): `logs/ci/2026-05-01/sc-llm-review-task-166/review-code-reviewer.md`

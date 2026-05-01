@@ -1,0 +1,22 @@
+﻿# task-166-chapter6-residual-needs-fix
+
+- Title: task-166-chapter6-residual-needs-fix
+- Date: 2026-05-01
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T166
+- Git Head: f8187c4632c49b65fadda434c8ef5e71531cd867
+- Why now: Chapter 6 route switched to inspect-first with recent-failure-summary after one 6.8 pass, and remaining findings are reviewer-side medium priority only.
+- Context: Deterministic evidence is green, and remaining reviewer output is `P2` test-strength suggestion from code-reviewer.
+- Decision: Record residual Needs Fix and stop the current fast-ship loop instead of paying another same-shape 6.8 run.
+- Consequences: Task keeps explicit follow-up evidence; no additional 6.7/6.8 spend in this round.
+- Recovery impact: Recovery should inspect the recorded reviewer anchor first; only reopen 6.8 when new edits directly hit that anchor.
+- Validation: py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --latest logs/ci/2026-05-01/sc-review-pipeline-task-166/latest.json
+- Related ADRs: none yet
+- Related execution plans: execution-plans/2026-05-01-task-166-chapter6-residual-followup.md
+- Related task id(s): `166`
+- Related run id: `a89e2104b36e41bd9c6cdc4bbb06880d`
+- Related latest.json: `logs/ci/2026-05-01/sc-review-pipeline-task-166/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-05-01/sc-review-pipeline-task-166-a89e2104b36e41bd9c6cdc4bbb06880d`
+- Evidence (review): `logs/ci/2026-05-01/sc-llm-review-task-166/review-code-reviewer.md`
