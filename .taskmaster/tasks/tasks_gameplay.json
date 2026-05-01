@@ -7621,11 +7621,11 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task153V3Tests.cs",
-      "Tests.Godot/tests/UI/test_event_log_summary_localized.gd"
+      "Tests.Godot/tests/UI/test_task153_event_log_summary_localized.gd",
+      "Game.Core.Tests/Tasks/Task153R4IntegrationTests.cs"
     ],
     "acceptance": [
-      "An executable deterministic R4 integration gate runs fixed campaign scenarios and passes only when explainability chain exposes trigger source, timing, and impact fields, localized HUD summaries are produced, and replay output remains identical under fixed seed. Refs: Tests.Godot/tests/UI/test_event_log_summary_localized.gd",
+      "An executable deterministic R4 integration gate runs fixed campaign scenarios and passes only when explainability chain exposes trigger source, timing, and impact fields, localized HUD summaries are produced, and replay output remains identical under fixed seed. Refs: Tests.Godot/tests/UI/test_task153_event_log_summary_localized.gd",
       "CI integration tests lock explainability and replayability evidence specifically for campaign scenarios. Refs: Game.Core.Tests/Tasks/Task153R4IntegrationTests.cs"
     ],
     "test_strategy": [
