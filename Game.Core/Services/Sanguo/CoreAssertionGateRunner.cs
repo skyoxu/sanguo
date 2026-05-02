@@ -393,7 +393,7 @@ public static class CoreAssertionGateRunner
         }
 
         return rejectsBrokenOrder
-            ? new CoreAssertionGateEvaluation(true, "Core contract ordering rules are deterministic for pass/fail paths.")
+            ? new CoreAssertionGateEvaluation(true, "A-020 additive-only contract compatibility (R11) ordering rules are deterministic for pass/fail paths.")
             : new CoreAssertionGateEvaluation(false, "Ordering rules did not reject a known broken event sequence.");
     }
 
