@@ -23,6 +23,22 @@ def _load_json(path: Path) -> dict[str, Any]:
 def validate(*, repo_root: Path, manifest_path: Path) -> tuple[int, dict[str, Any]]:
     manifest_path = manifest_path.resolve()
     payload = _load_json(manifest_path)
+    if payload.get("status") == "ok" and payload.get("skip_reason") == "missing_task_triplet":
+        result = {
+            "action": "validate-chapter7-artifact-manifest",
+            "status": "skipped",
+            "reason": "missing_task_triplet",
+            "manifest": str(manifest_path).replace("\\", "/"),
+            "schema_version": payload.get("schema_version"),
+            "run_profile": payload.get("run_profile"),
+            "artifact_count": len(payload.get("artifacts", [])) if isinstance(payload.get("artifacts"), list) else 0,
+            "missing_top_level": [],
+            "missing_artifact_types": [],
+            "missing_files": [],
+            "hash_mismatch_artifact_types": [],
+            "malformed_entries": [],
+        }
+        return 0, result
     artifacts = payload.get("artifacts", [])
     missing_top_level = [
         key

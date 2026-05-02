@@ -101,3 +101,9 @@ Recovery stop-loss rules:
 - Domain logic in `Game.Core/**`; engine integration in `Game.Godot/**`.
 - Logs and evidence go to `logs/**`.
 - Keep docs and tasks aligned through ADR + Base + Overlay + Task refs.
+
+## Chapter 7 UI Wiring Entries
+
+- Chapter 7 UI wiring: [docs/gdd/ui-gdd-flow.md](docs/gdd/ui-gdd-flow.md)
+- Chapter 7 profile guide: [docs/workflows/chapter7-profile-guide.md](docs/workflows/chapter7-profile-guide.md)
+- Default Chapter 7 profile: [docs/workflows/chapter7-profile.json](docs/workflows/chapter7-profile.json)

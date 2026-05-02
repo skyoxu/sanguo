@@ -93,3 +93,8 @@ Current stop-loss families:
 ## Prototype formal entrypoint
 
 - `py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage <red|green|refactor> --dotnet-target <path> --filter <Expr>`
+
+## Chapter 7 UI Wiring Entries
+
+- [Chapter 7 Profile Guide](workflows/chapter7-profile-guide.md)
+- [Chapter 7 Profile](workflows/chapter7-profile.json)

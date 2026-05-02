@@ -9,7 +9,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-from collect_ui_wiring_inputs import TASKS_JSON, UI_GDD_FLOW, build_summary
+from _chapter7_profile import bucket_names, bucket_profile, feature_bucket, load_chapter7_profile
+from collect_ui_wiring_inputs import OVERLAY_ROOT, TASKS_BACK, TASKS_GAMEPLAY, TASKS_JSON, UI_GDD_FLOW, build_summary
 
 
 def _today() -> str:
@@ -42,83 +43,24 @@ def _repo_gdd_slug(repo_root: Path) -> str:
     return slug.upper() or "PROJECT"
 
 
-def _feature_bucket(feature: dict[str, Any]) -> str:
-    task_id = int(feature["task_id"])
-    if task_id in {1, 11, 21}:
-        return "entry"
-    if task_id in {2, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40}:
-        return "governance"
-    if task_id in {3, 7, 8, 9, 10, 18, 19, 23, 24}:
-        return "loop"
-    if task_id in {4, 5, 6, 20, 22}:
-        return "combat"
-    if task_id in {12, 13, 14, 15, 16, 17}:
-        return "economy"
-    if task_id in {25, 26, 27, 28, 29, 30}:
-        return "meta"
-    family = str(feature.get("feature_family") or "")
-    if family in {"run-entry"}:
-        return "entry"
-    if family in {"combat", "map"}:
-        return "combat"
-    if family in {"reward", "rest", "shop", "event"}:
-        return "loop"
-    return "meta"
+def _bucket_title(profile: dict[str, Any], bucket: str) -> str:
+    return str(bucket_profile(profile, bucket).get("slice_title") or bucket)
 
 
-def _bucket_title(bucket: str) -> str:
-    return {
-        "entry": "Entry And Bootstrap",
-        "loop": "Core Loop State And Outcome",
-        "combat": "Combat Pressure And Interaction",
-        "economy": "Economy Build And Progression",
-        "meta": "Meta Systems And Platform",
-        "governance": "Config Governance And Audit",
-    }[bucket]
+def _bucket_audience(profile: dict[str, Any], bucket: str) -> str:
+    return str(bucket_profile(profile, bucket).get("audience") or "player-facing")
 
 
-def _bucket_audience(bucket: str) -> str:
-    return {
-        "entry": "player-facing",
-        "loop": "player-facing",
-        "combat": "player-facing",
-        "economy": "player-facing",
-        "meta": "player-facing or mixed",
-        "governance": "operator-facing or mixed",
-    }[bucket]
+def _bucket_surface(profile: dict[str, Any], bucket: str) -> str:
+    return str(bucket_profile(profile, bucket).get("ui_entry") or "UI surface")
 
 
-def _bucket_surface(bucket: str) -> str:
-    return {
-        "entry": "MainMenu / Boot Flow",
-        "loop": "HUD / Prompt / Outcome Surfaces",
-        "combat": "Combat HUD / Pressure / Camera Feedback",
-        "economy": "Resource / Build / Progression Panels",
-        "meta": "Settings / Save / Meta Surfaces",
-        "governance": "Config Summary / Audit / Migration Surfaces",
-    }[bucket]
+def _bucket_action(profile: dict[str, Any], bucket: str) -> str:
+    return str(bucket_profile(profile, bucket).get("player_action") or "Interact with the governed surface")
 
 
-def _bucket_action(bucket: str) -> str:
-    return {
-        "entry": "Launch, continue, retry bootstrap, or enter a run",
-        "loop": "Play a run, observe timing, rewards, prompts, and terminal transitions",
-        "combat": "Fight, observe pressure, targeting, pathing, and camera responses",
-        "economy": "Spend resources, place/build, train, upgrade, repair, or pick rewards",
-        "meta": "Save, load, localize, tune audio, or inspect platform/runtime status",
-        "governance": "Inspect config state, validation, governance, migration, and report metadata",
-    }[bucket]
-
-
-def _bucket_response(bucket: str) -> str:
-    return {
-        "entry": "Show canonical startup path, valid continue behavior, and explicit startup failure recovery",
-        "loop": "Render readable phase, timer, HP, reward, prompt, and win/lose state from runtime events",
-        "combat": "Render enemy pressure, targeting, combat outcomes, and camera interaction without hidden state",
-        "economy": "Render deterministic resource, build, queue, upgrade, and progression changes with clear invalid-state feedback",
-        "meta": "Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces",
-        "governance": "Render active config, schema status, fallback policy, migration status, and audit metadata without relying on logs-only evidence",
-    }[bucket]
+def _bucket_response(profile: dict[str, Any], bucket: str) -> str:
+    return str(bucket_profile(profile, bucket).get("system_response") or "Show governed runtime state")
 
 
 def _merge_top_refs(summary: dict[str, Any], *, limit: int = 8) -> list[str]:
@@ -154,22 +96,16 @@ def _sort_requirement_ids(values: list[str]) -> list[str]:
     return sorted(values, key=lambda item: (priority.get(item, 50), item))
 
 
-def _suggested_surfaces(bucket: str) -> str:
-    return {
-        "entry": "`MainMenu`, `BootStatusPanel`, `ContinueGateDialog`",
-        "loop": "`RuntimeHud`, `OutcomePanel`, `RuntimePromptPanel`",
-        "combat": "`CombatHud`, `PressurePanel`, `CameraControlOverlay`",
-        "economy": "`ResourcePanel`, `BuildPanel`, `ProgressionPanel`",
-        "meta": "`SettingsMenu`, `SavePanel`, `RunSummaryPanel`",
-        "governance": "`ConfigAuditPanel`, `MigrationStatusDialog`, `ReportMetadataPanel`",
-    }[bucket]
+def _suggested_surfaces(profile: dict[str, Any], bucket: str) -> str:
+    values = list(bucket_profile(profile, bucket).get("suggested_surfaces") or [])
+    return ", ".join(f"`{value}`" for value in values)
 
 
-def _overlay_acceptance_lines(summary: dict[str, Any]) -> list[str]:
-    bucket_order = ["entry", "loop", "combat", "economy", "meta", "governance"]
+def _overlay_acceptance_lines(summary: dict[str, Any], *, profile: dict[str, Any]) -> list[str]:
+    bucket_order = bucket_names(profile)
     grouped: dict[str, dict[str, Any]] = {}
     for item in summary["needed_wiring_features"]:
-        bucket = _feature_bucket(item)
+        bucket = feature_bucket(profile, item)
         data = grouped.setdefault(
             bucket,
             {
@@ -200,7 +136,7 @@ def _overlay_acceptance_lines(summary: dict[str, Any]) -> list[str]:
         acceptance_notes = data["acceptance_notes"]
         if not requirement_ids and not expected_logs and not minimum_fields and not acceptance_notes:
             continue
-        lines.append(f"### {_screen_group_title(bucket)}")
+        lines.append(f"### {_screen_group_title(profile, bucket)}")
         if requirement_ids:
             lines.append(f"- Requirement IDs: {', '.join(f'`{value}`' for value in _sort_requirement_ids(requirement_ids))}.")
         if expected_logs:
@@ -213,15 +149,8 @@ def _overlay_acceptance_lines(summary: dict[str, Any]) -> list[str]:
     return lines
 
 
-def _screen_group_title(bucket: str) -> str:
-    return {
-        "entry": "MainMenu And Boot Flow",
-        "loop": "Runtime HUD And Outcome Surfaces",
-        "combat": "Combat Pressure And Interaction Surfaces",
-        "economy": "Economy And Progression Panels",
-        "meta": "Save, Settings, And Meta Surfaces",
-        "governance": "Config Audit And Migration Surfaces",
-    }[bucket]
+def _screen_group_title(profile: dict[str, Any], bucket: str) -> str:
+    return str(bucket_profile(profile, bucket).get("screen_group") or bucket)
 
 
 def _merge_adrs(summary: dict[str, Any], *, repo_root: Path) -> list[str]:
@@ -246,7 +175,7 @@ def _merge_adrs(summary: dict[str, Any], *, repo_root: Path) -> list[str]:
     return out
 
 
-def _extract_semantics(items: list[dict[str, Any]], *, bucket: str) -> dict[str, str]:
+def _extract_semantics(items: list[dict[str, Any]], *, bucket: str, profile: dict[str, Any]) -> dict[str, str]:
     failure_texts: list[str] = []
     empty_texts: list[str] = []
     completion_texts: list[str] = []
@@ -268,57 +197,26 @@ def _extract_semantics(items: list[dict[str, Any]], *, bucket: str) -> dict[str,
                 return candidate
         return default
 
-    defaults = {
-        "entry": {
-            "failure": "startup failure must remain visible and recoverable instead of failing silently.",
-            "empty": "show no active run state until runtime data is available.",
-            "completion": "player reaches a stable entry path and can distinguish start, continue, failure, and retry outcomes.",
-        },
-        "loop": {
-            "failure": "runtime prompts and terminal state must stay visible when loop progression cannot continue normally.",
-            "empty": "show no active run state until runtime data is available.",
-            "completion": "player can read phase, timing, outcome, and prompt state from governed surfaces.",
-        },
-        "combat": {
-            "failure": "blocked, invalid, or hidden combat state must become explicit feedback instead of silent desync.",
-            "empty": "show no active pressure or combat state until combat data is available.",
-            "completion": "player can explain pressure, targeting, and combat outcomes from visible feedback.",
-        },
-        "economy": {
-            "failure": "invalid build, spend, queue, or upgrade actions must render clear feedback and keep deterministic state intact.",
-            "empty": "show no active economy state until owned runtime data is available.",
-            "completion": "player can read deterministic resource and progression outcomes from UI state.",
-        },
-        "meta": {
-            "failure": "save, cloud, localization, audio, or platform issues must remain visible and actionable.",
-            "empty": "show no persisted or platform state until those services are available.",
-            "completion": "player can complete meta interactions without consulting logs.",
-        },
-        "governance": {
-            "failure": "must not advance runtime config snapshot when validation or migration fails; visible fallback state is required.",
-            "empty": "show no active run state until runtime data is available.",
-            "completion": "operator or player can inspect config, validation, migration, and audit state from governed surfaces.",
-        },
-    }[bucket]
+    defaults = dict(bucket_profile(profile, bucket).get("semantics_defaults") or {})
 
     return {
-        "failure": pick(failure_texts, defaults["failure"]),
-        "empty": pick(empty_texts, defaults["empty"]),
-        "completion": pick(completion_texts, defaults["completion"]),
+        "failure": pick(failure_texts, str(defaults.get("failure") or "")),
+        "empty": pick(empty_texts, str(defaults.get("empty") or "")),
+        "completion": pick(completion_texts, str(defaults.get("completion") or "")),
     }
 
 
-def _build_candidate_specs(summary: dict[str, Any]) -> list[dict[str, Any]]:
-    buckets: dict[str, list[dict[str, Any]]] = {name: [] for name in ["entry", "loop", "combat", "economy", "meta", "governance"]}
+def _build_candidate_specs(summary: dict[str, Any], *, profile: dict[str, Any]) -> list[dict[str, Any]]:
+    buckets: dict[str, list[dict[str, Any]]] = {name: [] for name in bucket_names(profile)}
     for feature in summary["needed_wiring_features"]:
-        buckets[_feature_bucket(feature)].append(feature)
+        buckets[feature_bucket(profile, feature)].append(feature)
 
     candidates: list[dict[str, Any]] = []
     for bucket, items in buckets.items():
         if not items:
             continue
-        title = _bucket_title(bucket)
-        semantics = _extract_semantics(items, bucket=bucket)
+        title = _bucket_title(profile, bucket)
+        semantics = _extract_semantics(items, bucket=bucket, profile=profile)
         scope_task_ids = sorted(int(item["task_id"]) for item in items)
         task_refs = ", ".join(f"T{task_id:02d}" for task_id in scope_task_ids)
         refs: list[str] = []
@@ -344,32 +242,32 @@ def _build_candidate_specs(summary: dict[str, Any]) -> list[dict[str, Any]]:
         candidates.append(
             {
                 "bucket": bucket,
-                "screen_group": _screen_group_title(bucket),
+                "screen_group": _screen_group_title(profile, bucket),
                 "matrix_link": f"## 5. UI Wiring Matrix row {title} ({task_refs})",
                 "scope_task_ids": scope_task_ids,
                 "scope_task_refs": task_refs,
-                "ui_entry": _bucket_surface(bucket),
+                "ui_entry": _bucket_surface(profile, bucket),
                 "candidate_type": "task-shaped UI wiring spec",
-                "player_action": _bucket_action(bucket),
-                "system_response": _bucket_response(bucket),
+                "player_action": _bucket_action(profile, bucket),
+                "system_response": _bucket_response(profile, bucket),
                 "empty_state": semantics["empty"],
                 "failure_state": semantics["failure"],
                 "completion_result": semantics["completion"],
                 "requirement_ids": requirement_ids,
                 "validation_artifact_targets": expected_logs[:4],
-                "suggested_standalone_surfaces": [part.strip().strip("`") for part in _suggested_surfaces(bucket).split(",")],
+                "suggested_standalone_surfaces": [part.strip().strip("`") for part in _suggested_surfaces(profile, bucket).split(",") if part.strip()],
                 "test_refs": refs[:4],
             }
         )
     return candidates
 
 
-def _slice_lines(summary: dict[str, Any]) -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
-    buckets: dict[str, list[dict[str, Any]]] = {name: [] for name in ["entry", "loop", "combat", "economy", "meta", "governance"]}
+def _slice_lines(summary: dict[str, Any], *, profile: dict[str, Any]) -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
+    buckets: dict[str, list[dict[str, Any]]] = {name: [] for name in bucket_names(profile)}
     for feature in summary["needed_wiring_features"]:
-        buckets[_feature_bucket(feature)].append(feature)
+        buckets[feature_bucket(profile, feature)].append(feature)
 
-    candidate_specs = _build_candidate_specs(summary)
+    candidate_specs = _build_candidate_specs(summary, profile=profile)
     candidate_specs_by_bucket = {item["bucket"]: item for item in candidate_specs}
 
     inventory: list[str] = []
@@ -382,13 +280,13 @@ def _slice_lines(summary: dict[str, Any]) -> tuple[list[str], list[str], list[st
     for bucket, items in buckets.items():
         if not items:
             continue
-        title = _bucket_title(bucket)
-        audience = _bucket_audience(bucket)
+        title = _bucket_title(profile, bucket)
+        audience = _bucket_audience(profile, bucket)
         task_refs = ", ".join(f"T{int(item['task_id']):02d}" for item in items)
-        semantics = _extract_semantics(items, bucket=bucket)
+        semantics = _extract_semantics(items, bucket=bucket, profile=profile)
         inventory.append(
             f"| {title} | {audience} | {task_refs} | "
-            f"{_bucket_response(bucket)} | {_bucket_surface(bucket)} |"
+            f"{_bucket_response(profile, bucket)} | {_bucket_surface(profile, bucket)} |"
         )
         flow.append(f"### {title}\n")
         for item in items:
@@ -415,8 +313,8 @@ def _slice_lines(summary: dict[str, Any]) -> tuple[list[str], list[str], list[st
                 if value not in expected_logs:
                     expected_logs.append(value)
         matrix.append(
-            f"| {title} ({task_refs}) | {_bucket_surface(bucket)} | {_bucket_action(bucket)} | "
-            f"{_bucket_response(bucket)} | {refs_text} |"
+            f"| {title} ({task_refs}) | {_bucket_surface(profile, bucket)} | {_bucket_action(profile, bucket)} | "
+            f"{_bucket_response(profile, bucket)} | {refs_text} |"
         )
         unwired.append(
             f"- {title}: define concrete scene ownership, empty/failure states, and validation evidence for {task_refs}."
@@ -460,53 +358,16 @@ def _slice_lines(summary: dict[str, Any]) -> tuple[list[str], list[str], list[st
     return inventory, flow, matrix, unwired, candidates, requirements
 
 
-def _screen_contract_lines() -> list[str]:
-    groups = [
-        (
-            "7.1 MainMenu And Boot Flow",
-            "Entry And Bootstrap",
-            "start, continue, retry bootstrap, and platform-start validation state.",
-            "startup failure, continue-gate denial, or export/runtime startup issues behind logs only.",
-            "boot path, continue gate, retry flow, and startup validation evidence.",
-        ),
-        (
-            "7.2 Runtime HUD And Outcome Surfaces",
-            "Core Loop State And Outcome",
-            "phase, timer, HP, prompts, reward entry, invalid-action prompts, speed state, and terminal outcomes.",
-            "terminal or prompt state transitions that occur without visible HUD or outcome feedback.",
-            "HUD state changes, prompts, reward visibility, and win/lose transitions.",
-        ),
-        (
-            "7.3 Combat Pressure And Interaction Surfaces",
-            "Combat Pressure And Interaction",
-            "pressure, spawn cadence, targeting, pathing fallback, combat resolution, and camera interaction state.",
-            "combat pressure or targeting changes that only appear in logs or traces.",
-            "combat feedback, pressure visibility, pathing fallback evidence, and camera interaction smoke checks.",
-        ),
-        (
-            "7.4 Economy And Progression Panels",
-            "Economy Build And Progression",
-            "resource totals, build placement state, queue state, upgrade/repair state, tech state, and progression results.",
-            "invalid spend/build/progression transitions without governed feedback.",
-            "resource determinism, build validation, queue behavior, and progression surface evidence.",
-        ),
-        (
-            "7.5 Save, Settings, And Meta Surfaces",
-            "Meta Systems And Platform",
-            "save/load status, cloud state, localization state, audio state, performance state, and platform/runtime status.",
-            "persistence or settings failures that are only visible in lower-level logs.",
-            "save/load flow, cloud sync, localization/audio controls, and platform status visibility.",
-        ),
-        (
-            "7.6 Config Audit And Migration Surfaces",
-            "Config Governance And Audit",
-            "active config, schema status, fallback status, migration state, config audit metadata, and report metadata.",
-            "validation, fallback, or migration outcomes that do not surface on a governed read surface.",
-            "config validation, governance, migration, and audit metadata evidence.",
-        ),
-    ]
+def _screen_contract_lines(*, profile: dict[str, Any]) -> list[str]:
     lines: list[str] = ["## 7. Screen-Level Contracts", ""]
-    for heading, covered, must_show, must_not_hide, validation in groups:
+    for index, bucket in enumerate(bucket_names(profile), start=1):
+        config = bucket_profile(profile, bucket)
+        contract = dict(config.get("screen_contract") or {})
+        heading = f"7.{index} {_screen_group_title(profile, bucket)}"
+        covered = _bucket_title(profile, bucket)
+        must_show = str(contract.get("must_show") or "")
+        must_not_hide = str(contract.get("must_not_hide") or "")
+        validation = str(contract.get("validation_focus") or "")
         lines.extend(
             [
                 f"### {heading}",
@@ -520,71 +381,34 @@ def _screen_contract_lines() -> list[str]:
     return lines
 
 
-def _screen_state_matrix_lines() -> list[str]:
-    rows = [
-        (
-            "MainMenu And Boot Flow",
-            "show start, continue, and startup readiness before any run begins.",
-            "allow start, continue, retry bootstrap, and acknowledgement of startup state.",
-            "show startup failure, continue denial, or runtime-start validation failure explicitly.",
-            "retry bootstrap, acknowledge, or return to menu.",
-        ),
-        (
-            "Runtime HUD And Outcome Surfaces",
-            "show no active run state until runtime data is available.",
-            "show phase, timer, HP, prompts, reward entry, invalid-action prompts, speed state, and terminal outcomes.",
-            "show prompt/terminal failure state instead of leaving the HUD stale or blank.",
-            "acknowledge outcome, continue the run, or return to menu.",
-        ),
-        (
-            "Combat Pressure And Interaction Surfaces",
-            "show no active combat state until combat data and camera ownership are ready.",
-            "show pressure, targeting, pathing fallback, combat resolution, and camera interaction state.",
-            "show blocked targeting, missing path, or hidden pressure failure explicitly.",
-            "retry, acknowledge, or return to the governed combat-ready surface.",
-        ),
-        (
-            "Economy And Progression Panels",
-            "show no owned economy state until resource/build/progression data is available.",
-            "show resource totals, build placement state, queue state, upgrade/repair state, tech state, and progression results.",
-            "show invalid spend/build/progression state without mutating deterministic ownership silently.",
-            "acknowledge invalid state, retry the action, or return to menu.",
-        ),
-        (
-            "Save, Settings, And Meta Surfaces",
-            "show no persisted/platform state until save, cloud, or settings services are available.",
-            "show save/load status, cloud state, localization state, audio state, performance state, and platform/runtime status.",
-            "show persistence or settings failure instead of only writing low-level logs.",
-            "retry, acknowledge, or return to menu.",
-        ),
-        (
-            "Config Audit And Migration Surfaces",
-            "show no active run state until config, validation, and migration data is available.",
-            "show active config, schema status, fallback status, migration state, config audit metadata, and report metadata.",
-            "show validation, fallback, or migration failure on the governed read surface.",
-            "retry, acknowledge, or return to menu after review.",
-        ),
-    ]
+def _screen_state_matrix_lines(*, profile: dict[str, Any]) -> list[str]:
     lines: list[str] = [
         "## 8. Screen State Matrix",
         "",
         "| Screen Group | Entry State | Interaction State | Failure State | Recovery / Exit |",
         "| --- | --- | --- | --- | --- |",
     ]
-    for group, entry, interaction, failure, recovery in rows:
+    for bucket in bucket_names(profile):
+        config = bucket_profile(profile, bucket)
+        state = dict(config.get("screen_state") or {})
+        group = _screen_group_title(profile, bucket)
+        entry = str(state.get("entry_state") or "")
+        interaction = str(state.get("interaction_state") or "")
+        failure = str(state.get("failure_state") or "")
+        recovery = str(state.get("recovery_exit") or "")
         lines.append(f"| {group} | {entry} | {interaction} | {failure} | {recovery} |")
     lines.append("")
     return lines
 
 
-def render_ui_gdd_flow(*, repo_root: Path, summary: dict[str, Any]) -> str:
-    inventory, flow, matrix, unwired, candidates, requirements = _slice_lines(summary)
+def render_ui_gdd_flow(*, repo_root: Path, summary: dict[str, Any], profile: dict[str, Any]) -> str:
+    inventory, flow, matrix, unwired, candidates, requirements = _slice_lines(summary, profile=profile)
     adr_refs = _merge_adrs(summary, repo_root=repo_root)
     top_test_refs = _merge_top_refs(summary)
     today = _today()
-    screen_contracts = _screen_contract_lines()
-    screen_state_matrix = _screen_state_matrix_lines()
-    overlay_acceptance = _overlay_acceptance_lines(summary)
+    screen_contracts = _screen_contract_lines(profile=profile)
+    screen_state_matrix = _screen_state_matrix_lines(profile=profile)
+    overlay_acceptance = _overlay_acceptance_lines(summary, profile=profile)
     repo_display = _repo_display_name(repo_root)
     title = f"{repo_display} Chapter 7 UI Wiring Board"
 
@@ -707,36 +531,65 @@ def render_ui_gdd_flow(*, repo_root: Path, summary: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def export_candidate_sidecar(*, repo_root: Path, summary: dict[str, Any]) -> Path:
-    out = repo_root / "docs" / "gdd" / "ui-gdd-flow.candidates.json"
+def export_candidate_sidecar(*, repo_root: Path, summary: dict[str, Any], ui_gdd_flow_path: Path = UI_GDD_FLOW, profile: dict[str, Any] | None = None) -> Path:
+    effective_profile = profile or load_chapter7_profile(repo_root=repo_root)
+    out = ui_gdd_flow_path.with_suffix(".candidates.json") if ui_gdd_flow_path.is_absolute() else (repo_root / ui_gdd_flow_path).with_suffix(".candidates.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "generated_at": _today(),
-        "source_gdd": str(UI_GDD_FLOW).replace("\\", "/"),
+        "source_gdd": str(ui_gdd_flow_path).replace("\\", "/"),
         "completed_master_tasks_count": summary["completed_master_tasks_count"],
         "needed_wiring_features_count": summary["needed_wiring_features_count"],
-        "candidates": _build_candidate_specs(summary),
+        "candidates": _build_candidate_specs(summary, profile=effective_profile),
     }
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return out
 
 
-def write_ui_gdd_flow(*, repo_root: Path, summary: dict[str, Any]) -> Path:
-    out = repo_root / UI_GDD_FLOW
+def write_ui_gdd_flow(
+    *,
+    repo_root: Path,
+    summary: dict[str, Any],
+    ui_gdd_flow_path: Path = UI_GDD_FLOW,
+    tasks_json_path: Path | None = None,
+    tasks_back_path: Path | None = None,
+    tasks_gameplay_path: Path | None = None,
+    overlay_root_path: Path | None = None,
+    chapter7_profile_path: Path | None = None,
+) -> Path:
+    profile = load_chapter7_profile(repo_root=repo_root, profile_path=chapter7_profile_path)
+    out = ui_gdd_flow_path if ui_gdd_flow_path.is_absolute() else (repo_root / ui_gdd_flow_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(render_ui_gdd_flow(repo_root=repo_root, summary=summary), encoding="utf-8", newline="\n")
-    export_candidate_sidecar(repo_root=repo_root, summary=summary)
+    out.write_text(render_ui_gdd_flow(repo_root=repo_root, summary=summary, profile=profile), encoding="utf-8", newline="\n")
+    export_candidate_sidecar(repo_root=repo_root, summary=summary, ui_gdd_flow_path=ui_gdd_flow_path, profile=profile)
     return out
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Generate the governed Chapter 7 UI wiring GDD artifact.")
     parser.add_argument("--repo-root", default=".")
+    parser.add_argument("--ui-gdd-flow-path", default=str(UI_GDD_FLOW))
+    parser.add_argument("--tasks-json-path", default=str(TASKS_JSON))
+    parser.add_argument("--tasks-back-path", default=str(TASKS_BACK))
+    parser.add_argument("--tasks-gameplay-path", default=str(TASKS_GAMEPLAY))
+    parser.add_argument("--overlay-root-path", default=str(OVERLAY_ROOT))
+    parser.add_argument("--chapter7-profile-path", default="")
     args = parser.parse_args(argv)
 
     repo_root = Path(args.repo_root).resolve()
-    summary = build_summary(repo_root=repo_root)
-    out = write_ui_gdd_flow(repo_root=repo_root, summary=summary)
+    summary = build_summary(
+        repo_root=repo_root,
+        tasks_json_path=Path(args.tasks_json_path),
+        tasks_back_path=Path(args.tasks_back_path),
+        tasks_gameplay_path=Path(args.tasks_gameplay_path),
+        overlay_root_path=Path(args.overlay_root_path),
+    )
+    out = write_ui_gdd_flow(
+        repo_root=repo_root,
+        summary=summary,
+        ui_gdd_flow_path=Path(args.ui_gdd_flow_path),
+        chapter7_profile_path=Path(args.chapter7_profile_path) if args.chapter7_profile_path else None,
+    )
     print(f"CHAPTER7_UI_GDD_WRITER status=ok tasks={summary['completed_master_tasks_count']} out={str(out).replace('\\', '/')}")
     return 0
 

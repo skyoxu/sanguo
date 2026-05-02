@@ -4,6 +4,11 @@ Purpose: define the **stable** migration protocol for moving a business reposito
 
 This file is the durable protocol. Use `docs/workflows/business-repo-upgrade-guide.md` as the compare-range-specific report that tells you **what changed this time**.
 
+Related durable protocol:
+
+- `docs/workflows/workflow-rule-feedback-protocol.md`
+  - defines how business repositories should feed workflow 5.1 and Chapter 6 execution evidence back into the template as reusable rules
+
 ## Inputs
 1. Current target-repo state:
    - branch / git head
@@ -39,6 +44,9 @@ This file is the durable protocol. Use `docs/workflows/business-repo-upgrade-gui
   - `docs/workflows/prototype-lane.md`, `docs/prototypes/README.md`, and `docs/prototypes/TEMPLATE.md` are template-generic and can usually be copied as-is, but the business repo should still decide whether to activate the lane operationally.
 - `entrypoint-routing-docs`
   - `docs/workflows/stable-public-entrypoints.md` and `docs/workflows/script-entrypoints-index.md` should travel with `README.md`, `AGENTS.md`, and `docs/PROJECT_DOCUMENTATION_INDEX.md` whenever the template updates the repo entry surface.
+- `chapter7-ui-wiring-profile-bundle`
+  - Treat `scripts/python/_chapter7_profile.py`, `run_chapter7_ui_wiring.py`, `chapter7_ui_gdd_writer.py`, `create_chapter7_tasks_from_ui_candidates.py`, `validate_chapter7_ui_wiring.py`, `dev_cli.py`, and `dev_cli_builders.py` as one migration unit when `--chapter7-profile-path` behavior changes.
+  - Sync `docs/workflows/chapter7-profile.json`, `docs/workflows/chapter7-profile-guide.md`, `docs/workflows/templates/chapter7-profile.template.json`, `docs/workflows/templates/chapter7-profile.minimal.example.json`, `workflow.md`, `README.md`, `AGENTS.md`, and the workflow entrypoint indexes in the same batch.
 
 ## Migration Order
 1. Baseline and identity
@@ -56,6 +64,7 @@ This file is the durable protocol. Use `docs/workflows/business-repo-upgrade-gui
 5. Workflow and CI surface
    - Sync workflow changes only after local scripts are present.
    - Rebind paths, solution names, secrets, and delivery/security defaults.
+   - If Chapter 7 UI wiring profile behavior changes, sync the profile bundle and its docs before treating the workflow entrypoints as current.
 6. Docs and routing
    - Update `AGENTS.md`, `README.md`, docs indexes, workflow docs, and the stable entrypoint docs so operators can discover the new behavior.
    - If the repo uses gate bundle docs, sync mirror-runtime gate docs together with the gate list.

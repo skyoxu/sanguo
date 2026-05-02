@@ -1,0 +1,92 @@
+{
+  "surface_aliases": {
+    "RuntimeHud": [
+      "RuntimeHud",
+      "HUD"
+    ],
+    "SettingsMenu": [
+      "SettingsMenu",
+      "SettingsPanel",
+      "SettingsScreen"
+    ]
+  },
+  "task_creation": {
+    "adr_refs": [
+      "ADR-0010",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "base_labels": [
+      "taskmaster-view",
+      "chapter7-ui"
+    ],
+    "owners": {
+      "NG": "architecture",
+      "GM": "gameplay"
+    },
+    "source_labels": {
+      "NG": "backlog",
+      "GM": "prd"
+    },
+    "view_id_templates": {
+      "NG": "NG-{task_id:04d}",
+      "GM": "GM-{task_id_plus_100:04d}"
+    },
+    "default_story_templates": {
+      "back": "BACKLOG-{repo_label_upper_underscore}-M1",
+      "gameplay": "PRD-{repo_label_upper_underscore}-v1.2"
+    }
+  },
+  "buckets": {
+    "entry": {
+      "section_headings": [
+        "### 6.1.1 MainMenu And Boot Flow",
+        "### 6.1.1 Entry And Bootstrap",
+        "### 6.1.1 MainMenu And Boot Flow（主菜单与启动流程）",
+        "### 6.1.1 Entry And Bootstrap（入口与启动）"
+      ]
+    },
+    "loop": {
+      "section_headings": [
+        "### 6.1.2 Runtime HUD And Outcome",
+        "### 6.1.2 Runtime HUD And Outcome Surfaces",
+        "### 6.1.2 Runtime HUD And Outcome（运行时 HUD 与结果）"
+      ]
+    },
+    "combat": {
+      "section_headings": [
+        "### 6.1.3 Combat Pressure And Interaction",
+        "### 6.1.3 Combat Pressure And Interaction Surfaces",
+        "### 6.1.3 Combat Pressure And Interaction（战斗压强与交互）"
+      ]
+    },
+    "economy": {
+      "section_headings": [
+        "### 6.1.4 Economy And Progression",
+        "### 6.1.4 Economy And Progression Panels",
+        "### 6.1.4 Economy And Progression（经济与成长）"
+      ]
+    },
+    "meta": {
+      "section_headings": [
+        "### 6.1.5 Save, Settings, And Meta",
+        "### 6.1.5 Save, Settings, And Meta Surfaces",
+        "### 6.1.5 Save, Settings, And Meta（存档、设置与元系统）"
+      ]
+    },
+    "governance": {
+      "section_headings": [
+        "### 6.1.6 Config Governance And Audit",
+        "### 6.1.6 Config Audit And Migration Surfaces",
+        "### 6.1.6 Config Governance And Audit（配置治理与审计）"
+      ]
+    }
+  }
+}

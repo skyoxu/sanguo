@@ -121,3 +121,10 @@
 - Playbook：`docs/workflows/prototype-lane-playbook.md`
 - TDD 细化：`docs/workflows/prototype-tdd.md`
 - 正式入口：`py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage <red|green|refactor> --dotnet-target <path> --filter <Expr>`
+
+## Chapter 7 UI Wiring Entries
+
+- [Chapter 7 Profile Guide](docs/workflows/chapter7-profile-guide.md)
+- [Chapter 7 UI Wiring GDD](docs/gdd/ui-gdd-flow.md)
+- `py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile <profile>`
+- `py -3 scripts/python/dev_cli.py apply-chapter7-status-patch --patch logs/ci/<date>/chapter7-ui-wiring/task-status-patch.json --dry-run`

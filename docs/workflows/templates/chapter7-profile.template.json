@@ -1,0 +1,73 @@
+{
+  "_instructions": [
+    "Copy this file to docs/workflows/chapter7-profile.json, or pass it via --chapter7-profile-path.",
+    "Only override the fields you need. The scripts merge this file over built-in defaults."
+  ],
+  "bucket_order": [
+    "entry",
+    "loop",
+    "combat",
+    "economy",
+    "meta",
+    "governance"
+  ],
+  "surface_aliases": {
+    "RuntimeHud": [
+      "RuntimeHud",
+      "HUD"
+    ]
+  },
+  "task_creation": {
+    "adr_refs": [
+      "ADR-0010",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "base_labels": [
+      "taskmaster-view",
+      "chapter7-ui"
+    ],
+    "owners": {
+      "NG": "architecture",
+      "GM": "gameplay"
+    },
+    "source_labels": {
+      "NG": "backlog",
+      "GM": "prd"
+    },
+    "view_id_templates": {
+      "NG": "NG-{task_id:04d}",
+      "GM": "GM-{task_id_plus_100:04d}"
+    },
+    "default_story_templates": {
+      "back": "BACKLOG-{repo_label_upper_underscore}-M1",
+      "gameplay": "PRD-{repo_label_upper_underscore}-v1.2"
+    }
+  },
+  "buckets": {
+    "entry": {
+      "slice_title": "Entry And Bootstrap",
+      "screen_group": "MainMenu And Boot Flow",
+      "ui_entry": "MainMenu / Boot Flow",
+      "suggested_surfaces": [
+        "MainMenu",
+        "BootStatusPanel",
+        "ContinueGateDialog"
+      ],
+      "section_headings": [
+        "### 6.1.1 MainMenu And Boot Flow"
+      ],
+      "wiring_task_id": 41,
+      "closure_task_ids": [
+        41
+      ]
+    }
+  }
+}
