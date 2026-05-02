@@ -32,6 +32,12 @@ public static class CoreAssertionGateRunner
     private static readonly CoreAssertionGateUnit[] ReplayIntegrityBundleGateUnits = RequiredGateUnits
         .Where(static unit => unit.AccId is "A-013" or "A-014" or "A-015")
         .ToArray();
+    private static readonly CoreAssertionGateUnit[] DiagnosticPayloadBundleGateUnits = RequiredGateUnits
+        .Where(static unit => unit.AccId is "A-016" or "A-017")
+        .ToArray();
+    private static readonly CoreAssertionGateUnit[] AuditFallbackRotationBundleGateUnits = RequiredGateUnits
+        .Where(static unit => unit.AccId is "A-018" or "A-019")
+        .ToArray();
 
     public static IReadOnlyList<CoreAssertionGateUnit> GetRequiredGateUnits()
     {
@@ -43,6 +49,16 @@ public static class CoreAssertionGateRunner
         return ReplayIntegrityBundleGateUnits;
     }
 
+    public static IReadOnlyList<CoreAssertionGateUnit> GetDiagnosticPayloadBundleGateUnits()
+    {
+        return DiagnosticPayloadBundleGateUnits;
+    }
+
+    public static IReadOnlyList<CoreAssertionGateUnit> GetAuditFallbackRotationBundleGateUnits()
+    {
+        return AuditFallbackRotationBundleGateUnits;
+    }
+
     public static CoreAssertionGateRunResult Run(CoreAssertionGateExecutionInputs? inputs = null)
     {
         return RunCore(RequiredGateUnits, inputs);
@@ -51,6 +67,16 @@ public static class CoreAssertionGateRunner
     public static CoreAssertionGateRunResult RunReplayIntegrityBundle(CoreAssertionGateExecutionInputs? inputs = null)
     {
         return RunCore(ReplayIntegrityBundleGateUnits, inputs);
+    }
+
+    public static CoreAssertionGateRunResult RunDiagnosticPayloadProtectionBundle(CoreAssertionGateExecutionInputs? inputs = null)
+    {
+        return RunCore(DiagnosticPayloadBundleGateUnits, inputs);
+    }
+
+    public static CoreAssertionGateRunResult RunAuditFallbackRotationBundle(CoreAssertionGateExecutionInputs? inputs = null)
+    {
+        return RunCore(AuditFallbackRotationBundleGateUnits, inputs);
     }
 
     public static CoreAssertionGateRunResult RunWithForcedFailures(IEnumerable<string> failingAccIds)

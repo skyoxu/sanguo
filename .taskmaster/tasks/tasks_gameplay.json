@@ -8811,13 +8811,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task174SplitTests.cs",
       "Game.Core.Tests/Tasks/Task174DiagnosticPayloadRetentionHardGateTests.cs",
       "Game.Core.Tests/Tasks/Task174AuditFallbackRotationHardGateTests.cs"
     ],
     "acceptance": [
       "CI hard-gate checks produce deterministic evidence for A-016 to A-019 diagnostic desensitization/retention and audit fallback/rotation assertions. Refs: Game.Core.Tests/Tasks/Task174DiagnosticPayloadRetentionHardGateTests.cs Game.Core.Tests/Tasks/Task174AuditFallbackRotationHardGateTests.cs",
-      "If any A-016 to A-019 assertion is unverified or fails, CI hard gate fails and pipeline must not advance to subsequent stages. Refs: .github/workflows/ci-windows.yml scripts/python/ci_pipeline.py"
+      "If any A-016 to A-019 assertion is unverified or fails, CI hard gate fails and pipeline must not advance to subsequent stages. Refs: Game.Core.Tests/Tasks/Task174DiagnosticPayloadRetentionHardGateTests.cs Game.Core.Tests/Tasks/Task174AuditFallbackRotationHardGateTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
