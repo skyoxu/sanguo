@@ -381,25 +381,25 @@ Some filenames intentionally keep old T2-oriented names so the task triplet can 
 <!-- TASK_BASELINE_START -->
 ```json
 {
-  "generated_at": "2026-05-01T18:13:11.226139+00:00",
+  "generated_at": "2026-05-02T03:07:26.419848+00:00",
   "files": [
     {
       "path": ".taskmaster/tasks/tasks.json",
       "exists": true,
-      "sha256": "bc10ffafbf02a1f8e07873b5de2be2f7a261af49ba9f9d87fef0a51fadc92f96",
-      "bytes": 243312
+      "sha256": "529127d0bf56250b5701c728438a9e94fc1ad346ed2354217bd43dd7d845703d",
+      "bytes": 243296
     },
     {
       "path": ".taskmaster/tasks/tasks_back.json",
       "exists": true,
-      "sha256": "972d3109f89d063d32270a94219f1358b31a0a201a497f90fb3e68cf74718302",
-      "bytes": 491130
+      "sha256": "6ad89ca36136cef4d74f51d049d7f1eb7c172aa7c229e3a849b4b03ff29e08cd",
+      "bytes": 491114
     },
     {
       "path": ".taskmaster/tasks/tasks_gameplay.json",
       "exists": true,
-      "sha256": "2d9ecd0a25339a28c073bd6943982f6cb231de91effc479156f7e78170cd2cb2",
-      "bytes": 396694
+      "sha256": "e001eec74e4d0127f9a9e7bb0d323b718836833b9b2ff1a552fd8d1ca21423f4",
+      "bytes": 396678
     }
   ]
 }

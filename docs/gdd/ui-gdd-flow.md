@@ -3,7 +3,7 @@ GDD-ID: GDD-SANGUO-UI-WIRING-V1
 Title: Sanguo Chapter 7 UI Wiring Board
 Status: Draft
 Owner: codex
-Last Updated: 2026-04-22
+Last Updated: 2026-05-02
 Encoding: UTF-8
 Applies-To:
   - .taskmaster/tasks/tasks.json
@@ -61,7 +61,7 @@ Test-Refs:
 | Core Loop State And Outcome | player-facing | T03, T07, T08, T09, T10, T18, T19, T23, T24, T63 | Render readable phase, timer, HP, reward, prompt, and win/lose state from runtime events | HUD / Prompt / Outcome Surfaces |
 | Combat Pressure And Interaction | player-facing | T04, T05, T06, T20, T22, T53, T59 | Render enemy pressure, targeting, combat outcomes, and camera interaction without hidden state | Combat HUD / Pressure / Camera Feedback |
 | Economy Build And Progression | player-facing | T12, T13, T14, T15, T16, T17 | Render deterministic resource, build, queue, upgrade, and progression changes with clear invalid-state feedback | Resource / Build / Progression Panels |
-| Meta Systems And Platform | player-facing or mixed | T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171 | Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces | Settings / Save / Meta Surfaces |
+| Meta Systems And Platform | player-facing or mixed | T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T150, T161, T166, T167, T168, T171 | Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces | Settings / Save / Meta Surfaces |
 | Config Governance And Audit | operator-facing or mixed | T02, T33, T38, T39 | Render active config, schema status, fallback policy, migration status, and audit metadata without relying on logs-only evidence | Config Summary / Audit / Migration Surfaces |
 
 ## 4. Flow Recomposition
@@ -129,6 +129,11 @@ Test-Refs:
 - T66 `Module: A-006 Forced Challenge Prompt UI Integration Tests`
 - T67 `Module: A-007 Forced Challenge Fail-to-Camp UI Integration Tests`
 - T114 `Module: diagnostic retention window enforcement (split from T71)`
+- T150 `Module: campaign full-loop camp-fail scenario (split from T111)`
+- T161 `Module: migration compatibility report automation gate (PH20-B3) integration pack`
+- T166 `Module: migration compatibility report generator (split from T161)`
+- T167 `Module: migration compatibility completeness validator (split from T161)`
+- T168 `Module: migration compatibility CI hard-gate integration (split from T161)`
 - T171 `Module: campaign content schema catalog extension (split from T147)`
 ### Config Governance And Audit
 
@@ -145,7 +150,7 @@ Test-Refs:
 | Core Loop State And Outcome (T03, T07, T08, T09, T10, T18, T19, T23, T24, T63) | HUD / Prompt / Outcome Surfaces | Play a run, observe timing, rewards, prompts, and terminal transitions | Render readable phase, timer, HP, reward, prompt, and win/lose state from runtime events | `Game.Core.Tests/Domain/CityTests.cs`, `Game.Core.Tests/Services/SanguoEconomyManagerTests.cs`, `Game.Core.Tests/Services/EventBusTests.cs`, `Tests.Godot/tests/UI/test_hud_scene.gd` |
 | Combat Pressure And Interaction (T04, T05, T06, T20, T22, T53, T59) | Combat HUD / Pressure / Camera Feedback | Fight, observe pressure, targeting, pathing, and camera responses | Render enemy pressure, targeting, combat outcomes, and camera interaction without hidden state | `Game.Core.Tests/Domain/SanguoPlayerTests.cs`, `Game.Core.Tests/Services/SanguoDiceServiceTests.cs`, `Game.Core.Tests/Services/SanguoTurnManagerTests.cs`, `Tests.Godot/tests/UI/test_hud_scene.gd` |
 | Economy Build And Progression (T12, T13, T14, T15, T16, T17) | Resource / Build / Progression Panels | Spend resources, place/build, train, upgrade, repair, or pick rewards | Render deterministic resource, build, queue, upgrade, and progression changes with clear invalid-state feedback | `Game.Core.Tests/Domain/SanguoPlayerTests.cs`, `Game.Core.Tests/Domain/CityTests.cs`, `Game.Core.Tests/Domain/SanguoBoardStateTests.cs`, `Game.Core.Tests/Services/SanguoEconomyManagerTests.cs` |
-| Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171) | Settings / Save / Meta Surfaces | Save, load, localize, tune audio, or inspect platform/runtime status | Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces | `Game.Core.Tests/Tasks/Task25AiTests.cs`, `Game.Core.Tests/Utilities/NoGodotDependencyTests.cs`, `Game.Core.Tests/Services/PlayerEliminationTests.cs`, `Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd` |
+| Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T150, T161, T166, T167, T168, T171) | Settings / Save / Meta Surfaces | Save, load, localize, tune audio, or inspect platform/runtime status | Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces | `Game.Core.Tests/Tasks/Task25AiTests.cs`, `Game.Core.Tests/Utilities/NoGodotDependencyTests.cs`, `Game.Core.Tests/Services/PlayerEliminationTests.cs`, `Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd` |
 | Config Governance And Audit (T02, T33, T38, T39) | Config Summary / Audit / Migration Surfaces | Inspect config state, validation, governance, migration, and report metadata | Render active config, schema status, fallback policy, migration status, and audit metadata without relying on logs-only evidence | `Game.Core.Tests/Domain/ValueObjects/CircularMapPositionTests.cs`, `Game.Core.Tests/Tasks/Task33WindowsBuildArtifactsTests.cs`, `Game.Core.Tests/Tasks/Task33WindowsReleaseWorkflowTests.cs`, `Game.Core.Tests/Tasks/Task33BuildMetadataDocsTests.cs` |
 
 ## 6. Screen And Surface Requirements
@@ -240,7 +245,6 @@ Test-Refs:
 ## 9. Scope And Non-Goals
 
 - Chapter 7 covers UI or governed visible-surface ownership for every completed task in `.taskmaster/tasks/tasks.json`.
-- Cross-check note: T150 is tracked as a completed deterministic campaign outcome task and is included in Chapter 7 UI wiring governance references.
 - It does not require final production polish, animation, skinning, or marketing-grade copy.
 
 ### 9.1 In Scope
@@ -259,7 +263,7 @@ Test-Refs:
 - Core Loop State And Outcome: define concrete scene ownership, empty/failure states, and validation evidence for T03, T07, T08, T09, T10, T18, T19, T23, T24, T63.
 - Combat Pressure And Interaction: define concrete scene ownership, empty/failure states, and validation evidence for T04, T05, T06, T20, T22, T53, T59.
 - Economy Build And Progression: define concrete scene ownership, empty/failure states, and validation evidence for T12, T13, T14, T15, T16, T17.
-- Meta Systems And Platform: define concrete scene ownership, empty/failure states, and validation evidence for T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171.
+- Meta Systems And Platform: define concrete scene ownership, empty/failure states, and validation evidence for T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T150, T161, T166, T167, T168, T171.
 - Config Governance And Audit: define concrete scene ownership, empty/failure states, and validation evidence for T02, T33, T38, T39.
 
 ## 11. Next UI Wiring Task Candidates
@@ -330,8 +334,8 @@ Test-Refs:
 - Test refs: `Game.Core.Tests/Domain/SanguoPlayerTests.cs`, `Game.Core.Tests/Domain/CityTests.cs`, `Game.Core.Tests/Domain/SanguoBoardStateTests.cs`, `Game.Core.Tests/Services/SanguoEconomyManagerTests.cs`.
 ### Candidate Slice Save, Settings, And Meta Surfaces
 
-- Matrix link: `## 5. UI Wiring Matrix row Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171)`.
-- Scope: T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171.
+- Matrix link: `## 5. UI Wiring Matrix row Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T150, T161, T166, T167, T168, T171)`.
+- Scope: T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T150, T161, T166, T167, T168, T171.
 - UI entry: Settings / Save / Meta Surfaces.
 - Candidate type: task-shaped UI wiring spec.
 - Screen group: Save, Settings, And Meta Surfaces.
@@ -376,6 +380,6 @@ Test-Refs:
 
 ## 14. Task Alignment
 
-- Completed task count currently expected by Chapter 7: 58.
+- Completed task count currently expected by Chapter 7: 63.
 - Chapter 7 uses `.taskmaster/tasks/tasks.json` as the completion-state SSoT.
 - View files remain enrichment sources for test refs, acceptance, labels, and contract context.

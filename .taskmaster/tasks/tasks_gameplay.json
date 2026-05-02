@@ -8056,7 +8056,7 @@
     "story_id": "PRD-SANGUO-T3-V3-GM-0161",
     "title": "Module: migration compatibility report automation gate (PH20-B3) integration pack",
     "description": "Integration closure after split tasks 166, 167, 168.",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "ci",
     "depends_on": [
@@ -8322,7 +8322,7 @@
     "story_id": "PRD-SANGUO-T3-SPLIT-GM-0166",
     "title": "Module: migration compatibility report generator (split from T161)",
     "description": "Split task for compatibility report generation.",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "ci",
     "depends_on": [
@@ -8374,7 +8374,7 @@
     "story_id": "PRD-SANGUO-T3-SPLIT-GM-0167",
     "title": "Module: migration compatibility completeness validator (split from T161)",
     "description": "Split task for report completeness validation.",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "ci",
     "depends_on": [
@@ -8425,7 +8425,7 @@
     "story_id": "PRD-SANGUO-T3-SPLIT-GM-0168",
     "title": "Module: migration compatibility CI hard-gate integration (split from T161)",
     "description": "Split task for CI hard-gate integration and rollout.",
-    "status": "deferred",
+    "status": "done",
     "priority": "P1",
     "layer": "ci",
     "depends_on": [

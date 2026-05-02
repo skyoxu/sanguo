@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-04-22",
+  "generated_at": "2026-05-02",
   "source_gdd": "docs/gdd/ui-gdd-flow.md",
-  "completed_master_tasks_count": 58,
-  "needed_wiring_features_count": 58,
+  "completed_master_tasks_count": 63,
+  "needed_wiring_features_count": 63,
   "candidates": [
     {
       "bucket": "entry",
@@ -145,7 +145,7 @@
     {
       "bucket": "meta",
       "screen_group": "Save, Settings, And Meta Surfaces",
-      "matrix_link": "## 5. UI Wiring Matrix row Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171)",
+      "matrix_link": "## 5. UI Wiring Matrix row Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T150, T161, T166, T167, T168, T171)",
       "scope_task_ids": [
         25,
         26,
@@ -174,9 +174,14 @@
         66,
         67,
         114,
+        150,
+        161,
+        166,
+        167,
+        168,
         171
       ],
-      "scope_task_refs": "T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T171",
+      "scope_task_refs": "T25, T26, T27, T28, T29, T30, T42, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T114, T150, T161, T166, T167, T168, T171",
       "ui_entry": "Settings / Save / Meta Surfaces",
       "candidate_type": "task-shaped UI wiring spec",
       "player_action": "Save, load, localize, tune audio, or inspect platform/runtime status",
