@@ -5112,7 +5112,7 @@
           "167",
           "168"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -5238,7 +5238,7 @@
           "153",
           "160"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -5261,7 +5261,7 @@
         "dependencies": [
           "166"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -5284,7 +5284,7 @@
         "dependencies": [
           "167"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
