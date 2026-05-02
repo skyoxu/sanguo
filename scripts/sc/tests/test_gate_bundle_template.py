@@ -76,6 +76,20 @@ class GateBundleTemplateTests(unittest.TestCase):
             by_name["signal_compliance_workflow_hard_gate"]["cmd"],
         )
 
+    def test_hard_mode_should_include_acceptance_garbled_gate(self) -> None:
+        commands = gate_bundle._hard_gate_commands_with_options(
+            [".taskmaster/tasks/tasks_back.json", ".taskmaster/tasks/tasks_gameplay.json"],
+            False,
+            -1,
+        )
+        by_name = {str(item["name"]): item for item in commands}
+
+        self.assertIn("check_acceptance_garbled", by_name)
+        self.assertEqual(
+            ["py", "-3", "scripts/sc/check_acceptance_garbled.py"],
+            by_name["check_acceptance_garbled"]["cmd"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
