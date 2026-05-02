@@ -40,6 +40,7 @@
 13. Task-level `semantic_review_tier` hints in task views, with stop-loss escalation rules.
 14. Unified low-priority technical debt sync into `docs/technical-debt.md`.
 15. Strict acceptance test generation with red-first verification and deterministic C# conventions gate.
+16. Chapter 7 UI wiring profile support: `--chapter7-profile-path`, repo-local `docs/workflows/chapter7-profile.json`, full/minimal profile seeds, candidate task creation, backlog-gap analysis, and deterministic task-status patch application.
 16. Split `sc-test` / `tdd` orchestration helpers and stronger task-ref resolution, including template fallback from `.taskmaster/tasks` to `examples/taskmaster`.
 17. Overlay generation tooling for PRD -> Overlay 08 scaffold and repair flows.
 18. Recovery-doc scaffolding and validation for `execution-plans/` and `decision-logs/`.
@@ -356,6 +357,15 @@ These files are in the diff and are safe to copy, but they should be enabled int
 Reason:
 
 - These are valuable, but they depend more on the target repo's domain model, archived overlay policy, and tolerance for extra local hard gates.
+
+## Chapter 7 UI Wiring Profile Upgrade Notes
+
+When upgrading a business repo that already uses Chapter 7 UI wiring, migrate the profile-aware toolchain as a single unit:
+
+1. Copy the script changes for `run_chapter7_ui_wiring.py`, `chapter7_ui_gdd_writer.py`, `create_chapter7_tasks_from_ui_candidates.py`, `validate_chapter7_ui_wiring.py`, `_chapter7_profile.py`, `dev_cli.py`, and `dev_cli_builders.py`.
+2. Copy `docs/workflows/chapter7-profile.json`, `docs/workflows/chapter7-profile-guide.md`, and the two profile seed files under `docs/workflows/templates/`.
+3. Update `workflow.md`, `README.md`, `AGENTS.md`, `docs/PROJECT_DOCUMENTATION_INDEX.md`, `stable-public-entrypoints.md`, and `script-entrypoints-index.md` so operators discover the new `--chapter7-profile-path` behavior.
+4. Keep business-specific task ids, labels, owners, ADR refs, chapter refs, section headings, and surface aliases in the repo-local profile instead of forking the scripts.
 
 ## Workflow Impact
 

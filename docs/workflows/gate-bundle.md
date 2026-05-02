@@ -69,11 +69,14 @@ py -3 scripts/python/remind_overlay_task_drift.py --write --overlay-index docs/a
 - `check_task_contract_refs.py`
 - `check_no_hardcoded_core_events.py`
 - `forbid_mirror_path_refs.py`
+- `audit_tests_godot_mirror_git_tracking.py`
 - `validate_contracts.py`
 - `validate_recovery_docs.py`
 - `check_domain_contracts.py`
 - `check_contract_interface_docs.py`
 - `check_test_naming.py`
+- `backfill_semantic_review_tier.py`
+- `validate_semantic_review_tier.py`
 - `llm_extract_task_obligations.py`
 - `llm_align_acceptance_semantics.py`
 - `llm_check_subtasks_coverage.py`
@@ -81,7 +84,8 @@ py -3 scripts/python/remind_overlay_task_drift.py --write --overlay-index docs/a
 - `obligations unittest suite`（`test_obligations_guard.py` / `test_obligations_extract_helpers.py` / `test_obligations_code_fingerprint.py` / `test_obligations_output_contract.py` / `test_obligations_cli_guards.py` / `test_obligations_pipeline_order.py`）
 - `check_gate_bundle_consistency.py`
 - `check_workflow_gate_enforcement.py`
-- `validate_chapter7_ui_wiring.py`
+- `validate_chapter7_ui_wiring.py` (profile-aware when invoked with `--chapter7-profile-path`)
+- `validate_chapter7_artifact_manifest.py`
 
 ### Soft Gates
 

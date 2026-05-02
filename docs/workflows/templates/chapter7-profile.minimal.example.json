@@ -1,0 +1,52 @@
+{
+  "_instructions": [
+    "Copy this file to docs/workflows/chapter7-profile.json in a business repo when you only need the most common Chapter 7 overrides.",
+    "Keep only the fields you actually need. The scripts merge this file over built-in defaults."
+  ],
+  "task_creation": {
+    "adr_refs": [
+      "ADR-0010",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "base_labels": [
+      "taskmaster-view",
+      "chapter7-ui"
+    ],
+    "owners": {
+      "NG": "architecture",
+      "GM": "gameplay"
+    },
+    "source_labels": {
+      "NG": "backlog",
+      "GM": "prd"
+    },
+    "view_id_templates": {
+      "NG": "NG-{task_id:04d}",
+      "GM": "GM-{task_id_plus_100:04d}"
+    },
+    "default_story_templates": {
+      "back": "BACKLOG-{repo_label_upper_underscore}-M1",
+      "gameplay": "PRD-{repo_label_upper_underscore}-v1.2"
+    }
+  },
+  "buckets": {
+    "entry": {
+      "section_headings": [
+        "### 6.1.1 MainMenu And Boot Flow",
+        "### 6.1.1 Entry And Bootstrap"
+      ],
+      "closure_task_ids": [
+        41
+      ],
+      "wiring_task_id": 41
+    }
+  }
+}

@@ -249,7 +249,7 @@ py -3 scripts/sc/llm_generate_overlays_batch.py --prd <prd-main.md> --prd-id <PR
 
 ```powershell
 py -3 scripts/python/sync_task_overlay_refs.py --prd-id <PRD-ID> --write
-py -3 scripts/python/validate_overlay_execution.py --prd-id <PRD-ID>
+py -3 scripts/python/validate_overlay_execution.py --prd-id <PRD-ID> --strict-refs
 py -3 scripts/python/check_tasks_all_refs.py
 py -3 scripts/python/validate_task_master_triplet.py
 ```
@@ -350,6 +350,12 @@ py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-pr
 
 ```powershell
 py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile fast-ship --stop-on-step-failure
+```
+
+如果 5.1 的轻量 wrapper 已经暴露 acceptance rewrite 风险，就先收敛这类改写，再决定是否继续放大这个 lane。
+
+```powershell
+py -3 scripts/python/run_single_task_light_lane.py --task-ids <id> --delivery-profile fast-ship --max-rewrite-change-ratio 0.35
 ```
 
 #### 5.1.2 高级可选
@@ -1127,7 +1133,6 @@ Inspect these first after a failure:
 - `sc-test.log`
 - 读 6.7 summary 的最短路径：先看 `reason` / `diagnostics.rerun_guard` / `diagnostics.rerun_forbidden`，再看 `dominant_cost_phase` / `step_duration_totals`，最后再决定是否需要加 reviewer 或 step timeout。
 
-
 ## 7. Phase 5: Chapter 7 UI Wiring Closure
 
 Chapter 7 runs after the formal task backlog has been completed through Chapter 6. Its purpose is to convert completed domain and gameplay capabilities into player-facing UI wiring based on `docs/gdd/ui-gdd-flow.md`.
@@ -1138,31 +1143,64 @@ Enter Chapter 7 only when all of the following are true:
 
 1. The target backlog slice in `.taskmaster/tasks/tasks.json` has been completed through the earlier workflow chapters.
 2. There is no unrecorded `P0/P1 Needs Fix` from Chapter 6.
-3. `docs/gdd/ui-gdd-flow.md` exists and is treated as the UI wiring GDD SSoT.
+3. `docs/gdd/ui-gdd-flow.md` exists or is about to be created as the governed Chapter 7 artifact.
 4. `.taskmaster/tasks/tasks.json` remains the only source of truth for completed task status.
 5. `.taskmaster/tasks/tasks_back.json` and `.taskmaster/tasks/tasks_gameplay.json` are enrichment views joined by `taskmaster_id`, not completion-state authorities.
 
 If Chapter 6 still has unresolved `P0/P1 Needs Fix`, stop and return to Chapter 6 before doing UI wiring.
 
+Template note: in a bare template without real `.taskmaster/tasks/*.json`, Chapter 7 validation is skipped instead of failing. Business repos must provide real task triplet files before treating this gate as complete.
+
+Chapter 7 profile note:
+
+1. The default template profile now lives at `docs/workflows/chapter7-profile.json`.
+2. Pass `--chapter7-profile-path <path>` when a business repo needs to override bucket mapping, closure task ids, task identity templates, labels, refs, screen headings, or surface defaults without forking the Chapter 7 scripts.
+3. Use `docs/workflows/templates/chapter7-profile.template.json` as the full seed when you need a complete override file.
+4. Use `docs/workflows/templates/chapter7-profile.minimal.example.json` when you only need the most common business-repo overrides.
+5. See `docs/workflows/chapter7-profile-guide.md` for the field map, minimal override patterns, and field-to-example diff.
+
 ### 7.2 Top-Level Orchestrator
 
-Default entry:
-
-```powershell
-py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile fast-ship
-```
-
-Self-check entry:
+Read-only self-check entry:
 
 ```powershell
 py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile fast-ship --self-check
 ```
 
+Governed write entry:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile fast-ship --write-doc
+```
+
+Optional task-creation entry:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile fast-ship --write-doc --create-tasks
+```
+
 The orchestrator must run these steps in order:
 
 1. `collect_ui_wiring_inputs.py` collects the completed-task UI wiring input set.
-2. `validate_chapter7_ui_wiring.py` validates the governed UI GDD artifact.
-3. `run_chapter7_ui_wiring.py` writes `logs/ci/<date>/chapter7-ui-wiring/summary.json`.
+2. `chapter7_ui_gdd_writer.py` rewrites `docs/gdd/ui-gdd-flow.md` and `docs/gdd/ui-gdd-flow.candidates.json` when `--write-doc` is enabled.
+3. `validate_chapter7_ui_wiring.py` validates the governed UI GDD artifact.
+4. `create_chapter7_tasks_from_ui_candidates.py` optionally creates or refreshes Chapter 7 follow-up tasks when `--create-tasks` is enabled.
+5. `validate_chapter7_artifact_manifest.py` validates the Chapter 7 artifact manifest contract and hashes.
+6. `run_chapter7_ui_wiring.py` writes `logs/ci/<date>/chapter7-ui-wiring/summary.json` as the canonical Chapter 7 run summary.
+
+Canonical Chapter 7 outputs:
+
+1. `logs/ci/<date>/chapter7-ui-wiring-inputs/summary.json`
+2. `logs/ci/<date>/chapter7-ui-wiring/inputs.snapshot.json`
+3. `docs/gdd/ui-gdd-flow.md`
+4. `docs/gdd/ui-gdd-flow.candidates.json`
+5. `logs/ci/<date>/chapter7-ui-wiring/closure-summary.json`
+6. `logs/ci/<date>/chapter7-ui-wiring/task-status-patch-preview.json`
+7. `logs/ci/<date>/chapter7-ui-wiring/task-status-patch-preview.md`
+8. `logs/ci/<date>/chapter7-ui-wiring/task-status-patch.json`
+9. `logs/ci/<date>/chapter7-ui-wiring/artifact-manifest.json`
+10. `logs/ci/<date>/chapter7-ui-wiring/artifact-manifest-validation.json`
+11. `logs/ci/<date>/chapter7-ui-wiring/summary.json`
 
 ### 7.3 Input Collection Rules
 
@@ -1177,8 +1215,9 @@ Rules:
 1. Read `.taskmaster/tasks/tasks.json` from `master.tasks[]`.
 2. Include only tasks whose master status is `done`.
 3. Join view rows from `.taskmaster/tasks/tasks_back.json` and `.taskmaster/tasks/tasks_gameplay.json` by `taskmaster_id`.
-4. Emit completed task count, missing view mappings, candidate UI wiring features, test refs, acceptance refs, and contract refs.
+4. Emit completed task count, missing view mappings, candidate UI wiring features, test refs, acceptance refs, contract refs, and feature-family counts.
 5. Write the default summary to `logs/ci/<date>/chapter7-ui-wiring-inputs/summary.json`.
+6. The orchestrator also snapshots a canonical subset to `logs/ci/<date>/chapter7-ui-wiring/inputs.snapshot.json` for stable rerun comparison.
 
 Do not infer done-state from the two view files.
 
@@ -1186,15 +1225,16 @@ Do not infer done-state from the two view files.
 
 `docs/gdd/ui-gdd-flow.md` must reorganize capabilities by player experience rather than by technical module. It must cover at least:
 
-1. Main menu to in-game entry flow.
-2. Core map movement, settlement, event, economy, round, save, and result loops.
-3. Money, ownership, turn order, prompt, log, and feedback presentation rules.
+1. Main menu to in-run entry flow.
+2. Core gameplay loops such as combat, event, turn, reward, rest, shop, inventory, map, or run-summary as applicable to the game.
+3. Character, resource, status, log, prompt, and feedback presentation rules where applicable.
 4. UI wiring points for every completed system.
 5. A list of completed features that are not yet wired to UI.
 6. Automated or manual validation for each flow.
 7. A `Feature -> UI Surface -> Player Action -> System Response -> Test Refs` wiring matrix.
+8. Candidate follow-up UI tasks in `docs/gdd/ui-gdd-flow.candidates.json`, grouped by screen or surface rather than by raw task order.
 
-The design may use board-game economy / dice / event loops as the primary genre reference, but it must document this project's own scenes, contracts, tests, and acceptance evidence.
+The design may use a genre reference, but it must document this project's own scenes, contracts, tests, acceptance evidence, overlay requirement IDs, and artifact targets.
 
 ### 7.5 Hard Gate
 
@@ -1204,6 +1244,12 @@ Hard gate entry:
 py -3 scripts/python/validate_chapter7_ui_wiring.py
 ```
 
+Artifact manifest gate entry:
+
+```powershell
+py -3 scripts/python/validate_chapter7_artifact_manifest.py --manifest logs/ci/<date>/chapter7-ui-wiring/artifact-manifest.json
+```
+
 The hard gate requires:
 
 1. `docs/gdd/ui-gdd-flow.md` exists.
@@ -1211,6 +1257,7 @@ The hard gate requires:
 3. Every `status = done` task in `.taskmaster/tasks/tasks.json` is referenced in `ui-gdd-flow.md` as `T<id>`.
 4. The task triplet can be parsed successfully.
 5. `run_gate_bundle.py --mode hard` includes `chapter7_ui_wiring_gate`.
+6. The artifact manifest contains `input-snapshot`, `ui-gdd`, `candidate-sidecar`, and `summary` entries with valid hashes.
 
 If this gate fails, the Chapter 7 artifact is not complete.
 
@@ -1221,8 +1268,35 @@ When generating the next UI wiring tasks from Chapter 7:
 1. Each task must link back to a concrete flow or matrix row in `ui-gdd-flow.md`.
 2. Each task must state UI entry, player action, system response, failure or empty state, and completion result.
 3. Each task must include test refs or an explicit new test entry.
-4. Prefer standalone scene assets for surfaces such as `MainMenu`, `MapBoard`, `PlayerPanel`, `SettlementPanel`, `EventPanel`, `EconomySummary`, `SaveLoad`, and `RoundSummary`.
+4. Prefer standalone scene assets for major player-facing surfaces such as `MainMenu`, `Map`, `Combat`, `Reward`, `Rest`, `Shop`, `Event`, and `RunSummary` when those concepts exist in the game.
 5. Do not mix P2 polish, animation, or skin work into P0/P1 wiring tasks required for the playable loop.
+6. Use `ui-gdd-flow.candidates.json` as the machine-readable backlog source when deriving the next Chapter 7 task slice.
+
+Recommended routing before generating tasks:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-chapter7-backlog-gap --design-doc-path <doc> --epics-doc-path <doc> --duplicate-audit-path <doc>
+```
+
+Rules:
+
+1. Use `run-chapter7-backlog-gap` before creating `T47+` tasks when BMAD design or epics docs may already be covered by `T1-T46`.
+2. Only create new tasks when the backlog-gap summary says the candidate stories or design gaps are not clearly covered by the existing task triplet.
+3. Prefer `run-chapter7-ui-wiring --create-tasks` so task creation stays coupled to the exact candidate sidecar that produced the closure summary.
+4. Parameterize `--repo-label`, `--back-story-id`, and `--gameplay-story-id` when the default derived story identities are not acceptable for the business repo.
+5. Prefer a Chapter 7 profile override when task ids, labels, owners, ADR refs, chapter refs, or section headings differ systematically from the template defaults; do not fork the scripts for those policy-only changes.
+
+Status write-back route:
+
+```powershell
+py -3 scripts/python/dev_cli.py apply-chapter7-status-patch --patch logs/ci/<date>/chapter7-ui-wiring/task-status-patch.json --dry-run
+```
+
+Rules:
+
+1. Review `task-status-patch-preview.md` before applying the patch contract.
+2. Use `--dry-run` first whenever the patch touches any currently open or user-edited task rows.
+3. Treat `task-status-patch.json` as the machine-readable contract; do not hand-translate it into ad-hoc edits unless the contract is wrong.
 
 ### 7.7 Stop And Inspect
 
@@ -1233,16 +1307,25 @@ Stop Chapter 7 and inspect artifacts when any of these happen:
 3. `ui-gdd-flow.md` lacks required hard-gate sections.
 4. Completed tasks are not covered by the UI GDD.
 5. Chapter 6 still has unresolved `P0/P1 Needs Fix`.
+6. The artifact manifest fails contract or hash validation.
+7. `run-chapter7-backlog-gap` says candidate stories are still already covered by `T1-T46`, but a task-creation step is about to create new rows anyway.
+8. `task-status-patch-preview.json` proposes task status changes that conflict with current operator intent or active implementation work.
 
 Inspect these artifacts first:
 
 1. `logs/ci/<date>/chapter7-ui-wiring-inputs/summary.json`
-2. `logs/ci/<date>/chapter7-ui-wiring-gate/summary.json`
-3. `logs/ci/<date>/chapter7-ui-wiring/summary.json`
+2. `logs/ci/<date>/chapter7-ui-wiring/inputs.snapshot.json`
+3. `logs/ci/<date>/chapter7-ui-wiring/closure-summary.json`
+4. `logs/ci/<date>/chapter7-ui-wiring/task-status-patch-preview.json`
+5. `logs/ci/<date>/chapter7-ui-wiring/task-status-patch-preview.md`
+6. `logs/ci/<date>/chapter7-ui-wiring/task-status-patch.json`
+7. `logs/ci/<date>/chapter7-ui-wiring/artifact-manifest.json`
+8. `logs/ci/<date>/chapter7-ui-wiring/artifact-manifest-validation.json`
+9. `logs/ci/<date>/chapter7-ui-wiring/summary.json`
 
 ## 8. Profile 快速指引
 
-### 7.1 playable-ea
+### 8.1 playable-ea
 
 当主要目标是“尽快验证可玩性”时使用。
 
@@ -1252,7 +1335,7 @@ py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile playable-ea
 ```
 
-### 7.2 fast-ship
+### 8.2 fast-ship
 
 正常日常工作使用，这是默认推荐值。
 
@@ -1262,7 +1345,7 @@ py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
 ```
 
-### 7.3 standard
+### 8.3 standard
 
 跨切面、高风险、或 PR 前收敛时使用。
 
@@ -1272,7 +1355,7 @@ py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile standard
 ```
 
-## 9. 止损规则（Stop-Loss Rules）
+## 8. 止损规则（Stop-Loss Rules）
 
 - 在 triplet 有效前，不要开始 overlays
 - 默认不要跑重型 obligations freeze toolchain
@@ -1281,10 +1364,13 @@ py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_B
 - 当 approval sidecar 已进入 `pending`、`invalid` 或 `mismatched` 时，不要硬开 `--resume` / `--fork` 试图绕过恢复状态机。
 - 不要在 `standard` 上强行传 `--security-profile host-safe`；除非你明确要覆盖默认映射，否则让它自然落到 `strict`
 - 不要为 `llm_fill_acceptance_refs.py` 虚构 `--dry-run` 参数；不带 `--write` 就是 dry-run
+- `llm_fill_acceptance_refs.py --write` now requires written test refs to bind to the matching `ACC:T<id>.<n>` anchor; if the test file is missing or lacks the anchor, keep dry-run until evidence is repaired.
+- `llm_align_acceptance_semantics.py --apply` can use `--max-rewrite-change-ratio <0-1>` to hard-fail overly broad LLM rewrites before writing task views.
+- `chapter6-route --record-residual` will not record acceptance refs, artifact integrity, planned-only, security-boundary, or false-green findings as ordinary residual debt; those categories have a deterministic P1 floor.
 - 不要因为 Serena 暂时不可用就阻塞整项工作
 - 不要把 `run-local-hard-checks` 拖到新仓迁移结束时才跑
 
-## 10. 最佳默认路径（Best Default）
+## 9. 最佳默认路径（Best Default）
 
 对本仓的大多数真实工作，使用这条默认路径：
 

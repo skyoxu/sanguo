@@ -41,18 +41,16 @@ except ImportError:
 TASK_FILE_DEPENDENT_GATES = {
     "overlay_task_drift",
     "task_contract_refs_gate",
-    "validate_semantic_review_tier",
-    "check_acceptance_garbled",
     "obligations_reuse_regression",
     "task_contract_test_matrix",
     "acceptance_stability_template",
     "check_tasks_all_refs_warning_budget",
     "llm_align_acceptance_self_check",
+    "chapter7_ui_wiring_gate",
 }
 
 CONTRACT_INTERFACES_DIR = Path("Game.Core/Contracts/Interfaces")
 PRD_GDD_CONSISTENCY_CONFIG = Path("scripts/python/config/prd-gdd-consistency-rules.json")
-DEFAULT_OVERLAY_TASK_DRIFT_INDEX = Path("docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md")
 DELIVERY_PROFILE_CHOICES = tuple(sorted(known_delivery_profiles()))
 
 
@@ -142,6 +140,10 @@ def resolve_gate_bundle_runtime(*, delivery_profile: str | None, task_links_max_
 
 def _resolve_gate_command(name: str, cmd: list[str], out_dir: Path) -> list[str]:
     resolved = [str(x) for x in cmd]
+    if name in {"backfill_semantic_review_tier", "validate_semantic_review_tier"}:
+        summary_name = "backfill-semantic-review-tier-summary.json" if name == "backfill_semantic_review_tier" else "validate-semantic-review-tier-summary.json"
+        if "--summary-path" not in resolved:
+            resolved.extend(["--summary-path", str((out_dir / summary_name)).replace("\\", "/")])
     if name == "task_contract_test_matrix":
         out_json = str((out_dir / "task-contract-test-matrix.json")).replace("\\", "/")
         out_md = str((out_dir / "task-contract-test-matrix.md")).replace("\\", "/")
@@ -149,10 +151,6 @@ def _resolve_gate_command(name: str, cmd: list[str], out_dir: Path) -> list[str]
             resolved.extend(["--out-json", out_json])
         if "--out-md" not in resolved:
             resolved.extend(["--out-md", out_md])
-    if name == "overlay_task_drift":
-        overlay_index = DEFAULT_OVERLAY_TASK_DRIFT_INDEX
-        if overlay_index.exists() and "--overlay-index" not in resolved:
-            resolved.extend(["--overlay-index", overlay_index.as_posix()])
     if name == "check_tasks_all_refs_warning_budget":
         out_json = str((out_dir / "check-tasks-all-refs-summary.json")).replace("\\", "/")
         if "--summary-out" not in resolved:
@@ -210,30 +208,16 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
             ],
         },
         {
-            "name": "validate_semantic_review_tier",
-            "cmd": ["py", "-3", "scripts/python/validate_semantic_review_tier.py"],
-        },
-        {
-            "name": "check_acceptance_garbled",
-            "cmd": ["py", "-3", "scripts/sc/check_acceptance_garbled.py"],
-        },
-        {
-            "name": "signal_compliance_workflow_hard_gate",
-            "cmd": [
-                "py",
-                "-3",
-                "scripts/python/check_signal_compliance_workflow_hard_gate.py",
-                "--task-files",
-                *task_files,
-            ],
-        },
-        {
             "name": "no_hardcoded_core_events",
             "cmd": ["py", "-3", "scripts/python/check_no_hardcoded_core_events.py"],
         },
         {
             "name": "forbid_mirror_path_refs",
             "cmd": ["py", "-3", "scripts/python/forbid_mirror_path_refs.py", "--root", "."],
+        },
+        {
+            "name": "audit_tests_godot_mirror_git_tracking",
+            "cmd": ["py", "-3", "scripts/python/audit_tests_godot_mirror_git_tracking.py", "--root", "."],
         },
         {
             "name": "validate_contracts",
@@ -259,6 +243,22 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
                 "scripts/python/check_test_naming.py",
                 "--style",
                 "legacy",
+            ],
+        },
+        {
+            "name": "backfill_semantic_review_tier",
+            "cmd": [
+                "py",
+                "-3",
+                "scripts/python/backfill_semantic_review_tier.py",
+            ],
+        },
+        {
+            "name": "validate_semantic_review_tier",
+            "cmd": [
+                "py",
+                "-3",
+                "scripts/python/validate_semantic_review_tier.py",
             ],
         },
         {

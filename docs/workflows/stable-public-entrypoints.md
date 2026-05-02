@@ -15,6 +15,24 @@ Use `docs/workflows/script-entrypoints-index.md` when you need the full executab
 
 ## Repo Bootstrap And Recovery
 
+### `py -3 scripts/python/dev_cli.py run-prototype-workflow --prototype-file docs/prototypes/<your-file>.md`
+
+Use when:
+- you want a Day 1 -> Day 5 prototype lane router instead of manually chaining prototype commands
+- the prototype record already follows `docs/prototypes/TEMPLATE.md` or `docs/prototypes/TEMPLATE.zh-CN.md`
+- you want explicit confirmation pauses before execution continues
+
+Prerequisites:
+- a prototype file path, or enough `--set key=value` inputs to satisfy required fields
+- `--godot-bin` only becomes required before Day 5 Godot-side verification
+
+Why this is stable:
+- it is the top-level prototype lane router
+- it pauses for missing required fields instead of guessing through them
+- it writes lightweight active state under `logs/ci/active-prototypes/*.active.json` for resume after context compression
+- it stops at Day 5 and leaves Day 6 / Day 7 evidence review and discard/archive/promote judgment to the operator
+
+
 ### `py -3 scripts/python/dev_cli.py run-local-hard-checks`
 
 Use when:
@@ -128,6 +146,59 @@ Why this is stable:
 - it can record residual low-priority findings into `decision-logs/**` and `execution-plans/**` instead of paying for another same-shape rerun
 - `scripts/sc/llm_review_needs_fix_fast.py` now consumes the same route preflight before spending deterministic / LLM budget when prior review artifacts exist; run `chapter6-route --recommendation-only` manually when you want the cheapest read-only go/no-go before touching 6.8.
 
+
+### `py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile <profile>`
+
+Use when:
+- Chapter 6 has already closed the currently completed task slice and you want the top-level Chapter 7 UI wiring route
+- you need one stable entrypoint that collects done-task inputs and validates the governed UI wiring GDD artifact
+- you want a cheap self-check before editing `docs/gdd/ui-gdd-flow.md`
+
+Prerequisites:
+- task triplet available
+- `docs/gdd/ui-gdd-flow.md` exists or is about to be created as the governed Chapter 7 artifact
+
+Why this is stable:
+- it is the top-level Chapter 7 UI wiring orchestrator
+- it runs the collector, optional writer, validator, and artifact-manifest validator in fixed order
+- `--write-doc` also produces `docs/gdd/ui-gdd-flow.candidates.json` as the machine-readable candidate sidecar
+- `--create-tasks` also runs `create_chapter7_tasks_from_ui_candidates.py` and can parameterize `--repo-label`, `--back-story-id`, and `--gameplay-story-id`
+- `docs/workflows/chapter7-profile-guide.md` is the operator-facing reference for repo-local profile overrides and template seeds
+- `--chapter7-profile-path` lets business repos override bucket mapping, task identity, labels, refs, headings, and surface defaults without forking the scripts; the template example lives at `docs/workflows/templates/chapter7-profile.template.json`
+- it writes `logs/ci/<date>/chapter7-ui-wiring/summary.json` as the canonical Chapter 7 execution summary
+- it also writes `inputs.snapshot.json`, `closure-summary.json`, `task-status-patch-preview.json`, `task-status-patch-preview.md`, `task-status-patch.json`, `artifact-manifest.json`, and `artifact-manifest-validation.json` for deterministic rerun, closure inspection, and write-back planning
+
+### `py -3 scripts/python/dev_cli.py run-chapter7-backlog-gap --design-doc-path <doc> --epics-doc-path <doc> --duplicate-audit-path <doc>`
+
+Use when:
+- you want to decide whether Chapter 7 should create new `T47+` backlog items or stay in wiring-only closure
+- you need a cheap comparison between BMAD design/epics text and the current task triplet before generating new tasks
+- you want an explicit recommendation before paying for candidate task creation
+
+Prerequisites:
+- task triplet available
+- design / epics / duplicate-audit docs exist
+
+Why this is stable:
+- it is the top-level backlog-gap analyzer for Chapter 7
+- it emits a machine-readable summary and recommendation instead of relying on manual judgment
+- it helps separate "already covered by T1-T46" from "not clearly covered and may justify T47+"
+
+### `py -3 scripts/python/dev_cli.py apply-chapter7-status-patch --patch <path>`
+
+Use when:
+- you want to apply the machine-readable status patch contract produced by Chapter 7 closure analysis
+- you need a dry-run preview before mutating `.taskmaster/tasks/*.json`
+- you want one deterministic write path instead of hand-editing task status views
+
+Prerequisites:
+- an existing `task-status-patch.json` contract produced by `run-chapter7-ui-wiring`
+
+Why this is stable:
+- it is the public write-back entrypoint for Chapter 7 task status reconciliation
+- `--dry-run` lets you preview all operations without writing
+- it records an explicit summary of applied and failed operations
+
 ## Task Delivery Loop
 
 ### `py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile <profile>`
@@ -144,25 +215,10 @@ Prerequisites:
 Why this is stable:
 - it is the single-task Chapter 6 top-level entrypoint
 - it always starts from `resume-task` and `chapter6-route` instead of assuming a fresh run
+- its lane / stop-loss / needs-fix decision now comes from one internal route-evaluation pass, which reduces drift between plan rendering and runtime execution when Chapter 6 rules keep growing
 - it only jumps directly to `6.8` when recovery artifacts already prove that this is the cheapest valid lane
 - by default it records residual `P2/P3` findings instead of repeatedly paying for the same-shape closure loop
 - it keeps `6.9` behind the same orchestrator, so repo-level hard checks are still part of the normal closeout path
-
-### `py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile <profile>`
-
-Use when:
-- Chapter 6 has already closed the currently completed task slice and you want the top-level Chapter 7 UI wiring route
-- you need one stable entrypoint that collects done-task inputs and validates the governed UI wiring GDD artifact
-- you want a cheap self-check before editing `docs/gdd/ui-gdd-flow.md`
-
-Prerequisites:
-- task triplet available
-- `docs/gdd/ui-gdd-flow.md` exists or is about to be created as the governed Chapter 7 artifact
-
-Why this is stable:
-- it is the top-level Chapter 7 UI wiring orchestrator
-- it runs the collector and validator in fixed order
-- it writes `logs/ci/<date>/chapter7-ui-wiring/summary.json` as the canonical Chapter 7 execution summary
 
 ### `py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile <profile>`
 
