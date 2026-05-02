@@ -74,10 +74,9 @@ public sealed class Task140SplitTests
         var sourcePath = Path.Combine(repoRoot, ExpectedCoreRef.Replace('/', Path.DirectorySeparatorChar));
 
         File.Exists(sourcePath).Should().BeTrue("task-specific deterministic evidence must be stored in the referenced test file");
-
-        var sourceText = File.ReadAllText(sourcePath);
-        sourceText.Should().Contain("ACC:T140.1");
-        sourceText.Should().Contain("ShouldSettlePreviousObjectiveAtCampAndSuppressNewPublish_WhenRunEndsInBoss");
+        ContainsTokenInFile(sourcePath, "ACC:T140.1").Should().BeTrue();
+        ContainsTokenInFile(sourcePath, "ShouldSettlePreviousObjectiveAtCampAndSuppressNewPublish_WhenRunEndsInBoss")
+            .Should().BeTrue();
 
         foreach (var viewFile in ViewFiles)
         {
@@ -143,7 +142,20 @@ public sealed class Task140SplitTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

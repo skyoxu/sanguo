@@ -190,7 +190,8 @@ public sealed class Task161SplitClosureTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        return JsonDocument.Parse(File.ReadAllText(path));
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
     }
 
     private sealed record MigrationCompatibilityClosureEvidence(

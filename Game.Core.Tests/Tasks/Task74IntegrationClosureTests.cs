@@ -59,8 +59,10 @@ public sealed class Task74IntegrationClosureTests
 
             var task85EvidencePath = Path.Combine(repoRoot, "Game.Core.Tests", "Tasks", "Task85SplitTests.cs");
             var task86EvidencePath = Path.Combine(repoRoot, "Game.Core.Tests", "Tasks", "Task86SplitTests.cs");
-            File.ReadAllText(task85EvidencePath).Should().Contain("ACC:T85", "Task 85 evidence must stay acceptance-addressable.");
-            File.ReadAllText(task86EvidencePath).Should().Contain("ACC:T86", "Task 86 evidence must stay acceptance-addressable.");
+            ContainsTokenInFile(task85EvidencePath, "ACC:T85").Should().BeTrue(
+                "Task 85 evidence must stay acceptance-addressable.");
+            ContainsTokenInFile(task86EvidencePath, "ACC:T86").Should().BeTrue(
+                "Task 86 evidence must stay acceptance-addressable.");
         }
     }
 
@@ -185,7 +187,20 @@ public sealed class Task74IntegrationClosureTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

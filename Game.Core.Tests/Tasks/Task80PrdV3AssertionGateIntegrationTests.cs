@@ -49,8 +49,8 @@ public sealed class Task80PrdV3AssertionGateIntegrationTests
 
             File.Exists(task91EvidencePath).Should().BeTrue();
             File.Exists(task92EvidencePath).Should().BeTrue();
-            File.ReadAllText(task91EvidencePath).Should().Contain("ACC:T91");
-            File.ReadAllText(task92EvidencePath).Should().Contain("ACC:T92");
+            SourceContainsAcceptanceMarker(task91EvidencePath, "ACC:T91").Should().BeTrue();
+            SourceContainsAcceptanceMarker(task92EvidencePath, "ACC:T92").Should().BeTrue();
 
             var isClosureComplete = EvaluateClosure(
                 hasTask91Evidence: task91TestRefs.Any(),
@@ -150,7 +150,20 @@ public sealed class Task80PrdV3AssertionGateIntegrationTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool SourceContainsAcceptanceMarker(string sourcePath, string marker)
+    {
+        foreach (var line in File.ReadLines(sourcePath))
+        {
+            if (line.Contains(marker, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

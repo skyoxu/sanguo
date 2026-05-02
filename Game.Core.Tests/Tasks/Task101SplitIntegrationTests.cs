@@ -206,8 +206,8 @@ public sealed class Task101SplitIntegrationTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
     }
 
     private sealed record BossDifficultyProfile(

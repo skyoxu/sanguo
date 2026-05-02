@@ -25,7 +25,7 @@ public class PrivacyComplianceDocumentationTests
     {
         File.Exists(BaselineDocumentPath).Should().BeTrue("privacy baseline document must be authored at the expected path");
 
-        var content = File.ReadAllText(BaselineDocumentPath);
+        var content = string.Join(Environment.NewLine, File.ReadLines(BaselineDocumentPath));
         var result = ValidateDocument(content);
 
         result.IsValid.Should().BeTrue("baseline document must be machine-checkable and complete");

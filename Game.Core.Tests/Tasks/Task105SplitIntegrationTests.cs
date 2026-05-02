@@ -52,10 +52,10 @@ public sealed class Task105SplitIntegrationTests
                 .Select(testRef => Path.Combine(repoRoot, testRef.Replace('/', Path.DirectorySeparatorChar)))
                 .Should().OnlyContain(path => File.Exists(path), "split-task evidence files must exist in the repository.");
 
-            var splitTaskASource = File.ReadAllText(Path.Combine(repoRoot, SplitTaskARef.Replace('/', Path.DirectorySeparatorChar)));
-            var splitTaskBSource = File.ReadAllText(Path.Combine(repoRoot, SplitTaskBRef.Replace('/', Path.DirectorySeparatorChar)));
-            splitTaskASource.Should().Contain("ACC:T139.1");
-            splitTaskBSource.Should().Contain("ACC:T140.1");
+            ContainsTokenInFile(Path.Combine(repoRoot, SplitTaskARef.Replace('/', Path.DirectorySeparatorChar)), "ACC:T139.1")
+                .Should().BeTrue();
+            ContainsTokenInFile(Path.Combine(repoRoot, SplitTaskBRef.Replace('/', Path.DirectorySeparatorChar)), "ACC:T140.1")
+                .Should().BeTrue();
         }
     }
 
@@ -187,8 +187,21 @@ public sealed class Task105SplitIntegrationTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private sealed record ClosureOutcome(bool IsClosed, string Reason);

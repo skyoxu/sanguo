@@ -114,7 +114,8 @@ public sealed class Task78SplitIntegrationTests
     private static JsonDocument LoadJson(string repoRoot, params string[] parts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(parts).ToArray());
-        return JsonDocument.Parse(File.ReadAllText(path));
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
     }
 
     private readonly record struct SplitOutcome(bool IsClosed, string? Reason);
@@ -146,4 +147,3 @@ public sealed class Task78SplitIntegrationTests
         }
     }
 }
-

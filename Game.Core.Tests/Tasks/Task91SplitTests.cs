@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using Game.Core.Services.Sanguo;
@@ -167,43 +166,33 @@ public sealed class Task91SplitTests
         File.Exists(devCliPath).Should().BeTrue();
         File.Exists(task91SplitTestsPath).Should().BeTrue();
 
-        var combined = new StringBuilder()
-            .AppendLine(File.ReadAllText(runGateBundlePath))
-            .AppendLine(File.ReadAllText(runReviewPipelinePath))
-            .ToString();
-        var pipelinePlan = File.ReadAllText(pipelinePlanPath);
-        var acceptanceCheck = File.ReadAllText(acceptanceCheckPath);
-        var devCli = File.ReadAllText(devCliPath);
-        var task91SplitTests = File.ReadAllText(task91SplitTestsPath);
-
-        combined.Should().Contain("logs/ci", "runner artifacts must remain in existing CI evidence paths.");
-        combined.Should().Contain("summary.json", "runner integration must emit summary artifact through existing pipeline.");
-        combined.Should().Contain(
-            "scripts/sc/acceptance_check.py",
+        ContainsTokenInFile(runGateBundlePath, "logs/ci").Should().BeTrue(
+            "runner artifacts must remain in existing CI evidence paths.");
+        ContainsTokenInFile(runReviewPipelinePath, "logs/ci").Should().BeTrue(
+            "runner artifacts must remain in existing CI evidence paths.");
+        ContainsTokenInFile(runGateBundlePath, "summary.json").Should().BeTrue(
+            "runner integration must emit summary artifact through existing pipeline.");
+        ContainsTokenInFile(runReviewPipelinePath, "summary.json").Should().BeTrue(
+            "runner integration must emit summary artifact through existing pipeline.");
+        ContainsTokenInFile(runReviewPipelinePath, "scripts/sc/acceptance_check.py").Should().BeTrue(
             "review pipeline must keep calling the acceptance entrypoint.");
-        pipelinePlan.Should().Contain(
-            "scripts/sc/test.py",
+        ContainsTokenInFile(pipelinePlanPath, "scripts/sc/test.py").Should().BeTrue(
             "pipeline plan must keep executing task-scoped tests before reviewer stages.");
-        pipelinePlan.Should().Contain(
-            "--task-id",
+        ContainsTokenInFile(pipelinePlanPath, "--task-id").Should().BeTrue(
             "pipeline test/acceptance commands should remain task-scoped.");
-        pipelinePlan.Should().Contain(
-            "--out-per-task",
+        ContainsTokenInFile(pipelinePlanPath, "--out-per-task").Should().BeTrue(
             "acceptance command builder should keep task-scoped evidence routing enabled.");
-        acceptanceCheck.Should().Contain(
-            "sc-acceptance-check-task-",
+        ContainsTokenInFile(acceptanceCheckPath, "sc-acceptance-check-task-").Should().BeTrue(
             "acceptance check runtime must emit task-scoped evidence directories.");
-        combined.Should().NotContain(
-            "logs/core-assertion",
+        ContainsTokenInFile(runGateBundlePath, "logs/core-assertion").Should().BeFalse(
             "runner must not introduce a parallel reporting channel.");
-        devCli.Should().Contain(
-            "run-acceptance-preflight",
+        ContainsTokenInFile(runReviewPipelinePath, "logs/core-assertion").Should().BeFalse(
+            "runner must not introduce a parallel reporting channel.");
+        ContainsTokenInFile(devCliPath, "run-acceptance-preflight").Should().BeTrue(
             "dev_cli should keep acceptance preflight entrypoint available for chapter workflows.");
-        task91SplitTests.Should().Contain(
-            "CoreAssertionGateRunner.Run(",
+        ContainsTokenInFile(task91SplitTestsPath, "CoreAssertionGateRunner.Run(").Should().BeTrue(
             "task-scoped tests should keep binding the split runner success path.");
-        task91SplitTests.Should().Contain(
-            "CoreAssertionGateRunner.RunWithForcedFailures(",
+        ContainsTokenInFile(task91SplitTestsPath, "CoreAssertionGateRunner.RunWithForcedFailures(").Should().BeTrue(
             "task-scoped tests should keep binding the split runner failure path.");
 
         foreach (var viewFile in ViewFiles)
@@ -405,7 +394,20 @@ public sealed class Task91SplitTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

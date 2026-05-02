@@ -54,8 +54,8 @@ public sealed class Task106SplitIntegrationTests
             File.Exists(task141Path).Should().BeTrue("split task 141 evidence must exist in the repository");
             File.Exists(task142Path).Should().BeTrue("split task 142 evidence must exist in the repository");
 
-            File.ReadAllText(task141Path).Should().Contain("ACC:T141.1");
-            File.ReadAllText(task142Path).Should().Contain("ACC:T142.1");
+            ContainsTokenInFile(task141Path, "ACC:T141.1").Should().BeTrue();
+            ContainsTokenInFile(task142Path, "ACC:T142.1").Should().BeTrue();
         }
     }
 
@@ -182,8 +182,21 @@ public sealed class Task106SplitIntegrationTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private sealed record SplitClosureEvidence(

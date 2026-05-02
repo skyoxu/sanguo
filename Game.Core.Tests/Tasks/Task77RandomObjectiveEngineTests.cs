@@ -52,9 +52,9 @@ public sealed class Task77RandomObjectiveEngineTests
                 .Should().OnlyContain(path => File.Exists(path), "Task 77 backend closure requires deterministic evidence file from task 117.");
 
             var splitTestPath = Path.Combine(repoRoot, Task117SplitTestRef.Replace('/', Path.DirectorySeparatorChar));
-            var splitTestSource = File.ReadAllText(splitTestPath);
-            splitTestSource.Should().Contain("ACC:T117.1");
-            splitTestSource.Should().Contain(nameof(SanguoObjectiveGenerationDeterminismEngine.GenerateObjectiveSnapshot));
+            ContainsTokenInFile(splitTestPath, "ACC:T117.1").Should().BeTrue();
+            ContainsTokenInFile(splitTestPath, nameof(SanguoObjectiveGenerationDeterminismEngine.GenerateObjectiveSnapshot))
+                .Should().BeTrue();
         }
     }
 
@@ -160,7 +160,20 @@ public sealed class Task77RandomObjectiveEngineTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

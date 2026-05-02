@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Xunit;
@@ -11,8 +12,9 @@ public sealed class HudSceneTests
     [Fact]
     public void ShouldExposeDiceButton_WhenHudSceneLoaded()
     {
-        var tscn = ReadText("Game.Godot/Scenes/UI/HUD.tscn");
-        tscn.Should().Contain("node name=\"DiceButton\"", "HUD should expose a DiceButton node for input");
+        var path = ResolvePath("Game.Godot/Scenes/UI/HUD.tscn");
+        ContainsTokenInFile(path, "node name=\"DiceButton\"")
+            .Should().BeTrue("HUD should expose a DiceButton node for input");
     }
 
     [Theory]
@@ -21,34 +23,38 @@ public sealed class HudSceneTests
     [InlineData("MoneyLabel")]
     public void ShouldExposeCoreStatusLabels_WhenHudSceneLoaded(string nodeName)
     {
-        var tscn = ReadText("Game.Godot/Scenes/UI/HUD.tscn");
-        tscn.Should().Contain($"node name=\"{nodeName}\"", $"HUD should expose {nodeName} for status display");
+        var path = ResolvePath("Game.Godot/Scenes/UI/HUD.tscn");
+        ContainsTokenInFile(path, $"node name=\"{nodeName}\"")
+            .Should().BeTrue($"HUD should expose {nodeName} for status display");
     }
 
     [Fact]
     public void ShouldContainTurnEventHandling_WhenReadingHudScript()
     {
-        var code = ReadText("Game.Godot/Scripts/UI/HudEventHandlerRegistry.cs");
+        var code = File.ReadAllText(ResolvePath("Game.Godot/Scripts/UI/HudEventHandlerRegistry.cs"));
         code.Should().MatchRegex(new Regex("\\bSanguoGameTurnStarted\\.EventType\\b", RegexOptions.CultureInvariant));
     }
 
     [Fact]
     public void ShouldContainDiceRolledHandling_WhenReadingHudScript()
     {
-        var code = ReadText("Game.Godot/Scripts/UI/HudEventHandlerRegistry.cs");
-        code.Should().Contain("SanguoDiceRolled.EventType");
+        var path = ResolvePath("Game.Godot/Scripts/UI/HudEventHandlerRegistry.cs");
+        ContainsTokenInFile(path, "SanguoDiceRolled.EventType").Should().BeTrue();
     }
 
-    private static string ReadText(string relativePath)
+    private static string ResolvePath(string relativePath)
     {
-        var full = Path.Combine(
+        return Path.Combine(
             AppContext.BaseDirectory,
             "..",
             "..",
             "..",
             "..",
             relativePath.Replace('/', Path.DirectorySeparatorChar));
+    }
 
-        return File.ReadAllText(full);
+    private static bool ContainsTokenInFile(string absolutePath, string token)
+    {
+        return File.ReadLines(absolutePath).Any(line => line.Contains(token, StringComparison.Ordinal));
     }
 }

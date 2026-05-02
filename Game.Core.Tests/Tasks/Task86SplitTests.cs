@@ -148,11 +148,14 @@ public sealed class Task86SplitTests
         File.Exists(adjudicatorPath).Should().BeTrue(
             "Task 86 claims an independent endgame adjudicator split and should provide a dedicated adjudicator module.");
 
-        var source = File.ReadAllText(adjudicatorPath);
-        source.Should().Contain("SanguoGameEnded", "R3 adjudication should own the game-ended contract emission path.");
-        source.Should().Contain("SanguoPlayerEliminated", "R3 adjudication should evaluate elimination and endgame outcomes together.");
-        source.Should().NotContain("Task 74", "the split module should not rely on parent-task wiring details.");
-        source.Should().NotContain("T74", "the split module should remain independent from parent-task coupling.");
+        ContainsTokenInFile(adjudicatorPath, "SanguoGameEnded").Should().BeTrue(
+            "R3 adjudication should own the game-ended contract emission path.");
+        ContainsTokenInFile(adjudicatorPath, "SanguoPlayerEliminated").Should().BeTrue(
+            "R3 adjudication should evaluate elimination and endgame outcomes together.");
+        ContainsTokenInFile(adjudicatorPath, "Task 74").Should().BeFalse(
+            "the split module should not rely on parent-task wiring details.");
+        ContainsTokenInFile(adjudicatorPath, "T74").Should().BeFalse(
+            "the split module should remain independent from parent-task coupling.");
     }
 
     private static string FindRepoRoot()
@@ -205,7 +208,20 @@ public sealed class Task86SplitTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
