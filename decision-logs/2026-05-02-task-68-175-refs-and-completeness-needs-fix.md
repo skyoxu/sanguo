@@ -6,6 +6,7 @@
 - Supersedes: none
 - Superseded by: none
 - Branch: chapter7update
+- Git Head: 9c33f680331f
 - Why now: A full audit was requested for Taskmaster range T68-T175 to verify test refs path existence and implementation completeness signals.
 - Context: The deterministic and semantic audit pipeline found residual Needs Fix tasks that should not be treated as complete without targeted follow-up.
 - Decision: Record all residual Needs Fix items first, then execute a narrow fix plan by category instead of broad reruns.
@@ -15,8 +16,9 @@
 - Related ADRs: none yet
 - Related execution plans: `execution-plans/2026-05-02-task-68-175-refs-and-completeness-followup.md`
 - Related task id(s): `68-175`
-- Related latest summary: `logs/ci/2026-05-02/task-audit-done/summary.json`
-- Related report: `logs/ci/2026-05-02/task-audit-done/report.md`
+- Related run id: `25255857177`
+- Related latest.json: `logs/ci/2026-05-02/sc-review-pipeline-task-175/latest.json` (artifact reference, may not exist locally)
+- Related pipeline artifacts: `logs/ci/2026-05-02/task-audit-done/summary.json`, `logs/ci/2026-05-02/task-audit-done/report.md`
 
 ## Recorded Residual Needs Fix
 

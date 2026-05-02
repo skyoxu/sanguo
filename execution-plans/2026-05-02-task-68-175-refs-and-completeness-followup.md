@@ -3,20 +3,22 @@
 - Title: task-68-175-refs-and-completeness-followup
 - Status: completed
 - Branch: chapter7update
+- Git Head: 9c33f680331f
 - Goal: Close all residual Needs Fix items for T68-T175 from refs existence and completeness audit.
-- Scope (current): `T68-T175` all residual tasks cleared
+- Scope: `T68-T175` all residual tasks cleared
 - Current step: None (closure completed).
 - Last completed step: Batch D re-audit completed with `redo=0` for `T68-T175`.
-- Stop-loss:
-  - Do not run full-range reruns before fixing known missing refs/files.
-  - Do not close tasks while deterministic refactor-stage gates remain failing.
-- Exit criteria:
-  - All 17 tasks pass `validate_acceptance_refs --stage refactor` and `validate_task_test_refs --require-non-empty`. (done)
-  - Re-audit of `T68-T175` yields zero `redo`. (done)
+- Stop-loss: Do not run full-range reruns before fixing known missing refs/files; do not close tasks while deterministic refactor-stage gates remain failing.
+- Next action: Keep the range closed and preserve these artifacts as recovery entrypoint for rerun triage.
+- Recovery command: `py -3 scripts/python/audit_done_tasks_semantic.py --task-ids 68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175`
+- Open questions: n/a (range closure confirmed).
+- Exit criteria: All 17 tasks pass `validate_acceptance_refs --stage refactor` and `validate_task_test_refs --require-non-empty`; full re-audit of `T68-T175` yields `redo=0` (done).
+- Related ADRs: n/a (no ADR change required).
 - Related decision logs: `decision-logs/2026-05-02-task-68-175-refs-and-completeness-needs-fix.md`
-- Related evidence:
-  - `logs/ci/2026-05-02/task-audit-done/summary.json`
-  - `logs/ci/2026-05-02/task-audit-done/report.md`
+- Related task id(s): `T68-T175`
+- Related run id: `25255857177`
+- Related latest.json: `logs/ci/2026-05-02/sc-review-pipeline-task-175/latest.json` (artifact reference, may not exist locally)
+- Related pipeline artifacts: `logs/ci/2026-05-02/task-audit-done/summary.json`, `logs/ci/2026-05-02/task-audit-done/report.md`
 
 ## Fix Batches
 
