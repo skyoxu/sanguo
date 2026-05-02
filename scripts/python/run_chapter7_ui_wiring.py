@@ -392,6 +392,53 @@ def _bucket_to_section_heading(profile: dict[str, Any], bucket: str) -> list[str
     return [str(item) for item in values if str(item).strip()]
 
 
+def _normalize_positive_int_list(values: Any) -> list[int]:
+    if not isinstance(values, list):
+        return []
+    out: list[int] = []
+    seen: set[int] = set()
+    for item in values:
+        try:
+            value = int(item)
+        except (TypeError, ValueError):
+            continue
+        if value <= 0 or value in seen:
+            continue
+        seen.add(value)
+        out.append(value)
+    return out
+
+
+def _resolve_closure_task_ids(config: dict[str, Any], candidate: dict[str, Any]) -> list[int]:
+    if config.get('closure_enabled') is False:
+        return []
+    configured = _normalize_positive_int_list(config.get('closure_task_ids'))
+    if configured:
+        return configured
+    if not candidate:
+        return []
+
+    scope_ids = _normalize_positive_int_list(candidate.get('scope_task_ids'))
+    return scope_ids[:1]
+
+
+def _resolve_wiring_task_id(config: dict[str, Any], closure_task_ids: list[int]) -> int:
+    try:
+        configured = int(config.get('wiring_task_id') or 0)
+    except (TypeError, ValueError):
+        configured = 0
+    if configured > 0:
+        return configured
+    return closure_task_ids[0] if closure_task_ids else 0
+
+
+def _is_closure_enabled(config: dict[str, Any]) -> bool:
+    value = config.get('closure_enabled')
+    if isinstance(value, bool):
+        return value
+    return True
+
+
 def _build_closure_summary(
     *,
     repo_root: Path,
@@ -407,10 +454,11 @@ def _build_closure_summary(
     slices: list[dict[str, Any]] = []
     for bucket in bucket_order:
         config = bucket_profile(profile, bucket)
+        closure_enabled = _is_closure_enabled(config)
         candidate = candidates_by_bucket.get(bucket, {})
         section_text = _extract_section(audit_text, _bucket_to_section_heading(profile, bucket)) if audit_text else ''
         section_rows = _extract_all_table_rows(section_text) if section_text else []
-        closure_task_ids = [int(item) for item in config.get('closure_task_ids', []) if isinstance(item, int)]
+        closure_task_ids = _resolve_closure_task_ids(config, candidate) if closure_enabled else []
         task_rows = [_extract_table_row(section_text, task_id) for task_id in closure_task_ids]
         task_rows = [row for row in task_rows if row]
         evidence_statuses = [row['evidence_status'] for row in section_rows if row.get('evidence_status')]
@@ -436,13 +484,21 @@ def _build_closure_summary(
         if suggested_surfaces:
             pending_surfaces = [item for item in suggested_surfaces if item not in implemented_surfaces]
         gap_to_close = [row['gap_to_close'] for row in task_rows if row.get('gap_to_close') and row.get('gap_to_close') != 'None']
-        epic_usable = evidence_status == 'runtime' and len(pending_surfaces) == 0 and not gap_to_close
-        if evidence_status in {'docs-only', 'test-only'}:
+        closure_skipped = not closure_task_ids
+        closure_disabled = not closure_enabled
+        epic_usable = (not closure_skipped) and (not closure_disabled) and evidence_status == 'runtime' and len(pending_surfaces) == 0 and not gap_to_close
+        if closure_disabled:
+            write_back_recommendation = 'closure-disabled'
+        elif closure_skipped:
+            write_back_recommendation = 'closure-skipped'
+        elif evidence_status == 'unknown':
             write_back_recommendation = 'keep-open'
+        elif evidence_status == 'runtime' and len(pending_surfaces) == 0 and not gap_to_close:
+            write_back_recommendation = 'done-ready'
         elif evidence_status == 'partial' or pending_surfaces or gap_to_close:
             write_back_recommendation = 'partial-closure'
         else:
-            write_back_recommendation = 'done-ready'
+            write_back_recommendation = 'keep-open'
         standalone_surface_status = [
             {
                 'surface': surface,
@@ -456,19 +512,29 @@ def _build_closure_summary(
         governance_paths = _dedupe_keep_order(
             [path for row in section_rows for path in _split_path_list(row.get('governance_path', ''))]
         )
-        scope_task_ids = list(candidate.get('scope_task_ids') or [])
-        wiring_task_id = int(config.get('wiring_task_id') or 0)
+        scope_task_ids = _normalize_positive_int_list(candidate.get('scope_task_ids'))
+        wiring_task_id = _resolve_wiring_task_id(config, closure_task_ids) if not closure_disabled else 0
         related_wiring_row = next((row for row in task_rows if row.get('task') == f'T{wiring_task_id:02d}'), {})
-        blocker_class = 'surface-missing' if pending_surfaces else ('evidence-missing' if evidence_status != 'runtime' else 'none')
-        ready_for_done = evidence_status == 'runtime' and len(pending_surfaces) == 0 and not gap_to_close
+        if closure_disabled:
+            blocker_class = 'closure-disabled'
+        elif closure_skipped:
+            blocker_class = 'closure-skipped'
+        else:
+            blocker_class = 'surface-missing' if pending_surfaces else ('evidence-missing' if evidence_status != 'runtime' else 'none')
+        ready_for_done = (not closure_disabled) and (not closure_skipped) and evidence_status == 'runtime' and len(pending_surfaces) == 0 and not gap_to_close
         write_back_contract = {
-            'task_id': wiring_task_id,
-            'task_ref': f'T{wiring_task_id:02d}',
+            'task_id': wiring_task_id if (not closure_disabled and wiring_task_id > 0) else None,
+            'task_ref': f'T{wiring_task_id:02d}' if wiring_task_id > 0 else '',
+            'closure_enabled': not closure_disabled,
             'current_recommendation': write_back_recommendation,
             'ready_for_done': ready_for_done,
             'blocker_class': blocker_class,
-            'must_keep_open_reasons': _dedupe_keep_order(
-                pending_surfaces + gap_to_close + ([] if evidence_status == 'runtime' else [f'evidence_status={evidence_status}'])
+            'must_keep_open_reasons': (
+                ['closure_disabled']
+                if closure_disabled
+                else _dedupe_keep_order(
+                    pending_surfaces + gap_to_close + ([] if evidence_status == 'runtime' else [f'evidence_status={evidence_status}'])
+                )
             ),
             'done_when': {
                 'required_evidence_status': 'runtime',
@@ -511,6 +577,8 @@ def _build_closure_summary(
         'done_ready_count': sum(1 for item in slices if item['write_back_contract']['ready_for_done']),
         'partial_closure_count': sum(1 for item in slices if item['write_back_recommendation'] == 'partial-closure'),
         'keep_open_count': sum(1 for item in slices if item['write_back_recommendation'] == 'keep-open'),
+        'closure_skipped_count': sum(1 for item in slices if item['write_back_recommendation'] == 'closure-skipped'),
+        'closure_disabled_count': sum(1 for item in slices if item['write_back_recommendation'] == 'closure-disabled'),
         'slices': slices,
     }
 
