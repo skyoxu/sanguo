@@ -47,16 +47,23 @@ DEFAULT_CHAPTER7_PROFILE: dict[str, Any] = {
         "chapter_refs": ["CH02", "CH06", "CH07", "CH10"],
         "base_labels": ["taskmaster-view", "chapter7-ui"],
         "owners": {
+            "SG": "architecture",
             "NG": "architecture",
             "GM": "gameplay",
         },
         "source_labels": {
+            "SG": "backlog",
             "NG": "backlog",
             "GM": "prd",
         },
         "view_id_templates": {
+            "SG": "SG-{task_id:04d}",
             "NG": "NG-{task_id:04d}",
-            "GM": "GM-{task_id_plus_100:04d}",
+            "GM": "GM-{task_id:04d}",
+        },
+        "story_id_templates": {
+            "SG": "PRD-{repo_label_upper_underscore}-T3-SPLIT-SG-{task_id:04d}",
+            "GM": "PRD-{repo_label_upper_underscore}-T3-SPLIT-GM-{task_id:04d}",
         },
         "default_story_templates": {
             "back": "BACKLOG-{repo_label_upper_underscore}-M1",
@@ -398,20 +405,39 @@ def default_story_ids(profile: dict[str, Any], repo_label: str) -> tuple[str, st
 
 def owner_for_prefix(profile: dict[str, Any], prefix: str) -> str:
     owners = task_creation_config(profile).get("owners", {})
+    if prefix == "SG" and "SG" not in owners:
+        return str(owners.get("NG") or "gameplay")
     return str(owners.get(prefix) or "gameplay")
 
 
 def source_label_for_prefix(profile: dict[str, Any], prefix: str) -> str:
     labels = task_creation_config(profile).get("source_labels", {})
+    if prefix == "SG" and "SG" not in labels:
+        return str(labels.get("NG") or prefix.lower())
     return str(labels.get(prefix) or prefix.lower())
 
 
 def view_id_for_prefix(profile: dict[str, Any], prefix: str, task_id: int) -> str:
     templates = task_creation_config(profile).get("view_id_templates", {})
-    template = str(templates.get(prefix) or f"{prefix}-{{task_id:04d}}")
+    if prefix == "SG" and "SG" not in templates:
+        template = str(templates.get("NG") or f"{prefix}-{{task_id:04d}}")
+    else:
+        template = str(templates.get(prefix) or f"{prefix}-{{task_id:04d}}")
     return template.format(
         prefix=prefix,
         task_id=task_id,
         task_id_plus_100=task_id + 100,
         task_id_plus_1000=task_id + 1000,
     )
+
+
+def story_id_for_prefix(profile: dict[str, Any], prefix: str, repo_label: str, task_id: int) -> str:
+    templates = task_creation_config(profile).get("story_id_templates", {})
+    if prefix == "SG" and "SG" not in templates:
+        template = str(templates.get("NG") or "")
+    else:
+        template = str(templates.get(prefix) or "")
+    if template:
+        return template.format(task_id=task_id, **_repo_label_tokens(repo_label))
+    back_story, gameplay_story = default_story_ids(profile, repo_label)
+    return back_story if prefix == "SG" else gameplay_story

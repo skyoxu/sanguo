@@ -38,16 +38,23 @@
       "chapter7-ui"
     ],
     "owners": {
+      "SG": "architecture",
       "NG": "architecture",
       "GM": "gameplay"
     },
     "source_labels": {
+      "SG": "split",
       "NG": "backlog",
       "GM": "prd"
     },
     "view_id_templates": {
+      "SG": "SG-{task_id:04d}",
       "NG": "NG-{task_id:04d}",
-      "GM": "GM-{task_id_plus_100:04d}"
+      "GM": "GM-{task_id:04d}"
+    },
+    "story_id_templates": {
+      "SG": "PRD-SANGUO-T3-SPLIT-SG-{task_id:04d}",
+      "GM": "PRD-SANGUO-T3-SPLIT-GM-{task_id:04d}"
     },
     "default_story_templates": {
       "back": "BACKLOG-{repo_label_upper_underscore}-M1",
