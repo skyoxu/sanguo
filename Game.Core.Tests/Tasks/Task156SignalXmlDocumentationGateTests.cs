@@ -334,7 +334,8 @@ public sealed class Task156SignalXmlDocumentationGateTests
 
     private static ContractsReport ReadReport(string reportPath)
     {
-        using var doc = JsonDocument.Parse(File.ReadAllText(reportPath, Utf8NoBom));
+        using var stream = File.OpenRead(reportPath);
+        using var doc = JsonDocument.Parse(stream);
         var root = doc.RootElement;
         var ok = root.GetProperty("ok").GetBoolean();
         var xmlIssues = ReadIssues(root, "xml_comment_issues");

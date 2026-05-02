@@ -30,8 +30,8 @@ public sealed class Task82SplitTests
     private static JsonDocument LoadJson(string repoRoot, params string[] rel)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(rel).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
     }
 
     private static JsonElement GetTask82FromMaster(string repoRoot)

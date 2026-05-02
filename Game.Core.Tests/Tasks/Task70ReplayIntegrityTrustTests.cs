@@ -264,10 +264,14 @@ public sealed class Task70ReplayIntegrityTrustTests
             var evidencePath = Path.Combine(repoRoot, testRef.Replace('/', Path.DirectorySeparatorChar));
             File.Exists(evidencePath).Should().BeTrue("referenced evidence file must exist on disk.");
 
-            var content = File.ReadAllText(evidencePath);
-            content.Should().Contain(expectedAcceptanceMarker, "evidence should remain acceptance-addressable.");
-            content.Should().Contain("[Fact]", "evidence file should contain executable xUnit test cases.");
-            content.Should().MatchRegex(@"\.Should\(|Assert\.", "evidence should include behavior assertions.");
+            ContainsTokenInFile(evidencePath, expectedAcceptanceMarker).Should().BeTrue(
+                "evidence should remain acceptance-addressable.");
+            ContainsTokenInFile(evidencePath, "[Fact]").Should().BeTrue(
+                "evidence file should contain executable xUnit test cases.");
+            File.ReadLines(evidencePath).Any(static line =>
+                    line.Contains(".Should(", StringComparison.Ordinal)
+                    || line.Contains("Assert.", StringComparison.Ordinal))
+                .Should().BeTrue("evidence should include behavior assertions.");
         }
     }
 
@@ -287,7 +291,20 @@ public sealed class Task70ReplayIntegrityTrustTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

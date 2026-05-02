@@ -90,15 +90,11 @@ public sealed class Task158SplitIntegrationTests
         File.Exists(task165Path).Should().BeTrue();
         File.Exists(integrationPath).Should().BeTrue();
 
-        var task164Source = File.ReadAllText(task164Path);
-        var task165Source = File.ReadAllText(task165Path);
-        var integrationSource = File.ReadAllText(integrationPath);
-
-        task164Source.Should().Contain("ACC:T164");
-        task165Source.Should().Contain("ACC:T165");
-        integrationSource.Should().Contain("ACC:T164");
-        integrationSource.Should().Contain("ACC:T165");
-        integrationSource.Should().Contain("EventBusAdapter.cs");
+        ContainsTokenInFile(task164Path, "ACC:T164").Should().BeTrue();
+        ContainsTokenInFile(task165Path, "ACC:T165").Should().BeTrue();
+        ContainsTokenInFile(integrationPath, "ACC:T164").Should().BeTrue();
+        ContainsTokenInFile(integrationPath, "ACC:T165").Should().BeTrue();
+        ContainsTokenInFile(integrationPath, "EventBusAdapter.cs").Should().BeTrue();
     }
 
     [Fact]
@@ -203,7 +199,12 @@ public sealed class Task158SplitIntegrationTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string absolutePath, string token)
+    {
+        return File.ReadLines(absolutePath).Any(line => line.Contains(token, StringComparison.Ordinal));
     }
 }

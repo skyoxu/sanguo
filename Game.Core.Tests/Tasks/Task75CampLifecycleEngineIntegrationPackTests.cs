@@ -61,8 +61,10 @@ public sealed class Task75CampLifecycleEngineIntegrationPackTests
 
             var task87EvidencePath = Path.Combine(repoRoot, "Game.Core.Tests", "Tasks", "Task87SplitTests.cs");
             var task88EvidencePath = Path.Combine(repoRoot, "Game.Core.Tests", "Tasks", "Task88SplitTests.cs");
-            File.ReadAllText(task87EvidencePath).Should().Contain("ACC:T87", "Task 87 evidence must remain acceptance-addressable.");
-            File.ReadAllText(task88EvidencePath).Should().Contain("ACC:T88", "Task 88 evidence must remain acceptance-addressable.");
+            ContainsTokenInFile(task87EvidencePath, "ACC:T87").Should().BeTrue(
+                "Task 87 evidence must remain acceptance-addressable.");
+            ContainsTokenInFile(task88EvidencePath, "ACC:T88").Should().BeTrue(
+                "Task 88 evidence must remain acceptance-addressable.");
         }
     }
 
@@ -229,7 +231,20 @@ public sealed class Task75CampLifecycleEngineIntegrationPackTests
     private static JsonDocument LoadJson(string repoRoot, params string[] relativeParts)
     {
         var path = Path.Combine(new[] { repoRoot }.Concat(relativeParts).ToArray());
-        var text = File.ReadAllText(path);
-        return JsonDocument.Parse(text);
+        using var stream = File.OpenRead(path);
+        return JsonDocument.Parse(stream);
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

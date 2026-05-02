@@ -1239,7 +1239,10 @@ class Chapter7UiWiringTests(unittest.TestCase):
         self.assertIn("MainMenu", entry["surface_status"]["implemented_surfaces"])
         self.assertIn("BootStatusPanel", entry["surface_status"]["pending_surfaces"])
         self.assertEqual("partial-closure", entry["write_back_recommendation"])
-        self.assertEqual("T41", entry["write_back_contract"]["task_ref"])
+        self.assertEqual(
+            f"T{entry['write_back_contract']['related_scope_task_ids'][0]:02d}",
+            entry["write_back_contract"]["task_ref"],
+        )
         self.assertFalse(entry["write_back_contract"]["ready_for_done"])
         self.assertIn("BootStatusPanel", entry["write_back_contract"]["missing_surface_owners"])
         self.assertIn("MainMenu", [item["surface"] for item in entry["standalone_surface_status"]])
@@ -1247,8 +1250,11 @@ class Chapter7UiWiringTests(unittest.TestCase):
         loop = next(item for item in closure["slices"] if item["bucket"] == "loop")
         self.assertEqual("docs-only", loop["evidence_status"])
         self.assertFalse(loop["epic_usable"])
-        self.assertEqual("keep-open", loop["write_back_recommendation"])
-        self.assertEqual("T42", loop["write_back_contract"]["task_ref"])
+        self.assertEqual("partial-closure", loop["write_back_recommendation"])
+        self.assertEqual(
+            f"T{loop['write_back_contract']['related_scope_task_ids'][0]:02d}",
+            loop["write_back_contract"]["task_ref"],
+        )
         self.assertEqual("docs-only", loop["write_back_contract"]["must_keep_open_reasons"][-1].split("=")[-1])
         self.assertEqual(0, closure["done_ready_count"])
 
@@ -1320,6 +1326,64 @@ class Chapter7UiWiringTests(unittest.TestCase):
         entry = next(item for item in closure["slices"] if item["bucket"] == "entry")
         self.assertEqual("T61", entry["write_back_contract"]["task_ref"])
 
+    def test_closure_summary_should_skip_empty_or_disabled_closure_buckets_without_t00(self) -> None:
+        run_module = _load_module("run_chapter7_ui_wiring_module_for_empty_closure", "scripts/python/run_chapter7_ui_wiring.py")
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self._write_rich_sample_repo(root)
+            profile = {
+                "bucket_order": ["legacy", "empty"],
+                "buckets": {
+                    "legacy": {
+                        "closure_enabled": False,
+                        "feature_task_ids": [1, 2],
+                        "section_headings": ["### Legacy Scope"],
+                    },
+                    "empty": {
+                        "section_headings": ["### Missing Empty Scope"],
+                    },
+                },
+            }
+            sidecar = root / "docs" / "gdd" / "ui-gdd-flow.candidates.json"
+            sidecar.write_text(
+                json.dumps(
+                    {
+                        "candidates": [
+                            {
+                                "bucket": "legacy",
+                                "scope_task_ids": [1, 2],
+                                "suggested_standalone_surfaces": [],
+                            }
+                        ]
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ) + "\n",
+                encoding="utf-8",
+            )
+            wiring = root / "docs" / "gdd" / "empty-wiring-audit.md"
+            wiring.write_text("### Legacy Scope\n\n### Missing Empty Scope\n", encoding="utf-8", newline="\n")
+            closure = run_module._build_closure_summary(
+                repo_root=root,
+                source_payload={"status": "ok"},
+                ui_candidates_path=sidecar,
+                wiring_audit_path=wiring,
+                profile=profile,
+            )
+
+        self.assertEqual(1, closure["closure_disabled_count"])
+        self.assertEqual(1, closure["closure_skipped_count"])
+        refs = [item["write_back_contract"]["task_ref"] for item in closure["slices"]]
+        self.assertEqual(["", ""], refs)
+        self.assertNotIn("T00", refs)
+        by_bucket = {item["bucket"]: item for item in closure["slices"]}
+        self.assertEqual("closure-disabled", by_bucket["legacy"]["write_back_recommendation"])
+        self.assertEqual("closure-disabled", by_bucket["legacy"]["write_back_contract"]["blocker_class"])
+        self.assertEqual("closure-skipped", by_bucket["empty"]["write_back_recommendation"])
+        self.assertEqual("closure-skipped", by_bucket["empty"]["write_back_contract"]["blocker_class"])
+        for item in closure["slices"]:
+            self.assertFalse(item["write_back_contract"]["ready_for_done"])
+
     def test_orchestrator_should_export_task_status_patch_preview_when_done_status_conflicts_with_closure(self) -> None:
         run_module = _load_module("run_chapter7_ui_wiring_module_for_status_patch_preview", "scripts/python/run_chapter7_ui_wiring.py")
         with tempfile.TemporaryDirectory() as td:
@@ -1377,7 +1441,7 @@ class Chapter7UiWiringTests(unittest.TestCase):
         self.assertIn("task_status_patch", payload)
         self.assertGreaterEqual(patch_preview["mismatch_count"], 1)
         first = patch_preview["mismatches"][0]
-        self.assertEqual("T41", first["task_ref"])
+        self.assertEqual("T01", first["task_ref"])
         self.assertEqual("done", first["current_status"])
         self.assertEqual("review", first["recommended_status"])
         self.assertEqual("partial-closure", first["write_back_recommendation"])

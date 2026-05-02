@@ -4202,13 +4202,15 @@
       "xUnit: shared UI localization gate semantics are preserved for task69 explanation keys, while non-task69 keys remain on fallback path in release and dev modes. Refs: Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
       "xUnit: when fallback text is blank, release mode still returns the default friendly fallback text instead of exposing raw key. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
       "xUnit: policy behavior is key-agnostic within task69 explanation scope: under release, scoped missing keys must not render as raw key; under diagnostics-enabled dev path, the observable diagnostics branch exposes raw key for scoped missing keys. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
-      "xUnit: when fallback is null or omitted, release mode returns DefaultFriendlyFallback and never exposes raw key for policy-scoped missing explanation keys. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs"
+      "xUnit: when fallback is null or omitted, release mode returns DefaultFriendlyFallback and never exposes raw key for policy-scoped missing explanation keys. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "GdUnit4: task-scoped UI localization smoke fixture keeps task69 missing-key replay log branch observable in Godot test lane. Refs: Tests.Godot/tests/UI/test_task69_i18n_missing_key_exposure_policy.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
       "Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
       "Game.Core.Tests/Tasks/Task69UiLocalizationWiringTests.cs",
-      "Game.Core.Tests/Tasks/Task69SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task69SplitTests.cs",
+      "Tests.Godot/tests/UI/test_task69_i18n_missing_key_exposure_policy.gd"
     ],
     "test_strategy": [
       "xUnit build-mode policy tests and gate behavior tests; wiring guard test retained as implementation-level regression check."
@@ -4721,6 +4723,7 @@
       "Integration closure must explicitly verify the 3-choice draft requirement: RewardDraftEngine evidence from tasks 119 and 120 must show each draft exposes exactly three candidate options; missing or non-3-choice evidence keeps task 78 open. Refs: Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
     ],
     "test_refs": [
+      "Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs",
       "Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
     ],
     "test_strategy": [
@@ -4828,12 +4831,10 @@
       "A-020"
     ],
     "acceptance": [
-      "Task 80 is accepted only when integration closure is confirmed from evidence produced by split tasks 91 and 92, with no new implementation required in this task. Refs: Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
+      "Task 80 is accepted only when integration closure is confirmed from evidence produced by split tasks 91 and 92, with no new implementation required in this task. Refs: Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs",
-      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
+      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
@@ -6162,7 +6163,7 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task140SplitTests.cs"
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
       "Task 103 is closed only when the integration outcome from split tasks 135 and 136 is confirmed by their recorded evidence, and this task does not claim standalone implementation beyond that closure check. Refs: Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
@@ -6614,13 +6615,11 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd"
+      "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Integration closure for split tasks 149 and 150 is verified by deterministic acceptance evidence, and this integration pack is not accepted if either split task lacks closure evidence. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd",
-      "Task 111 scope is limited to integration closure of split-task evidence; independent implementation belongs to split tasks 149 and 150 and must not be introduced here. Refs: Game.Core.Tests/Tasks/Task149V3Tests.cs Game.Core.Tests/Tasks/Task150V3Tests.cs"
+      "Integration closure for split tasks 149 and 150 is verified by deterministic acceptance evidence, and this integration pack is not accepted if either split task lacks closure evidence. Refs: Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs",
+      "Task 111 scope is limited to integration closure of split-task evidence; independent implementation belongs to split tasks 149 and 150 and must not be introduced here. Refs: Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6674,11 +6673,10 @@
     "owner": "architecture",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task112SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs",
-      "Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
+      "Tests.Godot/tests/UI/test_task112_event_log_i18n_keys_present.gd"
     ],
     "acceptance": [
-      "Task 112 is accepted only when integration-closure evidence from split tasks 151 and 152 shows the PRD v3 explainability/replay/i18n hard-gate work is closed with deterministic pass/fail summaries; if either split task lacks that evidence, this task is not complete. Refs: Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
+      "Task 112 is accepted only when integration-closure evidence from split tasks 151 and 152 shows the PRD v3 explainability/replay/i18n hard-gate work is closed with deterministic pass/fail summaries; if either split task lacks that evidence, this task is not complete. Refs: Game.Core.Tests/Tasks/Task112SplitIntegrationTests.cs Tests.Godot/tests/UI/test_task112_event_log_i18n_keys_present.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7617,8 +7615,8 @@
       "Game.Core.Tests/Tasks/Task129SplitTests.cs"
     ],
     "acceptance": [
-      "When a camp durability fatal condition collides with other events in the same resolution batch, the resolver applies the global priority chain by promoting CampDurabilityFatal ahead of all non-fatal events; R3 and A-001 are included as required covered examples. Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs (anchor: ACC:T129.1)",
-      "When no camp durability fatal event exists, the resolver preserves the original relative order of non-fatal events (no preemption side effect). Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs (anchor: ACC:T129.2)"
+      "ACC:T129.1 When a camp durability fatal condition collides with other events in the same resolution batch, the resolver applies the global priority chain by promoting CampDurabilityFatal ahead of all non-fatal events; R3 and A-001 are included as required covered examples. Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs",
+      "ACC:T129.2 When no camp durability fatal event exists, the resolver preserves the original relative order of non-fatal events (no preemption side effect). Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7729,7 +7727,7 @@
       "Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "acceptance": [
-      "Boss difficulty profile data is deterministically validated against the defined schema: fixtures with all required task-defined fields and valid field types/refs and values within bounds pass validation; fixtures with out-of-bounds values, unknown fields, missing required fields, invalid field types, or unresolved refId fail validation. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs (anchor: ACC:T131.1)"
+      "ACC:T131.1 Boss difficulty profile data is deterministically validated against the defined schema: fixtures with all required task-defined fields and valid field types/refs and values within bounds pass validation; fixtures with out-of-bounds values, unknown fields, missing required fields, invalid field types, or unresolved refId fail validation. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8288,7 +8286,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task141SplitTests.cs",
       "Game.Core.Tests/Tasks/Task141ObjectiveRewardSourceTests.cs"
     ],
     "acceptance": [
@@ -9149,11 +9146,13 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs"
+      "Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task156_signal_xml_documentation_gate.gd"
     ],
     "acceptance": [
       "CI rejects changes when any Signal/Event contract or security-critical signal is missing required XML summary/remarks, and passes only when docs satisfy ADR-0004 alignment. Refs: Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs",
-      "Unit fixture includes missing-XML negative cases for signal/event contract documentation gate. Refs: Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs"
+      "Unit fixture includes missing-XML negative cases for signal/event contract documentation gate. Refs: Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs",
+      "GdUnit4: task-scoped Godot smoke fixture keeps signal XML documentation gate evidence visible in engine-lane coverage. Refs: Tests.Godot/tests/Integration/Security/test_task156_signal_xml_documentation_gate.gd"
     ],
     "test_strategy": [
       "Scripted CI check plus unit fixture for missing-XML negative cases."
@@ -9204,12 +9203,14 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd"
     ],
     "acceptance": [
       "Task 157 integration completes PH9-B4 closure only when closure evidence from both split tasks 162 and 163 is present, and completion signature remains deterministic under evidence reordering. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
       "CI hard-gate integration for signal compliance closure is validated by task-scoped deterministic tests instead of non-test workflow/script paths. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
-      "Task 157 integration must remain incomplete when closure evidence is missing for either split task 162 or 163. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs"
+      "Task 157 integration must remain incomplete when closure evidence is missing for either split task 162 or 163. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
+      "GdUnit4: task-scoped Godot integration smoke fixture keeps PH9-B4 closure wiring observable for scene/runtime signal compliance lane. Refs: Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -9490,12 +9491,14 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task162SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task162SplitTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task162_signal_compliance_report_aggregation.gd"
     ],
     "acceptance": [
       "Deterministic aggregation produces exactly one signal compliance report per task, and when naming, documentation, and lifecycle checks all pass, that single report is compliant, covers all three checks, and carries deterministic evidence for R11 and PH9-B4. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs",
       "Deterministic aggregation refuses compliance when any required check among naming, documentation, or lifecycle is missing: the single task report remains non-compliant and lists the missing checks deterministically. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs",
-      "Deterministic aggregation refuses compliance when any required check among naming, documentation, or lifecycle is present but not passed: the single task report remains non-compliant and lists that failed check deterministically. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs"
+      "Deterministic aggregation refuses compliance when any required check among naming, documentation, or lifecycle is present but not passed: the single task report remains non-compliant and lists that failed check deterministically. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs",
+      "GdUnit4: task-scoped Godot smoke fixture keeps signal compliance aggregation output observable in runtime lane. Refs: Tests.Godot/tests/Integration/Security/test_task162_signal_compliance_report_aggregation.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -9544,10 +9547,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task163SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task163SplitTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task163_signal_compliance_ci_gate.gd"
     ],
     "acceptance": [
-      "Fast-mode CI treats the signal compliance report as a hard gate and emits stable failure diagnostics with deterministic evidence. R11, PH9-B4 Refs: Game.Core.Tests/Tasks/Task163SplitTests.cs"
+      "Fast-mode CI treats the signal compliance report as a hard gate and emits stable failure diagnostics with deterministic evidence. R11, PH9-B4 Refs: Game.Core.Tests/Tasks/Task163SplitTests.cs",
+      "GdUnit4: task-scoped Godot smoke fixture keeps fast-mode signal compliance gate wiring observable for runtime lane. Refs: Tests.Godot/tests/Integration/Security/test_task163_signal_compliance_ci_gate.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -9596,10 +9601,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task164SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task164SplitTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task164_signal_subscription_lifecycle.gd"
     ],
     "acceptance": [
-      "For scene-bound signal listeners, each runtime subscription has a matching unsubscribe and node exit leaves no active listener registrations; Task verifies R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task164SplitTests.cs Tests.Godot/tests/Integration/Security/test_signal_subscription_lifecycle.gd"
+      "For scene-bound signal listeners, each runtime subscription has a matching unsubscribe and node exit leaves no active listener registrations; Task verifies R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task164SplitTests.cs Tests.Godot/tests/Integration/Security/test_task164_signal_subscription_lifecycle.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -9650,10 +9656,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task165SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task165SplitTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task165_signal_subscription_lifecycle.gd"
     ],
     "acceptance": [
-      "Deterministic GdUnit lifecycle fixtures and assertions fail when a stale signal handler leak is present and pass when the stale handler is not retained, verifying R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task165SplitTests.cs Tests.Godot/tests/Integration/Security/test_signal_subscription_lifecycle.gd"
+      "Deterministic GdUnit lifecycle fixtures and assertions fail when a stale signal handler leak is present and pass when the stale handler is not retained, verifying R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task165SplitTests.cs Tests.Godot/tests/Integration/Security/test_task165_signal_subscription_lifecycle.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -10103,14 +10110,15 @@
     "owner": "architecture",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task173SplitTests.cs",
-      "Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
+      "Tests.Godot/tests/Adapters/Db/test_task173_journal_modes_cross_restart.gd"
     ],
     "acceptance": [
       "Task verifies A-013, A-014, A-015 as three distinct gate results (not opaque bundle output), and tests explicitly enumerate and execute expected A-013 to A-015 checks. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
       "CI hard-gate checks replay hash set, save_untrusted behavior, and mismatch policy by mode with deterministic outcomes. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
       "Trusted and untrusted replay fixtures produce deterministic reusable evidence for CI consumption. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
-      "Replay policy failures produce non-zero pipeline exit plus actionable summaries. Refs: .github/workflows/ci-windows.yml Game.Core.Tests/Tasks/Task173SplitTests.cs",
-      "Regression tests cover acceptance-id alignment and summary format compatibility for bundle reporting. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs"
+      "Replay policy failures produce non-zero pipeline exit plus actionable summaries. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "Regression tests cover acceptance-id alignment and summary format compatibility for bundle reporting. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "GdUnit4: task-scoped DB journal-mode restart smoke fixture keeps runtime journal behavior evidence observable for task173. Refs: Tests.Godot/tests/Adapters/Db/test_task173_journal_modes_cross_restart.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -10241,5 +10249,689 @@
     ],
     "semantic_review_tier": "full",
     "evidence_refs": []
+  },
+  {
+    "id": "SG-0176",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0176",
+    "owner": "architecture",
+    "depends_on": [
+      "SG-0085",
+      "SG-0091",
+      "SG-0092",
+      "SG-0093",
+      "SG-0101",
+      "SG-0108",
+      "SG-0131",
+      "SG-0164",
+      "SG-0170"
+    ],
+    "taskmaster_exported": true,
+    "taskmaster_id": 176,
+    "title": "Wire UI: MainMenu And Boot Flow",
+    "description": "Create the Chapter 7 UI wiring slice for MainMenu And Boot Flow from docs/gdd/ui-gdd-flow.candidates.json.",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "adapter",
+    "adr_refs": [
+      "ADR-0010",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "sanguo",
+      "taskmaster-view",
+      "chapter7-ui",
+      "entry"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task85SplitTests.cs",
+      "Game.Core.Tests/Tasks/Task91SplitTests.cs",
+      "Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs",
+      "Game.Core.Tests/Contracts/SanguoEventContractsTests.cs"
+    ],
+    "acceptance": [
+      "MainMenu / Boot Flow is delivered as a Chapter 7 UI wiring slice where each player action (Launch, Continue, Retry Bootstrap, Enter Run) is available and drives an observable end-to-end flow outcome. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "The wiring includes the candidate standalone surfaces (MainMenu, BootStatusPanel, ContinueGateDialog) and each surface is connected to the startup flow with observable entry/exit behavior before acceptance is granted. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "Runtime behavior presents the canonical startup path, valid continue behavior, and explicit startup-failure recovery, and each path is verifiable through observable UI/state results. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "After save/load, the save header alone remains sufficient to explain and reproduce run context; reproduction must not require inspecting transient UI state or logs-only evidence. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "Campaign runmode isolation is explicitly defined with observable boundaries: entering campaign applies only the intended isolation behavior and does not silently alter unrelated paths. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "Completion confirms the same campaign runmode isolation boundary rules in final behavior, keeps deterministic domain state behind existing contracts, and rejects unrelated gameplay behavior changes as completion evidence. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "Acceptance evidence explicitly maps implementation and verification to every scope item (T85, T91, T92, T93, T101, T108, T131, T164, T170); missing any mapping fails acceptance, and out-of-scope gameplay changes do not count. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "Validation includes the referenced xUnit suite, and Chapter 7 artifacts record auditable pass/fail outcomes; if no GdUnit case applies, evidence must explicitly record GdUnit as N/A with rationale rather than omitting it. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests.",
+      "Use Chapter 7 candidate evidence to keep MainMenu And Boot Flow scoped to the documented UI slice and avoid unrelated gameplay changes. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "Validate end-to-end wiring against the routed scope tasks (T85, T91, T92, T93, T101, T108, T131, T164, T170) and record any remaining UI gaps in Chapter 7 artifacts instead of closing the slice early. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs Game.Core.Tests/Tasks/Task91SplitTests.cs Game.Core.Tests/Contracts/SanguoEventOrderingRulesTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs"
+    ],
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "T85",
+      "T91",
+      "T92",
+      "T93",
+      "T101",
+      "T108",
+      "T131",
+      "T164",
+      "T170"
+    ],
+    "semantic_review_tier": "full",
+    "evidence_refs": [],
+    "ui_wiring_candidate": {
+      "source": "docs/gdd/ui-gdd-flow.candidates.json",
+      "screen_group": "MainMenu And Boot Flow",
+      "scope_task_ids": [
+        85,
+        91,
+        92,
+        93,
+        101,
+        108,
+        131,
+        164,
+        170
+      ],
+      "ui_entry": "MainMenu / Boot Flow"
+    }
+  },
+  {
+    "id": "SG-0177",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0177",
+    "owner": "architecture",
+    "depends_on": [
+      "SG-0078",
+      "SG-0104",
+      "SG-0106",
+      "SG-0119",
+      "SG-0120",
+      "SG-0137",
+      "SG-0141",
+      "SG-0142"
+    ],
+    "taskmaster_exported": true,
+    "taskmaster_id": 177,
+    "title": "Wire UI: Runtime HUD And Outcome Surfaces",
+    "description": "Create the Chapter 7 UI wiring slice for Runtime HUD And Outcome Surfaces from docs/gdd/ui-gdd-flow.candidates.json.",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "adapter",
+    "adr_refs": [
+      "ADR-0010",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "sanguo",
+      "taskmaster-view",
+      "chapter7-ui",
+      "loop"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs",
+      "Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs",
+      "Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs"
+    ],
+    "acceptance": [
+      "Runtime HUD And Outcome Surfaces is delivered as a concrete Chapter 7 UI wiring slice for HUD / Prompt / Outcome Surfaces, and an end-to-end run visibly shows timing, rewards, prompts, and terminal transitions to the player. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "Before acceptance, the slice selects or creates the standalone surfaces RuntimeHud, OutcomePanel, and RuntimePromptPanel from the Chapter 7 candidate so the wiring target is explicit and testable. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "From runtime events, the UI renders readable phase, timer, HP, reward, prompt, and win/lose state, and these fields change consistently with event/state transitions during a run. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "Integration closure explicitly verifies deterministic draft behavior: with the same input conditions and seed, RewardDraftEngine evidence from tasks 119 and 120 produces repeatable draft outcomes; without this deterministic evidence, task 78 remains open. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "Integration closure for failure-state behavior is accepted only when split-task evidence shows event tiles auto-trigger and Skip is available only as a rule-blocked fallback; otherwise closure fails. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "Completion preserves the contract boundary by keeping deterministic domain state behind existing contracts and introducing no unrelated gameplay behavior, and it still requires the deterministic draft verification outcome defined for tasks 119/120 and task 78 gating. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "Acceptance evidence explicitly maps implementation and verification results to each scope item (T78, T104, T106, T119, T120, T137, T141, T142); missing any scope mapping fails acceptance, and out-of-scope gameplay changes do not count toward completion. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "Validation includes the referenced xUnit suite plus Chapter 7 artifact evidence with auditable pass/fail outcomes per framework, and when GdUnit has no applicable case it is recorded explicitly as N/A with rationale rather than omitted. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests.",
+      "Use Chapter 7 candidate evidence to keep Runtime HUD And Outcome Surfaces scoped to the documented UI slice and avoid unrelated gameplay changes. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs",
+      "Validate end-to-end wiring against the routed scope tasks (T78, T104, T106, T119, T120, T137, T141, T142) and record any remaining UI gaps in Chapter 7 artifacts instead of closing the slice early. Refs: Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task104SplitIntegrationTests.cs Game.Core.Tests/Tasks/Task106SplitIntegrationTests.cs"
+    ],
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "T78",
+      "T104",
+      "T106",
+      "T119",
+      "T120",
+      "T137",
+      "T141",
+      "T142"
+    ],
+    "semantic_review_tier": "full",
+    "evidence_refs": [],
+    "ui_wiring_candidate": {
+      "source": "docs/gdd/ui-gdd-flow.candidates.json",
+      "screen_group": "Runtime HUD And Outcome Surfaces",
+      "scope_task_ids": [
+        78,
+        104,
+        106,
+        119,
+        120,
+        137,
+        141,
+        142
+      ],
+      "ui_entry": "HUD / Prompt / Outcome Surfaces"
+    }
+  },
+  {
+    "id": "SG-0178",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0178",
+    "owner": "architecture",
+    "depends_on": [
+      "SG-0109",
+      "SG-0126",
+      "SG-0134",
+      "SG-0146"
+    ],
+    "taskmaster_exported": true,
+    "taskmaster_id": 178,
+    "title": "Wire UI: Combat Pressure And Interaction Surfaces",
+    "description": "Create the Chapter 7 UI wiring slice for Combat Pressure And Interaction Surfaces from docs/gdd/ui-gdd-flow.candidates.json.",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "adapter",
+    "adr_refs": [
+      "ADR-0010",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "sanguo",
+      "taskmaster-view",
+      "chapter7-ui",
+      "combat"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs",
+      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
+    ],
+    "acceptance": [
+      "Deliver a concrete Chapter 7 UI wiring slice for Combat Pressure And Interaction Surfaces under Combat HUD / Pressure / Camera Feedback, and demonstrate end-to-end player visibility for fight flow, pressure, targeting, pathing, and camera responses. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Before acceptance, the slice must implement the suggested standalone surfaces from docs/gdd/ui-gdd-flow.candidates.json (CombatHud, PressurePanel, CameraControlOverlay) or provide an explicit equivalent surface mapping that is present in the shipped UI wiring. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "From runtime combat events, the UI must render enemy pressure, targeting, combat outcomes, and camera interaction, and must not depend on hidden combat state to explain what is shown. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "When combat data is not yet available, the UI must show the defined empty state with no active pressure or combat indicators, and must not present stale or implied active combat state. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "For blocked, invalid, or hidden combat state, the UI must emit explicit user-visible failure feedback instead of silent desync or unchanged misleading presentation. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Acceptance requires completion closure for split tasks 145 and 146 to be verified by the referenced tests, including proof that campaign events remain contract-first, are consumed through the DTO mapper registry, deterministic domain state stays behind existing contracts, and no unrelated gameplay behavior is introduced. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Acceptance evidence must map implementation and verification to each scope item (T109, T126, T134, T146); any missing scope mapping fails acceptance, and out-of-scope gameplay changes cannot be counted as completion evidence. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Validation evidence must include the referenced xUnit/GdUnit test coverage and Chapter 7 artifacts with auditable per-framework pass/fail results; when one framework has no applicable case, it must be recorded explicitly as N/A with rationale instead of omission. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests.",
+      "Use Chapter 7 candidate evidence to keep Combat Pressure And Interaction Surfaces scoped to the documented UI slice and avoid unrelated gameplay changes. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Validate end-to-end wiring against the routed scope tasks (T109, T126, T134, T146) and record any remaining UI gaps in Chapter 7 artifacts instead of closing the slice early. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Services/SanguoTurnManagerSaveSnapshotTests.cs Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
+    ],
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "T109",
+      "T126",
+      "T134",
+      "T146"
+    ],
+    "semantic_review_tier": "full",
+    "evidence_refs": [],
+    "ui_wiring_candidate": {
+      "source": "docs/gdd/ui-gdd-flow.candidates.json",
+      "screen_group": "Combat Pressure And Interaction Surfaces",
+      "scope_task_ids": [
+        109,
+        126,
+        134,
+        146
+      ],
+      "ui_entry": "Combat HUD / Pressure / Camera Feedback"
+    }
+  },
+  {
+    "id": "SG-0179",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0179",
+    "owner": "architecture",
+    "depends_on": [
+      "SG-0068",
+      "SG-0069",
+      "SG-0070",
+      "SG-0071",
+      "SG-0072",
+      "SG-0073",
+      "SG-0074",
+      "SG-0075",
+      "SG-0076",
+      "SG-0077",
+      "SG-0079",
+      "SG-0080",
+      "SG-0081",
+      "SG-0082",
+      "SG-0083",
+      "SG-0084",
+      "SG-0086",
+      "SG-0087",
+      "SG-0088",
+      "SG-0089",
+      "SG-0090",
+      "SG-0094",
+      "SG-0095",
+      "SG-0096",
+      "SG-0097",
+      "SG-0098",
+      "SG-0099",
+      "SG-0100",
+      "SG-0102",
+      "SG-0103",
+      "SG-0105",
+      "SG-0107",
+      "SG-0110",
+      "SG-0111",
+      "SG-0112",
+      "SG-0113",
+      "SG-0114",
+      "SG-0115",
+      "SG-0116",
+      "SG-0117",
+      "SG-0118",
+      "SG-0121",
+      "SG-0122",
+      "SG-0123",
+      "SG-0124",
+      "SG-0125",
+      "SG-0127",
+      "SG-0128",
+      "SG-0129",
+      "SG-0130",
+      "SG-0132",
+      "SG-0133",
+      "SG-0135",
+      "SG-0136",
+      "SG-0138",
+      "SG-0139",
+      "SG-0140",
+      "SG-0143",
+      "SG-0144",
+      "SG-0145"
+    ],
+    "taskmaster_exported": true,
+    "taskmaster_id": 179,
+    "title": "Wire UI: Economy And Progression Panels",
+    "description": "Create the Chapter 7 UI wiring slice for Economy And Progression Panels from docs/gdd/ui-gdd-flow.candidates.json.",
+    "status": "pending",
+    "priority": "P1",
+    "layer": "adapter",
+    "adr_refs": [
+      "ADR-0010",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "sanguo",
+      "taskmaster-view",
+      "chapter7-ui",
+      "economy"
+    ],
+    "test_refs": [
+      "Tests.Godot/tests/Integration/test_task68_hud_integration.gd",
+      "Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd",
+      "Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs"
+    ],
+    "acceptance": [
+      "A concrete Chapter 7 UI wiring slice is delivered for Economy And Progression Panels at the Resource / Build / Progression UI entry, and each listed player action (spend resources, place/build, train, upgrade, repair, pick rewards) produces an observable end-to-end panel update. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "Implementation is accepted only when the standalone surfaces required by this candidate are present and wired as ResourcePanel, BuildPanel, and ProgressionPanel (or explicit equivalent replacements); missing any required surface fails acceptance. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "From runtime events, the UI deterministically renders resource, build, queue, upgrade, and progression state changes, and invalid actions show clear invalid-state feedback instead of silently succeeding. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "When task 81 evidence exists and task 82 evidence is missing, integration closure is explicitly refused as an observable outcome (not logs-only). Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "In release mode xUnit behavior, policy-scoped missing explanation keys never expose raw i18n keys and must return a friendly fallback (provided fallback when present, otherwise default friendly fallback when missing or blank). Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "Completion requires preserving deterministic domain state behind existing contracts and introducing no unrelated gameplay behavior; closure remains refused when task 81 evidence exists but task 82 evidence is missing. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "Acceptance evidence maps implementation and verification to every listed scope task (T68, T69, T70, T71, T72, T73, T74, T75, T76, T77, T79, T80, T81, T82, T83, T84, T86, T87, T88, T89, T90, T94, T95, T96, T97, T98, T99, T100, T102, T103, T105, T107, T110, T111, T112, T113, T114, T115, T116, T117, T118, T121, T122, T123, T124, T125, T127, T128, T129, T130, T132, T133, T135, T136, T138, T139, T140, T143, T144, T145); missing any mapping fails acceptance, and out-of-scope gameplay changes do not count. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "Validation includes both referenced GdUnit and xUnit suites, and Chapter 7 artifacts record auditable pass/fail status per framework; if a framework has no applicable case, artifacts must explicitly record N/A with rationale. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests.",
+      "Use Chapter 7 candidate evidence to keep Economy And Progression Panels scoped to the documented UI slice and avoid unrelated gameplay changes. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "Validate end-to-end wiring against the routed scope tasks (T68, T69, T70, T71, T72, T73, T74, T75, T76, T77, T79, T80, T81, T82, T83, T84, T86, T87, T88, T89, T90, T94, T95, T96, T97, T98, T99, T100, T102, T103, T105, T107, T110, T111, T112, T113, T114, T115, T116, T117, T118, T121, T122, T123, T124, T125, T127, T128, T129, T130, T132, T133, T135, T136, T138, T139, T140, T143, T144, T145) and record any remaining UI gaps in Chapter 7 artifacts instead of closing the slice early. Refs: Tests.Godot/tests/Integration/test_task68_hud_integration.gd Tests.Godot/tests/UI/test_task68_orphan_hud_isolation.gd Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs"
+    ],
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "T68",
+      "T69",
+      "T70",
+      "T71",
+      "T72",
+      "T73",
+      "T74",
+      "T75",
+      "T76",
+      "T77",
+      "T79",
+      "T80",
+      "T81",
+      "T82",
+      "T83",
+      "T84",
+      "T86",
+      "T87",
+      "T88",
+      "T89",
+      "T90",
+      "T94",
+      "T95",
+      "T96",
+      "T97",
+      "T98",
+      "T99",
+      "T100",
+      "T102",
+      "T103",
+      "T105",
+      "T107",
+      "T110",
+      "T111",
+      "T112",
+      "T113",
+      "T114",
+      "T115",
+      "T116",
+      "T117",
+      "T118",
+      "T121",
+      "T122",
+      "T123",
+      "T124",
+      "T125",
+      "T127",
+      "T128",
+      "T129",
+      "T130",
+      "T132",
+      "T133",
+      "T135",
+      "T136",
+      "T138",
+      "T139",
+      "T140",
+      "T143",
+      "T144",
+      "T145"
+    ],
+    "semantic_review_tier": "full",
+    "evidence_refs": [],
+    "ui_wiring_candidate": {
+      "source": "docs/gdd/ui-gdd-flow.candidates.json",
+      "screen_group": "Economy And Progression Panels",
+      "scope_task_ids": [
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        86,
+        87,
+        88,
+        89,
+        90,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        102,
+        103,
+        105,
+        107,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        121,
+        122,
+        123,
+        124,
+        125,
+        127,
+        128,
+        129,
+        130,
+        132,
+        133,
+        135,
+        136,
+        138,
+        139,
+        140,
+        143,
+        144,
+        145
+      ],
+      "ui_entry": "Resource / Build / Progression Panels"
+    }
+  },
+  {
+    "id": "SG-0180",
+    "story_id": "PRD-SANGUO-T3-SPLIT-SG-0180",
+    "owner": "architecture",
+    "depends_on": [
+      "SG-0147",
+      "SG-0148",
+      "SG-0149",
+      "SG-0150",
+      "SG-0151",
+      "SG-0152",
+      "SG-0153",
+      "SG-0154",
+      "SG-0155",
+      "SG-0156",
+      "SG-0157",
+      "SG-0158",
+      "SG-0159",
+      "SG-0160",
+      "SG-0161",
+      "SG-0162",
+      "SG-0163",
+      "SG-0165",
+      "SG-0166",
+      "SG-0167",
+      "SG-0168",
+      "SG-0169",
+      "SG-0171",
+      "SG-0172",
+      "SG-0173",
+      "SG-0174",
+      "SG-0175"
+    ],
+    "taskmaster_exported": true,
+    "taskmaster_id": 180,
+    "title": "Wire UI: Config Audit And Migration Surfaces",
+    "description": "Create the Chapter 7 UI wiring slice for Config Audit And Migration Surfaces from docs/gdd/ui-gdd-flow.candidates.json.",
+    "status": "pending",
+    "priority": "P2",
+    "layer": "core",
+    "adr_refs": [
+      "ADR-0010",
+      "ADR-0011",
+      "ADR-0019",
+      "ADR-0025"
+    ],
+    "chapter_refs": [
+      "CH02",
+      "CH06",
+      "CH07",
+      "CH10"
+    ],
+    "overlay_refs": [
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
+      "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
+    ],
+    "labels": [
+      "split",
+      "sanguo",
+      "taskmaster-view",
+      "chapter7-ui",
+      "governance"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Services/SanguoContentPackResolverTests.cs",
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
+      "Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs",
+      "Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs"
+    ],
+    "acceptance": [
+      "The Chapter 7 UI wiring slice for Config Audit And Migration Surfaces is implemented from docs/gdd/ui-gdd-flow.candidates.json using the Config Summary / Audit / Migration Surfaces entry, and the UI lets the player inspect config state, validation, governance, migration, and report metadata end-to-end. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "The slice provides the candidate standalone surfaces ConfigAuditPanel, MigrationStatusDialog, and ReportMetadataPanel, or records an equivalent UI surface mapping before acceptance is considered complete. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "The UI renders active config, schema status, fallback policy, migration status, and audit metadata from observable application state or artifact evidence, and the rendered result cannot be satisfied by logs-only evidence. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "When split-task evidence is missing for any of tasks 173, 174, or 175, the integration closure check is shown as incomplete and must not pass or advance. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "Campaign content validation exposes mandatory cross-reference, version-bump, and i18n-coverage checks per campaign dataset type, and invalid fixtures produce deterministic CI evidence identifying the file path, field, and gate name. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "Campaign content validation is enforced as a hard CI gate so failing content checks block CI, deterministic domain state remains behind existing contracts, and unrelated gameplay behavior is not added as part of this slice. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "Implementation and verification evidence explicitly maps this UI slice to every scoped task T147, T148, T149, T150, T151, T152, T153, T154, T155, T156, T157, T158, T159, T160, T161, T162, T163, T165, T166, T167, T168, T169, T171, T172, T173, T174, and T175; missing any scoped mapping fails acceptance, and out-of-scope gameplay changes do not count toward completion. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "Validation records pass/fail evidence for the referenced xUnit suite and Chapter 7 artifacts, and records GdUnit as N/A with rationale when no GdUnit case applies instead of omitting that framework. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs"
+    ],
+    "test_strategy": [
+      "Task-specific deterministic tests.",
+      "Use Chapter 7 candidate evidence to keep Config Audit And Migration Surfaces scoped to the documented UI slice and avoid unrelated gameplay changes. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs",
+      "Validate end-to-end wiring against the routed scope tasks (T147, T148, T149, T150, T151, T152, T153, T154, T155, T156, T157, T158, T159, T160, T161, T162, T163, T165, T166, T167, T168, T169, T171, T172, T173, T174, T175) and record any remaining UI gaps in Chapter 7 artifacts instead of closing the slice early. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task148CampaignContentQualityGatesTests.cs Game.Core.Tests/Tasks/Task148CampaignContentCiEvidenceTests.cs"
+    ],
+    "contractRefs": [],
+    "acceptanceRefs": [
+      "T147",
+      "T148",
+      "T149",
+      "T150",
+      "T151",
+      "T152",
+      "T153",
+      "T154",
+      "T155",
+      "T156",
+      "T157",
+      "T158",
+      "T159",
+      "T160",
+      "T161",
+      "T162",
+      "T163",
+      "T165",
+      "T166",
+      "T167",
+      "T168",
+      "T169",
+      "T171",
+      "T172",
+      "T173",
+      "T174",
+      "T175"
+    ],
+    "semantic_review_tier": "full",
+    "evidence_refs": [],
+    "ui_wiring_candidate": {
+      "source": "docs/gdd/ui-gdd-flow.candidates.json",
+      "screen_group": "Config Audit And Migration Surfaces",
+      "scope_task_ids": [
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        165,
+        166,
+        167,
+        168,
+        169,
+        171,
+        172,
+        173,
+        174,
+        175
+      ],
+      "ui_entry": "Config Summary / Audit / Migration Surfaces"
+    }
   }
 ]

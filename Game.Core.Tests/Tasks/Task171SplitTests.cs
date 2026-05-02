@@ -276,7 +276,7 @@ public sealed class Task171SplitTests
         var documentationPath = BuildDocumentationPath(repoRoot);
         File.Exists(documentationPath).Should().BeTrue();
 
-        var markdown = File.ReadAllText(documentationPath);
+        var markdown = string.Join(Environment.NewLine, File.ReadLines(documentationPath));
         var parsed = SanguoCampaignContentSchemaCatalog.TryReadVersionRuleFromDocumentation(markdown, out var docsRule);
 
         parsed.Should().BeTrue();

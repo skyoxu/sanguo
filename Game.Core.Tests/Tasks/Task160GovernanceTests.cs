@@ -102,7 +102,7 @@ public sealed class Task160GovernanceTests
         var repoRoot = FindRepoRoot();
         var baselinePath = Path.Combine(repoRoot, "docs", "observability", "logging-guidelines.md");
         File.Exists(baselinePath).Should().BeTrue("Task 160 baseline documentation must exist.");
-        return File.ReadAllText(baselinePath);
+        return string.Join(Environment.NewLine, File.ReadLines(baselinePath));
     }
 
     private static string FindRepoRoot()

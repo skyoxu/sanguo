@@ -19,11 +19,7 @@ public sealed class Task163SplitTests
         var runGateBundlePath = Path.Combine(repoRoot, "scripts", "python", "run_gate_bundle.py");
 
         File.Exists(runGateBundlePath).Should().BeTrue();
-
-        var script = File.ReadAllText(runGateBundlePath);
-
-        script.Should().Contain(
-            "signal_compliance_workflow_hard_gate",
+        ContainsTokenInFile(runGateBundlePath, "signal_compliance_workflow_hard_gate").Should().BeTrue(
             "fast-mode CI should wire signal compliance report verification as a dedicated hard gate");
     }
 
@@ -218,7 +214,8 @@ public sealed class Task163SplitTests
             process.WaitForExit();
 
             File.Exists(summaryPath).Should().BeTrue($"hard gate must emit a summary file. stdout={stdout} stderr={stderr}");
-            var summary = JsonDocument.Parse(File.ReadAllText(summaryPath)).RootElement.Clone();
+            using var summaryStream = File.OpenRead(summaryPath);
+            var summary = JsonDocument.Parse(summaryStream).RootElement.Clone();
 
             return new GateRunResult(process.ExitCode, stdout, stderr, summary);
         }
@@ -244,6 +241,19 @@ public sealed class Task163SplitTests
                 });
             File.WriteAllText(path, payload);
         }
+    }
+
+    private static bool ContainsTokenInFile(string path, string token)
+    {
+        foreach (var line in File.ReadLines(path))
+        {
+            if (line.Contains(token, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private sealed record GateRunResult(int ExitCode, string Stdout, string Stderr, JsonElement Summary);

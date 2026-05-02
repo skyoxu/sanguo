@@ -1128,7 +1128,7 @@
         "testStrategy": "单元测试：为性能库编写 xUnit 基准级测试，验证统计函数在不同样本上的正确性。\n本地演练：运行 Godot 场景 + PerfTracker，生成 perf.json，再用 performance_gates.py 校验阈值与报告。\nCI 集成：在 windows-quality-gate 工作流中增加可选性能门禁 step，观察超阈值时的报告与退出码。",
         "priority": "medium",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1151,7 +1151,7 @@
         "testStrategy": "核心测试：为 ObservabilityClient 编写 xUnit 测试，验证日志结构化与 PII 脱敏行为。\n脚本测试：使用假数据或 Mock Sentry API 响应运行 release_health_gate.py，验证阈值判定与 JSON 输出格式。",
         "priority": "medium",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -1200,7 +1200,7 @@
         "testStrategy": "本地验证：手工设置不同 RELEASE_CHANNEL，运行构建脚本并检查 release-profile.json 差异。\nCI 验证：在测试分支上运行带渠道参数的 Release 工作流，确认生成的 profile 与工件符合预期。",
         "priority": "low",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -1222,7 +1222,7 @@
         "testStrategy": "文档审阅：由架构/产品共同确认模板文档结构对真实项目足够且不过度约束。\n链接检查：task-links-validate 或等价脚本对新模板文档进行路径与引用校验。",
         "priority": "low",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -1244,7 +1244,7 @@
         "testStrategy": "本地：运行 GameEngineCoreEventTests，并通过全文搜索核对事件类型常量。\nCI：在质量门禁中增加针对 core.*.* 事件类型前缀的简单字符串检查脚本。",
         "priority": "high",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1269,7 +1269,7 @@
         "testStrategy": "本地：为 ObservabilityClient 编写 xUnit 测试，使用 fake/spy 对象捕获日志与事件上报行为。\nCI：在 dotnet-unit 任务中确保 Observability 测试纳入覆盖率统计，并在质量门禁报告中展示相关用例。",
         "priority": "medium",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -1341,7 +1341,7 @@
         "testStrategy": "GdUnit4：为安全相关 Signal 编写 Hard 套件，用于验证触发路径与 XML 注释是否齐全。\nCI：在 signal-compliance 相关工作流中集成健康度检查脚本，并观察在故意缺失注释或错误命名时是否会失败。",
         "priority": "low",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -1366,7 +1366,7 @@
         "testStrategy": "本地：构造多次性能采样结果，运行报告生成脚本，检查历史文件是否按预期累积数据。\nCI：在性能相关 Job 中执行报告生成步骤，并检查 artifact 中是否包含预期文件。",
         "priority": "low",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1415,7 +1415,7 @@
         "testStrategy": "本地：在具备测试证书的环境下执行构建，验证 EXE 已被签名且系统属性中可见。\nCI：在 Windows 构建 Job 中对 signing-summary.json 做基础格式检查，确保脚本在有与无证书两种场景下都能稳定运行。",
         "priority": "low",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1441,7 +1441,7 @@
         "testStrategy": "本地：在 Godot 编辑器与 headless 模式下分别验证各导出预设可以成功生成可运行的 EXE。\nCI：在 export 相关工作流中记录所用预设名称，并检查导出 summary 中的配置字段。",
         "priority": "low",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -1464,7 +1464,7 @@
         "testStrategy": "本地：构造刻意违反依赖矩阵的示例（例如在 Game.Core 中添加 using Godot; 或在 Scripts/Core 中直接引用 Godot API），运行 dependency_guard 脚本验证其能正确发现并在 JSON/文本摘要中报告。\nCI：在测试分支上启用依赖护栏步骤，故意保留一处违规依赖，确认 windows-quality-gate（或等价工作流）中的 Step Summary 能显示违规详情，并在规则配置为硬门禁时正确使 Job 失败。",
         "priority": "medium",
         "dependencies": [],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -2130,7 +2130,7 @@
           "81",
           "82"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "testRefs": [
           "Game.Core.Tests/Tasks/Task82SplitTests.cs",
@@ -2160,7 +2160,7 @@
         "dependencies": [
           "68"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -2221,7 +2221,7 @@
           "83",
           "84"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2248,7 +2248,7 @@
           "113",
           "114"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -2272,7 +2272,7 @@
           "115",
           "116"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -2297,7 +2297,7 @@
         "dependencies": [
           "72"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -2356,7 +2356,7 @@
           "85",
           "86"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2383,7 +2383,7 @@
           "87",
           "88"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2410,7 +2410,7 @@
           "89",
           "90"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2437,7 +2437,7 @@
           "117",
           "118"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2461,7 +2461,7 @@
           "119",
           "120"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2485,7 +2485,7 @@
           "74",
           "61"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2511,7 +2511,7 @@
           "91",
           "92"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -2538,7 +2538,7 @@
           "56",
           "59"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "testRefs": [
           "Game.Core.Tests/Tasks/Task81SplitTests.cs",
@@ -2568,7 +2568,7 @@
         "dependencies": [
           "81"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2599,7 +2599,7 @@
           "52",
           "67"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2625,7 +2625,7 @@
         "dependencies": [
           "83"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2651,7 +2651,7 @@
         "dependencies": [
           "60"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2677,7 +2677,7 @@
         "dependencies": [
           "85"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2703,7 +2703,7 @@
         "dependencies": [
           "74"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2729,7 +2729,7 @@
         "dependencies": [
           "87"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2755,7 +2755,7 @@
         "dependencies": [
           "75"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2783,7 +2783,7 @@
           "66",
           "67"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2812,7 +2812,7 @@
           "72",
           "73"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -2871,7 +2871,7 @@
           "68",
           "69"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -2896,7 +2896,7 @@
           "54",
           "74"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -2964,7 +2964,7 @@
           "121",
           "122"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -2992,7 +2992,7 @@
           "68",
           "69"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -3054,7 +3054,7 @@
           "123",
           "124"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3081,7 +3081,7 @@
           "125",
           "126"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3107,7 +3107,7 @@
           "97",
           "87"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3139,7 +3139,7 @@
           "127",
           "128"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3166,7 +3166,7 @@
           "129",
           "130"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3193,7 +3193,7 @@
           "131",
           "132"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3227,7 +3227,7 @@
           "133",
           "134"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3254,7 +3254,7 @@
           "135",
           "136"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3281,7 +3281,7 @@
           "137",
           "138"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3308,7 +3308,7 @@
           "139",
           "140"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3335,7 +3335,7 @@
           "141",
           "142"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3362,7 +3362,7 @@
           "143",
           "144"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3390,7 +3390,7 @@
           "93",
           "96"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3417,7 +3417,7 @@
           "145",
           "146"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3444,7 +3444,7 @@
           "147",
           "148"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -3472,7 +3472,7 @@
           "149",
           "150"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -3497,7 +3497,7 @@
           "151",
           "152"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -3527,7 +3527,7 @@
         "dependencies": [
           "70"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -3571,7 +3571,7 @@
         "dependencies": [
           "71"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -3595,7 +3595,7 @@
         "dependencies": [
           "115"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -3620,7 +3620,7 @@
           "76",
           "56"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3642,7 +3642,7 @@
         "dependencies": [
           "117"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3664,7 +3664,7 @@
         "dependencies": [
           "77"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3686,7 +3686,7 @@
         "dependencies": [
           "119"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3709,7 +3709,7 @@
           "93",
           "55"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3734,7 +3734,7 @@
         "dependencies": [
           "121"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3762,7 +3762,7 @@
           "75",
           "76"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -3834,7 +3834,7 @@
         "dependencies": [
           "123"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -3896,7 +3896,7 @@
           "75",
           "87"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3920,7 +3920,7 @@
         "dependencies": [
           "125"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3946,7 +3946,7 @@
           "98",
           "62"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3971,7 +3971,7 @@
         "dependencies": [
           "127"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -3998,7 +3998,7 @@
           "99",
           "86"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4023,7 +4023,7 @@
         "dependencies": [
           "129"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4049,7 +4049,7 @@
           "53",
           "76"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4076,7 +4076,7 @@
         "dependencies": [
           "131"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4105,7 +4105,7 @@
           "89",
           "101"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4130,7 +4130,7 @@
         "dependencies": [
           "133"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4158,7 +4158,7 @@
           "90",
           "102"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4230,7 +4230,7 @@
         "dependencies": [
           "135"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4258,7 +4258,7 @@
           "57",
           "59"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4318,7 +4318,7 @@
         "dependencies": [
           "137"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4345,7 +4345,7 @@
           "96",
           "103"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4370,7 +4370,7 @@
         "dependencies": [
           "139"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4397,7 +4397,7 @@
           "78",
           "105"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4422,7 +4422,7 @@
         "dependencies": [
           "141"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4449,7 +4449,7 @@
           "100",
           "103"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4474,7 +4474,7 @@
         "dependencies": [
           "143"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4500,7 +4500,7 @@
           "169",
           "170"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4525,7 +4525,7 @@
         "dependencies": [
           "145"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4551,7 +4551,7 @@
           "171",
           "172"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -4577,7 +4577,7 @@
         "dependencies": [
           "147"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4642,7 +4642,7 @@
           "108",
           "110"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4737,7 +4737,7 @@
           "174",
           "175"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -4766,7 +4766,7 @@
         "dependencies": [
           "151"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4831,7 +4831,7 @@
           "111",
           "112"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -4861,7 +4861,7 @@
           "71",
           "72"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4922,7 +4922,7 @@
           "73",
           "112"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -4946,7 +4946,7 @@
           "36",
           "40"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4972,7 +4972,7 @@
           "162",
           "163"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -4998,7 +4998,7 @@
           "164",
           "165"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -5024,7 +5024,7 @@
           "154",
           "155"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -5085,7 +5085,7 @@
           "37",
           "159"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -5136,7 +5136,7 @@
           "156",
           "40"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -5161,7 +5161,7 @@
         "dependencies": [
           "162"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -5186,7 +5186,7 @@
         "dependencies": [
           "157"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -5211,7 +5211,7 @@
         "dependencies": [
           "164"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -5312,7 +5312,7 @@
           "102",
           "105"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -5384,7 +5384,7 @@
         "dependencies": [
           "169"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0004",
@@ -5487,7 +5487,7 @@
         "dependencies": [
           "171"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0005",
@@ -5520,7 +5520,7 @@
           "92",
           "111"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -5596,7 +5596,7 @@
         "dependencies": [
           "173"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -5625,7 +5625,7 @@
         "dependencies": [
           "174"
         ],
-        "status": "deferred",
+        "status": "done",
         "subtasks": [],
         "adrRefs": [
           "ADR-0003",
@@ -5643,13 +5643,246 @@
           "CH10"
         ],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+      },
+      {
+        "id": "176",
+        "title": "Wire UI: MainMenu And Boot Flow",
+        "description": "Create the Chapter 7 UI wiring slice for MainMenu And Boot Flow from docs/gdd/ui-gdd-flow.candidates.json.",
+        "details": "Chapter7 Candidate: MainMenu And Boot Flow\nSource: docs/gdd/ui-gdd-flow.candidates.json\nScope: T85, T91, T92, T93, T101, T108, T131, T164, T170\nUI entry: MainMenu / Boot Flow\nCandidate type: task-shaped UI wiring spec\nSuggested standalone surfaces: MainMenu, BootStatusPanel, ContinueGateDialog\nPlayer action: Launch, continue, retry bootstrap, or enter a run\nSystem response: Show canonical startup path, valid continue behavior, and explicit startup failure recovery\nEmpty state: Save header remains sufficient to explain and reproduce the run context without inspecting transient UI state after save/load.\nFailure state: Campaign runmode isolation must be explicitly defined and verified with observable boundaries: entering campaign runmode applies only the intended isolation behavior, and non-campaign paths must not be isolated by this split.\nCompletion result: Campaign runmode isolation must be explicitly defined and verified with observable boundaries: entering campaign runmode applies only the intended isolation behavior, and non-campaign paths must not be isolated by this split.\nContract boundary: keeps deterministic domain state behind existing contracts, adds no unrelated gameplay behavior\nRequirement IDs: n/a\nValidation artifact targets: n/a",
+        "testStrategy": "Validate the UI slice with the referenced GdUnit/xUnit tests and Chapter 7 artifact evidence.",
+        "priority": "high",
+        "dependencies": [
+          85,
+          91,
+          92,
+          93,
+          101,
+          108,
+          131,
+          164,
+          170
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "adrRefs": [
+          "ADR-0010",
+          "ADR-0011",
+          "ADR-0019",
+          "ADR-0025"
+        ],
+        "archRefs": [
+          "CH02",
+          "CH06",
+          "CH07",
+          "CH10"
+        ]
+      },
+      {
+        "id": "177",
+        "title": "Wire UI: Runtime HUD And Outcome Surfaces",
+        "description": "Create the Chapter 7 UI wiring slice for Runtime HUD And Outcome Surfaces from docs/gdd/ui-gdd-flow.candidates.json.",
+        "details": "Chapter7 Candidate: Runtime HUD And Outcome Surfaces\nSource: docs/gdd/ui-gdd-flow.candidates.json\nScope: T78, T104, T106, T119, T120, T137, T141, T142\nUI entry: HUD / Prompt / Outcome Surfaces\nCandidate type: task-shaped UI wiring spec\nSuggested standalone surfaces: RuntimeHud, OutcomePanel, RuntimePromptPanel\nPlayer action: Play a run, observe timing, rewards, prompts, and terminal transitions\nSystem response: Render readable phase, timer, HP, reward, prompt, and win/lose state from runtime events\nEmpty state: Integration closure must explicitly verify deterministic draft behavior: under the same input conditions and seed, RewardDraftEngine evidence from tasks 119 and 120 must produce repeatable draft outcomes; missing deterministic evidence keeps task 78 open.\nFailure state: Integration closure is complete only when split-task evidence shows event tiles auto-trigger and Skip remains available only as a rule-blocked fallback.\nCompletion result: Integration closure must explicitly verify deterministic draft behavior: under the same input conditions and seed, RewardDraftEngine evidence from tasks 119 and 120 must produce repeatable draft outcomes; missing deterministic evidence keeps task 78 open.\nContract boundary: keeps deterministic domain state behind existing contracts, adds no unrelated gameplay behavior\nRequirement IDs: n/a\nValidation artifact targets: n/a",
+        "testStrategy": "Validate the UI slice with the referenced GdUnit/xUnit tests and Chapter 7 artifact evidence.",
+        "priority": "high",
+        "dependencies": [
+          78,
+          104,
+          106,
+          119,
+          120,
+          137,
+          141,
+          142
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "adrRefs": [
+          "ADR-0010",
+          "ADR-0011",
+          "ADR-0019",
+          "ADR-0025"
+        ],
+        "archRefs": [
+          "CH02",
+          "CH06",
+          "CH07",
+          "CH10"
+        ]
+      },
+      {
+        "id": "178",
+        "title": "Wire UI: Combat Pressure And Interaction Surfaces",
+        "description": "Create the Chapter 7 UI wiring slice for Combat Pressure And Interaction Surfaces from docs/gdd/ui-gdd-flow.candidates.json.",
+        "details": "Chapter7 Candidate: Combat Pressure And Interaction Surfaces\nSource: docs/gdd/ui-gdd-flow.candidates.json\nScope: T109, T126, T134, T146\nUI entry: Combat HUD / Pressure / Camera Feedback\nCandidate type: task-shaped UI wiring spec\nSuggested standalone surfaces: CombatHud, PressurePanel, CameraControlOverlay\nPlayer action: Fight, observe pressure, targeting, pathing, and camera responses\nSystem response: Render enemy pressure, targeting, combat outcomes, and camera interaction without hidden state\nEmpty state: show no active pressure or combat state until combat data is available.\nFailure state: blocked, invalid, or hidden combat state must become explicit feedback instead of silent desync.\nCompletion result: The integration closure for split tasks 145 and 146 is verified by the referenced tests showing campaign events remain contract-first and are consumed through the DTO mapper registry.\nContract boundary: keeps deterministic domain state behind existing contracts, adds no unrelated gameplay behavior\nRequirement IDs: n/a\nValidation artifact targets: n/a",
+        "testStrategy": "Validate the UI slice with the referenced GdUnit/xUnit tests and Chapter 7 artifact evidence.",
+        "priority": "high",
+        "dependencies": [
+          109,
+          126,
+          134,
+          146
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "adrRefs": [
+          "ADR-0010",
+          "ADR-0011",
+          "ADR-0019",
+          "ADR-0025"
+        ],
+        "archRefs": [
+          "CH02",
+          "CH06",
+          "CH07",
+          "CH10"
+        ]
+      },
+      {
+        "id": "179",
+        "title": "Wire UI: Economy And Progression Panels",
+        "description": "Create the Chapter 7 UI wiring slice for Economy And Progression Panels from docs/gdd/ui-gdd-flow.candidates.json.",
+        "details": "Chapter7 Candidate: Economy And Progression Panels\nSource: docs/gdd/ui-gdd-flow.candidates.json\nScope: T68, T69, T70, T71, T72, T73, T74, T75, T76, T77, T79, T80, T81, T82, T83, T84, T86, T87, T88, T89, T90, T94, T95, T96, T97, T98, T99, T100, T102, T103, T105, T107, T110, T111, T112, T113, T114, T115, T116, T117, T118, T121, T122, T123, T124, T125, T127, T128, T129, T130, T132, T133, T135, T136, T138, T139, T140, T143, T144, T145\nUI entry: Resource / Build / Progression Panels\nCandidate type: task-shaped UI wiring spec\nSuggested standalone surfaces: ResourcePanel, BuildPanel, ProgressionPanel\nPlayer action: Spend resources, place/build, train, upgrade, repair, or pick rewards\nSystem response: Render deterministic resource, build, queue, upgrade, and progression changes with clear invalid-state feedback\nEmpty state: Integration closure MUST be refused when task 81 evidence exists but task 82 evidence is missing.\nFailure state: xUnit: release mode must hide raw i18n key exposure for policy-scoped missing explanation keys and return a friendly fallback (provided fallback, or default friendly fallback when missing/blank).\nCompletion result: Integration closure MUST be refused when task 81 evidence exists but task 82 evidence is missing.\nContract boundary: keeps deterministic domain state behind existing contracts, adds no unrelated gameplay behavior\nRequirement IDs: n/a\nValidation artifact targets: n/a",
+        "testStrategy": "Validate the UI slice with the referenced GdUnit/xUnit tests and Chapter 7 artifact evidence.",
+        "priority": "high",
+        "dependencies": [
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          86,
+          87,
+          88,
+          89,
+          90,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          102,
+          103,
+          105,
+          107,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          121,
+          122,
+          123,
+          124,
+          125,
+          127,
+          128,
+          129,
+          130,
+          132,
+          133,
+          135,
+          136,
+          138,
+          139,
+          140,
+          143,
+          144,
+          145
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "adrRefs": [
+          "ADR-0010",
+          "ADR-0011",
+          "ADR-0019",
+          "ADR-0025"
+        ],
+        "archRefs": [
+          "CH02",
+          "CH06",
+          "CH07",
+          "CH10"
+        ]
+      },
+      {
+        "id": "180",
+        "title": "Wire UI: Config Audit And Migration Surfaces",
+        "description": "Create the Chapter 7 UI wiring slice for Config Audit And Migration Surfaces from docs/gdd/ui-gdd-flow.candidates.json.",
+        "details": "Chapter7 Candidate: Config Audit And Migration Surfaces\nSource: docs/gdd/ui-gdd-flow.candidates.json\nScope: T147, T148, T149, T150, T151, T152, T153, T154, T155, T156, T157, T158, T159, T160, T161, T162, T163, T165, T166, T167, T168, T169, T171, T172, T173, T174, T175\nUI entry: Config Summary / Audit / Migration Surfaces\nCandidate type: task-shaped UI wiring spec\nSuggested standalone surfaces: ConfigAuditPanel, MigrationStatusDialog, ReportMetadataPanel\nPlayer action: Inspect config state, validation, governance, migration, and report metadata\nSystem response: Render active config, schema status, fallback policy, migration status, and audit metadata without relying on logs-only evidence\nEmpty state: Integration closure check must not pass or advance when split-task evidence is missing for any of tasks 173, 174, 175.\nFailure state: Campaign content validation defines mandatory cross-ref, version-bump, and i18n-coverage checks per campaign dataset type, and deterministic evidence rejects invalid fixtures with pinpointed file path, field, and gate name in CI outputs.\nCompletion result: Campaign content validation is a hard CI gate; failing content checks must block CI instead of passing as non-blocking evidence.\nContract boundary: keeps deterministic domain state behind existing contracts, adds no unrelated gameplay behavior\nRequirement IDs: n/a\nValidation artifact targets: n/a",
+        "testStrategy": "Validate the UI slice with the referenced GdUnit/xUnit tests and Chapter 7 artifact evidence.",
+        "priority": "medium",
+        "dependencies": [
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          165,
+          166,
+          167,
+          168,
+          169,
+          171,
+          172,
+          173,
+          174,
+          175
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "adrRefs": [
+          "ADR-0010",
+          "ADR-0011",
+          "ADR-0019",
+          "ADR-0025"
+        ],
+        "archRefs": [
+          "CH02",
+          "CH06",
+          "CH07",
+          "CH10"
+        ]
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-03-19T09:39:57Z",
-      "taskCount": 175,
-      "completedCount": 54,
+      "lastModified": "2026-05-02T14:28:17Z",
+      "taskCount": 180,
+      "completedCount": 175,
       "tags": [
         "master"
       ]

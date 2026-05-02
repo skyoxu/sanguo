@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
@@ -198,19 +199,19 @@ public sealed class SanguoCampaignContractsTests
     [Trait("acceptance", "ACC:T145.1")]
     public void ShouldCloseIntegrationFromSplitTasks_WhenValidatingDeterministicCampaignContractEvidence()
     {
-        var splitTask169Evidence = ReadFileFromRepository("Game.Core.Tests/Tasks/Task169SplitTests.cs");
-        var splitTask170Evidence = ReadFileFromRepository("Game.Core.Tests/Tasks/Task170SplitTests.cs");
-        var mergedEvidence = splitTask169Evidence + Environment.NewLine + splitTask170Evidence;
+        var splitTask169Path = ResolveFileFromRepository("Game.Core.Tests/Tasks/Task169SplitTests.cs");
+        var splitTask170Path = ResolveFileFromRepository("Game.Core.Tests/Tasks/Task170SplitTests.cs");
+        var evidencePaths = new[] { splitTask169Path, splitTask170Path };
 
-        mergedEvidence.Should().Contain("ACC:T169.1",
+        ContainsTokenInAnyFile(evidencePaths, "ACC:T169.1").Should().BeTrue(
             "task 145 closure must include deterministic evidence from split task 169.");
-        mergedEvidence.Should().Contain("ACC:T169.6",
+        ContainsTokenInAnyFile(evidencePaths, "ACC:T169.6").Should().BeTrue(
             "task 145 closure should preserve split task 169 versioning evidence.");
-        mergedEvidence.Should().Contain("ACC:T170.1",
+        ContainsTokenInAnyFile(evidencePaths, "ACC:T170.1").Should().BeTrue(
             "task 145 closure must include deterministic evidence from split task 170.");
-        mergedEvidence.Should().Contain("R9",
+        ContainsTokenInAnyFile(evidencePaths, "R9").Should().BeTrue(
             "task 145 acceptance requires deterministic evidence for requirement R9.");
-        mergedEvidence.Should().Contain("A-020",
+        ContainsTokenInAnyFile(evidencePaths, "A-020").Should().BeTrue(
             "task 145 acceptance requires deterministic compatibility evidence for A-020.");
     }
 
@@ -327,15 +328,24 @@ public sealed class SanguoCampaignContractsTests
             code.Contains("field=localeKey", StringComparison.Ordinal));
     }
 
-    private static string ReadFileFromRepository(string relativePath)
+    private static string ResolveFileFromRepository(string relativePath)
     {
         var repositoryRoot = FindRepositoryRoot();
         var normalizedRelativePath = relativePath.Replace('/', Path.DirectorySeparatorChar);
         var absolutePath = Path.Combine(repositoryRoot, normalizedRelativePath);
 
         File.Exists(absolutePath).Should().BeTrue($"Expected evidence file '{relativePath}' to exist.");
+        return absolutePath;
+    }
 
-        return File.ReadAllText(absolutePath);
+    private static bool ContainsTokenInAnyFile(IEnumerable<string> absolutePaths, string token)
+    {
+        return absolutePaths.Any(path => ContainsTokenInFile(path, token));
+    }
+
+    private static bool ContainsTokenInFile(string absolutePath, string token)
+    {
+        return File.ReadLines(absolutePath).Any(line => line.Contains(token, StringComparison.Ordinal));
     }
 
     private static string FindRepositoryRoot()
