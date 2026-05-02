@@ -5,6 +5,7 @@ namespace Game.Core.Tests.Tasks;
 
 public sealed class Task112SplitIntegrationTests
 {
+    // ACC:T112.1
     [Fact]
     public void ShouldReportSpecificMissingTask151Code_WhenTask151DeterministicPassEvidenceIsMissing()
     {

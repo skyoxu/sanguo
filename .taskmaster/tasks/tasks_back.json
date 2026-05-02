@@ -4202,13 +4202,15 @@
       "xUnit: shared UI localization gate semantics are preserved for task69 explanation keys, while non-task69 keys remain on fallback path in release and dev modes. Refs: Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
       "xUnit: when fallback text is blank, release mode still returns the default friendly fallback text instead of exposing raw key. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
       "xUnit: policy behavior is key-agnostic within task69 explanation scope: under release, scoped missing keys must not render as raw key; under diagnostics-enabled dev path, the observable diagnostics branch exposes raw key for scoped missing keys. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
-      "xUnit: when fallback is null or omitted, release mode returns DefaultFriendlyFallback and never exposes raw key for policy-scoped missing explanation keys. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs"
+      "xUnit: when fallback is null or omitted, release mode returns DefaultFriendlyFallback and never exposes raw key for policy-scoped missing explanation keys. Refs: Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
+      "GdUnit4: task-scoped UI localization smoke fixture keeps task69 missing-key replay log branch observable in Godot test lane. Refs: Tests.Godot/tests/UI/test_task69_i18n_missing_key_exposure_policy.gd"
     ],
     "test_refs": [
       "Game.Core.Tests/Tasks/Task69I18nMissingKeyExposurePolicyTests.cs",
       "Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
       "Game.Core.Tests/Tasks/Task69UiLocalizationWiringTests.cs",
-      "Game.Core.Tests/Tasks/Task69SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task69SplitTests.cs",
+      "Tests.Godot/tests/UI/test_task69_i18n_missing_key_exposure_policy.gd"
     ],
     "test_strategy": [
       "xUnit build-mode policy tests and gate behavior tests; wiring guard test retained as implementation-level regression check."
@@ -4721,6 +4723,7 @@
       "Integration closure must explicitly verify the 3-choice draft requirement: RewardDraftEngine evidence from tasks 119 and 120 must show each draft exposes exactly three candidate options; missing or non-3-choice evidence keeps task 78 open. Refs: Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
     ],
     "test_refs": [
+      "Game.Core.Tests/Tasks/Task78RewardDraftEngineTests.cs",
       "Game.Core.Tests/Tasks/Task78SplitIntegrationTests.cs"
     ],
     "test_strategy": [
@@ -4828,12 +4831,10 @@
       "A-020"
     ],
     "acceptance": [
-      "Task 80 is accepted only when integration closure is confirmed from evidence produced by split tasks 91 and 92, with no new implementation required in this task. Refs: Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
+      "Task 80 is accepted only when integration closure is confirmed from evidence produced by split tasks 91 and 92, with no new implementation required in this task. Refs: Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs"
     ],
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs",
-      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs"
+      "Game.Core.Tests/Tasks/Task80PrdV3AssertionGateIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure checks from split-task outputs."
@@ -6162,7 +6163,7 @@
     "owner": "gameplay",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task140SplitTests.cs"
+      "Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs"
     ],
     "acceptance": [
       "Task 103 is closed only when the integration outcome from split tasks 135 and 136 is confirmed by their recorded evidence, and this task does not claim standalone implementation beyond that closure check. Refs: Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs",
@@ -6614,13 +6615,11 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd"
+      "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs"
     ],
     "acceptance": [
-      "Integration closure for split tasks 149 and 150 is verified by deterministic acceptance evidence, and this integration pack is not accepted if either split task lacks closure evidence. Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd",
-      "Task 111 scope is limited to integration closure of split-task evidence; independent implementation belongs to split tasks 149 and 150 and must not be introduced here. Refs: Game.Core.Tests/Tasks/Task149V3Tests.cs Game.Core.Tests/Tasks/Task150V3Tests.cs"
+      "Integration closure for split tasks 149 and 150 is verified by deterministic acceptance evidence, and this integration pack is not accepted if either split task lacks closure evidence. Refs: Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs",
+      "Task 111 scope is limited to integration closure of split-task evidence; independent implementation belongs to split tasks 149 and 150 and must not be introduced here. Refs: Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -6674,11 +6673,10 @@
     "owner": "architecture",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task112SplitIntegrationTests.cs",
-      "Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs",
-      "Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
+      "Tests.Godot/tests/UI/test_task112_event_log_i18n_keys_present.gd"
     ],
     "acceptance": [
-      "Task 112 is accepted only when integration-closure evidence from split tasks 151 and 152 shows the PRD v3 explainability/replay/i18n hard-gate work is closed with deterministic pass/fail summaries; if either split task lacks that evidence, this task is not complete. Refs: Game.Core.Tests/Tasks/Task47QualityGatesBehaviorTests.cs Tests.Godot/tests/UI/test_event_log_i18n_keys_present.gd"
+      "Task 112 is accepted only when integration-closure evidence from split tasks 151 and 152 shows the PRD v3 explainability/replay/i18n hard-gate work is closed with deterministic pass/fail summaries; if either split task lacks that evidence, this task is not complete. Refs: Game.Core.Tests/Tasks/Task112SplitIntegrationTests.cs Tests.Godot/tests/UI/test_task112_event_log_i18n_keys_present.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -7617,8 +7615,8 @@
       "Game.Core.Tests/Tasks/Task129SplitTests.cs"
     ],
     "acceptance": [
-      "When a camp durability fatal condition collides with other events in the same resolution batch, the resolver applies the global priority chain by promoting CampDurabilityFatal ahead of all non-fatal events; R3 and A-001 are included as required covered examples. Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs (anchor: ACC:T129.1)",
-      "When no camp durability fatal event exists, the resolver preserves the original relative order of non-fatal events (no preemption side effect). Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs (anchor: ACC:T129.2)"
+      "ACC:T129.1 When a camp durability fatal condition collides with other events in the same resolution batch, the resolver applies the global priority chain by promoting CampDurabilityFatal ahead of all non-fatal events; R3 and A-001 are included as required covered examples. Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs",
+      "ACC:T129.2 When no camp durability fatal event exists, the resolver preserves the original relative order of non-fatal events (no preemption side effect). Refs: Game.Core.Tests/Tasks/Task129SplitTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -7729,7 +7727,7 @@
       "Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "acceptance": [
-      "Boss difficulty profile data is deterministically validated against the defined schema: fixtures with all required task-defined fields and valid field types/refs and values within bounds pass validation; fixtures with out-of-bounds values, unknown fields, missing required fields, invalid field types, or unresolved refId fail validation. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs (anchor: ACC:T131.1)"
+      "ACC:T131.1 Boss difficulty profile data is deterministically validated against the defined schema: fixtures with all required task-defined fields and valid field types/refs and values within bounds pass validation; fixtures with out-of-bounds values, unknown fields, missing required fields, invalid field types, or unresolved refId fail validation. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -8288,7 +8286,6 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task141SplitTests.cs",
       "Game.Core.Tests/Tasks/Task141ObjectiveRewardSourceTests.cs"
     ],
     "acceptance": [
@@ -9149,11 +9146,13 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs"
+      "Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task156_signal_xml_documentation_gate.gd"
     ],
     "acceptance": [
       "CI rejects changes when any Signal/Event contract or security-critical signal is missing required XML summary/remarks, and passes only when docs satisfy ADR-0004 alignment. Refs: Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs",
-      "Unit fixture includes missing-XML negative cases for signal/event contract documentation gate. Refs: Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs"
+      "Unit fixture includes missing-XML negative cases for signal/event contract documentation gate. Refs: Game.Core.Tests/Tasks/Task156SignalXmlDocumentationGateTests.cs",
+      "GdUnit4: task-scoped Godot smoke fixture keeps signal XML documentation gate evidence visible in engine-lane coverage. Refs: Tests.Godot/tests/Integration/Security/test_task156_signal_xml_documentation_gate.gd"
     ],
     "test_strategy": [
       "Scripted CI check plus unit fixture for missing-XML negative cases."
@@ -9204,12 +9203,14 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs"
+      "Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd"
     ],
     "acceptance": [
       "Task 157 integration completes PH9-B4 closure only when closure evidence from both split tasks 162 and 163 is present, and completion signature remains deterministic under evidence reordering. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
       "CI hard-gate integration for signal compliance closure is validated by task-scoped deterministic tests instead of non-test workflow/script paths. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
-      "Task 157 integration must remain incomplete when closure evidence is missing for either split task 162 or 163. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs"
+      "Task 157 integration must remain incomplete when closure evidence is missing for either split task 162 or 163. Refs: Game.Core.Tests/Tasks/Task157SplitIntegrationTests.cs",
+      "GdUnit4: task-scoped Godot integration smoke fixture keeps PH9-B4 closure wiring observable for scene/runtime signal compliance lane. Refs: Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd"
     ],
     "test_strategy": [
       "Integration closure check from split-task evidence."
@@ -9490,12 +9491,14 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task162SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task162SplitTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task162_signal_compliance_report_aggregation.gd"
     ],
     "acceptance": [
       "Deterministic aggregation produces exactly one signal compliance report per task, and when naming, documentation, and lifecycle checks all pass, that single report is compliant, covers all three checks, and carries deterministic evidence for R11 and PH9-B4. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs",
       "Deterministic aggregation refuses compliance when any required check among naming, documentation, or lifecycle is missing: the single task report remains non-compliant and lists the missing checks deterministically. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs",
-      "Deterministic aggregation refuses compliance when any required check among naming, documentation, or lifecycle is present but not passed: the single task report remains non-compliant and lists that failed check deterministically. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs"
+      "Deterministic aggregation refuses compliance when any required check among naming, documentation, or lifecycle is present but not passed: the single task report remains non-compliant and lists that failed check deterministically. Refs: Game.Core.Tests/Tasks/Task162SplitTests.cs",
+      "GdUnit4: task-scoped Godot smoke fixture keeps signal compliance aggregation output observable in runtime lane. Refs: Tests.Godot/tests/Integration/Security/test_task162_signal_compliance_report_aggregation.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -9544,10 +9547,12 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task163SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task163SplitTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task163_signal_compliance_ci_gate.gd"
     ],
     "acceptance": [
-      "Fast-mode CI treats the signal compliance report as a hard gate and emits stable failure diagnostics with deterministic evidence. R11, PH9-B4 Refs: Game.Core.Tests/Tasks/Task163SplitTests.cs"
+      "Fast-mode CI treats the signal compliance report as a hard gate and emits stable failure diagnostics with deterministic evidence. R11, PH9-B4 Refs: Game.Core.Tests/Tasks/Task163SplitTests.cs",
+      "GdUnit4: task-scoped Godot smoke fixture keeps fast-mode signal compliance gate wiring observable for runtime lane. Refs: Tests.Godot/tests/Integration/Security/test_task163_signal_compliance_ci_gate.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -9596,10 +9601,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task164SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task164SplitTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task164_signal_subscription_lifecycle.gd"
     ],
     "acceptance": [
-      "For scene-bound signal listeners, each runtime subscription has a matching unsubscribe and node exit leaves no active listener registrations; Task verifies R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task164SplitTests.cs Tests.Godot/tests/Integration/Security/test_signal_subscription_lifecycle.gd"
+      "For scene-bound signal listeners, each runtime subscription has a matching unsubscribe and node exit leaves no active listener registrations; Task verifies R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task164SplitTests.cs Tests.Godot/tests/Integration/Security/test_task164_signal_subscription_lifecycle.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -9650,10 +9656,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Tasks/Task165SplitTests.cs"
+      "Game.Core.Tests/Tasks/Task165SplitTests.cs",
+      "Tests.Godot/tests/Integration/Security/test_task165_signal_subscription_lifecycle.gd"
     ],
     "acceptance": [
-      "Deterministic GdUnit lifecycle fixtures and assertions fail when a stale signal handler leak is present and pass when the stale handler is not retained, verifying R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task165SplitTests.cs Tests.Godot/tests/Integration/Security/test_signal_subscription_lifecycle.gd"
+      "Deterministic GdUnit lifecycle fixtures and assertions fail when a stale signal handler leak is present and pass when the stale handler is not retained, verifying R11, PH9-B5 with deterministic evidence. Refs: Game.Core.Tests/Tasks/Task165SplitTests.cs Tests.Godot/tests/Integration/Security/test_task165_signal_subscription_lifecycle.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
@@ -10103,14 +10110,15 @@
     "owner": "architecture",
     "test_refs": [
       "Game.Core.Tests/Tasks/Task173SplitTests.cs",
-      "Tests.Godot/tests/Adapters/Db/test_journal_modes_cross_restart.gd"
+      "Tests.Godot/tests/Adapters/Db/test_task173_journal_modes_cross_restart.gd"
     ],
     "acceptance": [
       "Task verifies A-013, A-014, A-015 as three distinct gate results (not opaque bundle output), and tests explicitly enumerate and execute expected A-013 to A-015 checks. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
       "CI hard-gate checks replay hash set, save_untrusted behavior, and mismatch policy by mode with deterministic outcomes. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
       "Trusted and untrusted replay fixtures produce deterministic reusable evidence for CI consumption. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
-      "Replay policy failures produce non-zero pipeline exit plus actionable summaries. Refs: .github/workflows/ci-windows.yml Game.Core.Tests/Tasks/Task173SplitTests.cs",
-      "Regression tests cover acceptance-id alignment and summary format compatibility for bundle reporting. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs"
+      "Replay policy failures produce non-zero pipeline exit plus actionable summaries. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "Regression tests cover acceptance-id alignment and summary format compatibility for bundle reporting. Refs: Game.Core.Tests/Tasks/Task173SplitTests.cs",
+      "GdUnit4: task-scoped DB journal-mode restart smoke fixture keeps runtime journal behavior evidence observable for task173. Refs: Tests.Godot/tests/Adapters/Db/test_task173_journal_modes_cross_restart.gd"
     ],
     "test_strategy": [
       "Task-specific deterministic tests."
