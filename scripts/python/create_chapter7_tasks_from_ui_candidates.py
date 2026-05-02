@@ -242,6 +242,14 @@ def _candidate_is_actionable(candidate: dict[str, Any], profile: dict[str, Any])
     return bool(screen_group)
 
 
+def _back_view_prefix(profile: dict[str, Any]) -> str:
+    creation = task_creation_config(profile)
+    templates = creation.get("view_id_templates", {})
+    if isinstance(templates, dict) and "SG" in templates:
+        return "SG"
+    return "NG"
+
+
 def _acceptance(candidate: dict[str, Any], test_refs: list[str]) -> list[str]:
     refs = " ".join(test_refs) if test_refs else "docs/gdd/ui-gdd-flow.md"
     screen_group = str(candidate.get("screen_group") or "Chapter 7 UI slice")
@@ -445,6 +453,7 @@ def create_tasks(
             default_back_story_id = inferred_back_story_id
         if not default_gameplay_story_id:
             default_gameplay_story_id = inferred_gameplay_story_id
+    back_prefix = _back_view_prefix(profile)
     if not sidecar_path.exists():
         payload = {
             "action": "create-chapter7-tasks-from-ui-candidates",
@@ -494,12 +503,12 @@ def create_tasks(
                 back_tasks,
                 existing_id,
                 _view_task(
-                    prefix="SG",
+                    prefix=back_prefix,
                     task_id=existing_id,
                     candidate=candidate,
-                    owner=owner_for_prefix(profile, "SG"),
-                    story_id=story_id_for_prefix(profile, "SG", effective_repo_label, existing_id) or default_back_story_id,
-                    source_label=source_label_for_prefix(profile, "SG"),
+                    owner=owner_for_prefix(profile, back_prefix),
+                    story_id=default_back_story_id or story_id_for_prefix(profile, back_prefix, effective_repo_label, existing_id),
+                    source_label=source_label_for_prefix(profile, back_prefix),
                     repo_label=effective_repo_label,
                     overlay_refs=overlay_refs,
                     ui_candidates_path=ui_candidates_path,
@@ -514,7 +523,7 @@ def create_tasks(
                     task_id=existing_id,
                     candidate=candidate,
                     owner=owner_for_prefix(profile, "GM"),
-                    story_id=story_id_for_prefix(profile, "GM", effective_repo_label, existing_id) or default_gameplay_story_id,
+                    story_id=default_gameplay_story_id or story_id_for_prefix(profile, "GM", effective_repo_label, existing_id),
                     source_label=source_label_for_prefix(profile, "GM"),
                     repo_label=effective_repo_label,
                     overlay_refs=overlay_refs,
@@ -533,12 +542,12 @@ def create_tasks(
         master_tasks.append(master_task)
         back_tasks.append(
             _view_task(
-                prefix="SG",
+                prefix=back_prefix,
                 task_id=task_id,
                 candidate=candidate,
-                owner=owner_for_prefix(profile, "SG"),
-                story_id=story_id_for_prefix(profile, "SG", effective_repo_label, task_id) or default_back_story_id,
-                source_label=source_label_for_prefix(profile, "SG"),
+                owner=owner_for_prefix(profile, back_prefix),
+                story_id=default_back_story_id or story_id_for_prefix(profile, back_prefix, effective_repo_label, task_id),
+                source_label=source_label_for_prefix(profile, back_prefix),
                 repo_label=effective_repo_label,
                 overlay_refs=overlay_refs,
                 ui_candidates_path=ui_candidates_path,
@@ -551,7 +560,7 @@ def create_tasks(
                 task_id=task_id,
                 candidate=candidate,
                 owner=owner_for_prefix(profile, "GM"),
-                story_id=story_id_for_prefix(profile, "GM", effective_repo_label, task_id) or default_gameplay_story_id,
+                story_id=default_gameplay_story_id or story_id_for_prefix(profile, "GM", effective_repo_label, task_id),
                 source_label=source_label_for_prefix(profile, "GM"),
                 repo_label=effective_repo_label,
                 overlay_refs=overlay_refs,

@@ -47,23 +47,16 @@ DEFAULT_CHAPTER7_PROFILE: dict[str, Any] = {
         "chapter_refs": ["CH02", "CH06", "CH07", "CH10"],
         "base_labels": ["taskmaster-view", "chapter7-ui"],
         "owners": {
-            "SG": "architecture",
             "NG": "architecture",
             "GM": "gameplay",
         },
         "source_labels": {
-            "SG": "backlog",
             "NG": "backlog",
             "GM": "prd",
         },
         "view_id_templates": {
-            "SG": "SG-{task_id:04d}",
             "NG": "NG-{task_id:04d}",
-            "GM": "GM-{task_id:04d}",
-        },
-        "story_id_templates": {
-            "SG": "PRD-{repo_label_upper_underscore}-T3-SPLIT-SG-{task_id:04d}",
-            "GM": "PRD-{repo_label_upper_underscore}-T3-SPLIT-GM-{task_id:04d}",
+            "GM": "GM-{task_id_plus_100:04d}",
         },
         "default_story_templates": {
             "back": "BACKLOG-{repo_label_upper_underscore}-M1",
