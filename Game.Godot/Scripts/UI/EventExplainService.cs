@@ -257,12 +257,16 @@ public static class EventExplainService
             var reason = TryGetStringLoose(root, "Reason");
             var bossId = TryGetStringLoose(root, "BossId");
             var reasonLabel = TranslateTokenValue(type, "objective_skip_reason", reason);
+            var affectedSurfaceLabel = TranslateTokenValue(type, "affected_surface", "combat_hud_pressure_camera_feedback");
+            var nextStepLabel = TranslateField(type, "detail", "next_step.continue", "continue");
 
-            var parts = new List<string>(8) { prefix };
+            var parts = new List<string>(10) { prefix };
             AddSummaryPart(parts, type, "objective_id", "objective_id", objectiveId);
             AddSummaryPart(parts, type, "trigger_round", "round", roundNumber);
             AddSummaryPart(parts, type, "reason", "reason", reasonLabel);
             AddSummaryPart(parts, type, "boss_id", "boss_id", bossId);
+            AddSummaryPart(parts, type, "affected_surface", "affected_surface", affectedSurfaceLabel);
+            AddSummaryPart(parts, type, "next_step", "next_step", nextStepLabel);
             return string.Join(' ', parts) + multiplierSuffix;
         }
 
@@ -1191,6 +1195,12 @@ public static class EventExplainService
             AddFact(facts, type, root, "RoundNumber", "trigger_round");
             AddFact(facts, type, root, "Reason", "reason", tokenCategory: "objective_skip_reason");
             AddFact(facts, type, root, "BossId", "boss_id");
+            var surfaceLabel = TranslateField(type, "detail", "affected_surface", "affected_surface");
+            var surfaceValue = TranslateTokenValue(type, "affected_surface", "combat_hud_pressure_camera_feedback");
+            facts.Add($"{surfaceLabel}: {surfaceValue}");
+            var nextStepLabel = TranslateField(type, "detail", "next_step", "next_step");
+            var nextStepValue = TranslateField(type, "detail", "next_step.continue", "continue");
+            facts.Add($"{nextStepLabel}: {nextStepValue}");
         }
         else
         {

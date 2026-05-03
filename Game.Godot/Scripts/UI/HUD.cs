@@ -1179,6 +1179,8 @@ public partial class HUD : Control, IHudEventHandlers
             return;
         }
 
+        _actionPanelController?.ClearTransientInteractionState();
+
         var mapperVm = CampaignHudParameterViewModelMapper.Map(
             commanderId: _campaignCommanderValueText,
             activeStrategemId: string.Empty,
