@@ -247,9 +247,13 @@ def build_initial_state(
 
 def build_forked_summary(source_summary: dict[str, Any], *, new_run_id: str, requested_run_id: str) -> dict[str, Any]:
     cloned_steps: list[dict[str, Any]] = []
+    failure_kind = str(source_summary.get("failure_kind") or "").strip().lower()
+    replay_llm_review = failure_kind == "review-needs-fix"
     for name in STEP_SEQUENCE:
         step = _summary_steps_by_name(source_summary).get(name)
         if not isinstance(step, dict):
+            break
+        if name == "sc-llm-review" and replay_llm_review:
             break
         status = _normalize_step_status(step.get("status"))
         if status in {"ok", "skipped"}:
