@@ -17,6 +17,7 @@ public partial class MainMenu : Control
     private const string UiMenuSettings = "ui.menu.settings";
     private const string UiMenuQuit = "ui.menu.quit";
     private const string UiMenuLoad = "ui.menu.load";
+    private const string UiHudLoad = "ui.hud.load";
     private const string UiMenuReturn = "ui.menu.return";
     private const string UiMenuStartFailed = "ui.menu.start.failed";
     private const string UiMenuHelp = "ui.menu.help";
@@ -363,6 +364,7 @@ public partial class MainMenu : Control
     {
         _loadPending = true;
         Publish(UiMenuLoad, "ui");
+        Publish(UiHudLoad, "ui");
         _loadPanel.Visible = true;
     }
 
