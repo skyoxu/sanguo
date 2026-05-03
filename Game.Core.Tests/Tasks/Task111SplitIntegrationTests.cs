@@ -14,8 +14,6 @@ public sealed class Task111SplitIntegrationTests
     private const int SplitTask149 = 149;
     private const int SplitTask150 = 150;
     private const string Task111Ref = "Game.Core.Tests/Tasks/Task111SplitIntegrationTests.cs";
-    private const string Task52Ref = "Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs";
-    private const string DiceFlowRef = "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd";
     private const string SplitTask149Ref = "Game.Core.Tests/Tasks/Task149CampaignBossVictoryScenarioTests.cs";
     private const string SplitTask150Ref = "Game.Core.Tests/Tasks/Task150CampaignCampFailScenarioTests.cs";
 
@@ -49,8 +47,7 @@ public sealed class Task111SplitIntegrationTests
             acceptance[1].Should().Contain("must not be introduced here");
 
             testRefs.Should().Contain(Task111Ref);
-            testRefs.Should().Contain(Task52Ref);
-            testRefs.Should().Contain(DiceFlowRef);
+            testRefs.Should().HaveCount(1);
             task149Refs.Should().Contain(SplitTask149Ref);
             task150Refs.Should().Contain(SplitTask150Ref);
 

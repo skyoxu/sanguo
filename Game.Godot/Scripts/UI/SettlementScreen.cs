@@ -155,6 +155,10 @@ public partial class SettlementScreen : Control
         var winner = root.TryGetProperty("WinnerPlayerId", out var w) && w.ValueKind == JsonValueKind.String
             ? (w.GetString() ?? string.Empty)
             : string.Empty;
+        if (string.IsNullOrWhiteSpace(winner))
+        {
+            return;
+        }
 
         var statsJson = root.TryGetProperty("StatsSnapshot", out var ss) && ss.ValueKind != JsonValueKind.Undefined && ss.ValueKind != JsonValueKind.Null
             ? ss.GetRawText()
