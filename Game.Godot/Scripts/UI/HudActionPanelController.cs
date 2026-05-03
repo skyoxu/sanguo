@@ -77,6 +77,12 @@ public sealed class HudActionPanelController
         }
     }
 
+    public void ClearTransientInteractionState()
+    {
+        HideTileActionPanel();
+        _diceButton.Disabled = true;
+    }
+
     public void LoadMapTiles(SanguoMapDefinition map)
     {
         _tilesByIndex.Clear();
@@ -179,7 +185,7 @@ public sealed class HudActionPanelController
 
     private void OnSkipTileActionPressed()
     {
-        if (_activePlayerId == null)
+        if (_activePlayerId == null || !_awaitingTileAction)
         {
             return;
         }

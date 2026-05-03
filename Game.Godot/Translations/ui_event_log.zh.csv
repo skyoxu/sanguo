@@ -373,9 +373,11 @@ ui.hud.event.core.sanguo.objective.skipped.detail.objective_id,任务
 ui.hud.event.core.sanguo.objective.skipped.detail.trigger_round,轮次
 ui.hud.event.core.sanguo.objective.skipped.detail.reason,原因
 ui.hud.event.core.sanguo.objective.skipped.detail.boss_id,BOSS
+ui.hud.event.core.sanguo.objective.skipped.detail.affected_surface,受影响界面
 ui.hud.event.shared.detail.win_rate_tier.low,低
 ui.hud.event.shared.detail.win_rate_tier.mid,中
 ui.hud.event.shared.detail.win_rate_tier.high,高
 ui.hud.event.shared.detail.fail_consequence.return_to_camp_end_round,回到营地并结束本轮
 ui.hud.event.shared.detail.key_loss_summary.camp_hp_risk,营地体力风险
 ui.hud.event.shared.detail.objective_skip_reason.run_ended_in_boss,BOSS战直接结束对局
+ui.hud.event.shared.detail.affected_surface.combat_hud_pressure_camera_feedback,战斗HUD/压力面板/镜头反馈
