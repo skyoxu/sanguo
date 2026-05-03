@@ -154,6 +154,7 @@ public sealed class Task91SplitTests
         var repoRoot = FindRepoRoot();
         var runGateBundlePath = Path.Combine(repoRoot, "scripts", "python", "run_gate_bundle.py");
         var runReviewPipelinePath = Path.Combine(repoRoot, "scripts", "sc", "run_review_pipeline.py");
+        var pipelineHelpersPath = Path.Combine(repoRoot, "scripts", "sc", "_pipeline_helpers.py");
         var pipelinePlanPath = Path.Combine(repoRoot, "scripts", "sc", "_pipeline_plan.py");
         var acceptanceCheckPath = Path.Combine(repoRoot, "scripts", "sc", "acceptance_check.py");
         var devCliPath = Path.Combine(repoRoot, "scripts", "python", "dev_cli.py");
@@ -161,6 +162,7 @@ public sealed class Task91SplitTests
 
         File.Exists(runGateBundlePath).Should().BeTrue();
         File.Exists(runReviewPipelinePath).Should().BeTrue();
+        File.Exists(pipelineHelpersPath).Should().BeTrue();
         File.Exists(pipelinePlanPath).Should().BeTrue();
         File.Exists(acceptanceCheckPath).Should().BeTrue();
         File.Exists(devCliPath).Should().BeTrue();
@@ -168,7 +170,7 @@ public sealed class Task91SplitTests
 
         ContainsTokenInFile(runGateBundlePath, "logs/ci").Should().BeTrue(
             "runner artifacts must remain in existing CI evidence paths.");
-        ContainsTokenInFile(runReviewPipelinePath, "logs/ci").Should().BeTrue(
+        ContainsTokenInFile(runReviewPipelinePath, "sc-review-pipeline-task-").Should().BeTrue(
             "runner artifacts must remain in existing CI evidence paths.");
         ContainsTokenInFile(runGateBundlePath, "summary.json").Should().BeTrue(
             "runner integration must emit summary artifact through existing pipeline.");

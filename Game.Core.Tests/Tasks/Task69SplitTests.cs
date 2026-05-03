@@ -78,7 +78,10 @@ public sealed class Task69SplitTests
             refs.Should().Contain(PolicyTestRef);
             refs.Should().Contain(LocalizationGateTestRef);
             refs.Should().Contain(UiWiringTestRef);
-            refs.Should().OnlyContain(static item => item.EndsWith(".cs", StringComparison.OrdinalIgnoreCase));
+            refs.Should().Contain("Tests.Godot/tests/UI/test_task69_i18n_missing_key_exposure_policy.gd");
+            refs.Should().OnlyContain(static item =>
+                item.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
+                item.EndsWith(".gd", StringComparison.OrdinalIgnoreCase));
         }
     }
 

@@ -11,7 +11,7 @@ public sealed class Task164SplitTests
 {
     private const int TaskId = 164;
     private const string ExpectedCoreRef = "Game.Core.Tests/Tasks/Task164SplitTests.cs";
-    private const string ExpectedIntegrationRef = "Tests.Godot/tests/Integration/Security/test_signal_subscription_lifecycle.gd";
+    private const string ExpectedIntegrationRef = "Tests.Godot/tests/Integration/Security/test_task164_signal_subscription_lifecycle.gd";
 
     private static readonly string[] ViewFiles =
     {
@@ -40,7 +40,10 @@ public sealed class Task164SplitTests
             acceptance[0].Should().Contain(ExpectedIntegrationRef);
 
             testRefs.Should().Contain(ExpectedCoreRef);
-            testRefs.Should().OnlyContain(testRef => testRef.EndsWith(".cs", StringComparison.OrdinalIgnoreCase));
+            testRefs.Should().Contain(ExpectedIntegrationRef);
+            testRefs.Should().OnlyContain(testRef =>
+                testRef.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
+                testRef.EndsWith(".gd", StringComparison.OrdinalIgnoreCase));
         }
     }
 
