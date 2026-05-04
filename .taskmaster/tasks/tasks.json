@@ -1099,7 +1099,7 @@
               2
             ],
             "details": "提供可审计的反馈收集入口与落盘机制，用于支持后续人工用户测试/观察：在帮助/教程 UI 内允许填写简短反馈并保存到 `user://feedback/feedback.jsonl`（离线、无出网）；本子任务不强制在代码提交阶段完成真实用户测试，但需保证后续可以据此开展用户测试并基于反馈迭代教程内容。",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "分析用户测试结果，确保帮助和教程有效提升玩家理解游戏的能力。",
             "parentId": "undefined"
           }
@@ -2168,7 +2168,7 @@
             "description": "Specify the exact fallback behavior for missing i18n keys in release mode and the diagnostic exposure behavior in dev mode.",
             "dependencies": [],
             "details": "Make the mode-dependent policy explicit so UI, tests, and CI do not infer different rules for the same missing-key case.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add unit tests for the mode policy helper that cover release-friendly fallback and dev diagnostic exposure.",
             "parentId": "69"
           },
@@ -2180,7 +2180,7 @@
               1
             ],
             "details": "Touch the shared localization resolution path instead of patching individual widgets to avoid inconsistent exposure.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add integration tests that render the same missing key under release and dev modes and assert different outputs.",
             "parentId": "69"
           },
@@ -2192,7 +2192,7 @@
               2
             ],
             "details": "Keep developer diagnostics available without weakening release-mode hard gates.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify CI fixtures fail on raw-key exposure in release mode and pass in dev mode when diagnostics are enabled.",
             "parentId": "69"
           }
@@ -2305,7 +2305,7 @@
             "description": "Document the machine-checkable contract evolution rules for event and DTO changes, including additive-safe fields and prohibited rename/remove cases.",
             "dependencies": [],
             "details": "The rule set should distinguish compatible additions from breaking removals and require an explicit deprecation window for the latter.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add focused tests for the compatibility rule evaluator across additive and breaking change samples.",
             "parentId": "73"
           },
@@ -2317,7 +2317,7 @@
               1
             ],
             "details": "Use stable identifiers and field-level comparison so the gate catches semantic breaking changes instead of relying on filename drift.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add regression tests that feed synthetic before/after contract sets into the diff checker.",
             "parentId": "73"
           },
@@ -2329,7 +2329,7 @@
               2
             ],
             "details": "The summary should point to the violating contract and the missing migration evidence to make the failure actionable.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify CI summary generation and failing exit code on a breaking-change fixture.",
             "parentId": "73"
           }
@@ -2820,7 +2820,7 @@
             "description": "Break the core assertions bundle into individually addressable checks so each acceptance assertion has a stable execution unit.",
             "dependencies": [],
             "details": "Avoid a monolithic script that hides which assertion failed; keep one named check per acceptance assertion or tightly related pair.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add tests that enumerate the gate units and verify all required acceptance IDs are registered.",
             "parentId": "91"
           },
@@ -2832,7 +2832,7 @@
               1
             ],
             "details": "The runner should emit stable IDs, pass/fail/skipped states, and actionable error messages for each assertion.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add tests for summary serialization and failing exit behavior when any required assertion fails.",
             "parentId": "91"
           },
@@ -2844,7 +2844,7 @@
               2
             ],
             "details": "Reuse existing logs and evidence paths so the runner becomes an orchestrator rather than a parallel reporting system.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify the pipeline entrypoint invokes the runner and writes the expected summary artifact.",
             "parentId": "91"
           }
@@ -2904,7 +2904,7 @@
             "description": "Add explicit campaign run mode, commander, strategem, map, seed and difficulty fields to the game-start payload contract.",
             "dependencies": [],
             "details": "Keep the payload additive and forward-compatible so future campaign-only fields do not require a breaking start-flow rewrite.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add contract tests asserting required campaign start fields and defaults.",
             "parentId": "93"
           },
@@ -2916,7 +2916,7 @@
               1
             ],
             "details": "This closes the common gap where contracts are extended but save-state or runtime bootstrap still drops fields.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add integration tests that start a campaign run and assert the runtime state contains all payload fields.",
             "parentId": "93"
           },
@@ -2928,7 +2928,7 @@
               2
             ],
             "details": "The save header should be sufficient to explain and reproduce a run without inspecting transient UI state.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add save/load regression tests for campaign header persistence.",
             "parentId": "93"
           }
@@ -3000,7 +3000,7 @@
             "description": "Specify the exact HUD fields for commander, strategems, round markers, boss pressure context and other campaign parameters.",
             "dependencies": [],
             "details": "A stable view model prevents later HUD work from depending directly on transport events or save headers.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add mapper tests that translate campaign runtime state into a HUD parameter view model.",
             "parentId": "95"
           },
@@ -3012,7 +3012,7 @@
               1
             ],
             "details": "Keep it in the shared HUD layer rather than scattering labels across unrelated widgets.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add GdUnit UI tests asserting the parameter panel renders localized labels and values.",
             "parentId": "95"
           },
@@ -3024,7 +3024,7 @@
               2
             ],
             "details": "This task closes the gap between feature UI and the i18n exposure policy established elsewhere.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add release-mode UI regression tests for missing or malformed localization inputs.",
             "parentId": "95"
           }
@@ -3770,7 +3770,7 @@
             "description": "Define the explicit phase sequence and transition conditions from camp operations to pressure resolution and then board phase entry.",
             "dependencies": [],
             "details": "The transition rules must encode the frozen round order instead of letting UI callbacks or event timing imply ordering.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add core state-machine tests that exercise the full camp -> pressure -> board transition sequence.",
             "parentId": "123"
           },
@@ -3782,7 +3782,7 @@
               1
             ],
             "details": "This prevents duplicated transition logic between UI handlers and core services.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add integration tests that assert only one sequencer path emits the expected side effects.",
             "parentId": "123"
           },
@@ -3794,7 +3794,7 @@
               2
             ],
             "details": "Without stable checkpoints, later acceptance gates will only know that sequencing failed, not where.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add tests verifying checkpoint order and reason codes for nominal and preempted flows.",
             "parentId": "123"
           },
@@ -3806,7 +3806,7 @@
               3
             ],
             "details": "This task is the guard against accidental phase drift introduced by future campaign modules.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add regression scenarios covering boss preemption and standard board-entry branches.",
             "parentId": "123"
           }
@@ -3842,7 +3842,7 @@
             "description": "Specify the ordering keys that make same-round and same-tick events replay-stable across runs.",
             "dependencies": [],
             "details": "The ordering rule must be explicit enough to survive refactors in publishers or listeners.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add unit tests for event ordering comparers using same-round and same-tick fixtures.",
             "parentId": "124"
           },
@@ -3854,7 +3854,7 @@
               1
             ],
             "details": "Focus on the round lifecycle boundaries where ordering drift is most likely to occur.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add replay regression tests that compare ordered event traces across repeated runs.",
             "parentId": "124"
           },
@@ -3866,7 +3866,7 @@
               2
             ],
             "details": "Replay stability is only useful as a hard guarantee, not as advisory logging.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify mismatch fixtures fail the ordering check with clear diff output.",
             "parentId": "124"
           }
@@ -4166,7 +4166,7 @@
             "description": "Make explicit how pressure accumulates across rounds after boss reveal when the player delays or fails to clear the challenge.",
             "dependencies": [],
             "details": "The rule must distinguish unrevealed, revealed-but-delayed, and forced-challenge states to avoid contradictory implementations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add core rule tests covering delayed, failed and resumed boss pressure scenarios.",
             "parentId": "135"
           },
@@ -4178,7 +4178,7 @@
               1
             ],
             "details": "Keep the accumulated pressure in deterministic state instead of recomputing it from lossy UI traces.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add save/load and round-transition tests for stacked pressure values.",
             "parentId": "135"
           },
@@ -4190,7 +4190,7 @@
               2
             ],
             "details": "Players need to distinguish baseline boss pressure from penalty pressure when making decisions.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add UI/integration tests that assert delayed-pressure summaries are rendered with correct values.",
             "parentId": "135"
           },
@@ -4202,7 +4202,7 @@
               3
             ],
             "details": "This is the edge where two independently valid systems often conflict.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add cross-feature regression tests for delayed boss rounds that end in forced challenge preemption.",
             "parentId": "135"
           }
@@ -4266,7 +4266,7 @@
             "description": "Ensure landing on an event tile always enters the event resolution path without optional player confirmation or skip affordance.",
             "dependencies": [],
             "details": "The board resolver should treat event tiles as mandatory outcomes, not as action choices.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add core and integration tests for landing on event tiles and immediately entering event resolution.",
             "parentId": "137"
           },
@@ -4278,7 +4278,7 @@
               1
             ],
             "details": "This closes the loophole where mandatory events exist in core but optional buttons remain active in UI.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add UI tests asserting skip and unrelated actions are disabled during event-tile resolution.",
             "parentId": "137"
           },
@@ -4290,7 +4290,7 @@
               2
             ],
             "details": "A mandatory trigger without visible explanation will look like an input bug to players.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add integration tests for popup text and event name localization on auto-trigger resolution.",
             "parentId": "137"
           }
@@ -4585,7 +4585,7 @@
             "description": "List the content-pack quality gates required for campaign datasets, including cross references, version bumps and localization coverage.",
             "dependencies": [],
             "details": "The rules should be explicit per dataset type so future content additions know which checks are mandatory.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add validator tests that exercise each quality rule with a minimal failing fixture.",
             "parentId": "148"
           },
@@ -4597,7 +4597,7 @@
               1
             ],
             "details": "Reuse existing validation infrastructure where possible instead of adding campaign-only ad hoc scripts.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add regression fixtures for each campaign dataset category.",
             "parentId": "148"
           },
@@ -4609,7 +4609,7 @@
               2
             ],
             "details": "A hard gate without pinpointed evidence will waste time and get bypassed.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify CI summaries identify offending file paths, fields and gate names.",
             "parentId": "148"
           }
@@ -4650,7 +4650,7 @@
             "description": "Create a reproducible full-loop scenario that covers campaign start, round progression, boss reveal, boss challenge and final victory.",
             "dependencies": [],
             "details": "The scenario should minimize randomness so failures indicate regressions rather than flaky setup.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add an end-to-end fixture that seeds campaign content and runtime state deterministically.",
             "parentId": "149"
           },
@@ -4662,7 +4662,7 @@
               1
             ],
             "details": "Lock the milestone order so orchestration regressions are caught before they reach player testing.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add integration assertions for milestone order, visible summaries and end-state markers.",
             "parentId": "149"
           },
@@ -4674,7 +4674,7 @@
               2
             ],
             "details": "This task is only useful if CI can consume the resulting evidence without manual inspection.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify the end-to-end run emits the expected summary artifacts and acceptance anchors.",
             "parentId": "149"
           },
@@ -4686,7 +4686,7 @@
               3
             ],
             "details": "A full-loop scenario should catch cross-cutting regressions, not just pure victory-state bugs.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add scenario checks for i18n cleanliness, replay markers and final adjudication consistency.",
             "parentId": "149"
           }
@@ -4774,7 +4774,7 @@
             "description": "List the UI-facing assertions that must hard-fail CI, including explainability, localized summaries and raw-key suppression.",
             "dependencies": [],
             "details": "Make the UI gate inventory explicit so later additions do not silently bypass CI.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add tests for the assertion registry or manifest that enumerates required UI checks.",
             "parentId": "152"
           },
@@ -4786,7 +4786,7 @@
               1
             ],
             "details": "Keep the summary narrow and stable so CI can reason about UI results without parsing arbitrary logs.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add tests for summary generation from representative UI fixtures.",
             "parentId": "152"
           },
@@ -4798,7 +4798,7 @@
               2
             ],
             "details": "UI quality only becomes durable when it blocks merges instead of living as best-effort reports.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify failing fixtures produce hard-gate failures with actionable CI messages.",
             "parentId": "152"
           }
@@ -4869,7 +4869,7 @@
             "description": "State exactly which categories are allowed to show user-facing feedback and which must remain audit/log only.",
             "dependencies": [],
             "details": "The ambiguity here is dangerous: if the boundary is not explicit, teams will gradually reintroduce noisy user-facing diagnostics.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add rule tests covering crash, non-crash and mixed diagnostic categories.",
             "parentId": "154"
           },
@@ -4881,7 +4881,7 @@
               1
             ],
             "details": "The implementation should sit at the routing choke point, not at individual call sites.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add integration tests proving non-crash diagnostics stay in logs while crash paths remain user-visible.",
             "parentId": "154"
           },
@@ -4893,7 +4893,7 @@
               2
             ],
             "details": "A runtime guard without CI drift detection will decay quickly under future feature pressure.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add policy-check fixtures that detect forbidden non-crash user feedback routes.",
             "parentId": "154"
           }
@@ -5032,7 +5032,7 @@
             "description": "Write the privacy-compliance baseline covering data minimization, retention, redaction and non-crash feedback suppression linkage.",
             "dependencies": [],
             "details": "Keep the document machine-oriented enough that CI can validate concrete rules against it.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add document validation tests or fixtures that ensure required privacy sections exist.",
             "parentId": "159"
           },
@@ -5044,7 +5044,7 @@
               1
             ],
             "details": "The policy only has value if implementation and CI consume the same clauses.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add tests for policy parsing and rule evaluation against representative fixtures.",
             "parentId": "159"
           },
@@ -5056,7 +5056,7 @@
               2
             ],
             "details": "Privacy drift tends to hide in observability code paths, so the gate must be explicit and noisy in CI.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify CI output identifies the violated privacy clause and offending artifact.",
             "parentId": "159"
           }
@@ -5320,7 +5320,7 @@
             "description": "List the additive campaign contracts required across start flow, HUD, round lifecycle, camp, boss pressure and objectives.",
             "dependencies": [],
             "details": "This inventory prevents contract work from being done piecemeal and leaving hidden gaps between modules.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add registry tests that verify the expected campaign contracts are declared.",
             "parentId": "169"
           },
@@ -5332,7 +5332,7 @@
               1
             ],
             "details": "Follow the repository contract template strictly so compatibility tooling can reason about the new contracts.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add contract compile tests and validate_contracts regression coverage for the new types.",
             "parentId": "169"
           },
@@ -5344,7 +5344,7 @@
               2
             ],
             "details": "Without explicit versioning hooks this task degrades into a one-off contract dump.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add compatibility tests covering additive evolution and prohibited breaking changes.",
             "parentId": "169"
           },
@@ -5356,7 +5356,7 @@
               3
             ],
             "details": "This closes the common gap where code compiles but architecture validation no longer knows the contracts exist.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run and assert validate_contracts and related back-link checks against the expanded set.",
             "parentId": "169"
           }
@@ -5528,7 +5528,7 @@
             "description": "Map replay hash set, save_untrusted behavior and mismatch mode policy to individually named hard-gate checks.",
             "dependencies": [],
             "details": "Do not hide three distinct acceptance assertions behind one opaque bundle result.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add tests that enumerate and execute the expected A-013 to A-015 checks.",
             "parentId": "173"
           },
@@ -5540,7 +5540,7 @@
               1
             ],
             "details": "The evidence should be deterministic and reusable by CI, not a one-off local debug artifact.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add tests for evidence generation on trusted and untrusted replay fixtures.",
             "parentId": "173"
           },
@@ -5552,7 +5552,7 @@
               2
             ],
             "details": "Replay integrity is a contract-level property and should not remain a soft warning.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify the pipeline exits non-zero and writes actionable summaries on replay policy failures.",
             "parentId": "173"
           },
@@ -5564,7 +5564,7 @@
               3
             ],
             "details": "Misaligned reporting creates fake green states where tests pass but acceptance tooling cannot see the result.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Add regression tests for acceptance-id alignment and summary format compatibility.",
             "parentId": "173"
           }
@@ -5662,7 +5662,7 @@
           164,
           170
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "adrRefs": [
@@ -5695,7 +5695,7 @@
           141,
           142
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "adrRefs": [
@@ -5724,7 +5724,7 @@
           134,
           146
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "adrRefs": [
@@ -5809,7 +5809,7 @@
           144,
           145
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "adrRefs": [
@@ -5861,7 +5861,7 @@
           174,
           175
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
         "adrRefs": [
