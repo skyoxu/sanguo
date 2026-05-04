@@ -3,8 +3,8 @@ using Godot;
 namespace Game.Godot.Scripts.UI;
 
 /// <summary>
-/// Task 68 integration closure gate.
-/// Closure is complete only when both split-task evidences are present.
+/// Shared HUD integration closure gate used by explainability acceptance slices.
+/// Closure is complete only when both prerequisite evidence tracks are present.
 /// </summary>
 public partial class HudExplainabilityIntegrationClosureGate : RefCounted
 {

@@ -388,7 +388,9 @@ def main() -> int:
         "out_dir": str(out_dir),
     }
 
-    should_evaluate_red_verify = red_first_mode and verify_mode != "none"
+    # Strict red verification should only gate runs that actually generated new tests.
+    # If no files were created in this round, a green verify is expected and should not fail red-first.
+    should_evaluate_red_verify = red_first_mode and created > 0 and verify_mode != "none"
     if should_evaluate_red_verify:
         verify_log = out_dir / f"verify-{task_id}.log"
         verify_out = _read_text(verify_log) if verify_log.is_file() else ""
