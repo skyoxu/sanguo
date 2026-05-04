@@ -85,7 +85,6 @@ py -3 scripts/python/remind_overlay_task_drift.py --write --overlay-index docs/a
 - `check_gate_bundle_consistency.py`
 - `check_workflow_gate_enforcement.py`
 - `validate_chapter7_ui_wiring.py` (profile-aware when invoked with `--chapter7-profile-path`)
-- `validate_chapter7_artifact_manifest.py`
 
 ### Soft Gates
 

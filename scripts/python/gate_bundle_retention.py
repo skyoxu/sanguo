@@ -46,6 +46,7 @@ def prune_gate_bundle_runs(
 
     grouped = collect_runs_by_date(ci_root)
 
+    # 1) Drop runs older than retention_days
     for day, run_dirs in grouped.items():
         if retention_days >= 0 and (today - day).days > retention_days:
             for run_dir in run_dirs:
@@ -57,6 +58,7 @@ def prune_gate_bundle_runs(
                 except Exception as exc:  # noqa: BLE001
                     failed.append({"path": str(run_dir).replace("\\", "/"), "error": str(exc)})
 
+    # 2) Keep at most N runs per day
     grouped = collect_runs_by_date(ci_root)
     for _, run_dirs in grouped.items():
         run_dirs_sorted = sorted(run_dirs, key=lambda p: p.stat().st_mtime, reverse=True)

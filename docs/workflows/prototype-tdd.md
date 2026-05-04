@@ -6,6 +6,13 @@ Use this entrypoint when the work is still in `prototype lane`, but you still wa
 
 It answers whether the idea is worth keeping. It does not replace the formal Chapter 6 delivery path.
 
+Prototype TDD is especially useful for a solo-developer style loop:
+
+- keep the scope small
+- prove the core player fantasy quickly
+- prove the minimum playable loop before expanding the system
+- decide `discard | archive | promote` before turning the prototype into formal work
+
 ## Difference From Formal 6.4 / 6.5 / 6.6
 
 - Prototype TDD can still run `red -> green -> refactor`.
@@ -25,7 +32,13 @@ py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor
 
 ## Stable Entrypoint
 
-Recommended entrypoint:
+For a guided Day 1 -> Day 5 flow with confirmation pauses, use:
+
+```powershell
+py -3 scripts/python/dev_cli.py run-prototype-workflow --prototype-file docs/prototypes/<your-file>.md
+```
+
+For direct stage-level control, use:
 
 ```powershell
 py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --stage red --dotnet-target Game.Core.Tests/Game.Core.Tests.csproj --filter <Expr>
@@ -46,6 +59,15 @@ py -3 scripts/python/dev_cli.py run-prototype-tdd --slug hud-loop --create-recor
 ```
 
 This creates a prototype note under `docs/prototypes/` and exits without running verification.
+
+Recommended record additions for solo-style prototype work:
+- the core player fantasy
+- the minimum playable loop
+- the `## Game Type Specifics` section copied from `docs/prototypes/TEMPLATE.md`
+- what would make the idea worth promoting
+- what would make the idea worth discarding
+
+When `--record-path` points to an existing prototype note, `run-prototype-tdd` reads `## Game Type Specifics` and writes it into `summary.json` as `prototype_intake.game_type_specifics`. This keeps red/green evidence connected to the Step07-lite intake without entering the formal Chapter 6 evidence model.
 
 ### 2. Prototype red
 
@@ -108,6 +130,14 @@ Notes:
   - Run verification only.
 - `--related-task-id`
   - Record future formal task ids when they already exist.
+- `--record-path`
+  - Use an existing `docs/prototypes/*.md` record and consume its `## Game Type Specifics` section.
+- `--game-type-specific-game-type`
+  - Game type id to write when creating a record directly.
+- `--game-type-specific-guide-path`
+  - Extracted BMAD/GDS guide path to write when creating a record directly.
+- `--game-type-specific-section`
+  - Repeatable `Title: answer` entry for Step07-lite sections.
 
 ## Outputs
 
@@ -115,6 +145,8 @@ Notes:
 - Summary: `logs/ci/<date>/prototype-tdd-<slug>-<stage>/summary.json`
 - Human-readable report: `logs/ci/<date>/prototype-tdd-<slug>-<stage>/report.md`
 - Step logs: `logs/ci/<date>/prototype-tdd-<slug>-<stage>/step-*.log`
+
+The summary includes `prototype_intake.game_type_specifics` when the prototype note contains `## Game Type Specifics`.
 
 ## Good Fit
 
@@ -130,6 +162,12 @@ Do not use it when the work already needs:
 - or formal Chapter 6 evidence for delivery.
 
 ## Promotion Rule
+
+When deciding whether to promote, use this quick filter:
+
+- promote when the minimum playable loop already demonstrates the value of the idea
+- archive when the idea still has signal but the loop is not yet strong enough for formal delivery
+- discard when the prototype has already answered the question negatively
 
 When the prototype becomes real work:
 

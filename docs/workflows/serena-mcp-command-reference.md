@@ -471,10 +471,10 @@ rename_symbol "GuildService" \
 ##### 场景 2：重命名方法（保持接口一致性）
 
 ```bash
-# 重命名方法 CreateGuild → CreateNewGuild
+# 重命名方法 CreateGuild → CreateGuildAsync
 rename_symbol "GuildService/CreateGuild" \
   --relative_path "Scripts/Core/Services/GuildService.cs" \
-  --new_name "CreateNewGuild"
+  --new_name "CreateGuildAsync"
 
 # 自动更新所有调用点
 ```

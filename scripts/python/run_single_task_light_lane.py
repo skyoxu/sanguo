@@ -287,7 +287,13 @@ def _run_step_with_retry(
     return int(rc), stdout, stderr, metadata
 
 
-def _steps(*, align_apply: bool, delivery_profile: str, llm_timeout_sec: int | None) -> list[tuple[str, list[str]]]:
+def _steps(
+    *,
+    align_apply: bool,
+    delivery_profile: str,
+    llm_timeout_sec: int | None,
+    max_rewrite_change_ratio: float = 0.0,
+) -> list[tuple[str, list[str]]]:
     align_cmd = [
         "py",
         "-3",
@@ -300,6 +306,8 @@ def _steps(*, align_apply: bool, delivery_profile: str, llm_timeout_sec: int | N
     ]
     if llm_timeout_sec is not None:
         align_cmd.extend(["--timeout-sec", str(int(llm_timeout_sec))])
+    if float(max_rewrite_change_ratio or 0.0) > 0.0:
+        align_cmd.extend(["--max-rewrite-change-ratio", str(float(max_rewrite_change_ratio))])
     if align_apply:
         align_cmd.append("--apply")
 
@@ -1300,11 +1308,17 @@ def _build_resume_scope(
     downstream_on_extract_family_fail: str,
     fill_refs_mode: str,
     batch_lane: str,
+    max_rewrite_change_ratio: float = 0.0,
 ) -> dict[str, Any]:
     step_names = [
         name
         for name, _ in _apply_fill_refs_mode(
-            _steps(align_apply=align_apply, delivery_profile=delivery_profile, llm_timeout_sec=None),
+            _steps(
+                align_apply=align_apply,
+                delivery_profile=delivery_profile,
+                llm_timeout_sec=None,
+                max_rewrite_change_ratio=float(max_rewrite_change_ratio or 0.0),
+            ),
             fill_refs_mode=fill_refs_mode,
         )
     ]
@@ -1317,13 +1331,20 @@ def _build_resume_scope(
         "downstream_on_extract_family_fail": str(downstream_on_extract_family_fail),
         "fill_refs_mode": str(fill_refs_mode),
         "batch_lane": str(batch_lane),
+        "max_rewrite_change_ratio": float(max_rewrite_change_ratio or 0.0),
         "step_names": step_names,
     }
 
 
 def _summary_scope_matches(summary: dict[str, Any], scope: dict[str, Any]) -> bool:
     current = summary.get("resume_scope")
-    return bool(isinstance(current, dict) and current == scope)
+    if not isinstance(current, dict):
+        return False
+    normalized_current = dict(current)
+    normalized_scope = dict(scope)
+    normalized_current.setdefault("max_rewrite_change_ratio", 0.0)
+    normalized_scope.setdefault("max_rewrite_change_ratio", 0.0)
+    return normalized_current == normalized_scope
 
 
 def _row_is_complete(row: dict[str, Any] | None, *, step_names: list[str]) -> bool:
@@ -1618,6 +1639,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--stop-on-step-failure", action="store_true", help="Stop remaining steps in one task when one step fails.")
     parser.add_argument("--no-align-apply", action="store_true", help="Do not pass --apply to align step (read-only mode).")
     parser.add_argument(
+        "--max-rewrite-change-ratio",
+        type=float,
+        default=0.0,
+        help="Forwarded to align step; hard-fail rewrite-only acceptance lines that change more than this ratio (0 disables).",
+    )
+    parser.add_argument(
         "--delivery-profile",
         default=str(os.environ.get("DELIVERY_PROFILE") or "fast-ship"),
         choices=["playable-ea", "fast-ship", "standard"],
@@ -1646,6 +1673,7 @@ def main() -> int:
             align_apply=align_apply,
             delivery_profile=str(args.delivery_profile),
             llm_timeout_sec=args.llm_timeout_sec,
+            max_rewrite_change_ratio=float(args.max_rewrite_change_ratio or 0.0),
         ),
         fill_refs_mode=fill_refs_mode_resolved,
     )
@@ -1669,6 +1697,7 @@ def main() -> int:
         downstream_on_extract_family_fail=downstream_on_extract_family_fail_resolved,
         fill_refs_mode=fill_refs_mode_resolved,
         batch_lane=batch_lane_resolved,
+        max_rewrite_change_ratio=float(args.max_rewrite_change_ratio or 0.0),
     )
 
     if bool(args.self_check):
@@ -1685,6 +1714,7 @@ def main() -> int:
             "fill_refs_after_extract_fail": str(args.fill_refs_after_extract_fail),
             "fill_refs_mode_requested": str(args.fill_refs_mode),
             "fill_refs_mode_resolved": fill_refs_mode_resolved,
+            "max_rewrite_change_ratio": float(args.max_rewrite_change_ratio or 0.0),
             "downstream_on_extract_fail_requested": str(args.downstream_on_extract_fail),
             "downstream_on_extract_fail_resolved": downstream_on_extract_fail_resolved,
             "downstream_on_extract_family_fail_requested": str(args.downstream_on_extract_family_fail),
@@ -1741,6 +1771,7 @@ def main() -> int:
     summary["fill_refs_after_extract_fail"] = str(args.fill_refs_after_extract_fail)
     summary["fill_refs_mode_requested"] = str(args.fill_refs_mode)
     summary["fill_refs_mode_resolved"] = fill_refs_mode_resolved
+    summary["max_rewrite_change_ratio"] = float(args.max_rewrite_change_ratio or 0.0)
     summary["downstream_on_extract_fail_requested"] = str(args.downstream_on_extract_fail)
     summary["downstream_on_extract_fail_resolved"] = downstream_on_extract_fail_resolved
     summary["downstream_on_extract_family_fail_requested"] = str(args.downstream_on_extract_family_fail)

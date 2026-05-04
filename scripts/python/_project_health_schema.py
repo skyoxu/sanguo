@@ -131,6 +131,46 @@ def _validate_project_health_dashboard_fallback(payload: dict[str, Any]) -> list
                     continue
                 for key in ("task_id", "status", "recommended_action"):
                     _require_string(item, key, errors)
+    project_overview = payload.get("project_overview")
+    if not isinstance(project_overview, dict):
+        errors.append("$.project_overview: expected object")
+    else:
+        _require_string(project_overview, "game_name", errors, allow_empty=True)
+        _require_string(project_overview, "game_type", errors, allow_empty=True)
+        documents = project_overview.get("documents")
+        if not isinstance(documents, dict):
+            errors.append("$.project_overview.documents: expected object")
+        else:
+            for key in ("prd", "gdd", "prototype"):
+                values = documents.get(key)
+                if not isinstance(values, list):
+                    errors.append(f"$.project_overview.documents.{key}: expected array")
+                    continue
+                for idx, item in enumerate(values):
+                    if not isinstance(item, str) or not item.strip():
+                        errors.append(f"$.project_overview.documents.{key}[{idx}]: expected non-empty string")
+        prototype_core = project_overview.get("prototype_core")
+        if not isinstance(prototype_core, dict):
+            errors.append("$.project_overview.prototype_core: expected object")
+        else:
+            for key in ("game_feature", "core_gameplay_loop", "win_fail_conditions"):
+                _require_string(prototype_core, key, errors, allow_empty=True)
+        game_type_specifics = project_overview.get("game_type_specifics")
+        if not isinstance(game_type_specifics, dict):
+            errors.append("$.project_overview.game_type_specifics: expected object")
+        else:
+            for key in ("game_type", "guide_path"):
+                _require_string(game_type_specifics, key, errors, allow_empty=True)
+            selected_sections = game_type_specifics.get("selected_sections")
+            if not isinstance(selected_sections, list):
+                errors.append("$.project_overview.game_type_specifics.selected_sections: expected array")
+            else:
+                for idx, section in enumerate(selected_sections):
+                    if not isinstance(section, dict):
+                        errors.append(f"$.project_overview.game_type_specifics.selected_sections[{idx}]: expected object")
+                        continue
+                    for key in ("id", "title", "answer"):
+                        _require_string(section, key, errors, allow_empty=True)
     return errors
 
 

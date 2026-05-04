@@ -81,8 +81,6 @@ def _iter_contract_files(contracts_dir: Path) -> list[Path]:
 
 
 def _load_event_types_map(contracts_dir: Path) -> dict[str, str]:
-    """Load EventTypes constant map from Game.Core/Contracts/EventTypes.cs."""
-
     mapping: dict[str, str] = {}
     event_types_path = contracts_dir / "EventTypes.cs"
     if not event_types_path.exists():
@@ -108,7 +106,7 @@ def _validate_event_type(value: str, *, domain_prefix: str) -> list[str]:
 
     for part in parts:
         if not token_re.fullmatch(part):
-            issues.append(f"invalid segment: {part!r} (require [a-z][a-z0-9]*)")
+            issues.append(f"invalid segment: {part!r} (require [a-z][a-z0-9_]*)")
 
     if parts and parts[0] != domain_prefix:
         issues.append(f"domain prefix mismatch: expected '{domain_prefix}.'")
@@ -117,12 +115,11 @@ def _validate_event_type(value: str, *, domain_prefix: str) -> list[str]:
 
 
 def _doc_value_for_position(doc_matches: list[re.Match[str]], position: int) -> str | None:
-    """Return the nearest preceding `Domain event:` value for a source position."""
     nearest: str | None = None
-    for m in doc_matches:
-        if m.start() > position:
+    for match in doc_matches:
+        if match.start() > position:
             break
-        nearest = m.group(1).strip()
+        nearest = match.group(1).strip()
     return nearest
 
 
@@ -160,29 +157,29 @@ def main() -> int:
     for cs in _iter_contract_files(contracts_dir):
         text = cs.read_text(encoding="utf-8", errors="ignore")
         doc_matches = list(DOC_DOMAIN_EVENT_RE.finditer(text))
+        resolved_values: list[tuple[int, str]] = []
 
-        resolved_values: list[tuple[int, str, str]] = []
-        for m in EVENT_TYPE_LITERAL_RE.finditer(text):
-            value = m.group(1)
-            resolved_values.append((m.start(), value, value))
+        for match in EVENT_TYPE_LITERAL_RE.finditer(text):
+            resolved_values.append((match.start(), match.group(1)))
 
-        for m in EVENT_TYPE_SYMBOL_RE.finditer(text):
-            symbol = m.group(1)
-            if symbol in event_type_map:
-                resolved_values.append((m.start(), f"EventTypes.{symbol}", event_type_map[symbol]))
-            else:
-                rel = _to_posix(cs.relative_to(root))
-                findings.append(
-                    Finding(
-                        file=rel,
-                        event_type=f"EventTypes.{symbol}",
-                        ok=False,
-                        issues=[f"unresolved EventTypes symbol: {symbol}"],
-                        warnings=[],
-                    )
+        for match in EVENT_TYPE_SYMBOL_RE.finditer(text):
+            symbol = match.group(1)
+            event_type = event_type_map.get(symbol)
+            if event_type:
+                resolved_values.append((match.start(), event_type))
+                continue
+            rel = _to_posix(cs.relative_to(root))
+            findings.append(
+                Finding(
+                    file=rel,
+                    event_type=f"EventTypes.{symbol}",
+                    ok=False,
+                    issues=[f"unresolved EventTypes symbol: {symbol}"],
+                    warnings=[],
                 )
+            )
 
-        for source_pos, source_expr, event_type in resolved_values:
+        for source_pos, event_type in resolved_values:
             issues = _validate_event_type(event_type, domain_prefix=args.domain_prefix)
             warnings: list[str] = []
             doc_value = _doc_value_for_position(doc_matches, source_pos)

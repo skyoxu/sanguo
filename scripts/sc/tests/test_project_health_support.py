@@ -393,17 +393,39 @@ class ProjectHealthSupportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             _write(root / "project.godot", "[application]\nconfig/name=\"Demo\"\n")
-            _write(root / "README.md", "# Demo\n")
-            _write(root / "AGENTS.md", "# Demo\n")
+            _write(
+                root / "README.md",
+                "# Demo\n\n## Game Project Metadata\n- Game Name: Gravity Rooms\n- Game Type: puzzle\n",
+            )
+            _write(
+                root / "AGENTS.md",
+                "# Demo\n\n## Game Project Metadata\n- Game Name: Gravity Rooms\n- Game Type: puzzle\n",
+            )
+            _write(root / "docs" / "prd" / "overview.md", "# PRD\n")
+            _write(root / "docs" / "gdd" / "overview.md", "# GDD\n")
+            _write(
+                root / "docs" / "prototypes" / "gravity-room.md",
+                "# Prototype: gravity-room\n\n"
+                "## Game Feature\n- Gravity flip rooms\n\n"
+                "## Core Gameplay Loop\n- Enter a room, flip gravity, reach the exit.\n\n"
+                "## Win / Fail Conditions\n- Win by reaching the exit; fail by touching spikes.\n\n"
+                "## Game Type Specifics\n"
+                "- Game Type: puzzle\n"
+                "- Guide Path: docs/game-type-guides/puzzle.md\n"
+                "- Core Puzzle Mechanics: Flip gravity changes the valid path through one constrained room.\n",
+            )
             _write(root / "examples" / "taskmaster" / "tasks.json", "{}\n")
             _write(root / "examples" / "taskmaster" / "tasks_back.json", "{}\n")
             _write(root / "examples" / "taskmaster" / "tasks_gameplay.json", "{}\n")
 
             payload = project_health.project_health_scan(root)
+            latest_index = json.loads((root / "logs" / "ci" / "project-health" / "latest.json").read_text(encoding="utf-8"))
+            dashboard_html = (root / "logs" / "ci" / "project-health" / "latest.html").read_text(encoding="utf-8")
             latest_scan = json.loads(
                 (root / "logs" / "ci" / "project-health" / "project-health-scan.latest.json").read_text(encoding="utf-8")
             )
 
+            project_health_schema.validate_project_health_dashboard_payload(latest_index)
             project_health_schema.validate_project_health_scan_payload(payload)
             project_health_schema.validate_project_health_scan_payload(latest_scan)
             self.assertEqual("project-health-scan", payload["kind"])
@@ -411,6 +433,22 @@ class ProjectHealthSupportTests(unittest.TestCase):
             self.assertEqual("detect-project-stage", payload["results"][0]["kind"])
             self.assertEqual("doctor-project", payload["results"][1]["kind"])
             self.assertEqual("check-directory-boundaries", payload["results"][2]["kind"])
+            self.assertEqual("Gravity Rooms", latest_index["project_overview"]["game_name"])
+            self.assertEqual("puzzle", latest_index["project_overview"]["game_type"])
+            self.assertEqual(["docs/prd/overview.md"], latest_index["project_overview"]["documents"]["prd"])
+            self.assertEqual(["docs/gdd/overview.md"], latest_index["project_overview"]["documents"]["gdd"])
+            self.assertEqual(["docs/prototypes/gravity-room.md"], latest_index["project_overview"]["documents"]["prototype"])
+            self.assertEqual("Gravity flip rooms", latest_index["project_overview"]["prototype_core"]["game_feature"])
+            self.assertEqual("puzzle", latest_index["project_overview"]["game_type_specifics"]["game_type"])
+            self.assertEqual(
+                "Flip gravity changes the valid path through one constrained room.",
+                latest_index["project_overview"]["game_type_specifics"]["selected_sections"][0]["answer"],
+            )
+            self.assertIn("Gravity Rooms", dashboard_html)
+            self.assertIn("docs/prd/overview.md", dashboard_html)
+            self.assertIn("Gravity flip rooms", dashboard_html)
+            self.assertIn("Core Puzzle Mechanics", dashboard_html)
+            self.assertIn("Flip gravity changes the valid path", dashboard_html)
             self.assertEqual(payload, latest_scan)
 
     def test_detect_project_stage_should_flag_examples_only_triplet(self) -> None:

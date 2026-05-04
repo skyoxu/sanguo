@@ -2,93 +2,84 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import importlib.util
+import json
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-PYTHON_DIR = REPO_ROOT / "scripts" / "python"
-SC_DIR = REPO_ROOT / "scripts" / "sc"
-
-for candidate in (PYTHON_DIR, SC_DIR):
-    text = str(candidate)
-    if text not in sys.path:
-        sys.path.insert(0, text)
-
-
-def _load_module(name: str, relative_path: str):
-    path = REPO_ROOT / relative_path
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise AssertionError(f"failed to load module: {path}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-gate_bundle = _load_module("gate_bundle_template_module", "scripts/python/run_gate_bundle.py")
+SCRIPT = REPO_ROOT / "scripts" / "python" / "run_gate_bundle.py"
 
 
 class GateBundleTemplateTests(unittest.TestCase):
-    def test_hard_mode_should_include_semantic_review_tier_gate(self) -> None:
-        commands = gate_bundle._hard_gate_commands_with_options(
-            [".taskmaster/tasks/tasks_back.json", ".taskmaster/tasks/tasks_gameplay.json"],
-            False,
-            -1,
-        )
-        by_name = {str(item["name"]): item for item in commands}
+    def test_hard_mode_should_skip_template_missing_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            out_root = Path(td) / "gate-bundle"
+            missing_back = Path(td) / "missing_tasks_back.json"
+            missing_gameplay = Path(td) / "missing_tasks_gameplay.json"
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--mode",
+                    "hard",
+                    "--out-dir",
+                    str(out_root),
+                    "--task-files",
+                    str(missing_back),
+                    str(missing_gameplay),
+                    "--skip-prune-runs",
+                ],
+                cwd=str(REPO_ROOT),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="ignore",
+            )
+            self.assertEqual(0, proc.returncode, proc.stdout)
+            summary_path = out_root / "hard" / "summary.json"
+            self.assertTrue(summary_path.exists(), proc.stdout)
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            gates = {str(item.get("name")): item for item in (summary.get("gates") or [])}
 
-        self.assertIn("validate_semantic_review_tier", by_name)
-        self.assertEqual(
-            ["py", "-3", "scripts/python/validate_semantic_review_tier.py"],
-            by_name["validate_semantic_review_tier"]["cmd"],
-        )
+            self.assertEqual("missing_prd_gdd_consistency_config", gates["prd_gdd_semantic_consistency"].get("skip_reason"))
+            self.assertTrue(gates["prd_gdd_semantic_consistency"].get("skipped"))
 
-    def test_missing_task_files_should_skip_semantic_review_tier_gate(self) -> None:
-        skip_reason = gate_bundle._skip_reason_for_gate(
-            "validate_semantic_review_tier",
-            repo_root=REPO_ROOT,
-            task_files=["logs/test-temp/missing_back.json", "logs/test-temp/missing_gameplay.json"],
-        )
-        self.assertEqual("missing_task_files", skip_reason)
+            self.assertEqual("missing_task_files", gates["overlay_task_drift"].get("skip_reason"))
+            self.assertTrue(gates["overlay_task_drift"].get("skipped"))
 
-    def test_hard_mode_should_include_signal_compliance_workflow_gate(self) -> None:
-        commands = gate_bundle._hard_gate_commands_with_options(
-            [".taskmaster/tasks/tasks_back.json", ".taskmaster/tasks/tasks_gameplay.json"],
-            False,
-            -1,
-        )
-        by_name = {str(item["name"]): item for item in commands}
+            self.assertEqual("missing_task_files", gates["task_contract_refs_gate"].get("skip_reason"))
+            self.assertTrue(gates["task_contract_refs_gate"].get("skipped"))
 
-        self.assertIn("signal_compliance_workflow_hard_gate", by_name)
-        self.assertEqual(
-            [
-                "py",
-                "-3",
-                "scripts/python/check_signal_compliance_workflow_hard_gate.py",
-                "--task-files",
-                ".taskmaster/tasks/tasks_back.json",
-                ".taskmaster/tasks/tasks_gameplay.json",
-            ],
-            by_name["signal_compliance_workflow_hard_gate"]["cmd"],
-        )
+            self.assertEqual("missing_contract_interfaces_dir", gates["contract_interface_docs"].get("skip_reason"))
+            self.assertTrue(gates["contract_interface_docs"].get("skipped"))
 
-    def test_hard_mode_should_include_acceptance_garbled_gate(self) -> None:
-        commands = gate_bundle._hard_gate_commands_with_options(
-            [".taskmaster/tasks/tasks_back.json", ".taskmaster/tasks/tasks_gameplay.json"],
-            False,
-            -1,
-        )
-        by_name = {str(item["name"]): item for item in commands}
+            self.assertIn("validate_recovery_docs", gates)
+            self.assertFalse(gates["validate_recovery_docs"].get("skipped"))
+            self.assertEqual(0, int(gates["validate_recovery_docs"].get("rc", -1)), gates["validate_recovery_docs"])
 
-        self.assertIn("check_acceptance_garbled", by_name)
-        self.assertEqual(
-            ["py", "-3", "scripts/sc/check_acceptance_garbled.py"],
-            by_name["check_acceptance_garbled"]["cmd"],
-        )
+            self.assertIn("audit_tests_godot_mirror_git_tracking", gates)
+            self.assertFalse(gates["audit_tests_godot_mirror_git_tracking"].get("skipped"))
+            self.assertEqual(
+                0,
+                int(gates["audit_tests_godot_mirror_git_tracking"].get("rc", -1)),
+                gates["audit_tests_godot_mirror_git_tracking"],
+            )
+
+            self.assertIn("backfill_semantic_review_tier", gates)
+            self.assertFalse(gates["backfill_semantic_review_tier"].get("skipped"))
+            self.assertEqual(0, int(gates["backfill_semantic_review_tier"].get("rc", -1)), gates["backfill_semantic_review_tier"])
+
+            self.assertIn("validate_semantic_review_tier", gates)
+            self.assertFalse(gates["validate_semantic_review_tier"].get("skipped"))
+            self.assertEqual(0, int(gates["validate_semantic_review_tier"].get("rc", -1)), gates["validate_semantic_review_tier"])
+
+            self.assertEqual("missing_task_files", gates["obligations_reuse_regression"].get("skip_reason"))
+            self.assertTrue(gates["obligations_reuse_regression"].get("skipped"))
 
 
 if __name__ == "__main__":

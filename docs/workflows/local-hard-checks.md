@@ -57,7 +57,7 @@ py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks
 - `--timeout-sec <n>`: forwarded to strict smoke; default `5`.
 
 Notes:
-- For test-oriented commands, `--solution auto` prefers the test-bearing solution when one exists (for this repo, that is currently `Sanguo.sln` rather than `Game.sln`).
+- For test-oriented commands, `--solution auto` prefers the repo's test-bearing solution when one exists; in a copied business repo, keep this auto-resolved instead of hardcoding a template or source-repo `.sln` name.
 
 ## Difference From Other Entrypoints
 

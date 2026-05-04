@@ -38,12 +38,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Promote freeze whitelist draft to immutable baseline.")
     parser.add_argument(
         "--draft",
-        default=".taskmaster/docs/obligations-freeze-whitelist.draft.json",
+        default=".taskmaster/config/obligations-freeze-whitelist.draft.json",
         help="Path to whitelist draft JSON.",
     )
     parser.add_argument(
         "--baseline-dir",
-        default=".taskmaster/docs/obligations-freeze-baselines",
+        default=".taskmaster/config/obligations-freeze-baselines",
         help="Directory to store immutable dated baselines.",
     )
     parser.add_argument(
@@ -58,7 +58,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--current",
-        default=".taskmaster/docs/obligations-freeze-whitelist.baseline.current.json",
+        default=".taskmaster/config/obligations-freeze-whitelist.baseline.current.json",
         help="Path to current promoted baseline pointer JSON.",
     )
     parser.add_argument(

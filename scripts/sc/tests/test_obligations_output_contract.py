@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
-
-from scripts.sc.tests._repo_test_temp import repo_temp_dir
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -139,8 +138,8 @@ class ObligationsOutputContractTests(unittest.TestCase):
         self.assertIn("summary:reuse_lookup_key_missing", errors)
 
     def test_write_checked_and_sync_artifacts_writes_all_outputs(self) -> None:
-        with repo_temp_dir("obligations-output-write-all") as root:
-            out_dir = root / "logs" / "ci" / "2026-02-23" / "sc-llm-obligations-task-2-round-ut"
+        with tempfile.TemporaryDirectory() as td:
+            out_dir = Path(td) / "logs" / "ci" / "2026-02-23" / "sc-llm-obligations-task-2-round-ut"
             summary = build_summary_base(
                 task_id="2",
                 title="Create core project structure and namespaces",
@@ -179,8 +178,8 @@ class ObligationsOutputContractTests(unittest.TestCase):
             self.assertEqual(SUMMARY_SCHEMA_VERSION, saved_summary.get("schema_version"))
 
     def test_write_checked_summary_only_and_sync_updates_summary_only(self) -> None:
-        with repo_temp_dir("obligations-output-summary-only") as root:
-            out_dir = root / "logs" / "ci" / "2026-02-23" / "sc-llm-obligations-task-2-round-summary-only"
+        with tempfile.TemporaryDirectory() as td:
+            out_dir = Path(td) / "logs" / "ci" / "2026-02-23" / "sc-llm-obligations-task-2-round-summary-only"
             out_dir.mkdir(parents=True, exist_ok=True)
             (out_dir / "verdict.json").write_text(json.dumps(_valid_verdict("2"), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             summary = build_summary_base(

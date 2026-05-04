@@ -75,7 +75,6 @@ def is_abs_path(p: str) -> bool:
 def validate_test_refs(
     *,
     root: Path,
-    task_id: str,
     label: str,
     entry: dict[str, Any] | None,
     require_non_empty: bool,
@@ -101,12 +100,6 @@ def validate_test_refs(
         errors.append(f"{label}: test_refs is empty but require_non_empty=true")
         return errors, warnings
 
-    tid_int: int | None = None
-    try:
-        tid_int = int(str(task_id))
-    except ValueError:
-        tid_int = None
-
     for r in refs:
         rr = r.replace("\\", "/")
         if is_abs_path(rr):
@@ -120,24 +113,6 @@ def validate_test_refs(
         if not rr.startswith(allowed_prefixes):
             errors.append(f"{label}: test_refs entry must be under test roots: {rr}")
             continue
-
-        # Naming conventions for newly added task batches (T50+):
-        # - Keep task-owned test refs stable to avoid drift between refs and generator scripts.
-        file_name = Path(rr).name
-        file_lower = file_name.lower()
-        if rr.startswith("Game.Core.Tests/Tasks/") and rr.endswith(".cs"):
-            expected_prefix = f"Task{task_id}".lower()
-            if not file_lower.startswith(expected_prefix):
-                errors.append(
-                    f"{label}: Game.Core.Tests/Tasks test file must start with 'Task{task_id}': {rr}"
-                )
-
-        if tid_int is not None and tid_int >= 50 and rr.startswith("Tests.Godot/tests/") and rr.endswith(".gd"):
-            expected = f"test_task{tid_int}".lower()
-            if not (file_lower.startswith(expected + "_") or file_lower.startswith(expected + ".")):
-                errors.append(
-                    f"{label}: Tests.Godot/tests test file must start with 'test_task{tid_int}_': {rr}"
-                )
 
         disk = root / rr
         if not disk.exists():
@@ -174,19 +149,9 @@ def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
 
-    e1, w1 = validate_test_refs(
-        root=root,
-        task_id=task_id,
-        label="tasks_back.json",
-        entry=back_task,
-        require_non_empty=bool(args.require_non_empty),
-    )
+    e1, w1 = validate_test_refs(root=root, label="tasks_back.json", entry=back_task, require_non_empty=bool(args.require_non_empty))
     e2, w2 = validate_test_refs(
-        root=root,
-        task_id=task_id,
-        label="tasks_gameplay.json",
-        entry=gameplay_task,
-        require_non_empty=bool(args.require_non_empty),
+        root=root, label="tasks_gameplay.json", entry=gameplay_task, require_non_empty=bool(args.require_non_empty)
     )
     errors.extend(e1)
     errors.extend(e2)

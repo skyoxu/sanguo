@@ -2,7 +2,7 @@
 """
 Validate consistency between the three Taskmaster task files:
 
-- .taskmaster/tasks/tasks_back.json      (NG backbone, governance/crosscutting)
+- .taskmaster/tasks/tasks_back.json      (NG backbone, architecture/infra)
 - .taskmaster/tasks/tasks_gameplay.json  (GM gameplay tasks)
 - .taskmaster/tasks/tasks.json           (Taskmaster/MCP view)
 

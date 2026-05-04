@@ -941,7 +941,7 @@ class NeedsFixFastTargetedTimeoutTests(unittest.TestCase):
                     return_value={
                         "deterministic_strategy": "reuse-latest",
                         "doc_only_delta": True,
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature-slice.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature-slice.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -1789,8 +1789,8 @@ class NeedsFixFastTargetedReviewerSelectionTests(unittest.TestCase):
                         "cmd": ["py", "-3", "scripts/sc/acceptance_check.py", "--task-id", "56", "--only", "adr,links,overlay"],
                         "change_scope": {
                             "deterministic_strategy": "minimal-acceptance",
-                            "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature.md"],
-                            "task_semantic_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/feature.md"],
+                            "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature.md"],
+                            "task_semantic_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/feature.md"],
                         },
                     },
                 ),

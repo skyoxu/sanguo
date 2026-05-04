@@ -199,7 +199,7 @@ def auto_detect_prd_id(root: Path) -> str:
     raise ValueError("Cannot auto-detect PRD ID. Use --prd-id.")
 
 
-def validate_overlay(prd_id: str, overlay_dir: Path, required_headings: list[str]) -> dict[str, Any]:
+def validate_overlay(prd_id: str, overlay_dir: Path, required_headings: list[str], *, strict_refs: bool = False) -> dict[str, Any]:
     root = repo_root()
     errors: list[str] = []
     warnings: list[str] = []
@@ -241,11 +241,14 @@ def validate_overlay(prd_id: str, overlay_dir: Path, required_headings: list[str
                 if not str(fm.get("Title", "")).strip():
                     errors.append(f"{rel}: missing Title in front matter")
                 if page.name != "_index.md" and not fm.get("Arch-Refs"):
-                    warnings.append(f"{rel}: missing Arch-Refs in front matter")
+                    target = errors if strict_refs else warnings
+                    target.append(f"{rel}: missing Arch-Refs in front matter")
                 if page.name != "_index.md" and not fm.get("ADRs"):
-                    warnings.append(f"{rel}: missing ADRs in front matter")
+                    target = errors if strict_refs else warnings
+                    target.append(f"{rel}: missing ADRs in front matter")
                 if page.name not in {"_index.md", "ACCEPTANCE_CHECKLIST.md"} and not fm.get("Test-Refs"):
-                    warnings.append(f"{rel}: missing Test-Refs in front matter")
+                    target = errors if strict_refs else warnings
+                    target.append(f"{rel}: missing Test-Refs in front matter")
 
         for heading in required_headings:
             if not has_markdown_heading(text, heading):
@@ -265,6 +268,7 @@ def validate_overlay(prd_id: str, overlay_dir: Path, required_headings: list[str
         "prd_id": prd_id,
         "overlay_dir": to_posix(overlay_dir, root),
         "required_headings": required_headings,
+        "strict_refs": bool(strict_refs),
         "errors": errors,
         "warnings": warnings,
         "status": "ok" if not errors else "fail",
@@ -281,6 +285,7 @@ def main() -> int:
         default=[],
         help="Require each page to contain a heading, e.g. --require-heading \"Task Mapping\"",
     )
+    ap.add_argument("--strict-refs", action="store_true", help="Treat missing Arch-Refs/ADRs/Test-Refs as hard errors.")
     args = ap.parse_args()
 
     root = repo_root()
@@ -301,7 +306,7 @@ def main() -> int:
         return 2
 
     overlay_dir = (root / args.overlay_dir).resolve() if args.overlay_dir else (root / "docs" / "architecture" / "overlays" / prd_id / "08")
-    report = validate_overlay(prd_id, overlay_dir, args.require_heading)
+    report = validate_overlay(prd_id, overlay_dir, args.require_heading, strict_refs=bool(args.strict_refs))
     out_dir = ci_out_dir()
 
     report_json = out_dir / "report.json"
@@ -339,4 +344,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

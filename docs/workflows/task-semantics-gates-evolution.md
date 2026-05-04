@@ -180,11 +180,6 @@
 - 所有脚本读写都以 UTF-8 为准；在 Windows 控制台里建议统一用 `py -3` 执行脚本，避免 PowerShell/Console codepage 导致中文乱码或 JSON 解析失败。
 - 你现在的治理链路是“两段式”：先把 `acceptance` 语义对齐，再补 `Refs:`/`test_refs` 并落地测试证据。
 
-CI 提示（PR 标题规范）：
-
-- 任务型 PR：标题建议包含 `Task [<id>]`（例如 `Task [21]: ...` 或 `Task [10.3]: ...`），CI 会解析出 task id 并运行任务范围内的 `acceptance_check`。
-- 非任务型 PR（文档/工作流/CI 治理）：标题建议以 `Workflow:` / `Docs:` / `Chore:` / `CI:` 等前缀开头（或包含 `no-task`），CI 会跳过 task-scoped 的 `acceptance_check`，避免因为 `tasks.json` 没有 `status=in-progress` 而失败。
-
 ### 0) 结构与回链（确定性，无 LLM）
 
 #### 0.1 硬结构先过：任务映射字段一致 + 至少一侧视图存在
@@ -205,7 +200,7 @@ py -3 scripts/python/validate_task_master_triplet.py
 py -3 scripts/python/verify_task_mapping.py
 ```
 
-说明：本仓库已将 `layer` 收敛为硬门禁，允许值仅为 `docs|core|adapter|ci`（由 `scripts/python/validate_task_master_triplet.py` 校验）。历史/遗留值（例如 `ui/infra/scene/test`）不应再出现在视图任务文件中；如遇到遗留值，优先运行 `scripts/python/normalize_task_layers.py --write` 做确定性归一化（其中 `test` 会按 refs 推断为 `core` 或 `adapter`），再重新跑 triplet 校验。
+说明：`validate_task_master_triplet.py` 当前对 `layer` 允许值为 `docs|core|adapter|ci`，因此会把 `ui/infra` 打印为 invalid（更像 warning）。如果你准备把 `layer` 变成硬门禁，需要先统一口径（例如把 UI 任务映射为 `adapter` 或扩展允许集合）。
 
 #### 0.2 回链先对齐：ADR/CH/Overlay 引用校验
 
@@ -351,6 +346,20 @@ py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd
 # 只生成文件，不跑验证（加速；后续由 green/refactor/acceptance_check 收口）
 py -3 scripts/sc/llm_generate_tests_from_acceptance_refs.py --task-id <id> --tdd-stage red-first --verify none
 ```
+
+#### 2.2.1 存量任务迁移工具（deterministic；可选）
+
+- `scripts/sc/backfill_task_test_refs.py`
+  - 意义：把 acceptance 条款中的 `Refs:`（证据文件）**确定性同步**到任务视图的 `test_refs`，并可选触发 LLM 生成缺失测试文件；只有加 `--write` 才会改写任务文件。
+  - 输出：`logs/ci/<YYYY-MM-DD>/sc-backfill-test-refs/`。
+
+- `scripts/python/backfill_acceptance_anchors_in_tests.py`
+  - 意义：为存量任务的一批测试文件补齐 `ACC:T<id>.<n>` anchors（一次性迁移工具），用于把旧仓库拉到 `validate_acceptance_anchors.py` 的“方法级绑定”硬门禁口径。
+  - 输出：`logs/ci/<YYYY-MM-DD>/backfill-acceptance-anchors/`。
+
+- `scripts/python/check_sc_internal_imports.py`
+  - 意义：止损检查，扫描 `scripts/sc/*.py` 的 `from _xxx import ...` 依赖，确保对应的 `scripts/sc/_xxx.py` 全部存在，避免同步漏文件导致入口脚本 ImportError。
+  - 用法：`py -3 scripts/python/check_sc_internal_imports.py --out logs/ci/<YYYY-MM-DD>/sc-internal-imports.json`
 
 #### 2.3 绿灯阶段（最小实现让测试变绿）
 
@@ -687,9 +696,9 @@ py -3 scripts/python/check_test_naming.py --style legacy
   - 作用：检查 `Game.Core` 不应依赖 Godot API 等架构边界约束。
   - 参数：`--out <json>`。
 
-- `scripts/python/check_sanguo_gameloop_contracts.py`
-  - 作用：检查 `Game.Core/Contracts/Sanguo/GameEvents.cs` 中关键事件契约是否存在且命名正确。
-  - 参数：无（直接输出 JSON 到 stdout）。
+- `scripts/python/check_domain_contracts.py`
+  - 可选：业务域契约一致性检查入口（模板仓不内置具体域规则，避免耦合）。
+  - 建议约定：检查 `Game.Core/Contracts/<Domain>/**` 下的事件/DTO 命名、必填字段、版本演进规则；输出 JSON 到 stdout 供 CI 归档。
 
 #### C5) 安全硬门/软扫（静态）与运行证据
 
@@ -748,3 +757,12 @@ py -3 scripts/python/check_test_naming.py --style legacy
   4) `py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor`
   5) `py -3 scripts/sc/acceptance_check.py --task-id <id> --out-per-task --godot-bin "$env:GODOT_BIN" --perf-p95-ms 20`
   6) `py -3 scripts/sc/llm_review.py --task-id <id> --auto-commit --review-template scripts/sc/templates/llm_review/bmad-godot-review-template.txt`
+
+## 0) Delta alignment (2026-02)
+
+- `acceptance_check.py`: strengthened with `--security-profile`, `--require-task-test-refs`, `--require-executed-refs`, `--subtasks-coverage`, and `--out-per-task`.
+- `llm_review.py`: profile-aware risk context and task-scoped output path behavior.
+- `llm_extract_task_obligations.py`: stability controls via `--consensus-runs`, `--garbled-gate`, `--auto-escalate`.
+- `llm_check_subtasks_coverage.py`: supports `--consensus-runs`.
+- `llm_semantic_gate_all.py`: supports `--garbled-gate` precheck.
+- CI invariant: emit `SecurityProfile: <host-safe|strict>` in Step Summary.

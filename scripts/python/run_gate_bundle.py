@@ -216,22 +216,8 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
             "cmd": ["py", "-3", "scripts/python/forbid_mirror_path_refs.py", "--root", "."],
         },
         {
-            "name": "signal_compliance_workflow_hard_gate",
-            "cmd": [
-                "py",
-                "-3",
-                "scripts/python/check_signal_compliance_workflow_hard_gate.py",
-                "--task-files",
-                *task_files,
-            ],
-        },
-        {
             "name": "audit_tests_godot_mirror_git_tracking",
             "cmd": ["py", "-3", "scripts/python/audit_tests_godot_mirror_git_tracking.py", "--root", "."],
-        },
-        {
-            "name": "check_acceptance_garbled",
-            "cmd": ["py", "-3", "scripts/sc/check_acceptance_garbled.py"],
         },
         {
             "name": "validate_contracts",

@@ -7,10 +7,14 @@ from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SC_DIR = REPO_ROOT / "scripts" / "sc"
+PYTHON_DIR = REPO_ROOT / "scripts" / "python"
 if str(SC_DIR) not in sys.path:
     sys.path.insert(0, str(SC_DIR))
+if str(PYTHON_DIR) not in sys.path:
+    sys.path.insert(0, str(PYTHON_DIR))
 
 import _overlay_generator_support as support
+import validate_overlay_execution
 
 SCRIPT_PATH = REPO_ROOT / "scripts" / "sc" / "llm_generate_overlays_from_prd.py"
 SPEC = importlib.util.spec_from_file_location("llm_generate_overlays_from_prd_script", SCRIPT_PATH)
@@ -257,6 +261,33 @@ class OverlayGeneratorFlowTests(unittest.TestCase):
 
             self.assertEqual("# Index Page\n", state["_index.md"]["current_page_text"])
             self.assertEqual("# Checklist Page\n", state["ACCEPTANCE_CHECKLIST.md"]["current_page_text"])
+
+    def test_validate_overlay_should_fail_missing_traceability_refs_in_strict_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            overlay_dir = root / "docs" / "architecture" / "overlays" / "PRD-X" / "08"
+            overlay_dir.mkdir(parents=True, exist_ok=True)
+            (overlay_dir / "_index.md").write_text(
+                "---\nPRD-ID: PRD-X\nTitle: Index\n---\n\n# Index\n",
+                encoding="utf-8",
+            )
+            (overlay_dir / "ACCEPTANCE_CHECKLIST.md").write_text("- [ ] Sample\n", encoding="utf-8")
+            (overlay_dir / "08-feature.md").write_text(
+                "---\n"
+                "PRD-ID: PRD-X\n"
+                "Title: Feature\n"
+                "---\n\n"
+                "## Feature\n",
+                encoding="utf-8",
+            )
+
+            with patch.object(validate_overlay_execution, "repo_root", return_value=root):
+                report = validate_overlay_execution.validate_overlay("PRD-X", overlay_dir, [], strict_refs=True)
+
+            self.assertEqual("fail", report["status"])
+            self.assertTrue(any("missing Arch-Refs" in item for item in report["errors"]))
+            self.assertTrue(any("missing ADRs" in item for item in report["errors"]))
+            self.assertTrue(any("missing Test-Refs" in item for item in report["errors"]))
 
 
 if __name__ == "__main__":

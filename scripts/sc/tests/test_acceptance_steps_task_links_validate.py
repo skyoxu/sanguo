@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-
-from scripts.sc.tests._repo_test_temp import repo_temp_dir
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -28,7 +27,8 @@ class AcceptanceStepsTaskLinksValidateTests(unittest.TestCase):
             captured["timeout"] = timeout_sec
             return acceptance_steps.StepResult(name=name, status="ok", rc=0, cmd=cmd, log=str(out_dir / f"{name}.log"))
 
-        with repo_temp_dir("acceptance-steps-links-default") as out_dir:
+        with tempfile.TemporaryDirectory(dir=str(REPO_ROOT)) as td:
+            out_dir = Path(td)
             with patch.dict(os.environ, {}, clear=True):
                 with patch.object(acceptance_steps, "run_and_capture", side_effect=_fake_run_and_capture):
                     res = acceptance_steps.step_task_links_validate(out_dir)
@@ -49,7 +49,8 @@ class AcceptanceStepsTaskLinksValidateTests(unittest.TestCase):
             captured["cmd"] = cmd
             return acceptance_steps.StepResult(name=name, status="ok", rc=0, cmd=cmd, log=str(out_dir / f"{name}.log"))
 
-        with repo_temp_dir("acceptance-steps-links-env") as out_dir:
+        with tempfile.TemporaryDirectory(dir=str(REPO_ROOT)) as td:
+            out_dir = Path(td)
             with patch.dict(os.environ, {"TASK_LINKS_MAX_WARNINGS": "73"}, clear=True):
                 with patch.object(acceptance_steps, "run_and_capture", side_effect=_fake_run_and_capture):
                     _ = acceptance_steps.step_task_links_validate(out_dir)

@@ -31,9 +31,9 @@ solution_resolver = _load_module("solution_resolver_test_module", "scripts/pytho
 class SolutionResolverTests(unittest.TestCase):
     def test_auto_should_prefer_repo_named_solution_for_general_builds(self) -> None:
         with tempfile.TemporaryDirectory(prefix="repo-") as tmpdir:
-            root = Path(tmpdir) / "sanguo"
+            root = Path(tmpdir) / "templategame"
             root.mkdir(parents=True, exist_ok=True)
-            (root / "sanguo.sln").write_text("", encoding="utf-8")
+            (root / "templategame.sln").write_text("", encoding="utf-8")
             (root / "Game.sln").write_text(
                 'Project("{x}") = "Game.Core.Tests", "Game.Core.Tests\\\\Game.Core.Tests.csproj", "{2}"\nEndProject\n',
                 encoding="utf-8",
@@ -41,14 +41,14 @@ class SolutionResolverTests(unittest.TestCase):
 
             resolved = solution_resolver.resolve_solution_path("auto", repo_root=root)
 
-        self.assertEqual("sanguo.sln", resolved)
+        self.assertEqual("templategame.sln", resolved)
 
     def test_auto_should_prefer_test_bearing_solution_for_test_entrypoints(self) -> None:
         with tempfile.TemporaryDirectory(prefix="repo-") as tmpdir:
-            root = Path(tmpdir) / "sanguo"
+            root = Path(tmpdir) / "templategame"
             root.mkdir(parents=True, exist_ok=True)
-            (root / "sanguo.sln").write_text(
-                'Project("{x}") = "sanguo", "sanguo.csproj", "{1}"\nEndProject\n',
+            (root / "templategame.sln").write_text(
+                'Project("{x}") = "templategame", "templategame.csproj", "{1}"\nEndProject\n',
                 encoding="utf-8",
             )
             (root / "Game.sln").write_text(

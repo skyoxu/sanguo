@@ -25,13 +25,10 @@ class ObligationsFreezeCommandTests(unittest.TestCase):
             consensus_runs=1,
             min_obligations=0,
             garbled_gate="on",
-            auto_escalate="on",
-            escalate_max_runs=3,
-            max_schema_errors=5,
             reuse_last_ok=False,
             explain_reuse_miss=False,
         )
-        cmd = jitter_batch.build_extract_command(task_id=11, timeout_sec=420, round_id="jitter-g1-r1", args=args)
+        cmd = jitter_batch.build_extract_command(task_id=11, round_id="jitter-g1-r1", args=args)
         self.assertIn("--delivery-profile", cmd)
         self.assertIn("standard", cmd)
         self.assertNotIn("--security-profile", cmd)
@@ -44,13 +41,10 @@ class ObligationsFreezeCommandTests(unittest.TestCase):
             consensus_runs=1,
             min_obligations=0,
             garbled_gate="off",
-            auto_escalate="on",
-            escalate_max_runs=3,
-            max_schema_errors=5,
             reuse_last_ok=True,
             explain_reuse_miss=True,
         )
-        cmd = jitter_batch.build_extract_command(task_id=12, timeout_sec=420, round_id="jitter-g1-r2", args=args)
+        cmd = jitter_batch.build_extract_command(task_id=12, round_id="jitter-g1-r2", args=args)
         self.assertIn("--delivery-profile", cmd)
         self.assertIn("playable-ea", cmd)
         self.assertIn("--security-profile", cmd)
@@ -64,9 +58,9 @@ class ObligationsFreezeCommandTests(unittest.TestCase):
             examples_dir = root / "examples" / "taskmaster"
             examples_dir.mkdir(parents=True, exist_ok=True)
             for name, content in {
-                "tasks.json": '{"master":{"tasks":[{"id":1}]}}\n',
-                "tasks_back.json": "[]\n",
-                "tasks_gameplay.json": "[]\n",
+                "tasks.json": "{\"master\":{\"tasks\":[{\"id\":1}]}}\n".encode("utf-8").decode("unicode_escape"),
+                "tasks_back.json": "[]\n".encode("utf-8").decode("unicode_escape"),
+                "tasks_gameplay.json": "[]\n".encode("utf-8").decode("unicode_escape"),
             }.items():
                 (examples_dir / name).write_text(content, encoding="utf-8")
             args = SimpleNamespace(

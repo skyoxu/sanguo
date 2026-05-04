@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 import sys
@@ -25,22 +24,6 @@ SCRIPT = REPO_ROOT / "scripts" / "sc" / "acceptance_check.py"
 
 
 class AcceptanceCheckCliGuardTests(unittest.TestCase):
-    def _stable_env(self) -> dict[str, str]:
-        env = dict(os.environ)
-        for key in (
-            "DELIVERY_PROFILE",
-            "SECURITY_PROFILE",
-            "SC_ACCEPTANCE_RUN_ID",
-            "SC_TEST_RUN_ID",
-            "SC_PIPELINE_RUN_ID",
-            "SC_TEST_REUSE_SUMMARY",
-            "TASK_LINKS_MAX_WARNINGS",
-            "PERF_P95_THRESHOLD_MS",
-            "GODOT_BIN",
-        ):
-            env.pop(key, None)
-        return env
-
     def _pick_task_id(self) -> str:
         from _taskmaster import default_paths
 
@@ -62,7 +45,6 @@ class AcceptanceCheckCliGuardTests(unittest.TestCase):
         proc = subprocess.run(
             [sys.executable, str(SCRIPT), "--self-check"],
             cwd=str(REPO_ROOT),
-            env=self._stable_env(),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -76,7 +58,6 @@ class AcceptanceCheckCliGuardTests(unittest.TestCase):
         proc = subprocess.run(
             [sys.executable, str(SCRIPT), "--self-check", "--delivery-profile", "fast-ship"],
             cwd=str(REPO_ROOT),
-            env=self._stable_env(),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -97,7 +78,6 @@ class AcceptanceCheckCliGuardTests(unittest.TestCase):
                 "--require-headless-e2e",
             ],
             cwd=str(REPO_ROOT),
-            env=self._stable_env(),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -112,19 +92,8 @@ class AcceptanceCheckCliGuardTests(unittest.TestCase):
         with staged_taskmaster_triplet(include_task1=True):
             task_id = self._pick_task_id()
             proc = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPT),
-                    "--task-id",
-                    task_id,
-                    "--dry-run-plan",
-                    "--only",
-                    "links,tests,perf",
-                    "--delivery-profile",
-                    "fast-ship",
-                ],
+                [sys.executable, str(SCRIPT), "--task-id", task_id, "--dry-run-plan", "--only", "links,tests,perf"],
                 cwd=str(REPO_ROOT),
-                env=self._stable_env(),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -145,18 +114,8 @@ class AcceptanceCheckCliGuardTests(unittest.TestCase):
         with staged_taskmaster_triplet(include_task1=True):
             task_id = self._pick_task_id()
             proc = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPT),
-                    "--task-id",
-                    task_id,
-                    "--only",
-                    "links",
-                    "--delivery-profile",
-                    "fast-ship",
-                ],
+                [sys.executable, str(SCRIPT), "--task-id", task_id, "--only", "links"],
                 cwd=str(REPO_ROOT),
-                env=self._stable_env(),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -184,11 +143,8 @@ class AcceptanceCheckCliGuardTests(unittest.TestCase):
                     "--only",
                     "tests",
                     "--require-headless-e2e",
-                    "--delivery-profile",
-                    "fast-ship",
                 ],
                 cwd=str(REPO_ROOT),
-                env=self._stable_env(),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,

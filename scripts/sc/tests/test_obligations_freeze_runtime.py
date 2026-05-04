@@ -17,9 +17,12 @@ import _obligations_freeze_runtime as runtime  # noqa: E402
 class ObligationsFreezeRuntimeTests(unittest.TestCase):
     def _write_triplet(self, base_dir: Path) -> None:
         base_dir.mkdir(parents=True, exist_ok=True)
-        (base_dir / "tasks.json").write_text('{"master":{"tasks":[{"id":1}]}}\n', encoding="utf-8")
-        (base_dir / "tasks_back.json").write_text("[]\n", encoding="utf-8")
-        (base_dir / "tasks_gameplay.json").write_text("[]\n", encoding="utf-8")
+        (base_dir / "tasks.json").write_text(
+            "{\"master\":{\"tasks\":[{\"id\":1}]}}\n".encode("utf-8").decode("unicode_escape"),
+            encoding="utf-8",
+        )
+        (base_dir / "tasks_back.json").write_text("[]\n".encode("utf-8").decode("unicode_escape"), encoding="utf-8")
+        (base_dir / "tasks_gameplay.json").write_text("[]\n".encode("utf-8").decode("unicode_escape"), encoding="utf-8")
 
     def test_default_tasks_file_should_fallback_to_examples_triplet(self) -> None:
         with tempfile.TemporaryDirectory() as td:

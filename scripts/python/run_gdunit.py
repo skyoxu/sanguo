@@ -15,9 +15,9 @@ import os
 import shutil
 import subprocess
 import json
+import sys
 import time
 import xml.etree.ElementTree as ET
-import sys
 
 
 def _find_latest_results_xml(reports_dir: str):
@@ -116,23 +116,53 @@ def write_text(path: str, content: str) -> None:
         f.write(content)
 
 
-def ensure_tests_project_junction(project_dir: str, root_dir: str) -> tuple[int, str] | None:
+def ensure_tests_project_junction(repo_root: str, project_abs: str, out_dir: str) -> None:
     """
-    Ensure Tests.Godot/Game.Godot is a junction to <repo>/Game.Godot.
+    Hard gate: ensure Tests.Godot/Game.Godot is a Junction to the real Game.Godot.
 
-    This prevents double-source drift where tests may load stale copies under Tests.Godot.
+    This prevents drift between test resources and the actual game project.
     """
     try:
-        proj_name = os.path.basename(os.path.abspath(project_dir)).lower()
-        if proj_name != "tests.godot":
-            return None
-        script = os.path.join(root_dir, "scripts", "python", "ensure_tests_project_junction.py")
-        if not os.path.isfile(script):
-            return None
-        # Use --migrate to make local clones resilient (move aside stale directories).
-        return run_cmd([sys.executable, script, "--project", project_dir, "--migrate"])
+        proj_name = os.path.basename(os.path.normpath(project_abs))
+        if proj_name != "Tests.Godot":
+            return
+
+        # Only enforce when the project is within repo root.
+        try:
+            common = os.path.commonpath([os.path.abspath(repo_root), os.path.abspath(project_abs)])
+        except ValueError:
+            return
+        if os.path.abspath(common) != os.path.abspath(repo_root):
+            return
+
+        ensure_script = os.path.join(repo_root, "scripts", "python", "ensure_tests_godot_junction.py")
+        if not os.path.isfile(ensure_script):
+            raise RuntimeError("ensure_tests_godot_junction_script_missing")
+
+        rel_project = os.path.relpath(project_abs, repo_root)
+        cmd = [
+            sys.executable,
+            ensure_script,
+            "--root",
+            repo_root,
+            "--tests-project",
+            rel_project,
+            "--link-name",
+            "Game.Godot",
+            "--target-rel",
+            "Game.Godot",
+            "--create-if-missing",
+            "--fix-wrong-target",
+        ]
+        rc, out = run_cmd(cmd, cwd=repo_root, timeout=60_000)
+        try:
+            write_text(os.path.join(out_dir, "ensure-tests-godot-junction.txt"), out)
+        except Exception:
+            pass
+        if rc != 0:
+            raise RuntimeError("ensure_tests_godot_junction_failed")
     except Exception:
-        return 1, "ensure_tests_project_junction: unexpected exception"
+        raise
 
 
 def main():
@@ -143,45 +173,22 @@ def main():
     ap.add_argument('--timeout-sec', type=int, default=600, help='Timeout seconds for test run (default 600)')
     ap.add_argument('--prewarm', action='store_true', help='Prewarm: build solutions before running tests')
     ap.add_argument('--rd', dest='report_dir', default=None, help='Custom destination to copy reports into (defaults to logs/e2e/<date>/gdunit-reports)')
-    ap.add_argument('--log-file', default='', help='Absolute or project-relative Godot log file path override.')
     args = ap.parse_args()
-    godot_bin = os.path.expandvars(args.godot_bin).strip().strip('"')
-    auto_prewarm = False
-    if not args.prewarm:
-        ci_flag = os.environ.get("CI", "").lower() in ("1", "true", "yes")
-        gha_flag = os.environ.get("GITHUB_ACTIONS", "").lower() in ("1", "true", "yes")
-        env_flag = os.environ.get("GDUNIT_PREWARM", "").lower() in ("1", "true", "yes")
-        if ci_flag or gha_flag or env_flag:
-            args.prewarm = True
-            auto_prewarm = True
 
     root = os.getcwd()
     proj = os.path.abspath(args.project)
     date = dt.date.today().strftime('%Y-%m-%d')
     out_dir = os.path.join(root, 'logs', 'e2e', date)
     os.makedirs(out_dir, exist_ok=True)
-    # Keep security audit evidence in repo-scoped logs/ci/<date> unless caller overrides.
-    if not os.environ.get("AUDIT_LOG_ROOT"):
-        os.environ["AUDIT_LOG_ROOT"] = os.path.abspath(os.path.join(root, "logs", "ci", date))
 
-    ensured = ensure_tests_project_junction(args.project, root)
-    if ensured is not None:
-        rc_e, out_e = ensured
-        # Hard fail: a missing/mismatched junction can make tests run against stale copies.
-        if rc_e != 0:
-            write_text(os.path.join(out_dir, "ensure-tests-project-junction.log"), out_e)
-            print("ERROR: Failed to ensure Tests.Godot/Game.Godot junction. See logs/e2e/<date>/ensure-tests-project-junction.log")
-            return 1
-        write_text(os.path.join(out_dir, "ensure-tests-project-junction.log"), out_e)
+    # Hard gate before any Godot invocation.
+    ensure_tests_project_junction(repo_root=root, project_abs=proj, out_dir=out_dir)
 
     # Optional prewarm with fallback
     prewarm_rc = None
     prewarm_note = None
     if args.prewarm:
-        pre_cmd = [godot_bin, '--headless', '--path', proj]
-        if args.log_file:
-            pre_cmd += ['--log-file', args.log_file]
-        pre_cmd += ['--build-solutions', '--quit']
+        pre_cmd = [args.godot_bin, '--headless', '--path', proj, '--build-solutions', '--quit']
         _rcp, _outp = run_cmd(pre_cmd, cwd=proj, timeout=300_000)
         prewarm_attempts = 1
         prewarm_rc = _rcp
@@ -221,21 +228,10 @@ def main():
                     agg.append(f'=== {item} rc={rc_b} ===\n{out_b}\n')
                 write_text(os.path.join(out_dir, 'prewarm-dotnet.txt'), '\n'.join(agg) if agg else 'NO_DOTNET_BUILD_TARGETS')
                 prewarm_note = 'fallback-dotnet'
-        if auto_prewarm and prewarm_note is None:
-            prewarm_note = 'auto-ci'
 
     # Run tests (Debugger break, fail-fast).
-    # Important: remove stale reports before running, otherwise a failing run
-    # may leave old results.xml in place and incorrectly normalize rc to 0.
-    reports_dir = os.path.join(proj, 'reports')
-    if os.path.isdir(reports_dir):
-        shutil.rmtree(reports_dir, ignore_errors=True)
-
     # Build command with optional -a filters
-    cmd = [godot_bin, '--headless', '--path', proj]
-    if args.log_file:
-        cmd += ['--log-file', args.log_file]
-    cmd += ['-s', '-d', 'res://addons/gdUnit4/bin/GdUnitCmdTool.gd', '--ignoreHeadlessMode']
+    cmd = [args.godot_bin, '--headless', '--path', proj, '-s', '-d', 'res://addons/gdUnit4/bin/GdUnitCmdTool.gd', '--ignoreHeadlessMode']
     for a in args.add:
         apath = a
         if not apath.startswith('res://'):
@@ -248,17 +244,11 @@ def main():
         f.write(out)
 
     # Generate HTML log frame (optional)
-    copy_cmd = [godot_bin, '--headless', '--path', proj]
-    if args.log_file:
-        copy_cmd += ['--log-file', args.log_file]
-    copy_cmd += ['--quiet', '-s', 'res://addons/gdUnit4/bin/GdUnitCopyLog.gd']
-    _rc2, _out2 = run_cmd(copy_cmd, cwd=proj)
+    _rc2, _out2 = run_cmd([args.godot_bin, '--headless', '--path', proj, '--quiet', '-s', 'res://addons/gdUnit4/bin/GdUnitCopyLog.gd'], cwd=proj)
 
     # Archive reports
+    reports_dir = os.path.join(proj, 'reports')
     dest = args.report_dir if args.report_dir else os.path.join(out_dir, 'gdunit-reports')
-    # Guard against destructive configuration: if dest == out_dir, we'd delete the folder that also holds console_path.
-    if os.path.abspath(dest) == os.path.abspath(out_dir):
-        dest = os.path.join(out_dir, 'gdunit-reports')
     # Always create a destination folder with at least the console log and a summary
     if os.path.isdir(dest):
         shutil.rmtree(dest, ignore_errors=True)
@@ -296,7 +286,6 @@ def main():
         'project': proj,
         'added': args.add,
         'timeout_sec': args.timeout_sec,
-        'auto_prewarm': auto_prewarm,
         'results': parsed,
     }
     if prewarm_rc is not None:

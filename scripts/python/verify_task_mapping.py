@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Verify that Taskmaster master tasks are properly mapped
 to tasks_back.json and tasks_gameplay.json views.

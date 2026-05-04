@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
-
-from scripts.sc.tests._repo_test_temp import repo_temp_dir
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -49,7 +48,8 @@ def _valid_verdict(task_id: str = "999") -> dict:
 
 class ObligationsPipelineOrderTests(unittest.TestCase):
     def test_reuse_hit_writes_artifacts_before_reuse_index_remember(self) -> None:
-        with repo_temp_dir("obligations-pipeline-order-reuse") as root:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
             out_dir = root / "logs" / "ci" / "2026-02-23" / "sc-llm-obligations-task-999-round-order-reuse"
             prev_dir = root / "logs" / "ci" / "2026-02-22" / "sc-llm-obligations-task-999-round-prev"
             prev_dir.mkdir(parents=True, exist_ok=True)
@@ -137,7 +137,8 @@ class ObligationsPipelineOrderTests(unittest.TestCase):
             self.assertTrue(remember_seen["verdict_exists"])
 
     def test_normal_ok_writes_artifacts_before_reuse_index_remember(self) -> None:
-        with repo_temp_dir("obligations-pipeline-order-ok") as root:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
             out_dir = root / "logs" / "ci" / "2026-02-23" / "sc-llm-obligations-task-999-round-order-ok"
 
             call_order: list[str] = []

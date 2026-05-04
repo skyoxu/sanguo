@@ -270,7 +270,8 @@ def main() -> int:
     )
     (out_dir / "summary.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     _write_markdown_report(out_dir / "report.md", payload)
-    print(f"SC_ACCEPTANCE_EXTRACT_PREFLIGHT status={payload['status']} out={str(out_dir).replace('\\', '/')}")
+    out_label = str(out_dir).replace("\\", "/")
+    print(f"SC_ACCEPTANCE_EXTRACT_PREFLIGHT status={payload['status']} out={out_label}")
     return 0 if payload["status"] == "ok" else 1
 
 

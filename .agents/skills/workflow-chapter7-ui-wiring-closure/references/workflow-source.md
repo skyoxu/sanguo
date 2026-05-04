@@ -3,7 +3,7 @@
 Generated from the template repo `workflow.md` by `scripts/python/update_workflow_chapter_skills.py`.
 
 - Canonical English name: Phase 5: Chapter 7 UI Wiring Closure
-- Source line span: 1136-1325
+- Source line span: 1349-1538
 - Heading count: 8
 - Command-like line count: 8
 - Artifact/reference line count: 30

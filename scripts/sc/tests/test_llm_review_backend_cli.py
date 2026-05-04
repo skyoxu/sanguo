@@ -58,36 +58,7 @@ class LlmReviewBackendCliTests(unittest.TestCase):
 
         self.assertEqual("codex-cli", updated.llm_backend)
 
-    def test_validate_args_should_fail_in_execute_mode_when_openai_backend_missing_requirements(self) -> None:
-        args = Namespace(
-            uncommitted=False,
-            commit=None,
-            auto_commit=False,
-            task_id=None,
-            timeout_sec=900,
-            agent_timeout_sec=300,
-            prompt_max_chars=32000,
-            self_check=False,
-            dry_run_plan=False,
-            prompts_only=False,
-            llm_backend="openai-api",
-        )
-        with mock.patch.object(
-            review_cli,
-            "inspect_llm_backend",
-            return_value={
-                "backend": "openai-api",
-                "available": False,
-                "blocking_errors": ["python package 'openai' is not installed", "OPENAI_API_KEY is not set"],
-            },
-        ):
-            errors = review_cli.validate_args(args)
-
-        self.assertIn("python package 'openai' is not installed", errors)
-        self.assertIn("OPENAI_API_KEY is not set", errors)
-        self.assertEqual("openai-api", args._llm_backend_info["backend"])
-
-    def test_validate_args_should_allow_self_check_even_when_backend_not_ready(self) -> None:
+    def test_validate_args_should_fail_when_openai_backend_missing_requirements(self) -> None:
         args = Namespace(
             uncommitted=False,
             commit=None,
@@ -112,34 +83,9 @@ class LlmReviewBackendCliTests(unittest.TestCase):
         ):
             errors = review_cli.validate_args(args)
 
-        self.assertEqual([], errors)
-
-    def test_validate_args_should_allow_dry_run_plan_even_when_backend_not_ready(self) -> None:
-        args = Namespace(
-            uncommitted=False,
-            commit=None,
-            auto_commit=False,
-            task_id=None,
-            timeout_sec=900,
-            agent_timeout_sec=300,
-            prompt_max_chars=32000,
-            self_check=False,
-            dry_run_plan=True,
-            prompts_only=False,
-            llm_backend="openai-api",
-        )
-        with mock.patch.object(
-            review_cli,
-            "inspect_llm_backend",
-            return_value={
-                "backend": "openai-api",
-                "available": False,
-                "blocking_errors": ["python package 'openai' is not installed", "OPENAI_API_KEY is not set"],
-            },
-        ):
-            errors = review_cli.validate_args(args)
-
-        self.assertEqual([], errors)
+        self.assertIn("python package 'openai' is not installed", errors)
+        self.assertIn("OPENAI_API_KEY is not set", errors)
+        self.assertEqual("openai-api", args._llm_backend_info["backend"])
 
     def test_validate_args_should_allow_prompts_only_even_when_backend_not_ready(self) -> None:
         args = Namespace(

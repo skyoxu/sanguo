@@ -20,7 +20,7 @@ Operate Chapter 4 from `workflow.md` idempotently for a business repository that
 
 ## Repository Layout
 
-Template and business repositories are siblings under one parent directory, for example `<parent>/godotgame`, `<parent>/sanguo`, and `<parent>/newrouge`.
+Template and business repositories are siblings under one parent directory, for example `<parent>/godotgame`, `<parent>/<business-repo-a>`, and `<parent>/<business-repo-b>`.
 
 ## Purpose
 
@@ -28,7 +28,7 @@ Use this skill to establish overlay skeletons, freeze task overlay refs, and val
 
 ## Default Lane
 
-Enter Chapter 4 only after Chapter 3.3 is clean. Use batch dry-run, batch simulate, outlier single-page repair, then limited apply; never start with full apply.
+Enter Chapter 4 only after the Chapter 3 triplet baseline is clean. Use batch dry-run, batch simulate, outlier single-page repair, then limited apply; never start with full apply.
 
 ## Primary Command Or Action
 
@@ -41,12 +41,12 @@ Chapter 4 depends on real overlay and contract files. Use business-repo overlays
 ## Required Reading
 
 1. Read the relevant Chapter 4 section in the template repo `workflow.md`.
-2. Read `references/business-repos/<repo>.md` when the target business repo is known.
-3. If that evidence file is missing or stale, run `py -3 scripts/python/update_workflow_chapter_skills.py <repo>` from the template repo.
+2. Optionally read `references/business-repos/<repo>.md` only as empirical validation evidence when the target business repo has a generated reference.
+3. If that optional evidence file is missing or stale, run `py -3 scripts/python/update_workflow_chapter_skills.py <repo>` from the template repo.
 
 ## Idempotent Procedure
 
-1. Confirm Chapter 3.3 triplet baseline is clean before generating overlays.
+1. Confirm the Chapter 3.9 triplet baseline is clean before generating overlays.
 2. Generate overlay skeletons through batch dry-run, batch simulate, single-page repair for outliers, and limited apply.
 3. Do not perform full apply in the first overlay pass, and do not mix acceptance rewrites into overlay generation.
 4. Freeze overlay refs with sync_task_overlay_refs and validate_overlay_execution, then rerun task refs and triplet validators.
@@ -63,16 +63,13 @@ Chapter 4 depends on real overlay and contract files. Use business-repo overlays
 
 ## Business Evidence References
 
-Generated evidence lives under `references/business-repos/` and may include:
-
-- `references/business-repos/sanguo.md`
-- `references/business-repos/newrouge.md`
+Generated evidence may live under `references/business-repos/<repo>.md`. These files are optional regression evidence from known business repositories; they must not define production generation rules.
 
 ## Maintenance
 
-Refresh evidence after new business-repo logs are generated:
+Refresh optional evidence after new business-repo logs are generated:
 
 ```powershell
-py -3 scripts/python/update_workflow_chapter_skills.py sanguo
-py -3 scripts/python/update_workflow_chapter_skills.py newrouge
+py -3 scripts/python/update_workflow_chapter_skills.py <business-repo>
+py -3 scripts/python/update_workflow_chapter_skills.py <business-repo-a>,<business-repo-b>
 ```
