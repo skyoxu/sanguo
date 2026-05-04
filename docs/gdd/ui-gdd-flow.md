@@ -253,6 +253,11 @@ Test-Refs:
 - T173 `Module: core assertion hard-gate bundle A-013 to A-015 (split from T151)`
 - T174 `Module: core assertion hard-gate bundle A-016 to A-019 (split from T151)`
 - T175 `Module: core assertion hard-gate A-020 compatibility closure (split from T151)`
+- T176 `Wire UI: MainMenu And Boot Flow`
+- T177 `Wire UI: Runtime HUD And Outcome Surfaces`
+- T178 `Wire UI: Combat Pressure And Interaction Surfaces`
+- T179 `Wire UI: Economy Build And Progression Panels`
+- T180 `Wire UI: Config Audit And Migration Surfaces`
 
 ## 5. UI Wiring Matrix
 
