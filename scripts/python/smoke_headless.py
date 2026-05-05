@@ -23,13 +23,35 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 
+_PERF_RE = re.compile(
+    r"\[PERF\]\s*frames=(\d+)\s+avg_ms=([0-9]+(?:\.[0-9]+)?)\s+"
+    r"p50_ms=([0-9]+(?:\.[0-9]+)?)\s+p95_ms=([0-9]+(?:\.[0-9]+)?)\s+"
+    r"p99_ms=([0-9]+(?:\.[0-9]+)?)"
+)
+
+
 def _is_known_good_scene(scene: str) -> bool:
     return bool(scene) and scene.startswith("res://") and scene.lower().endswith(".tscn")
+
+
+def _extract_latest_perf_metrics(text: str) -> dict[str, float | int] | None:
+    matches = list(_PERF_RE.finditer(text or ""))
+    if not matches:
+        return None
+    last = matches[-1]
+    return {
+        "frames": int(last.group(1)),
+        "avg_ms": float(last.group(2)),
+        "p50_ms": float(last.group(3)),
+        "p95_ms": float(last.group(4)),
+        "p99_ms": float(last.group(5)),
+    }
 
 
 def _run_smoke(
@@ -108,6 +130,22 @@ def _run_smoke(
     has_marker = "[TEMPLATE_SMOKE_READY]" in text
     has_db_open = "[DB] opened" in text
     has_any = bool(text.strip())
+    perf_metrics = _extract_latest_perf_metrics(text)
+    perf_summary_path = Path("logs") / "perf" / day / "summary.json"
+    if perf_metrics is not None:
+        perf_payload = {
+            "date": day,
+            "timestamp": ts,
+            "source": str(log_path),
+            **perf_metrics,
+        }
+        perf_summary_path.parent.mkdir(parents=True, exist_ok=True)
+        perf_summary_path.write_text(
+            json.dumps(perf_payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+            errors="ignore",
+        )
+        print(f"[smoke_headless] perf summary saved at {perf_summary_path}")
 
     if has_marker:
         print("SMOKE PASS (marker)")
@@ -144,7 +182,9 @@ def _run_smoke(
             "err_log": str(err_path),
             "combined_log": str(log_path),
             "summary_json": str(summary_path),
+            "perf_summary_json": str(perf_summary_path) if perf_metrics is not None else "",
         },
+        "perf_metrics": perf_metrics,
         "exit_code": exit_code,
     }
     summary_path.write_text(
