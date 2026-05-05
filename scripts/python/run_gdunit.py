@@ -173,6 +173,7 @@ def main():
     ap.add_argument('--timeout-sec', type=int, default=600, help='Timeout seconds for test run (default 600)')
     ap.add_argument('--prewarm', action='store_true', help='Prewarm: build solutions before running tests')
     ap.add_argument('--rd', dest='report_dir', default=None, help='Custom destination to copy reports into (defaults to logs/e2e/<date>/gdunit-reports)')
+    ap.add_argument('--log-file', default=None, help='Optional external console log output path')
     args = ap.parse_args()
 
     root = os.getcwd()
@@ -242,6 +243,8 @@ def main():
     console_path = os.path.join(out_dir, 'gdunit-console.txt')
     with open(console_path, 'w', encoding='utf-8') as f:
         f.write(out)
+    if str(args.log_file or '').strip():
+        write_text(str(args.log_file).strip(), out)
 
     # Generate HTML log frame (optional)
     _rc2, _out2 = run_cmd([args.godot_bin, '--headless', '--path', proj, '--quiet', '-s', 'res://addons/gdUnit4/bin/GdUnitCopyLog.gd'], cwd=proj)

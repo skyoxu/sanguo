@@ -38,6 +38,7 @@ def _run_smoke(
     scene: str,
     timeout_sec: int,
     strict: bool,
+    log_file: str | None = None,
     task_id: int | None = None,
 ) -> int:
     bin_path = Path(godot_bin)
@@ -97,6 +98,11 @@ def _run_smoke(
     combined = "".join(content_parts)
     log_path.write_text(combined, encoding="utf-8", errors="ignore")
     print(f"[smoke_headless] log saved at {log_path} (out={out_path}, err={err_path})")
+    if str(log_file or "").strip():
+        external_log_path = Path(str(log_file).strip())
+        external_log_path.parent.mkdir(parents=True, exist_ok=True)
+        external_log_path.write_text(combined, encoding="utf-8", errors="ignore")
+        print(f"[smoke_headless] external log saved at {external_log_path}")
 
     text = combined or ""
     has_marker = "[TEMPLATE_SMOKE_READY]" in text
@@ -187,10 +193,19 @@ def main() -> int:
     parser.add_argument("--scene", default="res://Game.Godot/Scenes/Main.tscn", help="Scene to load")
     parser.add_argument("--timeout-sec", type=int, default=5, help="Timeout seconds before kill")
     parser.add_argument("--strict", action="store_true", help="Enable strict gate mode")
+    parser.add_argument("--log-file", default=None, help="Optional external combined log output path")
     parser.add_argument("--task-id", type=int, default=None, help="Optional task id to emit logs/ci/<date>/task-<id>.json")
 
     args = parser.parse_args()
-    return _run_smoke(args.godot_bin, args.project_path, args.scene, args.timeout_sec, args.strict, args.task_id)
+    return _run_smoke(
+        args.godot_bin,
+        args.project_path,
+        args.scene,
+        args.timeout_sec,
+        args.strict,
+        args.log_file,
+        args.task_id,
+    )
 
 
 if __name__ == "__main__":
