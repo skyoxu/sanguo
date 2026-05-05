@@ -53,7 +53,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--out-json",
-        default=".taskmaster/docs/obligations-freeze-whitelist.draft.json",
+        default=".taskmaster/config/obligations-freeze-whitelist.draft.json",
         help="Output whitelist draft JSON path (repo-relative or absolute).",
     )
     parser.add_argument(

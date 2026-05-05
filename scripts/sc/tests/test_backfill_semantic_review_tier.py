@@ -43,7 +43,7 @@ class BackfillSemanticReviewTierTests(unittest.TestCase):
                 "tasks": [
                     {
                         "id": 1,
-                        "title": "Tune camp reward values",
+                        "title": "Tune reward values",
                         "priority": "P1",
                         "details": "Balance gameplay rewards and round pacing.",
                     },
@@ -59,7 +59,7 @@ class BackfillSemanticReviewTierTests(unittest.TestCase):
         tasks_back = [
             {
                 "taskmaster_id": 1,
-                "title": "Tune camp reward values",
+                "title": "Tune reward values",
                 "priority": "P1",
                 "layer": "gameplay",
             },
@@ -69,13 +69,13 @@ class BackfillSemanticReviewTierTests(unittest.TestCase):
                 "priority": "P2",
                 "layer": "ci",
                 "semanticReviewTier": "minimal",
-                "contractRefs": ["core.sanguo.task.updated"],
+                "contractRefs": ["Game.Core/Contracts/Tasks/TaskUpdated.cs"],
             },
         ]
         tasks_gameplay = [
             {
                 "taskmaster_id": 1,
-                "title": "Tune camp reward values",
+                "title": "Tune reward values",
                 "priority": "P1",
                 "layer": "gameplay",
             },
@@ -84,7 +84,7 @@ class BackfillSemanticReviewTierTests(unittest.TestCase):
                 "title": "Harden workflows and pipelines",
                 "priority": "P2",
                 "layer": "ci",
-                "contractRefs": ["core.sanguo.task.updated"],
+                "contractRefs": ["Game.Core/Contracts/Tasks/TaskUpdated.cs"],
             },
         ]
         _write_json(tasks_json_path, tasks_json)

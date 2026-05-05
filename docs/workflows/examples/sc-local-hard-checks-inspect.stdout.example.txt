@@ -36,7 +36,6 @@
     "reason": "",
     "run_type": "full",
     "reuse_mode": "",
-    "failure_kind": "step-failed",
     "artifact_integrity_kind": "",
     "diagnostics_keys": []
   },

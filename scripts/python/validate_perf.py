@@ -17,8 +17,15 @@ import argparse
 import datetime as dt
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
+
+_PERF_RE = re.compile(
+    r"\[PERF\]\s*frames=(\d+)\s+avg_ms=([0-9]+(?:\.[0-9]+)?)\s+"
+    r"p50_ms=([0-9]+(?:\.[0-9]+)?)\s+p95_ms=([0-9]+(?:\.[0-9]+)?)\s+"
+    r"p99_ms=([0-9]+(?:\.[0-9]+)?)"
+)
 
 
 def repo_root() -> Path:
@@ -43,6 +50,38 @@ def write_json(path: Path, payload: Any) -> None:
         encoding="utf-8",
         newline="\n",
     )
+
+
+def _extract_perf_from_text(text: str) -> dict[str, float | int] | None:
+    matches = list(_PERF_RE.finditer(text or ""))
+    if not matches:
+        return None
+    last = matches[-1]
+    return {
+        "frames": int(last.group(1)),
+        "avg_ms": float(last.group(2)),
+        "p50_ms": float(last.group(3)),
+        "p95_ms": float(last.group(4)),
+        "p99_ms": float(last.group(5)),
+    }
+
+
+def _find_latest_perf_from_headless_logs(root: Path, date: str) -> tuple[dict[str, float | int] | None, Path | None]:
+    ci_date_dir = root / "logs" / "ci" / date
+    if not ci_date_dir.exists():
+        return None, None
+    candidates = [p for p in ci_date_dir.rglob("headless.log") if p.is_file()]
+    if not candidates:
+        return None, None
+    candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    for log_path in candidates:
+        try:
+            metrics = _extract_perf_from_text(log_path.read_text(encoding="utf-8", errors="ignore"))
+        except Exception:
+            metrics = None
+        if metrics is not None:
+            return metrics, log_path
+    return None, None
 
 
 def main() -> int:
@@ -74,10 +113,19 @@ def main() -> int:
     }
 
     if not perf_summary_path.exists():
-        report["errors"].append("missing_perf_summary")
-        write_json(out_path, report)
-        print("VALIDATE_PERF status=fail error=missing_perf_summary")
-        return 1
+        fallback_metrics, fallback_log = _find_latest_perf_from_headless_logs(root, date)
+        if fallback_metrics is None:
+            report["errors"].append("missing_perf_summary")
+            write_json(out_path, report)
+            print("VALIDATE_PERF status=fail error=missing_perf_summary")
+            return 1
+        fallback_payload = {
+            "date": date,
+            "source": (fallback_log.as_posix() if fallback_log else ""),
+            **fallback_metrics,
+        }
+        perf_summary_path.parent.mkdir(parents=True, exist_ok=True)
+        write_json(perf_summary_path, fallback_payload)
 
     try:
         payload = load_json(perf_summary_path)
@@ -113,4 +161,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

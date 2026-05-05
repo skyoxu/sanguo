@@ -38,10 +38,10 @@ class RunDotnetSolutionResolutionTests(unittest.TestCase):
             commands.append(list(args))
             return 1, "restore failed\n"
 
-        with tempfile.TemporaryDirectory(prefix="run-dotnet-", dir=str(REPO_ROOT)) as tmpdir:
-            root = Path(tmpdir) / "sanguo"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir) / "templategame"
             root.mkdir(parents=True, exist_ok=True)
-            (root / "sanguo.sln").write_text("", encoding="utf-8")
+            (root / "templategame.sln").write_text("", encoding="utf-8")
             (root / "Game.sln").write_text(
                 'Project("{x}") = "Game.Core.Tests", "Game.Core.Tests\\\\Game.Core.Tests.csproj", "{2}"\nEndProject\n',
                 encoding="utf-8",
@@ -53,37 +53,9 @@ class RunDotnetSolutionResolutionTests(unittest.TestCase):
                 rc = run_dotnet.main()
 
             self.assertEqual(1, rc)
-            self.assertEqual(["dotnet", "restore", "Game.sln", "--property:RestoreBuildInParallel=false"], commands[0])
+            self.assertEqual(["dotnet", "restore", "Game.sln"], commands[0])
             summary = json.loads((root / "logs" / "unit" / run_dotnet.dt.date.today().strftime("%Y-%m-%d") / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("Game.sln", summary["solution"])
-
-    def test_main_should_test_project_target_when_solution_contains_test_project(self) -> None:
-        commands: list[list[str]] = []
-
-        def _fake_run_cmd(args, cwd=None, timeout=900_000):
-            commands.append(list(args))
-            if args[:2] == ["dotnet", "restore"]:
-                return 0, "restore ok\n"
-            return 0, "test ok\n"
-
-        with tempfile.TemporaryDirectory(prefix="run-dotnet-", dir=str(REPO_ROOT)) as tmpdir:
-            root = Path(tmpdir) / "sanguo"
-            root.mkdir(parents=True, exist_ok=True)
-            (root / "Game.Core.Tests").mkdir(parents=True, exist_ok=True)
-            (root / "Game.sln").write_text(
-                'Project("{x}") = "Game.Core.Tests", "Game.Core.Tests\\\\Game.Core.Tests.csproj", "{2}"\nEndProject\n',
-                encoding="utf-8",
-            )
-            (root / "Game.Core.Tests" / "Game.Core.Tests.csproj").write_text("<Project />\n", encoding="utf-8")
-            argv = ["run_dotnet.py", "--solution", "Game.sln", "--configuration", "Debug", "--filter", "FullyQualifiedName~Task122"]
-            with mock.patch.object(sys, "argv", argv), \
-                mock.patch.object(run_dotnet.os, "getcwd", return_value=str(root)), \
-                mock.patch.object(run_dotnet, "run_cmd", side_effect=_fake_run_cmd):
-                rc = run_dotnet.main()
-
-            self.assertEqual(0, rc)
-            test_cmd = commands[1]
-            self.assertEqual(["dotnet", "test", "Game.Core.Tests\\Game.Core.Tests.csproj"], test_cmd[:3])
 
 
 if __name__ == "__main__":

@@ -5,10 +5,9 @@ from __future__ import annotations
 import json
 import datetime as dt
 import sys
+import tempfile
 import unittest
 from pathlib import Path
-
-from scripts.sc.tests._repo_test_temp import repo_temp_dir
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -154,7 +153,8 @@ class ObligationsExtractHelpersTests(unittest.TestCase):
         self.assertEqual([], summary.get("schema_error_codes"))
 
     def test_find_reusable_ok_result_returns_latest_match(self) -> None:
-        with repo_temp_dir("obligations-extract-latest-match") as root:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
             input_hash = "abc123"
             run1 = root / "2026-02-23" / "sc-llm-obligations-task-14-round-r1"
             run2 = root / "2026-02-23" / "sc-llm-obligations-task-14-round-r2"
@@ -182,7 +182,8 @@ class ObligationsExtractHelpersTests(unittest.TestCase):
             self.assertEqual("14", verdict.get("task_id"))
 
     def test_find_reusable_ok_result_hits_index_entry(self) -> None:
-        with repo_temp_dir("obligations-extract-index-hit") as root:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
             task_id = "14"
             input_hash = "hash-index"
             run = root / "2026-02-23" / "sc-llm-obligations-task-14-round-r3"
@@ -214,7 +215,8 @@ class ObligationsExtractHelpersTests(unittest.TestCase):
             self.assertEqual(task_id, hit_verdict.get("task_id"))
 
     def test_remember_reusable_ok_result_prunes_stale_entries(self) -> None:
-        with repo_temp_dir("obligations-extract-prune-stale") as root:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
             stale_run = root / "2026-02-01" / "sc-llm-obligations-task-14-round-old"
             stale_run.mkdir(parents=True, exist_ok=True)
             stale_summary = stale_run / "summary.json"
@@ -267,7 +269,8 @@ class ObligationsExtractHelpersTests(unittest.TestCase):
             self.assertEqual(1, len(entries))
 
     def test_find_reusable_ok_result_with_stats_reports_index_hit(self) -> None:
-        with repo_temp_dir("obligations-extract-stats-hit") as root:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
             task_id = "14"
             input_hash = "hit-stats"
             run = root / "2026-02-23" / "sc-llm-obligations-task-14-round-hit"
@@ -345,7 +348,8 @@ class ObligationsExtractHelpersTests(unittest.TestCase):
         self.assertNotEqual(a, c)
 
     def test_explain_reuse_miss_reports_input_hash_and_runtime_fp(self) -> None:
-        with repo_temp_dir("obligations-extract-explain-miss") as root:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
             run = root / "2026-02-23" / "sc-llm-obligations-task-14-round-hit"
             run.mkdir(parents=True, exist_ok=True)
             summary_path = run / "summary.json"

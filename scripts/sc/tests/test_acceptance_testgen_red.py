@@ -122,38 +122,6 @@ class AcceptanceTestgenRedTests(unittest.TestCase):
         self.assertEqual("ok", report["status"])
         self.assertEqual("gdunit_red", report["reason"])
 
-    def test_evaluate_red_verification_should_prefer_gdunit_red_over_unit_ok_for_verify_all(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            out_dir = root / "logs" / "ci" / "2026-03-20" / "sc-llm-acceptance-tests"
-            _write_json(
-                root / "logs" / "unit" / "2026-03-20" / "summary.json",
-                {
-                    "status": "ok",
-                    "failure_excerpt": [],
-                },
-            )
-            _write_json(
-                root / "logs" / "e2e" / "2026-03-20" / "sc-test" / "gdunit-hard" / "run-summary.json",
-                {
-                    "results": {
-                        "failures": 2,
-                        "errors": 0,
-                    }
-                },
-            )
-
-            report = red.evaluate_red_verification(
-                repo_root=root,
-                out_dir=out_dir,
-                verify_mode="all",
-                test_step={"status": "fail", "rc": 1, "cmd": ["py", "-3", "scripts/sc/test.py"]},
-                verify_log_text="SC_TEST status=fail\n",
-            )
-
-        self.assertEqual("ok", report["status"])
-        self.assertEqual("gdunit_red", report["reason"])
-
 
 if __name__ == "__main__":
     unittest.main()

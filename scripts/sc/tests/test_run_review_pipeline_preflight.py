@@ -399,7 +399,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                     "classify_change_scope_between_snapshots",
                     return_value={
                         "deterministic_strategy": "reuse-latest",
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -530,7 +530,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                     "classify_change_scope_between_snapshots",
                     return_value={
                         "deterministic_strategy": "reuse-latest",
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -832,7 +832,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                     "classify_change_scope_between_snapshots",
                     return_value={
                         "deterministic_strategy": "reuse-latest",
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md"],
                         "unsafe_paths": [],
                     },
                 ),
@@ -1103,7 +1103,7 @@ class RunReviewPipelinePreflightTests(unittest.TestCase):
                     "classify_change_scope_between_snapshots",
                     return_value={
                         "deterministic_strategy": "reuse-latest",
-                        "changed_paths": ["docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md"],
+                        "changed_paths": ["docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md"],
                         "unsafe_paths": [],
                     },
                 ),

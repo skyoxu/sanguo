@@ -29,6 +29,10 @@ TASK_FILES = ("tasks.json", "tasks_back.json", "tasks_gameplay.json")
 ALLOWED_BASE_08_FILES = {"08-crosscutting-and-feature-slices.base.md"}
 GODOT_PATTERN = re.compile(r"\busing\s+Godot\b|\bGodot\.", re.MULTILINE)
 PRD_PATTERN = re.compile(r"\bPRD-[A-Za-z0-9_-]+\b")
+GAME_METADATA_PATTERNS = {
+    "game_name": re.compile(r"^\s*[-*]?\s*(?:Game Name|游戏名称)\s*[:：]\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE),
+    "game_type": re.compile(r"^\s*[-*]?\s*(?:Game Type|游戏类型)\s*[:：]\s*([A-Za-z0-9_-]+)\s*$", re.IGNORECASE | re.MULTILINE),
+}
 
 
 def now_local() -> datetime:
@@ -1292,7 +1296,15 @@ def dashboard_html(
     report_catalog: dict[str, Any],
     report_catalog_path: str,
     active_task_summary: dict[str, Any],
+    project_overview: dict[str, Any] | None = None,
 ) -> str:
+    project_overview = project_overview or {
+        "game_name": "",
+        "game_type": "",
+        "documents": {"prd": [], "gdd": [], "prototype": []},
+        "prototype_core": {"game_feature": "", "core_gameplay_loop": "", "win_fail_conditions": ""},
+        "game_type_specifics": {"game_type": "", "guide_path": "", "selected_sections": []},
+    }
     overall = "ok"
     if any(item.get("status") == "fail" for item in records):
         overall = "fail"
@@ -1451,6 +1463,33 @@ def dashboard_html(
     report_total = int(report_catalog.get("total_json", 0))
     report_invalid = int(report_catalog.get("invalid_json", 0))
     report_catalog_path_escaped = html.escape(report_catalog_path)
+    overview_documents = project_overview.get("documents") if isinstance(project_overview.get("documents"), dict) else {}
+    overview_core = project_overview.get("prototype_core") if isinstance(project_overview.get("prototype_core"), dict) else {}
+    overview_specifics = project_overview.get("game_type_specifics") if isinstance(project_overview.get("game_type_specifics"), dict) else {}
+    overview_rows = [
+        ("Game name", str(project_overview.get("game_name") or "unknown")),
+        ("Game type", str(project_overview.get("game_type") or "unknown")),
+        ("PRD docs", ", ".join(str(item) for item in list(overview_documents.get("prd") or [])) or "none"),
+        ("GDD docs", ", ".join(str(item) for item in list(overview_documents.get("gdd") or [])) or "none"),
+        ("Prototype docs", ", ".join(str(item) for item in list(overview_documents.get("prototype") or [])) or "none"),
+        ("Game feature", str(overview_core.get("game_feature") or "unknown")),
+        ("Core gameplay loop", str(overview_core.get("core_gameplay_loop") or "unknown")),
+        ("Win / fail conditions", str(overview_core.get("win_fail_conditions") or "unknown")),
+        ("Step07-lite game type", str(overview_specifics.get("game_type") or "unknown")),
+        ("Step07-lite guide", str(overview_specifics.get("guide_path") or "unknown")),
+    ]
+    for section in list(overview_specifics.get("selected_sections") or []):
+        if isinstance(section, dict):
+            overview_rows.append(
+                (
+                    str(section.get("title") or section.get("id") or "Game type section"),
+                    str(section.get("answer") or "unknown"),
+                )
+            )
+    overview_items = "\n".join(
+        f"<div class=\"meta\"><strong>{html.escape(label)}:</strong> {html.escape(value)}</div>"
+        for label, value in overview_rows
+    )
     active_task_cards = []
     for item in list(active_task_summary.get("top_records") or []):
         clean_state = item.get("clean_state") if isinstance(item.get("clean_state"), dict) else {}
@@ -1693,6 +1732,10 @@ def dashboard_html(
       <div class="status {overall}">{overall}</div>
     </div>
     <div class="meta">generated_at: {generated_at}</div>
+    <section class="card ok">
+      <h2>项目概览</h2>
+      {overview_items}
+    </section>
     <div class="grid">
       {''.join(cards)}
     </div>
@@ -1745,6 +1788,7 @@ def refresh_dashboard(root: Path | str | None = None, *, now: datetime | None = 
     records = load_latest_records(resolved_root)
     report_catalog = build_report_catalog(resolved_root)
     active_task_summary = build_active_task_summary(resolved_root)
+    project_overview = build_project_overview(resolved_root)
     overall = "ok"
     if any(item.get("status") == "fail" for item in records):
         overall = "fail"
@@ -1771,6 +1815,7 @@ def refresh_dashboard(root: Path | str | None = None, *, now: datetime | None = 
             "catalog_json": "logs/ci/project-health/report-catalog.latest.json",
         },
         "active_task_summary": active_task_summary,
+        "project_overview": project_overview,
     }
     latest_root = latest_dir(resolved_root)
     report_catalog_path = latest_root / "report-catalog.latest.json"
@@ -1786,9 +1831,138 @@ def refresh_dashboard(root: Path | str | None = None, *, now: datetime | None = 
             report_catalog=report_catalog,
             report_catalog_path=repo_rel(report_catalog_path, root=resolved_root),
             active_task_summary=active_task_summary,
+            project_overview=project_overview,
         ),
     )
     return payload
+
+
+def _read_text_soft(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
+def _first_match(pattern: re.Pattern[str], text: str) -> str:
+    match = pattern.search(text)
+    return match.group(1).strip() if match else ""
+
+
+def _extract_project_metadata(root: Path) -> dict[str, str]:
+    values = {"game_name": "", "game_type": ""}
+    for rel in ("AGENTS.md", "README.md"):
+        text = _read_text_soft(root / rel)
+        if not text:
+            continue
+        for key, pattern in GAME_METADATA_PATTERNS.items():
+            if not values[key]:
+                values[key] = _first_match(pattern, text)
+    return values
+
+
+def _list_markdown_docs(root: Path, rel_dir: str) -> list[str]:
+    base = root / rel_dir
+    if not base.exists():
+        return []
+    return [
+        repo_rel(path, root=root)
+        for path in sorted(base.rglob("*.md"))
+        if path.is_file()
+    ]
+
+
+def _extract_markdown_section(text: str, heading_names: tuple[str, ...]) -> str:
+    lines = text.splitlines()
+    wanted = {_normalize_doc_heading(name) for name in heading_names}
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped.startswith("## "):
+            continue
+        heading = _normalize_doc_heading(stripped[3:])
+        if heading not in wanted:
+            continue
+        captured: list[str] = []
+        for next_line in lines[idx + 1 :]:
+            if next_line.strip().startswith("## "):
+                break
+            value = next_line.strip()
+            if not value:
+                continue
+            if value.startswith("- "):
+                value = value[2:].strip()
+            captured.append(value)
+        return " ".join(captured).strip()
+    return ""
+
+
+def _normalize_doc_heading(value: str) -> str:
+    return re.sub(r"\s+", " ", str(value or "").strip().strip(":：")).lower()
+
+
+def _extract_prototype_core(root: Path, prototype_docs: list[str]) -> dict[str, str]:
+    result = {"game_feature": "", "core_gameplay_loop": "", "win_fail_conditions": ""}
+    if not prototype_docs:
+        return result
+    newest = max((root / rel for rel in prototype_docs), key=lambda p: p.stat().st_mtime if p.exists() else 0)
+    text = _read_text_soft(newest)
+    result["game_feature"] = _extract_markdown_section(text, ("Game Feature", "游戏特色"))
+    result["core_gameplay_loop"] = _extract_markdown_section(text, ("Core Gameplay Loop", "核心游戏循环"))
+    result["win_fail_conditions"] = _extract_markdown_section(text, ("Win / Fail Conditions", "Win Fail Conditions", "Victory / Failure Conditions", "胜利/失败条件", "胜利 / 失败条件"))
+    return result
+
+
+def _section_id(value: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9]+", "_", str(value or "").strip().lower())
+    cleaned = re.sub(r"_{2,}", "_", cleaned).strip("_")
+    return cleaned or "section"
+
+
+def _extract_game_type_specifics(root: Path, prototype_docs: list[str]) -> dict[str, Any]:
+    result: dict[str, Any] = {"game_type": "", "guide_path": "", "selected_sections": []}
+    if not prototype_docs:
+        return result
+    newest = max((root / rel for rel in prototype_docs), key=lambda p: p.stat().st_mtime if p.exists() else 0)
+    lines = _read_text_soft(newest).splitlines()
+    in_section = False
+    selected: list[dict[str, str]] = []
+    for raw_line in lines:
+        stripped = raw_line.strip()
+        if stripped.startswith("## "):
+            in_section = _normalize_doc_heading(stripped[3:]) in {"game type specifics", "游戏类型细节", "游戏类型特定设计"}
+            continue
+        if not in_section or not stripped.startswith("- "):
+            continue
+        entry = stripped[2:].strip()
+        if ":" not in entry and "：" not in entry:
+            continue
+        key, value = re.split(r"[:：]", entry, maxsplit=1)
+        normalized_key = _normalize_doc_heading(key)
+        value = value.strip()
+        if normalized_key in {"game type", "游戏类型"}:
+            result["game_type"] = value if value.upper() != "TBD" else ""
+        elif normalized_key in {"guide path", "game type guide path", "类型模板路径", "游戏类型模板路径"}:
+            result["guide_path"] = value if value.upper() != "TBD" else ""
+        else:
+            selected.append({"id": _section_id(key), "title": key.strip(), "answer": value})
+    result["selected_sections"] = selected
+    return result
+
+
+def build_project_overview(root: Path) -> dict[str, Any]:
+    documents = {
+        "prd": _list_markdown_docs(root, "docs/prd"),
+        "gdd": _list_markdown_docs(root, "docs/gdd"),
+        "prototype": _list_markdown_docs(root, "docs/prototypes"),
+    }
+    metadata = _extract_project_metadata(root)
+    return {
+        "game_name": metadata["game_name"],
+        "game_type": metadata["game_type"],
+        "documents": documents,
+        "prototype_core": _extract_prototype_core(root, documents["prototype"]),
+        "game_type_specifics": _extract_game_type_specifics(root, documents["prototype"]),
+    }
 
 
 def write_project_health_record(

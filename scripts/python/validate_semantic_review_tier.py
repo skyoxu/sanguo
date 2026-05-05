@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -22,15 +23,19 @@ from _semantic_review_tier_support import (  # noqa: E402
     parse_task_ids,
     title_for_task,
 )
+from _taskmaster_paths import resolve_default_task_triplet_paths  # noqa: E402
 from _util import ci_dir, write_json  # noqa: E402
+
+
+DEFAULT_TASKS_JSON_PATH, DEFAULT_TASKS_BACK_PATH, DEFAULT_TASKS_GAMEPLAY_PATH = resolve_default_task_triplet_paths(REPO_ROOT)
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Validate semantic_review_tier values in task view files.")
-    parser.add_argument("--tasks-json-path", default=str(REPO_ROOT / ".taskmaster" / "tasks" / "tasks.json"))
-    parser.add_argument("--tasks-back-path", default=str(REPO_ROOT / ".taskmaster" / "tasks" / "tasks_back.json"))
-    parser.add_argument("--tasks-gameplay-path", default=str(REPO_ROOT / ".taskmaster" / "tasks" / "tasks_gameplay.json"))
-    parser.add_argument("--delivery-profile", default="fast-ship", help="Delivery profile used to compute expected tier suggestions.")
+    parser.add_argument("--tasks-json-path", default=str(DEFAULT_TASKS_JSON_PATH))
+    parser.add_argument("--tasks-back-path", default=str(DEFAULT_TASKS_BACK_PATH))
+    parser.add_argument("--tasks-gameplay-path", default=str(DEFAULT_TASKS_GAMEPLAY_PATH))
+    parser.add_argument("--delivery-profile", default=os.getenv("DELIVERY_PROFILE", "fast-ship"), help="Delivery profile used to compute expected tier suggestions.")
     parser.add_argument("--mode", choices=sorted(ALLOWED_MODES), default="conservative", help="Validation mode; should match the writeback policy you enforce.")
     parser.add_argument("--task-ids", default="", help="Optional comma-separated task ids.")
     parser.add_argument("--allow-missing", action="store_true", help="Do not fail when semantic_review_tier is missing.")

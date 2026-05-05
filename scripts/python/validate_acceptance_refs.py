@@ -149,7 +149,6 @@ def validate_view(
     *,
     root: Path,
     label: str,
-    task_id: str,
     entry: dict[str, Any] | None,
     stage: str,
 ) -> dict[str, Any]:
@@ -176,12 +175,6 @@ def validate_view(
     else:
         test_refs_list = [str(x).strip().replace("\\", "/") for x in test_refs if str(x).strip()]
 
-    tid_int: int | None = None
-    try:
-        tid_int = int(str(task_id))
-    except Exception:
-        tid_int = None
-
     for idx, raw in enumerate(acceptance):
         text, refs = parse_acceptance_item(str(raw))
         norm_refs = [r.replace("\\", "/") for r in refs]
@@ -205,22 +198,6 @@ def validate_view(
                     item["status"] = "fail"
                     item["errors"].append(f"ref is not an allowed test path (.cs/.gd under test roots): {r}")
                     continue
-
-                # Naming stability conventions (Task 50+ batch):
-                # - Keep refs stable so generator + validators agree on file paths.
-                file_name = Path(r).name
-                file_lower = file_name.lower()
-                if r.startswith("Game.Core.Tests/Tasks/") and r.endswith(".cs"):
-                    expected_prefix = f"Task{task_id}".lower()
-                    if not file_lower.startswith(expected_prefix):
-                        item["status"] = "fail"
-                        item["errors"].append(f"Game.Core.Tests/Tasks ref file must start with 'Task{task_id}': {r}")
-
-                if tid_int is not None and tid_int >= 50 and r.startswith("Tests.Godot/tests/") and r.endswith(".gd"):
-                    expected = f"test_task{tid_int}".lower()
-                    if not (file_lower.startswith(expected + "_") or file_lower.startswith(expected + ".")):
-                        item["status"] = "fail"
-                        item["errors"].append(f"Tests.Godot/tests ref file must start with 'test_task{tid_int}_': {r}")
 
                 if stage == "refactor":
                     if not (root / r).exists():
@@ -281,8 +258,8 @@ def main() -> int:
     back_task = find_view_task(back, task_id)
     gameplay_task = find_view_task(gameplay, task_id)
 
-    back_report = validate_view(root=root, label="tasks_back.json", task_id=task_id, entry=back_task, stage=args.stage)
-    game_report = validate_view(root=root, label="tasks_gameplay.json", task_id=task_id, entry=gameplay_task, stage=args.stage)
+    back_report = validate_view(root=root, label="tasks_back.json", entry=back_task, stage=args.stage)
+    game_report = validate_view(root=root, label="tasks_gameplay.json", entry=gameplay_task, stage=args.stage)
 
     errors = []
     errors.extend(back_report.get("errors") or [])

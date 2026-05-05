@@ -13,6 +13,7 @@ sys.path.insert(0, str(SC_DIR))
 
 from _acceptance_refs_contract import (  # noqa: E402
     run_fill_acceptance_refs_self_check,
+    validate_anchor_bound_ref_updates,
     validate_fill_acceptance_summary,
 )
 from _acceptance_refs_helpers import is_allowed_test_path, parse_model_items_to_paths  # noqa: E402
@@ -58,7 +59,25 @@ class FillAcceptanceRefsContractTests(unittest.TestCase):
         self.assertEqual("ok", payload.get("status"))
         self.assertIn("self-check", report)
 
+    def test_anchor_bound_ref_updates_should_fail_when_referenced_file_lacks_acceptance_anchor(self) -> None:
+        with self.subTest("missing anchor should be hard failure"):
+            ok, errors = validate_anchor_bound_ref_updates(
+                root=REPO_ROOT,
+                updates=[
+                    {
+                        "task_id": 77,
+                        "view": "back",
+                        "index": 0,
+                        "anchor": "ACC:T77.1",
+                        "paths": ["Game.Core.Tests/Tasks/Task77AcceptanceTests.cs"],
+                    }
+                ],
+                read_text=lambda _path: "public sealed class Task77AcceptanceTests {}\n",
+            )
+
+            self.assertFalse(ok)
+            self.assertIn("missing_anchor:back[0]:ACC:T77.1:Game.Core.Tests/Tasks/Task77AcceptanceTests.cs", errors)
+
 
 if __name__ == "__main__":
     unittest.main()
-

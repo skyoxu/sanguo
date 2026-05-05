@@ -202,6 +202,18 @@ class RunSingleTaskLightLaneTests(unittest.TestCase):
             idx = cmd.index("--delivery-profile")
             self.assertEqual("playable-ea", cmd[idx + 1], msg=step_name)
 
+    def test_steps_should_forward_max_rewrite_change_ratio_to_align_step(self) -> None:
+        steps = lane._steps(
+            align_apply=True,
+            delivery_profile="fast-ship",
+            llm_timeout_sec=None,
+            max_rewrite_change_ratio=0.35,
+        )
+        align_cmd = dict(steps)["align"]
+
+        self.assertIn("--max-rewrite-change-ratio", align_cmd)
+        self.assertEqual("0.35", align_cmd[align_cmd.index("--max-rewrite-change-ratio") + 1])
+
     def test_resolve_step_timeout_sec_should_exceed_inner_default_when_auto(self) -> None:
         semantic_timeout = lane._resolve_step_timeout_sec("semantic_gate", delivery_profile="fast-ship", explicit_timeout_sec=None)
         fill_refs_timeout = lane._resolve_step_timeout_sec("fill_refs_write", delivery_profile="fast-ship", explicit_timeout_sec=None)

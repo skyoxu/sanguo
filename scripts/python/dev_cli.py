@@ -27,6 +27,7 @@ from dev_cli_builders import (
     build_new_execution_plan_cmd,
     build_inspect_run_cmd,
     build_chapter6_route_cmd,
+    build_create_prototype_scene_cmd,
     build_apply_chapter7_status_patch_cmd,
     build_run_chapter7_backlog_gap_cmd,
     build_preflight_cmd,
@@ -280,6 +281,12 @@ def cmd_run_prototype_workflow(args: argparse.Namespace) -> int:
     return run(build_run_prototype_workflow_cmd(args))
 
 
+def cmd_create_prototype_scene(args: argparse.Namespace) -> int:
+    """Create a minimal Godot prototype scene scaffold."""
+
+    return run(build_create_prototype_scene_cmd(args))
+
+
 def cmd_detect_project_stage(args: argparse.Namespace) -> int:
     """Detect the current repo stage and refresh project-health artifacts."""
 
@@ -348,7 +355,7 @@ def build_parser() -> argparse.ArgumentParser:
     # run-local-hard-checks
     p_lh = sub.add_parser(
         "run-local-hard-checks",
-        help="run gate bundle hard + run_dotnet, and append gdunit/smoke when --godot-bin is provided",
+        help="运行 gate bundle hard + run_dotnet；提供 --godot-bin 时追加 gdunit/smoke",
     )
     p_lh.add_argument("--solution", default="auto")
     p_lh.add_argument("--configuration", default="Debug")
@@ -363,7 +370,7 @@ def build_parser() -> argparse.ArgumentParser:
     # run-local-hard-checks-preflight
     p_lhp = sub.add_parser(
         "run-local-hard-checks-preflight",
-        help="run only gate bundle hard + run_dotnet before the full local-hard-checks harness",
+        help="在完整 local-hard-checks 前，仅运行 gate bundle hard + run_dotnet 预检",
     )
     p_lhp.add_argument("--solution", default="auto")
     p_lhp.add_argument("--configuration", default="Debug")
@@ -562,6 +569,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_proto.add_argument("--owner", default="operator")
     p_proto.add_argument("--related-task-id", action="append", default=[])
     p_proto.add_argument("--hypothesis", default="TODO: describe the prototype hypothesis.")
+    p_proto.add_argument("--core-player-fantasy", default="TODO: describe what the player should feel or understand in the first minute.")
+    p_proto.add_argument("--minimum-playable-loop", default="TODO: describe the smallest end-to-end loop the player must complete.")
+    p_proto.add_argument("--game-feature", default="TODO: describe the gameplay uniqueness.")
+    p_proto.add_argument("--core-gameplay-loop", default="TODO: describe the repeated gameplay loop.")
+    p_proto.add_argument("--win-fail-conditions", default="TODO: define win and fail conditions.")
+    p_proto.add_argument("--game-type-specific-game-type", default="")
+    p_proto.add_argument("--game-type-specific-guide-path", default="")
+    p_proto.add_argument("--game-type-specific-section", action="append", default=[])
     p_proto.add_argument("--scope-in", action="append", default=[])
     p_proto.add_argument("--scope-out", action="append", default=[])
     p_proto.add_argument("--success-criteria", action="append", default=[])
@@ -577,6 +592,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_proto.add_argument("--out-dir", default="")
     p_proto.set_defaults(func=cmd_run_prototype_tdd)
 
+    # create-prototype-scene
+    p_proto_scene = sub.add_parser(
+        "create-prototype-scene",
+        help="create a minimal Godot prototype scene scaffold under Game.Godot/Prototypes",
+    )
+    p_proto_scene.add_argument("--slug", required=True)
+    p_proto_scene.add_argument("--scene-root", default="Node2D")
+    p_proto_scene.add_argument("--prototype-root", default="Game.Godot/Prototypes")
+    p_proto_scene.set_defaults(func=cmd_create_prototype_scene)
+
     # run-prototype-workflow
     p_proto_workflow = sub.add_parser(
         "run-prototype-workflow",
@@ -584,40 +609,42 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_proto_workflow.add_argument("--prototype-file", default="")
     p_proto_workflow.add_argument("--set", action="append", default=[])
-    p_proto_workflow.add_argument("--assume-yes", action="store_true")
-    p_proto_workflow.add_argument("--force", action="store_true")
-    p_proto_workflow.add_argument("--dry-run", action="store_true")
-    p_proto_workflow.add_argument("--score-engine", default="none", choices=["none", "codex"])
-    p_proto_workflow.add_argument("--score-timeout-sec", type=int, default=90)
+    p_proto_workflow.add_argument("--confirm", action="store_true")
+    p_proto_workflow.add_argument("--godot-bin", default="")
+    p_proto_workflow.add_argument("--stop-after-day", type=int, default=5, choices=[1, 2, 3, 4, 5])
+    p_proto_workflow.add_argument("--resume-active", default="")
+    p_proto_workflow.add_argument("--score-engine", default="deterministic", choices=["deterministic", "codex", "hybrid"])
+    p_proto_workflow.add_argument("--score-timeout-sec", type=int, default=180)
+    p_proto_workflow.add_argument("--self-check", action="store_true")
     p_proto_workflow.set_defaults(func=cmd_run_prototype_workflow)
 
     # detect-project-stage
-    p_stage = sub.add_parser("detect-project-stage", help="detect repo stage and refresh project-health artifacts")
+    p_stage = sub.add_parser("detect-project-stage", help="检测仓库阶段并刷新 project-health 产物")
     p_stage.add_argument("--repo-root", default=".")
     p_stage.set_defaults(func=cmd_detect_project_stage)
 
     # doctor-project
-    p_doctor = sub.add_parser("doctor-project", help="run repo doctor checks and refresh project-health artifacts")
+    p_doctor = sub.add_parser("doctor-project", help="运行仓库 doctor 检查并刷新 project-health 产物")
     p_doctor.add_argument("--repo-root", default=".")
     p_doctor.set_defaults(func=cmd_doctor_project)
 
     # check-directory-boundaries
     p_boundaries = sub.add_parser(
         "check-directory-boundaries",
-        help="run deterministic directory responsibility checks and refresh project-health artifacts",
+        help="运行目录职责边界确定性检查并刷新 project-health 产物",
     )
     p_boundaries.add_argument("--repo-root", default=".")
     p_boundaries.set_defaults(func=cmd_check_directory_boundaries)
 
     # project-health-scan
-    p_scan = sub.add_parser("project-health-scan", help="run all project-health checks and refresh the dashboard")
+    p_scan = sub.add_parser("project-health-scan", help="运行全部 project-health 检查并刷新仪表盘")
     p_scan.add_argument("--repo-root", default=".")
     p_scan.add_argument("--serve", action="store_true")
     p_scan.add_argument("--port", type=int, default=0)
     p_scan.set_defaults(func=cmd_project_health_scan)
 
     # serve-project-health
-    p_srv = sub.add_parser("serve-project-health", help="serve the local project-health dashboard on 127.0.0.1")
+    p_srv = sub.add_parser("serve-project-health", help="在 127.0.0.1 启动本地 project-health 仪表盘服务")
     p_srv.add_argument("--repo-root", default=".")
     p_srv.add_argument("--port", type=int, default=0)
     p_srv.set_defaults(func=cmd_serve_project_health)

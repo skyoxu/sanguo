@@ -1,0 +1,38 @@
+[
+  {
+    "id": "EX-GAMEPLAY-0001",
+    "taskmaster_id": 1,
+    "status": "in-progress",
+    "layer": "ui",
+    "labels": [
+      "ui",
+      "menu"
+    ],
+    "title": "Example gameplay task",
+    "contractRefs": [
+      "core.run.started"
+    ],
+    "acceptance": [
+      "ACC:T1.2 Example gameplay acceptance. Refs: Tests.Godot/tests/Adapters/Config/test_settings_config_utf8.gd"
+    ],
+    "test_refs": [
+      "Tests.Godot/tests/Adapters/Config/test_settings_config_utf8.gd"
+    ]
+  },
+  {
+    "id": "EX-GAMEPLAY-0002",
+    "taskmaster_id": 2,
+    "status": "pending",
+    "layer": "ui",
+    "labels": [
+      "ui",
+      "hud"
+    ],
+    "title": "Example gameplay task 2",
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
+    "acceptance": [],
+    "test_refs": []
+  }
+]

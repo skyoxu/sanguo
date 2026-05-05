@@ -143,7 +143,7 @@ py -3 -m pip install jsonschema
 
 ### 2.2 Taskmaster 任务 Schema 扩展
 
-> 说明：在 newguild 中，Taskmaster 任务存放于 `.taskmaster/tasks/*.json`（如 tasks_back.json、tasks_gameplay.json、tasks_longterm.json）；下文以 tasks.json 字段示例表示单条任务记录的典型结构，具体字段命名以 `.taskmaster/tasks/*.json` 为准。
+> 说明：在使用本模板的项目中，Taskmaster 任务存放于 `.taskmaster/tasks/*.json`（如 tasks_back.json、tasks_gameplay.json、tasks_longterm.json）；下文以 tasks.json 字段示例表示单条任务记录的典型结构，具体字段命名以 `.taskmaster/tasks/*.json` 为准。
 
 Task Master 默认字段（概念示例）：
 ```json
@@ -215,7 +215,7 @@ SuperClaude v4 推荐的"黄金三角" MCP 工具组合:
 
 3. **LegacyE2ERunner MCP** (可选，主要面向 Web/LegacyDesktopShell 子项目)
    - 用途: E2E 回归测试自动化（仅当项目存在 HTML5/Web/LegacyDesktopShell 前端时适用），默认 Godot+C# 模板的 E2E 由 GdUnit4/headless Godot 承担。
-   - 场景: Web UI 测试、LegacyDesktopShell 包装应用的回归验证（newguild 默认不开启）。
+   - 场景: Web UI 测试、LegacyDesktopShell 包装应用的回归验证（模板默认不开启）。
    - 配置: 如需启用，需在项目层单独配置 LegacyE2ERunner 与 MCP 集成，不属于模板必备能力。
 
 ---
@@ -350,11 +350,9 @@ git checkout -b feature/task-1.1-window-init
 # 1.3 更新任务状态为 in-progress
 npx task-master set-status 1.1 in-progress
 
-# 1.4 验证 overlay 回链字段已填充
-# 打开 .taskmaster/tasks/tasks_back.json，确认任务 1.1 包含 overlay_refs（至少包含 _index.md 与 ACCEPTANCE_CHECKLIST.md）
-# 如缺失：
-#   - 先运行 `py -3 scripts/python/patch_tasks_back_overlay_refs.py`
-#   - 再运行 `py -3 scripts/python/validate_task_overlays.py` 与 `py -3 scripts/python/task_links_validate.py` 校验回链
+# 1.4 验证 overlay 字段已填充
+# 打开 .taskmaster/tasks/tasks_back.json，确认任务 1.1 包含 overlay 字段
+# 如缺失，可手动补充 .taskmaster/tasks/*.json 中的 overlay/overlay_refs 字段，并使用 `py -3 scripts/python/task_links_validate.py` 校验回链（本仓库未提供自动批量填充 overlay 的脚本）。
 ```
 
 ---
@@ -523,11 +521,9 @@ npx task-master set-status 1.1 done
 
 **常见问题与排查**
 
-**问题 1：overlay/overlay_refs 缺失或路径不正确**
-- 症状：验收门禁报错"找不到 overlay 路径"或"overlay_refs must not be empty"
-- 解决：
-  - views：优先修复 `.taskmaster/tasks/tasks_back.json` 的 `overlay_refs`（运行 `py -3 scripts/python/patch_tasks_back_overlay_refs.py`）
-  - 然后运行 `py -3 scripts/python/validate_task_overlays.py` 与 `py -3 scripts/python/task_links_validate.py` 复核
+**问题 1：overlay 字段缺失**
+- 症状：/acceptance-check 报错"找不到 overlay 路径"
+- 解决：当前仓库未提供自动批量填充 overlay 的脚本，可手动在 `.taskmaster/tasks/*.json` 中补充 overlay/overlay_refs 字段，并运行 `py -3 scripts/python/task_links_validate.py` 校验回链
 
 **问题 2：架构验收报错"ACCEPTANCE_CHECKLIST.md 不存在"**
 - 症状：overlay 字段指向的文件不存在
@@ -633,33 +629,30 @@ npx task-master parse-prd .taskmaster/docs/prd.txt -n 30
 py -3 scripts/python/task_links_validate.py
 ```
 
-如果校验失败，手动编辑 `.taskmaster/tasks/tasks_back.json` 补充 `adr_refs` 和 `chapter_refs`（视图文件只使用 snake_case 字段）。
+如果校验失败，手动编辑 `.taskmaster/tasks/tasks_back.json` 补充 `adrRefs` 和 `archRefs`。
 
-**3.3.1 批量更新 overlay 回链字段（推荐）**
+**3.3.1 批量更新 overlay 字段（推荐）**
 
-回链字段用于关联任务与架构验收清单（ACCEPTANCE_CHECKLIST.md），支持自动化架构验收：
+`overlay` 字段用于关联任务与架构验收清单（ACCEPTANCE_CHECKLIST.md），支持 Subagents 自动化架构验收。
 
-- master（`.taskmaster/tasks/tasks.json`）：使用 `overlay`（单个主入口文件）
-- views（`.taskmaster/tasks/tasks_back.json` / `tasks_gameplay.json`）：使用 `overlay_refs`（必须包含 `_index.md` 与 `ACCEPTANCE_CHECKLIST.md`）
-
-**自动化脚本（仓库现有）：**
+**自动化脚本：**
 
 ```bash
-# 1) 确保 tasks_back.json 的 overlay_refs 至少包含两个锚点：
-#    - docs/architecture/overlays/<PRD-ID>/08/_index.md
-#    - docs/architecture/overlays/<PRD-ID>/08/ACCEPTANCE_CHECKLIST.md
-py -3 scripts/python/patch_tasks_back_overlay_refs.py
+# 批量更新 .taskmaster/tasks/*.json 中各任务的 overlay 字段
+py -3 scripts/python/link_tasks_to_overlays.py
 
-# 2) 校验所有任务文件的 overlay_refs / overlay 是否可解析、文件存在、并校验 ACCEPTANCE_CHECKLIST.md front matter
-py -3 scripts/python/validate_task_overlays.py
+# 脚本功能：
+# 1. 扫描 docs/architecture/overlays/<PRD-ID>/08/ 目录
+# 2. 匹配任务与对应的 ACCEPTANCE_CHECKLIST.md
+# 3. 自动填充 overlay 字段
 ```
 
-**字段格式：**
+**overlay 字段格式：**
 
 ```json
 {
   "id": "1.1",
-  "overlay": "docs/architecture/overlays/<PRD-ID>/08/08-feature-slice-....md"
+  "overlay": "docs/architecture/overlays/PRD-guild/08/ACCEPTANCE_CHECKLIST.md"
 }
 ```
 
@@ -832,7 +825,7 @@ public class GuildContractsTests
 
 **外圈质量门禁（结构层校验 vs 行为层 TDD）**
 
-在 newguild 中，契约与事件的质量保障分为两圈：
+在使用本模板的项目中，契约与事件的质量保障分为两圈：
 
 - **内圈（行为层 TDD）**：
   - 使用 xUnit/GdUnit4 直接针对业务行为与状态机编写测试（例如 `GameTurnSystemTests`, `EventEngineTests`, `GameLoopContractsTests`）。
@@ -860,7 +853,7 @@ public class GuildContractsTests
 - 在实现阶段聚焦业务行为与可玩性（由单元/场景测试驱动）。
 - 在架构与长期维护阶段，靠结构校验脚本防止契约和文档慢慢偏离 ADR/Overlay 约定。
 
-#### 当前 newguild 实现状态（Guild 示例）
+#### 示例实现状态（Guild 示例）
 
 - Guild 领域事件套装已落地，并符合 ADR-0004 的 `core.<entity>.<action>` 约定：
   - `core.guild.created` → `Game.Core/Contracts/Guild/GuildCreated.cs`
@@ -1275,7 +1268,7 @@ reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"logs/unit/cover
 # 3. 覆盖率门禁校验（Python 脚本）
 $env:COVERAGE_LINES_MIN = "90"
 $env:COVERAGE_BRANCHES_MIN = "85"
-py -3 scripts/python/run_dotnet.py --solution auto --configuration Debug
+py -3 scripts/python/run_dotnet.py --solution Game.sln --configuration Debug
 
 # 4. 场景/集成测试（可选，如果改动涉及 Godot 场景）
 # 本模板中无 godot_tests.py，E2E/场景冒烟建议使用 run_gdunit.py 或 smoke_headless.py：
@@ -1981,12 +1974,12 @@ def fill_pr_template(task_id: str) -> str:
 
 ```bash
 # 主分支保持在 main
-git worktree add ../newguild-task-1.1 -b feature/task-1.1
-git worktree add ../newguild-task-1.2 -b feature/task-1.2
+git worktree add ../worktree-task-1.1 -b feature/task-1.1
+git worktree add ../worktree-task-1.2 -b feature/task-1.2
 
 # 在不同终端/IDE 实例中分别处理
-# Terminal 1: cd ../newguild-task-1.1 && code .
-# Terminal 2: cd ../newguild-task-1.2 && code .
+# Terminal 1: cd ../worktree-task-1.1 && code .
+# Terminal 2: cd ../worktree-task-1.2 && code .
 ```
 
 **注意**：SQLite 数据库文件冲突，建议测试时使用内存数据库。
@@ -2508,7 +2501,7 @@ superclaude review --staged
 
 ## 10. Node / Web 生态说明（可选附加）
 
-- 在 newguild 模板中，**主线工具链** 是：`.taskmaster/tasks/*.json` + Python 脚本 + dotnet/xUnit + GdUnit4，用于驱动 PRD/Base/ADR 约束下的 Godot+C# 游戏开发。
+- 在本模板中，**主线工具链** 是：`.taskmaster/tasks/*.json` + Python 脚本 + dotnet/xUnit + GdUnit4，用于驱动 PRD/Base/ADR 约束下的 Godot+C# 游戏开发。
 - 文档中出现的 Node / NodePkg / LegacyE2ERunner MCP 等内容，默认视为 **仅在存在 Web/HTML5/LegacyDesktopShell 子项目时启用的可选能力**，不是本仓库的硬依赖。
 - 如果当前项目只构建原生 Windows Godot 游戏，可以暂时忽略所有 Node/LegacyUnitTestRunner/LegacyE2ERunner 相关命令与脚本，不影响 T2 场景和核心回合循环的实现与验证。
-- 当你未来引入 Web/LegacyDesktopShell 前端、需要前端专用 E2E/可用性测试时，可以参考文档中的 Node/LegacyUnitTestRunner/LegacyE2ERunner 段落，将其视为在 newguild 之上的“额外层”，并保持 ADR/任务回链与现有 Godot+C# 工具链一致。
+- 当你未来引入 Web/LegacyDesktopShell 前端、需要前端专用 E2E/可用性测试时，可以参考文档中的 Node/LegacyUnitTestRunner/LegacyE2ERunner 段落，将其视为在本模板之上的“额外层”，并保持 ADR/任务回链与现有 Godot+C# 工具链一致。

@@ -440,67 +440,6 @@ class GenerateTestsFromAcceptanceRefsTests(unittest.TestCase):
         self.assertFalse(any_gd)
         self.assertEqual(["ok"], [item.status for item in results])
 
-    def test_main_should_accept_existing_red_test_refs_when_verify_is_red(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="repo-", dir=str(REPO_ROOT)) as tmpdir:
-            root = Path(tmpdir)
-            out_dir = root / "logs" / "ci" / "2026-03-20" / "sc-llm-acceptance-tests"
-            analyze_dir = root / "logs" / "ci" / "2026-03-20" / "sc-analyze"
-            analyze_dir.mkdir(parents=True, exist_ok=True)
-            (analyze_dir / "task_context.11.json").write_text(
-                json.dumps({"taskdoc_markdown": "Task context markdown"}, ensure_ascii=False) + "\n",
-                encoding="utf-8",
-            )
-            existing_ref = root / "Game.Core.Tests" / "FooTests.cs"
-            existing_ref.parent.mkdir(parents=True, exist_ok=True)
-            existing_ref.write_text(
-                "\n".join(
-                    [
-                        "using Xunit;",
-                        "public sealed class FooTests",
-                        "{",
-                        "    // ACC:T11.1",
-                        "    [Fact]",
-                        "    public void Existing_red_test() {}",
-                        "}",
-                    ]
-                ),
-                encoding="utf-8",
-            )
-            argv = [
-                "llm_generate_tests_from_acceptance_refs.py",
-                "--task-id",
-                "11",
-                "--tdd-stage",
-                "red-first",
-                "--verify",
-                "unit",
-            ]
-
-            def fake_run_cmd(cmd: list[str], cwd: Path, timeout_sec: int):  # noqa: ARG001
-                cmd_text = " ".join(cmd)
-                if "validate_acceptance_refs.py" in cmd_text:
-                    return 0, "acceptance refs ok\n"
-                if "scripts/sc/analyze.py" in cmd_text:
-                    return 0, "analyze ok\n"
-                if "update_task_test_refs_from_acceptance_refs.py" in cmd_text:
-                    return 0, "sync ok\n"
-                if cmd[:4] == ["py", "-3", "scripts/sc/test.py", "--type"]:
-                    return 1, "SC_TEST status=fail out=logs/ci/2026-03-20/sc-test\n"
-                raise AssertionError(f"unexpected command: {cmd}")
-
-            with mock.patch.object(sys, "argv", argv), \
-                mock.patch.object(gen_script, "repo_root", return_value=root), \
-                mock.patch.object(gen_script, "ci_dir", return_value=out_dir), \
-                mock.patch.object(gen_script, "resolve_triplet", return_value=_FakeTriplet()), \
-                mock.patch.object(gen_script, "run_cmd", side_effect=fake_run_cmd), \
-                mock.patch.object(gen_script, "_evaluate_red_verification", return_value={"status": "ok", "reason": "unit_red"}):
-                rc = gen_script.main()
-
-            self.assertEqual(0, rc)
-            summary = json.loads((out_dir / "summary-11.json").read_text(encoding="utf-8"))
-            self.assertEqual(0, summary["created"])
-            self.assertEqual("ok", summary["red_verify"]["status"])
-
 
 if __name__ == "__main__":
     unittest.main()

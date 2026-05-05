@@ -5,13 +5,12 @@ from __future__ import annotations
 import io
 import json
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
-
-from scripts.sc.tests._repo_test_temp import repo_temp_dir
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -23,8 +22,8 @@ import llm_check_subtasks_coverage as subtasks_script  # noqa: E402
 
 class SubtasksCoverageSelectionPolicyTests(unittest.TestCase):
     def test_should_fail_with_strict_reason_when_selected_task_has_no_views(self) -> None:
-        with repo_temp_dir("subtasks-coverage-strict-view") as root:
-            out_dir = root / "subtasks-coverage"
+        with tempfile.TemporaryDirectory(dir=str(REPO_ROOT)) as td:
+            out_dir = Path(td) / "subtasks-coverage"
             triplet = SimpleNamespace(
                 task_id="17",
                 master={"title": "Task17", "subtasks": [{"id": "17.1", "title": "Subtask A"}]},
@@ -49,8 +48,8 @@ class SubtasksCoverageSelectionPolicyTests(unittest.TestCase):
             self.assertIn("strict_view_selection_missing_acceptance_views", buf.getvalue())
 
     def test_summary_should_include_selection_policy_and_garbled_gate(self) -> None:
-        with repo_temp_dir("subtasks-coverage-summary") as root:
-            out_dir = root / "subtasks-coverage"
+        with tempfile.TemporaryDirectory(dir=str(REPO_ROOT)) as td:
+            out_dir = Path(td) / "subtasks-coverage"
             triplet = SimpleNamespace(
                 task_id="17",
                 master={"title": "Task17", "subtasks": []},

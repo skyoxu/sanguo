@@ -69,6 +69,14 @@ Generated from source scan on `2026-03-25`. This document inventories recurring 
 - `scripts/python/run_single_task_chapter6_lane.py`
 - `scripts/python/merge_single_task_light_lane_summaries.py`
 
+### Task generation and triplet compilation
+
+- `scripts/python/extract_requirement_anchors.py`: extracts stable requirement anchors from configurable PRD, GDD, epics, stories, overlays, ADRs, and custom planning globs.
+- `scripts/python/generate_task_candidates_from_sources.py`: converts requirement anchors into normalized task candidates without writing final task files.
+- `scripts/python/enrich_task_candidates.py`: enriches normalized candidates with ADR, chapter, overlay, contract event, test, evidence, owner/layer, acceptance, and duplicate-candidate signals.
+- `scripts/python/audit_task_candidate_coverage.py`: audits candidate coverage against requirement anchors and blocks missing P0/P1 coverage.
+- `scripts/python/compile_task_triplet.py`: compiles enriched candidates into a reviewable triplet patch, or writes task view files with `--write`.
+
 ### Taskmaster / semantics / overlay
 
 - `scripts/python/task_links_validate.py`

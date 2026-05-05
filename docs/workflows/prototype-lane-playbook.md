@@ -27,13 +27,15 @@ Short rule:
 Use this order:
 
 1. Write the hypothesis.
-2. Create the prototype record.
-3. Run prototype red.
-4. Implement the smallest code change.
-5. Run prototype green.
-6. Run prototype refactor only when needed.
-7. Decide `discard | archive | promote`.
-8. If the answer is `promote`, move back to the formal Chapter 6 flow.
+2. Write the core player fantasy and minimum playable loop.
+3. Create the prototype record.
+4. Run prototype red.
+5. Implement the smallest code change.
+6. Run prototype green.
+7. Run prototype refactor only when needed.
+8. Run a short playtest/readability check when interaction matters.
+9. Decide `discard | archive | promote`.
+10. If the answer is `promote`, move back to the formal Chapter 6 flow.
 
 ## 3. Step 1: Create The Prototype Record
 
@@ -46,6 +48,8 @@ py -3 scripts/python/dev_cli.py run-prototype-tdd --slug <slug> --create-record-
 Recommended fields to fill early:
 
 - `--hypothesis`
+- core player fantasy
+- minimum playable loop
 - `--scope-in`
 - `--scope-out`
 - `--success-criteria`
@@ -123,7 +127,17 @@ Not the goal:
 - this is not formal delivery completion,
 - and it does not replace Chapter 6.
 
-## 7. Step 5: Read The Outputs And Decide
+## 7. Step 5: Run A Short Solo-Dev Playtest Check
+
+Before deciding, ask:
+
+- is the core player fantasy visible within the first minute?
+- can the minimum playable loop be completed without explanation?
+- is the next iteration obviously worth formalizing, or is the idea still too vague?
+
+This is intentionally lightweight. It is not a formal Chapter 6 QA gate.
+
+## 8. Step 6: Read The Outputs And Decide
 
 Each prototype TDD run writes:
 
@@ -140,12 +154,15 @@ Decision meanings:
 
 - `discard`
   - the idea failed; stop here
+  - use this when the loop is not fun enough, understandable enough, or viable enough to justify more iteration
 - `archive`
   - keep the evidence, but do not move into formal delivery yet
+  - use this when the idea has signal, but not enough confidence for formal task work
 - `promote`
   - the idea is now ready to become real task work
+  - use this when the core player fantasy is clear and the minimum playable loop already proves what the next formal task should deliver
 
-## 8. If The Answer Is Promote, What Happens Next
+## 9. If The Answer Is Promote, What Happens Next
 
 Do not keep treating prototype artifacts as formal delivery results.
 
@@ -166,7 +183,7 @@ py -3 scripts/sc/build.py tdd --task-id <id> --stage refactor
 py -3 scripts/sc/run_review_pipeline.py --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile fast-ship
 ```
 
-## 9. Practical Command Templates
+## 10. Practical Command Templates
 
 ### Template A: small pure C# mechanic
 
@@ -193,7 +210,7 @@ py -3 scripts/python/dev_cli.py run-prototype-tdd --slug target-selection --stag
 py -3 scripts/python/dev_cli.py run-prototype-tdd --slug target-selection --stage green --godot-bin "$env:GODOT_BIN" --gdunit-path tests/UI
 ```
 
-## 10. Common Mistakes
+## 11. Common Mistakes
 
 Do not:
 
@@ -202,7 +219,7 @@ Do not:
 - change long-lived contracts during prototype work without creating formal follow-up work,
 - or stay in prototype lane after the work is clearly real product work.
 
-## 11. Fast Decision Tree
+## 12. Fast Decision Tree
 
 - Is the question still "is this worth doing"?
   - yes: start with prototype lane

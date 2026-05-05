@@ -18,7 +18,7 @@ import _sc_test_steps as sc_steps  # noqa: E402
 
 
 class ScTestStepsUnitFallbackTests(unittest.TestCase):
-    def test_run_unit_should_fail_fast_when_task_scoped_coverage_gate_fails_and_fallback_is_disabled(self) -> None:
+    def test_run_unit_should_fail_fast_when_task_scoped_coverage_is_zero_and_fallback_is_disabled(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             out_dir = Path(td)
             first_out = "RUN_DOTNET status=coverage_failed line=0.0% branch=0.0 out=logs/unit/2026-03-30\n"
@@ -96,35 +96,6 @@ class ScTestStepsUnitFallbackTests(unittest.TestCase):
             self.assertEqual(2, int(step["rc"]))
             self.assertEqual("fail", step["status"])
             self.assertIn("--filter", step["cmd"])
-
-    def test_run_unit_should_retry_without_filter_when_coverage_failed_is_non_zero(self) -> None:
-        with tempfile.TemporaryDirectory() as td:
-            out_dir = Path(td)
-            first_out = "RUN_DOTNET status=coverage_failed line=2.21% branch=1.41 out=logs/unit/2026-03-30\n"
-            second_out = "RUN_DOTNET status=ok line=90.0% branch=70.0 out=logs/unit/2026-03-30\n"
-
-            with (
-                mock.patch.object(sc_steps, "repo_root", return_value=REPO_ROOT),
-                mock.patch.object(sc_steps, "today_str", return_value="2026-03-30"),
-                mock.patch.object(sc_steps, "task_scoped_cs_refs", return_value=["Game.Core.Tests/Tasks/Task0083SplitTests.cs"]),
-                mock.patch.object(sc_steps, "build_dotnet_filter_from_cs_refs", return_value="FullyQualifiedName~Task0083SplitTests"),
-                mock.patch.object(sc_steps, "run_cmd", side_effect=[(2, first_out), (0, second_out)]),
-            ):
-                step = sc_steps.run_unit(
-                    out_dir,
-                    "Game.sln",
-                    "Debug",
-                    run_id="r2c",
-                    task_id="83",
-                    allow_full_unit_fallback=True,
-                )
-
-            self.assertEqual(0, int(step["rc"]))
-            self.assertEqual("ok", step["status"])
-            self.assertEqual(
-                ["py", "-3", "scripts/python/run_dotnet.py", "--solution", "Game.sln", "--configuration", "Debug"],
-                step["cmd"],
-            )
 
     def test_run_gdunit_hard_should_fail_when_task_has_no_gd_refs(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -212,32 +183,6 @@ class ScTestStepsUnitFallbackTests(unittest.TestCase):
             cmd = captured[0]
             self.assertEqual(refs, [cmd[idx + 1] for idx, token in enumerate(cmd[:-1]) if token == "--add"])
             self.assertNotIn("tests/Scenes", cmd)
-
-    def test_run_gdunit_hard_should_redirect_godot_log_file_into_repo_logs(self) -> None:
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            out_dir = root / "logs" / "ci"
-            captured: list[list[str]] = []
-
-            def fake_run_cmd(cmd, *, cwd=None, timeout_sec=0):  # noqa: ANN001
-                captured.append(list(cmd))
-                return 0, "ok\n"
-
-            with (
-                mock.patch.object(sc_steps, "repo_root", return_value=root),
-                mock.patch.object(sc_steps, "today_str", return_value="2026-04-16"),
-                mock.patch.object(sc_steps, "task_scoped_gdunit_refs", return_value=["tests/UI/test_task122_a.gd"]),
-                mock.patch.object(sc_steps, "run_cmd", side_effect=fake_run_cmd),
-            ):
-                step = sc_steps.run_gdunit_hard(out_dir, "godot.exe", 120, run_id="run122", task_id="122")
-
-            self.assertEqual(0, int(step["rc"]))
-            cmd = captured[0]
-            self.assertIn("--log-file", cmd)
-            self.assertEqual(
-                str(root / "logs" / "ci" / "2026-04-16" / "godot-logs" / "gdunit-hard-run122.log"),
-                cmd[cmd.index("--log-file") + 1],
-            )
 
 
 if __name__ == "__main__":

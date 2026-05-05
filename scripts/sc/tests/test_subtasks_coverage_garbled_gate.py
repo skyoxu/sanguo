@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import io
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
-
-from scripts.sc.tests._repo_test_temp import repo_temp_dir
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -22,8 +21,8 @@ import llm_check_subtasks_coverage as subtasks_script  # noqa: E402
 
 class SubtasksCoverageGarbledGateTests(unittest.TestCase):
     def test_should_fail_before_llm_when_garbled_precheck_hits(self) -> None:
-        with repo_temp_dir("subtasks-coverage-garbled") as root:
-            out_dir = root / "subtasks-coverage"
+        with tempfile.TemporaryDirectory(dir=str(REPO_ROOT)) as td:
+            out_dir = Path(td) / "subtasks-coverage"
             triplet = SimpleNamespace(
                 task_id="17",
                 master={"title": "Task17", "subtasks": [{"id": "17.1", "title": "Subtask A"}]},

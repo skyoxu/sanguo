@@ -49,6 +49,11 @@
   - `tasks_gameplay[].taskmaster_id`
 - 若存在 `taskdoc/<id>.md` 会作为附加上下文被记录在报告中（用于追溯）。
 
+CI 集成说明（Windows Quality Gate）：
+
+- 仅当检测到 `.taskmaster/tasks/tasks.json` 存在，且能解析出 task id（workflow_dispatch 输入 `task_id` 或 tasks.json 中存在 `status == "in-progress"`）时才会执行。
+- 若缺少任务文件或无法解析 task id，会输出 `SC_ACCEPTANCE skipped: ...` 并 **不阻断**（避免模板仓库/分支在未启用 Taskmaster 时被误伤）。
+
 ### 2.3 输出与退出码
 
 - 输出目录：`logs/ci/<YYYY-MM-DD>/sc-acceptance-check/`
@@ -64,27 +69,13 @@
 
 硬门禁（失败即阻断）：
 
-- ADR 合规：
-  - master（`.taskmaster/tasks/tasks.json`）：`adrRefs/archRefs/overlay` 是否完整；ADR 文件存在；至少引用 ≥1 个 **Accepted** ADR
-  - views（`.taskmaster/tasks/tasks_back.json` / `tasks_gameplay.json`）：`adr_refs/chapter_refs/overlay_refs` 是否完整（视图文件不再使用 `adrRefs/archRefs/overlay`）
+- ADR 合规：任务 `adrRefs/archRefs/overlay` 是否完整；ADR 文件存在；至少引用 ≥1 个 **Accepted** ADR
 - 任务回链：`py -3 scripts/python/task_links_validate.py`
 - Overlay 校验：`py -3 scripts/python/validate_task_overlays.py`
 - 契约一致性：`py -3 scripts/python/validate_contracts.py`
 - 架构边界：`Game.Core/**` 不得引用 `Godot.*`
 - 构建门禁：`dotnet build -warnaserror`（通过 sc build 入口）
 - 测试门禁：`py -3 scripts/sc/test.py --type all`（含 xUnit + GdUnit4 + smoke）
-
-#### 2.4.1 系统级口径：必须有 ADR + 硬门禁
-
-对于 1/3/4/6/9 这类“会反复影响所有任务”的口径（跨切面规则/约束/门禁/安全/契约），要求：
-
-- 必须落 ADR（并在任务的 `adrRefs` 中引用，且状态为 `Accepted`）
-- 必须能被 `acceptance_check.py` 的 ADR 步骤以确定性规则检查并硬失败（拒绝仅靠口头约定/记忆）
-
-建议把“系统级口径”的 SSoT 放在：
-
-- 详细规则：`docs/workflows/acceptance-check-and-llm-review.md`
-- AI 总能看到的最小提示（可选）：`AGENTS.md`（只放一句话 + 链接，避免重复口径）
 
 软门禁（不阻断，只记录证据）：
 
@@ -110,7 +101,7 @@
 - 如果只跑 `--only perf`，脚本不会自动跑 smoke 生成 `headless.log`，你需要先运行一次：
   - `py -3 scripts/sc/test.py --type all --godot-bin "$env:GODOT_BIN"`  
   或  
-  - `py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project-path . --scene res://Game.Godot/Scenes/Main.tscn --timeout-sec 5 --mode strict`
+  - `py -3 scripts/python/smoke_headless.py --godot-bin "$env:GODOT_BIN" --project . --scene res://Game.Godot/Scenes/Main.tscn --timeout-sec 5 --mode strict`
 
 ---
 
@@ -225,3 +216,11 @@ py -3 scripts/sc/llm_review.py --task-id 10 --base main --strict
 
 > 说明：以上文件均属于“工具链/工作流层”，不应与游戏业务逻辑耦合。
 
+## 7. Update (2026-02)
+
+- `acceptance_check.py` (hard gate): profile-aware defaults via `--security-profile`; recommended to use `--require-task-test-refs` and `--require-executed-refs` for strict delivery phases.
+- `llm_review.py`: profile-aware risk context via `--security-profile`; task-specific output path is `sc-llm-review-task-<id>/` when `--task-id` is set.
+- `llm_extract_task_obligations.py`: use `--consensus-runs`, `--garbled-gate`, and `--auto-escalate` for stability.
+- `llm_check_subtasks_coverage.py`: supports `--consensus-runs`.
+- `llm_semantic_gate_all.py`: supports `--garbled-gate` precheck before LLM audit.
+- CI must emit: `SecurityProfile: <host-safe|strict>`.

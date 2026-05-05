@@ -52,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate obligations freeze whitelist against observed jitter summary.")
     parser.add_argument(
         "--whitelist",
-        default=".taskmaster/docs/obligations-freeze-whitelist.baseline.current.json",
+        default=".taskmaster/config/obligations-freeze-whitelist.baseline.current.json",
         help="Path to freeze whitelist baseline JSON.",
     )
     parser.add_argument(

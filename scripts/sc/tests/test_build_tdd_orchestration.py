@@ -235,7 +235,7 @@ class BuildTddOrchestrationTests(unittest.TestCase):
                 step = tdd_script.run_green_gate(
                     task_id="14",
                     triplet=_FakeTriplet(),
-                    solution="sanguo.sln",
+                    solution="Game.sln",
                     configuration="Debug",
                     out_dir=out_dir,
                     coverage_gate=True,

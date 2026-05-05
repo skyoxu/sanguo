@@ -1,8 +1,15 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SC_DIR = REPO_ROOT / "scripts" / "sc"
+if str(SC_DIR) not in sys.path:
+    sys.path.insert(0, str(SC_DIR))
 
 from _taskmaster import TaskmasterTriplet
 

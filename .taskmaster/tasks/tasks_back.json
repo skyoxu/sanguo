@@ -177,7 +177,10 @@
     ],
     "taskmaster_id": 3,
     "taskmaster_exported": true,
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "contractRefs": [
+      "core.sanguo.city.bought"
+    ]
   },
   {
     "id": "SG-0004",
@@ -236,7 +239,11 @@
     ],
     "taskmaster_id": 4,
     "taskmaster_exported": true,
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "contractRefs": [
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.player.eliminated"
+    ]
   },
   {
     "id": "SG-0005",
@@ -2038,7 +2045,10 @@
     "id": "SG-0031",
     "taskmaster_exported": true,
     "taskmaster_id": 31,
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ]
   },
   {
     "story_id": "PH16-BACKLOG-B1-B3",
@@ -2327,7 +2337,10 @@
     "id": "SG-0036",
     "taskmaster_exported": true,
     "taskmaster_id": 36,
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ]
   },
   {
     "story_id": "PH16-BACKLOG-B2",
@@ -2384,7 +2397,10 @@
     "id": "SG-0037",
     "taskmaster_exported": true,
     "taskmaster_id": 37,
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ]
   },
   {
     "story_id": "PH13-BACKLOG-B3",
@@ -3281,7 +3297,9 @@
     "test_strategy": [
       "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "semantic_review_tier": "full"
   },
   {
@@ -4334,7 +4352,9 @@
     "test_strategy": [
       "Integration closure check from split-task evidence."
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "semantic_review_tier": "full"
   },
   {
@@ -4386,7 +4406,9 @@
     "test_strategy": [
       "Integration closure check from split-task evidence."
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "semantic_review_tier": "full"
   },
   {
@@ -6068,7 +6090,9 @@
     ],
     "taskmaster_id": 101,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -6120,7 +6144,9 @@
     ],
     "taskmaster_id": 102,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -6519,7 +6545,9 @@
     ],
     "taskmaster_id": 109,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9",
       "A-020"
@@ -7734,7 +7762,9 @@
     ],
     "taskmaster_id": 131,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -7788,7 +7818,9 @@
     ],
     "taskmaster_id": 132,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -7841,7 +7873,9 @@
     ],
     "taskmaster_id": 133,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -7893,7 +7927,9 @@
     ],
     "taskmaster_id": 134,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -8519,7 +8555,9 @@
     ],
     "taskmaster_id": 145,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9",
       "A-020"
@@ -8573,7 +8611,9 @@
     ],
     "taskmaster_id": 146,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9"
     ],
@@ -9887,7 +9927,9 @@
     ],
     "taskmaster_id": 169,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9",
       "A-020"
@@ -9938,7 +9980,9 @@
     ],
     "taskmaster_id": 170,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9",
       "A-020"
@@ -10867,7 +10911,9 @@
       "Use Chapter 7 candidate evidence to keep Config Audit And Migration Surfaces scoped to the documented UI slice and avoid unrelated gameplay changes. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task180ConfigAuditAndMigrationSurfacesTests.cs Game.Core.Tests/Tasks/Task180ConfigAuditAndMigrationCiEvidenceTests.cs",
       "Validate end-to-end wiring against the routed scope tasks (T147, T148, T149, T150, T151, T152, T153, T154, T155, T156, T157, T158, T159, T160, T161, T162, T163, T165, T166, T167, T168, T169, T171, T172, T173, T174, T175) and record any remaining UI gaps in Chapter 7 artifacts instead of closing the slice early. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task180ConfigAuditAndMigrationSurfacesTests.cs Game.Core.Tests/Tasks/Task180ConfigAuditAndMigrationCiEvidenceTests.cs"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "T147",
       "T148",

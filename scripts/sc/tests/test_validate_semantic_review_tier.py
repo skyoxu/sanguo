@@ -44,7 +44,7 @@ class ValidateSemanticReviewTierTests(unittest.TestCase):
                 "tasks": [
                     {
                         "id": 1,
-                        "title": "Tune camp reward values",
+                        "title": "Tune reward values",
                         "priority": "P1",
                         "details": "Balance gameplay rewards and round pacing.",
                     },
@@ -60,7 +60,7 @@ class ValidateSemanticReviewTierTests(unittest.TestCase):
         tasks_back = [
             {
                 "taskmaster_id": 1,
-                "title": "Tune camp reward values",
+                "title": "Tune reward values",
                 "priority": "P1",
                 "layer": "gameplay",
             },
@@ -69,13 +69,13 @@ class ValidateSemanticReviewTierTests(unittest.TestCase):
                 "title": "Harden workflows and pipelines",
                 "priority": "P2",
                 "layer": "ci",
-                "contractRefs": ["core.sanguo.task.updated"],
+                "contractRefs": ["Game.Core/Contracts/Tasks/TaskUpdated.cs"],
             },
         ]
         tasks_gameplay = [
             {
                 "taskmaster_id": 1,
-                "title": "Tune camp reward values",
+                "title": "Tune reward values",
                 "priority": "P1",
                 "layer": "gameplay",
             },
@@ -84,7 +84,7 @@ class ValidateSemanticReviewTierTests(unittest.TestCase):
                 "title": "Harden workflows and pipelines",
                 "priority": "P2",
                 "layer": "ci",
-                "contractRefs": ["core.sanguo.task.updated"],
+                "contractRefs": ["Game.Core/Contracts/Tasks/TaskUpdated.cs"],
             },
         ]
         _write_json(tasks_json_path, tasks_json)
@@ -211,6 +211,46 @@ class ValidateSemanticReviewTierTests(unittest.TestCase):
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
         rules = {item["rule"] for item in summary["errors"]}
         self.assertIn("legacy_camel_case_field", rules)
+
+    def test_validator_should_fail_when_views_drift(self) -> None:
+        root = self._fresh_root("validate-cross-view-drift")
+        tasks_json_path, tasks_back_path, tasks_gameplay_path = self._create_repo(root)
+        backfill_module.main(
+            [
+                "--tasks-json-path",
+                str(tasks_json_path),
+                "--tasks-back-path",
+                str(tasks_back_path),
+                "--tasks-gameplay-path",
+                str(tasks_gameplay_path),
+                "--write",
+            ]
+        )
+        back_payload = json.loads(tasks_back_path.read_text(encoding="utf-8"))
+        gameplay_payload = json.loads(tasks_gameplay_path.read_text(encoding="utf-8"))
+        back_payload[1]["semantic_review_tier"] = "full"
+        gameplay_payload[1]["semantic_review_tier"] = "auto"
+        _write_json(tasks_back_path, back_payload)
+        _write_json(tasks_gameplay_path, gameplay_payload)
+        summary_path = root / "validate-summary.json"
+
+        rc = validate_module.main(
+            [
+                "--tasks-json-path",
+                str(tasks_json_path),
+                "--tasks-back-path",
+                str(tasks_back_path),
+                "--tasks-gameplay-path",
+                str(tasks_gameplay_path),
+                "--summary-path",
+                str(summary_path),
+            ]
+        )
+
+        self.assertEqual(1, rc)
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        rules = {item["rule"] for item in summary["errors"]}
+        self.assertIn("cross_view_tier_mismatch", rules)
 
 
 if __name__ == "__main__":

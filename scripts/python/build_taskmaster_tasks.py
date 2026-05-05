@@ -1,12 +1,39 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Build Task Master compatible .taskmaster/tasks/tasks.json from NG/GM task files.
 
-Exports a dependency-closed task set into a Task Master tag (default: `master`) using numeric `id` / `dependencies`.
+This script:
+- Reads .taskmaster/tasks/tasks_back.json and tasks_gameplay.json (SSoT for NG/GM)
+  by default, or任意指定的任务文件（见参数）。
+- 根据给定的任务 ID 集合（或默认的 T2 根任务）计算依赖闭包，并将这些任务映射到
+  Task Master schema 下指定的 Tag（默认 master），采用数字 ID 与数字依赖。
+- 追加写入 .taskmaster/tasks/tasks.json（不会覆盖其他 Tag），并在源任务文件上标记：
+  - taskmaster_id: 数字 ID（Task Master 使用）
+  - taskmaster_exported: 是否已映射到 Task Master
 
-Side effects on source tasks: `taskmaster_id` (numeric), `taskmaster_exported` (bool).
+Constraints are enforced by this script and the generated Task Master schema:
+- Root object must be { "<tag>": { "tasks": [...] }, ... }
+- id: number
+- dependencies: number[]
+- status: one of "pending" | "in-progress" | "done" | "deferred" | "cancelled" | "blocked"
+- priority: "high" | "medium" | "low"
+- testStrategy: string
 
-Schema constraints (see docs/task-master-constraints.md): root object is { "<tag>": { "tasks": [...] }, ... }.
+Usage (from repo root on Windows):
+
+    # 从指定任务文件中选择给定 ID（及其依赖）映射到指定 Tag（自动追加）
+    py -3 scripts/python/build_taskmaster_tasks.py `
+        --tasks-file .taskmaster/tasks/tasks_back.json `
+        --ids NG-0001 NG-0020 `
+        --tag master
+
+    # 或使用 JSON 文件提供 ID 数组：
+    # ids.json 内容示例：["NG-0001","NG-0020","GM-0101"]
+    py -3 scripts/python/build_taskmaster_tasks.py `
+        --tasks-file .taskmaster/tasks/tasks_back.json `
+        --ids-file .taskmaster/tasks/ids.json `
+        --tag feature-t2
 """
 
 from __future__ import annotations
@@ -20,11 +47,19 @@ from typing import Dict, List, Set
 ROOT = Path(__file__).resolve().parents[2]
 
 TASKS_DIR = ROOT / ".taskmaster" / "tasks"
+TASKS_BACK_FILE = TASKS_DIR / "tasks_back.json"
+TASKS_GAMEPLAY_FILE = TASKS_DIR / "tasks_gameplay.json"
+TASKS_LONGTERM_FILE = TASKS_DIR / "tasks_longterm.json"
 TASKMASTER_TASKS_FILE = TASKS_DIR / "tasks.json"
 
 # Seed tasks considered as "T2 scene" roots; their dependency closure will be exported
 # when no explicit --ids/--ids-file are provided.
-T2_ROOT_IDS: Set[str] = {"NG-0020", "NG-0021", "GM-0101", "GM-0103"}
+T2_ROOT_IDS: Set[str] = {
+    "NG-0020",
+    "NG-0021",
+    "GM-0101",
+    "GM-0103",
+}
 
 
 def load_tasks(task_file: Path) -> List[Dict]:
@@ -104,7 +139,7 @@ def map_priority(priority: str | None) -> str:
 
 
 def build_taskmaster_tasks(args: argparse.Namespace) -> None:
-    # 1) Resolve source task file list (SSoT).
+    # 1) 解析任务文件列表（源 SSoT）
     if not args.tasks_files:
         print("Error: --tasks-file is required (one or more).")
         raise SystemExit(1)
@@ -121,7 +156,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
         print("No tasks loaded from task files; aborting.")
         return
 
-    # 2) Resolve root task ids.
+    # 2) 解析根任务 ID 集合
     root_ids: Set[str] = set()
     if args.ids:
         root_ids.update(args.ids)
@@ -140,7 +175,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
     if not root_ids:
         root_ids = set(T2_ROOT_IDS)
 
-    # 3) Compute dependency closure.
+    # 3) 计算依赖闭包
     t2_ids = compute_closure(all_tasks, root_ids)
     if not t2_ids:
         print("Closure is empty; nothing to export.")
@@ -148,7 +183,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
 
     # Topologically sort T2 ids so that:
     # - Dependencies appear before dependents.
-    # - Prefer NG-* (backbone) before GM-* (gameplay), when ties exist.
+    # - NG-*/backbone tasks自然排在前面，GM-*/玩法任务排在其后。
     visited: Dict[str, bool] = {}
     ordered: List[str] = []
 
@@ -167,7 +202,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
         visit(tid)
 
     sorted_ids = ordered
-    # 4) Load existing Task Master tasks.json (if present) and prepare the target tag.
+    # 4) 载入现有 Task Master tasks.json（若存在），并准备目标 Tag
     root_obj: Dict[str, Dict]
     if TASKMASTER_TASKS_FILE.exists():
         try:
@@ -204,7 +239,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
             if isinstance(tid_val, int):
                 used_ids.add(tid_val)
 
-    # 5) Allocate stable numeric ids for string ids (prefer existing `taskmaster_id`).
+    # 5) 为字符串 ID 分配稳定的数字 ID（优先复用 taskmaster_id）
     id_map: Dict[str, int] = {}
     next_id = (max(used_ids) if used_ids else 0) + 1
 
@@ -219,7 +254,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
             if num not in used_ids:
                 used_ids.add(num)
         if num is None:
-            # Allocate a new globally unique numeric id.
+            # 分配新的全局唯一数字 ID
             while next_id in used_ids:
                 next_id += 1
             num = next_id
@@ -232,7 +267,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
         num = id_map.get(tid)
         print(f"  {tid} -> {num}")
 
-    # 6) Build/update the Task Master task list under the target tag.
+    # 6) 构建/更新目标 Tag 下的 Task Master 任务列表
     existing_by_id: Dict[int, int] = {
         t["id"]: idx
         for idx, t in enumerate(tag_tasks)
@@ -317,7 +352,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
     )
     print(f"Wrote Task Master tasks file to: {TASKMASTER_TASKS_FILE}")
 
-    # 7) Update bookkeeping fields in source task files.
+    # 7) 更新源任务文件上的 bookkeeping 字段
     def mark_exported(file_path: Path) -> None:
         if not file_path.exists():
             return
@@ -332,7 +367,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
                 t["taskmaster_id"] = id_map[tid]
                 t["taskmaster_exported"] = True
             else:
-                # Only write False when missing to avoid overriding a previous True.
+                # 仅在缺失时写入 False，避免覆盖之前的 True
                 if "taskmaster_exported" not in t:
                     t["taskmaster_exported"] = False
         if is_list:
@@ -346,7 +381,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
         )
         print(f"Updated source task file: {file_path}")
 
-    # Only update source files participating in this run.
+    # 仅更新本次参与构建的源任务文件；用户通常会从这些文件中选择 ID。
     for src_file in task_files:
         mark_exported(src_file)
 

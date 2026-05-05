@@ -1,132 +1,114 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 """
-Hard gate: reject git-tracked files under the Tests.Godot/Game.Godot mirror path.
+Audit whether Tests.Godot/Game.Godot mirror files are tracked by git.
 
-Why:
-- Tests.Godot/Game.Godot must remain a runtime junction alias, not a tracked copy.
-- If mirror files are tracked, clean CI clones can rehydrate stale runtime content.
+Background:
+- In this template, Tests.Godot/Game.Godot should be a Junction to the real Game.Godot.
+- If mirror files are tracked under Tests.Godot/Game.Godot/**, a fresh checkout will create a copy
+  instead of a Junction, reintroducing drift.
 
 Outputs:
-- logs/ci/<YYYY-MM-DD>/audit-tests-godot-mirror-git-tracking/summary.json
+- JSON report under logs/ci/<YYYY-MM-DD>/audit-tests-godot-mirror-tracking.json
+
+This script is standard-library-only and prints ASCII-only summaries.
 """
 
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import json
 import subprocess
-import sys
+from datetime import datetime
 from pathlib import Path
 
 
-def _today() -> str:
-    return dt.date.today().strftime("%Y-%m-%d")
+def _date_dir(root: Path) -> Path:
+    return root / "logs" / "ci" / datetime.now().strftime("%Y-%m-%d")
 
 
-def _posix(path: Path) -> str:
-    return str(path).replace("\\", "/")
+def _write_utf8(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def _run_git_ls_files(repo_root: Path) -> list[str]:
-    proc = subprocess.run(
-        ["git", "ls-files", "-z"],
-        cwd=repo_root,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
+def _git_ls_files(root: Path, pathspec: str) -> list[str]:
+    p = subprocess.run(
+        ["git", "ls-files", pathspec],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+        errors="ignore",
     )
-    if proc.returncode != 0:
-        stderr = (proc.stderr or b"").decode("utf-8", errors="replace").strip()
-        raise RuntimeError(f"git ls-files failed: rc={proc.returncode} msg={stderr}")
-
-    raw = (proc.stdout or b"").decode("utf-8", errors="replace")
-    files = [item.replace("\\", "/") for item in raw.split("\x00") if item]
-    return files
+    if p.returncode != 0:
+        raise RuntimeError("git_ls_files_failed")
+    return [line.strip() for line in (p.stdout or "").splitlines() if line.strip()]
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Hard gate: audit git-tracked Tests.Godot/Game.Godot mirror files.")
-    parser.add_argument("--root", default=".", help="Repository root (default: .)")
-    parser.add_argument(
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Audit git tracking of Tests.Godot/Game.Godot mirror files.")
+    ap.add_argument("--root", default=".", help="Repo root (default: .)")
+    ap.add_argument(
         "--mirror-prefix",
         default="Tests.Godot/Game.Godot/",
-        help="Mirror path prefix to ban from git index.",
+        help="Mirror path prefix to audit (default: Tests.Godot/Game.Godot/)",
     )
-    parser.add_argument(
+    ap.add_argument(
         "--primary-prefix",
         default="Game.Godot/",
-        help="Primary runtime path prefix (for repair hint).",
+        help="Primary path prefix to compare against (default: Game.Godot/)",
     )
-    parser.add_argument(
-        "--max-print",
-        type=int,
-        default=20,
-        help="Max mirrored tracked paths to print.",
-    )
-    args = parser.parse_args()
+    args = ap.parse_args(argv)
 
-    repo_root = Path(args.root).resolve()
-    mirror_prefix = str(args.mirror_prefix).replace("\\", "/").strip()
-    primary_prefix = str(args.primary_prefix).replace("\\", "/").strip()
-    if mirror_prefix and not mirror_prefix.endswith("/"):
+    root = Path(args.root).resolve()
+    mirror_prefix = args.mirror_prefix.replace("\\", "/")
+    if not mirror_prefix.endswith("/"):
         mirror_prefix += "/"
-    if primary_prefix and not primary_prefix.endswith("/"):
+    primary_prefix = args.primary_prefix.replace("\\", "/")
+    if not primary_prefix.endswith("/"):
         primary_prefix += "/"
 
-    out_path = repo_root / "logs" / "ci" / _today() / "audit-tests-godot-mirror-git-tracking" / "summary.json"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    mirror_tracked = _git_ls_files(root, f"{mirror_prefix}**")
+    primary_tracked_set = set(_git_ls_files(root, f"{primary_prefix}**"))
 
-    try:
-        tracked_files = _run_git_ls_files(repo_root)
-    except Exception as exc:
-        summary = {
-            "ts": dt.datetime.now(dt.timezone.utc).isoformat(),
-            "action": "audit-tests-godot-mirror-git-tracking",
-            "status": "fail",
-            "reason": "git_ls_files_failed",
-            "message": str(exc),
-            "mirror_prefix": mirror_prefix,
-            "primary_prefix": primary_prefix,
-            "tracked_mirror_paths": [],
-            "tracked_count": 0,
-        }
-        out_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(
-            "AUDIT_TESTS_GODOT_MIRROR_GIT_TRACKING "
-            f"status=fail reason=git_ls_files_failed tracked=0 out={_posix(out_path)}"
-        )
-        return 1
+    missing_primary: list[str] = []
+    for p in mirror_tracked:
+        rest = p[len(mirror_prefix) :]
+        primary_equiv = primary_prefix + rest
+        if primary_equiv not in primary_tracked_set:
+            missing_primary.append(p)
 
-    tracked_mirror = sorted(path for path in tracked_files if path.startswith(mirror_prefix))
-    ok = len(tracked_mirror) == 0
-    summary = {
-        "ts": dt.datetime.now(dt.timezone.utc).isoformat(),
-        "action": "audit-tests-godot-mirror-git-tracking",
-        "status": "ok" if ok else "fail",
-        "reason": "no_tracked_mirror_files" if ok else "tracked_mirror_files_found",
+    ok = True
+    # If anything under mirror prefix is tracked, this is considered a hygiene failure.
+    if mirror_tracked:
+        ok = False
+
+    report = {
+        "ok": ok,
         "mirror_prefix": mirror_prefix,
         "primary_prefix": primary_prefix,
-        "tracked_mirror_paths": tracked_mirror,
-        "tracked_count": len(tracked_mirror),
+        "mirror_tracked_count": len(mirror_tracked),
+        "mirror_tracked_sample": mirror_tracked[:50],
+        "missing_primary_equivalent_count": len(missing_primary),
+        "missing_primary_equivalent_sample": missing_primary[:50],
         "repair": [
-            f"Untrack mirror files under {mirror_prefix} from git index.",
-            "Keep mirror path ignored and rely on junction/runtime preparation.",
-            f"Use {primary_prefix} as the source-of-truth runtime tree.",
+            "Remove mirror files from index without deleting the real game files:",
+            f"git rm -r --cached {mirror_prefix.rstrip('/')}",
+            "Ensure .gitignore ignores the mirror path and rely on Junction creation for tests.",
         ],
     }
-    out_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    print(
-        "AUDIT_TESTS_GODOT_MIRROR_GIT_TRACKING "
-        f"status={'ok' if ok else 'fail'} tracked={len(tracked_mirror)} out={_posix(out_path)}"
-    )
-    if not ok:
-        for path in tracked_mirror[: max(1, int(args.max_print))]:
-            print(f" - tracked={path}")
-    return 0 if ok else 1
+    out_dir = _date_dir(root)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / "audit-tests-godot-mirror-tracking.json"
+    _write_utf8(out_path, json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+
+    status = "OK" if report["ok"] else "FAIL"
+    print(f"audit_tests_godot_mirror_git_tracking: {status}")
+    print(f"mirror_tracked_count={report['mirror_tracked_count']}")
+    print(f"report={out_path.as_posix()}")
+    return 0 if report["ok"] else 2
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
+

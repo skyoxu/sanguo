@@ -139,9 +139,7 @@ def _extract_prd_ids_from_view_tasks(payload: Any) -> set[str]:
 
 
 def _canonical_taskmaster_id(value: object) -> str | None:
-    if value is None:
-        return None
-    if isinstance(value, bool):
+    if value is None or isinstance(value, bool):
         return None
     if isinstance(value, int):
         return str(value)
@@ -158,25 +156,24 @@ def _canonical_taskmaster_id(value: object) -> str | None:
 
 
 def _done_master_task_ids(payload: Any) -> set[str]:
-    out: set[str] = set()
+    found: set[str] = set()
     if not isinstance(payload, dict):
-        return out
+        return found
     master = payload.get("master")
     if not isinstance(master, dict):
-        return out
+        return found
     tasks = master.get("tasks")
     if not isinstance(tasks, list):
-        return out
+        return found
     for task in tasks:
         if not isinstance(task, dict):
             continue
-        status = str(task.get("status", "")).strip().lower()
-        if status != "done":
+        if str(task.get("status", "")).strip().lower() != "done":
             continue
         task_id = _canonical_taskmaster_id(task.get("id"))
         if task_id:
-            out.add(task_id)
-    return out
+            found.add(task_id)
+    return found
 
 
 def _auto_detect_prd_id(root: Path, tasks_dir: Path) -> str:

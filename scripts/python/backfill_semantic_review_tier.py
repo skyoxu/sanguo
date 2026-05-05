@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,7 +24,11 @@ from _semantic_review_tier_support import (  # noqa: E402
     title_for_task,
     write_json_file,
 )
+from _taskmaster_paths import resolve_default_task_triplet_paths  # noqa: E402
 from _util import ci_dir, write_json  # noqa: E402
+
+
+DEFAULT_TASKS_JSON_PATH, DEFAULT_TASKS_BACK_PATH, DEFAULT_TASKS_GAMEPLAY_PATH = resolve_default_task_triplet_paths(REPO_ROOT)
 
 
 @dataclass
@@ -153,10 +158,10 @@ def run_backfill(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Backfill semantic_review_tier into task view files.")
-    parser.add_argument("--tasks-json-path", default=str(REPO_ROOT / ".taskmaster" / "tasks" / "tasks.json"))
-    parser.add_argument("--tasks-back-path", default=str(REPO_ROOT / ".taskmaster" / "tasks" / "tasks_back.json"))
-    parser.add_argument("--tasks-gameplay-path", default=str(REPO_ROOT / ".taskmaster" / "tasks" / "tasks_gameplay.json"))
-    parser.add_argument("--delivery-profile", default="fast-ship", help="Delivery profile used for preview or materialized mode.")
+    parser.add_argument("--tasks-json-path", default=str(DEFAULT_TASKS_JSON_PATH))
+    parser.add_argument("--tasks-back-path", default=str(DEFAULT_TASKS_BACK_PATH))
+    parser.add_argument("--tasks-gameplay-path", default=str(DEFAULT_TASKS_GAMEPLAY_PATH))
+    parser.add_argument("--delivery-profile", default=os.getenv("DELIVERY_PROFILE", "fast-ship"), help="Delivery profile used for preview or materialized mode.")
     parser.add_argument("--mode", choices=sorted(ALLOWED_MODES), default="conservative", help="conservative=write only explicit safe floors; materialize=write effective tier for the selected profile.")
     parser.add_argument("--task-ids", default="", help="Optional comma-separated task ids.")
     parser.add_argument("--write", action="store_true", help="Write updates in-place. Without this flag, run as dry-run.")

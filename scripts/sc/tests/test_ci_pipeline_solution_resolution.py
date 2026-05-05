@@ -46,7 +46,7 @@ class CiPipelineSolutionResolutionTests(unittest.TestCase):
             return 0, "ok\n"
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir) / "sanguo"
+            root = Path(tmpdir) / "templategame"
             root.mkdir(parents=True, exist_ok=True)
             argv = [
                 "ci_pipeline.py",

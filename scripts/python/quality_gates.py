@@ -13,9 +13,6 @@ entrypoint now follows the same gate bundle mainline used by current CI.
 from __future__ import annotations
 
 import argparse
-import json
-import os
-from pathlib import Path
 import subprocess
 import sys
 
@@ -31,54 +28,6 @@ from solution_target import resolve_test_solution_arg
 def _run(cmd: list[str]) -> int:
     proc = subprocess.run(cmd, text=True)
     return proc.returncode
-
-
-def _run_capture(cmd: list[str]) -> tuple[int, str]:
-    proc = subprocess.run(
-        cmd,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    out = proc.stdout or ""
-    if out:
-        print(out, end="" if out.endswith("\n") else "\n")
-    return proc.returncode, out
-
-
-def _read_json(path: Path) -> dict:
-    try:
-        obj = json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-    return obj if isinstance(obj, dict) else {}
-
-
-def _write_json(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
-
-
-def _today_local_str() -> str:
-    from datetime import date
-
-    return date.today().strftime("%Y-%m-%d")
-
-
-def _is_ci_date_root(path: Path) -> bool:
-    # logs/ci/YYYY-MM-DD
-    if path.parent.name != "ci":
-        return False
-    name = path.name
-    if len(name) != 10:
-        return False
-    try:
-        from datetime import datetime
-
-        datetime.strptime(name, "%Y-%m-%d")
-        return True
-    except Exception:
-        return False
 
 
 def run_gate_bundle_hard(
@@ -128,131 +77,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_all.add_argument("--run-id", default="")
     p_all.add_argument("--gdunit-hard", action="store_true", help="run hard GdUnit set (Adapters/Config + Security)")
     p_all.add_argument("--smoke", action="store_true", help="run strict headless smoke after the hard gate bundle")
-    p_all.add_argument("--coverage-soft", action="store_true", help="compatibility mode: keep process green when dotnet coverage fails")
     return parser
-
-
-def _run_test_mode_all(args: argparse.Namespace) -> int:
-    out_dir = Path(
-        str(
-            args.out_dir
-            or os.environ.get("QUALITY_GATES_TEST_OUT_DIR")
-            or Path("logs") / "ci" / _today_local_str() / "quality-gates-test"
-        )
-    )
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    coverage_mode = "soft" if bool(args.coverage_soft) else "hard"
-
-    dotnet_summary_path = Path(str(os.environ.get("QUALITY_GATES_TEST_DOTNET_SUMMARY_JSON") or out_dir / "dotnet-summary.json"))
-    dotnet = _read_json(dotnet_summary_path)
-    dotnet_status = str(dotnet.get("status") or "")
-    dotnet_threshold_ok = bool(dotnet.get("threshold_ok", True))
-    dotnet_coverage = dotnet.get("coverage") if isinstance(dotnet.get("coverage"), dict) else {}
-
-    pipeline_rc = int(str(os.environ.get("QUALITY_GATES_TEST_CI_PIPELINE_RC") or "0"))
-    arch_rc = int(str(os.environ.get("QUALITY_GATES_TEST_ARCH_HOTSPOTS_RC") or "0"))
-    gdunit_rc = int(str(os.environ.get("QUALITY_GATES_TEST_GDUNIT_RC") or "0"))
-
-    gdunit_run_summary_path = str(os.environ.get("QUALITY_GATES_TEST_GDUNIT_RUN_SUMMARY_JSON") or "")
-    gdunit_report_dir = str(os.environ.get("QUALITY_GATES_TEST_GDUNIT_REPORT_DIR") or "")
-    gdunit_run_summary = {}
-    if gdunit_run_summary_path:
-        gdunit_run_summary = _read_json(Path(gdunit_run_summary_path))
-
-    date = _today_local_str()
-    perf_out = out_dir / "quality-gates-perf.json"
-    audit_out = out_dir / "quality-gates-audit.json"
-    strict_perf_audit = _is_ci_date_root(out_dir)
-    perf_rc = 0
-    audit_rc = 0
-    if strict_perf_audit:
-        perf_rc, _perf_log = _run_capture(
-            [
-                "py",
-                "-3",
-                "scripts/python/validate_perf.py",
-                "--date",
-                date,
-                "--out",
-                str(perf_out),
-            ]
-        )
-        audit_rc, _audit_log = _run_capture(
-            [
-                "py",
-                "-3",
-                "scripts/python/validate_audit_logs.py",
-                "--date",
-                date,
-                "--out",
-                str(audit_out),
-            ]
-        )
-    else:
-        _write_json(
-            perf_out,
-            {
-                "cmd": "validate_perf",
-                "date": date,
-                "ok": True,
-                "skipped": True,
-                "reason": "test_mode_non_ci_root_out_dir",
-            },
-        )
-        _write_json(
-            audit_out,
-            {
-                "cmd": "validate_audit_logs",
-                "date": date,
-                "ok": True,
-                "skipped": True,
-                "reason": "test_mode_non_ci_root_out_dir",
-                "required_keys": ["ts", "action", "reason", "target", "caller"],
-                "results": [],
-            },
-        )
-
-    hard_failed = False
-    if pipeline_rc != 0:
-        hard_failed = True
-    if arch_rc != 0:
-        hard_failed = True
-    if strict_perf_audit and (perf_rc != 0 or audit_rc != 0):
-        hard_failed = True
-    if args.gdunit_hard and gdunit_rc != 0:
-        hard_failed = True
-
-    dotnet_is_fail = (dotnet_status != "ok") or (not dotnet_threshold_ok)
-    if coverage_mode == "hard" and dotnet_is_fail:
-        hard_failed = True
-
-    summary = {
-        "status": "fail" if hard_failed else "ok",
-        "coverage_mode": coverage_mode,
-        "dotnet": {
-            "status": dotnet_status,
-            "threshold_ok": dotnet_threshold_ok,
-            "coverage": dotnet_coverage,
-            "summary_path": str(dotnet_summary_path),
-        },
-        "ci_pipeline": {"rc": pipeline_rc},
-        "architecture_hotspots": {"rc": arch_rc},
-        "gdunit_hard": {
-            "enabled": bool(args.gdunit_hard),
-            "rc": gdunit_rc if args.gdunit_hard else 0,
-            "run_summary_path": gdunit_run_summary_path,
-            "run_summary": gdunit_run_summary,
-            "report_dir": gdunit_report_dir,
-        },
-        "artifacts": {
-            "quality_gates_perf": str(perf_out),
-            "quality_gates_audit": str(audit_out),
-        },
-    }
-    # Keep a stable artifact path for tests and downstream tooling.
-    _write_json(out_dir / "quality-gates-summary.json", summary)
-    return 1 if hard_failed else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -262,9 +87,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd != "all":
         print("Unsupported command", file=sys.stderr)
         return 1
-
-    if str(os.environ.get("QUALITY_GATES_TEST_MODE") or "").strip() == "1":
-        return _run_test_mode_all(args)
 
     # Keep argument compatibility while normalizing default behavior.
     # This value is currently not consumed by the gate-bundle branch.
@@ -289,16 +111,7 @@ def main(argv: list[str] | None = None) -> int:
             hard_failed = True
 
     if args.smoke:
-        # Strict smoke should request the app to exit as soon as ready.
-        original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
-        try:
-            os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
-            smoke_rc = run_smoke_headless(args.godot_bin)
-        finally:
-            if original_exit_on_ready is None:
-                os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
-            else:
-                os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
+        smoke_rc = run_smoke_headless(args.godot_bin)
         if smoke_rc != 0:
             hard_failed = True
 

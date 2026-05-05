@@ -3,7 +3,7 @@
 Generated from the template repo `workflow.md` by `scripts/python/update_workflow_chapter_skills.py`.
 
 - Canonical English name: Phase 2: Overlays And Contracts Baseline
-- Source line span: 207-280
+- Source line span: 420-493
 - Heading count: 5
 - Command-like line count: 10
 - Artifact/reference line count: 0
@@ -11,10 +11,10 @@ Generated from the template repo `workflow.md` by `scripts/python/update_workflo
 ## Headings
 
 - 4. Phase 2: Overlays And Contracts Baseline
-- 4. Phase 2: Overlays And Contracts Baseline
-- 4. Phase 2: Overlays And Contracts Baseline
-- 4. Phase 2: Overlays And Contracts Baseline
-- 4. Phase 2: Overlays And Contracts Baseline
+- 4.1 Generate overlay skeletons only after the triplet is valid
+- 4.2 Freeze overlay refs after apply
+- 4.3 Create or adjust contract skeletons
+- 4.4 Solidify contract baseline
 
 ## Command And Artifact Signals
 

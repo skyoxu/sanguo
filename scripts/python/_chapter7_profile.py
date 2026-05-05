@@ -81,8 +81,8 @@ DEFAULT_CHAPTER7_PROFILE: dict[str, Any] = {
                 "### 6.1.1 Entry And Bootstrap（入口与启动）",
             ],
             "scene_rel_path": "Game.Godot/Scenes/UI/MainMenu.tscn",
-            "closure_task_ids": [],
-            "wiring_task_id": 0,
+            "closure_task_ids": [41],
+            "wiring_task_id": 41,
             "semantics_defaults": {
                 "failure": "startup failure must remain visible and recoverable instead of failing silently.",
                 "empty": "show no active run state until runtime data is available.",
@@ -116,8 +116,8 @@ DEFAULT_CHAPTER7_PROFILE: dict[str, Any] = {
                 "### 6.1.2 Runtime HUD And Outcome（运行时 HUD 与结果）",
             ],
             "scene_rel_path": "Game.Godot/Scenes/UI/HUD.tscn",
-            "closure_task_ids": [],
-            "wiring_task_id": 0,
+            "closure_task_ids": [42],
+            "wiring_task_id": 42,
             "semantics_defaults": {
                 "failure": "runtime prompts and terminal state must stay visible when loop progression cannot continue normally.",
                 "empty": "show no active run state until runtime data is available.",
@@ -151,8 +151,8 @@ DEFAULT_CHAPTER7_PROFILE: dict[str, Any] = {
                 "### 6.1.3 Combat Pressure And Interaction（战斗压强与交互）",
             ],
             "scene_rel_path": "Game.Godot/Scenes/UI/HUD.tscn",
-            "closure_task_ids": [],
-            "wiring_task_id": 0,
+            "closure_task_ids": [43],
+            "wiring_task_id": 43,
             "semantics_defaults": {
                 "failure": "blocked, invalid, or hidden combat state must become explicit feedback instead of silent desync.",
                 "empty": "show no active pressure or combat state until combat data is available.",
@@ -186,8 +186,8 @@ DEFAULT_CHAPTER7_PROFILE: dict[str, Any] = {
                 "### 6.1.4 Economy And Progression（经济与成长）",
             ],
             "scene_rel_path": "Game.Godot/Scenes/UI/HUD.tscn",
-            "closure_task_ids": [],
-            "wiring_task_id": 0,
+            "closure_task_ids": [44],
+            "wiring_task_id": 44,
             "semantics_defaults": {
                 "failure": "invalid build, spend, queue, or upgrade actions must render clear feedback and keep deterministic state intact.",
                 "empty": "show no active economy state until owned runtime data is available.",
@@ -221,8 +221,8 @@ DEFAULT_CHAPTER7_PROFILE: dict[str, Any] = {
                 "### 6.1.5 Save, Settings, And Meta（存档、设置与元系统）",
             ],
             "scene_rel_path": "Game.Godot/Scenes/UI/SettingsPanel.tscn",
-            "closure_task_ids": [],
-            "wiring_task_id": 0,
+            "closure_task_ids": [45],
+            "wiring_task_id": 45,
             "semantics_defaults": {
                 "failure": "save, cloud, localization, audio, or platform issues must remain visible and actionable.",
                 "empty": "show no persisted or platform state until those services are available.",
@@ -256,8 +256,8 @@ DEFAULT_CHAPTER7_PROFILE: dict[str, Any] = {
                 "### 6.1.6 Config Governance And Audit（配置治理与审计）",
             ],
             "scene_rel_path": "Game.Godot/Scenes/UI/HUD.tscn",
-            "closure_task_ids": [],
-            "wiring_task_id": 0,
+            "closure_task_ids": [46],
+            "wiring_task_id": 46,
             "semantics_defaults": {
                 "failure": "must not advance runtime config snapshot when validation or migration fails; visible fallback state is required.",
                 "empty": "show no active run state until runtime data is available.",
@@ -398,39 +398,20 @@ def default_story_ids(profile: dict[str, Any], repo_label: str) -> tuple[str, st
 
 def owner_for_prefix(profile: dict[str, Any], prefix: str) -> str:
     owners = task_creation_config(profile).get("owners", {})
-    if prefix == "SG" and "SG" not in owners:
-        return str(owners.get("NG") or "gameplay")
     return str(owners.get(prefix) or "gameplay")
 
 
 def source_label_for_prefix(profile: dict[str, Any], prefix: str) -> str:
     labels = task_creation_config(profile).get("source_labels", {})
-    if prefix == "SG" and "SG" not in labels:
-        return str(labels.get("NG") or prefix.lower())
     return str(labels.get(prefix) or prefix.lower())
 
 
 def view_id_for_prefix(profile: dict[str, Any], prefix: str, task_id: int) -> str:
     templates = task_creation_config(profile).get("view_id_templates", {})
-    if prefix == "SG" and "SG" not in templates:
-        template = str(templates.get("NG") or f"{prefix}-{{task_id:04d}}")
-    else:
-        template = str(templates.get(prefix) or f"{prefix}-{{task_id:04d}}")
+    template = str(templates.get(prefix) or f"{prefix}-{{task_id:04d}}")
     return template.format(
         prefix=prefix,
         task_id=task_id,
         task_id_plus_100=task_id + 100,
         task_id_plus_1000=task_id + 1000,
     )
-
-
-def story_id_for_prefix(profile: dict[str, Any], prefix: str, repo_label: str, task_id: int) -> str:
-    templates = task_creation_config(profile).get("story_id_templates", {})
-    if prefix == "SG" and "SG" not in templates:
-        template = str(templates.get("NG") or "")
-    else:
-        template = str(templates.get(prefix) or "")
-    if template:
-        return template.format(task_id=task_id, **_repo_label_tokens(repo_label))
-    back_story, gameplay_story = default_story_ids(profile, repo_label)
-    return back_story if prefix == "SG" else gameplay_story

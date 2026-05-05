@@ -61,6 +61,12 @@
   - `DELIVERY_PROFILE.md`
   - `docs/workflows/run-protocol.md`
   - `docs/workflows/local-hard-checks.md`
+- Chapter 7:
+  - `docs/gdd/ui-gdd-flow.md`
+  - `docs/workflows/chapter7-profile.json`
+  - `docs/workflows/chapter7-profile-guide.md`
+  - `docs/workflows/templates/chapter7-profile.template.json`
+  - `docs/workflows/templates/chapter7-profile.minimal.example.json`
 
 ## 核心入口
 
@@ -76,6 +82,29 @@
   - `py -3 scripts/python/validate_recovery_docs.py --dir all`
 - 门禁聚合:
   - `py -3 scripts/python/run_gate_bundle.py --mode hard --task-files .taskmaster/tasks/tasks_back.json .taskmaster/tasks/tasks_gameplay.json`
+
+- Chapter 3 任务三联初始化:
+  - `py -3 scripts/python/extract_requirement_anchors.py --mode <init|add> --prd-path <path> --gdd-path <path> --epics-path <path> --stories-path <path>`
+  - `py -3 scripts/python/normalize_task_intents.py --mode <init|add>`
+  - `py -3 scripts/python/generate_task_candidates_from_sources.py --mode <init|add>`
+  - `py -3 scripts/python/compile_task_triplet.py --mode <init|add>`
+- Chapter 4 Overlay 与契约基线:
+  - `py -3 scripts/python/sync_task_overlay_refs.py --prd-id <PRD-ID> --write`
+  - `py -3 scripts/python/validate_overlay_execution.py --prd-id <PRD-ID> --strict-refs`
+- Chapter 5 语义稳定化:
+  - `py -3 scripts/python/backfill_semantic_review_tier.py --mode conservative --write`
+  - `py -3 scripts/python/validate_semantic_review_tier.py --mode conservative`
+  - `py -3 scripts/python/preflight_acceptance_extract_guard.py --task-id <task-id>`
+  - `py -3 scripts/python/run_single_task_light_lane.py --task-id <task-id> --godot-bin <godot-bin>`
+- Chapter 6 单任务日循环:
+  - `py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <task-id> --godot-bin <godot-bin> --delivery-profile <profile>`
+  - `py -3 scripts/python/dev_cli.py chapter6-route --task-id <task-id> --recommendation-only`
+- Chapter 7 UI Wiring Closure:
+  - `py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile <profile> --self-check`
+  - `py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile <profile> --write-doc`
+  - `py -3 scripts/python/dev_cli.py run-chapter7-ui-wiring --delivery-profile <profile> --write-doc --create-tasks`
+  - `py -3 scripts/python/dev_cli.py run-chapter7-backlog-gap --design-doc-path <doc> --epics-doc-path <doc> --duplicate-audit-path <doc>`
+  - `py -3 scripts/python/dev_cli.py apply-chapter7-status-patch --patch logs/ci/<date>/chapter7-ui-wiring/task-status-patch.json --dry-run`
 
 ## Recovery Stop-Loss Signals
 
