@@ -7,7 +7,14 @@
     "scripts/python/check_a11y.py",
     "scripts/python/db_schema_dump.py",
     "scripts/python/check_sentry_secrets.py",
-    "scripts/python/run_dotnet.py"
+    "scripts/python/run_dotnet.py",
+    "scripts/python/check_line_endings.py",
+    "scripts/python/quality_gates.py",
+    "scripts/python/smoke_headless.py",
+    "scripts/python/validate_perf.py",
+    "scripts/python/check_data_versions_bumped.py",
+    "scripts/python/validate_data_catalog.py",
+    "scripts/python/build_windows.py"
   ],
   "required_bundle_workflows": [
     ".github/workflows/windows-quality-gate.yml",

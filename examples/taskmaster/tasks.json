@@ -1,0 +1,18 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Example Task 1",
+        "status": "in-progress",
+        "details": "Example fixture task for scripts/sc tests."
+      },
+      {
+        "id": 2,
+        "title": "Example Task 2",
+        "status": "pending",
+        "details": "Second fixture task."
+      }
+    ]
+  }
+}

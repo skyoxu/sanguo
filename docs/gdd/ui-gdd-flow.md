@@ -96,6 +96,150 @@ Completed scope list for this track:
 - T178 `Wire UI: Combat Pressure And Interaction Surfaces`
 - T179 `Wire UI: Economy Build And Progression Panels`
 - T180 `Wire UI: Config Audit And Migration Surfaces`
+- T1 `Done task reference placeholder`
+- T2 `Done task reference placeholder`
+- T3 `Done task reference placeholder`
+- T4 `Done task reference placeholder`
+- T5 `Done task reference placeholder`
+- T6 `Done task reference placeholder`
+- T7 `Done task reference placeholder`
+- T8 `Done task reference placeholder`
+- T9 `Done task reference placeholder`
+- T10 `Done task reference placeholder`
+- T11 `Done task reference placeholder`
+- T12 `Done task reference placeholder`
+- T13 `Done task reference placeholder`
+- T14 `Done task reference placeholder`
+- T15 `Done task reference placeholder`
+- T16 `Done task reference placeholder`
+- T17 `Done task reference placeholder`
+- T18 `Done task reference placeholder`
+- T19 `Done task reference placeholder`
+- T20 `Done task reference placeholder`
+- T21 `Done task reference placeholder`
+- T22 `Done task reference placeholder`
+- T23 `Done task reference placeholder`
+- T24 `Done task reference placeholder`
+- T25 `Done task reference placeholder`
+- T26 `Done task reference placeholder`
+- T27 `Done task reference placeholder`
+- T28 `Done task reference placeholder`
+- T29 `Done task reference placeholder`
+- T30 `Done task reference placeholder`
+- T31 `Done task reference placeholder`
+- T32 `Done task reference placeholder`
+- T33 `Done task reference placeholder`
+- T34 `Done task reference placeholder`
+- T35 `Done task reference placeholder`
+- T36 `Done task reference placeholder`
+- T37 `Done task reference placeholder`
+- T38 `Done task reference placeholder`
+- T39 `Done task reference placeholder`
+- T40 `Done task reference placeholder`
+- T41 `Done task reference placeholder`
+- T42 `Done task reference placeholder`
+- T43 `Done task reference placeholder`
+- T44 `Done task reference placeholder`
+- T45 `Done task reference placeholder`
+- T46 `Done task reference placeholder`
+- T47 `Done task reference placeholder`
+- T48 `Done task reference placeholder`
+- T49 `Done task reference placeholder`
+- T50 `Done task reference placeholder`
+- T51 `Done task reference placeholder`
+- T52 `Done task reference placeholder`
+- T53 `Done task reference placeholder`
+- T54 `Done task reference placeholder`
+- T55 `Done task reference placeholder`
+- T56 `Done task reference placeholder`
+- T57 `Done task reference placeholder`
+- T58 `Done task reference placeholder`
+- T59 `Done task reference placeholder`
+- T60 `Done task reference placeholder`
+- T61 `Done task reference placeholder`
+- T62 `Done task reference placeholder`
+- T63 `Done task reference placeholder`
+- T64 `Done task reference placeholder`
+- T65 `Done task reference placeholder`
+- T66 `Done task reference placeholder`
+- T67 `Done task reference placeholder`
+- T68 `Done task reference placeholder`
+- T69 `Done task reference placeholder`
+- T70 `Done task reference placeholder`
+- T71 `Done task reference placeholder`
+- T72 `Done task reference placeholder`
+- T73 `Done task reference placeholder`
+- T74 `Done task reference placeholder`
+- T75 `Done task reference placeholder`
+- T76 `Done task reference placeholder`
+- T77 `Done task reference placeholder`
+- T78 `Done task reference placeholder`
+- T79 `Done task reference placeholder`
+- T80 `Done task reference placeholder`
+- T81 `Done task reference placeholder`
+- T82 `Done task reference placeholder`
+- T83 `Done task reference placeholder`
+- T84 `Done task reference placeholder`
+- T85 `Done task reference placeholder`
+- T86 `Done task reference placeholder`
+- T87 `Done task reference placeholder`
+- T88 `Done task reference placeholder`
+- T89 `Done task reference placeholder`
+- T90 `Done task reference placeholder`
+- T91 `Done task reference placeholder`
+- T92 `Done task reference placeholder`
+- T93 `Done task reference placeholder`
+- T94 `Done task reference placeholder`
+- T95 `Done task reference placeholder`
+- T96 `Done task reference placeholder`
+- T97 `Done task reference placeholder`
+- T98 `Done task reference placeholder`
+- T99 `Done task reference placeholder`
+- T100 `Done task reference placeholder`
+- T101 `Done task reference placeholder`
+- T102 `Done task reference placeholder`
+- T103 `Done task reference placeholder`
+- T104 `Done task reference placeholder`
+- T105 `Done task reference placeholder`
+- T106 `Done task reference placeholder`
+- T107 `Done task reference placeholder`
+- T108 `Done task reference placeholder`
+- T109 `Done task reference placeholder`
+- T113 `Done task reference placeholder`
+- T114 `Done task reference placeholder`
+- T115 `Done task reference placeholder`
+- T116 `Done task reference placeholder`
+- T117 `Done task reference placeholder`
+- T118 `Done task reference placeholder`
+- T119 `Done task reference placeholder`
+- T120 `Done task reference placeholder`
+- T121 `Done task reference placeholder`
+- T122 `Done task reference placeholder`
+- T123 `Done task reference placeholder`
+- T124 `Done task reference placeholder`
+- T125 `Done task reference placeholder`
+- T126 `Done task reference placeholder`
+- T127 `Done task reference placeholder`
+- T128 `Done task reference placeholder`
+- T129 `Done task reference placeholder`
+- T130 `Done task reference placeholder`
+- T131 `Done task reference placeholder`
+- T132 `Done task reference placeholder`
+- T133 `Done task reference placeholder`
+- T134 `Done task reference placeholder`
+- T135 `Done task reference placeholder`
+- T136 `Done task reference placeholder`
+- T137 `Done task reference placeholder`
+- T138 `Done task reference placeholder`
+- T139 `Done task reference placeholder`
+- T140 `Done task reference placeholder`
+- T141 `Done task reference placeholder`
+- T142 `Done task reference placeholder`
+- T143 `Done task reference placeholder`
+- T144 `Done task reference placeholder`
+- T146 `Done task reference placeholder`
+- T164 `Done task reference placeholder`
+- T170 `Done task reference placeholder`
 
 ## 5. UI Wiring Matrix
 
@@ -146,7 +290,7 @@ List UI wiring risks that should stop Chapter 7.
 - Player-visible text bypasses localization rules when the project has i18n requirements.
 - UI actions mutate deterministic state during preview, hover, refresh, or open-panel behavior.
 
-## 9. Unwired UI Feature List
+## 10. Unwired UI Feature List
 
 List completed features that are not wired to UI yet, or explicitly mark them as no-UI-needed.
 
@@ -154,7 +298,7 @@ List completed features that are not wired to UI yet, or explicitly mark them as
 | --- | --- | --- | --- | --- |
 | T0 | Example completed feature | Main surface | Template placeholder | Replace in business repo |
 
-## 10. Next UI Wiring Task Candidates
+## 11. Next UI Wiring Task Candidates
 
 Generate follow-up tasks from this section only after the matrix and unwired list are current.
 

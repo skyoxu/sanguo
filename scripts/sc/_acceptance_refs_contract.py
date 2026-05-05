@@ -8,6 +8,38 @@ from typing import Any
 SUMMARY_SCHEMA_VERSION = "acceptance-refs.v1"
 
 
+def validate_anchor_bound_ref_updates(
+    *,
+    root,
+    updates: list[dict[str, Any]],
+    read_text=None,
+) -> tuple[bool, list[str]]:
+    errors: list[str] = []
+    root_path = root
+
+    for item in updates or []:
+        view = str(item.get("view") or "")
+        index = int(item.get("index") or 0)
+        anchor = str(item.get("anchor") or "").strip()
+        paths = item.get("paths") or []
+        if not anchor:
+            errors.append(f"missing_anchor_token:{view}[{index}]")
+            continue
+        for rel in paths:
+            rel_path = str(rel or "").strip()
+            if not rel_path:
+                continue
+            full_path = (root_path / rel_path)
+            try:
+                content = read_text(full_path) if callable(read_text) else full_path.read_text(encoding="utf-8")
+            except FileNotFoundError:
+                errors.append(f"missing_file:{view}[{index}]:{rel_path}")
+                continue
+            if anchor not in str(content):
+                errors.append(f"missing_anchor:{view}[{index}]:{anchor}:{rel_path}")
+    return (len(errors) == 0), errors
+
+
 def validate_fill_acceptance_summary(summary: dict[str, Any]) -> tuple[bool, list[str], dict[str, Any]]:
     errors: list[str] = []
     obj = dict(summary or {})
@@ -108,4 +140,3 @@ def run_fill_acceptance_refs_self_check(
     ]
     report_lines.extend([f"- {item.get('name')}: {'ok' if item.get('ok') else 'fail'}" for item in checks])
     return ok, payload, "\n".join(report_lines) + "\n"
-

@@ -180,7 +180,10 @@
     ],
     "taskmaster_id": 3,
     "taskmaster_exported": true,
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "contractRefs": [
+      "core.sanguo.city.bought"
+    ]
   },
   {
     "id": "GM-0004",
@@ -240,7 +243,11 @@
     ],
     "taskmaster_id": 4,
     "taskmaster_exported": true,
-    "semantic_review_tier": "full"
+    "semantic_review_tier": "full",
+    "contractRefs": [
+      "core.sanguo.city.toll.paid",
+      "core.sanguo.player.eliminated"
+    ]
   },
   {
     "id": "GM-0005",
@@ -1907,7 +1914,9 @@
       "docs/architecture/overlays/PRD-SANGUO-V3/08/08-Contracts-Quality-Metrics.md",
       "docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptance": [
       "多文件地图配置在运行路径下可被加载：先解析 `res://Data/maps/_index.json`，再按 `maps[].path` 加载对应地图定义文件；任一文件缺失/JSON 无效/字段缺失时应产生可诊断的失败结果（而非静默成功）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
       "存在且可解析 `res://Data/maps/_index.json`；包含 `schemaVersion`、`version`、`maps[]`，且 `maps[]` 中每个元素至少包含 `mapId`、`nameKey`、`descriptionKey`、`path`、`previewImagePath`、`recommendedPlayersMin`、`recommendedPlayersMax`。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs",
@@ -2984,7 +2993,9 @@
     "test_strategy": [
       "Integration closure check from split-task evidence."
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "semantic_review_tier": "full"
   },
   {
@@ -3036,7 +3047,9 @@
     "test_strategy": [
       "Integration closure check from split-task evidence."
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "semantic_review_tier": "full"
   },
   {
@@ -4718,7 +4731,9 @@
     ],
     "taskmaster_id": 101,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -4770,7 +4785,9 @@
     ],
     "taskmaster_id": 102,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -5169,7 +5186,9 @@
     ],
     "taskmaster_id": 109,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9",
       "A-020"
@@ -6384,7 +6403,9 @@
     ],
     "taskmaster_id": 131,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -6438,7 +6459,9 @@
     ],
     "taskmaster_id": 132,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -6491,7 +6514,9 @@
     ],
     "taskmaster_id": 133,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -6543,7 +6568,9 @@
     ],
     "taskmaster_id": 134,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R6"
     ],
@@ -7169,7 +7196,9 @@
     ],
     "taskmaster_id": 145,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9",
       "A-020"
@@ -7223,7 +7252,9 @@
     ],
     "taskmaster_id": 146,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9"
     ],
@@ -8534,7 +8565,9 @@
     ],
     "taskmaster_id": 169,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9",
       "A-020"
@@ -8585,7 +8618,9 @@
     ],
     "taskmaster_id": 170,
     "taskmaster_exported": true,
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "R9",
       "A-020"
@@ -9514,7 +9549,9 @@
       "Use Chapter 7 candidate evidence to keep Config Audit And Migration Surfaces scoped to the documented UI slice and avoid unrelated gameplay changes. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task180ConfigAuditAndMigrationSurfacesTests.cs Game.Core.Tests/Tasks/Task180ConfigAuditAndMigrationCiEvidenceTests.cs",
       "Validate end-to-end wiring against the routed scope tasks (T147, T148, T149, T150, T151, T152, T153, T154, T155, T156, T157, T158, T159, T160, T161, T162, T163, T165, T166, T167, T168, T169, T171, T172, T173, T174, T175) and record any remaining UI gaps in Chapter 7 artifacts instead of closing the slice early. Refs: Game.Core.Tests/Services/SanguoContentPackResolverTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Tasks/Task180ConfigAuditAndMigrationSurfacesTests.cs Game.Core.Tests/Tasks/Task180ConfigAuditAndMigrationCiEvidenceTests.cs"
     ],
-    "contractRefs": [],
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
     "acceptanceRefs": [
       "T147",
       "T148",

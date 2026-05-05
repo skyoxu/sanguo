@@ -1,0 +1,30 @@
+[
+  {
+    "id": "EX-BACK-0001",
+    "taskmaster_id": 1,
+    "status": "in-progress",
+    "layer": "core",
+    "title": "Example back task",
+    "contractRefs": [
+      "core.run.started"
+    ],
+    "acceptance": [
+      "ACC:T1.1 Example acceptance. Refs: Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs"
+    ],
+    "test_refs": [
+      "Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs"
+    ]
+  },
+  {
+    "id": "EX-BACK-0002",
+    "taskmaster_id": 2,
+    "status": "pending",
+    "layer": "core",
+    "title": "Example back task 2",
+    "contractRefs": [
+      "core.run.state.transitioned"
+    ],
+    "acceptance": [],
+    "test_refs": []
+  }
+]
