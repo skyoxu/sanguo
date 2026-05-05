@@ -62,6 +62,40 @@ Describe the main loop and state transitions.
 ### 4.3 Secondary Surface Flow
 
 Describe supporting screens such as reward, rest, shop, event, inventory, settings, or run summary.
+Completed scope list for this track:
+
+- T147 `Module: campaign content schema extension (split from T110) integration pack`
+- T148 `Module: campaign content quality gates closure (split from T110)`
+- T149 `Module: campaign full-loop boss-win scenario (split from T111)`
+- T150 `Module: campaign full-loop camp-fail scenario (split from T111)`
+- T151 `Module: core assertion hard-gate closure (split from T112) integration pack`
+- T152 `Module: UI assertion hard-gate closure (split from T112)`
+- T153 `Module: R4 end-to-end explainability and replayability gate`
+- T154 `Module: freeze policy guard for non-crash feedback suppression`
+- T155 `Module: freeze change-control triplet gate`
+- T156 `Module: signal XML documentation completeness gate (PH9-B2)`
+- T157 `Module: CI signal compliance workflow hard-gate (PH9-B4) integration pack`
+- T158 `Module: GDScript subscription lifecycle leak guard (PH9-B5) integration pack`
+- T159 `Module: privacy-compliance document and policy gate (PH16-B4)`
+- T160 `Module: logging-guidelines document and lint gate (PH16-B5)`
+- T161 `Module: migration compatibility report automation gate (PH20-B3) integration pack`
+- T162 `Module: signal compliance aggregator implementation (split from T157)`
+- T163 `Module: signal compliance workflow hard-gate wiring (split from T157)`
+- T165 `Module: GdUnit signal lifecycle leak fixtures (split from T158)`
+- T166 `Module: migration compatibility report generator (split from T161)`
+- T167 `Module: migration compatibility completeness validator (split from T161)`
+- T168 `Module: migration compatibility CI hard-gate integration (split from T161)`
+- T169 `Module: campaign contract additive set and versioning (split from T145)`
+- T171 `Module: campaign content schema catalog extension (split from T147)`
+- T172 `Module: campaign content cross-table constraints and bump rules (split from T147)`
+- T173 `Module: core assertion hard-gate bundle A-013 to A-015 (split from T151)`
+- T174 `Module: core assertion hard-gate bundle A-016 to A-019 (split from T151)`
+- T175 `Module: core assertion hard-gate A-020 compatibility closure (split from T151)`
+- T176 `Wire UI: MainMenu And Boot Flow`
+- T177 `Wire UI: Runtime HUD And Outcome Surfaces`
+- T178 `Wire UI: Combat Pressure And Interaction Surfaces`
+- T179 `Wire UI: Economy Build And Progression Panels`
+- T180 `Wire UI: Config Audit And Migration Surfaces`
 
 ## 5. UI Wiring Matrix
 
