@@ -118,9 +118,14 @@ def write_text(path: str, content: str) -> None:
 
 def ensure_tests_project_junction(repo_root: str, project_abs: str, out_dir: str) -> None:
     """
-    Hard gate: ensure Tests.Godot/Game.Godot is a Junction to the real Game.Godot.
+    Hard gate: ensure Tests.Godot junction set is complete.
+    Required links:
+      - Game.Godot -> <repo>/Game.Godot
+      - Game.Core  -> <repo>/Game.Core
+      - Data       -> <repo>/Data
+      - Assets     -> <repo>/Assets
 
-    This prevents drift between test resources and the actual game project.
+    This prevents drift and missing runtime resources in CI.
     """
     try:
         proj_name = os.path.basename(os.path.normpath(project_abs))
@@ -135,32 +140,24 @@ def ensure_tests_project_junction(repo_root: str, project_abs: str, out_dir: str
         if os.path.abspath(common) != os.path.abspath(repo_root):
             return
 
-        ensure_script = os.path.join(repo_root, "scripts", "python", "ensure_tests_godot_junction.py")
+        ensure_script = os.path.join(repo_root, "scripts", "python", "ensure_tests_project_junction.py")
         if not os.path.isfile(ensure_script):
-            raise RuntimeError("ensure_tests_godot_junction_script_missing")
+            raise RuntimeError("ensure_tests_project_junction_script_missing")
 
         rel_project = os.path.relpath(project_abs, repo_root)
         cmd = [
             sys.executable,
             ensure_script,
-            "--root",
-            repo_root,
-            "--tests-project",
+            "--project",
             rel_project,
-            "--link-name",
-            "Game.Godot",
-            "--target-rel",
-            "Game.Godot",
-            "--create-if-missing",
-            "--fix-wrong-target",
         ]
         rc, out = run_cmd(cmd, cwd=repo_root, timeout=60_000)
         try:
-            write_text(os.path.join(out_dir, "ensure-tests-godot-junction.txt"), out)
+            write_text(os.path.join(out_dir, "ensure-tests-project-junction.txt"), out)
         except Exception:
             pass
         if rc != 0:
-            raise RuntimeError("ensure_tests_godot_junction_failed")
+            raise RuntimeError("ensure_tests_project_junction_failed")
     except Exception:
         raise
 
