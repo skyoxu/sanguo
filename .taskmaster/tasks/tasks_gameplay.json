@@ -5157,10 +5157,10 @@
     ],
     "taskmaster_id": 110,
     "taskmaster_exported": true,
-    "contractRefs": [],
-    "acceptanceRefs": [
-      "R9",
-      "R11"
+      "contractRefs": [],
+      "acceptanceRefs": [
+        "R9",
+        "R11"
     ],
     "semantic_review_tier": "full",
     "evidence_refs": []
@@ -5208,10 +5208,10 @@
     ],
     "taskmaster_id": 111,
     "taskmaster_exported": true,
-    "contractRefs": [],
-    "acceptanceRefs": [
-      "9.1"
-    ],
+      "contractRefs": [],
+      "acceptanceRefs": [
+        "9.1"
+      ],
     "semantic_review_tier": "full",
     "evidence_refs": []
   },
@@ -5264,9 +5264,9 @@
     ],
     "taskmaster_id": 112,
     "taskmaster_exported": true,
-    "contractRefs": [],
-    "acceptanceRefs": [
-      "A-011",
+      "contractRefs": [],
+      "acceptanceRefs": [
+        "A-011",
       "A-012",
       "A-013",
       "A-014",
@@ -12393,9 +12393,11 @@
       "Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.",
       "Run the Chapter 3.8 triplet baseline validators after writing this task to a task view."
     ],
-    "contractRefs": [],
-    "evidence_refs": [
-      "docs/gdd/ui-gdd-flow.md:41",
+      "contractRefs": [
+        "core.run.state.transitioned"
+      ],
+      "evidence_refs": [
+        "docs/gdd/ui-gdd-flow.md:41",
       "docs/gdd/ui-gdd-flow.md:329",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
@@ -12838,9 +12840,11 @@
       "Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.",
       "Run the Chapter 3.8 triplet baseline validators after writing this task to a task view."
     ],
-    "contractRefs": [],
-    "evidence_refs": [
-      "docs/prd/prd_v4.md:500",
+      "contractRefs": [
+        "core.sanguo.combat.ended"
+      ],
+      "evidence_refs": [
+        "docs/prd/prd_v4.md:500",
       "docs/prd/prd_v4.md:504",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md",
@@ -12927,9 +12931,11 @@
       "Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.",
       "Run the Chapter 3.8 triplet baseline validators after writing this task to a task view."
     ],
-    "contractRefs": [],
-    "evidence_refs": [
-      "docs/prd/PRD_V4_RULES_FREEZE.md:7",
+      "contractRefs": [
+        "core.traceability.checked"
+      ],
+      "evidence_refs": [
+        "docs/prd/PRD_V4_RULES_FREEZE.md:7",
       "docs/prd/PRD_V4_RULES_FREEZE.md:85",
       "docs/prd/PRD_V4_RULES_FREEZE.md:159",
       "docs/prd/PRD_V4_RULES_FREEZE.md:171",
