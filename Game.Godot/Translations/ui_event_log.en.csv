@@ -319,6 +319,10 @@ ui.hud.event.core.sanguo.game.started.detail.players_count,Players
 ui.hud.event.core.sanguo.game.started.detail.starting_money_preset,Starting money preset
 ui.hud.event.core.sanguo.game.started.detail.global_event_interval_turns,Global event interval
 ui.hud.event.core.sanguo.game.started.detail.random_seed,Random seed
+campaign.strategem.strat_active_bonus_gold.name,Increase Gold
+campaign.strategem.strat_active_reduce_pressure.name,Reduce Pressure
+campaign.strategem.strat_passive_bonus_hp.name,Increase HP
+campaign.strategem.strat_passive_rich.name,Tycoon
 ui.hud.event.core.sanguo.game.turn.started.detail.year,Year
 ui.hud.event.core.sanguo.game.turn.started.detail.month,Month
 ui.hud.event.core.sanguo.game.turn.started.detail.day,Day

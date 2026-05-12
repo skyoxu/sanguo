@@ -17,6 +17,58 @@ public sealed record SanguoEconomyStepDeltas(
 );
 
 /// <summary>
+/// DTO: SanguoCombatStatsDefinition
+/// Description: Additive combat stat payload for v4 runtime combat composition.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004 (event bus and contracts), ADR-0005 (quality gates).
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md.
+/// </remarks>
+public sealed record SanguoCombatStatsDefinition(
+    int MaxHP,
+    int CurrentHP,
+    int Attack,
+    decimal CritRate = 0m,
+    decimal CritMultiplier = 1.5m,
+    decimal LifeStealRate = 0m,
+    decimal DodgeRate = 0m,
+    decimal AttackSpeed = 2.0m,
+    decimal DamageReductionRate = 0m,
+    decimal ReflectRate = 0m,
+    bool AoEEnabled = false
+);
+
+/// <summary>
+/// DTO: SanguoSummonStatsDefinition
+/// Description: Additive summon defaults for v4 combat without requiring a parallel summon schema.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004 (event bus and contracts), ADR-0005 (quality gates).
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md.
+/// </remarks>
+public sealed record SanguoSummonStatsDefinition(
+    decimal InheritRatio = 0.5m,
+    decimal DefaultAttackSpeed = 2.0m,
+    bool InheritCrit = false,
+    bool InheritReflect = false,
+    bool InheritAoEEnabled = false
+);
+
+/// <summary>
+/// DTO: SanguoCharacterCombatProfile
+/// Description: Optional combat profile attached to a character definition for v4 additive expansion.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004 (event bus and contracts), ADR-0005 (quality gates).
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md.
+/// </remarks>
+public sealed record SanguoCharacterCombatProfile(
+    SanguoCombatStatsDefinition? BaseStats = null,
+    SanguoSummonStatsDefinition? SummonDefaults = null,
+    IReadOnlyList<string>? PassiveSkillIds = null
+);
+
+/// <summary>
 /// DTO: SanguoCharacterDefinition
 /// Description: Read-only character definition loaded from res:// (no user:// template sources).
 /// </summary>
@@ -31,5 +83,6 @@ public sealed record SanguoCharacterDefinition(
     int CombatRating,
     string PortraitPath,
     int StartingMoneyStepDelta,
-    SanguoEconomyStepDeltas EconomyStepDeltas
+    SanguoEconomyStepDeltas EconomyStepDeltas,
+    SanguoCharacterCombatProfile? CombatProfile = null
 );

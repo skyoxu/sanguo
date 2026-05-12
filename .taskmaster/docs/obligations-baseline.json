@@ -1,0 +1,1821 @@
+{
+  "version": 1,
+  "tasks": {
+    "181": {
+      "task_id": 181,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-181/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "182": {
+      "task_id": 182,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-182/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "183": {
+      "task_id": 183,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-183/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "186": {
+      "task_id": 186,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-186/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "188": {
+      "task_id": 188,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-188/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "189": {
+      "task_id": 189,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-189/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "192": {
+      "task_id": 192,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-192/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "193": {
+      "task_id": 193,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-193/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "194": {
+      "task_id": 194,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-194/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "195": {
+      "task_id": 195,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-195/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "196": {
+      "task_id": 196,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-196/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "197": {
+      "task_id": 197,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-197/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "198": {
+      "task_id": 198,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-198/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "199": {
+      "task_id": 199,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-199/verdict.json",
+      "uncovered_count": 0,
+      "obligations": []
+    },
+    "200": {
+      "task_id": 200,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-200/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O2",
+          "text": "Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior.",
+          "kind": "godot",
+          "source": "master",
+          "suggestions": [
+            "Godot-side or adapter-facing tests cover the player-visible response render behavior for persistence, localization, audio, performance, and platform status.",
+            "Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior."
+          ],
+          "acceptance_lines": [
+            "[OBL:T200.O2] Godot-side or adapter-facing tests cover the player-visible response render behavior for persistence, localization, audio, performance, and platform status.",
+            "[OBL:T200.O2] Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior."
+          ]
+        },
+        {
+          "id": "O4",
+          "text": "The implementation must preserve deterministic core boundaries.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Response render status wiring preserves deterministic core boundaries by keeping Godot-facing persistence, localization, audio, performance, and platform adapters outside Game.Core domain logic.",
+            "The implementation must preserve deterministic core boundaries."
+          ],
+          "acceptance_lines": [
+            "[OBL:T200.O4] Response render status wiring preserves deterministic core boundaries by keeping Godot-facing persistence, localization, audio, performance, and platform adapters outside Game.Core domain logic.",
+            "[OBL:T200.O4] The implementation must preserve deterministic core boundaries."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "The Chapter 3 coverage audit must be rerun.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun after the response render status changes, with evidence recorded in logs.",
+            "The Chapter 3 coverage audit must be rerun."
+          ],
+          "acceptance_lines": [
+            "[OBL:T200.O5] Chapter 3 coverage audit is rerun after the response render status changes, with evidence recorded in logs.",
+            "[OBL:T200.O5] The Chapter 3 coverage audit must be rerun."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after this task is written to a task view, with validator evidence recorded in logs.",
+            "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T200.O6] Chapter 3.8 triplet baseline validators are run after this task is written to a task view, with validator evidence recorded in logs.",
+            "[OBL:T200.O6] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "201": {
+      "task_id": 201,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-201/verdict.json",
+      "uncovered_count": 3,
+      "obligations": [
+        {
+          "id": "O8",
+          "text": "The implementation must preserve deterministic core boundaries.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "The visible status wiring keeps deterministic state evaluation in Game.Core and Godot-facing code only adapts or displays the resulting status without introducing engine dependencies into core contracts.",
+            "The implementation must preserve deterministic core boundaries."
+          ],
+          "acceptance_lines": [
+            "[OBL:T201.O8] The visible status wiring keeps deterministic state evaluation in Game.Core and Godot-facing code only adapts or displays the resulting status without introducing engine dependencies into core contracts.",
+            "[OBL:T201.O8] The implementation must preserve deterministic core boundaries."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "The Chapter 3 coverage audit must be rerun after the refactor step.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun after implementation, and its pass/fail evidence is recorded for this task.",
+            "The Chapter 3 coverage audit must be rerun after the refactor step."
+          ],
+          "acceptance_lines": [
+            "[OBL:T201.O9] Chapter 3 coverage audit is rerun after implementation, and its pass/fail evidence is recorded for this task.",
+            "[OBL:T201.O9] The Chapter 3 coverage audit must be rerun after the refactor step."
+          ]
+        },
+        {
+          "id": "O10",
+          "text": "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after this task is written to the task view, and evidence is recorded for this task.",
+            "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T201.O10] Chapter 3.8 triplet baseline validators are run after this task is written to the task view, and evidence is recorded for this task.",
+            "[OBL:T201.O10] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "202": {
+      "task_id": 202,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-202/verdict.json",
+      "uncovered_count": 3,
+      "obligations": [
+        {
+          "id": "O5",
+          "text": "The implementation must preserve deterministic core boundaries during refactor.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "The implementation preserves deterministic core boundaries: domain logic remains outside Godot adapter/UI code and Godot-facing code does not become the source of truth for task capability state.",
+            "The implementation must preserve deterministic core boundaries during refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T202.O5] The implementation preserves deterministic core boundaries: domain logic remains outside Godot adapter/UI code and Godot-facing code does not become the source of truth for task capability state.",
+            "[OBL:T202.O5] The implementation must preserve deterministic core boundaries during refactor."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "The Chapter 3 coverage audit must be rerun after implementation.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun after implementation, and the task evidence records the audit command and result path.",
+            "The Chapter 3 coverage audit must be rerun after implementation."
+          ],
+          "acceptance_lines": [
+            "[OBL:T202.O6] Chapter 3 coverage audit is rerun after implementation, and the task evidence records the audit command and result path.",
+            "[OBL:T202.O6] The Chapter 3 coverage audit must be rerun after implementation."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "After this task is written to the task view, the Chapter 3.8 triplet baseline validators are run and their result is recorded as task evidence.",
+            "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T202.O7] After this task is written to the task view, the Chapter 3.8 triplet baseline validators are run and their result is recorded as task evidence.",
+            "[OBL:T202.O7] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "203": {
+      "task_id": 203,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-203/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O5",
+          "text": "A deterministic validator or evidence fixture must fail when the required behavior is missing.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "A deterministic validator or evidence fixture covers the start, continue, retry bootstrap, and blocked-validation behavior, and fails when any required behavior is missing.",
+            "A deterministic validator or evidence fixture must fail when the required behavior is missing."
+          ],
+          "acceptance_lines": [
+            "[OBL:T203.O5] A deterministic validator or evidence fixture covers the start, continue, retry bootstrap, and blocked-validation behavior, and fails when any required behavior is missing.",
+            "[OBL:T203.O5] A deterministic validator or evidence fixture must fail when the required behavior is missing."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "The implementation must keep validator or evidence output stable.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Validator or evidence output for this task is stable across repeated runs with unchanged inputs.",
+            "The implementation must keep validator or evidence output stable."
+          ],
+          "acceptance_lines": [
+            "[OBL:T203.O6] Validator or evidence output for this task is stable across repeated runs with unchanged inputs.",
+            "[OBL:T203.O6] The implementation must keep validator or evidence output stable."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are rerun after this task is written to the task view, with evidence captured in the task evidence path.",
+            "Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T203.O7] Chapter 3.8 triplet baseline validators are rerun after this task is written to the task view, with evidence captured in the task evidence path.",
+            "[OBL:T203.O7] Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "Tests or implementation evidence must cover the referenced GameStateMachineTests and GameStateManagerSecurityTests paths.",
+          "kind": "godot",
+          "source": "master",
+          "suggestions": [
+            "Core state and state-manager security evidence covers GameStateMachineTests.cs and GameStateManagerSecurityTests.cs for the baseline start, continue, and retry bootstrap flow.",
+            "Tests or implementation evidence must cover the referenced GameStateMachineTests and GameStateManagerSecurityTests paths."
+          ],
+          "acceptance_lines": [
+            "[OBL:T203.O8] Core state and state-manager security evidence covers GameStateMachineTests.cs and GameStateManagerSecurityTests.cs for the baseline start, continue, and retry bootstrap flow.",
+            "[OBL:T203.O8] Tests or implementation evidence must cover the referenced GameStateMachineTests and GameStateManagerSecurityTests paths."
+          ]
+        }
+      ]
+    },
+    "204": {
+      "task_id": 204,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-204/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O5",
+          "text": "A deterministic validator or evidence fixture must be added or updated so it fails when the required behavior is missing.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "A deterministic validator or evidence fixture fails when startup state build progression behavior is missing.",
+            "A deterministic validator or evidence fixture must be added or updated so it fails when the required behavior is missing."
+          ],
+          "acceptance_lines": [
+            "[OBL:T204.O5] A deterministic validator or evidence fixture fails when startup state build progression behavior is missing.",
+            "[OBL:T204.O5] A deterministic validator or evidence fixture must be added or updated so it fails when the required behavior is missing."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "The smallest validation, script, or evidence path required for this task must be implemented.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "The task includes the minimal validation, script, or evidence path required for the startup state build progression gate to pass.",
+            "The smallest validation, script, or evidence path required for this task must be implemented."
+          ],
+          "acceptance_lines": [
+            "[OBL:T204.O6] The task includes the minimal validation, script, or evidence path required for the startup state build progression gate to pass.",
+            "[OBL:T204.O6] The smallest validation, script, or evidence path required for this task must be implemented."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "Chapter 3 baseline validators must be rerun after the task is written to a task view, with stable output.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 baseline validators are rerun after this task is written to a task view, and their output remains stable.",
+            "Chapter 3 baseline validators must be rerun after the task is written to a task view, with stable output."
+          ],
+          "acceptance_lines": [
+            "[OBL:T204.O7] Chapter 3 baseline validators are rerun after this task is written to a task view, and their output remains stable.",
+            "[OBL:T204.O7] Chapter 3 baseline validators must be rerun after the task is written to a task view, with stable output."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after this task is written to a task view.",
+            "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T204.O8] Chapter 3.8 triplet baseline validators are run after this task is written to a task view.",
+            "[OBL:T204.O8] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "205": {
+      "task_id": 205,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-205/verdict.json",
+      "uncovered_count": 2,
+      "obligations": [
+        {
+          "id": "O9",
+          "text": "A deterministic validator or evidence fixture must be added or updated so the missing behavior fails before implementation.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "A deterministic validator or evidence fixture fails when the required save, load, localization, audio, or runtime-status behavior is missing.",
+            "A deterministic validator or evidence fixture must be added or updated so the missing behavior fails before implementation."
+          ],
+          "acceptance_lines": [
+            "[OBL:T205.O9] A deterministic validator or evidence fixture fails when the required save, load, localization, audio, or runtime-status behavior is missing.",
+            "[OBL:T205.O9] A deterministic validator or evidence fixture must be added or updated so the missing behavior fails before implementation."
+          ]
+        },
+        {
+          "id": "O10",
+          "text": "Chapter 3 baseline validators must be rerun after this task is written to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are rerun after this task is written to a task view, with evidence recorded.",
+            "Chapter 3 baseline validators must be rerun after this task is written to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T205.O10] Chapter 3.8 triplet baseline validators are rerun after this task is written to a task view, with evidence recorded.",
+            "[OBL:T205.O10] Chapter 3 baseline validators must be rerun after this task is written to a task view."
+          ]
+        }
+      ]
+    },
+    "208": {
+      "task_id": 208,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-208/verdict.json",
+      "uncovered_count": 2,
+      "obligations": [
+        {
+          "id": "O1",
+          "text": "The task must validate the part 1 state config validation deterministic draft.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "State config validation deterministic draft for part 1 is validated with deterministic evidence.",
+            "Validation fails when the part 1 state config validation draft is missing or non-repeatable.",
+            "The task must validate the part 1 state config validation deterministic draft."
+          ],
+          "acceptance_lines": [
+            "[OBL:T208.O1] State config validation deterministic draft for part 1 is validated with deterministic evidence.",
+            "[OBL:T208.O1] Validation fails when the part 1 state config validation draft is missing or non-repeatable.",
+            "[OBL:T208.O1] The task must validate the part 1 state config validation deterministic draft."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "The implementation must be limited to the smallest validation, script, or evidence path needed to pass.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Implementation is limited to the minimal validation, script, or evidence path required for this task.",
+            "The implementation must be limited to the smallest validation, script, or evidence path needed to pass."
+          ],
+          "acceptance_lines": [
+            "[OBL:T208.O7] Implementation is limited to the minimal validation, script, or evidence path required for this task.",
+            "[OBL:T208.O7] The implementation must be limited to the smallest validation, script, or evidence path needed to pass."
+          ]
+        }
+      ]
+    },
+    "209": {
+      "task_id": 209,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-209/verdict.json",
+      "uncovered_count": 7,
+      "obligations": [
+        {
+          "id": "O7",
+          "text": "The implementation must provide the smallest validation, script, or evidence path required to pass.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "The task adds or updates the minimal deterministic validator, script, or evidence fixture required to verify surfaced validation outcomes.",
+            "The implementation must provide the smallest validation, script, or evidence path required to pass."
+          ],
+          "acceptance_lines": [
+            "[OBL:T209.O7] The task adds or updates the minimal deterministic validator, script, or evidence fixture required to verify surfaced validation outcomes.",
+            "[OBL:T209.O7] The implementation must provide the smallest validation, script, or evidence path required to pass."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "Validator output must remain stable after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Validator output for this task remains stable across repeated runs with the same inputs.",
+            "Validator output must remain stable after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T209.O8] Validator output for this task remains stable across repeated runs with the same inputs.",
+            "[OBL:T209.O8] Validator output must remain stable after refactor."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "The Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are rerun after this task is written to the task view, with evidence captured.",
+            "The Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T209.O9] Chapter 3.8 triplet baseline validators are rerun after this task is written to the task view, with evidence captured.",
+            "[OBL:T209.O9] The Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view."
+          ]
+        },
+        {
+          "id": "O10",
+          "text": "The quality-gates GdUnit adapter security aggregation test reference must have traceable evidence for this task.",
+          "kind": "godot",
+          "source": "master",
+          "suggestions": [
+            "The quality-gates GdUnit adapter security aggregation test reference has traceable evidence for the surfaced validation outcome behavior.",
+            "The quality-gates GdUnit adapter security aggregation test reference must have traceable evidence for this task."
+          ],
+          "acceptance_lines": [
+            "[OBL:T209.O10] The quality-gates GdUnit adapter security aggregation test reference has traceable evidence for the surfaced validation outcome behavior.",
+            "[OBL:T209.O10] The quality-gates GdUnit adapter security aggregation test reference must have traceable evidence for this task."
+          ]
+        },
+        {
+          "id": "O11",
+          "text": "The map tile name fallback test reference must have traceable evidence for this task.",
+          "kind": "godot",
+          "source": "master",
+          "suggestions": [
+            "The map tile name fallback test reference has traceable evidence for the surfaced fallback outcome behavior.",
+            "The map tile name fallback test reference must have traceable evidence for this task."
+          ],
+          "acceptance_lines": [
+            "[OBL:T209.O11] The map tile name fallback test reference has traceable evidence for the surfaced fallback outcome behavior.",
+            "[OBL:T209.O11] The map tile name fallback test reference must have traceable evidence for this task."
+          ]
+        },
+        {
+          "id": "O12",
+          "text": "The HUD SFX/music fallback or validation test reference must have traceable evidence for this task.",
+          "kind": "godot",
+          "source": "master",
+          "suggestions": [
+            "The HUD SFX music-continuity test reference has traceable evidence for any surfaced validation or fallback outcome it contributes to the deterministic draft.",
+            "The HUD SFX/music fallback or validation test reference must have traceable evidence for this task."
+          ],
+          "acceptance_lines": [
+            "[OBL:T209.O12] The HUD SFX music-continuity test reference has traceable evidence for any surfaced validation or fallback outcome it contributes to the deterministic draft.",
+            "[OBL:T209.O12] The HUD SFX/music fallback or validation test reference must have traceable evidence for this task."
+          ]
+        },
+        {
+          "id": "O13",
+          "text": "The invalid resolution fallback test reference must have traceable evidence for this task.",
+          "kind": "godot",
+          "source": "master",
+          "suggestions": [
+            "The invalid resolution fallback test reference has traceable evidence for the surfaced fallback outcome behavior.",
+            "The invalid resolution fallback test reference must have traceable evidence for this task."
+          ],
+          "acceptance_lines": [
+            "[OBL:T209.O13] The invalid resolution fallback test reference has traceable evidence for the surfaced fallback outcome behavior.",
+            "[OBL:T209.O13] The invalid resolution fallback test reference must have traceable evidence for this task."
+          ]
+        }
+      ]
+    },
+    "210": {
+      "task_id": 210,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-210/verdict.json",
+      "uncovered_count": 2,
+      "obligations": [
+        {
+          "id": "O9",
+          "text": "A deterministic validator or evidence fixture must fail when the required behavior is missing.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "A deterministic validator or evidence fixture fails when the required config inspection validation or migration behavior is missing.",
+            "A deterministic validator or evidence fixture must fail when the required behavior is missing."
+          ],
+          "acceptance_lines": [
+            "[OBL:T210.O9] A deterministic validator or evidence fixture fails when the required config inspection validation or migration behavior is missing.",
+            "[OBL:T210.O9] A deterministic validator or evidence fixture must fail when the required behavior is missing."
+          ]
+        },
+        {
+          "id": "O10",
+          "text": "The task must use the referenced test files as evidence targets for the migration inspection validation.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "The inspected config validation and migration evidence includes the referenced Godot adapter, core state manager, state machine, security, and domain test targets.",
+            "The task must use the referenced test files as evidence targets for the migration inspection validation."
+          ],
+          "acceptance_lines": [
+            "[OBL:T210.O10] The inspected config validation and migration evidence includes the referenced Godot adapter, core state manager, state machine, security, and domain test targets.",
+            "[OBL:T210.O10] The task must use the referenced test files as evidence targets for the migration inspection validation."
+          ]
+        }
+      ]
+    },
+    "211": {
+      "task_id": 211,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-211/verdict.json",
+      "uncovered_count": 2,
+      "obligations": [
+        {
+          "id": "O4",
+          "text": "The validation output must remain stable across reruns for the same task view inputs.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "For unchanged task view inputs, rerunning the validation produces stable output for resolved evidence mappings and failure reporting.",
+            "The validation output must remain stable across reruns for the same task view inputs."
+          ],
+          "acceptance_lines": [
+            "[OBL:T211.O4] For unchanged task view inputs, rerunning the validation produces stable output for resolved evidence mappings and failure reporting.",
+            "[OBL:T211.O4] The validation output must remain stable across reruns for the same task view inputs."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "The Chapter 3.8 triplet baseline validators must be rerun after this task is written to a task view, with evidence captured.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "After this task is written to a task view, the Chapter 3.8 triplet baseline validators are rerun and their output path is recorded as task evidence.",
+            "The Chapter 3.8 triplet baseline validators must be rerun after this task is written to a task view, with evidence captured."
+          ],
+          "acceptance_lines": [
+            "[OBL:T211.O5] After this task is written to a task view, the Chapter 3.8 triplet baseline validators are rerun and their output path is recorded as task evidence.",
+            "[OBL:T211.O5] The Chapter 3.8 triplet baseline validators must be rerun after this task is written to a task view, with evidence captured."
+          ]
+        }
+      ]
+    },
+    "212": {
+      "task_id": 212,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-212/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O6",
+          "text": "The primary deterministic behavior must have xUnit coverage.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Primary deterministic combat pressure targeting behavior is covered by xUnit tests in Game.Core.Tests.",
+            "The primary deterministic behavior must have xUnit coverage."
+          ],
+          "acceptance_lines": [
+            "[OBL:T212.O6] Primary deterministic combat pressure targeting behavior is covered by xUnit tests in Game.Core.Tests.",
+            "[OBL:T212.O6] The primary deterministic behavior must have xUnit coverage."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "The implementation must place the required assertion-backed behavior in pure core logic.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Combat pressure targeting rule decisions are implemented in pure Game.Core logic and are exercised by deterministic assertions.",
+            "The implementation must place the required assertion-backed behavior in pure core logic."
+          ],
+          "acceptance_lines": [
+            "[OBL:T212.O7] Combat pressure targeting rule decisions are implemented in pure Game.Core logic and are exercised by deterministic assertions.",
+            "[OBL:T212.O7] The implementation must place the required assertion-backed behavior in pure core logic."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "The Chapter 3 coverage audit must be rerun after refactor with passing tests preserved.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun after refactor, with evidence recorded and previously passing tests preserved.",
+            "The Chapter 3 coverage audit must be rerun after refactor with passing tests preserved."
+          ],
+          "acceptance_lines": [
+            "[OBL:T212.O8] Chapter 3 coverage audit is rerun after refactor, with evidence recorded and previously passing tests preserved.",
+            "[OBL:T212.O8] The Chapter 3 coverage audit must be rerun after refactor with passing tests preserved."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "Chapter 3.8 triplet baseline validators must be run after this task is written to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after the task view update, with validator evidence recorded.",
+            "Chapter 3.8 triplet baseline validators must be run after this task is written to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T212.O9] Chapter 3.8 triplet baseline validators are run after the task view update, with validator evidence recorded.",
+            "[OBL:T212.O9] Chapter 3.8 triplet baseline validators must be run after this task is written to a task view."
+          ]
+        }
+      ]
+    },
+    "213": {
+      "task_id": 213,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-213/verdict.json",
+      "uncovered_count": 6,
+      "obligations": [
+        {
+          "id": "O1",
+          "text": "Core logic must implement the part 1 state resource progression build upgrade behavior deterministically.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Part 1 build upgrade applies deterministic state progression and resource changes in Game.Core for the covered state-resource progression case.",
+            "Core logic must implement the part 1 state resource progression build upgrade behavior deterministically."
+          ],
+          "acceptance_lines": [
+            "[OBL:T213.O1] Part 1 build upgrade applies deterministic state progression and resource changes in Game.Core for the covered state-resource progression case.",
+            "[OBL:T213.O1] Core logic must implement the part 1 state resource progression build upgrade behavior deterministically."
+          ]
+        },
+        {
+          "id": "O2",
+          "text": "Build upgrade must not advance state or spend resources when deterministic prerequisites are not met.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "When build upgrade prerequisites or required resources are missing, the operation is refused and state/resources remain unchanged.",
+            "Build upgrade must not advance state or spend resources when deterministic prerequisites are not met."
+          ],
+          "acceptance_lines": [
+            "[OBL:T213.O2] When build upgrade prerequisites or required resources are missing, the operation is refused and state/resources remain unchanged.",
+            "[OBL:T213.O2] Build upgrade must not advance state or spend resources when deterministic prerequisites are not met."
+          ]
+        },
+        {
+          "id": "O4",
+          "text": "Implementation must keep the required behavior in pure core logic.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "The implementation lives in pure Game.Core logic and does not require Godot runtime APIs for the covered behavior.",
+            "Implementation must keep the required behavior in pure core logic."
+          ],
+          "acceptance_lines": [
+            "[OBL:T213.O4] The implementation lives in pure Game.Core logic and does not require Godot runtime APIs for the covered behavior.",
+            "[OBL:T213.O4] Implementation must keep the required behavior in pure core logic."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "Existing passing tests must remain passing after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Existing Game.Core state tests remain passing after the change.",
+            "Existing passing tests must remain passing after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T213.O5] Existing Game.Core state tests remain passing after the change.",
+            "[OBL:T213.O5] Existing passing tests must remain passing after refactor."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "Chapter 3 coverage audit must be rerun after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun and evidence is recorded for this task.",
+            "Chapter 3 coverage audit must be rerun after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T213.O6] Chapter 3 coverage audit is rerun and evidence is recorded for this task.",
+            "[OBL:T213.O6] Chapter 3 coverage audit must be rerun after refactor."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "Chapter 3.8 triplet baseline validators must run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after the task view update and evidence is recorded.",
+            "Chapter 3.8 triplet baseline validators must run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T213.O7] Chapter 3.8 triplet baseline validators are run after the task view update and evidence is recorded.",
+            "[OBL:T213.O7] Chapter 3.8 triplet baseline validators must run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "214": {
+      "task_id": 214,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-214/verdict.json",
+      "uncovered_count": 6,
+      "obligations": [
+        {
+          "id": "O1",
+          "text": "实现必须提供 part 2 completion result 的 deterministic resource 读取行为，且读取结果可由测试稳定复现。",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "A1: 实现 part 2 completion result 的 deterministic resource 读取逻辑，并能返回稳定、可复现的 completion result。",
+            "实现必须提供 part 2 completion result 的 deterministic resource 读取行为，且读取结果可由测试稳定复现。"
+          ],
+          "acceptance_lines": [
+            "[OBL:T214.O1] A1: 实现 part 2 completion result 的 deterministic resource 读取逻辑，并能返回稳定、可复现的 completion result。",
+            "[OBL:T214.O1] 实现必须提供 part 2 completion result 的 deterministic resource 读取行为，且读取结果可由测试稳定复现。"
+          ]
+        },
+        {
+          "id": "O2",
+          "text": "非法或不可接受的 deterministic resource 读取输入必须被拒绝，且不得推进 completion result 状态。",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "A2: 当 deterministic resource 读取输入无效时，必须拒绝读取并保持 completion result 状态不变。",
+            "非法或不可接受的 deterministic resource 读取输入必须被拒绝，且不得推进 completion result 状态。"
+          ],
+          "acceptance_lines": [
+            "[OBL:T214.O2] A2: 当 deterministic resource 读取输入无效时，必须拒绝读取并保持 completion result 状态不变。",
+            "[OBL:T214.O2] 非法或不可接受的 deterministic resource 读取输入必须被拒绝，且不得推进 completion result 状态。"
+          ]
+        },
+        {
+          "id": "O3",
+          "text": "必须新增或更新 xUnit 覆盖 primary deterministic behavior。",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "A3: 新增或更新 xUnit 测试覆盖 deterministic resource 读取的主要确定性行为。",
+            "必须新增或更新 xUnit 覆盖 primary deterministic behavior。"
+          ],
+          "acceptance_lines": [
+            "[OBL:T214.O3] A3: 新增或更新 xUnit 测试覆盖 deterministic resource 读取的主要确定性行为。",
+            "[OBL:T214.O3] 必须新增或更新 xUnit 覆盖 primary deterministic behavior。"
+          ]
+        },
+        {
+          "id": "O4",
+          "text": "实现必须限制在纯 core 逻辑的最小必要变更内。",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "A4: 实现限于 Game.Core 的 pure-core 逻辑，不引入 Godot 依赖。",
+            "实现必须限制在纯 core 逻辑的最小必要变更内。"
+          ],
+          "acceptance_lines": [
+            "[OBL:T214.O4] A4: 实现限于 Game.Core 的 pure-core 逻辑，不引入 Godot 依赖。",
+            "[OBL:T214.O4] 实现必须限制在纯 core 逻辑的最小必要变更内。"
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "完成后必须保持测试通过并重跑 Chapter 3 coverage audit。",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "A5: 保持相关测试通过，并提供 Chapter 3 coverage audit 重跑证据。",
+            "完成后必须保持测试通过并重跑 Chapter 3 coverage audit。"
+          ],
+          "acceptance_lines": [
+            "[OBL:T214.O5] A5: 保持相关测试通过，并提供 Chapter 3 coverage audit 重跑证据。",
+            "[OBL:T214.O5] 完成后必须保持测试通过并重跑 Chapter 3 coverage audit。"
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "写入任务视图后必须运行 Chapter 3.8 triplet baseline validators。",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "A6: 写入任务视图后运行 Chapter 3.8 triplet baseline validators，并保留证据。",
+            "写入任务视图后必须运行 Chapter 3.8 triplet baseline validators。"
+          ],
+          "acceptance_lines": [
+            "[OBL:T214.O6] A6: 写入任务视图后运行 Chapter 3.8 triplet baseline validators，并保留证据。",
+            "[OBL:T214.O6] 写入任务视图后必须运行 Chapter 3.8 triplet baseline validators。"
+          ]
+        }
+      ]
+    },
+    "215": {
+      "task_id": 215,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-215/verdict.json",
+      "uncovered_count": 6,
+      "obligations": [
+        {
+          "id": "O5",
+          "text": "The part 1 core state failure campaign bootstrap must be implemented as a core-state behavior.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Part 1 core state failure campaign bootstrap is implemented in pure core state logic with deterministic evidence.",
+            "The part 1 core state failure campaign bootstrap must be implemented as a core-state behavior."
+          ],
+          "acceptance_lines": [
+            "[OBL:T215.O5] Part 1 core state failure campaign bootstrap is implemented in pure core state logic with deterministic evidence.",
+            "[OBL:T215.O5] The part 1 core state failure campaign bootstrap must be implemented as a core-state behavior."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "Primary deterministic behavior must have xUnit coverage.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Primary deterministic core bootstrap behavior is covered by xUnit evidence.",
+            "Primary deterministic behavior must have xUnit coverage."
+          ],
+          "acceptance_lines": [
+            "[OBL:T215.O6] Primary deterministic core bootstrap behavior is covered by xUnit evidence.",
+            "[OBL:T215.O6] Primary deterministic behavior must have xUnit coverage."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "The implementation must use minimal pure-core logic required by the assertions.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Bootstrap behavior is implemented in pure core logic without Godot dependencies.",
+            "The implementation must use minimal pure-core logic required by the assertions."
+          ],
+          "acceptance_lines": [
+            "[OBL:T215.O7] Bootstrap behavior is implemented in pure core logic without Godot dependencies.",
+            "[OBL:T215.O7] The implementation must use minimal pure-core logic required by the assertions."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "Invalid or non-applicable bootstrap input must not advance campaign state.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Invalid failure campaign bootstrap input is refused and leaves campaign state unchanged.",
+            "Invalid or non-applicable bootstrap input must not advance campaign state."
+          ],
+          "acceptance_lines": [
+            "[OBL:T215.O8] Invalid failure campaign bootstrap input is refused and leaves campaign state unchanged.",
+            "[OBL:T215.O8] Invalid or non-applicable bootstrap input must not advance campaign state."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "After refactor, passing tests must be preserved and the Chapter 3 coverage audit must be rerun.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Passing tests are preserved and Chapter 3 coverage audit evidence is recorded.",
+            "After refactor, passing tests must be preserved and the Chapter 3 coverage audit must be rerun."
+          ],
+          "acceptance_lines": [
+            "[OBL:T215.O9] Passing tests are preserved and Chapter 3 coverage audit evidence is recorded.",
+            "[OBL:T215.O9] After refactor, passing tests must be preserved and the Chapter 3 coverage audit must be rerun."
+          ]
+        },
+        {
+          "id": "O10",
+          "text": "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after task view writing and evidence is recorded.",
+            "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T215.O10] Chapter 3.8 triplet baseline validators are run after task view writing and evidence is recorded.",
+            "[OBL:T215.O10] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "216": {
+      "task_id": 216,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-216/verdict.json",
+      "uncovered_count": 6,
+      "obligations": [
+        {
+          "id": "O1",
+          "text": "The core state logic must deterministically handle the part 2 failure path by entering a game-over failure phase.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Part 2 failure state deterministically enters the game-over failure phase in pure core state logic.",
+            "The core state logic must deterministically handle the part 2 failure path by entering a game-over failure phase."
+          ],
+          "acceptance_lines": [
+            "[OBL:T216.O1] Part 2 failure state deterministically enters the game-over failure phase in pure core state logic.",
+            "[OBL:T216.O1] The core state logic must deterministically handle the part 2 failure path by entering a game-over failure phase."
+          ]
+        },
+        {
+          "id": "O2",
+          "text": "A failed or invalid game-over failure transition must not advance to a success or non-failure state.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "When the game-over failure phase transition fails or is invalid, state must remain failure-safe and must not advance to a success or non-failure phase.",
+            "A failed or invalid game-over failure transition must not advance to a success or non-failure state."
+          ],
+          "acceptance_lines": [
+            "[OBL:T216.O2] When the game-over failure phase transition fails or is invalid, state must remain failure-safe and must not advance to a success or non-failure phase.",
+            "[OBL:T216.O2] A failed or invalid game-over failure transition must not advance to a success or non-failure state."
+          ]
+        },
+        {
+          "id": "O3",
+          "text": "xUnit tests must cover the primary deterministic behavior for this task.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Game.Core.Tests includes xUnit assertions for the part 2 failure-to-game-over behavior.",
+            "xUnit tests must cover the primary deterministic behavior for this task."
+          ],
+          "acceptance_lines": [
+            "[OBL:T216.O3] Game.Core.Tests includes xUnit assertions for the part 2 failure-to-game-over behavior.",
+            "[OBL:T216.O3] xUnit tests must cover the primary deterministic behavior for this task."
+          ]
+        },
+        {
+          "id": "O4",
+          "text": "The implementation must keep the required behavior in pure core logic.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "The part 2 failure-to-game-over behavior is implemented in pure core logic without requiring Godot runtime state.",
+            "The implementation must keep the required behavior in pure core logic."
+          ],
+          "acceptance_lines": [
+            "[OBL:T216.O4] The part 2 failure-to-game-over behavior is implemented in pure core logic without requiring Godot runtime state.",
+            "[OBL:T216.O4] The implementation must keep the required behavior in pure core logic."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "After implementation, passing tests must be preserved and the Chapter 3 coverage audit must be rerun.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Existing passing tests remain green and Chapter 3 coverage audit evidence is recorded.",
+            "After implementation, passing tests must be preserved and the Chapter 3 coverage audit must be rerun."
+          ],
+          "acceptance_lines": [
+            "[OBL:T216.O5] Existing passing tests remain green and Chapter 3 coverage audit evidence is recorded.",
+            "[OBL:T216.O5] After implementation, passing tests must be preserved and the Chapter 3 coverage audit must be rerun."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after this task is written to the task view, with evidence recorded.",
+            "After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+          ],
+          "acceptance_lines": [
+            "[OBL:T216.O6] Chapter 3.8 triplet baseline validators are run after this task is written to the task view, with evidence recorded.",
+            "[OBL:T216.O6] After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+          ]
+        }
+      ]
+    },
+    "217": {
+      "task_id": 217,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-217/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O7",
+          "text": "Implementation must be limited to pure-core logic required by the assertions.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "The campaign failure runmode isolation behavior is implemented in pure core logic without requiring Godot runtime state.",
+            "Implementation must be limited to pure-core logic required by the assertions."
+          ],
+          "acceptance_lines": [
+            "[OBL:T217.O7] The campaign failure runmode isolation behavior is implemented in pure core logic without requiring Godot runtime state.",
+            "[OBL:T217.O7] Implementation must be limited to pure-core logic required by the assertions."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "Existing passing tests must remain passing after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Existing relevant state/core test coverage remains passing after the runmode isolation change.",
+            "Existing passing tests must remain passing after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T217.O8] Existing relevant state/core test coverage remains passing after the runmode isolation change.",
+            "[OBL:T217.O8] Existing passing tests must remain passing after refactor."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "The Chapter 3 coverage audit must be rerun.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun with evidence recorded for this task.",
+            "The Chapter 3 coverage audit must be rerun."
+          ],
+          "acceptance_lines": [
+            "[OBL:T217.O9] Chapter 3 coverage audit is rerun with evidence recorded for this task.",
+            "[OBL:T217.O9] The Chapter 3 coverage audit must be rerun."
+          ]
+        },
+        {
+          "id": "O10",
+          "text": "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after this task is written to the task view, with evidence recorded.",
+            "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T217.O10] Chapter 3.8 triplet baseline validators are run after this task is written to the task view, with evidence recorded.",
+            "[OBL:T217.O10] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "218": {
+      "task_id": 218,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-218/verdict.json",
+      "uncovered_count": 5,
+      "obligations": [
+        {
+          "id": "O7",
+          "text": "Primary deterministic behavior must have added or updated xUnit coverage.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Given T218 primary deterministic behavior is implemented, then xUnit coverage is added or updated for the behavior and its evidence is traceable.",
+            "Primary deterministic behavior must have added or updated xUnit coverage."
+          ],
+          "acceptance_lines": [
+            "[OBL:T218.O7] Given T218 primary deterministic behavior is implemented, then xUnit coverage is added or updated for the behavior and its evidence is traceable.",
+            "[OBL:T218.O7] Primary deterministic behavior must have added or updated xUnit coverage."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "The implementation must keep the task logic in pure core code.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Given T218 assertions are satisfied, then the required state failure/gameover logic is implemented in pure core code.",
+            "The implementation must keep the task logic in pure core code."
+          ],
+          "acceptance_lines": [
+            "[OBL:T218.O8] Given T218 assertions are satisfied, then the required state failure/gameover logic is implemented in pure core code.",
+            "[OBL:T218.O8] The implementation must keep the task logic in pure core code."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "Passing tests must be preserved after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Given T218 is complete, then the relevant existing passing tests remain green with traceable evidence.",
+            "Passing tests must be preserved after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T218.O9] Given T218 is complete, then the relevant existing passing tests remain green with traceable evidence.",
+            "[OBL:T218.O9] Passing tests must be preserved after refactor."
+          ]
+        },
+        {
+          "id": "O10",
+          "text": "The Chapter 3 coverage audit must be rerun after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Given T218 refactor is complete, then the Chapter 3 coverage audit is rerun and evidence is recorded.",
+            "The Chapter 3 coverage audit must be rerun after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T218.O10] Given T218 refactor is complete, then the Chapter 3 coverage audit is rerun and evidence is recorded.",
+            "[OBL:T218.O10] The Chapter 3 coverage audit must be rerun after refactor."
+          ]
+        },
+        {
+          "id": "O11",
+          "text": "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Given T218 is written to a task view, then the Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
+            "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T218.O11] Given T218 is written to a task view, then the Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
+            "[OBL:T218.O11] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "219": {
+      "task_id": 219,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-219/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O4",
+          "text": "Automated xUnit coverage must verify the primary deterministic behavior for this task.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Automated xUnit coverage verifies the primary deterministic loop behavior for phase, pressure, resources, HP, prompt, or outcome state.",
+            "Automated xUnit coverage must verify the primary deterministic behavior for this task."
+          ],
+          "acceptance_lines": [
+            "[OBL:T219.O4] Automated xUnit coverage verifies the primary deterministic loop behavior for phase, pressure, resources, HP, prompt, or outcome state.",
+            "[OBL:T219.O4] Automated xUnit coverage must verify the primary deterministic behavior for this task."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "The implementation must place the required deterministic behavior in pure core logic.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "The deterministic loop behavior required by these assertions is implemented in pure core logic, with Godot UI code limited to presentation and adapter wiring.",
+            "The implementation must place the required deterministic behavior in pure core logic."
+          ],
+          "acceptance_lines": [
+            "[OBL:T219.O5] The deterministic loop behavior required by these assertions is implemented in pure core logic, with Godot UI code limited to presentation and adapter wiring.",
+            "[OBL:T219.O5] The implementation must place the required deterministic behavior in pure core logic."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "Chapter 3 coverage audit must be rerun after refactor while preserving passing tests.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Evidence includes passing relevant tests and a rerun Chapter 3 coverage audit after the refactor step.",
+            "Chapter 3 coverage audit must be rerun after refactor while preserving passing tests."
+          ],
+          "acceptance_lines": [
+            "[OBL:T219.O6] Evidence includes passing relevant tests and a rerun Chapter 3 coverage audit after the refactor step.",
+            "[OBL:T219.O6] Chapter 3 coverage audit must be rerun after refactor while preserving passing tests."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "After this task is written to a task view, Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
+            "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T219.O7] After this task is written to a task view, Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
+            "[OBL:T219.O7] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "220": {
+      "task_id": 220,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-220/verdict.json",
+      "uncovered_count": 5,
+      "obligations": [
+        {
+          "id": "O5",
+          "text": "Godot-side or adapter-facing coverage for the player-visible behavior must be added or updated.",
+          "kind": "godot",
+          "source": "master",
+          "suggestions": [
+            "Godot-side or adapter-facing coverage is added or updated for the player-visible contract-evolution behavior.",
+            "Godot-side or adapter-facing coverage for the player-visible behavior must be added or updated."
+          ],
+          "acceptance_lines": [
+            "[OBL:T220.O5] Godot-side or adapter-facing coverage is added or updated for the player-visible contract-evolution behavior.",
+            "[OBL:T220.O5] Godot-side or adapter-facing coverage for the player-visible behavior must be added or updated."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "The minimal scene, adapter, or UI behavior required by the assertions must be wired.",
+          "kind": "godot",
+          "source": "master",
+          "suggestions": [
+            "The minimal scene, adapter, or UI behavior required by the contract-evolution assertions is wired.",
+            "The minimal scene, adapter, or UI behavior required by the assertions must be wired."
+          ],
+          "acceptance_lines": [
+            "[OBL:T220.O6] The minimal scene, adapter, or UI behavior required by the contract-evolution assertions is wired.",
+            "[OBL:T220.O6] The minimal scene, adapter, or UI behavior required by the assertions must be wired."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "Deterministic core boundaries must be preserved during refactor.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Deterministic core boundaries are preserved while implementing the additive contract-evolution rule.",
+            "Deterministic core boundaries must be preserved during refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T220.O7] Deterministic core boundaries are preserved while implementing the additive contract-evolution rule.",
+            "[OBL:T220.O7] Deterministic core boundaries must be preserved during refactor."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "The Chapter 3 coverage audit must be rerun during refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit evidence is produced after the contract-evolution task is implemented.",
+            "The Chapter 3 coverage audit must be rerun during refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T220.O8] Chapter 3 coverage audit evidence is produced after the contract-evolution task is implemented.",
+            "[OBL:T220.O8] The Chapter 3 coverage audit must be rerun during refactor."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validator evidence is produced after this task is written to the task view.",
+            "The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T220.O9] Chapter 3.8 triplet baseline validator evidence is produced after this task is written to the task view.",
+            "[OBL:T220.O9] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "221": {
+      "task_id": 221,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-221/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O3",
+          "text": "A deterministic validator or evidence fixture must fail when the required placeholder display behavior is missing.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "A deterministic validator or evidence fixture fails when the placeholder combatant UI does not display required names, placeholders, or explicit empty states.",
+            "A deterministic validator or evidence fixture must fail when the required placeholder display behavior is missing."
+          ],
+          "acceptance_lines": [
+            "[OBL:T221.O3] A deterministic validator or evidence fixture fails when the placeholder combatant UI does not display required names, placeholders, or explicit empty states.",
+            "[OBL:T221.O3] A deterministic validator or evidence fixture must fail when the required placeholder display behavior is missing."
+          ]
+        },
+        {
+          "id": "O4",
+          "text": "The implementation must use the smallest validation, script, or evidence path required to pass.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "The task evidence uses a minimal validation, script, or fixture path scoped to the placeholder combatant UI behavior.",
+            "The implementation must use the smallest validation, script, or evidence path required to pass."
+          ],
+          "acceptance_lines": [
+            "[OBL:T221.O4] The task evidence uses a minimal validation, script, or fixture path scoped to the placeholder combatant UI behavior.",
+            "[OBL:T221.O4] The implementation must use the smallest validation, script, or evidence path required to pass."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "Output must remain stable after refactor and the Chapter 3 baseline validators must be rerun.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 baseline validators are rerun after the task view is updated, and their stable output is captured as evidence.",
+            "Output must remain stable after refactor and the Chapter 3 baseline validators must be rerun."
+          ],
+          "acceptance_lines": [
+            "[OBL:T221.O5] Chapter 3 baseline validators are rerun after the task view is updated, and their stable output is captured as evidence.",
+            "[OBL:T221.O5] Output must remain stable after refactor and the Chapter 3 baseline validators must be rerun."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "After this task is written to a task view, the Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
+            "After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+          ],
+          "acceptance_lines": [
+            "[OBL:T221.O6] After this task is written to a task view, the Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
+            "[OBL:T221.O6] After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+          ]
+        }
+      ]
+    },
+    "222": {
+      "task_id": 222,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-222/verdict.json",
+      "uncovered_count": 2,
+      "obligations": [
+        {
+          "id": "O4",
+          "text": "Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are rerun after this task is written to a task view, with evidence captured in logs.",
+            "Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T222.O4] Chapter 3.8 triplet baseline validators are rerun after this task is written to a task view, with evidence captured in logs.",
+            "[OBL:T222.O4] Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "Validation output must remain stable after the refactor step.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Validation output remains stable across reruns after refactor, and the Chapter 3 baseline validator evidence is recorded.",
+            "Validation output must remain stable after the refactor step."
+          ],
+          "acceptance_lines": [
+            "[OBL:T222.O5] Validation output remains stable across reruns after refactor, and the Chapter 3 baseline validator evidence is recorded.",
+            "[OBL:T222.O5] Validation output must remain stable after the refactor step."
+          ]
+        }
+      ]
+    },
+    "223": {
+      "task_id": 223,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-223/verdict.json",
+      "uncovered_count": 5,
+      "obligations": [
+        {
+          "id": "O2",
+          "text": "Primary deterministic behavior must have xUnit coverage added or updated.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Primary deterministic character-attribute combat behavior is covered by xUnit tests.",
+            "Primary deterministic behavior must have xUnit coverage added or updated."
+          ],
+          "acceptance_lines": [
+            "[OBL:T223.O2] Primary deterministic character-attribute combat behavior is covered by xUnit tests.",
+            "[OBL:T223.O2] Primary deterministic behavior must have xUnit coverage added or updated."
+          ]
+        },
+        {
+          "id": "O3",
+          "text": "The implementation must keep the combat attribute behavior in pure core logic rather than Godot scene or adapter logic.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Character-attribute combat resolution is implemented in pure core logic without Godot runtime dependencies.",
+            "The implementation must keep the combat attribute behavior in pure core logic rather than Godot scene or adapter logic."
+          ],
+          "acceptance_lines": [
+            "[OBL:T223.O3] Character-attribute combat resolution is implemented in pure core logic without Godot runtime dependencies.",
+            "[OBL:T223.O3] The implementation must keep the combat attribute behavior in pure core logic rather than Godot scene or adapter logic."
+          ]
+        },
+        {
+          "id": "O4",
+          "text": "Existing passing tests must remain passing after the change.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Existing relevant passing tests remain passing after the character-attribute combat change.",
+            "Existing passing tests must remain passing after the change."
+          ],
+          "acceptance_lines": [
+            "[OBL:T223.O4] Existing relevant passing tests remain passing after the character-attribute combat change.",
+            "[OBL:T223.O4] Existing passing tests must remain passing after the change."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "The Chapter 3 coverage audit must be rerun after the refactor step.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun with traceable evidence after the task change.",
+            "The Chapter 3 coverage audit must be rerun after the refactor step."
+          ],
+          "acceptance_lines": [
+            "[OBL:T223.O5] Chapter 3 coverage audit is rerun with traceable evidence after the task change.",
+            "[OBL:T223.O5] The Chapter 3 coverage audit must be rerun after the refactor step."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after writing this task to a task view.",
+            "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T223.O6] Chapter 3.8 triplet baseline validators are run after writing this task to a task view.",
+            "[OBL:T223.O6] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "224": {
+      "task_id": 224,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-224/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O3",
+          "text": "The implementation must add or update xUnit coverage for the primary deterministic behavior before green implementation evidence is accepted.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Add or update xUnit coverage for the primary deterministic win-return behavior.",
+            "The implementation must add or update xUnit coverage for the primary deterministic behavior before green implementation evidence is accepted."
+          ],
+          "acceptance_lines": [
+            "[OBL:T224.O3] Add or update xUnit coverage for the primary deterministic win-return behavior.",
+            "[OBL:T224.O3] The implementation must add or update xUnit coverage for the primary deterministic behavior before green implementation evidence is accepted."
+          ]
+        },
+        {
+          "id": "O4",
+          "text": "The core implementation must be limited to the minimal pure-core logic needed by the deterministic assertions.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Implement the win-return behavior through minimal pure-core logic required by the deterministic assertions.",
+            "The core implementation must be limited to the minimal pure-core logic needed by the deterministic assertions."
+          ],
+          "acceptance_lines": [
+            "[OBL:T224.O4] Implement the win-return behavior through minimal pure-core logic required by the deterministic assertions.",
+            "[OBL:T224.O4] The core implementation must be limited to the minimal pure-core logic needed by the deterministic assertions."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "After implementation, existing tests must remain passing and the Chapter 3 coverage audit must be rerun.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Preserve passing tests and rerun the Chapter 3 coverage audit after the change.",
+            "After implementation, existing tests must remain passing and the Chapter 3 coverage audit must be rerun."
+          ],
+          "acceptance_lines": [
+            "[OBL:T224.O5] Preserve passing tests and rerun the Chapter 3 coverage audit after the change.",
+            "[OBL:T224.O5] After implementation, existing tests must remain passing and the Chapter 3 coverage audit must be rerun."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+            "After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+          ],
+          "acceptance_lines": [
+            "[OBL:T224.O6] Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+            "[OBL:T224.O6] After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+          ]
+        }
+      ]
+    },
+    "225": {
+      "task_id": 225,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-225/verdict.json",
+      "uncovered_count": 5,
+      "obligations": [
+        {
+          "id": "O5",
+          "text": "Coverage for the primary deterministic behavior must be added or updated in xUnit.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "xUnit coverage is added or updated for the primary deterministic combat character/catalog behavior.",
+            "Coverage for the primary deterministic behavior must be added or updated in xUnit."
+          ],
+          "acceptance_lines": [
+            "[OBL:T225.O5] xUnit coverage is added or updated for the primary deterministic combat character/catalog behavior.",
+            "[OBL:T225.O5] Coverage for the primary deterministic behavior must be added or updated in xUnit."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "The implementation must keep the deterministic behavior in pure core logic.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "The combat attribute and enemy/Boss catalog resolution logic is implemented in pure core code and is testable without Godot runtime dependencies.",
+            "The implementation must keep the deterministic behavior in pure core logic."
+          ],
+          "acceptance_lines": [
+            "[OBL:T225.O6] The combat attribute and enemy/Boss catalog resolution logic is implemented in pure core code and is testable without Godot runtime dependencies.",
+            "[OBL:T225.O6] The implementation must keep the deterministic behavior in pure core logic."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "Passing tests must be preserved after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Existing relevant tests remain passing after the combat character/catalog changes.",
+            "Passing tests must be preserved after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T225.O7] Existing relevant tests remain passing after the combat character/catalog changes.",
+            "[OBL:T225.O7] Passing tests must be preserved after refactor."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "The Chapter 3 coverage audit must be rerun after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun and its evidence path is recorded.",
+            "The Chapter 3 coverage audit must be rerun after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T225.O8] Chapter 3 coverage audit is rerun and its evidence path is recorded.",
+            "[OBL:T225.O8] The Chapter 3 coverage audit must be rerun after refactor."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after the task view update and their evidence path is recorded.",
+            "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T225.O9] Chapter 3.8 triplet baseline validators are run after the task view update and their evidence path is recorded.",
+            "[OBL:T225.O9] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "226": {
+      "task_id": 226,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-226/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O4",
+          "text": "Primary deterministic behavior must have xUnit coverage.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "xUnit coverage is added or updated for the primary deterministic runtime player stats behavior involving `playerFinalHp`.",
+            "Primary deterministic behavior must have xUnit coverage."
+          ],
+          "acceptance_lines": [
+            "[OBL:T226.O4] xUnit coverage is added or updated for the primary deterministic runtime player stats behavior involving `playerFinalHp`.",
+            "[OBL:T226.O4] Primary deterministic behavior must have xUnit coverage."
+          ]
+        },
+        {
+          "id": "O5",
+          "text": "Implementation must be minimal pure-core logic required by the assertions.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "`playerFinalHp` production is implemented in pure core logic without adding Godot-dependent behavior to the core contract path.",
+            "Implementation must be minimal pure-core logic required by the assertions."
+          ],
+          "acceptance_lines": [
+            "[OBL:T226.O5] `playerFinalHp` production is implemented in pure core logic without adding Godot-dependent behavior to the core contract path.",
+            "[OBL:T226.O5] Implementation must be minimal pure-core logic required by the assertions."
+          ]
+        },
+        {
+          "id": "O6",
+          "text": "The Chapter 3 coverage audit must be rerun after refactor.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 coverage audit is rerun after the change and evidence is recorded.",
+            "The Chapter 3 coverage audit must be rerun after refactor."
+          ],
+          "acceptance_lines": [
+            "[OBL:T226.O6] Chapter 3 coverage audit is rerun after the change and evidence is recorded.",
+            "[OBL:T226.O6] The Chapter 3 coverage audit must be rerun after refactor."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3.8 triplet baseline validators are run after the task view is written and evidence is recorded.",
+            "Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T226.O7] Chapter 3.8 triplet baseline validators are run after the task view is written and evidence is recorded.",
+            "[OBL:T226.O7] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+          ]
+        }
+      ]
+    },
+    "227": {
+      "task_id": 227,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-227/verdict.json",
+      "uncovered_count": 4,
+      "obligations": [
+        {
+          "id": "O6",
+          "text": "The task must add or update xUnit coverage for the primary deterministic behavior before or alongside implementation.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Primary deterministic freeze-conflict behavior is covered by added or updated xUnit tests.",
+            "The task must add or update xUnit coverage for the primary deterministic behavior before or alongside implementation."
+          ],
+          "acceptance_lines": [
+            "[OBL:T227.O6] Primary deterministic freeze-conflict behavior is covered by added or updated xUnit tests.",
+            "[OBL:T227.O6] The task must add or update xUnit coverage for the primary deterministic behavior before or alongside implementation."
+          ]
+        },
+        {
+          "id": "O7",
+          "text": "The implementation must keep the freeze-conflict behavior in pure core logic rather than Godot-specific code.",
+          "kind": "core",
+          "source": "master",
+          "suggestions": [
+            "Freeze-conflict assertions are implemented in pure core logic without Godot-specific dependencies.",
+            "The implementation must keep the freeze-conflict behavior in pure core logic rather than Godot-specific code."
+          ],
+          "acceptance_lines": [
+            "[OBL:T227.O7] Freeze-conflict assertions are implemented in pure core logic without Godot-specific dependencies.",
+            "[OBL:T227.O7] The implementation must keep the freeze-conflict behavior in pure core logic rather than Godot-specific code."
+          ]
+        },
+        {
+          "id": "O8",
+          "text": "After implementation and refactor, previously passing tests must remain passing and Chapter 3 coverage audit must be rerun.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Previously passing tests remain green and the Chapter 3 coverage audit is rerun with evidence.",
+            "After implementation and refactor, previously passing tests must remain passing and Chapter 3 coverage audit must be rerun."
+          ],
+          "acceptance_lines": [
+            "[OBL:T227.O8] Previously passing tests remain green and the Chapter 3 coverage audit is rerun with evidence.",
+            "[OBL:T227.O8] After implementation and refactor, previously passing tests must remain passing and Chapter 3 coverage audit must be rerun."
+          ]
+        },
+        {
+          "id": "O9",
+          "text": "After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "After the task view is written, Chapter 3.8 triplet baseline validators are run with evidence.",
+            "After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+          ],
+          "acceptance_lines": [
+            "[OBL:T227.O9] After the task view is written, Chapter 3.8 triplet baseline validators are run with evidence.",
+            "[OBL:T227.O9] After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+          ]
+        }
+      ]
+    },
+    "228": {
+      "task_id": 228,
+      "verdict_path": "logs/ci/2026-05-12/sc-llm-obligations-task-228/verdict.json",
+      "uncovered_count": 2,
+      "obligations": [
+        {
+          "id": "O10",
+          "text": "Chapter 4 and Chapter 5 derived fields must remain out of Chapter 3 generation.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Chapter 3 task generation must not emit or persist Chapter 4/5-derived fields for this task.",
+            "Chapter 4 and Chapter 5 derived fields must remain out of Chapter 3 generation."
+          ],
+          "acceptance_lines": [
+            "[OBL:T228.O10] Chapter 3 task generation must not emit or persist Chapter 4/5-derived fields for this task.",
+            "[OBL:T228.O10] Chapter 4 and Chapter 5 derived fields must remain out of Chapter 3 generation."
+          ]
+        },
+        {
+          "id": "O11",
+          "text": "The Chapter 3.8 triplet baseline validators must be run after this task is written to a task view.",
+          "kind": "meta",
+          "source": "master",
+          "suggestions": [
+            "Evidence records that the Chapter 3.8 triplet baseline validators were run after writing this task to the task view.",
+            "The Chapter 3.8 triplet baseline validators must be run after this task is written to a task view."
+          ],
+          "acceptance_lines": [
+            "[OBL:T228.O11] Evidence records that the Chapter 3.8 triplet baseline validators were run after writing this task to the task view.",
+            "[OBL:T228.O11] The Chapter 3.8 triplet baseline validators must be run after this task is written to a task view."
+          ]
+        }
+      ]
+    }
+  },
+  "task_ids": [
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228
+  ],
+  "last_sync_mode": {
+    "refresh_baseline": true,
+    "apply": true,
+    "verify": true
+  }
+}

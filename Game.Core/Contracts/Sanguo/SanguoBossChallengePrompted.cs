@@ -33,4 +33,6 @@ public sealed record SanguoBossChallengePrompted(
     /// CloudEvents type for this domain event.
     /// </summary>
     public const string EventType = "core.sanguo.boss.challenge.prompted";
+
+    public int MapCycleNumber => RoundNumber;
 }

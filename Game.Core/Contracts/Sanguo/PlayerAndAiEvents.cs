@@ -16,6 +16,7 @@ public sealed record SanguoPlayerStateChanged(
     string PlayerId,
     decimal Money,
     int PositionIndex,
+    int MapCycleNumber,
     System.DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId

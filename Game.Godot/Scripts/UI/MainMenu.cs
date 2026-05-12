@@ -824,8 +824,10 @@ public partial class MainMenu : Control
         _activeStrategemOption.Clear();
         _passiveStrategemOption.Clear();
 
-        AddStrategemOption(_activeStrategemOption, "Default Active", "strat_active_default");
-        AddStrategemOption(_passiveStrategemOption, "Default Passive", "strat_passive_default");
+        AddStrategemOption(_activeStrategemOption, "Increase Gold", "strat_active_bonus_gold");
+        AddStrategemOption(_activeStrategemOption, "Reduce Pressure", "strat_active_reduce_pressure");
+        AddStrategemOption(_passiveStrategemOption, "Increase HP", "strat_passive_bonus_hp");
+        AddStrategemOption(_passiveStrategemOption, "Tycoon", "strat_passive_rich");
     }
 
     private static void AddStrategemOption(OptionButton option, string label, string strategemId)

@@ -83,9 +83,10 @@ public static class HudEventDtoMapper
         }
 
         var roundNumber = TryGetInt(root, "RoundNumber", out var parsedRoundNumber) ? parsedRoundNumber : 0;
+        var mapCycleNumber = TryGetInt(root, "MapCycleNumber", out var parsedMapCycleNumber) ? parsedMapCycleNumber : roundNumber;
         var pressureForecast = TryGetInt(root, "NextRoundPressureForecast", out var parsedPressureForecast) ? parsedPressureForecast : 0;
 
-        dto = new HudBossChallengePromptedDto(bossId, roundNumber, pressureForecast);
+        dto = new HudBossChallengePromptedDto(bossId, roundNumber, mapCycleNumber, pressureForecast);
         return true;
     }
 
@@ -104,8 +105,9 @@ public static class HudEventDtoMapper
 
         var bossId = TryGetString(root, "BossId", out var parsedBossId) ? parsedBossId : string.Empty;
         var roundNumber = TryGetInt(root, "RoundNumber", out var parsedRound) ? parsedRound : 0;
+        var mapCycleNumber = TryGetInt(root, "MapCycleNumber", out var parsedMapCycleNumber) ? parsedMapCycleNumber : roundNumber;
 
-        dto = new HudObjectiveSkippedDto(objectiveId, reason, bossId, roundNumber);
+        dto = new HudObjectiveSkippedDto(objectiveId, reason, bossId, roundNumber, mapCycleNumber);
         return true;
     }
 

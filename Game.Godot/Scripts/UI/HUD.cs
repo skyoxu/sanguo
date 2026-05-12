@@ -58,8 +58,9 @@ public partial class HUD : Control, IHudEventHandlers
     private const string UiHudCampaignCommanderKey = "ui.hud.campaign.commander";
     private const string UiHudCampaignStrategemsKey = "ui.hud.campaign.strategems";
     private const string UiHudCampaignDifficultyKey = "ui.hud.campaign.difficulty";
-    private const string UiHudCampaignRoundKey = "ui.hud.campaign.round";
+    private const string UiHudCampaignMapCycleKey = "ui.hud.campaign.map_cycle";
     private const string UiHudCampaignBossPressureKey = "ui.hud.campaign.boss_pressure";
+    private const string UiStrategemUseEventType = "ui.sanguo.strategem.use";
     private const string UiHudGuideTitleKey = "ui.hud.guide.title";
     private const string UiHudGuideStepKey = "ui.hud.guide.step";
     private const string UiHudToastChooseActionKey = "ui.hud.toast.choose_action_or_skip";
@@ -101,10 +102,16 @@ public partial class HUD : Control, IHudEventHandlers
     private Label? _campaignStrategemsValue;
     private Label? _campaignDifficultyKey;
     private Label? _campaignDifficultyValue;
-    private Label? _campaignRoundKey;
-    private Label? _campaignRoundValue;
+    private Label? _campaignMapCycleKey;
+    private Label? _campaignMapCycleValue;
     private Label? _campaignBossPressureKey;
     private Label? _campaignBossPressureValue;
+    private Label? _activeStrategemUiTitle;
+    private Button? _activeStrategemButton;
+    private Label? _activeStrategemStatus;
+    private Label? _passiveStrategemUiTitle;
+    private Label? _passiveStrategemName;
+    private Label? _passiveStrategemDescription;
     private TextureRect? _avatar;
     private Button _diceButton = default!;
     private Button _btnSave = default!;
@@ -168,8 +175,11 @@ public partial class HUD : Control, IHudEventHandlers
     private string _campaignCommanderValueText = "Unknown commander";
     private string _campaignStrategemsValueText = "Unknown strategem / Unknown strategem";
     private string _campaignDifficultyValueText = "Unknown difficulty";
-    private string _campaignRoundValueText = "R1";
+    private string _campaignMapCycleValueText = "R1";
     private string _campaignBossPressureValueText = "No boss pressure";
+    private string _activeStrategemId = string.Empty;
+    private string _passiveStrategemId = string.Empty;
+    private bool _activeStrategemUsedThisTurn;
 
     public override void _Ready()
     {
@@ -187,15 +197,25 @@ public partial class HUD : Control, IHudEventHandlers
         _campaignStrategemsValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/StrategemsValue");
         _campaignDifficultyKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/DifficultyKey");
         _campaignDifficultyValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/DifficultyValue");
-        _campaignRoundKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/RoundKey");
-        _campaignRoundValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/RoundValue");
+        _campaignMapCycleKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/MapCycleKey");
+        _campaignMapCycleValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/MapCycleValue");
         _campaignBossPressureKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/BossPressureKey");
         _campaignBossPressureValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/BossPressureValue");
+        _activeStrategemUiTitle = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemTitle");
+        _activeStrategemButton = GetNodeOrNull<Button>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemButton");
+        _activeStrategemStatus = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemStatus");
+        _passiveStrategemUiTitle = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/PassiveStrategemTitle");
+        _passiveStrategemName = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/PassiveStrategemName");
+        _passiveStrategemDescription = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/PassiveStrategemDescription");
         _avatar = GetNodeOrNull<TextureRect>("TopBar/TopStack/HBox/Avatar");
         _diceButton = GetNode<Button>("TopBar/TopStack/HBox/DiceButton");
         _diceButton.Pressed += OnDicePressed;
         _diceButton.Disabled = true;
         _diceButton.Text = "Waiting...";
+        if (_activeStrategemButton != null)
+        {
+            _activeStrategemButton.Pressed += OnActiveStrategemPressed;
+        }
 
         var gameSettingsButton = GetNode<Button>("TopBar/TopStack/HBox/GameSettingsButton");
         var logButton = GetNode<Button>("TopBar/TopStack/HBox/LogButton");
@@ -472,6 +492,31 @@ public partial class HUD : Control, IHudEventHandlers
         });
 
         _bus.PublishSimple(UiHudDiceRollEventType, nameof(HUD), payload);
+    }
+
+    private void OnActiveStrategemPressed()
+    {
+        if (_bus == null || string.IsNullOrWhiteSpace(_activePlayerId))
+        {
+            return;
+        }
+
+        if (IsAiPlayerId(_activePlayerId) || string.IsNullOrWhiteSpace(_activeStrategemId) || _activeStrategemUsedThisTurn)
+        {
+            return;
+        }
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            PlayerId = _activePlayerId,
+            Action = _activeStrategemId,
+            CorrelationId = Guid.NewGuid().ToString("N"),
+        });
+
+        _bus.PublishSimple(UiStrategemUseEventType, nameof(HUD), payload);
+        _activeStrategemUsedThisTurn = true;
+        _toast?.ShowMessage(ResolveStrategemUseToast(_activeStrategemId));
+        UpdateStrategemPanel();
     }
 
     private void OnSavePressed()
@@ -785,9 +830,9 @@ public partial class HUD : Control, IHudEventHandlers
         {
             _campaignDifficultyKey.Text = TranslateOrFallback(UiHudCampaignDifficultyKey, "Difficulty");
         }
-        if (_campaignRoundKey != null)
+        if (_campaignMapCycleKey != null)
         {
-            _campaignRoundKey.Text = TranslateOrFallback(UiHudCampaignRoundKey, "Round");
+            _campaignMapCycleKey.Text = TranslateOrFallback(UiHudCampaignMapCycleKey, "Map Cycle");
         }
         if (_campaignBossPressureKey != null)
         {
@@ -1052,9 +1097,12 @@ public partial class HUD : Control, IHudEventHandlers
         _diceButton.Text = string.IsNullOrWhiteSpace(dto.ActivePlayerId)
             ? _diceRollLabel
             : (IsAiPlayerId(dto.ActivePlayerId) ? _diceAiLabel : _diceRollLabel);
+        _activeStrategemUsedThisTurn = false;
         _btnSave.Disabled = string.IsNullOrWhiteSpace(dto.ActivePlayerId);
         UpdateActivePlayerIdentityDisplay();
         UpdateCardsButtonState();
+        UpdateStrategemPanel();
+        GD.Print($"[HUD_STRATEGEM_DEBUG] turn active={_activePlayerId} used={_activeStrategemUsedThisTurn} active_strat={_activeStrategemId}");
         _date.Text = $"{_datePrefix}: {dto.Year:D4}-{dto.Month:D2}-{dto.Day:D2}";
         _actionPanelController?.HandleActivePlayerChanged(previousActive, _activePlayerId);
 
@@ -1109,6 +1157,10 @@ public partial class HUD : Control, IHudEventHandlers
 
     public void HandleGameStarted(HudGameStartedDto dto)
     {
+        _activeStrategemId = dto.ActiveStrategemId ?? string.Empty;
+        _passiveStrategemId = dto.PassiveStrategemId ?? string.Empty;
+        _activeStrategemUsedThisTurn = false;
+        GD.Print($"[HUD_STRATEGEM_DEBUG] started active={_activeStrategemId} passive={_passiveStrategemId}");
         _characterIdByPlayerId.Clear();
         foreach (var assignment in dto.CharacterAssignments)
         {
@@ -1143,6 +1195,7 @@ public partial class HUD : Control, IHudEventHandlers
         UpdatePlayersList();
         RefreshCardsList();
         UpdateCampaignParametersFromStartConfig(dto);
+        UpdateStrategemPanel();
     }
 
     public void HandleBossChallengePrompted(HudBossChallengePromptedDto dto)
@@ -1159,7 +1212,7 @@ public partial class HUD : Control, IHudEventHandlers
             difficultyCode: _campaignDifficultyValueText,
             turnNumber: dto.RoundNumber,
             bossId: dto.BossId,
-            bossRoundNumber: dto.RoundNumber,
+            bossRoundNumber: dto.MapCycleNumber,
             nextRoundPressureForecast: dto.NextRoundPressureForecast,
             releaseMode: true,
             resolveCommanderLabel: _ => null,
@@ -1167,7 +1220,7 @@ public partial class HUD : Control, IHudEventHandlers
             resolveDifficultyLabel: _ => null,
             resolveBossLabel: ResolveBossLabel);
 
-        _campaignRoundValueText = mapperVm.RoundMarker;
+        _campaignMapCycleValueText = mapperVm.RoundMarker;
         _campaignBossPressureValueText = mapperVm.BossPressureContext;
         UpdateCampaignParameterPanel();
     }
@@ -1188,7 +1241,7 @@ public partial class HUD : Control, IHudEventHandlers
             difficultyCode: _campaignDifficultyValueText,
             turnNumber: dto.RoundNumber,
             bossId: dto.BossId,
-            bossRoundNumber: dto.RoundNumber,
+            bossRoundNumber: dto.MapCycleNumber,
             nextRoundPressureForecast: 0,
             releaseMode: true,
             resolveCommanderLabel: _ => null,
@@ -1196,7 +1249,7 @@ public partial class HUD : Control, IHudEventHandlers
             resolveDifficultyLabel: _ => null,
             resolveBossLabel: ResolveBossLabel);
 
-        _campaignRoundValueText = mapperVm.RoundMarker;
+        _campaignMapCycleValueText = mapperVm.RoundMarker;
         _campaignBossPressureValueText = mapperVm.BossPressureContext;
         UpdateCampaignParameterPanel();
     }
@@ -1658,7 +1711,7 @@ public partial class HUD : Control, IHudEventHandlers
         _campaignCommanderValueText = mapperVm.Commander;
         _campaignStrategemsValueText = mapperVm.Strategems;
         _campaignDifficultyValueText = mapperVm.Difficulty;
-        _campaignRoundValueText = mapperVm.RoundMarker;
+        _campaignMapCycleValueText = mapperVm.RoundMarker;
         _campaignBossPressureValueText = mapperVm.BossPressureContext;
         UpdateCampaignParameterPanel();
     }
@@ -1677,14 +1730,61 @@ public partial class HUD : Control, IHudEventHandlers
         {
             _campaignDifficultyValue.Text = _campaignDifficultyValueText;
         }
-        if (_campaignRoundValue != null)
+        if (_campaignMapCycleValue != null)
         {
-            _campaignRoundValue.Text = _campaignRoundValueText;
+            _campaignMapCycleValue.Text = _campaignMapCycleValueText;
         }
         if (_campaignBossPressureValue != null)
         {
             _campaignBossPressureValue.Text = _campaignBossPressureValueText;
         }
+    }
+
+    private void UpdateStrategemPanel()
+    {
+        if (_activeStrategemUiTitle != null)
+        {
+            _activeStrategemUiTitle.Text = "Active Skill";
+        }
+
+        if (_passiveStrategemUiTitle != null)
+        {
+            _passiveStrategemUiTitle.Text = "Passive Skill";
+        }
+
+        var activeName = ResolveStrategemLabel(_activeStrategemId) ?? "No Active Skill";
+        var passiveName = ResolveStrategemLabel(_passiveStrategemId) ?? "No Passive Skill";
+        var passiveDesc = ResolvePassiveStrategemDescription(_passiveStrategemId);
+
+        if (_activeStrategemButton != null)
+        {
+            _activeStrategemButton.Text = activeName;
+            _activeStrategemButton.Disabled =
+                string.IsNullOrWhiteSpace(_activePlayerId)
+                || IsAiPlayerId(_activePlayerId)
+                || string.IsNullOrWhiteSpace(_activeStrategemId)
+                || _activeStrategemUsedThisTurn;
+        }
+
+        if (_activeStrategemStatus != null)
+        {
+            _activeStrategemStatus.Text =
+                string.IsNullOrWhiteSpace(_activePlayerId) || IsAiPlayerId(_activePlayerId)
+                ? "Wait for your turn"
+                : (_activeStrategemUsedThisTurn ? "Used this round" : "Ready this round");
+        }
+
+        if (_passiveStrategemName != null)
+        {
+            _passiveStrategemName.Text = passiveName;
+        }
+
+        if (_passiveStrategemDescription != null)
+        {
+            _passiveStrategemDescription.Text = passiveDesc;
+        }
+
+        GD.Print($"[HUD_STRATEGEM_DEBUG] panel active={_activeStrategemId} passive={_passiveStrategemId} player={_activePlayerId} used={_activeStrategemUsedThisTurn} button_disabled={_activeStrategemButton?.Disabled} status={_activeStrategemStatus?.Text}");
     }
 
     private string? ResolveCharacterLabel(string characterId)
@@ -1711,12 +1811,34 @@ public partial class HUD : Control, IHudEventHandlers
 
         var key = strategemId switch
         {
-            "strat_active_default" => "campaign.strategem.strat_active_default.name",
-            "strat_passive_default" => "campaign.strategem.strat_passive_default.name",
+            "strat_active_bonus_gold" => "campaign.strategem.strat_active_bonus_gold.name",
+            "strat_active_reduce_pressure" => "campaign.strategem.strat_active_reduce_pressure.name",
+            "strat_passive_bonus_hp" => "campaign.strategem.strat_passive_bonus_hp.name",
+            "strat_passive_rich" => "campaign.strategem.strat_passive_rich.name",
             _ => null,
         };
 
         return string.IsNullOrWhiteSpace(key) ? null : TranslateOrFallback(key, strategemId);
+    }
+
+    private static string ResolvePassiveStrategemDescription(string strategemId)
+    {
+        return strategemId switch
+        {
+            "strat_passive_bonus_hp" => "HP max +10",
+            "strat_passive_rich" => "Starting gold +100",
+            _ => "No Passive Skill",
+        };
+    }
+
+    private static string ResolveStrategemUseToast(string strategemId)
+    {
+        return strategemId switch
+        {
+            "strat_active_bonus_gold" => "Active skill used: +30 gold",
+            "strat_active_reduce_pressure" => "Active skill used: next boss pressure -1",
+            _ => "Active skill used",
+        };
     }
 
     private string? ResolveDifficultyLabel(string difficultyCode)
@@ -1817,6 +1939,7 @@ public partial class HUD : Control, IHudEventHandlers
         }
         catch
         {
+            // Demo/tests should keep HUD bootable even when map preload side-effects fail.
         }
     }
 

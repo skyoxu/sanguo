@@ -1,10 +1,34 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://Game.Godot/Scripts/UI/HUD.cs" id="1"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/UI/EventToast.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://Game.Godot/Scenes/UI/EventLogPanel.tscn" id="3"]
 [ext_resource type="Script" path="res://Game.Godot/Scripts/UI/GuideHighlightOverlay.cs" id="4"]
 [ext_resource type="Script" path="res://Game.Godot/Scripts/UI/EventResultPopup.cs" id="5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_active_ready"]
+bg_color = Color(0.21, 0.45, 0.24, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.58, 0.87, 0.63, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_active_disabled"]
+bg_color = Color(0.18, 0.18, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.34, 0.34, 0.34, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="HUD" type="Control"]
 layout_mode = 3
@@ -248,11 +272,11 @@ text = "Difficulty"
 layout_mode = 2
 text = "Unknown difficulty"
 
-[node name="RoundKey" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+[node name="MapCycleKey" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
 layout_mode = 2
-text = "Round"
+text = "Map Cycle"
 
-[node name="RoundValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+[node name="MapCycleValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
 layout_mode = 2
 text = "R1"
 
@@ -263,6 +287,48 @@ text = "Boss Pressure"
 [node name="BossPressureValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
 layout_mode = 2
 text = "No boss pressure"
+
+[node name="StrategemPanel" type="PanelContainer" parent="TopBar/TopStack"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="TopBar/TopStack/StrategemPanel"]
+layout_mode = 2
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 360.0
+offset_bottom = 112.0
+
+[node name="ActiveStrategemTitle" type="Label" parent="TopBar/TopStack/StrategemPanel/VBox"]
+layout_mode = 2
+text = "Active Skill"
+
+[node name="ActiveStrategemButton" type="Button" parent="TopBar/TopStack/StrategemPanel/VBox"]
+layout_mode = 2
+disabled = true
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_disabled_color = Color(0.62, 0.62, 0.62, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_active_ready")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_active_disabled")
+text = "No Active Skill"
+
+[node name="ActiveStrategemStatus" type="Label" parent="TopBar/TopStack/StrategemPanel/VBox"]
+layout_mode = 2
+text = "Unavailable"
+
+[node name="PassiveStrategemTitle" type="Label" parent="TopBar/TopStack/StrategemPanel/VBox"]
+layout_mode = 2
+text = "Passive Skill"
+
+[node name="PassiveStrategemName" type="Label" parent="TopBar/TopStack/StrategemPanel/VBox"]
+layout_mode = 2
+text = "No Passive Skill"
+
+[node name="PassiveStrategemDescription" type="Label" parent="TopBar/TopStack/StrategemPanel/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "No Passive Skill"
 
 [node name="SettingsMenu" type="Control" parent="."]
 visible = false

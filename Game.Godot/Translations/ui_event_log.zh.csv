@@ -319,6 +319,10 @@ ui.hud.event.core.sanguo.game.started.detail.players_count,玩家数
 ui.hud.event.core.sanguo.game.started.detail.starting_money_preset,初始资金预设
 ui.hud.event.core.sanguo.game.started.detail.global_event_interval_turns,全局事件间隔
 ui.hud.event.core.sanguo.game.started.detail.random_seed,随机种子
+campaign.strategem.strat_active_bonus_gold.name,增加金币
+campaign.strategem.strat_active_reduce_pressure.name,减少压力
+campaign.strategem.strat_passive_bonus_hp.name,增加体力
+campaign.strategem.strat_passive_rich.name,大富翁
 ui.hud.event.core.sanguo.game.turn.started.detail.year,年
 ui.hud.event.core.sanguo.game.turn.started.detail.month,月
 ui.hud.event.core.sanguo.game.turn.started.detail.day,日
@@ -336,10 +340,10 @@ ui.hud.event.core.sanguo.player.eliminated.detail.money_after,淘汰后资金
 ui.hud.event.shared.detail.outcome.win,胜利
 ui.hud.event.shared.detail.outcome.lose,失败
 ui.hud.event.shared.detail.outcome.draw,平局
-ui.hud.event.core.sanguo.game.saved.detail.content_pack_id,???
-ui.hud.event.core.sanguo.game.saved.detail.content_pack_version,?????
-ui.hud.event.core.sanguo.game.loaded.detail.content_pack_id,???
-ui.hud.event.core.sanguo.game.loaded.detail.content_pack_version,?????
+ui.hud.event.core.sanguo.game.saved.detail.content_pack_id,内容包
+ui.hud.event.core.sanguo.game.saved.detail.content_pack_version,包版本
+ui.hud.event.core.sanguo.game.loaded.detail.content_pack_id,内容包
+ui.hud.event.core.sanguo.game.loaded.detail.content_pack_version,包版本
 ui.hud.result.close,关闭
 ui.hud.event.core.sanguo.ai.decision.made.title,AI决策
 ui.hud.event.core.sanguo.ai.decision.made.summary,AI已决策

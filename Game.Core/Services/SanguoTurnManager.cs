@@ -50,6 +50,7 @@ public sealed class SanguoTurnManager
     private int _startingPlayersCount;
     private int _activePlayerIndex;
     private int _turnNumber;
+    private int _mapCycleNumber = 1;
     private SanguoCalendarDate _currentDate;
     private bool _started;
     private string? _gameOverEndReason;
@@ -165,6 +166,7 @@ public sealed class SanguoTurnManager
         _startingPlayersCount = _playerOrder.Length;
         _activePlayerIndex = 0;
         _turnNumber = 1;
+        _mapCycleNumber = 1;
         _currentDate = date;
         _buildingLevelsByCityId.Clear();
         _started = true;
@@ -213,12 +215,69 @@ public sealed class SanguoTurnManager
             playerId: _playerOrder[_activePlayerIndex],
             correlationId: correlationId,
             causationId: causationId,
-            occurredAt: occurredAt);
+            occurredAt: occurredAt,
+            mapCycleNumber: _mapCycleNumber);
         await PublishAiDecisionIfNeededAsync(
             activePlayerId: _playerOrder[_activePlayerIndex],
             correlationId: correlationId,
             causationId: causationId,
             occurredAt: occurredAt);
+    }
+
+    public async Task<bool> ApplyTemporaryStrategemMoneyAsync(
+        string playerId,
+        int moneyDelta,
+        string strategemId,
+        string correlationId,
+        string? causationId)
+    {
+        EnsureStarted();
+
+        if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(correlationId) || moneyDelta <= 0)
+        {
+            return false;
+        }
+
+        if (!_boardState.TryGetPlayer(playerId, out var player) || player is null)
+        {
+            return false;
+        }
+
+        var changed = ApplyMoneyDeltaToPlayer(player, moneyDelta);
+        if (!changed)
+        {
+            return false;
+        }
+
+        var occurredAt = DateTimeOffset.UtcNow;
+        await PublishPlayerStateChangedAsync(
+            playerId: playerId,
+            correlationId: correlationId,
+            causationId: causationId,
+            occurredAt: occurredAt,
+            mapCycleNumber: _mapCycleNumber);
+
+        if (_gameId is not null)
+        {
+            var evt = new DomainEvent(
+                Type: SanguoRelicApplied.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoRelicApplied(
+                    GameId: _gameId,
+                    PlayerId: playerId,
+                    RelicId: strategemId,
+                    EffectKind: SanguoEffectKinds.MoneyDelta,
+                    MoneyDelta: moneyDelta,
+                    StepDelta: null,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId)),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(evt);
+        }
+
+        return true;
     }
 
 
@@ -860,7 +919,8 @@ public sealed class SanguoTurnManager
             playerId: _playerOrder[_activePlayerIndex],
             correlationId: correlationId,
             causationId: causationId,
-            occurredAt: occurredAt);
+            occurredAt: occurredAt,
+            mapCycleNumber: _mapCycleNumber);
         await PublishAiDecisionIfNeededAsync(
             activePlayerId: _playerOrder[_activePlayerIndex],
             correlationId: correlationId,
@@ -922,12 +982,18 @@ public sealed class SanguoTurnManager
                 ToIndex: toIndex,
                 Steps: value,
                 PassedStart: passedStart,
+                MapCycleNumber: passedStart ? _mapCycleNumber + 1 : _mapCycleNumber,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
                 CausationId: causationId)),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N"));
         await _bus.PublishAsync(moved);
+
+        if (passedStart)
+        {
+            _mapCycleNumber += 1;
+        }
 
         var affectedPlayerIds = new HashSet<string>(StringComparer.Ordinal) { playerId };
 
@@ -1104,7 +1170,8 @@ public sealed class SanguoTurnManager
                 playerId: pid,
                 correlationId: correlationId,
                 causationId: causationId,
-                occurredAt: occurredAt);
+                occurredAt: occurredAt,
+                mapCycleNumber: _mapCycleNumber);
         }
     }
 
@@ -1212,7 +1279,8 @@ public sealed class SanguoTurnManager
             playerId: activePlayerId,
             correlationId: correlationId,
             causationId: causationId,
-            occurredAt: occurredAt);
+            occurredAt: occurredAt,
+            mapCycleNumber: _mapCycleNumber);
     }
 
     private async Task StartCombatAndReturnToMainLoopAsync(
@@ -1295,7 +1363,8 @@ public sealed class SanguoTurnManager
                 playerId: playerId,
                 correlationId: correlationId,
                 causationId: causationId,
-                occurredAt: occurredAt);
+                occurredAt: occurredAt,
+                mapCycleNumber: _mapCycleNumber);
         }
 
         var endedEvtId = Guid.NewGuid().ToString("N");
@@ -1329,7 +1398,8 @@ public sealed class SanguoTurnManager
                 playerId: playerId,
                 correlationId: correlationId,
                 causationId: endedEvtId,
-                occurredAt: occurredAt);
+                occurredAt: occurredAt,
+                mapCycleNumber: _mapCycleNumber);
         }
     }
 
@@ -1519,14 +1589,16 @@ public sealed class SanguoTurnManager
             playerId: playerId,
             correlationId: correlationId,
             causationId: causationId,
-            occurredAt: occurredAt);
+            occurredAt: occurredAt,
+            mapCycleNumber: _mapCycleNumber);
     }
 
     private async Task PublishPlayerStateChangedAsync(
         string playerId,
         string correlationId,
         string? causationId,
-        DateTimeOffset occurredAt)
+        DateTimeOffset occurredAt,
+        int mapCycleNumber)
     {
         if (_gameId is null)
             return;
@@ -1542,6 +1614,7 @@ public sealed class SanguoTurnManager
                 PlayerId: playerId,
                 Money: player.Money.ToDecimal(),
                 PositionIndex: player.PositionIndex,
+                MapCycleNumber: mapCycleNumber,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
                 CausationId: causationId)),
@@ -2278,6 +2351,7 @@ public sealed class SanguoTurnManager
                      PlayerId: activePlayerId,
                      EventId: picked.EventId,
                     EffectKind: picked.EffectKind,
+                    MapCycleNumber: _mapCycleNumber,
                     MoneyDelta: picked.MoneyDelta,
                     StepDelta: picked.StepDelta,
                     OccurredAt: occurredAt,
@@ -2311,7 +2385,8 @@ public sealed class SanguoTurnManager
                     playerId: activePlayerId,
                     correlationId: correlationId,
                     causationId: appliedEvtId,
-                    occurredAt: occurredAt);
+                    occurredAt: occurredAt,
+                    mapCycleNumber: _mapCycleNumber);
             }
 
             var combatRngContextId = BuildRngContextId(
@@ -2354,6 +2429,7 @@ public sealed class SanguoTurnManager
                     PlayerId: activePlayerId,
                     EventId: picked.EventId,
                     EffectKind: picked.EffectKind,
+                    MapCycleNumber: _mapCycleNumber,
                     MoneyDelta: picked.MoneyDelta,
                     StepDelta: picked.StepDelta,
                     OccurredAt: occurredAt,
@@ -2387,7 +2463,8 @@ public sealed class SanguoTurnManager
                     playerId: activePlayerId,
                     correlationId: correlationId,
                     causationId: evtId,
-                    occurredAt: occurredAt);
+                    occurredAt: occurredAt,
+                    mapCycleNumber: _mapCycleNumber);
             }
         }
         else
@@ -2425,7 +2502,8 @@ public sealed class SanguoTurnManager
                 playerId: activePlayerId,
                 correlationId: correlationId,
                 causationId: causationId,
-                occurredAt: occurredAt);
+                occurredAt: occurredAt,
+                mapCycleNumber: _mapCycleNumber);
         }
     }
 
@@ -2543,6 +2621,7 @@ public sealed class SanguoTurnManager
                     PlayerId: activePlayerId,
                     EventId: publishedEventId,
                     EffectKind: picked.EffectKind,
+                    MapCycleNumber: _mapCycleNumber,
                     MoneyDelta: picked.MoneyDelta,
                     StepDelta: picked.StepDelta,
                     OccurredAt: occurredAt,
@@ -2705,6 +2784,7 @@ public sealed class SanguoTurnManager
                     PlayerId: activePlayerId,
                     EventId: publishedEventId,
                     EffectKind: picked.EffectKind,
+                    MapCycleNumber: _mapCycleNumber,
                     MoneyDelta: picked.MoneyDelta,
                     StepDelta: picked.StepDelta,
                     OccurredAt: occurredAt,
@@ -2758,7 +2838,8 @@ public sealed class SanguoTurnManager
                 playerId: activePlayerId,
                 correlationId: correlationId,
                 causationId: causationId,
-                occurredAt: occurredAt);
+                occurredAt: occurredAt,
+                mapCycleNumber: _mapCycleNumber);
         }
     }
 
@@ -3498,12 +3579,18 @@ public sealed class SanguoTurnManager
                 ToIndex: toIndex,
                 Steps: value,
                 PassedStart: passedStart,
+                MapCycleNumber: passedStart ? _mapCycleNumber + 1 : _mapCycleNumber,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
                 CausationId: causationId)),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N"));
         await _bus.PublishAsync(moved);
+
+        if (passedStart)
+        {
+            _mapCycleNumber += 1;
+        }
 
         // Greedy execution: after moving, resolve city rules using the same entrypoints as the human loop would.
         var citiesById = _boardState.GetCitiesSnapshot();
@@ -4039,7 +4126,8 @@ public sealed class SanguoTurnManager
                 playerId: active.PlayerId,
                 correlationId: correlationId,
                 causationId: causationId,
-                occurredAt: occurredAt);
+                occurredAt: occurredAt,
+                mapCycleNumber: _mapCycleNumber);
         }
 
         foreach (var pid in _playerOrder)
@@ -4051,7 +4139,8 @@ public sealed class SanguoTurnManager
                 playerId: pid,
                 correlationId: correlationId,
                 causationId: causationId,
-                occurredAt: occurredAt);
+                occurredAt: occurredAt,
+                mapCycleNumber: _mapCycleNumber);
         }
 
         foreach (var pid in _playerOrder)
@@ -4073,6 +4162,7 @@ public sealed class SanguoTurnManager
                     ToIndex: idx,
                     Steps: 1,
                     PassedStart: false,
+                    MapCycleNumber: _mapCycleNumber,
                     OccurredAt: occurredAt,
                     CorrelationId: correlationId,
                     CausationId: causationId

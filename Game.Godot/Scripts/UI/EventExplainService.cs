@@ -181,7 +181,7 @@ public static class EventExplainService
             var pickedLabelKey = !string.IsNullOrWhiteSpace(pickedId) ? "picked_id" : "event_id";
             var pickedLabelValue = ResolveNamedValue(eventLabelById, resolvedPickedId);
             var sourceLabel = ResolveRandomEventSourceLabel(type, root, resolvedPickedId, eventPoolLabelById);
-            var roundNumber = TryGetRoundNumber(root);
+            var roundNumber = TryGetMapCycleNumber(root) ?? TryGetRoundNumber(root);
             var moneyDelta = TryGetIntLoose(root, "MoneyDelta");
             var stepDelta = TryGetIntLoose(root, "StepDelta");
             var nextStep = ResolveRandomEventNextStepLabel(type, effectKind, root);
@@ -231,7 +231,7 @@ public static class EventExplainService
         if (string.Equals(type, SanguoBossChallengePrompted.EventType, StringComparison.Ordinal))
         {
             var bossId = TryGetStringLoose(root, "BossId");
-            var roundNumber = TryGetIntLoose(root, "RoundNumber");
+            var roundNumber = TryGetIntLoose(root, "MapCycleNumber") ?? TryGetIntLoose(root, "RoundNumber");
             var winRateTier = TryGetStringLoose(root, "WinRateTier");
             var pressureForecast = TryGetIntLoose(root, "NextRoundPressureForecast");
             var keyLossSummary = TryGetStringLoose(root, "KeyLossSummary");
@@ -253,7 +253,7 @@ public static class EventExplainService
         if (string.Equals(type, SanguoObjectiveSkipped.EventType, StringComparison.Ordinal))
         {
             var objectiveId = TryGetStringLoose(root, "ObjectiveId");
-            var roundNumber = TryGetIntLoose(root, "RoundNumber");
+            var roundNumber = TryGetIntLoose(root, "MapCycleNumber") ?? TryGetIntLoose(root, "RoundNumber");
             var reason = TryGetStringLoose(root, "Reason");
             var bossId = TryGetStringLoose(root, "BossId");
             var reasonLabel = TranslateTokenValue(type, "objective_skip_reason", reason);
@@ -1182,7 +1182,7 @@ public static class EventExplainService
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "BossId", "boss_id");
-            AddFact(facts, type, root, "RoundNumber", "trigger_round");
+            AddFact(facts, type, root, "MapCycleNumber", "trigger_round");
             AddFact(facts, type, root, "WinRateTier", "win_rate_tier", tokenCategory: "win_rate_tier");
             AddFact(facts, type, root, "NextRoundPressureForecast", "next_round_pressure_forecast");
             AddFact(facts, type, root, "KeyLossSummary", "key_loss_summary", tokenCategory: "key_loss_summary");
@@ -1192,7 +1192,7 @@ public static class EventExplainService
         {
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "ObjectiveId", "objective_id");
-            AddFact(facts, type, root, "RoundNumber", "trigger_round");
+            AddFact(facts, type, root, "MapCycleNumber", "trigger_round");
             AddFact(facts, type, root, "Reason", "reason", tokenCategory: "objective_skip_reason");
             AddFact(facts, type, root, "BossId", "boss_id");
             var surfaceLabel = TranslateField(type, "detail", "affected_surface", "affected_surface");
@@ -1207,7 +1207,7 @@ public static class EventExplainService
             // Generic: include some common fields without duplicating full payload.
             AddFact(facts, type, root, "GameId", "game_id");
             AddFact(facts, type, root, "TurnNumber", "turn");
-            AddFact(facts, type, root, "RoundNumber", "round");
+            AddFact(facts, type, root, "MapCycleNumber", "round");
             AddFact(facts, type, root, "PlayerId", "player_id");
             AddFact(facts, type, root, "ActivePlayerId", "active_player_id");
             AddAppliedMultipliersFacts(additive, multiplicative, type, root);
@@ -1662,6 +1662,9 @@ public static class EventExplainService
 
         return TryParseRoundNumberFromRngContext(rngContextId);
     }
+
+    private static int? TryGetMapCycleNumber(JsonElement root)
+        => TryGetIntLoose(root, "MapCycleNumber");
 
     private static int? TryParseRoundNumberFromRngContext(string rngContextId)
     {

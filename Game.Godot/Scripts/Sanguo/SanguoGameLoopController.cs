@@ -1,4 +1,5 @@
 using Godot;
+using Game.Core.Contracts;
 using Game.Core.Contracts.Sanguo;
 using Game.Core.Domain;
 using Game.Core.Ports;
@@ -26,6 +27,11 @@ namespace Game.Godot.Scripts.Sanguo;
 /// </summary>
 public partial class SanguoGameLoopController : Node
 {
+    private const string StrategemActiveBonusGold = "strat_active_bonus_gold";
+    private const string StrategemActiveReducePressure = "strat_active_reduce_pressure";
+    private const string StrategemPassiveBonusHp = "strat_passive_bonus_hp";
+    private const string StrategemPassiveRich = "strat_passive_rich";
+
     [Signal]
     public delegate void QuitRequestedEventHandler();
 
@@ -39,6 +45,7 @@ public partial class SanguoGameLoopController : Node
     private const string UiTileActionSelected = "ui.sanguo.tile.action.selected";
     private const string UiActionCardPlay = "ui.sanguo.action_card.play";
     private const string UiActionCardSkip = "ui.sanguo.action_card.skip";
+    private const string UiStrategemUse = "ui.sanguo.strategem.use";
     private const string AiAutoAdvanceCausationId = "runtime.ai.auto.advance";
 
     private const int DefaultPlayersCount = 4;
@@ -74,6 +81,9 @@ public partial class SanguoGameLoopController : Node
     private int _lastHumanMoveToIndex;
     private string _lastSaveSlotId = "quick";
     private GameStartConfig? _lastStartConfig;
+    private int _playerHealthValue = 100;
+    private int _bossPressureOffset;
+    private bool _activeStrategemUsedThisTurn;
     private ResourceLoaderAdapter? _fallbackResourceLoader;
     private SanguoContentPackPaths? _contentPack;
 
@@ -159,7 +169,8 @@ public partial class SanguoGameLoopController : Node
             type == UiHudDiceRoll ||
             type == UiTileActionSelected ||
             type == UiActionCardPlay ||
-            type == UiActionCardSkip;
+            type == UiActionCardSkip ||
+            type == UiStrategemUse;
         if (isUiInput && (string.IsNullOrWhiteSpace(source) || source.Length > 64))
         {
             return;
@@ -171,9 +182,32 @@ public partial class SanguoGameLoopController : Node
             return;
         }
 
+        if (type == SanguoGameTurnStarted.EventType)
+        {
+            _activeStrategemUsedThisTurn = false;
+        }
+
         if (type == UiMenuReturn)
         {
             ResetRuntimeState();
+            return;
+        }
+
+        if (type == SanguoBossChallengePrompted.EventType)
+        {
+            if (_bus == null
+                || _bossPressureOffset == 0
+                || string.IsNullOrWhiteSpace(dataJson)
+                || string.Equals(source, nameof(SanguoGameLoopController), StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var patched = PatchBossChallengePromptedPayload(dataJson, _bossPressureOffset);
+            if (!string.Equals(patched, dataJson, StringComparison.Ordinal))
+            {
+                _bus.PublishSimple(type, source, patched);
+            }
             return;
         }
 
@@ -366,6 +400,47 @@ public partial class SanguoGameLoopController : Node
             return;
         }
 
+        if (type == UiStrategemUse)
+        {
+            if (!_started || _turnManager == null || _advanceQueued)
+            {
+                return;
+            }
+
+            var playerId = SanguoGlueJson.TryExtractPlayerId(dataJson);
+            if (!string.IsNullOrWhiteSpace(_activePlayerId) && !string.IsNullOrWhiteSpace(playerId) &&
+                !string.Equals(_activePlayerId, playerId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (SanguoGlueJson.IsAiPlayerId(_activePlayerId) || SanguoGlueJson.IsAiPlayerId(playerId))
+            {
+                return;
+            }
+
+            if (_activeStrategemUsedThisTurn)
+            {
+                return;
+            }
+
+            var strategemId = SanguoGlueJson.TryExtractAction(dataJson) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(strategemId))
+            {
+                return;
+            }
+
+            if (_lastStartConfig == null || !string.Equals(_lastStartConfig.ActiveStrategemId, strategemId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var correlationId = SanguoGlueJson.TryExtractCorrelationId(dataJson) ?? Guid.NewGuid().ToString("N");
+            _advanceQueued = true;
+            CallDeferred(nameof(UseStrategemDeferred), correlationId, playerId ?? _activePlayerId ?? "p1", strategemId);
+            return;
+        }
+
         if (type == UiHudDiceRoll)
         {
             _audio?.PlaySfx(DefaultUiClickSfxId, 1f);
@@ -420,6 +495,41 @@ public partial class SanguoGameLoopController : Node
         catch (Exception ex)
         {
             GD.PushWarning($"SanguoGameLoopController: failed to save game: {ex.Message}");
+        }
+        finally
+        {
+            _advanceQueued = false;
+        }
+    }
+
+    private async void UseStrategemDeferred(string correlationId, string playerId, string strategemId)
+    {
+        try
+        {
+            if (!_started || _turnManager == null)
+            {
+                return;
+            }
+
+            if (string.Equals(strategemId, StrategemActiveBonusGold, StringComparison.Ordinal))
+            {
+                await _turnManager.ApplyTemporaryStrategemMoneyAsync(
+                    playerId: playerId,
+                    moneyDelta: 30,
+                    strategemId: strategemId,
+                    correlationId: correlationId,
+                    causationId: UiStrategemUse);
+            }
+            else if (string.Equals(strategemId, StrategemActiveReducePressure, StringComparison.Ordinal))
+            {
+                _bossPressureOffset -= 1;
+            }
+
+            _activeStrategemUsedThisTurn = true;
+        }
+        catch (Exception ex)
+        {
+            GD.PushWarning($"SanguoGameLoopController: failed to use strategem: {ex.Message}");
         }
         finally
         {
@@ -547,6 +657,7 @@ public partial class SanguoGameLoopController : Node
         try
         {
             var (ok, reason) = await TryStartNewGameAsync(correlationId: correlationId, causationId: UiMenuStart, startConfigJson: startConfigJson);
+            _advanceQueued = false;
             if (!ok)
             {
                 PublishMenuStartFailed(correlationId, reason);
@@ -665,6 +776,8 @@ public partial class SanguoGameLoopController : Node
         }
 
         _turnManager = CreateNewTurnManager(map, startConfig, actionCardsCatalog, randomEventsCatalog, buildingsCatalog, relicsCatalog, pack);
+        _playerHealthValue = ResolveStartingHealth(startConfig);
+        _bossPressureOffset = ResolveBossPressureOffset(startConfig);
 
         try
         {
@@ -680,6 +793,7 @@ public partial class SanguoGameLoopController : Node
             _audio?.PlayMusic(DefaultMusicLoopId, 0.6f, true);
 
             PublishGameStarted(startConfig);
+            PublishStartingHealth(correlationId, causationId);
             TryQueueAiAutoAdvanceIfNeeded();
             return (true, string.Empty);
         }
@@ -1003,7 +1117,7 @@ public partial class SanguoGameLoopController : Node
         var playerOrder = startConfig != null
             ? BuildDefaultPlayerOrder(startConfig.PlayersCount)
             : new[] { "p1", "ai-1" };
-        var startingMoney = startConfig?.StartingMoneyPreset ?? 300;
+        var startingMoney = ResolveStartingMoney(startConfig);
         var players = playerOrder
             .Select(id => new SanguoPlayer(playerId: id, money: startingMoney, positionIndex: 0, economyRules: economyRules))
             .ToArray();
@@ -1133,6 +1247,102 @@ public partial class SanguoGameLoopController : Node
         _fallbackResourceLoader = new ResourceLoaderAdapter { Name = "ResourceLoaderFallback" };
         AddChild(_fallbackResourceLoader);
         return _fallbackResourceLoader;
+    }
+
+    private static int ResolveStartingHealth(GameStartConfig? startConfig)
+    {
+        var baseHealth = 100;
+        if (startConfig == null)
+        {
+            return baseHealth;
+        }
+
+        return string.Equals(startConfig.PassiveStrategemId, StrategemPassiveBonusHp, StringComparison.Ordinal)
+            ? baseHealth + 10
+            : baseHealth;
+    }
+
+    private static int ResolveBossPressureOffset(GameStartConfig? startConfig)
+    {
+        if (startConfig == null)
+        {
+            return 0;
+        }
+
+        return string.Equals(startConfig.ActiveStrategemId, StrategemActiveReducePressure, StringComparison.Ordinal)
+            ? -1
+            : 0;
+    }
+
+    private static decimal ResolveStartingMoney(GameStartConfig? startConfig)
+    {
+        if (startConfig == null)
+        {
+            return 300;
+        }
+
+        var total = startConfig.StartingMoneyPreset;
+
+        if (string.Equals(startConfig.PassiveStrategemId, StrategemPassiveRich, StringComparison.Ordinal))
+        {
+            total += 100;
+        }
+
+        return total;
+    }
+
+    private void PublishStartingHealth(string correlationId, string? causationId)
+    {
+        if (_bus == null)
+        {
+            return;
+        }
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            value = _playerHealthValue,
+            correlationId,
+            causationId,
+        });
+        _bus.PublishSimple(CoreGameEvents.HealthUpdated, nameof(SanguoGameLoopController), payload);
+    }
+
+    private static string PatchBossChallengePromptedPayload(string dataJson, int pressureOffset)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(dataJson);
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("NextRoundPressureForecast", out var pressureNode))
+            {
+                return dataJson;
+            }
+
+            var next = Math.Max(0, pressureNode.GetInt32() + pressureOffset);
+            var bossId = root.TryGetProperty("BossId", out var bossIdNode) ? bossIdNode.GetString() ?? string.Empty : string.Empty;
+            var mapCycleNumber = root.TryGetProperty("MapCycleNumber", out var mapCycleNode)
+                ? mapCycleNode.GetInt32()
+                : (root.TryGetProperty("RoundNumber", out var roundNode) ? roundNode.GetInt32() : 0);
+            var winRateTier = root.TryGetProperty("WinRateTier", out var winRateNode) ? winRateNode.GetString() : null;
+            var keyLossSummary = root.TryGetProperty("KeyLossSummary", out var lossNode) ? lossNode.GetString() : null;
+            var failConsequence = root.TryGetProperty("FailConsequence", out var failNode) ? failNode.GetString() : null;
+            var gameId = root.TryGetProperty("GameId", out var gameIdNode) ? gameIdNode.GetString() : null;
+
+            return JsonSerializer.Serialize(new
+            {
+                GameId = gameId,
+                BossId = bossId,
+                RoundNumber = mapCycleNumber,
+                WinRateTier = winRateTier,
+                NextRoundPressureForecast = next,
+                KeyLossSummary = keyLossSummary,
+                FailConsequence = failConsequence,
+            });
+        }
+        catch
+        {
+            return dataJson;
+        }
     }
 
     private void PublishMenuStartFailed(string correlationId, string reason)

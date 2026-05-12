@@ -24,7 +24,7 @@ def validate_required_prd_docs(
     expected_doc_names: list[str] | None = None,
 ) -> list[str]:
     _ = prd_id
-    required = [name.strip() for name in expected_doc_names or [] if str(name).strip()]
+    required = [Path(str(name).strip()).name for name in expected_doc_names or [] if str(name).strip()]
     if not required:
         return []
     present_names = {path.name for path in companion_paths}

@@ -53,8 +53,15 @@ public sealed class HudEventHandlersController
         try
         {
             using var doc = JsonDocument.Parse(json, _jsonOptions);
-            _recordEvent(type, source, id, timestampIso, doc.RootElement);
             handler(doc.RootElement);
+            try
+            {
+                _recordEvent(type, source, id, timestampIso, doc.RootElement);
+            }
+            catch (Exception ex)
+            {
+                _warn($"HUD record-only event processing failed for '{type}': {ex.Message}");
+            }
         }
         catch (Exception ex)
         {

@@ -37,6 +37,7 @@ from _overlay_generator_support import (
     compare_overlay_dirs,
     discover_companion_docs,
     discover_existing_overlay_profile,
+    merge_overlay_profiles,
     infer_prd_id,
     load_task_payloads,
     normalize_relpath,
@@ -141,8 +142,11 @@ def main() -> int:
 
     profile = discover_existing_overlay_profile(root, prd_id)
     profile_locked = bool(profile)
-    if not profile:
-        profile = build_default_overlay_profile(prd_id)
+    default_profile = build_default_overlay_profile(prd_id)
+    if profile:
+        profile = merge_overlay_profiles(profile, default_profile)
+    else:
+        profile = default_profile
     selected_pages = select_pages_by_family(profile, args.page_family)
     selected_pages = _select_pages(selected_pages, args.page_filter)
     if not selected_pages:
