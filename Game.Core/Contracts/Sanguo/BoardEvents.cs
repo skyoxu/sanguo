@@ -15,6 +15,7 @@ public sealed record SanguoTokenMoved(
     int ToIndex,
     int Steps,
     bool PassedStart,
+    int MapCycleNumber,
     System.DateTimeOffset OccurredAt,
     string CorrelationId,
     string? CausationId

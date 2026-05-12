@@ -25,7 +25,7 @@ func _connect_domain_event_emitted(handler: Callable) -> void:
 
 func _teardown_event_bus() -> void:
 	for node in _tracked_nodes:
-		if is_instance_valid(node):
+		if is_instance_valid(node) and not node.is_queued_for_deletion():
 			await _GDUNIT_TOOLS.free_instance(node)
 	_tracked_nodes.clear()
 

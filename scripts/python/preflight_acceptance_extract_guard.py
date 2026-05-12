@@ -163,6 +163,7 @@ def evaluate_task(*, task_id: str, master: dict[str, Any], back: dict[str, Any] 
     acceptance_items = [item for items in acceptance_by_view.values() for item in items]
     acceptance_text = "\n".join(acceptance_items)
     issues: list[dict[str, Any]] = []
+    present_views = [name for name, items in acceptance_by_view.items() if items]
 
     if not acceptance_items:
         issues.append(
@@ -174,7 +175,7 @@ def evaluate_task(*, task_id: str, master: dict[str, Any], back: dict[str, Any] 
         )
 
     for view_name, items in acceptance_by_view.items():
-        if not items:
+        if not items and len(present_views) > 1:
             issues.append(
                 {
                     "rule_id": "missing_acceptance_view",
@@ -212,7 +213,7 @@ def evaluate_task(*, task_id: str, master: dict[str, Any], back: dict[str, Any] 
         "issue_count": len(issues),
         "issue_ids": issue_ids,
         "issues": issues,
-        "views_present": [name for name, items in acceptance_by_view.items() if items],
+        "views_present": present_views,
         "acceptance_item_counts": {name: len(items) for name, items in acceptance_by_view.items()},
         "source_block_count": len(source_blocks),
     }

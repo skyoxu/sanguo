@@ -96,6 +96,26 @@ class OverlayGeneratorSupportTests(unittest.TestCase):
                 relpaths,
             )
 
+    def test_merge_overlay_profiles_should_keep_existing_and_fill_missing_defaults(self) -> None:
+        existing = [
+            {
+                "filename": "_index.md",
+                "page_kind": "index",
+                "current_title": "Existing Index",
+                "headings": ["Directory Role"],
+                "path": "docs/architecture/overlays/PRD-TEMPLATE-V1/08/_index.md",
+            }
+        ]
+        default = [
+            {"filename": "_index.md", "page_kind": "index", "current_title": "Default Index", "headings": ["Directory Role"]},
+            {"filename": "ACCEPTANCE_CHECKLIST.md", "page_kind": "acceptance-checklist", "current_title": "Acceptance Checklist", "headings": ["A"]},
+        ]
+
+        merged = support.merge_overlay_profiles(existing, default)
+
+        self.assertEqual(["_index.md", "ACCEPTANCE_CHECKLIST.md"], [item["filename"] for item in merged])
+        self.assertEqual("Existing Index", merged[0]["current_title"])
+
     def test_validate_required_prd_docs_should_fail_when_explicit_required_docs_missing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir)
@@ -143,6 +163,31 @@ class OverlayGeneratorSupportTests(unittest.TestCase):
                     "PRD_TRACEABILITY_MATRIX.md",
                     "PRD_RULES_FREEZE.md",
                     "PRD_ACCEPTANCE_ASSERTIONS.md",
+                ],
+            )
+
+            self.assertEqual([], missing)
+
+    def test_validate_required_prd_docs_should_accept_explicit_relative_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            docs_dir = root / "docs" / "prd"
+            docs_dir.mkdir(parents=True)
+            docs = [
+                docs_dir / "PRD_TRACEABILITY_MATRIX.md",
+                docs_dir / "PRD_RULES_FREEZE.md",
+                docs_dir / "PRD_ACCEPTANCE_ASSERTIONS.md",
+            ]
+            for path in docs:
+                path.write_text("# Doc\n", encoding="utf-8")
+
+            missing = support.validate_required_prd_docs(
+                prd_id="PRD-TEMPLATE-V1",
+                companion_paths=docs,
+                expected_doc_names=[
+                    "docs/prd/PRD_TRACEABILITY_MATRIX.md",
+                    "docs/prd/PRD_RULES_FREEZE.md",
+                    "docs/prd/PRD_ACCEPTANCE_ASSERTIONS.md",
                 ],
             )
 

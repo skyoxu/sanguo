@@ -1,37 +1,37 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Build Task Master compatible .taskmaster/tasks/tasks.json from NG/GM task files.
+Build Task Master compatible `.taskmaster/tasks/tasks.json` from task view files.
 
 This script:
-- Reads .taskmaster/tasks/tasks_back.json and tasks_gameplay.json (SSoT for NG/GM)
-  by default, or任意指定的任务文件（见参数）。
-- 根据给定的任务 ID 集合（或默认的 T2 根任务）计算依赖闭包，并将这些任务映射到
-  Task Master schema 下指定的 Tag（默认 master），采用数字 ID 与数字依赖。
-- 追加写入 .taskmaster/tasks/tasks.json（不会覆盖其他 Tag），并在源任务文件上标记：
-  - taskmaster_id: 数字 ID（Task Master 使用）
-  - taskmaster_exported: 是否已映射到 Task Master
+- Reads one or more source task view files such as
+  `.taskmaster/tasks/tasks_back.json` and `.taskmaster/tasks/tasks_gameplay.json`.
+- Computes the dependency closure for the selected root task ids.
+- Exports the selected closure into `tasks.json` under the requested tag using
+  numeric Task Master ids and numeric dependencies.
+- Writes bookkeeping fields back to the source task views:
+  - `taskmaster_id`
+  - `taskmaster_exported`
 
-Constraints are enforced by this script and the generated Task Master schema:
-- Root object must be { "<tag>": { "tasks": [...] }, ... }
-- id: number
-- dependencies: number[]
-- status: one of "pending" | "in-progress" | "done" | "deferred" | "cancelled" | "blocked"
-- priority: "high" | "medium" | "low"
-- testStrategy: string
+Rules enforced here:
+- Source task views are the numbering source of truth.
+- Existing `taskmaster_id` values in the selected closure are preserved.
+- New numeric ids are allocated after the maximum existing view-owned
+  `taskmaster_id`, while still avoiding collisions in `tasks.json`.
+- Polluted prefixed task sequences in the selected closure are rejected before
+  any write occurs.
 
-Usage (from repo root on Windows):
+Usage from repo root on Windows:
 
-    # 从指定任务文件中选择给定 ID（及其依赖）映射到指定 Tag（自动追加）
     py -3 scripts/python/build_taskmaster_tasks.py `
         --tasks-file .taskmaster/tasks/tasks_back.json `
+        --tasks-file .taskmaster/tasks/tasks_gameplay.json `
         --ids NG-0001 NG-0020 `
         --tag master
 
-    # 或使用 JSON 文件提供 ID 数组：
-    # ids.json 内容示例：["NG-0001","NG-0020","GM-0101"]
     py -3 scripts/python/build_taskmaster_tasks.py `
         --tasks-file .taskmaster/tasks/tasks_back.json `
+        --tasks-file .taskmaster/tasks/tasks_gameplay.json `
         --ids-file .taskmaster/tasks/ids.json `
         --tag feature-t2
 """
@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import json
 import argparse
+import re
 from pathlib import Path
 from typing import Dict, List, Set
 
@@ -62,6 +63,9 @@ T2_ROOT_IDS: Set[str] = {
 }
 
 
+TASK_ID_PATTERN = re.compile(r"^(?P<prefix>[A-Za-z]+)-(?P<number>\d{4})$")
+
+
 def load_tasks(task_file: Path) -> List[Dict]:
     if not task_file.exists():
         return []
@@ -71,6 +75,13 @@ def load_tasks(task_file: Path) -> List[Dict]:
     if isinstance(data, dict) and "tasks" in data and isinstance(data["tasks"], list):
         return data["tasks"]
     return []
+
+
+def parse_task_id(value: object) -> tuple[str, int] | None:
+    match = TASK_ID_PATTERN.match(str(value or "").strip())
+    if not match:
+        return None
+    return match.group("prefix"), int(match.group("number"))
 
 
 def build_all_tasks(task_files: List[Path]) -> Dict[str, Dict]:
@@ -138,6 +149,86 @@ def map_priority(priority: str | None) -> str:
     return "medium"
 
 
+def collect_used_numeric_ids(root_obj: Dict[str, Dict]) -> Set[int]:
+    used_ids: Set[int] = set()
+    for value in root_obj.values():
+        if not isinstance(value, dict):
+            continue
+        tasks_list = value.get("tasks")
+        if not isinstance(tasks_list, list):
+            continue
+        for task in tasks_list:
+            task_id = task.get("id")
+            if isinstance(task_id, int):
+                used_ids.add(task_id)
+    return used_ids
+
+
+def collect_existing_taskmaster_ids(all_tasks: Dict[str, Dict]) -> Set[int]:
+    existing_ids: Set[int] = set()
+    for task in all_tasks.values():
+        taskmaster_id = task.get("taskmaster_id")
+        if isinstance(taskmaster_id, int) and taskmaster_id > 0:
+            existing_ids.add(taskmaster_id)
+    return existing_ids
+
+
+def allocate_numeric_id(preferred_start: int, used_ids: Set[int]) -> int:
+    next_id = max(1, preferred_start)
+    while next_id in used_ids:
+        next_id += 1
+    used_ids.add(next_id)
+    return next_id
+
+
+def validate_prefixed_task_sequences(selected_tasks: Dict[str, Dict]) -> None:
+    grouped: Dict[str, List[tuple[int, str, int | None]]] = {}
+    for task in selected_tasks.values():
+        parsed = parse_task_id(task.get("id"))
+        if not parsed:
+            continue
+        prefix, number = parsed
+        taskmaster_id = task.get("taskmaster_id")
+        grouped.setdefault(prefix, []).append(
+            (number, str(task.get("id")), taskmaster_id if isinstance(taskmaster_id, int) else None)
+        )
+
+    errors: List[str] = []
+    for prefix, entries in grouped.items():
+        entries.sort()
+        numbers = [entry[0] for entry in entries]
+        if not numbers:
+            continue
+        mapped_entries = [(number, task_id, taskmaster_id) for number, task_id, taskmaster_id in entries if taskmaster_id is not None]
+        if mapped_entries:
+            actual_tm_ids = [taskmaster_id for _, _, taskmaster_id in mapped_entries]
+            if len(set(actual_tm_ids)) != len(actual_tm_ids):
+                samples = ", ".join(f"{task_id}->{taskmaster_id}" for _, task_id, taskmaster_id in mapped_entries[:10])
+                errors.append(
+                    f"{prefix}: duplicate taskmaster_id mapping detected, sample={samples}"
+                )
+                continue
+            if actual_tm_ids != sorted(actual_tm_ids):
+                samples = ", ".join(f"{task_id}->{taskmaster_id}" for _, task_id, taskmaster_id in mapped_entries[:10])
+                errors.append(
+                    f"{prefix}: taskmaster_id mapping drift detected; "
+                    f"expected monotonic increase with prefixed ids, sample={samples}"
+                )
+                continue
+            expected_numbers = list(range(numbers[0], numbers[-1] + 1))
+            if numbers == expected_numbers:
+                expected_tm_ids = list(range(actual_tm_ids[0], actual_tm_ids[0] + len(actual_tm_ids)))
+                if actual_tm_ids != expected_tm_ids:
+                    samples = ", ".join(f"{task_id}->{taskmaster_id}" for _, task_id, taskmaster_id in mapped_entries[:10])
+                    errors.append(
+                        f"{prefix}: taskmaster_id mapping drift detected for continuous prefixed range; "
+                        f"expected consecutive ids starting at {actual_tm_ids[0]}, sample={samples}"
+                    )
+
+    if errors:
+        raise SystemExit("Refusing to export polluted prefixed task sequences:\n- " + "\n- ".join(errors))
+
+
 def build_taskmaster_tasks(args: argparse.Namespace) -> None:
     # 1) 解析任务文件列表（源 SSoT）
     if not args.tasks_files:
@@ -180,6 +271,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
     if not t2_ids:
         print("Closure is empty; nothing to export.")
         return
+    validate_prefixed_task_sequences({task_id: all_tasks[task_id] for task_id in t2_ids if task_id in all_tasks})
 
     # Topologically sort T2 ids so that:
     # - Dependencies appear before dependents.
@@ -227,21 +319,12 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
         tag_obj["tasks"] = tag_tasks
 
     # Collect already used numeric ids across all tags to avoid collisions.
-    used_ids: Set[int] = set()
-    for v in root_obj.values():
-        if not isinstance(v, dict):
-            continue
-        tasks_list = v.get("tasks")
-        if not isinstance(tasks_list, list):
-            continue
-        for t in tasks_list:
-            tid_val = t.get("id")
-            if isinstance(tid_val, int):
-                used_ids.add(tid_val)
+    used_ids = collect_used_numeric_ids(root_obj)
+    existing_taskmaster_ids = collect_existing_taskmaster_ids(all_tasks)
 
     # 5) 为字符串 ID 分配稳定的数字 ID（优先复用 taskmaster_id）
     id_map: Dict[str, int] = {}
-    next_id = (max(used_ids) if used_ids else 0) + 1
+    next_id = (max(existing_taskmaster_ids) if existing_taskmaster_ids else 0) + 1
 
     for tid in sorted_ids:
         src = all_tasks.get(tid)
@@ -254,12 +337,8 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
             if num not in used_ids:
                 used_ids.add(num)
         if num is None:
-            # 分配新的全局唯一数字 ID
-            while next_id in used_ids:
-                next_id += 1
-            num = next_id
-            used_ids.add(num)
-            next_id += 1
+            num = allocate_numeric_id(next_id, used_ids)
+            next_id = num + 1
         id_map[tid] = num
 
     print("Tasks to export (string id -> numeric id):")
@@ -385,7 +464,7 @@ def build_taskmaster_tasks(args: argparse.Namespace) -> None:
     for src_file in task_files:
         mark_exported(src_file)
 
-def main() -> None:
+def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Build or update Task Master-compatible tasks.json from NG/GM tasks, "
@@ -413,9 +492,10 @@ def main() -> None:
         "--ids-file",
         help="JSON file containing an array of task ids (strings) to export.",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     build_taskmaster_tasks(args)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

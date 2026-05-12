@@ -352,6 +352,268 @@ class Chapter3TaskGenerationTests(unittest.TestCase):
         self.assertEqual("INT-0001", payload["candidates"][0]["id"])
         self.assertEqual(["REQ-NEW-0001", "REQ-NEW-0002"], payload["candidates"][0]["requirement_ids"])
 
+    def test_compile_triplet_add_mode_should_append_after_existing_ids_and_rewire_dependencies(self) -> None:
+        mod = _load_module("compile_task_triplet_for_add_mode_test", "scripts/python/compile_task_triplet.py")
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "task-generation"
+            out_dir.mkdir(parents=True)
+            tasks_dir = root / ".taskmaster" / "tasks"
+            tasks_dir.mkdir(parents=True)
+            (tasks_dir / "tasks_back.json").write_text(
+                json.dumps(
+                    [
+                        {"id": "SG-0180", "title": "Existing back task"},
+                    ],
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (tasks_dir / "tasks_gameplay.json").write_text(
+                json.dumps(
+                    [
+                        {"id": "SG-0179", "title": "Existing gameplay task"},
+                    ],
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "coverage-report.json").write_text(
+                json.dumps({"status": "ok"}, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (out_dir / "task-candidates.enriched.json").write_text(
+                json.dumps(
+                    {
+                        "candidates": [
+                            {
+                                "id": "SG-0001",
+                                "title": "Back task",
+                                "owner": "architecture",
+                                "labels": ["generated"],
+                                "depends_on": [],
+                            },
+                            {
+                                "id": "SG-0002",
+                                "title": "Gameplay task",
+                                "owner": "gameplay",
+                                "labels": ["generated", "gameplay"],
+                                "depends_on": ["SG-0001"],
+                            },
+                        ]
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            rc = mod.main(
+                [
+                    "--repo-root",
+                    str(root),
+                    "--mode",
+                    "add",
+                    "--out",
+                    "logs/ci/task-generation/task-triplet.patch.json",
+                ]
+            )
+            payload = json.loads((out_dir / "task-triplet.patch.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(0, rc)
+        back = payload["tasks_back_add_or_update"]
+        gameplay = payload["tasks_gameplay_add_or_update"]
+        self.assertEqual("SG-0181", back[0]["id"])
+        self.assertEqual("SG-0182", gameplay[0]["id"])
+        self.assertEqual(["SG-0181"], gameplay[0]["depends_on"])
+
+    def test_build_taskmaster_tasks_should_append_from_view_taskmaster_ids_not_old_master_state(self) -> None:
+        mod = _load_module("build_taskmaster_tasks_for_append_test", "scripts/python/build_taskmaster_tasks.py")
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            tasks_dir = root / ".taskmaster" / "tasks"
+            tasks_dir.mkdir(parents=True)
+            (tasks_dir / "tasks.json").write_text(
+                json.dumps(
+                    {
+                        "master": {
+                            "tasks": [
+                                {"id": task_id, "title": f"Legacy task {task_id}", "dependencies": []}
+                                for task_id in range(1, 181)
+                            ]
+                        }
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (tasks_dir / "tasks_back.json").write_text(
+                json.dumps(
+                    [
+                        {
+                            "id": "SG-0181",
+                            "title": "New back task",
+                            "taskmaster_id": 181,
+                            "taskmaster_exported": True,
+                            "depends_on": [],
+                        }
+                    ],
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (tasks_dir / "tasks_gameplay.json").write_text(
+                json.dumps(
+                    [
+                        {
+                            "id": "SG-0182",
+                            "title": "New gameplay task",
+                            "taskmaster_id": 182,
+                            "taskmaster_exported": True,
+                            "depends_on": ["SG-0181"],
+                        },
+                        {
+                            "id": "SG-0183",
+                            "title": "Unmapped gameplay task",
+                            "depends_on": ["SG-0182"],
+                        },
+                    ],
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_root = mod.ROOT
+            original_tasks_dir = mod.TASKS_DIR
+            original_tasks_file = mod.TASKMASTER_TASKS_FILE
+            try:
+                mod.ROOT = root
+                mod.TASKS_DIR = tasks_dir
+                mod.TASKMASTER_TASKS_FILE = tasks_dir / "tasks.json"
+                rc = mod.main(
+                    [
+                        "--tasks-file",
+                        ".taskmaster/tasks/tasks_back.json",
+                        "--tasks-file",
+                        ".taskmaster/tasks/tasks_gameplay.json",
+                        "--ids",
+                        "SG-0183",
+                    ]
+                )
+                payload = json.loads((tasks_dir / "tasks.json").read_text(encoding="utf-8"))
+                back = json.loads((tasks_dir / "tasks_back.json").read_text(encoding="utf-8"))
+                gameplay = json.loads((tasks_dir / "tasks_gameplay.json").read_text(encoding="utf-8"))
+            finally:
+                mod.ROOT = original_root
+                mod.TASKS_DIR = original_tasks_dir
+                mod.TASKMASTER_TASKS_FILE = original_tasks_file
+
+        self.assertEqual(0, rc)
+        exported = {task["id"]: task for task in payload["master"]["tasks"] if task["id"] >= 181}
+        self.assertEqual({181, 182, 183}, set(exported))
+        self.assertEqual([181], exported[182]["dependencies"])
+        self.assertEqual([182], exported[183]["dependencies"])
+        self.assertEqual(181, back[0]["taskmaster_id"])
+        self.assertEqual(182, gameplay[0]["taskmaster_id"])
+        self.assertEqual(183, gameplay[1]["taskmaster_id"])
+        self.assertTrue(gameplay[1]["taskmaster_exported"])
+
+    def test_build_taskmaster_tasks_should_fail_when_prefixed_taskmaster_mapping_is_polluted(self) -> None:
+        mod = _load_module("build_taskmaster_tasks_for_pollution_guard_test", "scripts/python/build_taskmaster_tasks.py")
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            tasks_dir = root / ".taskmaster" / "tasks"
+            tasks_dir.mkdir(parents=True)
+            (tasks_dir / "tasks.json").write_text(
+                json.dumps({"master": {"tasks": []}}, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            (tasks_dir / "tasks_back.json").write_text(
+                json.dumps(
+                    [
+                        {"id": "SG-0181", "title": "Task 181", "taskmaster_id": 181, "depends_on": []},
+                        {"id": "SG-0182", "title": "Task 182", "taskmaster_id": 182, "depends_on": []},
+                        {"id": "SG-0221", "title": "Task 221", "taskmaster_id": 188, "depends_on": []},
+                    ],
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (tasks_dir / "tasks_gameplay.json").write_text(
+                json.dumps(
+                    [
+                        {"id": "SG-0188", "title": "Task 188", "taskmaster_id": 191, "depends_on": []},
+                    ],
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_root = mod.ROOT
+            original_tasks_dir = mod.TASKS_DIR
+            original_tasks_file = mod.TASKMASTER_TASKS_FILE
+            try:
+                mod.ROOT = root
+                mod.TASKS_DIR = tasks_dir
+                mod.TASKMASTER_TASKS_FILE = tasks_dir / "tasks.json"
+                with self.assertRaises(SystemExit) as ctx:
+                    mod.main(
+                        [
+                            "--tasks-file",
+                            ".taskmaster/tasks/tasks_back.json",
+                            "--tasks-file",
+                            ".taskmaster/tasks/tasks_gameplay.json",
+                            "--ids",
+                            "SG-0181",
+                            "SG-0188",
+                            "SG-0221",
+                        ]
+                    )
+            finally:
+                mod.ROOT = original_root
+                mod.TASKS_DIR = original_tasks_dir
+                mod.TASKMASTER_TASKS_FILE = original_tasks_file
+
+        self.assertIn("Refusing to export polluted prefixed task sequences", str(ctx.exception))
+        self.assertIn("taskmaster_id mapping drift detected", str(ctx.exception))
+
+    def test_build_taskmaster_tasks_should_allow_clean_prefixed_mapping(self) -> None:
+        mod = _load_module("build_taskmaster_tasks_for_clean_guard_test", "scripts/python/build_taskmaster_tasks.py")
+        all_tasks = {
+            "SG-0181": {"id": "SG-0181", "taskmaster_id": 181},
+            "SG-0182": {"id": "SG-0182", "taskmaster_id": 182},
+            "SG-0183": {"id": "SG-0183", "taskmaster_id": 183},
+        }
+        mod.validate_prefixed_task_sequences(all_tasks)
+
+    def test_build_taskmaster_tasks_should_ignore_unselected_historical_prefix_shapes(self) -> None:
+        mod = _load_module("build_taskmaster_tasks_for_selected_scope_test", "scripts/python/build_taskmaster_tasks.py")
+        selected = {
+            "SG-0181": {"id": "SG-0181", "taskmaster_id": 181},
+            "SG-0182": {"id": "SG-0182", "taskmaster_id": 182},
+        }
+        historical_noise = {
+            "GM-0001": {"id": "GM-0001", "taskmaster_id": 1},
+            "GM-0050": {"id": "GM-0050", "taskmaster_id": 50},
+        }
+        mod.validate_prefixed_task_sequences(selected)
+        mod.validate_prefixed_task_sequences({**selected, **historical_noise})
+
     def test_task_intent_quality_audit_should_report_generic_and_noisy_titles(self) -> None:
         mod = _load_module("audit_task_intents_quality_test", "scripts/python/audit_task_intents_quality.py")
         result = mod.audit(

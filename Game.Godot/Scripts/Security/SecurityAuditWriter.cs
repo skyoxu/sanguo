@@ -20,7 +20,7 @@ internal static class SecurityAuditWriter
     {
         const string fallbackDir = "user://logs/security";
         const string fallbackPath = fallbackDir + "/security-audit.jsonl";
-        var primaryPath = string.IsNullOrWhiteSpace(target) ? fallbackPath : target;
+        var primaryPath = LooksLikeSinkPath(target) ? target : fallbackPath;
 
         try
         {
@@ -73,6 +73,11 @@ internal static class SecurityAuditWriter
 
     private static bool TryWriteLine(string sinkPath, string line)
     {
+        if (sinkPath.Replace('\\', '/').StartsWith("res://", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
         EnsureDirectory(sinkPath);
         var exists = FileAccess.FileExists(sinkPath);
         using var file = FileAccess.Open(sinkPath, exists ? FileAccess.ModeFlags.ReadWrite : FileAccess.ModeFlags.Write);
@@ -103,5 +108,20 @@ internal static class SecurityAuditWriter
         var dirPath = normalized[..idx];
         var absDir = ProjectSettings.GlobalizePath(dirPath).Replace('\\', '/');
         DirAccess.MakeDirRecursiveAbsolute(absDir);
+    }
+
+    private static bool LooksLikeSinkPath(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var normalized = value.Replace('\\', '/').Trim();
+        return normalized.StartsWith("user://", StringComparison.OrdinalIgnoreCase)
+            || normalized.StartsWith("res://", StringComparison.OrdinalIgnoreCase)
+            || normalized.EndsWith(".jsonl", StringComparison.OrdinalIgnoreCase)
+            || normalized.EndsWith(".log", StringComparison.OrdinalIgnoreCase)
+            || normalized.EndsWith(".txt", StringComparison.OrdinalIgnoreCase);
     }
 }

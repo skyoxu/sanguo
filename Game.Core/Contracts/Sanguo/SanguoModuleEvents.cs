@@ -100,6 +100,7 @@ public sealed record SanguoRandomEventApplied(
     string PlayerId,
     string EventId,
     string EffectKind,
+    int MapCycleNumber,
     int? MoneyDelta,
     int? StepDelta,
     DateTimeOffset OccurredAt,

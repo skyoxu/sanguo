@@ -22,7 +22,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 设置godot项目.",
@@ -56,7 +56,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 创建环形地图数据结构.",
@@ -90,7 +90,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现城池类."
@@ -123,7 +123,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现玩家类."
@@ -156,7 +156,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现骰子机制."
@@ -190,7 +190,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现回合管理器."
@@ -223,7 +223,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现经济结算管理器."
@@ -258,7 +258,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现事件管理器."
@@ -286,7 +286,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 设计ui界面."
@@ -320,7 +320,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现玩家棋子移动."
@@ -391,7 +391,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 7,
         "recommendedSubtasks": 3,
         "expansionPrompt": "将AI行为设计分为基本规则实现、状态机接口预留、测试用例编写三个子任务。"
@@ -428,7 +428,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现土地购买逻辑."
@@ -461,7 +461,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现过路费支付逻辑."
@@ -495,7 +495,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现月末收益结算."
@@ -529,7 +529,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现季度环境事件."
@@ -562,7 +562,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现年度地价调整."
@@ -648,7 +648,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8,
         "recommendedSubtasks": 4,
         "expansionPrompt": "将回合循环分为玩家行动、AI行动、时间推进、测试验证四个子任务。"
@@ -681,7 +681,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现存档功能."
@@ -711,7 +711,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui事件提示."
@@ -740,7 +740,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui资金显示."
@@ -769,7 +769,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui日期显示."
@@ -798,7 +798,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui骰子结果显示."
@@ -827,7 +827,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui城池状态显示."
@@ -855,7 +855,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down this task with a focus on 实现ui事件日志."
@@ -911,7 +911,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将AI策略优化分为现有策略分析、优化策略设计两个子任务。"
@@ -967,7 +967,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将游戏结束条件分为条件设计和测试验证两个子任务。"
@@ -995,7 +995,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 3,
         "recommendedSubtasks": 1,
         "expansionPrompt": "将音效和音乐分为音效选择和集成测试两个子任务。"
@@ -1023,7 +1023,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 4,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将主菜单分为UI设计和功能实现两个子任务。"
@@ -1051,7 +1051,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 4,
         "recommendedSubtasks": 2,
         "expansionPrompt": "将设置菜单分为UI设计和功能实现两个子任务。"
@@ -1115,7 +1115,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "recommendedSubtasks": 3,
         "expansionPrompt": "将帮助和教程分为内容设计、UI实现、用户测试三个子任务。"
@@ -1141,7 +1141,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "32",
@@ -1166,7 +1166,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "33",
@@ -1190,7 +1190,7 @@
           "CH09",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "34",
@@ -1212,7 +1212,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "35",
@@ -1234,7 +1234,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "36",
@@ -1259,7 +1259,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "37",
@@ -1284,7 +1284,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "38",
@@ -1306,7 +1306,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "39",
@@ -1331,7 +1331,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "40",
@@ -1356,7 +1356,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "41",
@@ -1379,7 +1379,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "42",
@@ -1405,7 +1405,7 @@
           "CH09",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "43",
@@ -1431,7 +1431,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "44",
@@ -1454,7 +1454,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "45",
@@ -1477,7 +1477,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "46",
@@ -1501,7 +1501,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "47",
@@ -1525,7 +1525,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "48",
@@ -1549,7 +1549,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "49",
@@ -1573,7 +1573,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "50",
@@ -1597,7 +1597,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "51",
@@ -1619,7 +1619,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "52",
@@ -1642,7 +1642,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "53",
@@ -1667,7 +1667,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "54",
@@ -1693,7 +1693,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "55",
@@ -1716,7 +1716,7 @@
           "CH02",
           "CH04"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "56",
@@ -1741,7 +1741,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "57",
@@ -1765,7 +1765,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "58",
@@ -1788,7 +1788,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "59",
@@ -1813,7 +1813,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "60",
@@ -1837,7 +1837,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "61",
@@ -1868,7 +1868,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "62",
@@ -1896,7 +1896,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "63",
@@ -1921,7 +1921,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "64",
@@ -1949,7 +1949,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "65",
@@ -1977,7 +1977,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "66",
@@ -2049,7 +2049,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2116,7 +2116,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2147,7 +2147,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 4
       },
       {
@@ -2207,7 +2207,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2234,7 +2234,7 @@
           "CH07",
           "CH05"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 4
       },
       {
@@ -2258,7 +2258,7 @@
           "CH03",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -2284,7 +2284,7 @@
           "CH03",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -2342,7 +2342,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2369,7 +2369,7 @@
           "CH07",
           "CH05"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 4
       },
       {
@@ -2396,7 +2396,7 @@
           "CH07",
           "CH05"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 4
       },
       {
@@ -2423,7 +2423,7 @@
           "CH07",
           "CH05"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 4
       },
       {
@@ -2447,7 +2447,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -2471,7 +2471,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 7
       },
       {
@@ -2497,7 +2497,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5
       },
       {
@@ -2523,7 +2523,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 4
       },
       {
@@ -2555,7 +2555,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2580,7 +2580,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6,
         "testRefs": [
           "Game.Core.Tests/Tasks/Task82SplitTests.cs",
@@ -2612,7 +2612,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2638,7 +2638,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2664,7 +2664,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2690,7 +2690,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2716,7 +2716,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2742,7 +2742,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2768,7 +2768,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2796,7 +2796,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2857,7 +2857,7 @@
           "CH03",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2881,7 +2881,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -2944,7 +2944,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6,
         "acceptanceCriteria": [
           "[A-START-93-001] Campaign start payload includes explicit run mode, commander, strategem list, map id, seed, and difficulty fields with additive/forward-compatible defaults.",
@@ -2977,7 +2977,7 @@
           "CH06",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -3040,7 +3040,7 @@
           "CH06",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 6
       },
       {
@@ -3067,7 +3067,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 9
       },
       {
@@ -3093,7 +3093,7 @@
           "CH05",
           "CH06"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -3120,7 +3120,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5,
         "acceptanceCriteria": [
           "[A-CAMP-98-001] Camp one-action-per-round guard refuses second action attempts in the same round with deterministic blocked reason code and explain entry.",
@@ -3152,7 +3152,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -3179,7 +3179,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 7
       },
       {
@@ -3208,7 +3208,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 7,
         "acceptanceCriteria": [
           "[A-BOSS-101-001] Integration closure includes difficulty-based boss dice profile wiring and evidence that profile values resolve per configured difficulty tier.",
@@ -3240,7 +3240,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -3267,7 +3267,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -3294,7 +3294,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 7
       },
       {
@@ -3321,7 +3321,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -3348,7 +3348,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 7
       },
       {
@@ -3375,7 +3375,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 7
       },
       {
@@ -3403,7 +3403,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 5
       },
       {
@@ -3430,7 +3430,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -3458,7 +3458,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 9
       },
       {
@@ -3483,7 +3483,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 8
       },
       {
@@ -3514,7 +3514,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "complexity": 9
       },
       {
@@ -3537,7 +3537,7 @@
           "CH03",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "114",
@@ -3559,7 +3559,7 @@
           "CH03",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "115",
@@ -3583,7 +3583,7 @@
           "CH03",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "116",
@@ -3607,7 +3607,7 @@
           "CH03",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "117",
@@ -3630,7 +3630,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "118",
@@ -3652,7 +3652,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "119",
@@ -3674,7 +3674,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "120",
@@ -3696,7 +3696,7 @@
           "CH04",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "121",
@@ -3722,7 +3722,7 @@
           "CH06",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "122",
@@ -3747,7 +3747,7 @@
           "CH06",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "123",
@@ -3822,7 +3822,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "124",
@@ -3882,7 +3882,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "125",
@@ -3908,7 +3908,7 @@
           "CH05",
           "CH06"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "126",
@@ -3932,7 +3932,7 @@
           "CH05",
           "CH06"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "127",
@@ -3959,7 +3959,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "128",
@@ -3984,7 +3984,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "129",
@@ -4011,7 +4011,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "130",
@@ -4036,7 +4036,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "131",
@@ -4064,7 +4064,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "132",
@@ -4091,7 +4091,7 @@
           "CH07",
           "CH09"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "133",
@@ -4118,7 +4118,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "134",
@@ -4143,7 +4143,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "135",
@@ -4218,7 +4218,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "136",
@@ -4243,7 +4243,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "137",
@@ -4306,7 +4306,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "138",
@@ -4331,7 +4331,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "139",
@@ -4358,7 +4358,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "140",
@@ -4383,7 +4383,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "141",
@@ -4410,7 +4410,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "142",
@@ -4435,7 +4435,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "143",
@@ -4462,7 +4462,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "144",
@@ -4487,7 +4487,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "145",
@@ -4513,7 +4513,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "146",
@@ -4538,7 +4538,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "147",
@@ -4565,7 +4565,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "148",
@@ -4626,7 +4626,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "149",
@@ -4700,7 +4700,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "150",
@@ -4723,7 +4723,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "151",
@@ -4754,7 +4754,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "152",
@@ -4818,7 +4818,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "153",
@@ -4848,7 +4848,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "154",
@@ -4909,7 +4909,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "155",
@@ -4933,7 +4933,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "156",
@@ -4959,7 +4959,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "157",
@@ -4985,7 +4985,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "158",
@@ -5011,7 +5011,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "159",
@@ -5072,7 +5072,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "160",
@@ -5098,7 +5098,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "161",
@@ -5123,7 +5123,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "162",
@@ -5149,7 +5149,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "163",
@@ -5174,7 +5174,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "164",
@@ -5199,7 +5199,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "165",
@@ -5224,7 +5224,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "166",
@@ -5249,7 +5249,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "167",
@@ -5272,7 +5272,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "168",
@@ -5295,7 +5295,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "169",
@@ -5372,7 +5372,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "170",
@@ -5397,7 +5397,7 @@
           "CH06",
           "CH07"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "171",
@@ -5475,7 +5475,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "172",
@@ -5501,7 +5501,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "173",
@@ -5584,7 +5584,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "174",
@@ -5613,7 +5613,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "175",
@@ -5642,7 +5642,7 @@
           "CH07",
           "CH10"
         ],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       },
       {
         "id": "176",
@@ -5664,7 +5664,7 @@
         ],
         "status": "done",
         "subtasks": [],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "adrRefs": [
           "ADR-0010",
           "ADR-0011",
@@ -5697,7 +5697,7 @@
         ],
         "status": "done",
         "subtasks": [],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "adrRefs": [
           "ADR-0010",
           "ADR-0011",
@@ -5726,7 +5726,7 @@
         ],
         "status": "done",
         "subtasks": [],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "adrRefs": [
           "ADR-0010",
           "ADR-0011",
@@ -5811,7 +5811,7 @@
         ],
         "status": "done",
         "subtasks": [],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "adrRefs": [
           "ADR-0010",
           "ADR-0011",
@@ -5863,7 +5863,7 @@
         ],
         "status": "done",
         "subtasks": [],
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
         "adrRefs": [
           "ADR-0010",
           "ADR-0011",
@@ -5876,6 +5876,622 @@
           "CH07",
           "CH10"
         ]
+      },
+      {
+        "id": 181,
+        "title": "Add test coverage for v4 assertions part 1 enemy boss main unit combat",
+        "description": "# PRD V4 Acceptance Assertions (Combat)",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md; docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md\nTest Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd; Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd; Tests.Godot/tests/Scenes/Sanguo/test_task149_sanguo_campaign_full_loop_boss_victory.gd; Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd; Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd\nAcceptance: Requirement REQ-5ddc009b76e2 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:1 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-29032eaef127 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:6 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-69543cc4cbd6 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:27 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-be5244537086 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:56 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-40137f64d4b2 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:58 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-da0cc031d6f9 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:135 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; back; ci; generated; intent; testing\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 182,
+        "title": "Add test coverage for v4 assertions part 2 map main loop return occurs",
+        "description": "- Then map/main-loop return occurs and player HP is restored to 50% MaxHP.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          181
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd; Tests.Godot/tests/Adapters/Db/test_inventory_merge_and_clear_cross_restart.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd\nAcceptance: Requirement REQ-d2fd765a5e25 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:137 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-ccabe55813a3 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:142 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-b6b5d569b53e is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:144 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-57d246bdc4e0 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:151 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-9cb88a897781 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:192 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; back; ci; generated; intent; testing\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 183,
+        "title": "Add test coverage for assertions",
+        "description": "2. update `PRD_V4_ACCEPTANCE_ASSERTIONS.md`",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          182
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md; docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md\nTest Refs: Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd; Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd; Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd; Tests.Godot/addons/gdUnit4/src/update/GdMarkDownReader.gd; Tests.Godot/addons/gdUnit4/src/update/GdUnitPatch.gd; Tests.Godot/addons/gdUnit4/src/update/GdUnitPatcher.gd\nAcceptance: Requirement REQ-e59441a62b3c is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:186 Refs: Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; back; ci; generated; intent; testing\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 184,
+        "title": "Add test coverage for ui gdd part 1 core domain services godot smoke",
+        "description": "- ADR-0030 Test-Refs:",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          183
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005\nChapters: CH01; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md; docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Tests.Godot/Game.Core/Domain/City.cs; Tests.Godot/Game.Core/Domain/CombatConfig.cs; Tests.Godot/Game.Core/Domain/Entities/Achievement.cs; Tests.Godot/Game.Core/Domain/Entities/SaveGame.cs; Tests.Godot/Game.Core/Domain/Entities/User.cs; Tests.Godot/Game.Core/Domain/GameModels.cs\nAcceptance: Requirement REQ-d0d8a13e08d1 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:23 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs; Requirement REQ-de67671a34ba is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:403 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs; Requirement REQ-90c35cac17ac is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:419 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs; Requirement REQ-00dd6507ce91 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:435 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs; Requirement REQ-41c95d6980a7 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:451 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs; Requirement REQ-fdc82884fe0d is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:467 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; back; ci; docs; generated; intent; testing\nOwner: architecture\nLayer: docs",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 185,
+        "title": "Add test coverage for ui gdd part 2 core task31performancegatetests task32requirementstests godot adapters",
+        "description": "- Test refs: `Game.Core.Tests/Tasks/Task31PerformanceGateTests.cs`, `Game.Core.Tests/Tasks/Task32RequirementsTests.cs`, `Tests.Godot/tests/Adapters/Db/test_db_handle_release.gd`, `Game.Core.Tests/Domain/ValueObjects/HealthTests.cs`.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          184
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md\nTest Refs: Game.Core.Tests/Domain/ValueObjects/HealthTests.cs; Tests.Godot/Game.Core/Domain/ValueObjects/CircularMapPosition.cs; Tests.Godot/Game.Core/Domain/ValueObjects/Damage.cs; Tests.Godot/Game.Core/Domain/ValueObjects/Health.cs; Tests.Godot/Game.Core/Domain/ValueObjects/Money.cs; Tests.Godot/Game.Core/Domain/ValueObjects/Position.cs\nAcceptance: Requirement REQ-5d6b99e1c724 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:483 Refs: Game.Core.Tests/Domain/ValueObjects/HealthTests.cs Tests.Godot/Game.Core/Domain/ValueObjects/CircularMapPosition.cs; Requirement REQ-d1434f18a1cf is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:491 Refs: Game.Core.Tests/Domain/ValueObjects/HealthTests.cs Tests.Godot/Game.Core/Domain/ValueObjects/CircularMapPosition.cs; Requirement REQ-dfcc1fb0aa67 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:502 Refs: Game.Core.Tests/Domain/ValueObjects/HealthTests.cs Tests.Godot/Game.Core/Domain/ValueObjects/CircularMapPosition.cs\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; back; ci; generated; intent; testing\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 186,
+        "title": "Validate hook suite hard core combat",
+        "description": "- Hook 1: Core combat simulation unit suite (`V4-A-003` to `V4-A-019`) as hard gate.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          185
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md\nTest Refs: Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd; Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd; Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs; Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs\nAcceptance: Requirement REQ-f92d04e43fc9 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:184 Refs: Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd; Requirement REQ-e0aa8093bd8f is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:185 Refs: Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd; Requirement REQ-988e0cca9e50 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:186 Refs: Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; back; ci; generated; intent; validation-gates\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 187,
+        "title": "Document ui gdd",
+        "description": "- docs/gdd/ui-gdd-flow.md ADR-Refs:",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005\nChapters: CH01; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md; docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md\nTest Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs; Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs; Tests.Godot/tests/Integration/test_screen_navigation_flow.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd; Tests.Godot/tests/UI/Task54/test_task54_flow_requires_new_game_setup_before_game_start.gd; Tests.Godot/tests/UI/test_task176_mainmenu_boot_flow.gd\nAcceptance: Requirement REQ-c6ac9efec6fa is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:10 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs\nTest Strategy: Red: add or update a document or metadata validation check for this planning slice.; Green: update the governed document or index with traceable references.; Refactor: keep Chapter 4/5-derived fields out of Chapter 3 generation.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; architecture-docs; back; docs; generated; intent\nOwner: architecture\nLayer: docs",
+        "testStrategy": "Red: add or update a document or metadata validation check for this planning slice.\nGreen: update the governed document or index with traceable references.\nRefactor: keep Chapter 4/5-derived fields out of Chapter 3 generation.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 191,
+        "title": "Implement part 4 wiring unwired list next candidates",
+        "description": "## 10. Unwired UI Feature List",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          190
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_feature_flags.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-eae21fdbb220 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:377 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-83aa374c2f2a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:386 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-b06e000b15c4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:393 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-dc30e0f48bde is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:400 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 192,
+        "title": "Implement part 5 type shaped wiring spec suggested",
+        "description": "- Suggested standalone surfaces: `MainMenu`, `BootStatusPanel`, `ContinueGateDialog`.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          191
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs; Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-5187ab7a9fc0 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:402 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-f2066975f93c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:409 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-61e0a6902857 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:416 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-71589cb62f34 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:425 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 193,
+        "title": "Implement part 6 tiles ids add mapping completion",
+        "description": "- Completion result: xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          192
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md\nTest Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd; Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-4060b1fc0b18 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:431 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-c1a59d136269 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:432 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-34cab11a096a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:441 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-1879fa84b219 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:448 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 194,
+        "title": "Implement part 7 wiring type shaped spec link",
+        "description": "- Matrix link: `## 5. UI Wiring Matrix row Meta Systems And Platform (T25, T26, T27, T28, T29, T30, T41, T42, T43, T44, T45, T46, T47, T48, T49, T50, T51, T52, T54, T55, T56, T57, T58, T60, T61, T62, T64, T65, T66, T67, T68, T69, T70, T71, T72, T73, T74, T75, T76, T77, T79, T80, T81, T82, T83, T84, T86, T87, T88, T89, T90, T94, T95, T96, T97, T98, T99, T100, T102, T103, T105, T107, T110, T111, T112, T113, T114, T115, T116, T117, T118, T121, T122, T123, T124, T125, T127, T128, T129, T130, T132, T133, T135, T136, T138, T139, T140, T143, T144, T145, T147, T148, T149, T150, T151, T152, T153, T154, T155, T156, T157, T158, T159, T160, T161, T162, T163, T165, T166, T167, T168, T169, T171, T172, T17",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          193
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd; Tests.Godot/tests/Adapters/Db/test_inventory_merge_and_clear_cross_restart.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd\nAcceptance: Requirement REQ-5b357e8530f4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:454 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-509d28ebf0f4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:457 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-19e5fff8da4f is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:464 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-792bd66bd304 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:473 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 195,
+        "title": "Implement part 8 what ids add mapping visible",
+        "description": "- Requirement IDs: `Add requirement mapping before implementation.`",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          194
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd; Tests.Godot/tests/UI/A11y/test_visible_labels.gd\nAcceptance: Requirement REQ-5bccd55885c2 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:480 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-ead8b3e06504 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:487 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-a6c275967f91 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:488 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-2afa270c7b7e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:498 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 196,
+        "title": "Implement part 9 completed count currently expected",
+        "description": "- Completed task count currently expected by Chapter 7: 180.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          195
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-7c8908846638 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:500 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 197,
+        "title": "Implement part 1 gameover fail advanceturnasync invalidoperationexception npc",
+        "description": "- 失败状态：在回合/循环结算时，若真人玩家因资金不足以支付全额过路费而出局（破产结算）：其剩余资金必须转移给收款方，玩家资金归零并标记出局；立即进入 GameOver 且后续回合推进必须被拒绝（再次调用 AdvanceTurnAsync 抛出 InvalidOperationException，且消息包含 \"GameOver\"）。若 NPC 因资金不足以支付全额过路费而出局：同样进行破产结算后退出本局并从后续轮转中移除（状态锁定，后续不会再成为 ActivePlayerId），其已占领城池状态变更为无人占领。",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          196
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd; Tests.Godot/tests/Security/Backlog/test_db_audit_exec_query_fail.gd\nAcceptance: Requirement REQ-a9f4f7d10132 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:302 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-558e8baa8185 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:308 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-cd5f9ab87ab3 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:364 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Requirement REQ-2b5f52cddf88 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:375 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 198,
+        "title": "Implement part 2 gameover fail mainmenu bootstatuspanel continuegatedialog",
+        "description": "- 建议的独立界面：`MainMenu`, `BootStatusPanel`, `ContinueGateDialog`.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          197
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs; Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-9f182f67ca3c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:402 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-354889f35b38 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:462 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-8361a5fe5b42 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:478 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-6af68e453f04 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:501 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 199,
+        "title": "Implement facing operator read surfaces are",
+        "description": "- Operator-facing read surfaces are allowed when player-facing interaction is not appropriate.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          198
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd\nAcceptance: Requirement REQ-8a9d05b5e651 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:311 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; input-camera; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 200,
+        "title": "Add response render persistence localization audio",
+        "description": "- System response: Render persistence, localization, audio, performance, and platform status on governed player-visible surfaces.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          199
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-logging-policy-and-lint.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/tests/Adapters/Config/test_settings_persistence.gd; Tests.Godot/tests/Adapters/Db/test_db_persistence_cross_restart.gd; Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd\nAcceptance: Requirement REQ-299f92124a27 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:460 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent; localization-audio\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 201,
+        "title": "Build state save visible status explainable",
+        "description": "- Explainable systems: config, governance, save, migration, and audit state must have visible ownership instead of hiding in logs.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          200
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-logging-policy-and-lint.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t2-city-ownership-model.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd; Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd; Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs\nAcceptance: Requirement REQ-7533db839342 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:42 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd; Requirement REQ-3ef6c39ed545 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:341 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd; Requirement REQ-5aa767b38581 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:342 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent; save-meta\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 202,
+        "title": "Create surface governed completed facing ownership",
+        "description": "- Provide one governed planning surface for all currently completed task capabilities.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          201
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t2-city-ownership-model.md\nTest Refs: Tests.Godot/Game.Godot/Scripts/UI/HUD.cs; Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-c2ef6d8ca31e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:46 Refs: Tests.Godot/Game.Godot/Scripts/UI/HUD.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-9395101e1e19 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:47 Refs: Tests.Godot/Game.Godot/Scripts/UI/HUD.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-9400dcb7c40f is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:273 Refs: Tests.Godot/Game.Godot/Scripts/UI/HUD.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-097862930181 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:364 Refs: Tests.Godot/Game.Godot/Scripts/UI/HUD.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent; ui-hud\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 203,
+        "title": "Establish baseline continue show start retry bootstrap",
+        "description": "- Must show: start, continue, retry bootstrap, and platform-start validation state.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          202
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md\nTest Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd; Tests.Godot/tests/UI/test_task121_new_game_setup_constraints_and_start.gd; Tests.Godot/tests/UI/test_task122_new_game_setup_constraints_and_start.gd; Tests.Godot/tests/UI/test_task94_new_game_setup_constraints_and_start.gd; Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs\nAcceptance: Requirement REQ-73bd057bf12c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:317 Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/test_task121_new_game_setup_constraints_and_start.gd; Requirement REQ-2d401122c8b5 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:395 Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/test_task121_new_game_setup_constraints_and_start.gd; Requirement REQ-d87bcefe106e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:396 Refs: Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_constraints_and_start.gd Tests.Godot/tests/UI/test_task121_new_game_setup_constraints_and_start.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; bootstrap; ci; gameplay; gdd; generated; intent\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 204,
+        "title": "Set up part 1 facing startup state build progression",
+        "description": "- Stable entry: startup, continue, and runtime entry must be explicit and recoverable.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          203
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md\nTest Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd; Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs; Tests.Godot/Game.Core/State/GameStateMachine.cs; Tests.Godot/Game.Core/State/GameStateManager.cs\nAcceptance: Requirement REQ-abdb34bae805 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:40 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Game.Core.Tests/State/GameStateMachineTests.cs; Requirement REQ-0bb6d191e6fa is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:56 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Game.Core.Tests/State/GameStateMachineTests.cs; Requirement REQ-8c3e825df5c6 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:318 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Game.Core.Tests/State/GameStateMachineTests.cs; Requirement REQ-c60e713d3813 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:336 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Game.Core.Tests/State/GameStateMachineTests.cs\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; build-export; ci; gameplay; gdd; generated; intent\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 205,
+        "title": "Set up part 2 save load localize tune audio",
+        "description": "- Player action: Save, load, localize, tune audio, or inspect platform/runtime status.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          204
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-t57-action-cards.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/tests/Adapters/test_task158_runtime_signal_subscription_lifecycle_guard.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd; Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd; Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd\nAcceptance: Requirement REQ-a26479f0f807 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:459 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/Game.Core/Domain/Player.cs\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; build-export; ci; gameplay; gdd; generated; intent\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 206,
+        "title": "Add test coverage for ui gdd cn part 1 core domain services smoke godot",
+        "description": "## 5. UI 接线矩阵 | 功能 | UI 界面 | 玩家操作 | 系统响应 | 测试引用 | | --- | --- | --- | --- | --- | | 入口与启动 (T01, T11, T21, T85, T91, T92, T93, T101, T108, T131, T164, T170, T176, T177) | MainMenu / 启动流程 | 启动、继续、重试引导，或进入一局游戏 | 显示规范启动路径、有效的继续行为以及明确的启动失败恢复 | `Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd`, `Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs`, `Game.Core.Tests/Tasks/Task1WindowsPlatformGateTests.cs`, `Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs` | | 核心循环状态与结果 (T03, T07, T08, T09, T10, T18, T19, T23, T24, T63, T78, T104, T106, T119, T120, T137, T141, T142) | HUD / 提示 / 结果界面 | 游玩一局，并观察时序、奖励、提示与终局切换 | 根据运行时事件呈现可读的阶段、计时器、HP、奖励、提示与胜负状态 | `Game.Core.Tests/Domain/",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          205
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t54-new-game-menu.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md\nTest Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd; Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd; Tests.Godot/tests/Scenes/Smoke/test_menu_play_starts_game_loop.gd; Tests.Godot/tests/Scenes/Smoke/test_menu_quit_is_consumed_by_game_loop.gd; Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs; Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs\nAcceptance: Requirement REQ-943e3e409bd8 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:262 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd; Requirement REQ-e0579534b553 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:403 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd; Requirement REQ-9d056b5790b7 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:435 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd; Requirement REQ-4f8bfa3615cd is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:451 Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; ci; gameplay; gdd; generated; intent; testing\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 207,
+        "title": "Add test coverage for ui gdd cn part 2 core godot adapters task25aitests utilities",
+        "description": "- 测试引用：`Game.Core.Tests/Tasks/Task25AiTests.cs`, `Game.Core.Tests/Utilities/NoGodotDependencyTests.cs`, `Game.Core.Tests/Services/PlayerEliminationTests.cs`, `Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd`.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          206
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-t50-game-start-config.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Game.Core.Tests/Services/PlayerEliminationTests.cs; Game.Core.Tests/Tasks/Task25AiTests.cs; Game.Core.Tests/Utilities/NoGodotDependencyTests.cs; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/Game.Core/Services/CollisionService.cs\nAcceptance: Requirement REQ-8dccb4e63c2f is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:467 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/Services/PlayerEliminationTests.cs; Requirement REQ-dbedca93ccdd is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:483 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/Services/PlayerEliminationTests.cs\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; ci; gameplay; gdd; generated; intent; testing\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 208,
+        "title": "Validate part 1 state config validation deterministic draft",
+        "description": "- Empty state: Integration closure must explicitly verify deterministic draft behavior: under the same input conditions and seed, RewardDraftEngine evidence from tasks 119 and 120 must produce repeatable draft outcomes; missing deterministic evidence keeps task 78 open.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          207
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md\nTest Refs: Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd; Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd; Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs; Game.Core.Tests/Tasks/ArchitectureHotspotsGateScriptTests.cs\nAcceptance: Requirement REQ-42f03855fe88 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:283 Refs: Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd; Requirement REQ-6073ad0ee897 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:309 Refs: Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd; Requirement REQ-ff3fcfeb47b4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:319 Refs: Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd; Requirement REQ-30e0ef161adc is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:347 Refs: Tests.Godot/tests/Integration/Security/test_task157_signal_compliance_integration_closure.gd Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; ci; gameplay; gdd; generated; intent; validation-gates\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 209,
+        "title": "Validate part 2 validation outcomes surface deterministic draft",
+        "description": "- Must not hide: validation, fallback, or migration outcomes that do not surface on a governed read surface.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          208
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-t61-ai-minimal-deterministic.md\nTest Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd; Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd; Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd; Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd; Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd; Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd\nAcceptance: Requirement REQ-aad35164836e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:348 Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd; Requirement REQ-f59afce38183 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:371 Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd; Requirement REQ-d85b7992354d is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:383 Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd; Requirement REQ-191893d791d8 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:413 Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; ci; gameplay; gdd; generated; intent; validation-gates\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 210,
+        "title": "Validate part 3 config validation migration inspect state",
+        "description": "- Player action: Inspect config state, validation, governance, migration, and report metadata.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          209
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-logging-policy-and-lint.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t50-game-start-config.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/Game.Core/State/GameStateMachine.cs\nAcceptance: Requirement REQ-bb0d152f4450 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:475 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/State/GameStateMachineTests.cs; Requirement REQ-4a051ffdf874 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:476 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/State/GameStateMachineTests.cs; Requirement REQ-25feee4ce95c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:479 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/State/GameStateMachineTests.cs; Requirement REQ-cf9ed989279a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:493 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/State/GameStateMachineTests.cs\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; ci; gameplay; gdd; generated; intent; validation-gates\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 211,
+        "title": "Validate part 4 resolve back xunit gdunit smoke",
+        "description": "- Evidence should resolve back to xUnit, GdUnit, smoke, or CI outputs already referenced by task views.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          210
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Preload-Whitelist.md\nTest Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd; Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd; Tests.Godot/tests/Scenes/Smoke/test_glue_connections.gd; Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd; Tests.Godot/tests/Scenes/Smoke/test_menu_play_start_fails_when_pack_index_invalid.gd; Tests.Godot/tests/Scenes/Smoke/test_menu_play_start_failure_shows_error.gd\nAcceptance: Requirement REQ-24b36f4beb7c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:494 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd; Requirement REQ-20a6e55ecb84 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:495 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; ci; gameplay; gdd; generated; intent; validation-gates\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 212,
+        "title": "Implement combat pressure targeting camera interact",
+        "description": "3. Interact with combat, economy, progression, and meta systems through governed surfaces.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md\nTest Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd; Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd; Tests.Godot/tests/UI/test_task121_new_game_setup_starts_game_with_selected_players_and_money.gd; Tests.Godot/tests/UI/test_task122_new_game_setup_starts_game_with_selected_players_and_money.gd; Tests.Godot/tests/UI/test_task94_new_game_setup_starts_game_with_selected_players_and_money.gd; Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs\nAcceptance: Requirement REQ-f6b6b4aa1166 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:53 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd; Requirement REQ-0ce27e6f06b1 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:330 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd; Requirement REQ-6ae13dc0829e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:427 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd; Requirement REQ-5d725df4a84c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:428 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; combat-loop; core; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 213,
+        "title": "Implement part 1 state resource progression build upgrade",
+        "description": "- Completion result: player can read deterministic resource and progression outcomes from UI state.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          212
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md\nTest Refs: Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/Game.Core/State/GameStateMachine.cs; Tests.Godot/Game.Core/State/GameStateManager.cs\nAcceptance: Requirement REQ-81e27adb54c0 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:297 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-61d9619a5578 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:335 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-e7e51a2b853a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:443 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-d312bf393d4f is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:444 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; core; gameplay; gdd; generated; intent; resource-economy\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 214,
+        "title": "Implement part 2 completion result read deterministic resource",
+        "description": "- Completion result: player can read deterministic resource and progression outcomes from UI state.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          213
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md\nTest Refs: Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/Game.Core/State/GameStateMachine.cs; Tests.Godot/Game.Core/State/GameStateManager.cs\nAcceptance: Requirement REQ-7f86c36e6c71 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:447 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; core; gameplay; gdd; generated; intent; resource-economy\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 215,
+        "title": "Develop part 1 core state failure campaign bootstrap",
+        "description": "## 5. UI Wiring Matrix | Feature | UI Surface | Player Action | System Response | Test Refs | | --- | --- | --- | --- | --- | | Entry And Bootstrap (T01, T11, T21, T85, T91, T92, T93, T101, T108, T131, T164, T170, T176, T177) | MainMenu / Boot Flow | Launch, continue, retry bootstrap, or enter a run | Show canonical startup path, valid continue behavior, and explicit startup failure recovery | `Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd`, `Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs`, `Game.Core.Tests/Tasks/Task1WindowsPlatformGateTests.cs`, `Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs` | | Core Loop State And Outcome (T03, T07, T08, T09, T10,",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          214
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-monopoly-loop.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md\nTest Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd; Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd; Tests.Godot/tests/Scenes/Smoke/test_menu_play_starts_game_loop.gd; Tests.Godot/tests/Scenes/Smoke/test_menu_quit_is_consumed_by_game_loop.gd; Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd; Tests.Godot/tests/Scenes/Sanguo/test_task149_sanguo_campaign_full_loop_boss_victory.gd\nAcceptance: Requirement REQ-91578c288480 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:262 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd; Requirement REQ-92da51b594c4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:278 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd; Requirement REQ-1ff09d9f00ac is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:284 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd; Requirement REQ-30a053bc0425 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:290 Refs: Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; ci; core; gameplay; gdd; generated; intent; run-state\nOwner: gameplay\nLayer: ci",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 216,
+        "title": "Develop part 2 state failure gameover phase fail",
+        "description": "- Failure state: 在回合/循环结算时，若真人玩家因资金不足以支付全额过路费而出局（破产结算）：其剩余资金必须转移给收款方，玩家资金归零并标记出局；立即进入 GameOver 且后续回合推进必须被拒绝（再次调用 AdvanceTurnAsync 抛出 InvalidOperationException，且消息包含 \"GameOver\"）。若 NPC 因资金不足以支付全额过路费而出局：同样进行破产结算后退出本局并从后续轮转中移除（状态锁定，后续不会再成为 ActivePlayerId），其已占领城池状态变更为无人占领。",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          215
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md\nTest Refs: Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs; Tests.Godot/Game.Core/State/GameStateMachine.cs; Tests.Godot/Game.Core/State/GameStateManager.cs; Tests.Godot/Game.Core/State/SaveData.cs\nAcceptance: Requirement REQ-bd5b16c49da8 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:302 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-dd9498218d99 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:308 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-10d09e4b95fa is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:323 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-7491a676b3c4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:324 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; core; gameplay; gdd; generated; intent; run-state\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 217,
+        "title": "Develop part 3 state campaign failure runmode isolation",
+        "description": "- Failure state: Campaign runmode isolation must be explicitly defined and verified with observable boundaries: entering campaign runmode applies only the intended isolation behavior, and non-campaign paths must not be isolated by this split.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          216
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md\nTest Refs: Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs; Tests.Godot/Game.Core/State/GameStateMachine.cs; Tests.Godot/Game.Core/State/GameStateManager.cs; Tests.Godot/Game.Core/State/SaveData.cs\nAcceptance: Requirement REQ-a0178269e8a3 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:398 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-e62fc0b7c763 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:411 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-a194ce2754f2 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:412 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-da7e12f9552b is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:414 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; core; gameplay; gdd; generated; intent; run-state\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 218,
+        "title": "Develop part 4 state failure tiles the gameover",
+        "description": "- Failure state: xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          217
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md\nTest Refs: Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs; Tests.Godot/Game.Core/State/GameStateMachine.cs; Tests.Godot/Game.Core/State/GameStateManager.cs; Tests.Godot/Game.Core/State/SaveData.cs\nAcceptance: Requirement REQ-fd0168e767b6 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:430 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-fc9b155607cb is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:462 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-dc4cc4f0f7ae is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:478 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Requirement REQ-424e75ff42a2 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:501 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; core; gameplay; gdd; generated; intent; run-state\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 219,
+        "title": "Create pressure readable loop phase resources",
+        "description": "- Readable loop: phase, pressure, resources, HP, prompts, and outcomes must be understandable from the UI alone.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          218
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md\nTest Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd; Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs; Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs; Game.Core.Tests/Contracts/SanguoEconomyMoneyDeltaAppliedMultipliersContractsTests.cs\nAcceptance: Requirement REQ-f3bdfec8e344 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:41 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs; Requirement REQ-40ca2ff8bb7b is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:329 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; core; gameplay; gdd; generated; intent; spawn-wave\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 220,
+        "title": "Build contract evolution additive unless later",
+        "description": "- Contract evolution must be additive unless a later migration plan explicitly changes the contract.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          202
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-3810a1457878 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:179 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; core; gameplay; generated; intent; prd; save-meta\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 221,
+        "title": "Set up placeholders skills display enemy names",
+        "description": "- Display player/enemy names, model placeholders, runtime attributes, skills, passive skills, relics, and buff/debuff placeholders.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          187
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t2-city-ownership-model.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md\nTest Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd; Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd\nAcceptance: Requirement REQ-d7488052d972 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:165 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Tests.Godot/Game.Core/Domain/Player.cs\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; back; build-export; ci; generated; intent; prd\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 222,
+        "title": "Validate provide matching",
+        "description": "4. provide matching implementation or task evidence",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          221
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Preload-Whitelist.md\nTest Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd\nAcceptance: Requirement REQ-2654be8260e6 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:188 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; back; ci; generated; intent; prd; validation-gates\nOwner: architecture\nLayer: ci",
+        "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 223,
+        "title": "Implement part 1 character attributes combat use are",
+        "description": "### 2.1 Player Character Attributes Player character combat attributes are:",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          219
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md\nTest Refs: Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd; Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs; Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs\nAcceptance: Requirement REQ-a7e8048a0491 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:20 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd; Requirement REQ-27efd0f0580f is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:50 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd; Requirement REQ-ac76d5b5eed8 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:96 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd; Requirement REQ-190c71c34423 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:157 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; combat-loop; core; gameplay; generated; intent; prd\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 188,
+        "title": "Implement part 1 deterministic recovery failure invalid persistence",
+        "description": "- Deterministic recovery: failure, invalid action, persistence, and fallback states must be reproducible and visible.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md\nTest Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd; Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/Config/test_settings_persistence.gd; Tests.Godot/tests/Adapters/Db/test_db_persistence_cross_restart.gd; Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd\nAcceptance: Requirement REQ-f0829947f827 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:43 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-fb9460868a26 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:49 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-bcfc08f6e83d is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:128 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-c4cbf2211737 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:276 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 189,
+        "title": "Implement part 2 audience facing tiles completion result",
+        "description": "- Audience: player-facing.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          188
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-86889912b54e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:282 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/Game.Core/Domain/Player.cs; Requirement REQ-e86cd932e45b is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:288 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/Game.Core/Domain/Player.cs; Requirement REQ-2a9191e8b7bd is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:291 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/Game.Core/Domain/Player.cs; Requirement REQ-77780c6af37c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:294 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/Game.Core/Domain/Player.cs\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 224,
+        "title": "Implement part 2 win returns the map main",
+        "description": "- On win, player returns to the map/main loop after report and reward confirmation, and player HP remains at combat-end HP.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          223
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-t60-game-end-and-settlement.md\nTest Refs: Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/addons/gdUnit4/src/core/report/GdUnitReport.gd; Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd; Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd; Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs\nAcceptance: Requirement REQ-a0c0ce55770b is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:160 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/report/GdUnitReport.gd\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; combat-loop; core; gameplay; generated; intent; prd\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 225,
+        "title": "Implement combat gap character only formal",
+        "description": "- Gap: implementation missing and must be added in this phase. | ReqID | PRD v4 requirement | Status | Code evidence | Test evidence | Assessment | |---|---|---|---|---|---| | V4-R1 | Extend character combat attributes while keeping `CombatRating` | Gap | `Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs` | Existing character loader tests should be extended | Character schema currently only exposes `CombatRating` for combat. | | V4-R2 | Add formal enemy and Boss combat catalogs | Gap | `Data/random_events.json` | No dedicated enemy/Boss catalog tests yet | Random events only provide `encounterId` and `encounterTarget`; formal enemy/Boss definitions are missing. | | V4-R3 | Add minimal",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          224
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Sanguo-GameLoop-Events.md\nTest Refs: Tests.Godot/Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs; Tests.Godot/Game.Core/Contracts/Sanguo/AppliedMultipliers.cs; Tests.Godot/Game.Core/Contracts/Sanguo/BoardEvents.cs; Tests.Godot/Game.Core/Contracts/Sanguo/EconomyEvents.cs; Tests.Godot/Game.Core/Contracts/Sanguo/GameEvents.cs; Tests.Godot/Game.Core/Contracts/Sanguo/GameStartConfig.cs\nAcceptance: Requirement REQ-5a9e9d2867cc is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:13 Refs: Tests.Godot/Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs Tests.Godot/Game.Core/Contracts/Sanguo/AppliedMultipliers.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; ci; combat-loop; core; gameplay; generated; intent; prd\nOwner: gameplay\nLayer: ci",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 226,
+        "title": "Implement playerfinalhp runtimeplayerstats",
+        "description": "- `playerFinalHp`",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          225
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Preload-Whitelist.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md\nTest Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs; Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs; Game.Core.Tests/Contracts/SanguoEconomyMoneyDeltaAppliedMultipliersContractsTests.cs; Game.Core.Tests/Contracts/SanguoEventContractsTests.cs\nAcceptance: Requirement REQ-698a6d643eff is implemented with traceable evidence. Source: docs/prd/prd_v4.md:500 Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Requirement REQ-e0be38d2d0c2 is implemented with traceable evidence. Source: docs/prd/prd_v4.md:504 Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; core; gameplay; generated; intent; prd\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 227,
+        "title": "Implement freeze main conflicts treated bug",
+        "description": "- Any implementation that conflicts with this freeze must be treated as a bug unless superseded by a later freeze revision.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          226
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0004; ADR-0005; ADR-0024\nChapters: CH01; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-V3/08/08-rules-freeze-and-assertion-routing.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-freeze-change-control.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md\nTest Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs; Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs; Game.Core.Tests/Contracts/SanguoEconomyMoneyDeltaAppliedMultipliersContractsTests.cs; Game.Core.Tests/Contracts/SanguoEventContractsTests.cs\nAcceptance: Requirement REQ-24e6edc31b13 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:7 Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Requirement REQ-e1a690bdbc96 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:85 Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Requirement REQ-9eb25432fcff is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:159 Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs; Requirement REQ-c804155a95b3 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:171 Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs\nTest Strategy: Red: add or update xUnit coverage for the primary deterministic behavior.; Green: implement the minimal pure-core logic required by the assertions.; Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; core; gameplay; generated; intent; prd; rules-freeze\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Red: add or update xUnit coverage for the primary deterministic behavior.\nGreen: implement the minimal pure-core logic required by the assertions.\nRefactor: preserve passing tests and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 228,
+        "title": "Document traceability contract changes status legend",
+        "description": "## 1. Requirement Traceability Status legend:",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          187
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005\nChapters: CH01; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Preload-Whitelist.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-Quality-Metrics.md\nTest Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs; Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd; Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd\nAcceptance: Requirement REQ-0fc29954ba84 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:7 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs; Requirement REQ-1994b9ffab06 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:113 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs; Requirement REQ-08202eb39b59 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:124 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs; Requirement REQ-9b21ada5b7c7 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:125 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs; Requirement REQ-429139de1ca2 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:126 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs\nTest Strategy: Red: add or update a document or metadata validation check for this planning slice.; Green: update the governed document or index with traceable references.; Refactor: keep Chapter 4/5-derived fields out of Chapter 3 generation.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: add; architecture; architecture-docs; back; docs; generated; intent; prd\nOwner: architecture\nLayer: docs",
+        "testStrategy": "Red: add or update a document or metadata validation check for this planning slice.\nGreen: update the governed document or index with traceable references.\nRefactor: keep Chapter 4/5-derived fields out of Chapter 3 generation.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 190,
+        "title": "Implement part 3 meta systems platform audience facing",
+        "description": "### Meta Systems And Platform",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          189
+        ],
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-logging-policy-and-lint.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd; Tests.Godot/tests/Adapters/Db/test_inventory_merge_and_clear_cross_restart.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd\nAcceptance: Requirement REQ-2e13e2abbe85 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:299 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-81b623da8dda is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:300 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-9f490c20d611 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:340 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-c2481598749c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:375 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
       }
     ],
     "metadata": {

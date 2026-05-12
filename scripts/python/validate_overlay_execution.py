@@ -243,7 +243,7 @@ def validate_overlay(prd_id: str, overlay_dir: Path, required_headings: list[str
                 if page.name != "_index.md" and not fm.get("Arch-Refs"):
                     target = errors if strict_refs else warnings
                     target.append(f"{rel}: missing Arch-Refs in front matter")
-                if page.name != "_index.md" and not fm.get("ADRs"):
+                if page.name != "_index.md" and not (fm.get("ADRs") or fm.get("ADR-Refs")):
                     target = errors if strict_refs else warnings
                     target.append(f"{rel}: missing ADRs in front matter")
                 if page.name not in {"_index.md", "ACCEPTANCE_CHECKLIST.md"} and not fm.get("Test-Refs"):

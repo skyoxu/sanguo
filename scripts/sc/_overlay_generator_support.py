@@ -182,6 +182,31 @@ def discover_existing_overlay_profile(repo_root: Path, prd_id: str) -> list[dict
     return items
 
 
+def merge_overlay_profiles(
+    existing_profile: list[dict[str, Any]],
+    default_profile: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    merged: list[dict[str, Any]] = []
+    by_filename: dict[str, dict[str, Any]] = {
+        str(item.get("filename") or ""): dict(item)
+        for item in existing_profile
+        if str(item.get("filename") or "").strip()
+    }
+
+    for default_item in default_profile:
+        filename = str(default_item.get("filename") or "").strip()
+        if not filename:
+            continue
+        if filename in by_filename:
+            merged.append(by_filename.pop(filename))
+        else:
+            merged.append(dict(default_item))
+
+    for filename in sorted(by_filename):
+        merged.append(by_filename[filename])
+    return merged
+
+
 def build_default_overlay_profile(prd_id: str) -> list[dict[str, Any]]:
     return [
         {"filename": "_index.md", "page_kind": "index", "current_title": f"{prd_id} Feature Slice Index", "headings": ["Directory Role", "Document Groups"]},

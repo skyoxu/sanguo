@@ -20,6 +20,7 @@ public sealed class SanguoContractInstantiationTests
             ToIndex: 3,
             Steps: 3,
             PassedStart: false,
+            MapCycleNumber: 1,
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null
@@ -31,6 +32,7 @@ public sealed class SanguoContractInstantiationTests
         moved.ToIndex.Should().Be(3);
         moved.Steps.Should().Be(3);
         moved.PassedStart.Should().BeFalse();
+        moved.MapCycleNumber.Should().Be(1);
         moved.OccurredAt.Should().Be(now);
         moved.CorrelationId.Should().Be("corr-1");
         moved.CausationId.Should().BeNull();
@@ -172,6 +174,7 @@ public sealed class SanguoContractInstantiationTests
             PlayerId: "p1",
             Money: 123.45m,
             PositionIndex: 7,
+            MapCycleNumber: 1,
             OccurredAt: now,
             CorrelationId: "corr-1",
             CausationId: null
@@ -180,6 +183,7 @@ public sealed class SanguoContractInstantiationTests
         stateChanged.PlayerId.Should().Be("p1");
         stateChanged.Money.Should().Be(123.45m);
         stateChanged.PositionIndex.Should().Be(7);
+        stateChanged.MapCycleNumber.Should().Be(1);
         stateChanged.OccurredAt.Should().Be(now);
         stateChanged.CorrelationId.Should().Be("corr-1");
         stateChanged.CausationId.Should().BeNull();

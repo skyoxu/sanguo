@@ -30,5 +30,7 @@ public sealed record SanguoObjectiveSkipped(
 
     public int TurnNumber => RoundNumber;
 
+    public int MapCycleNumber => RoundNumber;
+
     public string ActivePlayerId => string.Empty;
 }
