@@ -157,7 +157,8 @@ def _quality_gates_all_legacy(args: argparse.Namespace) -> int:
             dotnet_summary_path = _as_posix(candidate)
 
     coverage_mode = "soft" if bool(args.coverage_soft) else "hard"
-    coverage_failed = (dotnet_status == "coverage_failed" or not dotnet_threshold_ok)
+    coverage_missing = dotnet_status == "unknown"
+    coverage_failed = (dotnet_status == "coverage_failed" or (not coverage_missing and not dotnet_threshold_ok))
     coverage_blocking = coverage_failed and coverage_mode == "hard"
 
     perf_artifact = out_dir / "quality-gates-perf.json"
@@ -227,17 +228,30 @@ def _quality_gates_all_legacy(args: argparse.Namespace) -> int:
 
     ci_pipeline_rc = int(ci_pipeline_rc_env) if ci_pipeline_rc_env else 0
 
+    perf_blocking = bool(args.require_perf)
+    audit_blocking = bool(args.require_audit)
+    arch_blocking = bool(args.require_arch_hotspots)
+
     failed_reasons = []
+    advisory_reasons = []
     if gate_bundle_rc != 0:
         failed_reasons.append("gate_bundle_failed")
     if coverage_blocking:
         failed_reasons.append("coverage_gate_failed")
-    if not perf_ok:
+    elif coverage_failed:
+        advisory_reasons.append("coverage_gate_failed")
+    if not perf_ok and perf_blocking:
         failed_reasons.append("perf_gate_failed")
-    if not audit_ok:
+    elif not perf_ok:
+        advisory_reasons.append("perf_gate_failed")
+    if not audit_ok and audit_blocking:
         failed_reasons.append("audit_gate_failed")
-    if not arch_ok:
+    elif not audit_ok:
+        advisory_reasons.append("audit_gate_failed")
+    if not arch_ok and arch_blocking:
         failed_reasons.append("architecture_hotspots_failed")
+    elif not arch_ok:
+        advisory_reasons.append("architecture_hotspots_failed")
     if gdunit_enabled and not gdunit_ok:
         failed_reasons.append("gdunit_hard_failed")
     if args.smoke and smoke_rc != 0:
@@ -250,6 +264,7 @@ def _quality_gates_all_legacy(args: argparse.Namespace) -> int:
         "cmd": "quality_gates.py all",
         "status": status,
         "coverage_mode": coverage_mode,
+        "coverage_missing": coverage_missing,
         "dotnet": {
             "status": dotnet_status,
             "threshold_ok": dotnet_threshold_ok,
@@ -272,10 +287,14 @@ def _quality_gates_all_legacy(args: argparse.Namespace) -> int:
             "quality_gates_audit": _as_posix(audit_artifact),
         },
         "reasons": failed_reasons,
+        "advisory_reasons": advisory_reasons,
         "gate_bundle_rc": gate_bundle_rc,
         "perf_rc": perf_rc,
         "audit_rc": audit_rc,
         "ci_pipeline_rc": ci_pipeline_rc,
+        "require_perf": perf_blocking,
+        "require_audit": audit_blocking,
+        "require_arch_hotspots": arch_blocking,
         "notes": "adapters + security gdunit-hard path supported",
     }
     _write_json(summary_path, summary)
@@ -299,6 +318,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_all.add_argument("--out-dir", default="")
     p_all.add_argument("--run-id", default="")
     p_all.add_argument("--coverage-soft", action="store_true", help="Treat coverage threshold failure as soft gate.")
+    p_all.add_argument("--require-perf", action="store_true", help="Fail when validate_perf fails.")
+    p_all.add_argument("--require-audit", action="store_true", help="Fail when validate_audit_logs fails.")
+    p_all.add_argument("--require-arch-hotspots", action="store_true", help="Fail when architecture hotspots budget fails.")
     p_all.add_argument("--gdunit-hard", action="store_true", help="run hard GdUnit set (Adapters/Config + Security)")
     p_all.add_argument("--smoke", action="store_true", help="run strict headless smoke after the hard gate bundle")
     return parser

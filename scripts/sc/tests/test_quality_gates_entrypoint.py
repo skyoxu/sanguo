@@ -175,6 +175,104 @@ class QualityGatesEntrypointTests(unittest.TestCase):
             else:
                 os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
 
+    def test_all_should_treat_perf_audit_arch_failures_as_advisory_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            out_dir = td_path / "out"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            dotnet_summary = td_path / "dotnet-summary.json"
+            dotnet_summary.write_text(
+                json.dumps(
+                    {
+                        "status": "ok",
+                        "threshold_ok": True,
+                        "coverage": {"lines": 0.0, "branches": 0.0},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            def _fake_run(cmd: list[str]) -> int:
+                s = " ".join(cmd)
+                if "validate_perf.py" in s:
+                    return 1
+                if "validate_audit_logs.py" in s:
+                    return 1
+                if "check_architecture_hotspots.py" in s:
+                    return 1
+                return 0
+
+            env = {
+                "QUALITY_GATES_TEST_DOTNET_SUMMARY_JSON": str(dotnet_summary),
+            }
+            with mock.patch.dict(os.environ, env, clear=False), \
+                    mock.patch.object(quality_gates, "_run_and_stream", side_effect=_fake_run):
+                rc = quality_gates.main(["all", "--out-dir", str(out_dir)])
+
+            self.assertEqual(0, rc)
+            summary = json.loads((Path("logs/ci") / quality_gates._today() / "quality-gates-summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("ok", summary.get("status"))
+            self.assertEqual([], summary.get("reasons"))
+            self.assertIn("perf_gate_failed", summary.get("advisory_reasons", []))
+            self.assertIn("audit_gate_failed", summary.get("advisory_reasons", []))
+            self.assertIn("architecture_hotspots_failed", summary.get("advisory_reasons", []))
+
+    def test_all_should_block_on_perf_audit_arch_when_require_flags_enabled(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            out_dir = td_path / "out"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            dotnet_summary = td_path / "dotnet-summary.json"
+            dotnet_summary.write_text(
+                json.dumps(
+                    {
+                        "status": "ok",
+                        "threshold_ok": True,
+                        "coverage": {"lines": 0.0, "branches": 0.0},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            def _fake_run(cmd: list[str]) -> int:
+                s = " ".join(cmd)
+                if "validate_perf.py" in s:
+                    return 1
+                if "validate_audit_logs.py" in s:
+                    return 1
+                if "check_architecture_hotspots.py" in s:
+                    return 1
+                return 0
+
+            env = {
+                "QUALITY_GATES_TEST_DOTNET_SUMMARY_JSON": str(dotnet_summary),
+            }
+            with mock.patch.dict(os.environ, env, clear=False), \
+                    mock.patch.object(quality_gates, "_run_and_stream", side_effect=_fake_run):
+                rc = quality_gates.main(
+                    [
+                        "all",
+                        "--out-dir",
+                        str(out_dir),
+                        "--require-perf",
+                        "--require-audit",
+                        "--require-arch-hotspots",
+                    ]
+                )
+
+            self.assertEqual(1, rc)
+            summary = json.loads((Path("logs/ci") / quality_gates._today() / "quality-gates-summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("fail", summary.get("status"))
+            self.assertIn("perf_gate_failed", summary.get("reasons", []))
+            self.assertIn("audit_gate_failed", summary.get("reasons", []))
+            self.assertIn("architecture_hotspots_failed", summary.get("reasons", []))
+
 
 if __name__ == "__main__":
     unittest.main()
