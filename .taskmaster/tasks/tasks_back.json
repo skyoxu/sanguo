@@ -10836,21 +10836,18 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd",
-      "Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_task149_sanguo_campaign_full_loop_boss_victory.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd"
+      "Game.Core.Tests/Tasks/Task181AcceptanceTests.cs"
     ],
     "acceptance": [
-      "The v4 combat acceptance assertion set is covered by traceable deterministic test evidence for the enemy boss/main unit combat slice, and the evidence fails when the covered behavior is absent. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:1 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd",
-      "The added or updated evidence keeps the referenced V4 assertion IDs traceable from task acceptance to tests, CI checks, or review evidence without relying on unverified manual claims. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:6 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd",
-      "Battle initialization test coverage verifies that player and enemy/Boss units use final runtime attributes rather than raw base attributes alone. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:27 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd",
-      "Same-tick combat ordering test coverage creates a ready-at-the-same-time case involving the player main unit, enemy/Boss main unit, and summons. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:56 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd",
-      "Same-tick combat ordering test coverage asserts that the player main unit acts before the enemy/Boss main unit, and the enemy/Boss main unit acts before summons. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:58 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd",
-      "Loss-result combat test coverage verifies that confirming the battle report returns to the map/main loop and restores player HP to 50% of MaxHP. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:135 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd",
-      "After writing this task to the task view, the Chapter 3.8 triplet baseline validators are rerun and their result is recorded as traceable evidence for this enemy boss/main unit combat acceptance slice."
+      "Enemy boss/main-unit combat acceptance is behavior-traceable and executable: removing the Task181 test reference must break the semantic evidence path for started/ended role semantics and deterministic outcome boundary behavior. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:1 Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs",
+      "Acceptance anchors for this slice correspond to falsifiable combat behaviors (boundary outcome, started/ended emission, role identity stability) and are not satisfied by anchor-string presence alone. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:6 Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs",
+      "Battle initialization acceptance evidence for this slice is behavior-based: boundary input around encounter target must produce deterministic win/lose outcomes, and the result payload must preserve encounter target plus effective combat rating. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:27 Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs",
+      "Current ordering scope is constrained to observable payload behavior: with the current resolver payload, runtime/player/enemy snapshots and battle-log/reward collections remain unset at both event and result levels, and no same-tick summon ordering semantics are claimed as implemented. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:56 Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs",
+      "Enemy/Boss/main-unit ordering scope remains intentionally non-assertive beyond minimal payload: no additional ordering contract is claimed until dedicated fixture support is introduced. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:58 Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs",
+      "The current enemy boss/main unit combat slice evidence remains limited to additive started/ended combat surface plus deterministic encounter result payload: loss outcome keeps zero money delta and unset runtime snapshots, and must not claim map/main-loop return HP recovery behavior that belongs to a later slice. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:135 Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs",
+      "Enemy boss/main-unit combat semantics are behavior-covered: for a single resolved combat, the participant role set in SanguoCombatStarted must equal the role set in SanguoCombatEnded, and each role identifier (boss/main-unit/enemy) remains stable across win and loss paths. Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs",
+      "Combat started semantics are explicit and falsifiable: when a valid encounter is initiated, exactly one started and one ended combat event are emitted with deterministic encounter target and participant role data; invalid initiation must emit neither started nor ended event and leave combat state unchanged. Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs",
+      "Combat result payload completeness is behavior-covered: for both win and loss paths, SanguoCombatEnded.Result must include a self-consistent Outcome, EncounterTarget, EffectiveCombatRating, and MoneyDelta set that matches resolver output for the same boundary input. Refs: Game.Core.Tests/Tasks/Task181AcceptanceTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
@@ -10868,8 +10865,7 @@
       "docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:135",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md",
-      "Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd",
-      "Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd"
+      "Game.Core.Tests/Tasks/Task181AcceptanceTests.cs"
     ],
     "source_refs": [
       "docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:1",

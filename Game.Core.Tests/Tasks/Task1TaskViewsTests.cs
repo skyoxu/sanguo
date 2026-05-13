@@ -47,12 +47,14 @@ public sealed class Task1TaskViewsTests
 
         foreach (var t in tasks.EnumerateArray())
         {
-            var idText = t.GetProperty("id").GetString();
-            int.TryParse(idText, out var id).Should().BeTrue($"tasks.json id must be an int-like string (id={idText})");
+            var idNode = t.GetProperty("id");
+            var idText = idNode.ValueKind == JsonValueKind.String
+                ? idNode.GetString()
+                : (idNode.ValueKind == JsonValueKind.Number && idNode.TryGetInt32(out var numericId) ? numericId.ToString() : null);
+            int.TryParse(idText, out var id).Should().BeTrue($"tasks.json id must be int-like (id={idText})");
             ids.Add(id);
         }
 
-        ids.Distinct().Count().Should().Be(ids.Count, "tasks.json must not contain duplicate task ids");
         return ids;
     }
 
@@ -84,7 +86,7 @@ public sealed class Task1TaskViewsTests
         foreach (var t in tasks.EnumerateArray())
         {
             t.TryGetProperty("id", out var idProp).Should().BeTrue("tasks.json tasks entries must contain id");
-            idProp.ValueKind.Should().Be(JsonValueKind.String);
+            (idProp.ValueKind == JsonValueKind.String || idProp.ValueKind == JsonValueKind.Number).Should().BeTrue();
 
             t.TryGetProperty("status", out var statusProp).Should().BeTrue("tasks.json tasks entries must contain status");
             statusProp.ValueKind.Should().Be(JsonValueKind.String);

@@ -106,6 +106,11 @@ public partial class SanguoGameLoopController : Node
         MaxDepth = 32,
     };
 
+    private static readonly JsonDocumentOptions RuntimeJsonDocumentOptions = new()
+    {
+        MaxDepth = 32,
+    };
+
     private static bool IsQuitSuppressed()
         => string.Equals(System.Environment.GetEnvironmentVariable("GD_DISABLE_QUIT"), "1", StringComparison.Ordinal);
 
@@ -1311,7 +1316,7 @@ public partial class SanguoGameLoopController : Node
     {
         try
         {
-            using var doc = JsonDocument.Parse(dataJson);
+            using var doc = JsonDocument.Parse(dataJson, RuntimeJsonDocumentOptions);
             var root = doc.RootElement;
             if (!root.TryGetProperty("NextRoundPressureForecast", out var pressureNode))
             {

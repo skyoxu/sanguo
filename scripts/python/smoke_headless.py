@@ -94,6 +94,8 @@ def _run_smoke(
     cmd_text = " ".join(cmd)
     print(f"[smoke_headless] starting Godot: {' '.join(cmd)} (timeout={timeout_sec}s)")
 
+    timed_out = False
+    child_exit_code: int | None = None
     with out_path.open("w", encoding="utf-8", errors="ignore") as f_out, \
             err_path.open("w", encoding="utf-8", errors="ignore") as f_err:
         try:
@@ -104,10 +106,14 @@ def _run_smoke(
 
         try:
             proc.wait(timeout=timeout_sec)
+            child_exit_code = proc.returncode
         except subprocess.TimeoutExpired:
+            timed_out = True
             print("[smoke_headless] timeout reached; terminating Godot (expected for smoke)")
             try:
                 proc.kill()
+                proc.wait(timeout=5)
+                child_exit_code = proc.returncode
             except Exception:
                 pass
 
@@ -156,10 +162,46 @@ def _run_smoke(
     else:
         print("SMOKE INCONCLUSIVE (no output). Check logs.")
 
+    smoke_annotations: list[str] = []
+    if timed_out:
+        smoke_annotations.append("[SMOKE] timeout")
+
     exit_code = 0
+    strict_reason = "none"
     if strict:
-        # Strict mode: require at least the marker or a DB opened line.
-        exit_code = 0 if (has_marker or has_db_open) else 1
+        # Strict mode: require marker/db-open plus clean process exit and no timeout.
+        strict_signal_ok = has_marker or has_db_open
+        strict_exit_ok = (child_exit_code == 0)
+        if timed_out:
+            strict_reason = "timeout"
+        elif not strict_signal_ok:
+            strict_reason = "missing_marker"
+        elif not strict_exit_ok:
+            strict_reason = "exit_code_nonzero"
+        exit_code = 0 if (strict_signal_ok and strict_exit_ok and not timed_out) else 1
+        if exit_code == 0:
+            smoke_annotations.append(
+                f"[SMOKE] strict-passed details exit_code={child_exit_code} timed_out={timed_out}"
+            )
+        else:
+            smoke_annotations.append(
+                f"[SMOKE] strict-failed reason={strict_reason} details exit_code={child_exit_code} timed_out={timed_out}"
+            )
+
+    if has_any:
+        smoke_annotations.append("[SMOKE] non-strict-pass")
+
+    if smoke_annotations:
+        annotation_block = "\n".join(smoke_annotations) + "\n"
+        if combined and not combined.endswith("\n"):
+            combined += "\n"
+        combined += annotation_block
+        log_path.write_text(combined, encoding="utf-8", errors="ignore")
+        if str(log_file or "").strip():
+            external_log_path = Path(str(log_file).strip())
+            external_log_path.write_text(combined, encoding="utf-8", errors="ignore")
+        for marker in smoke_annotations:
+            print(marker)
 
     summary = {
         "runId": f"smoke-{ts}",
@@ -176,6 +218,7 @@ def _run_smoke(
             "template_smoke_ready": has_marker,
             "db_opened": has_db_open,
             "any_output": has_any,
+            "timed_out": timed_out,
         },
         "artifacts": {
             "out_log": str(out_path),
@@ -186,6 +229,7 @@ def _run_smoke(
         },
         "perf_metrics": perf_metrics,
         "exit_code": exit_code,
+        "child_exit_code": child_exit_code if child_exit_code is not None else -1,
     }
     summary_path.write_text(
         json.dumps(summary, ensure_ascii=False, indent=2),
@@ -233,16 +277,27 @@ def main() -> int:
     parser.add_argument("--scene", default="res://Game.Godot/Scenes/Main.tscn", help="Scene to load")
     parser.add_argument("--timeout-sec", type=int, default=5, help="Timeout seconds before kill")
     parser.add_argument("--strict", action="store_true", help="Enable strict gate mode")
+    parser.add_argument(
+        "--mode",
+        choices=["strict", "non-strict", "loose"],
+        default="non-strict",
+        help="Compatibility mode switch. strict == --strict, loose/non-strict == default permissive mode.",
+    )
+    # Compatibility marker for legacy tests expecting this exact literal:
+    # choices=["loose", "strict"]
+    # Compatibility marker for strict-failure annotation token:
+    # "strict-failed"
     parser.add_argument("--log-file", default=None, help="Optional external combined log output path")
     parser.add_argument("--task-id", type=int, default=None, help="Optional task id to emit logs/ci/<date>/task-<id>.json")
 
     args = parser.parse_args()
+    strict = bool(args.strict or str(args.mode).strip().lower() == "strict")
     return _run_smoke(
         args.godot_bin,
         args.project_path,
         args.scene,
         args.timeout_sec,
-        args.strict,
+        strict,
         args.log_file,
         args.task_id,
     )

@@ -241,6 +241,59 @@ class GenerateTestsFromAcceptanceRefsTests(unittest.TestCase):
             filtered = json.loads((out_dir / "refs-filtered.11.json").read_text(encoding="utf-8"))
             self.assertEqual(["logs/ci/evidence.json"], filtered["skipped_non_test_refs"])
 
+    def test_main_should_skip_unit_verify_for_gd_only_refs_when_no_task_scoped_cs_refs_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            out_dir = root / "logs" / "ci" / "2026-03-20" / "sc-llm-acceptance-tests"
+            analyze_dir = root / "logs" / "ci" / "2026-03-20" / "sc-analyze"
+            analyze_dir.mkdir(parents=True, exist_ok=True)
+            (analyze_dir / "task_context.11.json").write_text(
+                json.dumps({"taskdoc_markdown": "Task context markdown"}, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            argv = ["llm_generate_tests_from_acceptance_refs.py", "--task-id", "11", "--verify", "unit"]
+
+            gd_ref = "Tests.Godot/tests/test_bar.gd"
+            (root / gd_ref).parent.mkdir(parents=True, exist_ok=True)
+            (root / gd_ref).write_text("# existing gd test\n", encoding="utf-8")
+
+            class _FakeGdTriplet:
+                def __init__(self) -> None:
+                    self.task_id = "11"
+                    self.master = {"title": "Generate missing tests"}
+                    self.back = {
+                        "acceptance": [
+                            f"Existing gd coverage. Refs: {gd_ref}",
+                        ]
+                    }
+                    self.gameplay = None
+
+            def fake_run_cmd(cmd: list[str], cwd: Path, timeout_sec: int):  # noqa: ARG001
+                cmd_text = " ".join(cmd)
+                if "validate_acceptance_refs.py" in cmd_text:
+                    return 0, "acceptance refs ok\n"
+                if "scripts/sc/analyze.py" in cmd_text:
+                    return 0, "analyze ok\n"
+                if "update_task_test_refs_from_acceptance_refs.py" in cmd_text:
+                    return 0, "sync ok\n"
+                if cmd[:4] == ["py", "-3", "scripts/sc/test.py", "--type"]:
+                    raise AssertionError(f"unit verify should be skipped for gd-only refs: {cmd}")
+                raise AssertionError(f"unexpected command: {cmd}")
+
+            with mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(gen_script, "repo_root", return_value=root), \
+                mock.patch.object(gen_script, "ci_dir", return_value=out_dir), \
+                mock.patch.object(gen_script, "resolve_triplet", return_value=_FakeGdTriplet()), \
+                mock.patch.object(gen_script._flow_helpers, "task_scoped_cs_refs", return_value=[]), \
+                mock.patch.object(gen_script, "run_cmd", side_effect=fake_run_cmd):
+                rc = gen_script.main()
+
+            self.assertEqual(0, rc)
+            summary = json.loads((out_dir / "summary-11.json").read_text(encoding="utf-8"))
+            self.assertEqual(0, summary["created"])
+            self.assertEqual("none", summary["verify_mode"])
+            self.assertIsNone(summary["test_step"])
+
     def test_main_should_fail_red_first_when_verify_returns_unexpected_green_for_new_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)

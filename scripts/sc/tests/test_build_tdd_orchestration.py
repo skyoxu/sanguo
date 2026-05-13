@@ -278,6 +278,33 @@ class BuildTddOrchestrationTests(unittest.TestCase):
             self.assertEqual("Game.sln", green_mock.call_args.kwargs["solution"])
             summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("Game.sln", summary["solution"])
+            stage_summary = json.loads((out_dir / "summary.green.json").read_text(encoding="utf-8"))
+            self.assertEqual("green", stage_summary["stage"])
+
+    def test_find_latest_green_summary_should_prefer_stage_specific_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            logs_dir = root / "logs" / "ci" / "2026-05-12" / "sc-build-tdd"
+            logs_dir.mkdir(parents=True)
+            stale = {
+                "stage": "refactor",
+                "status": "fail",
+                "task": {"task_id": "181"},
+            }
+            green = {
+                "stage": "green",
+                "status": "ok",
+                "task": {"task_id": "181"},
+            }
+            (logs_dir / "summary.json").write_text(json.dumps(stale) + "\n", encoding="utf-8")
+            (logs_dir / "summary.green.json").write_text(json.dumps(green) + "\n", encoding="utf-8")
+
+            with mock.patch.object(tdd_script, "repo_root", return_value=root):
+                path, payload = tdd_script._find_latest_green_summary("181")
+
+            self.assertEqual(logs_dir / "summary.green.json", path)
+            self.assertEqual("green", payload["stage"])
+            self.assertEqual("ok", payload["status"])
 
 
 if __name__ == "__main__":

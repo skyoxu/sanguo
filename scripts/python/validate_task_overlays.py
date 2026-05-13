@@ -153,7 +153,7 @@ def load_tasks_from_file(task_file: Path) -> list[dict[str, Any]]:
         return []
     data = json.loads(task_file.read_text(encoding="utf-8"))
     if isinstance(data, list):
-        return data
+        return [item for item in data if isinstance(item, dict)]
     # Taskmaster main format: { "master": { "tasks": [...], "metadata": {...} } }
     if isinstance(data, dict) and isinstance(data.get("master"), dict):
         master = data["master"]

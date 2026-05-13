@@ -340,6 +340,10 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
             "cmd": ["py", "-3", "scripts/python/check_workflow_gate_enforcement.py"],
         },
         {
+            "name": "signal_compliance_workflow_hard_gate",
+            "cmd": ["py", "-3", "scripts/python/check_signal_compliance_workflow_hard_gate.py"],
+        },
+        {
             "name": "chapter7_ui_wiring_gate",
             "cmd": ["py", "-3", "scripts/python/validate_chapter7_ui_wiring.py"],
         },

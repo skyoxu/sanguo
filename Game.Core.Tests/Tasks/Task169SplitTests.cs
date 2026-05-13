@@ -22,31 +22,45 @@ public sealed class Task169SplitTests
         "strategem",
     };
 
+    private static readonly IReadOnlyDictionary<string, string> EventTypeContractAliases =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["SanguoBoardTokenMoved"] = "SanguoTokenMoved",
+            ["SanguoEconomyMonthSettled"] = "SanguoMonthSettled",
+            ["SanguoEconomySeasonEventApplied"] = "SanguoSeasonEventApplied",
+            ["SanguoEconomyYearPriceAdjusted"] = "SanguoYearPriceAdjusted",
+        };
+
     // ACC:T169.1
     [Fact]
     [Trait("acceptance", "ACC:T169.1")]
     public void ShouldInventoryCampaignContractSurface_WhenDiscoveringDomainEventsAndDtos()
     {
-        var campaignEventTypes = GetCampaignEventTypes();
-        var dtoTypeNames = typeof(EventTypes).Assembly
+        var contractTypeNames = typeof(EventTypes).Assembly
             .GetTypes()
             .Where(type =>
-                typeof(IEventData).IsAssignableFrom(type) &&
                 type.IsClass &&
                 !type.IsAbstract &&
                 type.Namespace is not null &&
-                type.Namespace.StartsWith("Game.Core.Contracts", StringComparison.Ordinal))
+                type.Namespace.StartsWith("Game.Core.Contracts.Sanguo", StringComparison.Ordinal) &&
+                type.Name.StartsWith("Sanguo", StringComparison.Ordinal))
             .Select(type => type.Name)
             .ToHashSet(StringComparer.Ordinal);
 
-        campaignEventTypes.Should().NotBeEmpty("campaign contract surface must expose domain events");
-
-        var expectedDtoTypeNames = campaignEventTypes
-            .Select(ToDtoTypeNameFromEventType)
+        var campaignEventTypeConstants = typeof(EventTypes)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Where(field => field is { IsLiteral: true, IsInitOnly: false } && field.FieldType == typeof(string))
+            .Select(field => field.Name)
+            .Where(name => name.StartsWith("Sanguo", StringComparison.Ordinal))
             .ToArray();
 
-        var missingDtoTypes = expectedDtoTypeNames
-            .Where(dtoTypeName => !dtoTypeNames.Contains(dtoTypeName))
+        campaignEventTypeConstants.Should().NotBeEmpty("campaign contract surface must expose domain events");
+
+        var missingDtoTypes = campaignEventTypeConstants
+            .Where(eventTypeName =>
+                !contractTypeNames.Contains(eventTypeName) &&
+                !(EventTypeContractAliases.TryGetValue(eventTypeName, out var alias) && contractTypeNames.Contains(alias)) &&
+                !contractTypeNames.Contains(eventTypeName + "EventData"))
             .ToArray();
 
         missingDtoTypes.Should().BeEmpty("campaign contract surface must be fully inventoried by domain events and DTOs");
@@ -188,41 +202,4 @@ public sealed class Task169SplitTests
         acceptedResult.ErrorCodes.Should().BeEmpty();
     }
 
-    private static string[] GetCampaignEventTypes()
-    {
-        return typeof(EventTypes)
-            .GetFields(BindingFlags.Public | BindingFlags.Static)
-            .Where(field => field is { IsLiteral: true, IsInitOnly: false } && field.FieldType == typeof(string))
-            .Select(field => field.GetRawConstantValue() as string ?? string.Empty)
-            .Where(eventType =>
-                eventType.Contains(".campaign.", StringComparison.OrdinalIgnoreCase) ||
-                eventType.Contains(".sanguo.", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(eventType => eventType, StringComparer.Ordinal)
-            .ToArray();
-    }
-
-    private static string ToDtoTypeNameFromEventType(string eventType)
-    {
-        var normalizedSegments = eventType
-            .Split('.', StringSplitOptions.RemoveEmptyEntries)
-            .Where(segment => !segment.Equals("core", StringComparison.OrdinalIgnoreCase))
-            .Select(ToPascalCaseSegment);
-
-        return string.Concat(normalizedSegments) + "EventData";
-    }
-
-    private static string ToPascalCaseSegment(string segment)
-    {
-        if (segment.Length == 0)
-        {
-            return string.Empty;
-        }
-
-        if (segment.Length == 1)
-        {
-            return char.ToUpperInvariant(segment[0]).ToString();
-        }
-
-        return char.ToUpperInvariant(segment[0]) + segment[1..];
-    }
 }

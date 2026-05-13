@@ -134,9 +134,13 @@ class LocalHardChecksHarnessTests(unittest.TestCase):
 
     def test_run_with_godot_bin_should_append_engine_steps(self) -> None:
         commands: list[list[str]] = []
+        observed_smoke_env: dict[str, str | None] = {}
 
         def runner(cmd: list[str]) -> int:
             commands.append(list(cmd))
+            if len(commands) == 5:
+                observed_smoke_env["exit_on_ready"] = __import__("os").environ.get("GD_SMOKE_EXIT_ON_READY")
+                observed_smoke_env["exit_delay"] = __import__("os").environ.get("GD_SMOKE_EXIT_DELAY_SEC")
             return 0
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -161,6 +165,8 @@ class LocalHardChecksHarnessTests(unittest.TestCase):
             self.assertIn("--strict", commands[4])
             self.assertIn("--timeout-sec", commands[4])
             self.assertIn("7", commands[4])
+            self.assertEqual("1", observed_smoke_env.get("exit_on_ready"))
+            self.assertEqual("0.25", observed_smoke_env.get("exit_delay"))
 
     def test_project_health_fail_should_stop_before_other_hard_checks(self) -> None:
         commands: list[list[str]] = []

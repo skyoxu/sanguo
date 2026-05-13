@@ -50,7 +50,7 @@ public sealed class Task177AcceptanceTests
             var overlayRefs = ReadStringArray(task, "overlay_refs");
             var acceptance = ReadStringArray(task, "acceptance");
 
-            overlayRefs.Should().Contain("docs/architecture/overlays/PRD-SANGUO-V3/08/_index.md");
+            overlayRefs.Should().Contain("docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md");
             acceptance.Should().HaveCount(8);
             acceptance[0].Should().Contain("Runtime HUD And Outcome Surfaces");
             acceptance[0].Should().Contain("HUD / Prompt / Outcome Surfaces");
