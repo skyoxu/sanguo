@@ -63,6 +63,26 @@ def run_smoke_headless(godot_bin: str) -> int:
     return _run(build_smoke_headless_cmd(godot_bin=godot_bin))
 
 
+def run_smoke_headless_with_exit_on_ready(godot_bin: str) -> int:
+    """Run strict smoke with deterministic auto-exit env for CI stability."""
+
+    original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
+    original_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
+    try:
+        os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
+        os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = "0.25"
+        return run_smoke_headless(godot_bin)
+    finally:
+        if original_exit_on_ready is None:
+            os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
+        if original_exit_delay is None:
+            os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
+        else:
+            os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
+
+
 def _today() -> str:
     return dt.date.today().strftime("%Y-%m-%d")
 
@@ -203,7 +223,7 @@ def _quality_gates_all_legacy(args: argparse.Namespace) -> int:
 
     smoke_rc = 0
     if args.smoke:
-        smoke_rc = run_smoke_headless(args.godot_bin)
+        smoke_rc = run_smoke_headless_with_exit_on_ready(args.godot_bin)
 
     ci_pipeline_rc = int(ci_pipeline_rc_env) if ci_pipeline_rc_env else 0
 
