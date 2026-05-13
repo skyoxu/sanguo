@@ -10,7 +10,8 @@
     "generated_at",
     "records",
     "report_catalog_summary",
-    "active_task_summary"
+    "active_task_summary",
+    "project_overview"
   ],
   "properties": {
     "kind": {
@@ -65,6 +66,72 @@
               "task_id": { "type": "string", "minLength": 1 },
               "status": { "type": "string", "minLength": 1 },
               "recommended_action": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "project_overview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "game_name",
+        "game_type",
+        "documents",
+        "prototype_core",
+        "game_type_specifics"
+      ],
+      "properties": {
+        "game_name": { "type": "string" },
+        "game_type": { "type": "string" },
+        "documents": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["prd", "gdd", "prototype"],
+          "properties": {
+            "prd": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "gdd": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "prototype": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "prototype_core": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["game_feature", "core_gameplay_loop", "win_fail_conditions"],
+          "properties": {
+            "game_feature": { "type": "string" },
+            "core_gameplay_loop": { "type": "string" },
+            "win_fail_conditions": { "type": "string" }
+          }
+        },
+        "game_type_specifics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["game_type", "guide_path", "selected_sections"],
+          "properties": {
+            "game_type": { "type": "string" },
+            "guide_path": { "type": "string" },
+            "selected_sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "title", "answer"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "title": { "type": "string" },
+                  "answer": { "type": "string" }
+                }
+              }
             }
           }
         }

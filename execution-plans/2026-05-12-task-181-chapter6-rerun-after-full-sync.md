@@ -1,0 +1,21 @@
+# Task 181 chapter6 rerun after full sync
+
+- Title: Task 181 chapter6 rerun after full sync
+- Status: active
+- Branch: task/T181
+- Git Head: 012eb14da35c696bfc2e8d32caf55a7bb262afc9
+- Goal: TODO: describe goal
+- Scope: TODO: define scope
+- Current step: TODO: define current step
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: TODO: define stop-loss boundary
+- Next action: TODO: define next action
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 181 --resume`
+- Open questions: none recorded yet
+- Exit criteria: TODO: define exit criteria
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `181`
+- Related run id: n/a (no pipeline run id linked yet)
+- Related latest.json: n/a (no task-scoped latest.json pointer resolved yet)
+- Related pipeline artifacts: n/a (no pipeline artifact directory resolved yet)

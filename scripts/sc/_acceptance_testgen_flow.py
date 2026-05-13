@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
+from _sc_test_refs import task_scoped_cs_refs
+
 
 def load_task_context(
     *,
@@ -79,6 +81,14 @@ def run_verify(
     repo_root_fn: Callable[[], Path],
     write_text_fn: Callable[[Path, str], None],
 ) -> tuple[str, dict[str, Any] | None]:
+    if verify == "unit" and any_gd:
+        task_cs = task_scoped_cs_refs(task_id=task_id)
+        if not task_cs:
+            write_text_fn(
+                out_dir / f"verify-{task_id}.log",
+                "SKIP: verify=unit has no task-scoped .cs refs; skip repo-wide unit verification for gd-only acceptance refs.\n",
+            )
+            return "none", None
     mode = "all" if verify == "auto" and any_gd else ("unit" if verify == "auto" else verify)
     if mode == "none":
         return mode, None

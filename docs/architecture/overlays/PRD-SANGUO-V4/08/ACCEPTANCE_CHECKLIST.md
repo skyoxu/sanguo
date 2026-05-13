@@ -19,6 +19,7 @@ Use this checklist to confirm the PRD-SANGUO-V4 combat overlay covers the
 minimal-intrusion PVE battle upgrade, additive contract evolution, scene reuse,
 and test evidence expectations.
 
+## 一、文档完整性验收
 ## Document Completeness
 
 - [ ] References `docs/prd/prd_v4.md`,
@@ -30,6 +31,7 @@ and test evidence expectations.
 - [ ] States that parallel schemas, combat events, battle scenes, and start
   config surfaces must not be created.
 
+## 二、架构设计验收
 ## Architecture Checks
 
 - [ ] Reuses `SanguoCharacterDefinition`, `GameStartConfig`,
@@ -42,6 +44,7 @@ and test evidence expectations.
 - [ ] States that Boss and normal enemies use the same combat formula and only
   differ by configuration, presentation, and rewards.
 
+## 三、代码实现验收
 ## Implementation Checks
 
 - [ ] Extends `Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs` and
@@ -55,6 +58,7 @@ and test evidence expectations.
 - [ ] Supports battle log window, pause and continue, 2x speed, shared result
   modal structure, and multi-reward display.
 
+## 四、测试框架验收
 ## Test Checks
 
 - [ ] Adds loader coverage for extended combat attributes and `CombatRating`

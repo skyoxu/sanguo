@@ -66,7 +66,8 @@ public sealed class Task56RandomEventCoverageTests
                 "p1",
                 "corr",
                 "ui.menu.start",
-                DateTimeOffset.UtcNow
+                DateTimeOffset.UtcNow,
+                0
             })!;
 
         await t;

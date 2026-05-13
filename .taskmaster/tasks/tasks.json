@@ -5884,6 +5884,16 @@
         "status": "pending",
         "priority": "medium",
         "dependencies": [],
+        "adrRefs": [
+          "ADR-0005",
+          "ADR-0011"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH06",
+          "CH07",
+          "CH10"
+        ],
         "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005; ADR-0011\nChapters: CH01; CH06; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t59-combat-pve.md; docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md\nTest Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd; Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd; Tests.Godot/tests/Scenes/Sanguo/test_task149_sanguo_campaign_full_loop_boss_victory.gd; Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd; Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd\nAcceptance: Requirement REQ-5ddc009b76e2 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:1 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-29032eaef127 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:6 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-69543cc4cbd6 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:27 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-be5244537086 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:56 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-40137f64d4b2 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:58 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd; Requirement REQ-da0cc031d6f9 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:135 Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd\nTest Strategy: Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.; Green: implement the smallest validation, script, or evidence path required to pass.; Refactor: keep output stable and rerun the Chapter 3 baseline validators.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; back; ci; generated; intent; testing\nOwner: architecture\nLayer: ci",
         "testStrategy": "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.\nGreen: implement the smallest validation, script, or evidence path required to pass.\nRefactor: keep output stable and rerun the Chapter 3 baseline validators.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
@@ -6492,6 +6502,411 @@
         "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-logging-policy-and-lint.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd; Tests.Godot/tests/Adapters/Db/test_inventory_merge_and_clear_cross_restart.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd\nAcceptance: Requirement REQ-2e13e2abbe85 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:299 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-81b623da8dda is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:300 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-9f490c20d611 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:340 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Requirement REQ-c2481598749c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:375 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
         "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+      },
+      {
+        "id": 50,
+        "title": "Spine: GameStartConfig 与可复现开局输入",
+        "description": "定义唯一开局配置与可复现输入（地图/人数/初始资金档/全局事件间隔/seed/角色分配全局唯一），并通过事件对外发布。",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [],
+        "details": "Story: PRD-SANGUO-T2-SKEL-50\nADR Refs: ADR-0004; ADR-0005; ADR-0011; ADR-0019\nChapters: CH02; CH04; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs; Tests.Godot/tests/UI/test_task50_new_game_menu_started_event_payload.gd\nAcceptance: xUnit: 存在可生成/校验的唯一开局配置 GameStartConfig，且字段齐全：map_id、players_count（仅允许 4–8）、starting_money_preset（仅允许 5000/10000/20000）、global_event_interval_turns（仅允许 5/10/20）、random_seed、character_assignments（在该配置内角色分配不重复，且与 players_count 对应）。对任一非法取值必须被拒绝（不得生成可用配置）。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs; 地图列表的来源仅允许读取 res://Data/maps/_index.json；不得通过扫描目录、枚举文件或其他来源构建地图列表。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs; GdUnit4: 完成“新游戏”入口流程后，必须发布 core.sanguo.game.started（或语义等价事件），且事件 payload 明确包含 game_start_config 与 random_seed（可据此还原本次开局输入）。 Refs: Tests.Godot/tests/UI/test_task50_new_game_menu_started_event_payload.gd; xUnit: GameStartConfig 必须可序列化为 JSON 审计快照，且该快照可被反序列化回等价的 GameStartConfig（字段值层面一致，包含 random_seed 与 character_assignments），用于复现同一开局输入。 Refs: Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs\nTest Strategy: xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。; GdUnit4：走一遍新游戏配置界面并断言 started 事件被发布。\nLabels: setup; config; seed; determinism\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：校验 GameStartConfig 字段、范围、唯一性与 JSON 快照可复现。\nGdUnit4：走一遍新游戏配置界面并断言 started 事件被发布。"
+      },
+      {
+        "id": 51,
+        "title": "Spine: 倍率合成规则与 applied_multipliers 事件快照",
+        "description": "锁死经济修饰合成规则（乘法链+clamp+[0.5,3.0]+0.5步进）并要求所有经济事件写入 applied_multipliers。",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [
+          50
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-51\nADR Refs: ADR-0004; ADR-0005\nChapters: CH04; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs; Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs; Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd\nAcceptance: 锁死合成规则：effective_multiplier = clamp(character * building * event * action_card, 0.5, 3.0)；各 multiplier 输入必须为 0.5 步进，遇到非 0.5 步进不得静默修正（如四舍五入/截断），必须明确拒绝并不产生基于该输入的经济结果。 Refs: Game.Core.Tests/Tasks/Task51MultiplierCompositionTests.cs; 所有经济相关域事件的 payload 必须包含 applied_multipliers 快照，至少包含 character/building/event/action_card 四个因子与 clamp 后的 effective_multiplier 最终值；该快照应足以支撑展示/回放而无需在下游重新计算。 Refs: Game.Core.Tests/Tasks/Task51AppliedMultipliersPayloadTests.cs; UI 不参与金额计算：UI 展示的倍率与金额必须来自事件 payload/投影中的 applied_multipliers 快照；同一事件的展示不因 UI 层本地倍率/状态变化而重新计算或发生漂移。 Refs: Tests.Godot/tests/UI/test_task51_hud_event_log_applied_multipliers.gd\nTest Strategy: xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。; GdUnit4：UI 仅展示，不做计算回归。\nLabels: economy; multipliers; events; contracts\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：合成与 clamp 的确定性测试（含非法步进拒绝）。\nGdUnit4：UI 仅展示，不做计算回归。"
+      },
+      {
+        "id": 52,
+        "title": "Spine: 回合窗口锁死（BeforeRoll 行动卡 0/1）与事件触发顺序",
+        "description": "锁死 TurnPhase.BeforeRoll 窗口规则（行动卡每回合最多1张）以及事件格与全局事件触发顺序（同一 RandomEventPool）。",
+        "status": "done",
+        "priority": "high",
+        "dependencies": [
+          50,
+          51
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-52\nADR Refs: ADR-0004; ADR-0005\nChapters: CH04; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs; Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs; Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs\nAcceptance: 在 gameplay 流程中，玩家于 TurnPhase.BeforeRoll 阶段每回合最多只能成功打出 1 张行动卡；同回合第二次尝试必须被拒绝且不产生任何 multiplier_step_delta/效果输出，并与 back 视图的窗口锁死语义一致。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs; 事件触发语义统一且可验证：落到事件格时触发 OnTileEvent；回合计数满足每 N 回合一次时触发 OnGlobalTurnEvent（N∈{5,10,20}）；两类触发都必须从同一 RandomEventPool 取事件（同一池/同一随机流的语义，不允许分裂为两个独立池导致抽取序列不一致）。 Refs: Game.Core.Tests/Tasks/Task52EventTriggerOrderTests.cs; 构造同一回合同时满足“落到事件格”与“全局回合事件触发”的场景：触发顺序固定为先 OnTileEvent 后 OnGlobalTurnEvent；并且 applied_multipliers（或等价对外可观察的累积记录）按该顺序追加，结果在重复运行中保持一致。 Refs: Game.Core.Tests/Tasks/Task52OutOfOrderEventRegressionTests.cs; OnTileEvent 与 OnGlobalTurnEvent 的所有效果必须仅通过 multiplier_step_delta 形式输入，并按 T51 的合成规则计算最终结果；不得绕过 T51 直接修改最终倍率/数值，且该输入序列对测试可观测/可断言。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs; 在固定随机种子与固定回合输入下，重复运行多次必须得到相同的事件选择、触发顺序与合成结果；若任一环节出现非确定性（顺序/抽取/合成结果漂移）则判为不通过。 Refs: Game.Core.Tests/Tasks/Task52TurnPhaseWindowTests.cs\nTest Strategy: xUnit：状态机窗口与乱序事件回归。\nLabels: turn; phase; cards; events; ordering\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：状态机窗口与乱序事件回归。"
+      },
+      {
+        "id": 53,
+        "title": "模块: 地图配置（多文件）与 Tile 语义",
+        "description": "引入地图配置多文件格式（index + definition），定义 city/facility/event/empty tile 语义、track 口径、layout 坐标与 actions 结构，以 Data/Contracts V2 为准。",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          50
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-53\nADR Refs: ADR-0004; ADR-0011; ADR-0019\nChapters: CH02; CH04; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs; Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs; Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd\nAcceptance: 多文件地图配置在运行路径下可被加载：先解析 `res://Data/maps/_index.json`，再按 `maps[].path` 加载对应地图定义文件；任一文件缺失/JSON 无效/字段缺失时应产生可诊断的失败结果（而非静默成功）。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs; 存在且可解析 `res://Data/maps/_index.json`；包含 `schemaVersion`、`version`、`maps[]`，且 `maps[]` 中每个元素至少包含 `mapId`、`nameKey`、`descriptionKey`、`path`、`previewImagePath`、`recommendedPlayersMin`、`recommendedPlayersMax`。 Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs; 存在且可解析 `res://Data/maps/<map_id>.json`；包含 `schemaVersion`、`version`、`mapId`、`track.length`、`track.startTileId`、`tiles[]`；`tiles[]` 中每个 tile 至少包含 `tileId`、`tileKind`（仅 city/facility/event/empty）、`nameKey`、`layout.x`、`layout.y`、`actions[]`；并满足冻结口径 `track.startTileId == tiles[0].tileId`，否则判定为无效。 Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs; xUnit: tiles[] must be non-empty (length>=1) so that tiles[0] exists; otherwise the map definition is invalid. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs; 地图格 UI 渲染时，每个 tile 均显示非空、可读的名称文本：当 i18n 对应 `nameKey` 存在时显示本地化文本，否则显示 `nameKey`；不允许显示为空或不可见。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd; xUnit: Provide and run unit tests that parse and validate the map index and map definition schemas (including startTileId freeze). Refs: Game.Core.Tests/Tasks/Task53MapConfigParsingTests.cs Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs; GdUnit4: Provide and run a scene/UI test that verifies tile name is visible and falls back to nameKey when i18n is missing. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd\nTest Strategy: xUnit：解析与校验 schema；GdUnit4：验证 name 可见。\nLabels: map; config; tiles\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：解析与校验 schema；GdUnit4：验证 name 可见。"
+      },
+      {
+        "id": 55,
+        "title": "模块: 角色配置（≥8 角色）与初始资金口径",
+        "description": "完善角色数据为只读配置，并冻结初始资金与经济 steps 口径。",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          50,
+          51
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-55\nADR Refs: ADR-0004; ADR-0019\nChapters: CH02; CH04\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs; Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs; Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs; Game.Core.Tests/Tasks/Task55CharacterEventSnapshotTests.cs\nAcceptance: xUnit: 角色配置必须从 res://Data/characters.json 加载为 SanguoCharactersCatalog；SchemaVersion/Version 必须 > 0；Characters.Count 必须 >= 8；CharacterId 必须全局唯一。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs; xUnit: 初始资金口径必须确定且可复现：money0 = StartingMoneyPreset * (ClampSteps(BaseDefaultSteps + StartingMoneyStepDelta) * 0.5)；其中 ClampSteps 将步数 clamp 到 [1..6]。 Refs: Game.Core.Tests/Tasks/Task55StartingMoneyComputationTests.cs; xUnit: 经济倍率口径必须以 steps 为唯一语义：AppliedMultipliers.EffectiveMultiplier 必须等于 EffectiveSteps * 0.5；并且 steps 必须通过 ClampSteps 约束到 [1..6]。 Refs: Game.Core.Tests/Tasks/Task55CharacterMultipliersAppliedTests.cs; xUnit: 角色 portrait_path 必须位于 res://Assets/...；扩展名白名单（.png/.webp/.svg）；并且 portrait 对应资源大小必须 <= 1MB；不满足则加载失败并给出可断言的错误码。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs; xUnit: 角色 CharacterId 必须全局唯一；若出现重复 id，加载必须失败并给出可断言的错误码。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs; xUnit: 角色配置必须作为只读配置对外暴露：对外返回的 Characters 集合必须不可变（尝试通过 IList 修改应抛出异常），并且不可通过公开 API 修改影响后续输出。 Refs: Game.Core.Tests/Tasks/Task55CharacterConfigParsingTests.cs; xUnit: Provide an event snapshot test for character multipliers: with fixed input, the emitted economy event payload (including applied_multipliers) is stable and reproducible. Refs: Game.Core.Tests/Tasks/Task55CharacterEventSnapshotTests.cs\nTest Strategy: xUnit：解析/口径/事件快照测试。\nLabels: character; economy; config\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：解析/口径/事件快照测试。"
+      },
+      {
+        "id": 56,
+        "title": "模块: 随机事件池（事件格 + 每N回合全局事件）",
+        "description": "引入随机事件目录（events+pools）并统一两类触发：事件格触发与每N回合全局触发；抽样与应用需可复现并可复盘。",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          50,
+          51,
+          52,
+          53
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-56\nADR Refs: ADR-0004; ADR-0005\nChapters: CH04; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs; Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs; Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd\nAcceptance: 每次随机事件触发后必须产出可复盘的抽样记录：至少包含 candidates hash 与最终 picked index/id；在 random_seed 与 rng_context_id 相同且回合推进/触发序列一致时，基于该记录进行复盘必须得到完全一致的选中结果（picked index/id 完全一致）。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs; 事件池必须统一两类触发入口：事件格触发 + 每N回合全局触发（N∈{5,10,20}），且两类入口必须使用同一套抽样与记录规则；在 random_seed 与 rng_context_id 相同且触发/回合推进序列一致时，结果必须可复现，并记录 candidates hash + picked index/id。 Refs: Game.Core.Tests/Tasks/Task56RandomEventDeterminismTests.cs; 事件效果必须受 effectKind 白名单约束：仅允许 moneyDelta / economyStepDelta；economyStepDelta 必须通过 stepDelta(steps) 进入 applied_multipliers.event 并经过合成与 clamp 后再生效；moneyDelta 必须直接按数值加减，且 UI 不得参与数值计算路径。 Refs: Game.Core.Tests/Tasks/Task56EventMultiplierTests.cs; 踩事件格触发事件后，UI 必须可见事件提示，且提示内容展示来自事件 payload（不是空白或与 payload 无关）。 Refs: Tests.Godot/tests/UI/test_task56_hud_event_prompt_uses_payload.gd\nTest Strategy: xUnit：确定性与步进；GdUnit4：事件格 UI 提示。\nLabels: events; random; determinism\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：确定性与步进；GdUnit4：事件格 UI 提示。"
+      },
+      {
+        "id": 57,
+        "title": "模块: 行动卡（BeforeRoll）止损版",
+        "description": "引入行动卡目录：BeforeRoll 窗口可出 0/1 张行动卡影响本回合倍率快照；卡牌效果允许 steps 经济倍率（economyStepDelta）与所有权变更（transferOwnership），并携带 durationRounds。",
+        "status": "deferred",
+        "priority": "medium",
+        "dependencies": [
+          50,
+          51,
+          52
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-57\nADR Refs: ADR-0004; ADR-0005\nChapters: CH04; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs; Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs; Tests.Godot/tests/UI/test_task57_action_card_before_roll_flow.gd; Tests.Godot/tests/UI/test_task57_before_roll_play_or_skip.gd; Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd\nAcceptance: Gameplay 验收口径与本任务描述一致：行动卡规则与加载来源以 res://Data/action_cards.json 为准，不依赖 tasks_back.json 等占位输入来改变行动卡策略或效果边界。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs; 从 res://Data/action_cards.json 读取并按 schemaVersion/version/cards[] 解析；每张 card 必含 cardId/nameKey/descriptionKey/effectKind/stepDelta/durationRounds；允许 effectKind=economyStepDelta / transferOwnership；其他 effectKind（含 moneyDelta 等）不得被加载为可用行动卡。 Refs: Game.Core.Tests/Tasks/Task57ActionCardPolicyTests.cs; BeforeRoll 每回合最多 1 张，出牌发布 core.sanguo.action_card.played，并将 stepDelta 计入 applied_multipliers.action_card（仅 Core 计算）。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs; GdUnit4: UI 提供“出牌/跳过”，出牌后进入掷骰。 Refs: Tests.Godot/tests/UI/test_task57_before_roll_action_card_play_or_skip_flow.gd; 选择跳过时不发布 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应因行动卡产生变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs; xUnit: In the same turn, attempting to play a second action card must NOT change applied_multipliers.action_card (no stepDelta stacking), even if no extra action_card.played event is emitted. Refs: Game.Core.Tests/Tasks/Task57ActionCardWindowTests.cs; transferOwnership 行动卡：当玩家位于他人城市上并出牌，必须发布 core.sanguo.city.owner.changed(ReasonStolen) 与 core.sanguo.action_card.played，且本回合 applied_multipliers.action_card 不应变化。 Refs: Game.Core.Tests/Tasks/Task57ActionCardOwnershipTransferTests.cs\nTest Strategy: xUnit：策略与窗口；GdUnit4：最小 UI 流程。\nLabels: cards; action; turn\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：策略与窗口；GdUnit4：最小 UI 流程。"
+      },
+      {
+        "id": 58,
+        "title": "模块: 建筑扩展（买地后建造类型）",
+        "description": "扩展可购买地块为可建造资产，并用倍率输入影响收益/收租等经济结算。",
+        "status": "deferred",
+        "priority": "medium",
+        "dependencies": [
+          51,
+          53
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-58\nADR Refs: ADR-0004; ADR-0005\nChapters: CH04; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs; Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs; Tests.Godot/tests/UI/test_task58_city_tile_owner_label_and_actions.gd; Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd\nAcceptance: 建筑配置必须从 res://Data/buildings.json 加载；收益/收租等经济结算必须读取并应用建筑相关倍率（来自 applied_multipliers.building 或其等价的对外可观测状态）：未建造时不应产生建筑倍率影响；建造/升级后在相同输入下结算结果必须按倍率变化。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs; 建筑定义仅允许 multiplier_step_delta；配置内容与 multiplier_step_delta 的合成/叠加规则一致且可验证。 Refs: Game.Core.Tests/Tasks/Task58BuildingConfigAndEffectsTests.cs; 建造入口仅在“停留在自有城市”时可用；成功建造/升级分别发布 building.built 或 building.upgraded，并使影响体现在 applied_multipliers.building（可观测到倍率已生效）。 Refs: Game.Core.Tests/Tasks/Task58BuildingBuildWindowTests.cs; 城市格 UI 显示拥有者名字，并提供 actions（建造/跳过），且 action 可被实际执行并产生可观测结果。 Refs: Tests.Godot/tests/UI/test_task58_city_tile_owner_label_and_actions.gd, Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd\nTest Strategy: xUnit：配置/窗口；GdUnit4：actions 与 owner label。\nLabels: buildings; economy\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：配置/窗口；GdUnit4：actions 与 owner label。"
+      },
+      {
+        "id": 59,
+        "title": "模块: 战斗（PVE）触发与回主循环",
+        "description": "引入 PVE 战斗分支循环：从地图/事件触发进入战斗，结束后回到主循环。",
+        "status": "deferred",
+        "priority": "medium",
+        "dependencies": [
+          50,
+          52,
+          53,
+          56
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-59\nADR Refs: ADR-0004; ADR-0005\nChapters: CH04; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs; Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs; Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd\nAcceptance: PVE 战斗主流程（触发进入战斗分支→结束→回到主循环）具备可验证行为，并通过对应的回归测试覆盖。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs; 从地图关隘或地图事件触发 PVE 时，游戏进入战斗分支；战斗结束后返回主循环（地图）并可继续推进后续流程。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs; 本阶段不引入任何“战斗卡池”机制；在相同 random_seed 且相同输入条件下，战斗结果（含结果判定与派生效果）可复现。 Refs: Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs; UI 支持完整场景往返：从地图进入战斗场景，展示战斗结果，然后返回地图场景且用户可继续操作。 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd; 战斗开始与结束分别记录一次事件，事件类型精确为 core.sanguo.combat.started 与 core.sanguo.combat.ended，且事件记录可被回放/查询用于追踪本次战斗（至少包含可关联同一场战斗的标识与 random_seed）。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs; 战斗结束后，奖励/惩罚会写回到主循环可观测状态（例如资源/进度/角色状态之一），并在返回地图后可读取到写回结果以影响后续推进。 Refs: Game.Core.Tests/Tasks/Task59CombatTriggerAndReturnTests.cs\nTest Strategy: xUnit：触发/回归/确定性；GdUnit4：场景往返。\nLabels: combat; pve\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：触发/回归/确定性；GdUnit4：场景往返。"
+      },
+      {
+        "id": 60,
+        "title": "模块: 每局胜利与结算界面",
+        "description": "引入胜利判定与结算 UI：Core 判定并发布 game.ended，UI 展示结果并支持返回主菜单/再来一局。",
+        "status": "done",
+        "priority": "medium",
+        "dependencies": [
+          52
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-60\nADR Refs: ADR-0004; ADR-0005; ADR-0011\nChapters: CH04; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs; Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd\nAcceptance: 从对局流程可观测：当 Core 触发结束条件时，会发布结束事件并驱动结算界面出现；结算界面展示内容严格来自结束事件 payload；在未收到结束事件时结算界面不会自行出现（即使 UI 处于可交互状态）。 Refs: Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd; 胜负判定发生在 Core：发布 core.sanguo.game.ended（或语义等价事件）时，payload 必须包含 winner、reason、stats_snapshot；UI 不得自行判定胜负或以本地规则覆盖/替换 payload。 Refs: Game.Core.Tests/Tasks/Task60GameEndEventContractTests.cs; 结算界面提供“返回主菜单”“再来一局”两个按钮；点击“返回主菜单”会离开本局并进入主菜单；点击“再来一局”会开始一局新的对局且不复用上一局的结算结果（新的结束事件到来前不显示上一局 winner/stats_snapshot）。 Refs: Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd; GdUnit4: Settlement screen UI is driven by the game.ended event: it remains hidden before event, becomes visible after event, renders winner/stats_snapshot from payload, and buttons navigate (main menu / new game). Refs: Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd\nTest Strategy: xUnit：事件契约；GdUnit4：结算 UI。\nLabels: ui; end; summary\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "xUnit：事件契约；GdUnit4：结算 UI。"
+      },
+      {
+        "id": 61,
+        "title": "模块: AI 最小确定性策略（止损版）",
+        "description": "AI 与玩家行为一致：总是选第一个合法选项，并提供可复盘取证字段。",
+        "status": "deferred",
+        "priority": "low",
+        "dependencies": [
+          52,
+          53,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60
+        ],
+        "details": "Story: PRD-SANGUO-T2-SKEL-61\nADR Refs: ADR-0004; ADR-0005; ADR-0011\nChapters: CH04; CH07; CH10\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs\nAcceptance: xUnit: AI 的行动流程与玩家一致：在 BeforeRoll/ResolveLanding/Discard 等关键决策点进入与玩家相同的步骤/分支并做出选择，不能跳过必经步骤或插入玩家流程中不存在的额外决策。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs; xUnit: 在每个 AI 决策点（至少覆盖 BeforeRoll/ResolveLanding/Discard 等关键点）都会发布 `core.sanguo.ai.decision.made`（或等价事件）；事件包含可复盘取证字段 `RngContextId`、`CandidatesSortedIdsHash`、`PickedIndex`、`PickedId`，且在“相同输入（同局面/同候选/同上下文）”下产出相同的取证与选择结果。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs; xUnit: 当存在 >=1 个合法选项时，AI 按与玩家完全一致的合法性校验得到候选集，并在确定性的候选顺序下始终选择“第一个合法选项”；覆盖买地/建造/用卡/弃牌等动作（并落到 BeforeRoll/ResolveLanding/Discard 等关键决策点的对应选择上），不可因并发/调度/随机导致同输入不同输出。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs; xUnit: 玩家出局时立即触发 game over（不等待 `turn.advanced`）；AI 出局时不立刻终局，而是在 `turn.advanced` 之后执行统一的终局检查并再决定是否 game over。 Refs: Game.Core.Tests/Tasks/Task61AiDeterministicStrategyTests.cs\nTest Strategy: xUnit：覆盖 AI 决策一致性与可复盘取证（同输入同输出）。\nLabels: ai; determinism; decision\nOwner: gameplay\nLayer: core",
+        "testStrategy": "xUnit：覆盖 AI 决策一致性与可复盘取证（同输入同输出）。"
+      },
+      {
+        "id": 66,
+        "title": "Module: A-006 Forced Challenge Prompt UI Integration Tests",
+        "description": "Complete A-006 integration evidence: boss pre-challenge prompt copy, win-rate tier, and fail consequence are observable in UI and aligned with contract fields.",
+        "status": "deferred",
+        "priority": "medium",
+        "dependencies": [
+          59,
+          61
+        ],
+        "details": "Story: PRD-SANGUO-T3-RULES-GM-0066\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd; Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd; Game.Core.Tests/Contracts/SanguoEventContractsTests.cs; Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd\nAcceptance: A dedicated GdUnit integration test covers the current deferred prompted UI evidence path end to end (event publish -> UI mapping -> HUD summary render): publishing core.sanguo.boss.challenge.prompted must surface observable HUD summary text with the boss pre-challenge summary copy visible, aligned with the currently rendered contract fields BossId, RoundNumber, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence, and the rendered toast summary must match the event-log summary entry for the same publish. Missing locale must still produce deterministic, non-empty summary output without leaking raw translation keys. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd; GdUnit assertions lock summary-level prompt copy, BossId, RoundNumber, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence to the current contract/event surface, and verify observable i18n fallback behavior on the HUD summary surface. Refs: Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd; A mapper-focused GdUnit test verifies that the deferred HUD summary path renders BossId, RoundNumber, WinRateTier, NextRoundPressureForecast, KeyLossSummary, and FailConsequence from the prompted contract, and that transport-only payload fields do not affect the rendered HUD summary. Refs: Tests.Godot/tests/Adapters/test_task66_boss_challenge_prompt_mapper_view_data.gd; Contract stability remains explicit for this deferred UI path: the core.sanguo.boss.challenge.prompted event type and its currently rendered summary fields must stay aligned between contract tests and the observable HUD summary surface. Refs: Game.Core.Tests/Contracts/SanguoEventContractsTests.cs Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd; Deferred scope remains explicit and falsifiable: publishing core.sanguo.boss.challenge.prompted may render the HUD summary only, but must not open a blocking dialog or result popup, must not surface confirm-action UI, and must not pause the tree on the publish frame. Refs: Tests.Godot/tests/Integration/test_task66_boss_challenge_prompt_deferred_scope_guard.gd\nTest Strategy: GdUnit integration tests for A-006; current state is integration_pending.\nLabels: ui; boss; integration; acceptance\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "GdUnit integration tests for A-006; current state is integration_pending."
+      },
+      {
+        "id": 67,
+        "title": "Module: A-007 Forced Challenge Fail-to-Camp UI Integration Tests",
+        "description": "Complete deferred A-007 integration evidence: prompted-event summary path must expose return_to_camp_end_round semantics and keep runtime in summary-only flow.",
+        "status": "done",
+        "priority": "medium",
+        "dependencies": [
+          66,
+          59,
+          61
+        ],
+        "details": "Story: PRD-SANGUO-T3-RULES-GM-0067\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd\nAcceptance: GdUnit: publishing core.sanguo.boss.challenge.prompted with fail_consequence=return_to_camp_end_round must render localized fail consequence in HUD summary and event log as deferred A-007 evidence. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd; GdUnit: prompted-event summary for A-007 must keep round/loss/pressure context observable (trigger_round, key_loss_summary, next_round_pressure_forecast), not prompt-only marker text. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd; GdUnit: prompted-event branch for A-007 must remain summary-only runtime boundary with no confirm/result popup opened and no tree pause side effect. Refs: Tests.Godot/tests/UI/test_task67_force_challenge_fail_path_to_camp.gd\nTest Strategy: GdUnit deferred integration tests for A-007 summary-only observability; full reject-click interaction path remains deferred.\nLabels: ui; boss; integration; acceptance\nOwner: gameplay\nLayer: adapter",
+        "testStrategy": "GdUnit deferred integration tests for A-007 summary-only observability; full reject-click interaction path remains deferred."
+      },
+      {
+        "id": 85,
+        "title": "Module: campaign runmode isolation (split from T74)",
+        "description": "Split task for R1.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          60
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0085\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs\nAcceptance: Campaign runmode isolation must be explicitly defined and verified with observable boundaries: entering campaign runmode applies only the intended isolation behavior, and non-campaign paths must not be isolated by this split. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs; Acceptance also requires explicit split-boundary evidence versus T74: this task is independently shippable for R1 isolation scope and does not depend on unsplit parent responsibilities. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs; Task-specific deterministic verification is mandatory: under the same inputs and preconditions, campaign runmode isolation outcomes and split-boundary checks must be reproducible; otherwise the task remains open. Refs: Game.Core.Tests/Tasks/Task85SplitTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 86,
+        "title": "Module: campaign endgame adjudicator (split from T74)",
+        "description": "Split task for R3.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          85
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0086\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs; Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs\nAcceptance: The campaign endgame adjudicator work is delivered as an independent R3 split from T74, and task-specific deterministic tests provide evidence that the changes did not expand beyond that narrow split scope. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs; Campaign endgame adjudication is deterministic: human elimination ends the run with player_bankrupt. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs; Campaign endgame adjudication is deterministic: when the run started with at least two players and only one player remains after prune, the run ends with last_actor_standing and the remaining player is the winner. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs; Campaign endgame adjudication is deterministic: when no players remain after prune, the run ends with no_players. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs; Campaign endgame adjudication is deterministic: when no endgame condition is satisfied, the run stays active and no end reason is forced. Refs: Game.Core.Tests/Tasks/Task86SplitTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 74,
+        "title": "Module: CampaignRuleEngine integration pack",
+        "description": "Integration closure after split tasks 85, 86.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          85,
+          86
+        ],
+        "details": "Story: PRD-SANGUO-T3-RULES-GM-0074\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH06; CH07; CH05\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task74IntegrationClosureTests.cs\nAcceptance: Task 74 remains incomplete unless verifiable integration-closure evidence exists for both split tasks 85 and 86; if either split task lacks verifiable evidence, Task 74 is incomplete. Refs: Game.Core.Tests/Tasks/Task74IntegrationClosureTests.cs; Task 74 is closure-only after split delivery: it must aggregate R1 isolation and R3 adjudicator evidence without re-expanding parent scope. Refs: Game.Core.Tests/Tasks/Task74IntegrationClosureTests.cs\nTest Strategy: Integration closure checks from split-task outputs.\nLabels: campaign; rules; state-machine\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Integration closure checks from split-task outputs."
+      },
+      {
+        "id": 87,
+        "title": "Module: camp transition + one-action rule (split from T75)",
+        "description": "Split task for R2/R5.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          74
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0087\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task87SplitTests.cs; Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs; Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs\nAcceptance: Deterministic evidence verifies that this split task satisfies both the R2 camp transition obligation and the R5 one-action-rule obligation; if either obligation is missing from verification or fails verification, the task is not accepted. Refs: Game.Core.Tests/Tasks/Task87SplitTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 88,
+        "title": "Module: leave-camp save retry + warning (split from T75)",
+        "description": "Split task for A-003~A-005.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          87
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0088\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs; Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs\nAcceptance: Leave-camp save retry behavior must be explicitly verified: when a leave-camp save fails on the first attempt, exactly one retry path is exercised and the retry attempt is observable in deterministic evidence instead of being silently skipped. Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs; Warning behavior must be explicitly verified for leave-camp save outcomes: the warning activates after a failed leave-camp save, clears only after a successful leave-camp retry, and remains active with no success event or persisted save if the retry fails again. Refs: Game.Core.Tests/Domain/SanguoSaveLoadEventsTests.cs Game.Core.Tests/Tasks/Task88SplitTests.cs; Scope is limited to leave-camp save retry + warning semantics: recovery evidence from non-leave-camp save flows (for example autosave retry) must not satisfy this split task closure. Refs: Game.Core.Tests/Tasks/Task88SplitTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 75,
+        "title": "Module: CampLifecycleEngine integration pack",
+        "description": "Integration closure after split tasks 87, 88.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          87,
+          88
+        ],
+        "details": "Story: PRD-SANGUO-T3-RULES-GM-0075\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH06; CH07; CH05\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task75CampLifecycleEngineIntegrationPackTests.cs\nAcceptance: Integration closure is closure-only and remains delegated to split tasks 87 and 88: Task 75 is accepted only when deterministic evidence shows Task 87 closes the R2/R5 camp transition + one-action-rule obligations and Task 88 closes the A-003~A-005 leave-camp save retry + warning obligations; Task 75 stays incomplete if either split evidence is missing, either split obligation is not explicitly covered, or non-leave-camp save evidence is used to stand in for Task 88 scope. Refs: Game.Core.Tests/Tasks/Task75CampLifecycleEngineIntegrationPackTests.cs\nTest Strategy: Integration closure checks from split-task outputs.\nLabels: camp; state-machine; save\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Integration closure checks from split-task outputs."
+      },
+      {
+        "id": 89,
+        "title": "Module: boss pressure timeline (split from T76)",
+        "description": "Split task for R6.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          75
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0089\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task89SplitTests.cs; Game.Core.Tests/Tasks/Task89BossPressureTimelineTests.cs\nAcceptance: Only the independent R6 boss pressure timeline split from T76 is changed, and task-specific deterministic verification confirms behavior outside this narrow split scope remains unchanged. Refs: Game.Core.Tests/Tasks/Task89BossPressureTimelineTests.cs; Acceptance fails if scope drifts away from the T76-origin split boundary or mixes in responsibilities from non-T76 workstreams. Refs: Game.Core.Tests/Tasks/Task89SplitTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 90,
+        "title": "Module: forced challenge preemption (split from T76)",
+        "description": "Split task for A-006~A-007.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          89,
+          66,
+          67
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0090\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task90SplitTests.cs; Game.Core.Tests/Services/ForcedChallengePreemptionTests.cs\nAcceptance: Forced challenge preemption must be explicit and auditable: when forced challenge is triggered, the currently active challenge flow is preempted and control switches to the forced-challenge flow (A-006 behavior). Refs: Game.Core.Tests/Services/ForcedChallengePreemptionTests.cs; After preemption, the preempted challenge flow must not continue advancing or resolving in parallel until explicitly restored or terminated (A-007 behavior). Refs: Game.Core.Tests/Services/ForcedChallengePreemptionTests.cs; This split task closes only when deterministic task-specific evidence verifies both preemption transition and non-advance guarantees within split scope. Refs: Game.Core.Tests/Tasks/Task90SplitTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 76,
+        "title": "Module: BossPressureEngine integration pack",
+        "description": "Integration closure after split tasks 89, 90.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          89,
+          90
+        ],
+        "details": "Story: PRD-SANGUO-T3-RULES-GM-0076\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH06; CH07; CH05\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task76BossPressureEngineTests.cs\nAcceptance: Integration closure passes only when task-scoped evidence shows completion outcomes for both split task 89 and split task 90; if either outcome is absent, task 76 remains deferred and is not closed. Refs: Game.Core.Tests/Tasks/Task76BossPressureEngineTests.cs\nTest Strategy: Integration closure checks from split-task outputs.\nLabels: boss; pressure; combat-entry\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Integration closure checks from split-task outputs."
+      },
+      {
+        "id": 131,
+        "title": "Module: boss difficulty profile schema (split from T101)",
+        "description": "Split task for boss profile schema and bounds.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          53,
+          76
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0131\nADR Refs: ADR-0004; ADR-0005; ADR-0015; ADR-0020\nChapters: CH04; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs\nAcceptance: ACC:T131.1 Boss difficulty profile data is deterministically validated against the defined schema: fixtures with all required task-defined fields and valid field types/refs and values within bounds pass validation; fixtures with out-of-bounds values, unknown fields, missing required fields, invalid field types, or unresolved refId fail validation. Refs: Game.Core.Tests/Tasks/Task131BossDifficultyProfileSchemaTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 132,
+        "title": "Module: boss count and duration target validator (split from T101)",
+        "description": "Split task for duration target validation.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          131
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0132\nADR Refs: ADR-0004; ADR-0005; ADR-0015; ADR-0020\nChapters: CH04; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task132SplitTests.cs\nAcceptance: Task deterministically verifies R6 by validating configured boss count and expected run-length target bands for each difficulty. Refs: Game.Core.Tests/Tasks/Task132SplitTests.cs; Task 132 scope remains a split from T101 and is limited to boss-count and duration-target validation closure, without absorbing unrelated validation scope. Refs: Game.Core.Tests/Tasks/Task132SplitTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 101,
+        "title": "Module: boss dice profile by difficulty and duration target integration pack",
+        "description": "Integration closure after split tasks 131, 132.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          131,
+          132
+        ],
+        "details": "Story: PRD-SANGUO-T3-V3-GM-0101\nADR Refs: ADR-0004; ADR-0005; ADR-0015; ADR-0020\nChapters: CH04; CH05; CH06; CH07; CH09\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Services/SanguoDiceServiceTests.cs; Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs\nAcceptance: Integration closure for Task 101 is valid only when split-task evidence from tasks 131 and 132 is both present and passing. Refs: Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs; Closure evidence must explicitly cover boss dice profile integration by difficulty tier and verify profile resolution across configured difficulty bands. Refs: Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs; Closure evidence must explicitly cover duration-target integration and confirm run configuration drives the intended duration-target pressure behavior. Refs: Game.Core.Tests/Tasks/Task101SplitIntegrationTests.cs\nTest Strategy: Integration closure check from split-task evidence.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Integration closure check from split-task evidence."
+      },
+      {
+        "id": 133,
+        "title": "Module: boss elite-attack pressure resolver (split from T102)",
+        "description": "Split task for elite attack count resolution.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          51,
+          89,
+          101
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0133\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task133BossEliteAttackPressureResolverTests.cs\nAcceptance: Given boss dice outcomes, the module resolves them into a deterministic elite attack count, and task-specific deterministic evidence verifies the result. Refs: Game.Core.Tests/Tasks/Task133BossEliteAttackPressureResolverTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 134,
+        "title": "Module: boss pressure explain payload mapper (split from T102)",
+        "description": "Split task for explainability payload.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          133
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0134\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs\nAcceptance: Boss pressure explain payload items emit source, value, and duration in deterministic test evidence. Refs: Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs; Task 134 implements and verifies the dedicated boss pressure explain payload mapper module for this split scope. Refs: Game.Core.Tests/Tasks/Task134BossPressureExplainPayloadTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 102,
+        "title": "Module: boss pressure resolver and explainability payload integration pack",
+        "description": "Integration closure after split tasks 133, 134.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          133,
+          134
+        ],
+        "details": "Story: PRD-SANGUO-T3-V3-GM-0102\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task102BossPressureIntegrationPackTests.cs\nAcceptance: Gameplay acceptance is satisfied only when split-task evidence for tasks 133 and 134 confirms the integration closure for this pack, with no remaining gameplay implementation left in task 102 itself. Refs: Game.Core.Tests/Tasks/Task102BossPressureIntegrationPackTests.cs\nTest Strategy: Integration closure check from split-task evidence.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Integration closure check from split-task evidence."
+      },
+      {
+        "id": 135,
+        "title": "Module: boss reveal delay pressure stacking (split from T103)",
+        "description": "Split task for reveal delay stacking.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          66,
+          67,
+          90,
+          102
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0135\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs; Tests.Godot/tests/UI/test_task135_delayed_pressure_summary.gd\nAcceptance: Deterministic core rule tests cover delayed, failed, and resumed boss-pressure scenarios, including stacked pressure behavior across round transitions. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs; Pressure stacking logic distinguishes unrevealed, revealed-but-delayed, and forced-challenge states to avoid contradictory implementations. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs; Accumulated pressure is stored in deterministic state and is not recomputed from lossy UI traces. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs; Deterministic save/load and round-transition tests verify stacked pressure values persist correctly. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs; Delayed-pressure summaries distinguish baseline boss pressure from penalty pressure and render correct values in UI/integration tests. Refs: Tests.Godot/tests/UI/test_task135_delayed_pressure_summary.gd; Deterministic cross-feature regression tests cover delayed boss rounds that end in forced challenge preemption. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs; Task-specific deterministic tests are required evidence for Task 135 closure. Refs: Game.Core.Tests/Tasks/Task135SplitTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 136,
+        "title": "Module: hard-cap forced challenge preemption (split from T103)",
+        "description": "Split task for hard-cap preemption.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          135
+        ],
+        "details": "Story: PRD-SANGUO-T3-SPLIT-GM-0136\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs; Game.Core.Tests/Tasks/Task136SplitTests.cs\nAcceptance: When pressure reaches the hard cap at the leave-camp edge, leaving camp triggers forced challenge preemption. Refs: Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs; When hard-cap preemption condition is met, normal leave-camp flow is not allowed to continue and forced challenge must take priority. Refs: Game.Core.Tests/Tasks/Task136SplitTests.cs; Task-specific deterministic tests are required evidence for Task 136 closure. Refs: Game.Core.Tests/Tasks/Task136SplitTests.cs\nTest Strategy: Task-specific deterministic tests.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Task-specific deterministic tests."
+      },
+      {
+        "id": 103,
+        "title": "Module: boss reveal delay challenge and hard-cap forcing integration pack",
+        "description": "Integration closure after split tasks 135, 136.",
+        "status": "deferred",
+        "priority": "high",
+        "dependencies": [
+          135,
+          136
+        ],
+        "details": "Story: PRD-SANGUO-T3-V3-GM-0103\nADR Refs: ADR-0004; ADR-0005; ADR-0020\nChapters: CH04; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs; Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs\nAcceptance: Task 103 is closed only when the integration outcome from split tasks 135 and 136 is confirmed by their recorded evidence, and this task does not claim standalone implementation beyond that closure check. Refs: Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs Game.Core.Tests/Domain/SanguoCampaignContractsTests.cs; Split-task closure evidence must explicitly prove the combined outcome is the boss reveal delay challenge and hard-cap forcing integration pack behavior defined by Task 103 title/scope. Refs: Game.Core.Tests/Tasks/Task103SplitIntegrationTests.cs\nTest Strategy: Integration closure check from split-task evidence.\nLabels: split; complexity\nOwner: gameplay\nLayer: core",
+        "testStrategy": "Integration closure check from split-task evidence."
       }
     ],
     "metadata": {
