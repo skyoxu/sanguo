@@ -35,25 +35,25 @@ Index the PRD-SANGUO-V4 overlay slice for the minimal-intrusion combat upgrade, 
 <!-- TASK_BASELINE_START -->
 ```json
 {
-  "generated_at": "2026-05-14T03:51:38.541467+00:00",
+  "generated_at": "2026-05-14T09:05:16.749109+00:00",
   "files": [
     {
       "path": ".taskmaster/tasks/tasks.json",
       "exists": true,
-      "sha256": "7d29c6eea72482aca2a42ff2777753a021ba44f91b250d9cb9d93d6ee42e4c0a",
-      "bytes": 454157
+      "sha256": "c4cd29eb51f90287bd5965b5887fe9dab6edb8503838c2490b30b998050d884b",
+      "bytes": 456219
     },
     {
       "path": ".taskmaster/tasks/tasks_back.json",
       "exists": true,
-      "sha256": "47a343caa6ef4c684b710b30906031535bcff9a96ecefc894f8804d47fb85fc2",
-      "bytes": 559220
+      "sha256": "4d1121539c22068a75e6d1010092a2ecd3f9fb7f36ac91b5aa74920576a6876f",
+      "bytes": 558835
     },
     {
       "path": ".taskmaster/tasks/tasks_gameplay.json",
       "exists": true,
-      "sha256": "35b2058c796875ce6d2ca526b39fcbc80f680ae5c2bfa2fb885a218553e803b1",
-      "bytes": 622702
+      "sha256": "27450c8aeecb4b5859ac249a4397db5f989a409db13eb2067670b6b2bf184bc3",
+      "bytes": 622701
     }
   ]
 }
