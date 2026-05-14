@@ -500,3 +500,14 @@ Test-Refs:
 - Completed task count currently expected by Chapter 7: 180.
 - Chapter 7 uses `.taskmaster/tasks/tasks.json` as the completion-state SSoT.
 - View files remain enrichment sources for test refs, acceptance, labels, and contract context.
+
+## 15. Task 187 Traceability
+
+- Task scope chapters: CH01, CH07.
+- Governing ADR: ADR-0005.
+- Overlay traceability:
+  - docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md
+  - docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md
+  - docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md
+  - docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md
+- Chapter 3.8 validator evidence is required after task-view updates and must remain traceable in CI artifacts.

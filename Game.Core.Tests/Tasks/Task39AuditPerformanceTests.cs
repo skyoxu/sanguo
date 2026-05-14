@@ -279,6 +279,8 @@ public sealed class Task39AuditPerformanceTests
                 "Debug",
                 "--godot-bin",
                 "C:/Dummy/Godot.exe",
+                "--require-perf",
+                "--require-audit",
             },
             additionalEnv: new()
             {

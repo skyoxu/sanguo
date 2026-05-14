@@ -5970,6 +5970,13 @@
         "status": "pending",
         "priority": "medium",
         "dependencies": [],
+        "adrRefs": [
+          "ADR-0005"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH07"
+        ],
         "details": "Story: TASK-GENERATION\nADR Refs: ADR-0005\nChapters: CH01; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md; docs/architecture/overlays/PRD-SANGUO-V3/08/ACCEPTANCE_CHECKLIST.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md\nTest Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs; Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs; Tests.Godot/tests/Integration/test_screen_navigation_flow.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd; Tests.Godot/tests/UI/Task54/test_task54_flow_requires_new_game_setup_before_game_start.gd; Tests.Godot/tests/UI/test_task176_mainmenu_boot_flow.gd\nAcceptance: Requirement REQ-c6ac9efec6fa is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:10 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs\nTest Strategy: Red: add or update a document or metadata validation check for this planning slice.; Green: update the governed document or index with traceable references.; Refactor: keep Chapter 4/5-derived fields out of Chapter 3 generation.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: acceptance; add; architecture; architecture-docs; back; docs; generated; intent\nOwner: architecture\nLayer: docs",
         "testStrategy": "Red: add or update a document or metadata validation check for this planning slice.\nGreen: update the governed document or index with traceable references.\nRefactor: keep Chapter 4/5-derived fields out of Chapter 3 generation.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
         "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"

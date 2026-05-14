@@ -17,7 +17,7 @@ public sealed class HelpTutorialDocumentationTests
 
     // acceptance: ACC:T30.6
     [Fact]
-    public void TutorialDoc_WhenCheckingOfficialExamplesList_ShouldContainAtLeastOneEntry()
+    public void ShouldContainAtLeastOneOfficialExampleEntry_WhenCheckingTutorialDoc()
     {
         var repoRoot = RepoRootLocator.FindRepoRoot();
         var docPath = Path.Combine(repoRoot, DocRelativePath.Replace('/', Path.DirectorySeparatorChar));
@@ -77,4 +77,3 @@ internal static class RepoRootLocator
         throw new DirectoryNotFoundException($"Unable to locate repo root from '{start.FullName}'.");
     }
 }
-

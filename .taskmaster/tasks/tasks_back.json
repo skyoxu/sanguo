@@ -11357,20 +11357,15 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs",
-      "Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "Tests.Godot/tests/Integration/test_screen_navigation_flow.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd",
-      "Tests.Godot/tests/UI/Task54/test_task54_flow_requires_new_game_setup_before_game_start.gd",
-      "Tests.Godot/tests/UI/test_task176_mainmenu_boot_flow.gd"
+      "Game.Core.Tests/Docs/UiGddFlowDocumentationTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-c6ac9efec6fa is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:10 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "docs/gdd/ui-gdd-flow.md documents the UI GDD flow for CH01 and CH07 and cites ADR-0005 as the governing ADR reference.",
-      "The governed UI GDD documentation records traceability to the PRD-SANGUO-T2 and PRD-SANGUO-V3 overlay artifacts named in the task details.",
-      "A document or metadata validation check covers this planning slice, and the resulting evidence shows the governed document or index was updated with traceable references.",
-      "Chapter 4 and Chapter 5 derived fields remain out of Chapter 3 task generation outputs for this task view.",
-      "The Chapter 3.8 triplet baseline validators are run after the task view update, and their evidence shows this task remains valid in the generated task triplet."
+      "Requirement REQ-c6ac9efec6fa is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:10 Refs: Game.Core.Tests/Docs/UiGddFlowDocumentationTests.cs",
+      "docs/gdd/ui-gdd-flow.md documents the UI GDD flow for CH01 and CH07 and cites ADR-0005 as the governing ADR reference. Refs: Game.Core.Tests/Docs/UiGddFlowDocumentationTests.cs",
+      "The governed UI GDD documentation records traceability to the PRD-SANGUO-T2 and PRD-SANGUO-V3 overlay artifacts named in the task details. Refs: Game.Core.Tests/Docs/UiGddFlowDocumentationTests.cs",
+      "A document or metadata validation check covers this planning slice, and the resulting evidence shows the governed document or index was updated with traceable references. Refs: Game.Core.Tests/Docs/UiGddFlowDocumentationTests.cs",
+      "Chapter 4 and Chapter 5 derived fields remain out of Chapter 3 task generation outputs for this task view. Refs: Game.Core.Tests/Docs/UiGddFlowDocumentationTests.cs",
+      "The Chapter 3.8 triplet baseline validators are run after the task view update, and their evidence shows this task remains valid in the generated task triplet. Refs: Game.Core.Tests/Docs/UiGddFlowDocumentationTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a document or metadata validation check for this planning slice.",

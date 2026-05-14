@@ -83,6 +83,7 @@ public sealed class Task47QualityGatesArchitectureHotspotsTests
         psi.ArgumentList.Add("Game.sln");
         psi.ArgumentList.Add("--configuration");
         psi.ArgumentList.Add("Debug");
+        psi.ArgumentList.Add("--require-arch-hotspots");
 
         psi.Environment["PYTHONIOENCODING"] = "utf-8";
         psi.Environment["PYTHONUTF8"] = "1";
