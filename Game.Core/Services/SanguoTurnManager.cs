@@ -1345,7 +1345,9 @@ public sealed class SanguoTurnManager
                 RandomSeed: seed,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
-                CausationId: causationId)),
+                CausationId: causationId,
+                PlayerSnapshot: BuildPlayerCombatSnapshot(playerId, player),
+                EnemySnapshot: BuildEnemyCombatSnapshot(encounterId, encounterTarget))),
             Timestamp: occurredAt.UtcDateTime,
             Id: Guid.NewGuid().ToString("N"));
         await _bus.PublishAsync(started);
@@ -1355,6 +1357,13 @@ public sealed class SanguoTurnManager
             combatRating: combatRating,
             encounterTarget: encounterTarget,
             seed: seed);
+        var playerSnapshot = BuildPlayerCombatSnapshot(playerId, player);
+        var enemySnapshot = BuildEnemyCombatSnapshot(encounterId, encounterTarget);
+        var resultWithSnapshots = result with
+        {
+            PlayerSnapshot = playerSnapshot,
+            EnemySnapshot = enemySnapshot,
+        };
 
         var moneyChanged = ApplyMoneyDeltaToPlayer(player, result.MoneyDelta);
         if (moneyChanged)
@@ -1375,10 +1384,12 @@ public sealed class SanguoTurnManager
                 GameId: gameId,
                 PlayerId: playerId,
                 EncounterId: encounterId,
-                Result: result,
+                Result: resultWithSnapshots,
                 OccurredAt: occurredAt,
                 CorrelationId: correlationId,
-                CausationId: causationId)),
+                CausationId: causationId,
+                PlayerSnapshot: playerSnapshot,
+                EnemySnapshot: enemySnapshot)),
             Timestamp: occurredAt.UtcDateTime,
             Id: endedEvtId);
         await _bus.PublishAsync(ended);
@@ -1401,6 +1412,51 @@ public sealed class SanguoTurnManager
                 occurredAt: occurredAt,
                 mapCycleNumber: _mapCycleNumber);
         }
+    }
+
+    private static SanguoCombatRuntimeSnapshot BuildPlayerCombatSnapshot(string playerId, SanguoPlayer player)
+    {
+        var safePlayerId = string.IsNullOrWhiteSpace(playerId) ? "p1" : playerId.Trim();
+        var hp = 100;
+        var attack = 12;
+        var currentHp = Math.Max(1, hp - (player.PositionIndex % 5));
+
+        return new SanguoCombatRuntimeSnapshot(
+            MainUnit: new SanguoCombatUnitSnapshot(
+                UnitId: $"{safePlayerId}-main",
+                DisplayName: "Player Placeholder",
+                UnitRole: "player",
+                Stats: new SanguoCombatStatsDefinition(
+                    MaxHP: hp,
+                    CurrentHP: currentHp,
+                    Attack: attack),
+                SkillIds: new[] { "skill_basic_strike" },
+                PassiveSkillIds: Array.Empty<string>(),
+                RelicIds: Array.Empty<string>(),
+                BuffIds: new[] { "buff_ready" },
+                DebuffIds: Array.Empty<string>()));
+    }
+
+    private static SanguoCombatRuntimeSnapshot BuildEnemyCombatSnapshot(string encounterId, int encounterTarget)
+    {
+        var safeEncounterId = string.IsNullOrWhiteSpace(encounterId) ? "encounter" : encounterId.Trim();
+        var hp = Math.Max(30, encounterTarget * 8);
+        var attack = Math.Max(5, encounterTarget);
+
+        return new SanguoCombatRuntimeSnapshot(
+            MainUnit: new SanguoCombatUnitSnapshot(
+                UnitId: $"enemy-{safeEncounterId}",
+                DisplayName: "Enemy Placeholder",
+                UnitRole: "enemy",
+                Stats: new SanguoCombatStatsDefinition(
+                    MaxHP: hp,
+                    CurrentHP: hp,
+                    Attack: attack),
+                SkillIds: Array.Empty<string>(),
+                PassiveSkillIds: Array.Empty<string>(),
+                RelicIds: Array.Empty<string>(),
+                BuffIds: Array.Empty<string>(),
+                DebuffIds: new[] { "debuff_exposed" }));
     }
 
     private bool ApplyMoneyDeltaToPlayer(SanguoPlayer player, decimal moneyDelta)

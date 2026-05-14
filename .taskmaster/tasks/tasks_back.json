@@ -11429,37 +11429,24 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd",
-      "Tests.Godot/Game.Core/Domain/Player.cs",
-      "Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd",
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd"
+      "Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd",
+      "Game.Core.Tests/Tasks/Task221PlaceholderCombatantsSnapshotTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-d7488052d972 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:165 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Tests.Godot/Game.Core/Domain/Player.cs",
-      "The combat or character-facing UI displays the current player name and each enemy name when placeholder combatant data is present.",
-      "The combat or character-facing UI displays visible model placeholder entries for the player and enemies when final models are not yet available.",
-      "The combat or character-facing UI displays runtime attribute placeholders for the player and enemies, including values that update from the active runtime state rather than remaining blank.",
-      "The combat or character-facing UI displays skill placeholders for the player and enemies when skill data is present.",
-      "The combat or character-facing UI displays passive skill placeholders for the player and enemies when passive skill data is present.",
-      "The combat or character-facing UI displays relic placeholders for the player and enemies when relic data is present.",
-      "The combat or character-facing UI displays buff and debuff placeholders for the player and enemies when status effect data is present.",
-      "When any placeholder category has no data for a combatant, the UI shows an explicit empty or unavailable state for that category instead of omitting the section silently.",
-      "[OBL:T221.O3] A deterministic validator or evidence fixture fails when the placeholder combatant UI does not display required names, placeholders, or explicit empty states.",
-      "[OBL:T221.O3] A deterministic validator or evidence fixture must fail when the required placeholder display behavior is missing.",
-      "[OBL:T221.O4] The task evidence uses a minimal validation, script, or fixture path scoped to the placeholder combatant UI behavior.",
-      "[OBL:T221.O4] The implementation must use the smallest validation, script, or evidence path required to pass.",
-      "[OBL:T221.O5] Chapter 3 baseline validators are rerun after the task view is updated, and their stable output is captured as evidence.",
-      "[OBL:T221.O5] Output must remain stable after refactor and the Chapter 3 baseline validators must be rerun.",
-      "[OBL:T221.O6] After this task is written to a task view, the Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
-      "[OBL:T221.O6] After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+      "Requirement REQ-d7488052d972 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:165 Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd",
+      "The combat or character-facing UI displays the current player name and every enemy name present in the runtime payload, including multi-enemy cases from EnemySnapshot.Summons. Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd (anchor: ACC:T221.2)",
+      "The combat or character-facing UI displays visible model placeholder entries for both player and enemy snapshots when final models are not yet available. Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd (anchor: ACC:T221.3)",
+      "When runtime attributes change between started and ended payload snapshots for either player or enemy, the displayed Runtime values update to the latest snapshot and do not remain stale. Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd (anchor: ACC:T221.4)",
+      "The UI displays skill placeholders for both player and enemy sides, rendering populated ids and explicit empty/unavailable states when data is empty or missing. Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd (anchor: ACC:T221.5)",
+      "The UI displays passive skill placeholders for both player and enemy sides, rendering populated ids and explicit empty/unavailable states when data is empty or missing. Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd (anchor: ACC:T221.6)",
+      "The UI displays relic placeholders for both player and enemy sides, rendering populated ids and explicit empty/unavailable states when data is empty or missing. Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd (anchor: ACC:T221.7)",
+      "The UI displays buff and debuff placeholders for both player and enemy sides, rendering populated ids and explicit empty/unavailable states when data is empty or missing. Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd (anchor: ACC:T221.8)",
+      "When any placeholder category has no data for a combatant, the UI shows explicit empty or unavailable states for that category instead of silently omitting the section. Refs: Tests.Godot/tests/UI/test_task221_placeholder_combatants_display.gd (anchor: ACC:T221.9)"
     ],
     "test_strategy": [
-      "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
-      "Green: implement the smallest validation, script, or evidence path required to pass.",
-      "Refactor: keep output stable and rerun the Chapter 3 baseline validators.",
-      "Run the Chapter 3.8 triplet baseline validators after writing this task to a task view."
+      "Red: add or update deterministic UI assertions that fail when required combatant placeholder categories or multi-enemy name rendering are missing.",
+      "Green: implement the smallest UI/adapter changes required so names, model placeholders, runtime attributes, and category states are rendered for player and enemy snapshots.",
+      "Refactor: keep output stable, keep ACC anchors aligned to behavior assertions, and rerun deterministic gates."
     ],
     "contractRefs": [],
     "evidence_refs": [
