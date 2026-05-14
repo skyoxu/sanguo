@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import json
+import os
 import re
 import subprocess
 import sys
@@ -81,8 +82,9 @@ def _run_smoke(
         return 2
 
     day = _dt.date.today().strftime("%Y-%m-%d")
-    ts = _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-    dest = Path("logs") / "ci" / day / "smoke" / ts
+    ts = _dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    run_tag = f"{ts}-{os.getpid()}"
+    dest = Path("logs") / "ci" / day / "smoke" / run_tag
     dest.mkdir(parents=True, exist_ok=True)
 
     out_path = dest / "headless.out.log"

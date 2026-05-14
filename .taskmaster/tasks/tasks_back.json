@@ -11508,11 +11508,9 @@
     ],
     "acceptance": [
       "Requirement REQ-2654be8260e6 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:188 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
-      "A deterministic validation or evidence path demonstrates that the provide matching requirement is satisfied, and fails when the matching implementation or task evidence is absent.",
-      "[OBL:T222.O4] Chapter 3.8 triplet baseline validators are rerun after this task is written to a task view, with evidence captured in logs.",
-      "[OBL:T222.O4] Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view.",
-      "[OBL:T222.O5] Validation output remains stable across reruns after refactor, and the Chapter 3 baseline validator evidence is recorded.",
-      "[OBL:T222.O5] Validation output must remain stable after the refactor step."
+      "A deterministic validator must fail when neither matching implementation evidence nor matching task evidence for REQ-2654be8260e6 is present, and pass when at least one matching branch is satisfied. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T222.O4] Chapter 3.8 triplet baseline validators are rerun after this task is written to a task view, with evidence captured in logs. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T222.O5] Validation output remains stable across reruns after refactor, and baseline validator evidence is recorded. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
