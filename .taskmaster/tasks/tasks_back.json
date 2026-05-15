@@ -11570,25 +11570,27 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs",
-      "Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
-      "Tests.Godot/tests/UI/test_task66_force_challenge_prompted_ui_contract.gd"
+      "Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs",
+      "Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs",
+      "Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "Game.Core.Tests/Tasks/Task228Chapter3GenerationGuardsTests.cs",
+      "Game.Core.Tests/Tasks/Task228TripletBaselineValidatorsTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-0fc29954ba84 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:7 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "Requirement REQ-1994b9ffab06 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:113 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "Requirement REQ-08202eb39b59 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:124 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "Requirement REQ-9b21ada5b7c7 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:125 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "Requirement REQ-429139de1ca2 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:126 Refs: Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs",
-      "The governed traceability documentation defines the Requirement Traceability Status legend used to classify contract change coverage for the listed PRD-SANGUO-T2 contract overlays.",
-      "The status legend documentation identifies ADR-0005 as the governing architecture decision for the traceability contract change status rules.",
-      "The updated traceability documentation or index links the status legend to the contract overlay documents for CloudEvent, CloudEvents Core, Preload Whitelist, and Quality Metrics.",
-      "A document or metadata validation check fails when the traceability status legend entry is missing or when the governed document no longer exposes traceable source evidence for the listed requirements.",
-      "[OBL:T228.O10] Chapter 3 task generation must not emit or persist Chapter 4/5-derived fields for this task.",
-      "[OBL:T228.O10] Chapter 4 and Chapter 5 derived fields must remain out of Chapter 3 generation.",
-      "[OBL:T228.O11] Evidence records that the Chapter 3.8 triplet baseline validators were run after writing this task to the task view.",
-      "[OBL:T228.O11] The Chapter 3.8 triplet baseline validators must be run after this task is written to a task view."
+      "Requirement REQ-0fc29954ba84 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:7 Refs: Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs",
+      "Requirement REQ-1994b9ffab06 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:113 Refs: Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs",
+      "Requirement REQ-08202eb39b59 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:124 Refs: Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs",
+      "Requirement REQ-9b21ada5b7c7 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:125 Refs: Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs",
+      "Requirement REQ-429139de1ca2 is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:126 Refs: Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs",
+      "The governed traceability documentation defines the Requirement Traceability Status legend used to classify contract change coverage for the listed PRD-SANGUO-T2 contract overlays. Refs: Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs",
+      "The status legend documentation identifies ADR-0005 as the governing architecture decision for the traceability contract change status rules. Refs: Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs Game.Core.Tests/Contracts/SanguoEventContractsTests.cs",
+      "The updated traceability documentation or index links the status legend to the contract overlay documents for CloudEvent, CloudEvents Core, Preload Whitelist, and Quality Metrics. Refs: Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "A document or metadata validation check fails when the traceability status legend entry is missing or when the governed document no longer exposes traceable source evidence for the listed requirements. Refs: Game.Core.Tests/Tasks/Task47QualityGatesDocumentationRefsTests.cs Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs",
+      "[OBL:T228.O10] Chapter 3 task generation must not emit or persist Chapter 4/5-derived fields for this task. Refs: Game.Core.Tests/Tasks/Task228Chapter3GenerationGuardsTests.cs",
+      "[OBL:T228.O10] Chapter 4 and Chapter 5 derived fields must remain out of Chapter 3 generation. Refs: Game.Core.Tests/Tasks/Task228Chapter3GenerationGuardsTests.cs",
+      "[OBL:T228.O11] Evidence records that the Chapter 3.8 triplet baseline validators were run after writing this task to the task view. Refs: Game.Core.Tests/Tasks/Task228TripletBaselineValidatorsTests.cs",
+      "[OBL:T228.O11] The Chapter 3.8 triplet baseline validators must be run after this task is written to a task view. Refs: Game.Core.Tests/Tasks/Task228TripletBaselineValidatorsTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a document or metadata validation check for this planning slice.",
@@ -11605,8 +11607,7 @@
       "docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:126",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md",
-      "Game.Core.Tests/Docs/HelpTutorialDocumentationTests.cs",
-      "Game.Core.Tests/Docs/PrivacyComplianceDocumentationTests.cs"
+      "Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs"
     ],
     "source_refs": [
       "docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:7",
