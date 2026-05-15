@@ -192,6 +192,11 @@ public partial class SanguoGameLoopController : Node
             _activeStrategemUsedThisTurn = false;
         }
 
+        if (type == SanguoCombatEnded.EventType)
+        {
+            HandleCombatEndedHealthSync(dataJson, id);
+        }
+
         if (type == UiMenuReturn)
         {
             ResetRuntimeState();
@@ -1297,6 +1302,9 @@ public partial class SanguoGameLoopController : Node
     }
 
     private void PublishStartingHealth(string correlationId, string? causationId)
+        => PublishHealthUpdated(correlationId, causationId);
+
+    private void PublishHealthUpdated(string correlationId, string? causationId)
     {
         if (_bus == null)
         {
@@ -1310,6 +1318,129 @@ public partial class SanguoGameLoopController : Node
             causationId,
         });
         _bus.PublishSimple(CoreGameEvents.HealthUpdated, nameof(SanguoGameLoopController), payload);
+    }
+
+    private void HandleCombatEndedHealthSync(string dataJson, string? causationId)
+    {
+        if (!TryResolveHealthAfterCombatEnded(dataJson, out var playerId, out var correlationId, out var resolvedHp))
+        {
+            return;
+        }
+
+        if (SanguoGlueJson.IsAiPlayerId(playerId))
+        {
+            return;
+        }
+
+        _playerHealthValue = Math.Max(1, resolvedHp);
+        PublishHealthUpdated(correlationId, causationId);
+    }
+
+    private static bool TryResolveHealthAfterCombatEnded(
+        string dataJson,
+        out string playerId,
+        out string correlationId,
+        out int resolvedHp)
+    {
+        playerId = string.Empty;
+        correlationId = string.Empty;
+        resolvedHp = 0;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(dataJson) ? "{}" : dataJson, RuntimeJsonDocumentOptions);
+            var root = doc.RootElement;
+
+            if (!root.TryGetProperty("PlayerId", out var playerNode) || playerNode.ValueKind != JsonValueKind.String)
+            {
+                return false;
+            }
+
+            playerId = playerNode.GetString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(playerId))
+            {
+                return false;
+            }
+
+            if (!root.TryGetProperty("CorrelationId", out var correlationNode) || correlationNode.ValueKind != JsonValueKind.String)
+            {
+                return false;
+            }
+
+            correlationId = correlationNode.GetString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(correlationId))
+            {
+                return false;
+            }
+
+            if (!root.TryGetProperty("Result", out var resultNode))
+            {
+                return false;
+            }
+
+            var outcome = resultNode.TryGetProperty("Outcome", out var outcomeNode) && outcomeNode.ValueKind == JsonValueKind.String
+                ? outcomeNode.GetString() ?? string.Empty
+                : string.Empty;
+
+            if (!TryResolveCombatSnapshotHp(resultNode, out var maxHp, out var combatEndHp))
+            {
+                return false;
+            }
+
+            resolvedHp = string.Equals(outcome, "lose", StringComparison.OrdinalIgnoreCase)
+                ? Math.Max(1, maxHp / 2)
+                : combatEndHp;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool TryResolveCombatSnapshotHp(JsonElement resultNode, out int maxHp, out int combatEndHp)
+    {
+        maxHp = 0;
+        combatEndHp = 0;
+
+        if (!resultNode.TryGetProperty("PlayerSnapshot", out var playerSnapshotNode))
+        {
+            return false;
+        }
+
+        if (!playerSnapshotNode.TryGetProperty("MainUnit", out var mainUnitNode))
+        {
+            return false;
+        }
+
+        if (!mainUnitNode.TryGetProperty("Stats", out var statsNode))
+        {
+            return false;
+        }
+
+        if (!TryGetInt32(statsNode, "MaxHP", out maxHp) || !TryGetInt32(statsNode, "CurrentHP", out combatEndHp))
+        {
+            return false;
+        }
+
+        if (maxHp <= 0)
+        {
+            return false;
+        }
+
+        combatEndHp = Math.Clamp(combatEndHp, 0, maxHp);
+        return true;
+    }
+
+    private static bool TryGetInt32(JsonElement root, string propertyName, out int value)
+    {
+        value = 0;
+        if (!root.TryGetProperty(propertyName, out var node) || node.ValueKind != JsonValueKind.Number)
+        {
+            return false;
+        }
+
+        return node.TryGetInt32(out value);
     }
 
     private static string PatchBossChallengePromptedPayload(string dataJson, int pressureOffset)
