@@ -1,0 +1,21 @@
+# Task 182 Add test coverage for v4 assertions part 2 map main loop return occurs acceptance-test generation plan
+
+- Title: Task 182 Add test coverage for v4 assertions part 2 map main loop return occurs acceptance-test generation plan
+- Status: active
+- Branch: task/T182
+- Git Head: 727dcb45e5f3f6e7df0541d62b2ff849027a0ba1
+- Goal: Control acceptance-driven test generation complexity for task 182.
+- Scope: 0 missing refs across 0 test roots; seed refs: no missing refs detected
+- Current step: Review missing acceptance refs and choose the first safe red step.
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: Do not start Codex test generation until the ref mix and verify mode are explicit.
+- Next action: Run llm_generate_tests_from_acceptance_refs.py after confirming the sequence for missing refs.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 182 --resume`
+- Open questions: none recorded yet
+- Exit criteria: The next acceptance-driven test generation step is explicit and low-ambiguity.
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `182`
+- Related run id: n/a (no pipeline run id linked yet)
+- Related latest.json: n/a (no task-scoped latest.json pointer resolved yet)
+- Related pipeline artifacts: n/a (no pipeline artifact directory resolved yet)

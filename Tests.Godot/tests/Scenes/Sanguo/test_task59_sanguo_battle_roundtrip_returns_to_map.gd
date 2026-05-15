@@ -9,6 +9,7 @@ const CORE_TOKEN_MOVED := "core.sanguo.board.token.moved"
 const CORE_COMBAT_STARTED := "core.sanguo.combat.started"
 const CORE_COMBAT_ENDED := "core.sanguo.combat.ended"
 const CORE_PLAYER_STATE_CHANGED := "core.sanguo.player.state.changed"
+const CORE_HEALTH_UPDATED := "core.health.updated"
 
 var _bus: Node
 var _events: Array = []
@@ -66,6 +67,17 @@ func _wait_for_event_for_corr(type_name: String, correlation_id: String, max_fra
 	return {}
 
 
+func _wait_for_health_event_for_corr(correlation_id: String, max_frames: int = 180) -> Dictionary:
+	for _i in range(max_frames):
+		for e in _events_of_type(CORE_HEALTH_UPDATED):
+			var payload: Dictionary = JSON.parse_string(str(e.get("data_json", "{}")))
+			if str(payload.get("correlationId", "")) == correlation_id:
+				return payload
+		await get_tree().process_frame
+	assert_bool(false).is_true()
+	return {}
+
+
 func _wait_for_turn_started(active_player_id: String, max_frames: int = 300) -> void:
 	for _i in range(max_frames):
 		for e in _events_of_type(CORE_TURN_STARTED):
@@ -74,6 +86,17 @@ func _wait_for_turn_started(active_player_id: String, max_frames: int = 300) -> 
 				return
 		await get_tree().process_frame
 	assert_bool(false).is_true()
+
+
+func _assert_returned_to_main_loop(main: Node, active_player_id: String, max_frames: int = 600) -> void:
+	var battle_view: Control = main.get_node("SplitRoot/BottomArea/BoardArea/Overlays/SanguoBattleView")
+	assert_bool(battle_view.visible).is_true()
+	var continue_btn: Button = battle_view.get_node("Panel/VBox/ContinueButton")
+	assert_bool(continue_btn.disabled).is_false()
+	continue_btn.emit_signal("pressed")
+	await get_tree().process_frame
+	assert_bool(battle_view.visible).is_false()
+	await _wait_for_turn_started(active_player_id, max_frames)
 
 
 func _start_config_json(seed: int) -> String:
@@ -135,3 +158,101 @@ func test_task59_roundtrip_enters_battle_view_and_returns_to_map_and_allows_cont
 	_events = []
 	dice.emit_signal("pressed")
 	await _wait_for_event(UI_DICE_ROLL, 180)
+
+
+# ACC:T182.1
+# ACC:T182.2
+# ACC:T182.3
+# ACC:T182.4
+# ACC:T182.10
+func test_task182_win_combat_keeps_combat_end_hp_on_return() -> void:
+	var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
+	add_child(auto_free(main))
+	await get_tree().process_frame
+
+	var controller := main.get_node_or_null("SanguoGameLoopController")
+	if controller != null:
+		controller.set("AiAutoAdvanceDelaySeconds", 0.02)
+		controller.set("AiAutoAdvanceDelaySecondsWhenSkip", 0.02)
+
+	var win_start := "{\"map_id\":\"map001\",\"players_count\":4,\"starting_money_preset\":5000,\"global_event_interval_turns\":5,\"random_seed\":7,\"character_assignments\":{\"p1\":\"c_lu_bu\",\"ai-1\":\"c_cao_cao\",\"ai-2\":\"c_sun_quan\",\"ai-3\":\"c_sima_yi\"}}"
+	_bus.PublishSimple(UI_MENU_START, "ut", win_start)
+	await _wait_for_turn_started("p1", 240)
+
+	var hud := main.get_node("SplitRoot/TopArea/HudLayer/HUD")
+	var hp_label: Label = hud.get_node("TopBar/TopStack/HBox/HealthLabel")
+	var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
+	dice.emit_signal("pressed")
+
+	await _wait_for_event(UI_DICE_ROLL, 120)
+	var win_ui := _last_event(UI_DICE_ROLL)
+	var win_ui_payload: Dictionary = JSON.parse_string(str(win_ui.get("data_json", "{}")))
+	var win_corr := str(win_ui_payload.get("CorrelationId", ""))
+	assert_bool(win_corr.length() > 0).is_true()
+	var win_moved := await _wait_for_event_for_corr(CORE_TOKEN_MOVED, win_corr, 240)
+	var win_to_index := int(win_moved.get("ToIndex", -1))
+	assert_int(win_to_index).is_equal(6)
+
+	_bus.PublishSimple(UI_TILE_ACTION_SELECTED, "ut",
+		"{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"ToIndex\":%d,\"Action\":\"start_combat\",\"CorrelationId\":\"%s\",\"CausationId\":\"%s\"}" % [win_to_index, win_corr, UI_TILE_ACTION_SELECTED])
+	await _wait_for_event_for_corr(CORE_COMBAT_STARTED, win_corr, 240)
+	var win_ended := await _wait_for_event_for_corr(CORE_COMBAT_ENDED, win_corr, 240)
+	var win_result: Dictionary = win_ended.get("Result", {})
+	var win_snapshot: Dictionary = win_result.get("PlayerSnapshot", {})
+	var win_main: Dictionary = win_snapshot.get("MainUnit", {})
+	var win_stats: Dictionary = win_main.get("Stats", {})
+	var win_current_hp := int(win_stats.get("CurrentHP", -1))
+	assert_bool(win_current_hp > 0).is_true()
+	var win_health_payload := await _wait_for_health_event_for_corr(win_corr, 180)
+	var win_reported_hp := int(win_health_payload.get("value", -1))
+	assert_int(win_reported_hp).is_equal(win_current_hp)
+	assert_str(hp_label.text).contains(str(win_reported_hp))
+	await _assert_returned_to_main_loop(main, "p1", 600)
+
+# ACC:T182.5
+# ACC:T182.6
+# ACC:T182.7
+# ACC:T182.8
+# ACC:T182.9
+func test_task182_loss_combat_restores_half_max_hp_on_return() -> void:
+	var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
+	add_child(auto_free(main))
+	await get_tree().process_frame
+
+	var controller := main.get_node_or_null("SanguoGameLoopController")
+	if controller != null:
+		controller.set("AiAutoAdvanceDelaySeconds", 0.02)
+		controller.set("AiAutoAdvanceDelaySecondsWhenSkip", 0.02)
+
+	var hud := main.get_node("SplitRoot/TopArea/HudLayer/HUD")
+	var hp_label: Label = hud.get_node("TopBar/TopStack/HBox/HealthLabel")
+	var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
+
+	var lose_start := "{\"map_id\":\"map001\",\"players_count\":4,\"starting_money_preset\":5000,\"global_event_interval_turns\":5,\"random_seed\":9,\"character_assignments\":{\"p1\":\"c_zhuge_liang\",\"ai-1\":\"c_lu_bu\",\"ai-2\":\"c_cao_cao\",\"ai-3\":\"c_sun_quan\"}}"
+	_bus.PublishSimple(UI_MENU_START, "ut", lose_start)
+	await _wait_for_turn_started("p1", 240)
+	dice.emit_signal("pressed")
+	await _wait_for_event(UI_DICE_ROLL, 120)
+	var lose_ui := _last_event(UI_DICE_ROLL)
+	var lose_ui_payload: Dictionary = JSON.parse_string(str(lose_ui.get("data_json", "{}")))
+	var lose_corr := str(lose_ui_payload.get("CorrelationId", ""))
+	assert_bool(lose_corr.length() > 0).is_true()
+	var lose_moved := await _wait_for_event_for_corr(CORE_TOKEN_MOVED, lose_corr, 240)
+	var lose_to_index := int(lose_moved.get("ToIndex", -1))
+	assert_int(lose_to_index).is_equal(6)
+
+	_bus.PublishSimple(UI_TILE_ACTION_SELECTED, "ut",
+		"{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"ToIndex\":%d,\"Action\":\"start_combat\",\"CorrelationId\":\"%s\",\"CausationId\":\"%s\"}" % [lose_to_index, lose_corr, UI_TILE_ACTION_SELECTED])
+	await _wait_for_event_for_corr(CORE_COMBAT_STARTED, lose_corr, 240)
+	var lose_ended := await _wait_for_event_for_corr(CORE_COMBAT_ENDED, lose_corr, 240)
+	var lose_result: Dictionary = lose_ended.get("Result", {})
+	var lose_snapshot: Dictionary = lose_result.get("PlayerSnapshot", {})
+	var lose_main: Dictionary = lose_snapshot.get("MainUnit", {})
+	var lose_stats: Dictionary = lose_main.get("Stats", {})
+	var lose_max_hp := int(lose_stats.get("MaxHP", -1))
+	assert_bool(lose_max_hp > 0).is_true()
+	var lose_health_payload := await _wait_for_health_event_for_corr(lose_corr, 180)
+	var lose_reported_hp := int(lose_health_payload.get("value", -1))
+	assert_int(lose_reported_hp).is_equal(int(lose_max_hp / 2))
+	assert_str(hp_label.text).contains(str(lose_reported_hp))
+	await _assert_returned_to_main_loop(main, "p1", 600)

@@ -10925,23 +10925,18 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd",
-      "Tests.Godot/tests/Adapters/Db/test_inventory_merge_and_clear_cross_restart.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_game_loop_dice_flow.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_main_music_autoplays.gd"
+      "Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd"
     ],
     "acceptance": [
-      "Requirement REQ-d2fd765a5e25 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:137 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Requirement REQ-ccabe55813a3 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:142 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Requirement REQ-b6b5d569b53e is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:144 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Requirement REQ-57d246bdc4e0 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:151 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Requirement REQ-9cb88a897781 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:192 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "A deterministic Godot test or evidence fixture covers the v4 assertion that when combat or a scene transition returns control to the map/main-loop, the player is returned to the map/main-loop state and current HP is restored to exactly 50% of MaxHP.",
-      "The deterministic validator or evidence fixture fails when the required map/main-loop return or HP-restore behavior is missing.",
-      "The validation or evidence output for this acceptance slice remains stable after the change and does not silently drift between reruns.",
-      "After writing this task to the task view, the Chapter 3 baseline validators are rerun and their result is recorded as evidence for the acceptance update."
+      "Requirement REQ-d2fd765a5e25 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:137 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
+      "Requirement REQ-ccabe55813a3 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:142 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
+      "Requirement REQ-b6b5d569b53e is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:144 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
+      "Requirement REQ-57d246bdc4e0 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:151 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
+      "Requirement REQ-9cb88a897781 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:192 Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
+      "A deterministic Godot test covers the recovery-return branch: when combat or scene transition returns control to map/main-loop in the recovery branch, current HP is restored to exactly 50% of MaxHP. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
+      "The deterministic validator or evidence fixture fails if either condition is missing: (a) no return to map/main-loop, or (b) recovery-branch HP is not exactly 50% of MaxHP. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
+      "A deterministic Godot test covers non-recovery return paths (for example combat win): map/main-loop return occurs without forcing HP to 50% of MaxHP, and HP follows the combat-end snapshot. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd",
+      "Recovery and non-recovery return semantics are asserted independently so each branch can fail deterministically when behavior regresses. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
@@ -10958,8 +10953,7 @@
       "docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:192",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd"
+      "Tests.Godot/tests/Scenes/Sanguo/test_task59_sanguo_battle_roundtrip_returns_to_map.gd"
     ],
     "source_refs": [
       "docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:137",
