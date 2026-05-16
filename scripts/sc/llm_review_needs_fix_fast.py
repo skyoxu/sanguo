@@ -1217,7 +1217,7 @@ def _run_chapter6_route_preflight(*, task_id: str, out_dir: Path) -> dict[str, A
     _rc, payload = route_chapter6(
         repo_root=repo_root(),
         task_id=str(task_id),
-        record_residual=True,
+        record_residual=False,
     )
     if not isinstance(payload, dict):
         return {}
@@ -1255,6 +1255,9 @@ def _build_chapter6_route_step(
 
 def _chapter6_route_stop_outcome(payload: dict[str, Any]) -> tuple[str, str, int]:
     preferred_lane = str(payload.get("preferred_lane") or "").strip() or "inspect-first"
+    recommended_command = str(payload.get("recommended_command") or "").strip().lower()
+    if preferred_lane == "inspect-first" and "llm_review_needs_fix_fast.py" in recommended_command:
+        return "indeterminate", "chapter6_route_inspect_first_allow_needs_fix_fast", 2
     if preferred_lane == "record-residual":
         return "ok", "chapter6_route_recorded_residual", 0
     if preferred_lane == "repo-noise-stop":
@@ -1459,27 +1462,33 @@ def main() -> int:
             timeline.append(route_preflight_step)
             if str(route_payload.get("preferred_lane") or "").strip() != "run-6.8":
                 status, reason, exit_code = _chapter6_route_stop_outcome(route_payload)
-                residual_recording = route_payload.get("residual_recording") if isinstance(route_payload.get("residual_recording"), dict) else {}
-                summary = {
-                    "cmd": "sc-needs-fix-fast",
-                    "task_id": str(args.task_id),
-                    "status": status,
-                    "reason": reason,
-                    "out_dir": str(out_dir),
-                    "elapsed_sec": elapsed_sec(script_start),
-                    "delivery_profile": str(args.delivery_profile),
-                    "timeline": list(timeline),
-                    "rounds": [],
-                    "votes": {agent: [] for agent in agents},
-                    "final_verdicts": {agent: ("OK" if status == "ok" else "Unknown") for agent in agents},
-                    "final_needs_fix_agents": [],
-                    "final_unknown_agents": [] if status == "ok" else list(agents),
-                    "route_preflight": route_payload,
-                    "residual_recording": residual_recording,
-                }
-                _write_summary(out_dir, summary)
-                print(f"SC_NEEDS_FIX_FAST status={status} out={out_dir}")
-                return exit_code
+                if reason == "chapter6_route_inspect_first_allow_needs_fix_fast":
+                    route_preflight_step["status"] = "ok"
+                    route_preflight_step["rc"] = 0
+                    route_preflight_step["allow_proceed"] = True
+                    route_preflight_step["allow_proceed_reason"] = "recommended_command_points_to_needs_fix_fast"
+                else:
+                    residual_recording = route_payload.get("residual_recording") if isinstance(route_payload.get("residual_recording"), dict) else {}
+                    summary = {
+                        "cmd": "sc-needs-fix-fast",
+                        "task_id": str(args.task_id),
+                        "status": status,
+                        "reason": reason,
+                        "out_dir": str(out_dir),
+                        "elapsed_sec": elapsed_sec(script_start),
+                        "delivery_profile": str(args.delivery_profile),
+                        "timeline": list(timeline),
+                        "rounds": [],
+                        "votes": {agent: [] for agent in agents},
+                        "final_verdicts": {agent: ("OK" if status == "ok" else "Unknown") for agent in agents},
+                        "final_needs_fix_agents": [],
+                        "final_unknown_agents": [] if status == "ok" else list(agents),
+                        "route_preflight": route_payload,
+                        "residual_recording": residual_recording,
+                    }
+                    _write_summary(out_dir, summary)
+                    print(f"SC_NEEDS_FIX_FAST status={status} out={out_dir}")
+                    return exit_code
 
     deterministic_cmd = _build_deterministic_cmd(py=py, args=args)
     profile_floor_decision = {
