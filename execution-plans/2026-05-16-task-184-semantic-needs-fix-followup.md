@@ -1,46 +1,21 @@
 # Execution Plan
 
-- Date: 2026-05-16
-- Task: 184
+- Title: task-184-semantic-needs-fix-followup
 - Status: active
-
-## Goal
-
-Close residual semantic Needs Fix for Task 184 acceptance semantics without violating Chapter 6 stop-loss routing.
-
-## Scope
-
-- Task files: `.taskmaster/tasks/tasks_back.json`, `.taskmaster/tasks/tasks.json`
-- Evidence anchors in referenced tests:
-  - `Game.Core.Tests/Domain/CityTests.cs`
-  - `Game.Core.Tests/Domain/SanguoPlayerTests.cs`
-  - `Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs`
-  - `Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs`
-  - `Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd`
-
-## Current Step
-
-Stop-loss hold: route requires `inspect` due to `recent_failure_summary` repeated failure family.
-
-## Stop-Loss Boundary
-
-Do not rerun full 6.7 or additional 6.8 while `chapter6_next_action=inspect` and `blocked_by=recent_failure_summary` remain active.
-
-## Next Action
-
-1. Reconcile acceptance semantic wording so each acceptance item maps to a concrete, falsifiable behavior and matching refs.
-2. Re-run only the lane explicitly recommended by `chapter6-route --recommendation-only` after step 1.
-3. If route unlocks and all P0/P1 findings clear, continue to 6.9 local hard checks.
-
-## Exit Criteria
-
-- `resume-task` no longer reports `recommended_action=inspect` and `blocked_by=recent_failure_summary`.
-- Latest review artifacts show no unresolved P0/P1 Needs Fix for Task 184 under fast-ship policy.
-- 6.9 local hard checks executed and passing evidence captured.
-
-## Evidence Paths
-
-- `logs/ci/2026-05-16/task-resume/task-184-resume-summary.json`
-- `logs/ci/2026-05-16/sc-review-pipeline-task-184-96fb9000348c496e9d3bc7fabbe00f38/summary.json`
-- `logs/ci/2026-05-16/sc-needs-fix-fast-task-184/summary.json`
-- `logs/ci/2026-05-16/sc-needs-fix-fast-task-184/round-1/review-semantic-equivalence-auditor.md`
+- Branch: task/T184
+- Git Head: 0ff3b26b8bf564c260316511d7264b1b5744a770
+- Goal: Close residual semantic Needs Fix for Task 184 acceptance semantics without violating Chapter 6 stop-loss routing.
+- Scope: Update acceptance semantic wording and references for Task 184 in .taskmaster/tasks/tasks.json and .taskmaster/tasks/tasks_back.json, then rerun only route-allowed lane.
+- Current step: Residual semantic Needs Fix recorded; follow-up path defined and awaiting route-allowed rerun.
+- Last completed step: Captured residual decision log and follow-up evidence links.
+- Stop-loss: Do not rerun full 6.7 or extra 6.8 while chapter6_next_action=inspect and blocked_by=recent_failure_summary are active.
+- Next action: Reconcile acceptance semantic wording and anchors, then rerun only the lane recommended by chapter6-route --recommendation-only.
+- Recovery command: py -3 scripts/python/dev_cli.py resume-task --task-id 184 --recommendation-only; py -3 scripts/python/dev_cli.py chapter6-route --task-id 184 --recommendation-only
+- Open questions: none
+- Exit criteria: Resume and route no longer block on recent failure summary and latest review artifacts show no unresolved P0 or P1 Needs Fix.
+- Related ADRs: docs/adr/ADR-0005.md
+- Related decision logs: decision-logs/2026-05-16-task-184-semantic-needs-fix-residual.md
+- Related task id(s): 184
+- Related run id: 96fb9000348c496e9d3bc7fabbe00f38
+- Related latest.json: logs/ci/2026-05-16/sc-review-pipeline-task-184/latest.json
+- Related pipeline artifacts: logs/ci/2026-05-16/sc-review-pipeline-task-184-96fb9000348c496e9d3bc7fabbe00f38/summary.json
