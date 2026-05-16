@@ -28,6 +28,7 @@ public class SanguoPlayerTests
         var referenced = typeof(SanguoPlayer).Assembly.GetReferencedAssemblies();
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
     }
+    // ACC:T184.9
     [Fact]
     public void ShouldInitializeMoneyPositionAndOwnedCities_WhenConstructed()
     {
