@@ -34,6 +34,7 @@ public sealed class Task59CombatDeterminismTests
         result.MoneyDelta.Should().Be(0m);
     }
 
+    // ACC:T184.6
     [Fact]
     public void ShouldThrow_WhenCombatRatingIsNegative()
     {
@@ -48,4 +49,3 @@ public sealed class Task59CombatDeterminismTests
         act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("encounterTarget");
     }
 }
-

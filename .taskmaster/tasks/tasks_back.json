@@ -11078,25 +11078,23 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/Game.Core/Domain/City.cs",
-      "Tests.Godot/Game.Core/Domain/CombatConfig.cs",
-      "Tests.Godot/Game.Core/Domain/Entities/Achievement.cs",
-      "Tests.Godot/Game.Core/Domain/Entities/SaveGame.cs",
-      "Tests.Godot/Game.Core/Domain/Entities/User.cs",
-      "Tests.Godot/Game.Core/Domain/GameModels.cs"
+      "Game.Core.Tests/Domain/CityTests.cs",
+      "Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
+      "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "Game.Core.Tests/Domain/SanguoPlayerTests.cs",
+      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-d0d8a13e08d1 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:23 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs",
-      "Requirement REQ-de67671a34ba is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:403 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs",
-      "Requirement REQ-90c35cac17ac is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:419 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs",
-      "Requirement REQ-00dd6507ce91 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:435 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs",
-      "Requirement REQ-41c95d6980a7 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:451 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs",
-      "Requirement REQ-fdc82884fe0d is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:467 Refs: Tests.Godot/Game.Core/Domain/City.cs Tests.Godot/Game.Core/Domain/CombatConfig.cs",
-      "Godot smoke coverage exists for UI GDD part 1 core-domain service paths and fails when the covered domain model contracts cannot be loaded or instantiated in the Godot test environment.",
-      "The smoke coverage exercises the city and combat configuration domain services named by the existing evidence paths and asserts observable stable defaults or validation outcomes instead of only checking that files exist.",
-      "The smoke coverage exercises achievement, save-game, user, and game-model domain entities named by the task details and asserts observable construction, serialization-safe state, or invariant outcomes relevant to UI GDD part 1.",
-      "The task evidence records the deterministic red, green, and refactor validation commands used for the added or updated Godot smoke coverage.",
-      "Chapter 3.8 triplet baseline validators pass after the acceptance updates are written to the task view, or the failing validator output is recorded as evidence for follow-up."
+      "ACC:T184.1 Requirement REQ-d0d8a13e08d1: core-domain city constructors reject invalid id/name/region or negative position with deterministic argument exceptions, and city-domain assembly stays free of Godot references. Source: docs/gdd/ui-gdd-flow.md:23 Refs: Game.Core.Tests/Domain/CityTests.cs",
+      "ACC:T184.2 Requirement REQ-de67671a34ba: city price calculation returns scaled values for valid multipliers and throws deterministic argument exceptions for out-of-range or invalid-step multipliers. Source: docs/gdd/ui-gdd-flow.md:403 Refs: Game.Core.Tests/Domain/CityTests.cs",
+      "ACC:T184.3 Requirement REQ-90c35cac17ac: city toll calculation returns scaled values for valid multipliers and throws deterministic argument exceptions for out-of-range or invalid-step multipliers. Source: docs/gdd/ui-gdd-flow.md:419 Refs: Game.Core.Tests/Domain/CityTests.cs",
+      "ACC:T184.4 Requirement REQ-00dd6507ce91: city price/toll multiplier validation honors the supplied SanguoEconomyRules parameter instead of hard-coded bounds. Source: docs/gdd/ui-gdd-flow.md:435 Refs: Game.Core.Tests/Domain/CityTests.cs",
+      "ACC:T184.5 Requirement REQ-41c95d6980a7: repeated city price queries with identical inputs are deterministic and return identical outcomes. Source: docs/gdd/ui-gdd-flow.md:451 Refs: Game.Core.Tests/Domain/CityTests.cs Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
+      "ACC:T184.6 Requirement REQ-fdc82884fe0d: deterministic combat resolver returns identical outputs for identical seeds and inputs, and rejects invalid combat-rating input with deterministic argument errors. Source: docs/gdd/ui-gdd-flow.md:467 Refs: Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
+      "ACC:T184.7 Godot smoke coverage contains executable main-scene assertions and fails deterministically (assertion failure or explicit test error) when required startup contracts or core models cannot initialize. Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "ACC:T184.8 Smoke/core coverage validates observable city/combat-domain outcomes (defaults, scaled calculations, invalid-input failures) instead of file-presence checks. Refs: Game.Core.Tests/Domain/CityTests.cs Game.Core.Tests/Tasks/Task59CombatDeterminismTests.cs",
+      "ACC:T184.9 Smoke/core coverage validates SanguoPlayer invariants including construction validity, buy/pay-toll state transitions, and unchanged-state behavior on refusal paths. Refs: Game.Core.Tests/Domain/SanguoPlayerTests.cs",
+      "ACC:T184.10 Smoke/core coverage validates save-load service deterministic state handling, including roundtrip-safe persistence behavior and invariant-preserving failure paths. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",

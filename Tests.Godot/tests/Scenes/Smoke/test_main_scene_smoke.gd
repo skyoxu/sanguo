@@ -8,6 +8,7 @@ func _on_domain_event(type, _source, _data_json, _id, _spec, _ct, _ts) -> void:
     _evt_type = str(type)
 
 # ACC:T1.1
+# ACC:T184.7
 func test_main_scene_instantiates_and_visible() -> void:
     var scene := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
     add_child(auto_free(scene))

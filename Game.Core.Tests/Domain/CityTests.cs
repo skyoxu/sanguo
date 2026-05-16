@@ -9,6 +9,7 @@ public class CityTests
     private static readonly SanguoEconomyRules Rules = SanguoEconomyRules.Default;
 
     // ACC:T3.1
+    // ACC:T184.1
     [Fact]
     public void ShouldNotReferenceGodotAssemblies_WhenUsingCityDomain()
     {
@@ -17,6 +18,7 @@ public class CityTests
     }
 
     // ACC:T3.2
+    // ACC:T184.2
     [Fact]
     public void ShouldSetProperties_WhenConstructed()
     {
@@ -35,6 +37,7 @@ public class CityTests
         city.PositionIndex.Should().Be(7);
     }
 
+    // ACC:T184.3
     [Fact]
     public void ShouldThrowArgumentOutOfRangeException_WhenPositionIndexIsNegative()
     {
@@ -50,6 +53,7 @@ public class CityTests
             .WithParameterName("positionIndex");
     }
     // ACC:T3.3
+    // ACC:T184.4
     [Fact]
     public void ShouldThrowArgumentOutOfRangeException_WhenPriceMultiplierIsBelowMin()
     {
@@ -57,12 +61,14 @@ public class CityTests
         var act = () => city.GetPrice(multiplier: 0m, rules: Rules);
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
+    // ACC:T184.5
     [Fact]
     public void ShouldReturnScaledPrice_WhenPriceMultiplierIsProvided()
     {
         var city = new City("c1", "CityName", "r1", basePrice: MoneyValue.FromDecimal(100m), baseToll: MoneyValue.FromDecimal(10m));
         city.GetPrice(multiplier: 1.5m, rules: Rules).Should().Be(MoneyValue.FromDecimal(150m));
     }
+    // ACC:T184.6
     [Fact]
     public void ShouldThrowArgumentOutOfRangeException_WhenPriceMultiplierIsNegative()
     {
@@ -70,6 +76,7 @@ public class CityTests
         var act = () => city.GetPrice(multiplier: -1m, rules: Rules);
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
+    // ACC:T184.7
     [Fact]
     public void ShouldThrowArgumentOutOfRangeException_WhenPriceMultiplierIsNotHalfStep()
     {
@@ -77,6 +84,7 @@ public class CityTests
         var act = () => city.GetPrice(multiplier: 1.25m, rules: Rules);
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
+    // ACC:T184.8
     [Fact]
     public void ShouldThrowArgumentOutOfRangeException_WhenPriceMultiplierExceedsMax()
     {
@@ -85,6 +93,7 @@ public class CityTests
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
+    // ACC:T184.10
     [Fact]
     public void ShouldUseRulesParameter_WhenValidatingPriceMultiplierRange()
     {

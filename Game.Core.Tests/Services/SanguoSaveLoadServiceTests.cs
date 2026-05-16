@@ -83,6 +83,7 @@ internal sealed record FlakySaveDataStore : IDataStore
 
 public sealed class SanguoSaveLoadServiceTests
 {
+    // ACC:T184.10
     [Fact]
     public void ShouldThrowArgumentNullException_WhenConstructingWithNullBus()
     {
