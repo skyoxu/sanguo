@@ -1,43 +1,21 @@
 # Decision Log
 
+- Title: task-184-semantic-needs-fix-residual
 - Date: 2026-05-16
-- Task: 184
-- Status: active
-- Why now: Chapter 6 recovery and route both report `recommended_action=inspect` with `blocked_by=recent_failure_summary`, while semantic-equivalence review still returns Needs Fix for acceptance semantics.
-
-## Context
-
-- Latest pipeline pointer: `logs/ci/2026-05-16/sc-review-pipeline-task-184/latest.json`
-- Latest run id: `96fb9000348c496e9d3bc7fabbe00f38`
-- Resume summary: `logs/ci/2026-05-16/task-resume/task-184-resume-summary.json`
-- Route decision: `preferred_lane=inspect-first`, `chapter6_next_action=inspect`, `blocked_by=recent_failure_summary`
-- Repeated failure family: `review-needs-fix|llm=ok|pipeline_clean` (same-family count = 2)
-
-## Decision
-
-Do not pay for another 6.7/6.8 rerun in this turn. Treat current state as stop-loss and record residual semantic Needs Fix follow-up work before further reruns.
-
-## Residual Needs Fix (Unresolved)
-
-- Reviewer: `semantic-equivalence-auditor`
-- Severity reported in reviewer text: `P1/P2 semantic obligations`
-- Evidence file: `logs/ci/2026-05-16/sc-needs-fix-fast-task-184/round-1/review-semantic-equivalence-auditor.md`
-- Summary signal: `SC_NEEDS_FIX_FAST status=needs-fix` then `status=indeterminate` due to `chapter6_route_inspect_first`
-
-## Consequences
-
-- Chapter 6 cannot be considered complete yet.
-- 6.9 hard checks are not executed in this turn because unresolved Needs Fix remains and route blocks additional review spend.
-
-## Recovery Impact
-
-- Next session must start from:
-  1. `py -3 scripts/python/dev_cli.py resume-task --task-id 184 --recommendation-only`
-  2. `py -3 scripts/python/dev_cli.py chapter6-route --task-id 184 --recommendation-only`
-- If route still returns `inspect-first` with repeated failure family, fix semantic acceptance wording/anchors first, then rerun the recommended narrow lane only when route allows.
-
-## Validation Evidence
-
-- `logs/ci/2026-05-16/sc-review-pipeline-task-184-96fb9000348c496e9d3bc7fabbe00f38/summary.json`
-- `logs/ci/2026-05-16/sc-needs-fix-fast-task-184/summary.json`
-- `logs/ci/2026-05-16/task-resume/task-184-resume-summary.md`
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T184
+- Git Head: 0ff3b26b8bf564c260316511d7264b1b5744a770
+- Why now: Chapter 6 recovery and route returned inspect-first while semantic-equivalence reviewer still reported Needs Fix signals.
+- Context: Latest pipeline pointer is logs/ci/2026-05-16/sc-review-pipeline-task-184/latest.json; route indicated preferred_lane=inspect-first with blocked_by=recent_failure_summary.
+- Decision: Record residual semantic Needs Fix and stop further review-spend reruns until acceptance semantics and anchors are corrected and route allows the next lane.
+- Consequences: Chapter 6 was not considered complete at this point; follow-up must prioritize semantic anchor corrections before another reviewer spend.
+- Recovery impact: Next session should run resume-task then chapter6-route in recommendation-only mode and follow the returned lane instead of defaulting to 6.7 or 6.8.
+- Validation: Evidence captured in Task 184 pipeline summary, needs-fix-fast summary, and resume summary artifacts.
+- Related ADRs: docs/adr/ADR-0005.md
+- Related execution plans: execution-plans/2026-05-16-task-184-semantic-needs-fix-followup.md
+- Related task id(s): 184
+- Related run id: 96fb9000348c496e9d3bc7fabbe00f38
+- Related latest.json: logs/ci/2026-05-16/sc-review-pipeline-task-184/latest.json
+- Related pipeline artifacts: logs/ci/2026-05-16/sc-review-pipeline-task-184-96fb9000348c496e9d3bc7fabbe00f38/summary.json
