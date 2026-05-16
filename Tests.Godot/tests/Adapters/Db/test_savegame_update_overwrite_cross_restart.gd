@@ -12,6 +12,8 @@ func _new_db(name: String) -> Node:
     get_tree().get_root().add_child(auto_free(db))
     return db
 
+# ACC:T183.1 ACC:T183.2 ACC:T183.3
+# ACC:T183.4 ACC:T183.5 ACC:T183.6
 func test_savegame_update_overwrite_cross_restart() -> void:
     var path = "user://utdb_%s/save2.db" % Time.get_unix_time_from_system()
     var db = _new_db("SqlDb")
@@ -49,3 +51,4 @@ func test_savegame_update_overwrite_cross_restart() -> void:
     add_child(auto_free(bridge3))
     var got = bridge3.GetSaveData(uid, 1)
     assert_str(str(got)).contains('"hp": 77')
+    assert_str(str(got)).not_contains('"hp": 42')

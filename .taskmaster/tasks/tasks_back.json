@@ -11011,20 +11011,13 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd",
-      "Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd",
-      "Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd",
-      "Tests.Godot/addons/gdUnit4/src/update/GdMarkDownReader.gd",
-      "Tests.Godot/addons/gdUnit4/src/update/GdUnitPatch.gd",
-      "Tests.Godot/addons/gdUnit4/src/update/GdUnitPatcher.gd"
+      "Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd"
     ],
     "acceptance": [
-      "Requirement REQ-e59441a62b3c is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:186 Refs: Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd",
-      "`PRD_V4_ACCEPTANCE_ASSERTIONS.md` is updated to include deterministic assertion coverage for REQ-e59441a62b3c from docs/prd/PRD_V4_RULES_FREEZE.md:186.",
-      "The updated assertion coverage records observable evidence that the acceptance requirement is checked rather than only documented as present.",
-      "A deterministic validator or evidence fixture fails when the required assertion behavior is missing.",
-      "Chapter 3.8 triplet baseline validation is rerun after the task view is written, and its evidence is available under logs/**.",
-      "The validation or evidence output remains stable after refactor and does not silently change without matching acceptance or evidence updates."
+      "Requirement REQ-e59441a62b3c is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:186 Refs: Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd",
+      "PRD_V4_ACCEPTANCE_ASSERTIONS.md MUST contain an explicit assertion entry for REQ-e59441a62b3c (source: docs/prd/PRD_V4_RULES_FREEZE.md:186), including expected observable behavior and mapped test case test_savegame_update_overwrite_cross_restart. Refs: Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd",
+      "The assertion entry for REQ-e59441a62b3c MUST be traceable to concrete test assertions (open success, overwrite persistence, and cross-restart read consistency), not only a presence statement. Refs: Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd",
+      "A deterministic validator or evidence fixture MUST fail when the required assertion entry or its mapped behavior assertion is missing. Refs: Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
@@ -11037,8 +11030,7 @@
       "docs/prd/PRD_V4_RULES_FREEZE.md:186",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md",
       "docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md",
-      "Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd",
-      "Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd"
+      "Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd"
     ],
     "source_refs": [
       "docs/prd/PRD_V4_RULES_FREEZE.md:186"

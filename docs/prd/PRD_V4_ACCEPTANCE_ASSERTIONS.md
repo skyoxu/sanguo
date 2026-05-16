@@ -144,6 +144,21 @@
 - Then map/main-loop return occurs and player HP remains at combat-end HP.
 - Evidence: combat result application test.
 
+### V4-A-019A Savegame Overwrite Cross-Restart Assertion Mapping
+
+- Requirement: `REQ-e59441a62b3c` (source: `docs/prd/PRD_V4_RULES_FREEZE.md:186`).
+- Given savegame slot `(uid, slot=1)` already has persisted payload,
+- When the same slot is upserted after reopen/restart,
+- Then the latest payload must overwrite the previous payload for that slot.
+- And cross-restart read consistency must return the latest payload only.
+- Observable assertions must cover:
+  - open success
+  - overwrite persistence
+  - cross-restart read consistency
+- Test mapping: `Tests.Godot/tests/Adapters/Db/test_savegame_update_overwrite_cross_restart.gd`
+- Acceptance anchor mapping: `ACC:T183.1`, `ACC:T183.2`, `ACC:T183.3`, `ACC:T183.4`.
+- Evidence: deterministic GdUnit test assertions and acceptance anchor tracing.
+
 ### V4-A-020 Battle UI Required Elements
 
 - Given `SanguoBattleView` loads,
