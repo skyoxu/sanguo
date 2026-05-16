@@ -59,7 +59,7 @@ public sealed class Task42PerformanceGateTests
 
     // ACC:T42.1
     [Fact]
-    public void ShouldHaveIndependentPerformanceGatesWorkflow_WhenTaskIsDone()
+    public void ShouldExposeIndependentPerformanceGatesWorkflow_WhenTaskIsDone()
     {
         var repoRoot = FindRepoRoot();
         if (!IsTaskDone(repoRoot, 42))
@@ -72,8 +72,9 @@ public sealed class Task42PerformanceGateTests
     }
 
     // ACC:T42.2
+    // ACC:T185.4
     [Fact]
-    public void ShouldNotRunBuildOrTestSteps_InPerformanceGatesWorkflow_WhenTaskIsDone()
+    public void ShouldSkipBuildAndTestSteps_WhenTask42PerformanceWorkflowRuns()
     {
         var repoRoot = FindRepoRoot();
         if (!IsTaskDone(repoRoot, 42))
@@ -90,7 +91,7 @@ public sealed class Task42PerformanceGateTests
 
     // ACC:T42.3
     [Fact]
-    public void ShouldEmitPerformanceGatesSummaryJson_WhenTaskIsDone()
+    public void ShouldEmitPerformanceGatesSummaryJson_WhenTask42WorkflowRuns()
     {
         var repoRoot = FindRepoRoot();
         if (!IsTaskDone(repoRoot, 42))
@@ -105,7 +106,7 @@ public sealed class Task42PerformanceGateTests
 
     // ACC:T42.4
     [Fact]
-    public void ShouldHaveMigrationDocReference_WhenTaskIsDone()
+    public void ShouldKeepMigrationDocReference_WhenTask42IsDone()
     {
         var repoRoot = FindRepoRoot();
         if (!IsTaskDone(repoRoot, 42))

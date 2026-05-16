@@ -25,6 +25,7 @@ func _force_managed() -> void:
 func _abs(p: String) -> String:
     return ProjectSettings.globalize_path(p)
 
+# ACC:T185.6
 func test_handle_released_after_close_allows_rw_open() -> void:
     var path = "user://utdb_%s/handle.db" % Time.get_unix_time_from_system()
     var db = await _new_db("SqlDb")

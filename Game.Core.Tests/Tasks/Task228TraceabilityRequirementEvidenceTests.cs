@@ -19,36 +19,41 @@ public sealed class Task228TraceabilityRequirementEvidenceTests
     private static readonly string[] AllowedStatuses = { "Implemented", "Partial", "Gap" };
 
     // ACC:T228.1
+    // ACC:T185.1
     [Fact]
-    public void ShouldExposeRequirementEvidenceForReq0fc29954ba84()
+    public void ShouldExposeRequirementEvidence_WhenReq0fc29954ba84IsValidated()
     {
         AssertRequirementEvidence("REQ-0fc29954ba84", 7, "Requirement Traceability");
     }
 
     // ACC:T228.2
+    // ACC:T185.2
     [Fact]
-    public void ShouldExposeRequirementEvidenceForReq1994b9ffab06()
+    public void ShouldExposeRequirementEvidence_WhenReq1994b9ffab06IsValidated()
     {
         AssertRequirementEvidence("REQ-1994b9ffab06", 113, "result application to player HP, rewards, and map return");
     }
 
     // ACC:T228.3
+    // ACC:T185.3
     [Fact]
-    public void ShouldExposeRequirementEvidenceForReq08202eb39b59()
+    public void ShouldExposeRequirementEvidence_WhenReq08202eb39b59IsValidated()
     {
         AssertRequirementEvidence("REQ-08202eb39b59", 124, "Chapter 3 should consume all PRD v4 files as the same requirement source set.");
     }
 
     // ACC:T228.4
+    // ACC:T185.5
     [Fact]
-    public void ShouldExposeRequirementEvidenceForReq9b21ada5b7c7()
+    public void ShouldExposeRequirementEvidence_WhenReq9b21ada5b7c7IsValidated()
     {
         AssertRequirementEvidence("REQ-9b21ada5b7c7", 125, "Chapter 4 should decide contract changes from `PRD_V4_RULES_FREEZE.md` and `PRD_V4_TRACEABILITY_MATRIX.md`.");
     }
 
     // ACC:T228.5
+    // ACC:T185.8
     [Fact]
-    public void ShouldExposeRequirementEvidenceForReq429139de1ca2()
+    public void ShouldExposeRequirementEvidence_WhenReq429139de1ca2IsValidated()
     {
         AssertRequirementEvidence("REQ-429139de1ca2", 126, "Contract changes are expected, but they should be additive and preserve existing event names.");
     }
