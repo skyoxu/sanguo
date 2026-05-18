@@ -14,7 +14,7 @@ namespace Game.Core.Tests.Services;
 public sealed class SanguoEconomyManagerFailureTests
 {
     [Fact]
-    public async Task TryBuyCityAndPublishEventAsync_ShouldReturnFalse_WhenBuyerHasInsufficientFunds()
+    public async Task ShouldReturnFalse_WhenTryBuyCityAndPublishEventAsyncBuyerHasInsufficientFunds()
     {
         var bus = new CapturingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -63,4 +63,3 @@ public sealed class SanguoEconomyManagerFailureTests
         }
     }
 }
-

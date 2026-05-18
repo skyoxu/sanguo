@@ -23,6 +23,7 @@ func _force_managed() -> Node:
     helper.ForceManaged()
     return helper
 
+# ACC:T188.6 ACC:T188.18
 func test_transaction_rollback_inventory() -> void:
     var path = "user://utdb_%s/trx_inv.db" % Time.get_unix_time_from_system()
     var db = await _new_db("SqlDb")

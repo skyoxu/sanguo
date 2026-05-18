@@ -4,6 +4,7 @@ const SFX_ID := "res://Game.Godot/Assets/Audio/ui_click.wav"
 const MUSIC_ID := "res://Game.Godot/Assets/Audio/music_loop.wav"
 
 # ACC:T27.1
+# ACC:T188.12
 func test_audio_player_adapter_creates_sfx_and_music_players_on_ready() -> void:
 	var adapter := preload("res://Game.Godot/Adapters/AudioPlayerAdapter.cs").new()
 	add_child(auto_free(adapter))
@@ -32,6 +33,7 @@ func test_audio_player_adapter_creates_sfx_and_music_players_on_ready() -> void:
 	assert_object(sfx.stream).is_not_null()
 
 # ACC:T27.5
+# ACC:T188.17
 func test_audio_player_adapter_handles_missing_audio_resources_without_throwing() -> void:
 	var adapter := preload("res://Game.Godot/Adapters/AudioPlayerAdapter.cs").new()
 	add_child(auto_free(adapter))

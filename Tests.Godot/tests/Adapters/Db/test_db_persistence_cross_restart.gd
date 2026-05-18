@@ -12,6 +12,7 @@ func _new_db(name: String) -> Node:
     get_tree().get_root().add_child(auto_free(db))
     return db
 
+# ACC:T188.9 ACC:T188.16
 func test_cross_restart_persists_rows() -> void:
     # unique DB path per run
     var path = "user://utdb_%s/persist.db" % Time.get_unix_time_from_system()
