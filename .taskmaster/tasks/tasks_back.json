@@ -11256,25 +11256,23 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd",
-      "Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd",
-      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
+      "Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
       "Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs",
       "Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs"
+      "Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs",
+      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-f92d04e43fc9 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:184 Refs: Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd",
-      "Requirement REQ-e0aa8093bd8f is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:185 Refs: Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd",
-      "Requirement REQ-988e0cca9e50 is implemented with traceable evidence. Source: docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md:186 Refs: Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd",
-      "Hard gate negative path is covered: when the core combat simulation unit suite for V4-A-003 through V4-A-019 fails, the validation hook must not advance and the task is not accepted. Refs: Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteDefaultTemplate.gd Tests.Godot/addons/gdUnit4/src/core/templates/test_suite/GdUnitTestSuiteTemplate.gd",
-      "The hook is a hard gate over the full core combat simulation unit suite from `V4-A-003` through `V4-A-019`; a partial pass over only some of those cases is not acceptable.",
-      "After the task view is written, the Chapter 3.8 triplet baseline validators are rerun and their recorded result remains traceable to this hook suite gate.",
-      "The hard gate must execute the core combat simulation unit assertions covering every acceptance assertion from `V4-A-003` through `V4-A-019`, and the recorded evidence must identify the executed suite and final pass/fail result.",
-      "If any assertion in `V4-A-003` through `V4-A-019` is missing, skipped, inconclusive, or failing, the hook result must be failing and must block acceptance of Task 186.",
-      "The validation evidence must remain tied to the combat PvE and governance quality-gate overlays referenced by the task details without adding unrelated release or gameplay obligations.",
-      "The output of the validation or evidence path remains stable after refactor and does not silently drift between reruns of the same hook suite.",
-      "The validation evidence accounts for the listed contract and catalog test references in addition to the GdUnit template references, rather than treating template coverage alone as sufficient."
+      "ACC:T186.1 REQ-f92d04e43fc9: The Task 186 hook must accept only when the executed core combat suite covers every case from V4-A-003 through V4-A-019 and all are passed in the current run. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.2 REQ-e0aa8093bd8f: The hook decision must be computed from executed suite results (pass/fail/skip/inconclusive per required case), not from static acceptance text or manual markers. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.3 REQ-988e0cca9e50: On successful full-suite pass, evidence must record the required suite identity (V4-A-003..V4-A-019), current run binding, and final gate=pass for Task 186 acceptance. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.4 Hard gate negative path is covered: when the core combat simulation unit suite for V4-A-003 through V4-A-019 fails, the validation hook must not advance and the task is not accepted. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.5 The hook is a hard gate over the full core combat simulation unit suite from `V4-A-003` through `V4-A-019`; a partial pass over only some of those cases is not acceptable. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.6 The Task 186 validation hook must derive its pass/fail decision from the executed core combat suite result set for V4-A-003 through V4-A-019 (not from static acceptance text), and the evidence must include suite identity plus final gate decision. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.7 If any assertion in `V4-A-003` through `V4-A-019` is missing, skipped, inconclusive, or failing, the hook result must be failing and must block acceptance of Task 186. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.8 If the execution evidence is missing, stale, or not bound to the current run, the hook must fail closed and block Task 186 acceptance. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.9 The hook must reject acceptance when any required case in V4-A-003 through V4-A-019 is absent from the executed result set, even if all present cases pass. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs",
+      "ACC:T186.10 Positive path: when and only when all required cases V4-A-003 through V4-A-019 are present and passing in the current execution evidence, the hard gate advances and Task 186 is accepted. Refs: Game.Core.Tests/Tasks/Task186CombatHookSuiteCoverageTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
