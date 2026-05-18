@@ -9,6 +9,7 @@ func _on_resolution_applied(effective: Vector2i) -> void:
 	_last_valid_resolution = effective
 
 # ACC:T29.6
+# ACC:T188.1 ACC:T188.2 ACC:T188.3 ACC:T188.4 ACC:T188.5 ACC:T188.8 ACC:T188.10 ACC:T188.11
 # Acceptance intent: invalid/unsupported resolution must not crash and should fall back to last valid.
 func test_invalid_resolution_in_config_falls_back_to_last_valid_and_ui_matches_effective() -> void:
 	# Clear config.

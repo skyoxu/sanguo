@@ -14,8 +14,9 @@ namespace Game.Core.Tests.Services;
 
 public sealed class SanguoEconomyManagerTollPaymentGuardsAndPublishFailureTests
 {
+    // ACC:T188.13 ACC:T188.14
     [Fact]
-    public async Task TryPayTollAndPublishEventAsync_ShouldThrow_ForInvalidArguments()
+    public async Task ShouldThrowArgumentValidationErrors_WhenTryPayTollAndPublishEventAsyncReceivesInvalidArguments()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -101,7 +102,7 @@ public sealed class SanguoEconomyManagerTollPaymentGuardsAndPublishFailureTests
     }
 
     [Fact]
-    public async Task TryPayTollAndPublishEventAsync_ShouldReturnFalse_ForCommonGuardConditions()
+    public async Task ShouldReturnFalse_WhenTryPayTollAndPublishEventAsyncHitsCommonGuardConditions()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -219,7 +220,7 @@ public sealed class SanguoEconomyManagerTollPaymentGuardsAndPublishFailureTests
     }
 
     [Fact]
-    public async Task TryPayTollAndPublishEventAsync_ShouldThrowInvalidOperationException_WhenOwnerResolutionDetectsCorruptedBoardState()
+    public async Task ShouldThrowInvalidOperationException_WhenTryPayTollAndPublishEventAsyncDetectsCorruptedOwnerResolutionState()
     {
         var bus = new RecordingEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -261,7 +262,7 @@ public sealed class SanguoEconomyManagerTollPaymentGuardsAndPublishFailureTests
     }
 
     [Fact]
-    public async Task TryPayTollAndPublishEventAsync_ShouldRollbackAndThrow_WhenTollEventPublishFails()
+    public async Task ShouldRollbackAndThrow_WhenTryPayTollAndPublishEventAsyncCannotPublishTollEvent()
     {
         var bus = new AlwaysFailEventBus();
         var economy = new SanguoEconomyManager(bus);
@@ -316,7 +317,7 @@ public sealed class SanguoEconomyManagerTollPaymentGuardsAndPublishFailureTests
     }
 
     [Fact]
-    public async Task TryPayTollAndPublishEventAsync_ShouldNotThrow_WhenEliminatedAuditPublishFails()
+    public async Task ShouldNotThrow_WhenTryPayTollAndPublishEventAsyncFailsToPublishEliminatedAuditEvent()
     {
         var bus = new FailOnlyOnTypeEventBus(SanguoPlayerEliminated.EventType);
         var reporter = new CapturingErrorReporter();

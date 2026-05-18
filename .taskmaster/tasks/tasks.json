@@ -6458,7 +6458,17 @@
         "dependencies": [],
         "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md\nTest Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd; Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/Config/test_settings_persistence.gd; Tests.Godot/tests/Adapters/Db/test_db_persistence_cross_restart.gd; Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd; Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd\nAcceptance: Requirement REQ-f0829947f827 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:43 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-fb9460868a26 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:49 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-bcfc08f6e83d is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:128 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-c4cbf2211737 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:276 Refs: Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
         "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
+        "adrRefs": [
+          "ADR-0007",
+          "ADR-0024"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH05",
+          "CH06",
+          "CH07"
+        ]
       },
       {
         "id": 189,
