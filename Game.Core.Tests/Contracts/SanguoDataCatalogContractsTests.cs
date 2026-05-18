@@ -9,7 +9,7 @@ namespace Game.Core.Tests.Contracts;
 public sealed class SanguoDataCatalogContractsTests
 {
     [Fact]
-    public void MapsCatalog_ShouldBeConstructible()
+    public void ShouldConstructMapsCatalog_WhenInputIsValid()
     {
         var catalog = new SanguoMapsCatalog(
             SchemaVersion: 1,
@@ -28,11 +28,18 @@ public sealed class SanguoDataCatalogContractsTests
             });
 
         catalog.SchemaVersion.Should().Be(1);
+        catalog.Version.Should().Be(1);
         catalog.Maps.Should().HaveCount(1);
+        var map = catalog.Maps[0];
+        map.MapId.Should().Be("map001");
+        map.Path.Should().StartWith("res://Data/maps/", "catalog path should stay in governed data root");
+        map.RecommendedPlayersMin.Should().BeLessOrEqualTo(map.RecommendedPlayersMax);
+        map.ContentVersion.Should().BePositive();
+        map.PreviewResPath.Should().StartWith("res://Assets/", "preview should be asset-scoped");
     }
 
     [Fact]
-    public void FacilitiesCatalog_ShouldBeConstructible()
+    public void ShouldConstructFacilitiesCatalog_WhenInputIsValid()
     {
         var catalog = new SanguoFacilitiesCatalog(
             SchemaVersion: 1,
@@ -55,11 +62,18 @@ public sealed class SanguoDataCatalogContractsTests
             });
 
         catalog.Facilities.Should().HaveCount(1);
-        catalog.Facilities[0].Actions.Should().HaveCount(1);
+        var facility = catalog.Facilities[0];
+        facility.FacilityKind.Should().Be("shop");
+        facility.Actions.Should().HaveCount(1);
+        var action = facility.Actions[0];
+        action.ActionId.Should().Be("buy");
+        action.IconResPath.Should().StartWith("res://Assets/");
+        action.Params.Should().NotBeNull();
+        action.Params!.Should().ContainKey("kind").WhoseValue.Should().Be("shop");
     }
 
     [Fact]
-    public void RegionsCatalog_ShouldBeConstructible()
+    public void ShouldConstructRegionsCatalog_WhenInputIsValid()
     {
         var catalog = new SanguoRegionsCatalog(
             SchemaVersion: 1,
@@ -76,11 +90,15 @@ public sealed class SanguoDataCatalogContractsTests
             });
 
         catalog.Regions.Should().HaveCount(1);
-        catalog.Regions[0].EffectKind.Should().Be(SanguoEffectKinds.EconomyStepDelta);
+        var region = catalog.Regions[0];
+        region.EffectKind.Should().Be(SanguoEffectKinds.EconomyStepDelta);
+        region.EconomyStepDeltas.BuyPrice.Should().Be(0);
+        region.EconomyStepDeltas.Toll.Should().Be(0);
+        region.EconomyStepDeltas.IncomeSettlement.Should().Be(0);
     }
 
     [Fact]
-    public void RelicsCatalog_ShouldBeConstructible()
+    public void ShouldConstructRelicsCatalog_WhenInputIsValid()
     {
         var catalog = new SanguoRelicsCatalog(
             SchemaVersion: 1,
@@ -97,7 +115,30 @@ public sealed class SanguoDataCatalogContractsTests
             });
 
         catalog.Relics.Should().HaveCount(1);
-        catalog.Relics[0].EffectKind.Should().Be(SanguoEffectKinds.MoneyDelta);
+        var relic = catalog.Relics[0];
+        relic.EffectKind.Should().Be(SanguoEffectKinds.MoneyDelta);
+        relic.MoneyDelta.Should().Be(10);
+        relic.EconomyStepDelta.Should().BeNull();
+    }
+
+    [Fact]
+    public void ShouldAllowFacilityActionParamsToBeNull_WhenActionHasNoDynamicPayload()
+    {
+        var facility = new SanguoFacilityDefinition(
+            FacilityId: "facility_hospital",
+            FacilityKind: "hospital",
+            NameKey: "facilities.hospital.name",
+            DescriptionKey: "facilities.hospital.description",
+            Actions: new[]
+            {
+                new SanguoFacilityActionDefinition(
+                    ActionId: "heal",
+                    NameKey: "actions.heal.name",
+                    IconResPath: "res://Assets/Icons/heal.png",
+                    Params: null),
+            });
+
+        facility.Actions.Should().HaveCount(1);
+        facility.Actions[0].Params.Should().BeNull("contract permits null params for payload-free actions");
     }
 }
-
