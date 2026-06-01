@@ -115,6 +115,9 @@ func test_token_move_sets_animated_flag_when_duration_positive() -> void:
 
 # Acceptance anchors:
 # ACC:T23.1
+# ACC:T189.5
+# ACC:T189.6
+# ACC:T189.9
 func test_city_bought_sets_owner_label_for_last_moved_tile() -> void:
     var view = load("res://Game.Godot/Scenes/Sanguo/SanguoBoardView.tscn").instantiate()
     view.Origin = Vector2.ZERO
@@ -127,11 +130,22 @@ func test_city_bought_sets_owner_label_for_last_moved_tile() -> void:
     _publish_move("p1", 2)
     await get_tree().process_frame
 
+    var label = view.get_node("__BoardTileLabel__2")
+    var before_text := str(label.text)
+    assert_bool(before_text != "p1").is_true()
+
+    # Non-matching city should not silently flip to completion text.
+    _publish_city_bought("p1", "c1")
+    await get_tree().process_frame
+    assert_str(str(label.text)).is_equal(before_text)
+
     _publish_city_bought("p1", "c2")
     await get_tree().process_frame
 
-    var label = view.get_node("__BoardTileLabel__2")
-    assert_str(str(label.text)).is_equal("p1")
+    var after_text := str(label.text)
+    assert_str(after_text).is_equal("p1")
+    assert_bool(after_text.length() > 0).is_true()
+    assert_bool(after_text != before_text).is_true()
 
 # Acceptance anchors:
 # ACC:T10.2

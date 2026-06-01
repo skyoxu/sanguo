@@ -165,6 +165,7 @@ func test_ui_scene_can_be_instantiated_and_has_visible_ownership_element() -> vo
 
 
 # ACC:T23.2
+# ACC:T189.1
 func test_initial_render_matches_current_ownership_and_updates_when_changed() -> void:
     var root = await _instantiate_ownership_ui()
     assert_object(root).is_not_null()
@@ -180,6 +181,7 @@ func test_initial_render_matches_current_ownership_and_updates_when_changed() ->
 
 
 # ACC:T23.3
+# ACC:T189.2
 func test_ui_shows_updated_ownership_on_next_refresh() -> void:
     var root = await _instantiate_ownership_ui()
     assert_object(root).is_not_null()
@@ -215,6 +217,7 @@ func test_ownership_status_is_assertable_via_observable_ui_output() -> void:
 
 
 # ACC:T23.5
+# ACC:T189.3
 func test_display_differs_for_two_distinct_ownership_inputs() -> void:
     var root = await _instantiate_ownership_ui()
     assert_object(root).is_not_null()
@@ -230,6 +233,7 @@ func test_display_differs_for_two_distinct_ownership_inputs() -> void:
 
 
 # ACC:T23.6
+# ACC:T189.4
 func test_updates_display_when_city_bought_event_emitted_for_matching_city() -> void:
     var root = await _instantiate_ownership_ui()
     assert_object(root).is_not_null()
@@ -244,3 +248,34 @@ func test_updates_display_when_city_bought_event_emitted_for_matching_city() -> 
     await get_tree().process_frame
     assert_str(label.text).is_equal(_expected_owner_text("p1"))
 
+
+# ACC:T189.7
+func test_does_not_update_display_when_city_bought_event_targets_other_city() -> void:
+    var root = await _instantiate_ownership_ui()
+    assert_object(root).is_not_null()
+    var label := _get_status_label(root)
+
+    assert_bool(_try_set_city_id(root, "c1")).is_true()
+    assert_bool(_try_set_ownership(root, "")).is_true()
+    await get_tree().process_frame
+    assert_str(label.text).is_equal(_expected_unowned_text())
+
+    _publish_city_bought("g1", "p2", "c2")
+    await get_tree().process_frame
+    assert_str(label.text).is_equal(_expected_unowned_text())
+
+
+# ACC:T189.8
+func test_does_not_update_display_when_city_bought_payload_is_invalid_json() -> void:
+    var root = await _instantiate_ownership_ui()
+    assert_object(root).is_not_null()
+    var label := _get_status_label(root)
+
+    assert_bool(_try_set_city_id(root, "c1")).is_true()
+    assert_bool(_try_set_ownership(root, "p1")).is_true()
+    await get_tree().process_frame
+    assert_str(label.text).is_equal(_expected_owner_text("p1"))
+
+    _publish_city_bought("g1", "p2", "c1", "{invalid_json")
+    await get_tree().process_frame
+    assert_str(label.text).is_equal(_expected_owner_text("p1"))
