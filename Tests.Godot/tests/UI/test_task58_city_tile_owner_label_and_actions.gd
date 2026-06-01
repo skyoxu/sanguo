@@ -21,6 +21,8 @@ func _main() -> Node:
 	return main
 
 # ACC:T58.3
+# ACC:T189.12
+# ACC:T189.13
 func test_task58_city_owner_label_updates_on_city_bought() -> void:
 	var main := await _main()
 
@@ -31,4 +33,3 @@ func test_task58_city_owner_label_updates_on_city_bought() -> void:
 	await get_tree().process_frame
 
 	assert_bool(label.text.contains("p1")).is_true()
-

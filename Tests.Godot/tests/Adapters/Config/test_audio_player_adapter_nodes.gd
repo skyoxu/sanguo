@@ -3,6 +3,9 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 const SFX_ID := "res://Game.Godot/Assets/Audio/ui_click.wav"
 const MUSIC_ID := "res://Game.Godot/Assets/Audio/music_loop.wav"
 
+# ACC:T189.1
+# ACC:T189.5
+# ACC:T189.8
 # ACC:T27.1
 # ACC:T188.12
 func test_audio_player_adapter_creates_sfx_and_music_players_on_ready() -> void:

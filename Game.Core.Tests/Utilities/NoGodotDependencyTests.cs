@@ -9,6 +9,10 @@ namespace Game.Core.Tests.Utilities;
 public sealed class NoGodotDependencyTests
 {
     // ACC:T26.1
+    // ACC:T189.10
+    // ACC:T189.11
+    // ACC:T189.13
+    // ACC:T189.14
     [Fact]
     public void ShouldNotReferenceGodot_WhenInspectingGameCoreAssemblyReferences()
     {
