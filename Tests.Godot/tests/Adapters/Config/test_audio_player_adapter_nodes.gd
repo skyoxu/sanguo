@@ -8,6 +8,7 @@ const MUSIC_ID := "res://Game.Godot/Assets/Audio/music_loop.wav"
 # ACC:T189.8
 # ACC:T27.1
 # ACC:T188.12
+# ACC:T190.1
 func test_audio_player_adapter_creates_sfx_and_music_players_on_ready() -> void:
 	var adapter := preload("res://Game.Godot/Adapters/AudioPlayerAdapter.cs").new()
 	add_child(auto_free(adapter))

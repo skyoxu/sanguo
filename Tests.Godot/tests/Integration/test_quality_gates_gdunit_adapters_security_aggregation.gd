@@ -3,7 +3,9 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 const ADAPTERS_TESTS_DIR := "res://tests/Adapters"
 const SECURITY_TESTS_DIR := "res://tests/Security"
 const TASKS_BACK_PATH := "res://../.taskmaster/tasks/tasks_back.json"
+const TASKS_GAMEPLAY_PATH := "res://../.taskmaster/tasks/tasks_gameplay.json"
 const SELF_TEST_PATH := "res://tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+const TASK_190_ID := 190
 const TASK_222_ID := 222
 
 func _select_gate_suite_dirs() -> PackedStringArray:
@@ -124,6 +126,65 @@ func _load_task222_from_tasks_back() -> Dictionary:
 		return {}
 	return _find_task_by_taskmaster_id(parsed, TASK_222_ID)
 
+func _load_task190_from_tasks_gameplay() -> Dictionary:
+	var parsed: Variant = _read_json(TASKS_GAMEPLAY_PATH)
+	if typeof(parsed) != TYPE_ARRAY:
+		return {}
+	return _find_task_by_taskmaster_id(parsed, TASK_190_ID)
+
+func _validate_task190_chapter3_evidence_contract(task: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var acceptance_variant: Variant = task.get("acceptance", [])
+	var acceptance: Array = acceptance_variant if acceptance_variant is Array else []
+	if acceptance.size() < 11:
+		errors.append("acceptance_count_lt_11")
+		return {"ok": false, "errors": errors}
+
+	var evidence_ref := "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	var o10 := str(acceptance[9])
+	var o11 := str(acceptance[10])
+	if not o10.contains("[OBL:T190.O10]"):
+		errors.append("missing_obl_o10_acceptance_10")
+	if not o11.contains("[OBL:T190.O11]"):
+		errors.append("missing_obl_o11_acceptance_11")
+	if not o10.contains("Chapter 3 coverage audit") or not o10.to_lower().contains("evidence recorded"):
+		errors.append("missing_coverage_audit_evidence_semantics_10")
+	if not o11.contains("Chapter 3.8 triplet baseline validators") or not o11.to_lower().contains("evidence"):
+		errors.append("missing_triplet_validator_evidence_semantics_11")
+	for idx in [9, 10]:
+		var refs := _extract_refs(str(acceptance[idx]))
+		if refs.size() != 1 or refs[0] != evidence_ref:
+			errors.append("wrong_chapter3_evidence_ref_%d" % (idx + 1))
+		var res_path := _to_res_path(evidence_ref)
+		if res_path == "" or not FileAccess.file_exists(res_path):
+			errors.append("missing_evidence_ref_file_%d" % (idx + 1))
+
+	var refs_variant: Variant = task.get("test_refs", [])
+	var refs: Array = refs_variant if refs_variant is Array else []
+	if not refs.has(evidence_ref):
+		errors.append("missing_evidence_ref_in_test_refs")
+	if not _self_test_contains_anchor("ACC:T190.10"):
+		errors.append("missing_anchor_ACC:T190.10")
+	if not _self_test_contains_anchor("ACC:T190.11"):
+		errors.append("missing_anchor_ACC:T190.11")
+
+	var strategy_variant: Variant = task.get("test_strategy", [])
+	var strategy: Array = strategy_variant if strategy_variant is Array else []
+	var has_coverage_audit := false
+	var has_triplet_validators := false
+	for line in strategy:
+		var text := str(line)
+		if text.find("Chapter 3 coverage audit") >= 0:
+			has_coverage_audit = true
+		if text.find("Chapter 3.8 triplet baseline validators") >= 0:
+			has_triplet_validators = true
+	if not has_coverage_audit:
+		errors.append("missing_chapter3_coverage_strategy_line")
+	if not has_triplet_validators:
+		errors.append("missing_chapter38_strategy_line")
+
+	return {"ok": errors.is_empty(), "errors": errors}
+
 # acceptance: ACC:T47.3
 func test_gate_suite_selection_is_deterministic_and_stable() -> void:
 	var suite_dirs := _select_gate_suite_dirs()
@@ -203,3 +264,33 @@ func test_task222_refactor_stability_marker_o5_a() -> void:
 	var stability_validation := _validate_task222_acceptance_contract(stability_mutated)
 	assert_bool(bool(stability_validation.get("ok", true))).is_false()
 	assert_bool(String("\n").join(stability_validation.get("errors", [])).find("missing_refactor_stability_semantics_4") >= 0).is_true()
+
+# acceptance: ACC:T190.10
+func test_task190_chapter3_coverage_audit_evidence_is_task_bound() -> void:
+	var task := _load_task190_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task190_chapter3_evidence_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+	var mutated := task.duplicate(true)
+	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	acceptance[9] = "[OBL:T190.O10] Refactor preserves deterministic core boundaries only. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	mutated["acceptance"] = acceptance
+	var mutated_validation := _validate_task190_chapter3_evidence_contract(mutated)
+	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_coverage_audit_evidence_semantics_10") >= 0).is_true()
+
+# acceptance: ACC:T190.11
+func test_task190_chapter38_triplet_validator_evidence_is_task_bound() -> void:
+	var task := _load_task190_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task190_chapter3_evidence_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+	var mutated := task.duplicate(true)
+	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	acceptance[10] = "[OBL:T190.O11] After this task is written to a task view, the validator note is present but no evidence is recorded. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	mutated["acceptance"] = acceptance
+	var mutated_validation := _validate_task190_chapter3_evidence_contract(mutated)
+	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_triplet_validator_evidence_semantics_11") >= 0).is_true()

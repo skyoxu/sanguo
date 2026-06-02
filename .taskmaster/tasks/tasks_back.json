@@ -11176,17 +11176,20 @@
       "Game.Core.Tests/Tasks/Task31PerformanceGateTests.cs",
       "Game.Core.Tests/Tasks/Task32RequirementsTests.cs",
       "Tests.Godot/tests/Adapters/Db/test_db_handle_release.gd",
-      "Game.Core.Tests/Domain/ValueObjects/HealthTests.cs"
+      "Game.Core.Tests/Domain/ValueObjects/HealthTests.cs",
+      "Game.Core.Tests/Tasks/Task185UiGddPart2CoverageTests.cs",
+      "Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs",
+      "Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs"
     ],
     "acceptance": [
-      "ACC:T185.1 Requirement REQ-5d6b99e1c724 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:483 Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs",
-      "ACC:T185.2 Requirement REQ-d1434f18a1cf is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:491 Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs",
-      "ACC:T185.3 Requirement REQ-dfcc1fb0aa67 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:502 Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs",
-      "ACC:T185.4 The task evidence includes deterministic core test coverage for the task 31 performance gate behavior, and the test fails when the required gate behavior is absent or incorrectly reported. Refs: Game.Core.Tests/Tasks/Task31PerformanceGateTests.cs",
-      "ACC:T185.5 The task evidence includes deterministic core test coverage for the task 32 requirements behavior, and the test fails when required UI GDD part 2 requirement coverage is missing or mismatched. Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs",
+      "ACC:T185.1 Requirement REQ-5d6b99e1c724 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:483 Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs Game.Core.Tests/Tasks/Task185UiGddPart2CoverageTests.cs",
+      "ACC:T185.2 Requirement REQ-d1434f18a1cf is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:491 Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs Game.Core.Tests/Tasks/Task185UiGddPart2CoverageTests.cs",
+      "ACC:T185.3 Requirement REQ-dfcc1fb0aa67 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:502 Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs Game.Core.Tests/Tasks/Task185UiGddPart2CoverageTests.cs",
+      "ACC:T185.4 The task evidence includes deterministic core test coverage for the task 31 performance gate behavior, and the test fails when the required gate behavior is absent or incorrectly reported. Refs: Game.Core.Tests/Tasks/Task31PerformanceGateTests.cs Game.Core.Tests/Tasks/Task42PerformanceGateTests.cs",
+      "ACC:T185.5 The task evidence includes deterministic core test coverage for the task 32 requirements behavior, and the test fails when required UI GDD part 2 requirement coverage is missing or mismatched. Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs",
       "ACC:T185.6 The task evidence includes a Godot adapter test that verifies database handle release behavior and fails when the adapter leaves a released handle usable or unreleased. Refs: Tests.Godot/tests/Adapters/Db/test_db_handle_release.gd",
       "ACC:T185.7 The task evidence includes Health value object coverage for valid construction, boundary behavior, and invalid input rejection, and the tests fail when invalid health state can be created or accepted. Refs: Game.Core.Tests/Domain/ValueObjects/HealthTests.cs",
-      "ACC:T185.8 The Chapter 3.8 triplet baseline validators are rerun after writing this task to the task view, and their stable pass or failure evidence is recorded. Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs"
+      "ACC:T185.8 The Chapter 3.8 triplet baseline validators are rerun after writing this task to the task view, and their stable pass or failure evidence is recorded. Refs: Game.Core.Tests/Tasks/Task32RequirementsTests.cs Game.Core.Tests/Tasks/Task228TraceabilityRequirementEvidenceTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
