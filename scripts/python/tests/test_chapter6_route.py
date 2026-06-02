@@ -147,6 +147,45 @@ class Chapter6RouteTests(unittest.TestCase):
         self.assertFalse(route["six_eight_worthwhile"])
         self.assertFalse(route["reviewer_anchor_hit"])
 
+    def test_should_route_llm_step_failure_to_68_when_deterministic_is_green(self) -> None:
+        payload = {
+            "task_id": "190",
+            "run_id": "run-190",
+            "recommended_action": "needs-fix-fast",
+            "recommended_command": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 190",
+            "forbidden_commands": [
+                "py -3 scripts/sc/run_review_pipeline.py --task-id 190",
+                "py -3 scripts/sc/run_review_pipeline.py --task-id 190 --resume",
+            ],
+            "candidate_commands": {"needs_fix_fast": "py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 190"},
+            "latest_summary_signals": {"reason": "step_failed:sc-llm-review"},
+            "chapter6_hints": {
+                "next_action": "needs-fix-fast",
+                "can_skip_6_7": True,
+                "can_go_to_6_8": True,
+                "blocked_by": "llm_retry_stop_loss",
+                "rerun_forbidden": True,
+            },
+            "inspection": {
+                "failure": {"code": "step-failed", "step": "sc-llm-review", "message": "sc-llm-review timed out."},
+                "paths": {"latest": "logs/ci/2026-06-02/sc-review-pipeline-task-190/latest.json"},
+            },
+        }
+
+        with (
+            mock.patch.object(chapter6_route, "build_resume_payload", return_value=(1, payload)),
+            mock.patch.object(
+                chapter6_route,
+                "_derive_change_scope",
+                return_value={"changed_paths": ["Tests.Godot/tests/UI/test_task60_settlement_screen_driven_by_game_ended_event.gd"]},
+            ),
+        ):
+            _, route = chapter6_route.route_chapter6(repo_root=REPO_ROOT, task_id="190")
+
+        self.assertEqual("run-6.8", route["preferred_lane"])
+        self.assertTrue(route["six_eight_worthwhile"])
+        self.assertTrue(route["reviewer_anchor_hit"])
+
     def test_should_classify_repo_noise_when_lock_contention_is_detected(self) -> None:
         payload = {
             "task_id": "15",

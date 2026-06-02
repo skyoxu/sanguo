@@ -22,6 +22,7 @@ func _force_managed() -> void:
     add_child(auto_free(helper))
     helper.ForceManaged()
 
+# ACC:T190.3
 func test_fk_on_delete_cascade_works() -> void:
     var path = "user://utdb_%s/fk.db" % Time.get_unix_time_from_system()
     var db = await _new_db("SqlDb")

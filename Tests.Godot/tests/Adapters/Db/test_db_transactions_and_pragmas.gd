@@ -24,6 +24,7 @@ func _force_managed() -> Node:
     return helper
 
 # ACC:T188.6 ACC:T188.18
+# ACC:T190.2
 func test_transaction_rollback_inventory() -> void:
     var path = "user://utdb_%s/trx_inv.db" % Time.get_unix_time_from_system()
     var db = await _new_db("SqlDb")
@@ -46,6 +47,8 @@ func test_transaction_rollback_inventory() -> void:
             break
     assert_bool(found).is_false()
 
+# ACC:T190.7
+# ACC:T190.9
 func test_transaction_commit_savegame() -> void:
     var path = "user://utdb_%s/trx_sg.db" % Time.get_unix_time_from_system()
     var db = await _new_db("SqlDb")
@@ -71,12 +74,17 @@ func test_transaction_commit_savegame() -> void:
     var got = bridge2.GetSaveData(uid, 1)
     assert_str(str(got)).contains('"hp": 11')
 
+# ACC:T190.8
 func test_journal_mode_delete() -> void:
     var path = "user://utdb_%s/journal.db" % Time.get_unix_time_from_system()
     var db = await _new_db("SqlDb")
     var helper = _force_managed() # sets GD_DB_JOURNAL=DELETE
     var ok = db.TryOpen(path)
     assert_bool(ok).is_true()
-    # Query PRAGMA journal_mode and expect delete
+    var helper2 = preload("res://Game.Godot/Adapters/Db/DbTestHelper.cs").new()
+    add_child(auto_free(helper2))
+    var mode = str(helper2.QueryScalarText("PRAGMA journal_mode;")).to_lower()
+    # PRAGMA should explicitly settle to delete mode.
+    assert_str(mode).is_equal("delete")
     # Verify no WAL sidecar created under DELETE mode
     assert_bool(FileAccess.file_exists(path + "-wal")).is_false()

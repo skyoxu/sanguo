@@ -12,6 +12,8 @@ func _new_db(name: String) -> Node:
     get_tree().get_root().add_child(auto_free(db))
     return db
 
+# ACC:T190.4
+# ACC:T190.5
 func test_inventory_merge_and_clear_cross_restart() -> void:
     var path = "user://utdb_%s/inv2.db" % Time.get_unix_time_from_system()
     var db = _new_db("SqlDb")

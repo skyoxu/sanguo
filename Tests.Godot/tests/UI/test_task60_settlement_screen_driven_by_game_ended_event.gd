@@ -122,6 +122,41 @@ func test_task60_settlement_screen_is_hidden_before_event_and_shows_payload_afte
 	assert_int(int(stats2.get("TreasuryMinorUnits", -1))).is_equal(123)
 
 
+# ACC:T190.7
+# ACC:T190.9
+func test_task190_settlement_screen_keeps_finalized_result_stable_after_follow_up_events() -> void:
+	var screen: Control = _instantiate_settlement_screen()
+	if screen == null:
+		return
+
+	var winner_label: Label = screen.get_node_or_null(_WINNER_LABEL_PATH) as Label
+	assert_bool(winner_label != null).is_true()
+
+	var stats_label: RichTextLabel = screen.get_node_or_null(_STATS_LABEL_PATH) as RichTextLabel
+	assert_bool(stats_label != null).is_true()
+	if winner_label == null or stats_label == null:
+		return
+
+	_bus.PublishSimple(_GAME_ENDED_TYPE, "gdunit", "{\"WinnerPlayerId\":\"p1\",\"EndReason\":\"max_turns\",\"Settled\":true,\"StatsSnapshot\":{\"TurnNumber\":10,\"TreasuryMinorUnits\":240,\"Players\":[{\"PlayerId\":\"p1\",\"Money\":10000}]}}")
+	await get_tree().process_frame
+
+	assert_bool(screen.visible).is_true()
+	assert_str(winner_label.text).is_equal("p1")
+	var final_stats := _parse_json_dict(stats_label.text)
+	assert_int(int(final_stats.get("TurnNumber", -1))).is_equal(10)
+	assert_int(int(final_stats.get("TreasuryMinorUnits", -1))).is_equal(240)
+
+	_bus.PublishSimple("core.sanguo.game.turn.started", "gdunit", "{\"ActivePlayerId\":\"p2\",\"TurnNumber\":11}")
+	_bus.PublishSimple(_GAME_ENDED_TYPE, "gdunit", "{\"WinnerPlayerId\":\"p2\",\"EndReason\":\"late_mutation\",\"Settled\":true,\"StatsSnapshot\":{\"TurnNumber\":99,\"TreasuryMinorUnits\":999,\"Players\":[{\"PlayerId\":\"p2\",\"Money\":777}]}}")
+	await get_tree().process_frame
+
+	assert_bool(screen.visible).is_true()
+	assert_str(winner_label.text).is_equal("p1")
+	var stable_stats := _parse_json_dict(stats_label.text)
+	assert_int(int(stable_stats.get("TurnNumber", -1))).is_equal(10)
+	assert_int(int(stable_stats.get("TreasuryMinorUnits", -1))).is_equal(240)
+
+
 # acceptance: ACC:T60.2
 func test_task60_settlement_screen_main_menu_button_shows_main_menu_and_hides_screen() -> void:
 	var screen: Control = _instantiate_settlement_screen()

@@ -607,7 +607,8 @@ public sealed class Task186CombatHookSuiteCoverageTests
 
         return entries.All(error =>
             error.Contains("run_id_mismatch", StringComparison.OrdinalIgnoreCase) ||
-            error.Contains("unit_run_id_mismatch", StringComparison.OrdinalIgnoreCase));
+            error.Contains("unit_run_id_mismatch", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("gdunit_run_id_mismatch_or_missing", StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool IsOnlyAcc10BindingLag(IEnumerable<string> errors)

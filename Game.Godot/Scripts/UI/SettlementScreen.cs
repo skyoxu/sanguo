@@ -27,6 +27,7 @@ public partial class SettlementScreen : Control
     private Button? _newGameButton;
 
     private EventBusAdapter? _bus;
+    private bool _settlementFinalized;
 
     public override void _Ready()
     {
@@ -152,6 +153,11 @@ public partial class SettlementScreen : Control
 
     private void ApplyGameEndedPayload(JsonElement root)
     {
+        if (_settlementFinalized)
+        {
+            return;
+        }
+
         var winner = root.TryGetProperty("WinnerPlayerId", out var w) && w.ValueKind == JsonValueKind.String
             ? (w.GetString() ?? string.Empty)
             : string.Empty;
@@ -175,6 +181,11 @@ public partial class SettlementScreen : Control
         }
 
         Visible = true;
+
+        if (root.TryGetProperty("Settled", out var settled) && settled.ValueKind == JsonValueKind.True)
+        {
+            _settlementFinalized = true;
+        }
     }
 
     private void OnMainMenuPressed()
@@ -214,6 +225,8 @@ public partial class SettlementScreen : Control
 
     private void ClearText()
     {
+        _settlementFinalized = false;
+
         if (_winnerLabel != null)
         {
             _winnerLabel.Text = string.Empty;

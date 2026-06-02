@@ -286,6 +286,13 @@ def route_chapter6(
 
     preferred_lane = "inspect-first"
     recommended_command = str(payload.get("recommended_command") or "").strip() or str(candidate_commands.get("inspect") or "").strip()
+    latest_reason = str(latest_summary_signals.get("reason") or "").strip().lower()
+    failed_step = str(failure.get("step") or failure.get("step_name") or failure.get("failed_step") or "").strip().lower()
+    llm_review_step_failed = (
+        "sc-llm-review" in latest_reason
+        or failed_step == "sc-llm-review"
+        or str(chapter6_hints.get("next_action") or "").strip().lower() == "needs-fix-fast"
+    )
 
     if repo_noise_classification == "repo-noise":
         preferred_lane = "repo-noise-stop"
@@ -293,7 +300,7 @@ def route_chapter6(
     elif str(chapter6_hints.get("blocked_by") or "").strip().lower() == "artifact_integrity":
         preferred_lane = "inspect-first"
         recommended_command = str(candidate_commands.get("rerun") or recommended_command)
-    elif str(failure.get("code") or "").strip().lower() == "step-failed" or str(chapter6_hints.get("blocked_by") or "").strip().lower() in {
+    elif (str(failure.get("code") or "").strip().lower() == "step-failed" and not llm_review_step_failed) or str(chapter6_hints.get("blocked_by") or "").strip().lower() in {
         "deterministic_failure",
         "sc_test_retry_stop_loss",
         "waste_signals",

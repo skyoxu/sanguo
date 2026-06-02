@@ -107,6 +107,20 @@ public partial class DbTestHelper : Node
         return 0;
     }
 
+    public string QueryScalarText(string sql)
+    {
+        var db = GetDb();
+        var rows = db.Query(sql);
+        if (rows.Count == 0) return string.Empty;
+        var row = rows[0];
+        foreach (var kv in row)
+        {
+            if (kv.Value == null) continue;
+            return Convert.ToString(kv.Value) ?? string.Empty;
+        }
+        return string.Empty;
+    }
+
     // Helpers to execute SQL against specific test DB nodes created under /root
     public void ExecOnNode(string nodeName, string sql)
     {
