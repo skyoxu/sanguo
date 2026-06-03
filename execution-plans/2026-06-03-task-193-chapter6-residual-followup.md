@@ -1,0 +1,21 @@
+# task-193-chapter6-residual-followup
+
+- Title: task-193-chapter6-residual-followup
+- Status: superseded
+- Branch: task/T193
+- Git Head: 7257d294ccac563009b4a147ae0ded84a0443c29
+- Goal: Preserve the history of the Task 193 residual reviewer follow-up after it was closed.
+- Scope: Historical residual record only; no open follow-up remains.
+- Current step: Superseded by the targeted semantic-equivalence-auditor OK review.
+- Last completed step: `py -3 scripts/sc/llm_review.py --task-id 193 --delivery-profile fast-ship --security-profile host-safe --review-profile bmad-godot --review-template scripts/sc/templates/llm_review/bmad-godot-review-template.txt --semantic-gate warn --agents semantic-equivalence-auditor --base origin/main --diff-mode summary --timeout-sec 600 --agent-timeout-sec 180 --uncommitted`
+- Stop-loss: Do not reopen the old residual loop unless a later recovery artifact reports a fresh P0/P1 Needs Fix.
+- Next action: `py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"`
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 193`
+- Open questions: none recorded yet
+- Exit criteria: Already satisfied by `logs/ci/2026-06-03/sc-llm-review-task-193/summary.json` with semantic-equivalence-auditor verdict OK.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-03-task-193-chapter6-residual-needs-fix.md`
+- Related task id(s): `193`
+- Related run id: `799e94f5661f4737ba75b708da636641`
+- Related latest.json: `logs/ci/2026-06-03/sc-review-pipeline-task-193/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-03/sc-review-pipeline-task-193-799e94f5661f4737ba75b708da636641`; `logs/ci/2026-06-03/sc-llm-review-task-193`

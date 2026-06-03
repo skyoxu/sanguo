@@ -8,6 +8,7 @@ const SELF_TEST_PATH := "res://tests/Integration/test_quality_gates_gdunit_adapt
 const TASK_190_ID := 190
 const TASK_191_ID := 191
 const TASK_192_ID := 192
+const TASK_193_ID := 193
 const TASK_222_ID := 222
 
 func _select_gate_suite_dirs() -> PackedStringArray:
@@ -145,6 +146,12 @@ func _load_task192_from_tasks_gameplay() -> Dictionary:
 	if typeof(parsed) != TYPE_ARRAY:
 		return {}
 	return _find_task_by_taskmaster_id(parsed, TASK_192_ID)
+
+func _load_task193_from_tasks_gameplay() -> Dictionary:
+	var parsed: Variant = _read_json(TASKS_GAMEPLAY_PATH)
+	if typeof(parsed) != TYPE_ARRAY:
+		return {}
+	return _find_task_by_taskmaster_id(parsed, TASK_193_ID)
 
 func _validate_task190_chapter3_evidence_contract(task: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
@@ -340,6 +347,42 @@ func _validate_task192_process_evidence_contract(task: Dictionary) -> Dictionary
 
 	return {"ok": errors.is_empty(), "errors": errors}
 
+func _validate_task193_process_evidence_contract(task: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var acceptance_variant: Variant = task.get("acceptance", [])
+	var acceptance: Array = acceptance_variant if acceptance_variant is Array else []
+	if acceptance.size() < 16:
+		errors.append("acceptance_count_lt_16")
+		return {"ok": false, "errors": errors}
+
+	var evidence_ref := "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	for idx in [14, 15]:
+		var refs := _extract_refs(str(acceptance[idx]))
+		if refs.size() != 1 or refs[0] != evidence_ref:
+			errors.append("wrong_task193_process_ref_%d" % (idx + 1))
+		var res_path := _to_res_path(evidence_ref)
+		if res_path == "" or not FileAccess.file_exists(res_path):
+			errors.append("missing_task193_process_ref_file_%d" % (idx + 1))
+		var anchor := "ACC:T193.%d" % (idx + 1)
+		if not _self_test_contains_anchor(anchor):
+			errors.append("missing_anchor_%s" % anchor)
+
+	var coverage_line := str(acceptance[14])
+	var validator_line := str(acceptance[15])
+	var coverage_lower := coverage_line.to_lower()
+	var validator_lower := validator_line.to_lower()
+	if coverage_line.find("Chapter 3.8 triplet baseline validators") < 0 or coverage_lower.find("evidence") < 0 or coverage_lower.find("logs") < 0 or coverage_lower.find("without evidence") >= 0:
+		errors.append("missing_triplet_validator_evidence_semantics_15")
+	if validator_line.find("Chapter 3 coverage audit") < 0 or validator_lower.find("evidence") < 0 or validator_lower.find("without evidence") >= 0:
+		errors.append("missing_coverage_audit_evidence_semantics_16")
+
+	var refs_variant: Variant = task.get("test_refs", [])
+	var refs: Array = refs_variant if refs_variant is Array else []
+	if not refs.has(evidence_ref):
+		errors.append("missing_task193_process_ref_in_test_refs")
+
+	return {"ok": errors.is_empty(), "errors": errors}
+
 # acceptance: ACC:T47.3
 func test_gate_suite_selection_is_deterministic_and_stable() -> void:
 	var suite_dirs := _select_gate_suite_dirs()
@@ -527,3 +570,33 @@ func test_task192_chapter38_triplet_validator_evidence_is_task_bound() -> void:
 	var mutated_validation := _validate_task192_process_evidence_contract(mutated)
 	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
 	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_triplet_validator_evidence_semantics_14") >= 0).is_true()
+
+# acceptance: ACC:T193.15
+func test_task193_chapter38_triplet_validator_evidence_is_task_bound() -> void:
+	var task := _load_task193_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task193_process_evidence_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+	var mutated := task.duplicate(true)
+	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	acceptance[14] = "[OBL:T193.O10] Chapter 3.8 triplet baseline validators are mentioned. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	mutated["acceptance"] = acceptance
+	var mutated_validation := _validate_task193_process_evidence_contract(mutated)
+	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_triplet_validator_evidence_semantics_15") >= 0).is_true()
+
+# acceptance: ACC:T193.16
+func test_task193_chapter3_coverage_audit_evidence_is_task_bound() -> void:
+	var task := _load_task193_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task193_process_evidence_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+	var mutated := task.duplicate(true)
+	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	acceptance[15] = "[OBL:T193.O10] Chapter 3 coverage audit is mentioned without evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	mutated["acceptance"] = acceptance
+	var mutated_validation := _validate_task193_process_evidence_contract(mutated)
+	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_coverage_audit_evidence_semantics_16") >= 0).is_true()
