@@ -10023,23 +10023,25 @@
       "Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd",
       "Tests.Godot/tests/Adapters/Db/test_inventory_merge_and_clear_cross_restart.gd",
       "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd"
+      "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "acceptance": [
-      "Requirement REQ-5b357e8530f4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:454 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Requirement REQ-509d28ebf0f4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:457 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Requirement REQ-19e5fff8da4f is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:464 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "Requirement REQ-792bd66bd304 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:473 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
-      "The Chapter 7 UI wiring matrix entry for the Meta Systems And Platform row exposes a shaped spec link for task 194 that points to the task-specific wiring evidence instead of leaving the row without a resolvable task link.",
-      "The shaped spec link for task 194 preserves traceability to ADR-0007, ADR-0024, chapters CH01, CH05, CH06, and CH07, and the listed PRD-SANGUO-T2 overlays without duplicating threshold or contract text from those sources.",
-      "Godot adapter-facing evidence demonstrates the linked behavior through the audio player adapter, database transaction and pragma handling, foreign-key cascade handling, inventory merge and clear behavior across restart, data store adapter, and event bus adapter coverage named in the task details.",
-      "If the shaped spec link cannot resolve to a valid task evidence target, the matrix row remains visibly incomplete and the task is not accepted as implemented.",
-      "[OBL:T194.O12] Task 194 的实现不得把 Godot API、场景节点或适配器依赖引入 deterministic core 边界。",
-      "[OBL:T194.O12] The implementation must preserve deterministic core boundaries while refactoring.",
-      "[OBL:T194.O13] Task 194 完成后必须重跑 Chapter 3 coverage audit，并记录可追溯证据路径。",
-      "[OBL:T194.O13] The Chapter 3 coverage audit must be rerun after the refactor work.",
-      "[OBL:T194.O14] Task 194 写入任务视图后必须运行 Chapter 3.8 triplet baseline validators，并记录通过证据路径。",
-      "[OBL:T194.O14] After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run."
+      "Requirement REQ-5b357e8530f4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:454 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-509d28ebf0f4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:457 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-19e5fff8da4f is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:464 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-792bd66bd304 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:473 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The Chapter 7 UI wiring matrix entry for the Meta Systems And Platform row exposes a shaped spec link for task 194 that points to the task-specific wiring evidence instead of leaving the row without a resolvable task link. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The shaped spec link for task 194 preserves traceability to ADR-0007, ADR-0024, chapters CH01, CH05, CH06, and CH07, and the listed PRD-SANGUO-T2 overlays without duplicating threshold or contract text from those sources. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Godot adapter-facing evidence demonstrates the linked behavior through the audio player adapter, database transaction and pragma handling, foreign-key cascade handling, inventory merge and clear behavior across restart, data store adapter, and event bus adapter coverage named in the task details. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "If the shaped spec link cannot resolve to a valid task evidence target, the matrix row remains visibly incomplete and the task is not accepted as implemented. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T194.O12] Task 194 的实现不得把 Godot API、场景节点或适配器依赖引入 deterministic core 边界。 Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "[OBL:T194.O12] The implementation must preserve deterministic core boundaries while refactoring. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "[OBL:T194.O13] Task 194 完成后必须重跑 Chapter 3 coverage audit，并记录可追溯证据路径。 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T194.O13] The Chapter 3 coverage audit must be rerun after the refactor work. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T194.O14] Task 194 写入任务视图后必须运行 Chapter 3.8 triplet baseline validators，并记录通过证据路径。 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T194.O14] After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",
@@ -10056,7 +10058,13 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md",
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd"
+      "Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
+      "Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd",
+      "Tests.Godot/tests/Adapters/Db/test_inventory_merge_and_clear_cross_restart.gd",
+      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:454",
