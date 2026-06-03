@@ -9,7 +9,9 @@ const TASK_190_ID := 190
 const TASK_191_ID := 191
 const TASK_192_ID := 192
 const TASK_193_ID := 193
+const TASK_194_ID := 194
 const TASK_222_ID := 222
+const UI_GDD_FLOW_PATH := "res://../docs/gdd/ui-gdd-flow.md"
 
 func _select_gate_suite_dirs() -> PackedStringArray:
 	return PackedStringArray([ADAPTERS_TESTS_DIR, SECURITY_TESTS_DIR])
@@ -59,6 +61,13 @@ func _to_res_path(task_ref: String) -> String:
 func _self_test_contains_anchor(anchor: String) -> bool:
 	var content := FileAccess.get_file_as_string(SELF_TEST_PATH)
 	return content.find(anchor) >= 0
+
+func _file_exists_for_task_ref(task_ref: String) -> bool:
+	if task_ref.begins_with("Tests.Godot/"):
+		return FileAccess.file_exists("res://" + task_ref.trim_prefix("Tests.Godot/"))
+	if task_ref.begins_with("Game.Core.Tests/"):
+		return FileAccess.file_exists("res://../" + task_ref)
+	return FileAccess.file_exists("res://../" + task_ref)
 
 func _validate_task222_acceptance_contract(task: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
@@ -152,6 +161,12 @@ func _load_task193_from_tasks_gameplay() -> Dictionary:
 	if typeof(parsed) != TYPE_ARRAY:
 		return {}
 	return _find_task_by_taskmaster_id(parsed, TASK_193_ID)
+
+func _load_task194_from_tasks_gameplay() -> Dictionary:
+	var parsed: Variant = _read_json(TASKS_GAMEPLAY_PATH)
+	if typeof(parsed) != TYPE_ARRAY:
+		return {}
+	return _find_task_by_taskmaster_id(parsed, TASK_194_ID)
 
 func _validate_task190_chapter3_evidence_contract(task: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
@@ -383,6 +398,120 @@ func _validate_task193_process_evidence_contract(task: Dictionary) -> Dictionary
 
 	return {"ok": errors.is_empty(), "errors": errors}
 
+func _validate_task194_gdd_text(gdd_text: String, task: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var matrix_link := "[T194](#task-194-traceability)"
+	if gdd_text.find(matrix_link) < 0:
+		errors.append("missing_task194_matrix_link")
+	if gdd_text.find("## 16. Task 194 Traceability") < 0:
+		errors.append("missing_task194_traceability_target")
+	if gdd_text.find("Shaped spec link: `[T194](#task-194-traceability)`") < 0:
+		errors.append("missing_task194_shaped_spec_target")
+	if gdd_text.find("Meta Systems And Platform") < 0:
+		errors.append("missing_meta_systems_row")
+
+	var requirement_ids_variant: Variant = task.get("requirement_ids", [])
+	var requirement_ids: Array = requirement_ids_variant if requirement_ids_variant is Array else []
+	for requirement_id in requirement_ids:
+		if gdd_text.find(str(requirement_id)) < 0:
+			errors.append("missing_gdd_requirement_%s" % requirement_id)
+
+	var overlays := [
+		"docs/architecture/overlays/PRD-SANGUO-T2/08/08-contracts-taskmap-t50-t65.md",
+		"docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md",
+		"docs/architecture/overlays/PRD-SANGUO-T2/08/08-t52-turn-window-and-event-ordering.md",
+		"docs/architecture/overlays/PRD-SANGUO-T2/08/08-t60-game-end-and-settlement.md",
+	]
+	for overlay in overlays:
+		if gdd_text.find(overlay) < 0:
+			errors.append("missing_task194_overlay_%s" % overlay.get_file())
+
+	var expected_artifacts := [
+		"Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+		"Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
+		"Tests.Godot/tests/Adapters/Db/test_fk_constraints_and_cascade.gd",
+		"Tests.Godot/tests/Adapters/Db/test_inventory_merge_and_clear_cross_restart.gd",
+		"Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+		"Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
+		"Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+	]
+	for artifact in expected_artifacts:
+		if gdd_text.find(artifact) < 0:
+			errors.append("missing_task194_artifact_%s" % artifact.get_file())
+		if not _file_exists_for_task_ref(artifact):
+			errors.append("missing_task194_artifact_file_%s" % artifact)
+
+	return {"ok": errors.is_empty(), "errors": errors}
+
+func _validate_task194_shaped_spec_contract(task: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var acceptance_variant: Variant = task.get("acceptance", [])
+	var acceptance: Array = acceptance_variant if acceptance_variant is Array else []
+	if acceptance.size() < 14:
+		errors.append("acceptance_count_lt_14")
+		return {"ok": false, "errors": errors}
+
+	var evidence_ref := "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	for idx in range(8):
+		var refs := _extract_refs(str(acceptance[idx]))
+		if refs.size() != 1 or refs[0] != evidence_ref:
+			errors.append("wrong_task194_shaped_spec_ref_%d" % (idx + 1))
+		var anchor := "ACC:T194.%d" % (idx + 1)
+		if not _self_test_contains_anchor(anchor):
+			errors.append("missing_anchor_%s" % anchor)
+
+	var process_ref := "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	for idx in [10, 11, 12, 13]:
+		var refs := _extract_refs(str(acceptance[idx]))
+		if refs.size() != 1 or refs[0] != process_ref:
+			errors.append("wrong_task194_process_ref_%d" % (idx + 1))
+		var anchor := "ACC:T194.%d" % (idx + 1)
+		if not _self_test_contains_anchor(anchor):
+			errors.append("missing_anchor_%s" % anchor)
+
+	var matrix_line := str(acceptance[4]).to_lower()
+	if matrix_line.find("shaped spec link") < 0 or matrix_line.find("task-specific wiring evidence") < 0:
+		errors.append("missing_shaped_spec_link_semantics_5")
+	var traceability_line := str(acceptance[5]).to_lower()
+	for token in ["adr-0007", "adr-0024", "ch01", "ch05", "ch06", "ch07", "prd-sanguo-t2"]:
+		if traceability_line.find(token) < 0:
+			errors.append("missing_traceability_token_%s" % token)
+	var adapter_line := str(acceptance[6]).to_lower()
+	for token in ["audio", "transaction", "foreign-key", "inventory", "data store", "event bus"]:
+		if adapter_line.find(token) < 0:
+			errors.append("missing_adapter_evidence_token_%s" % token)
+	var negative_line := str(acceptance[7]).to_lower()
+	if negative_line.find("cannot resolve") < 0 or negative_line.find("incomplete") < 0:
+		errors.append("missing_broken_link_negative_semantics_8")
+
+	var o13_a := str(acceptance[10])
+	var o13_b := str(acceptance[11])
+	var o14_a := str(acceptance[12])
+	var o14_b := str(acceptance[13])
+	if not o13_a.contains("[OBL:T194.O13]") or not o13_b.contains("[OBL:T194.O13]"):
+		errors.append("missing_obl_o13_acceptance")
+	if not o14_a.contains("[OBL:T194.O14]") or not o14_b.contains("[OBL:T194.O14]"):
+		errors.append("missing_obl_o14_acceptance")
+	if o13_a.find("Chapter 3 coverage audit") < 0 or o13_a.to_lower().find("evidence") < 0:
+		errors.append("missing_coverage_audit_evidence_semantics_11")
+	if o14_a.find("Chapter 3.8 triplet baseline validators") < 0 or o14_a.to_lower().find("evidence") < 0:
+		errors.append("missing_triplet_validator_evidence_semantics_13")
+
+	var refs_variant: Variant = task.get("test_refs", [])
+	var refs: Array = refs_variant if refs_variant is Array else []
+	if not refs.has(evidence_ref):
+		errors.append("missing_task194_integration_ref_in_test_refs")
+	if not refs.has("Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"):
+		errors.append("missing_task194_core_boundary_ref_in_test_refs")
+
+	var gdd_text := FileAccess.get_file_as_string(UI_GDD_FLOW_PATH)
+	var gdd_validation := _validate_task194_gdd_text(gdd_text, task)
+	if not bool(gdd_validation.get("ok", false)):
+		for error in gdd_validation.get("errors", []):
+			errors.append(str(error))
+
+	return {"ok": errors.is_empty(), "errors": errors}
+
 # acceptance: ACC:T47.3
 func test_gate_suite_selection_is_deterministic_and_stable() -> void:
 	var suite_dirs := _select_gate_suite_dirs()
@@ -492,6 +621,67 @@ func test_task190_chapter38_triplet_validator_evidence_is_task_bound() -> void:
 	var mutated_validation := _validate_task190_chapter3_evidence_contract(mutated)
 	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
 	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_triplet_validator_evidence_semantics_11") >= 0).is_true()
+
+# acceptance: ACC:T194.1
+# acceptance: ACC:T194.2
+# acceptance: ACC:T194.3
+# acceptance: ACC:T194.4
+func test_task194_requirement_source_and_matrix_link_are_task_bound() -> void:
+	var task := _load_task194_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task194_shaped_spec_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+# acceptance: ACC:T194.5
+# acceptance: ACC:T194.6
+# acceptance: ACC:T194.7
+func test_task194_traceability_and_adapter_evidence_are_task_bound() -> void:
+	var task := _load_task194_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task194_shaped_spec_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+# acceptance: ACC:T194.8
+func test_task194_broken_shaped_spec_link_is_rejected() -> void:
+	var task := _load_task194_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var gdd_text := FileAccess.get_file_as_string(UI_GDD_FLOW_PATH)
+	var broken_text := gdd_text.replace("[T194](#task-194-traceability)", "T194")
+	var validation := _validate_task194_gdd_text(broken_text, task)
+	assert_bool(bool(validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(validation.get("errors", [])).find("missing_task194_matrix_link") >= 0).is_true()
+
+# acceptance: ACC:T194.11
+# acceptance: ACC:T194.12
+func test_task194_chapter3_coverage_audit_evidence_is_task_bound() -> void:
+	var task := _load_task194_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task194_shaped_spec_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+	var mutated := task.duplicate(true)
+	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	acceptance[10] = "[OBL:T194.O13] Chapter 3 coverage audit is mentioned without evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	mutated["acceptance"] = acceptance
+	var mutated_validation := _validate_task194_shaped_spec_contract(mutated)
+	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_coverage_audit_evidence_semantics_11") >= 0).is_true()
+
+# acceptance: ACC:T194.13
+# acceptance: ACC:T194.14
+func test_task194_chapter38_triplet_validator_evidence_is_task_bound() -> void:
+	var task := _load_task194_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task194_shaped_spec_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+	var mutated := task.duplicate(true)
+	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	acceptance[12] = "[OBL:T194.O14] Chapter 3.8 triplet baseline validators are mentioned without evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	mutated["acceptance"] = acceptance
+	var mutated_validation := _validate_task194_shaped_spec_contract(mutated)
+	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_triplet_validator_evidence_semantics_13") >= 0).is_true()
 
 func _assert_task191_unwired_candidate_contract_is_valid() -> void:
 	var task := _load_task191_from_tasks_gameplay()
