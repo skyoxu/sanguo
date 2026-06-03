@@ -9863,29 +9863,26 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs",
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_input_time_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd"
+      "Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "acceptance": [
-      "Requirement REQ-5187ab7a9fc0 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:402 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Requirement REQ-f2066975f93c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:409 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Requirement REQ-61e0a6902857 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:416 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Requirement REQ-71589cb62f34 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:425 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "MainMenu is exposed as a standalone player-visible surface and presents the boot/menu entry state without requiring unrelated UI surfaces to be instantiated.",
-      "BootStatusPanel is exposed as a standalone player-visible surface and displays the current boot readiness or blocking status in a way that changes when the underlying boot state changes.",
-      "ContinueGateDialog is exposed as a standalone player-visible surface and allows continue only when the continue gate is satisfied; when the gate is not satisfied, the continue action is refused and the current menu state remains unchanged.",
-      "[OBL:T192.O5] Godot-side or adapter-facing tests are added or updated to cover the player-visible behavior introduced by this task.",
-      "[OBL:T192.O5] Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior.",
-      "[OBL:T192.O7] Implementation preserves deterministic core boundaries: domain logic remains outside Godot adapter/UI code and no Godot dependency is introduced into core contracts or domain code.",
-      "[OBL:T192.O7] The implementation must preserve deterministic core boundaries.",
-      "[OBL:T192.O8] Chapter 3 coverage audit is rerun and its evidence path is recorded for this task.",
-      "[OBL:T192.O8] The Chapter 3 coverage audit must be rerun after the refactor step.",
-      "[OBL:T192.O9] Chapter 3.8 triplet baseline validators are run after this task is written to the task view, and their evidence path is recorded.",
-      "[OBL:T192.O9] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Requirement REQ-5187ab7a9fc0 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:402 Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "Requirement REQ-f2066975f93c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:409 Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "Requirement REQ-61e0a6902857 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:416 Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "Requirement REQ-71589cb62f34 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:425 Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "MainMenu is exposed as a standalone player-visible surface and presents the boot/menu entry state without requiring unrelated UI surfaces to be instantiated. Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "BootStatusPanel is exposed as a standalone player-visible surface and displays the current boot readiness or blocking status in a way that changes when the underlying boot state changes. Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "ContinueGateDialog is exposed as a standalone player-visible surface and allows continue only when the continue gate is satisfied; when the gate is not satisfied, the continue action is refused and the current menu state remains unchanged. Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "[OBL:T192.O5] Godot-side or adapter-facing tests are added or updated to cover the player-visible behavior introduced by this task. Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "[OBL:T192.O5] Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior. Refs: Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "[OBL:T192.O7] Implementation preserves deterministic core boundaries: domain logic remains outside Godot adapter/UI code and no Godot dependency is introduced into core contracts or domain code. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "[OBL:T192.O7] The implementation must preserve deterministic core boundaries. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "[OBL:T192.O8] Chapter 3 coverage audit is rerun and its evidence path is recorded for this task. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T192.O8] The Chapter 3 coverage audit must be rerun after the refactor step. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T192.O9] Chapter 3.8 triplet baseline validators are run after this task is written to the task view, and their evidence path is recorded. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T192.O9] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",
@@ -9899,9 +9896,9 @@
       "docs/gdd/ui-gdd-flow.md:409",
       "docs/gdd/ui-gdd-flow.md:416",
       "docs/gdd/ui-gdd-flow.md:425",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
-      "Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs",
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd"
+      "Tests.Godot/tests/UI/test_task192_type_shaped_wiring_surfaces.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:402",
