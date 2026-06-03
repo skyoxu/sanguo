@@ -9952,30 +9952,17 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd",
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_input_time_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd"
+      "Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-4060b1fc0b18 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:431 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Requirement REQ-c1a59d136269 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:432 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Requirement REQ-34cab11a096a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:441 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Requirement REQ-1879fa84b219 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:448 Refs: Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "A map definition with tiles containing at least one tile id is accepted as valid, and the completion result can safely read tiles[0].",
-      "A map definition with an empty tiles array is rejected as invalid and does not report completion success.",
-      "xUnit coverage proves that map definitions require tiles.length >= 1 before completion succeeds, including a passing case with tiles[0] present and a failing case with tiles empty.",
-      "[OBL:T193.O7] Godot-side or adapter-facing coverage proves the player-visible tile-id mapping completion behavior for a valid map definition.",
-      "[OBL:T193.O7] Godot-side or adapter-facing coverage proves an empty tiles array does not advance to completion success.",
-      "[OBL:T193.O7] Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior.",
-      "[OBL:T193.O8] The minimal scene, adapter, or UI path used by the assertions is wired so tile-id mapping completion is exercised through the intended runtime boundary.",
-      "[OBL:T193.O8] The minimal scene, adapter, or UI behavior required by the assertions must be wired.",
-      "[OBL:T193.O9] Tile-id validation and mapping completion logic remain in deterministic core code and do not introduce Godot dependencies into core contracts or domain logic.",
-      "[OBL:T193.O9] The implementation must preserve deterministic core boundaries.",
-      "[OBL:T193.O10] Chapter 3.8 triplet baseline validators are rerun after the task view update, with evidence recorded under logs/**.",
-      "[OBL:T193.O10] The Chapter 3 coverage audit must be rerun after writing this task to a task view."
+      "A map definition with tiles containing at least one tile id is accepted as valid, and completion can safely read tiles[0]. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "A map definition with an empty tiles array is rejected as invalid and does not report completion success. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "xUnit coverage proves tiles.length >= 1 is required before completion succeeds, including a passing case with tiles[0] present and a failing case with tiles empty. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "Godot-side or adapter-facing coverage proves valid tile ids are exposed through the runtime mapping completion boundary. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
+      "Godot-side or adapter-facing coverage proves an empty tiles array does not advance to completion success. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
+      "Tile-id validation and mapping completion logic preserve deterministic core boundaries and do not introduce Godot dependencies into core contracts or domain logic. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",
@@ -9985,27 +9972,12 @@
     ],
     "contractRefs": [],
     "evidence_refs": [
-      "docs/gdd/ui-gdd-flow.md:431",
-      "docs/gdd/ui-gdd-flow.md:432",
-      "docs/gdd/ui-gdd-flow.md:441",
-      "docs/gdd/ui-gdd-flow.md:448",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t53-map-config.md",
-      "Tests.Godot/tests/UI/test_help_tutorial_localized_content_non_empty.gd",
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd"
+      "Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
-    "source_refs": [
-      "docs/gdd/ui-gdd-flow.md:431",
-      "docs/gdd/ui-gdd-flow.md:432",
-      "docs/gdd/ui-gdd-flow.md:441",
-      "docs/gdd/ui-gdd-flow.md:448"
-    ],
-    "requirement_ids": [
-      "REQ-4060b1fc0b18",
-      "REQ-c1a59d136269",
-      "REQ-34cab11a096a",
-      "REQ-1879fa84b219"
-    ],
+    "source_refs": [],
+    "requirement_ids": [],
     "taskmaster_exported": true,
     "semantic_review_tier": "full",
     "taskmaster_id": 193

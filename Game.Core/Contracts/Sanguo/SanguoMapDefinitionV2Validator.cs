@@ -82,6 +82,11 @@ public static class SanguoMapDefinitionV2Validator
             return false;
         }
 
+        if (map.Tiles.Count == 0)
+        {
+            list.Add("Tiles must contain at least one tile.");
+        }
+
         if (map.Track is not null && map.Track.Length > 0 && map.Tiles.Count != map.Track.Length)
         {
             list.Add($"Tiles.Count must match Track.Length (trackLength={map.Track.Length}, tilesCount={map.Tiles.Count}).");

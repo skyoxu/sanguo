@@ -1,0 +1,21 @@
+# task-193-chapter6-residual-needs-fix
+
+- Title: task-193-chapter6-residual-needs-fix
+- Date: 2026-06-03
+- Status: superseded
+- Supersedes: none
+- Superseded by: logs/ci/2026-06-03/sc-llm-review-task-193/summary.json
+- Branch: task/T193
+- Git Head: 7257d294ccac563009b4a147ae0ded84a0443c29
+- Why now: Chapter 6 routing determined that another immediate 6.8 rerun would not be cost-effective.
+- Context: A previous Chapter 6 stop-loss recorded residual reviewer work while the active pipeline sidecar still reported semantic-equivalence-auditor Needs Fix.
+- Decision: Supersede this residual record because the Task 193 acceptance set and xUnit anchors were corrected, and a targeted semantic-equivalence-auditor review returned `Verdict: OK`.
+- Consequences: Recovery should treat this decision log as historical stop-loss evidence, not as an open residual finding.
+- Recovery impact: Prefer the newer semantic review evidence before reopening 6.7 or repeating 6.8.
+- Validation: py -3 scripts/sc/llm_review.py --task-id 193 --delivery-profile fast-ship --security-profile host-safe --review-profile bmad-godot --review-template scripts/sc/templates/llm_review/bmad-godot-review-template.txt --semantic-gate warn --agents semantic-equivalence-auditor --base origin/main --diff-mode summary --timeout-sec 600 --agent-timeout-sec 180 --uncommitted
+- Related ADRs: none yet
+- Related execution plans: none yet
+- Related task id(s): `193`
+- Related run id: `799e94f5661f4737ba75b708da636641`
+- Related latest.json: `logs/ci/2026-06-03/sc-review-pipeline-task-193/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-03/sc-review-pipeline-task-193-799e94f5661f4737ba75b708da636641`; `logs/ci/2026-06-03/sc-llm-review-task-193`

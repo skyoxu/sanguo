@@ -40,6 +40,10 @@ func test_tutorial_key_heuristic_is_deterministic() -> void:
 	assert_bool(_looks_like_tutorial_key("ui.menu.start")).is_false()
 
 # acceptance: ACC:T30.4
+# acceptance: ACC:T193.1
+# acceptance: ACC:T193.2
+# acceptance: ACC:T193.3
+# acceptance: ACC:T193.4
 func test_help_tutorial_localized_content_entries_are_present_and_non_empty() -> void:
 	assert_bool(FileAccess.file_exists("res://Game.Godot/Translations/help_tutorial.en.csv")).is_true()
 	assert_bool(FileAccess.file_exists("res://Game.Godot/Translations/help_tutorial.zh.csv")).is_true()
