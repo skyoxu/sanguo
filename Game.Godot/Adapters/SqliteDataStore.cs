@@ -345,7 +345,7 @@ public partial class SqliteDataStore : Node, ISqlDatabase
     {
         try
         {
-            var date = System.DateTime.UtcNow.ToString("yyyy-MM-dd");
+            var date = System.DateTime.Now.ToString("yyyy-MM-dd");
             var root = System.Environment.GetEnvironmentVariable("AUDIT_LOG_ROOT");
             if (string.IsNullOrEmpty(root))
             {
@@ -381,4 +381,3 @@ public partial class SqliteDataStore : Node, ISqlDatabase
         return s.Length <= max ? s : s.Substring(0, max);
     }
 }
-

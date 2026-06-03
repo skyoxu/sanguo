@@ -9775,30 +9775,26 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_feature_flags.gd",
-      "Tests.Godot/tests/Adapters/test_input_time_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd"
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-eae21fdbb220 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:377 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Requirement REQ-83aa374c2f2a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:386 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Requirement REQ-b06e000b15c4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:393 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Requirement REQ-dc30e0f48bde is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:400 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "The UI wiring candidate list exposes the player-visible feature represented by REQ-eae21fdbb220 from docs/gdd/ui-gdd-flow.md:377, and its wired state is demonstrated through adapter-facing evidence.",
-      "The UI wiring candidate list exposes the player-visible feature represented by REQ-83aa374c2f2a from docs/gdd/ui-gdd-flow.md:386, and its wired state is demonstrated through adapter-facing evidence.",
-      "The UI wiring candidate list exposes the player-visible feature represented by REQ-b06e000b15c4 from docs/gdd/ui-gdd-flow.md:393, and its wired state is demonstrated through adapter-facing evidence.",
-      "The UI wiring candidate list exposes the player-visible feature represented by REQ-dc30e0f48bde from docs/gdd/ui-gdd-flow.md:400, and its wired state is demonstrated through adapter-facing evidence.",
-      "Godot-side or adapter-facing tests fail before the part 4 UI wiring is present and pass after the minimal scene, adapter, or UI behavior needed for the four listed requirements is wired.",
-      "The implemented wiring preserves deterministic core boundaries by keeping domain logic outside Godot adapter code and limiting Godot-facing changes to scene, adapter, or UI behavior required by the listed requirements.",
-      "The part 4 unwired UI feature list contains visible entries for REQ-eae21fdbb220, REQ-83aa374c2f2a, REQ-b06e000b15c4, and REQ-dc30e0f48bde, each retaining its source line identity from docs/gdd/ui-gdd-flow.md.",
-      "When any of the four listed UI requirements is still not wired, the candidate list or test evidence identifies that requirement as unwired instead of reporting the part 4 list as complete.",
-      "When all four listed UI requirements are wired, the candidate list or test evidence reports no remaining part 4 unwired candidates for those requirement IDs.",
-      "The wiring evidence is limited to the listed part 4 UI requirements and does not mark unrelated UI requirements as completed by this task.",
-      "[OBL:T191.O8] The Chapter 3 coverage audit is rerun after the part 4 wiring refactor, and its evidence identifies this task's four requirement IDs.",
-      "[OBL:T191.O9] After this task is written to the task view, the Chapter 3.8 triplet baseline validators are run and their evidence is recorded."
+      "Requirement REQ-eae21fdbb220 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:377 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-83aa374c2f2a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:386 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-b06e000b15c4 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:393 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-dc30e0f48bde is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:400 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The UI wiring candidate list exposes the player-visible feature represented by REQ-eae21fdbb220 from docs/gdd/ui-gdd-flow.md:377, and its wired state is demonstrated through adapter-facing evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The UI wiring candidate list exposes the player-visible feature represented by REQ-83aa374c2f2a from docs/gdd/ui-gdd-flow.md:386, and its wired state is demonstrated through adapter-facing evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The UI wiring candidate list exposes the player-visible feature represented by REQ-b06e000b15c4 from docs/gdd/ui-gdd-flow.md:393, and its wired state is demonstrated through adapter-facing evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The UI wiring candidate list exposes the player-visible feature represented by REQ-dc30e0f48bde from docs/gdd/ui-gdd-flow.md:400, and its wired state is demonstrated through adapter-facing evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Godot-side or adapter-facing tests fail before the part 4 UI wiring is present and pass after the minimal scene, adapter, or UI behavior needed for the four listed requirements is wired. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The implemented wiring preserves deterministic core boundaries by keeping domain logic outside Godot adapter code and limiting Godot-facing changes to scene, adapter, or UI behavior required by the listed requirements. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The part 4 unwired UI feature list contains visible entries for REQ-eae21fdbb220, REQ-83aa374c2f2a, REQ-b06e000b15c4, and REQ-dc30e0f48bde, each retaining its source line identity from docs/gdd/ui-gdd-flow.md. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "When any of the four listed UI requirements is still not wired, the candidate list or test evidence identifies that requirement as unwired instead of reporting the part 4 list as complete. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "When all four listed UI requirements are wired, the candidate list or test evidence reports no remaining part 4 unwired candidates for those requirement IDs. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The wiring evidence is limited to the listed part 4 UI requirements and does not mark unrelated UI requirements as completed by this task. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T191.O8] The Chapter 3 coverage audit is rerun after the part 4 wiring refactor, and its evidence identifies this task requirement IDs: REQ-eae21fdbb220, REQ-83aa374c2f2a, REQ-b06e000b15c4, and REQ-dc30e0f48bde. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T191.O9] After this task is written to the task view, the Chapter 3.8 triplet baseline validators are run and their evidence records this task requirement IDs: REQ-eae21fdbb220, REQ-83aa374c2f2a, REQ-b06e000b15c4, and REQ-dc30e0f48bde. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",
@@ -9812,10 +9808,8 @@
       "docs/gdd/ui-gdd-flow.md:386",
       "docs/gdd/ui-gdd-flow.md:393",
       "docs/gdd/ui-gdd-flow.md:400",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-monopoly-loop.md",
-      "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd"
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:377",
