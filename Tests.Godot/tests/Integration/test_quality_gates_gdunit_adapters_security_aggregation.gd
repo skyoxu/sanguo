@@ -7,6 +7,7 @@ const TASKS_GAMEPLAY_PATH := "res://../.taskmaster/tasks/tasks_gameplay.json"
 const SELF_TEST_PATH := "res://tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
 const TASK_190_ID := 190
 const TASK_191_ID := 191
+const TASK_192_ID := 192
 const TASK_222_ID := 222
 
 func _select_gate_suite_dirs() -> PackedStringArray:
@@ -138,6 +139,12 @@ func _load_task191_from_tasks_gameplay() -> Dictionary:
 	if typeof(parsed) != TYPE_ARRAY:
 		return {}
 	return _find_task_by_taskmaster_id(parsed, TASK_191_ID)
+
+func _load_task192_from_tasks_gameplay() -> Dictionary:
+	var parsed: Variant = _read_json(TASKS_GAMEPLAY_PATH)
+	if typeof(parsed) != TYPE_ARRAY:
+		return {}
+	return _find_task_by_taskmaster_id(parsed, TASK_192_ID)
 
 func _validate_task190_chapter3_evidence_contract(task: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
@@ -274,6 +281,62 @@ func _validate_task191_unwired_candidate_contract(task: Dictionary) -> Dictionar
 		errors.append("missing_task191_evidence_ref_in_test_refs")
 	if not refs.has("Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"):
 		errors.append("missing_task191_core_boundary_ref_in_test_refs")
+
+	return {"ok": errors.is_empty(), "errors": errors}
+
+func _validate_task192_process_evidence_contract(task: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var acceptance_variant: Variant = task.get("acceptance", [])
+	var acceptance: Array = acceptance_variant if acceptance_variant is Array else []
+	if acceptance.size() < 15:
+		errors.append("acceptance_count_lt_15")
+		return {"ok": false, "errors": errors}
+
+	var evidence_ref := "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	var expected_requirements := [
+		"REQ-5187ab7a9fc0",
+		"REQ-f2066975f93c",
+		"REQ-61e0a6902857",
+		"REQ-71589cb62f34",
+	]
+	for idx in [11, 12, 13, 14]:
+		var refs := _extract_refs(str(acceptance[idx]))
+		if refs.size() != 1 or refs[0] != evidence_ref:
+			errors.append("wrong_task192_process_ref_%d" % (idx + 1))
+		var res_path := _to_res_path(evidence_ref)
+		if res_path == "" or not FileAccess.file_exists(res_path):
+			errors.append("missing_task192_process_ref_file_%d" % (idx + 1))
+		var anchor := "ACC:T192.%d" % (idx + 1)
+		if not _self_test_contains_anchor(anchor):
+			errors.append("missing_anchor_%s" % anchor)
+
+	var o8_a := str(acceptance[11])
+	var o8_b := str(acceptance[12])
+	var o9_a := str(acceptance[13])
+	var o9_b := str(acceptance[14])
+	if not o8_a.contains("[OBL:T192.O8]") or not o8_b.contains("[OBL:T192.O8]"):
+		errors.append("missing_obl_o8_acceptance")
+	if not o9_a.contains("[OBL:T192.O9]") or not o9_b.contains("[OBL:T192.O9]"):
+		errors.append("missing_obl_o9_acceptance")
+	var o8_a_lower := o8_a.to_lower()
+	var o9_a_lower := o9_a.to_lower()
+	if o8_a.find("Chapter 3 coverage audit") < 0 or o8_a_lower.find("evidence") < 0 or (o8_a_lower.find("evidence path") < 0 and o8_a_lower.find("evidence recorded") < 0):
+		errors.append("missing_coverage_audit_evidence_semantics_12")
+	if o9_a.find("Chapter 3.8 triplet baseline validators") < 0 or o9_a_lower.find("evidence") < 0 or (o9_a_lower.find("evidence path") < 0 and o9_a_lower.find("evidence recorded") < 0):
+		errors.append("missing_triplet_validator_evidence_semantics_14")
+	for requirement_id in expected_requirements:
+		var seen := false
+		for line in acceptance:
+			if str(line).contains(requirement_id):
+				seen = true
+				break
+		if not seen:
+			errors.append("missing_requirement_%s" % requirement_id)
+
+	var refs_variant: Variant = task.get("test_refs", [])
+	var refs: Array = refs_variant if refs_variant is Array else []
+	if not refs.has(evidence_ref):
+		errors.append("missing_task192_process_ref_in_test_refs")
 
 	return {"ok": errors.is_empty(), "errors": errors}
 
@@ -432,3 +495,35 @@ func test_task191_partial_unwired_evidence_rejects_generic_adapter_claims() -> v
 	var mutated_validation := _validate_task191_unwired_candidate_contract(mutated)
 	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
 	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_partial_unwired_semantics_12") >= 0).is_true()
+
+# acceptance: ACC:T192.12
+# acceptance: ACC:T192.13
+func test_task192_chapter3_coverage_audit_evidence_is_task_bound() -> void:
+	var task := _load_task192_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task192_process_evidence_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+	var mutated := task.duplicate(true)
+	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	acceptance[11] = "[OBL:T192.O8] Chapter 3 coverage audit is mentioned without evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	mutated["acceptance"] = acceptance
+	var mutated_validation := _validate_task192_process_evidence_contract(mutated)
+	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_coverage_audit_evidence_semantics_12") >= 0).is_true()
+
+# acceptance: ACC:T192.14
+# acceptance: ACC:T192.15
+func test_task192_chapter38_triplet_validator_evidence_is_task_bound() -> void:
+	var task := _load_task192_from_tasks_gameplay()
+	assert_dict(task).is_not_empty()
+	var validation := _validate_task192_process_evidence_contract(task)
+	assert_bool(bool(validation.get("ok", false))).is_true()
+
+	var mutated := task.duplicate(true)
+	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	acceptance[13] = "[OBL:T192.O9] Chapter 3.8 triplet baseline validators are mentioned without evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
+	mutated["acceptance"] = acceptance
+	var mutated_validation := _validate_task192_process_evidence_contract(mutated)
+	assert_bool(bool(mutated_validation.get("ok", true))).is_false()
+	assert_bool(String("\n").join(mutated_validation.get("errors", [])).find("missing_triplet_validator_evidence_semantics_14") >= 0).is_true()

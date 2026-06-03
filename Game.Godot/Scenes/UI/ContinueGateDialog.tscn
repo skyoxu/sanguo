@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game.Godot/Scripts/UI/ContinueGateDialog.gd" id="1"]
+
+[node name="ContinueGateDialog" type="AcceptDialog"]
+visible = true
+title = "Continue"
+size = Vector2i(360, 120)
+script = ExtResource("1")
+
+[node name="Margin" type="MarginContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 340.0
+offset_bottom = 64.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="MessageLabel" type="Label" parent="Margin"]
+layout_mode = 2
+text = "Continue blocked; menu state main_menu"

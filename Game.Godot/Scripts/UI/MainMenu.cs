@@ -12,6 +12,10 @@ namespace Game.Godot.Scripts.UI;
 
 public partial class MainMenu : Control
 {
+    private const string SurfaceContractKey = "MainMenu";
+    private const string EntryState = "boot_menu_entry";
+    private static readonly string[] AdapterEventNames = { "menu_entry_requested" };
+
     private const string EmptyJsonObject = "{}";
     private const string UiMenuStart = "ui.menu.start";
     private const string UiMenuSettings = "ui.menu.settings";
@@ -214,6 +218,42 @@ public partial class MainMenu : Control
         PopulateNewGameConfigControls();
         RefreshStartAvailability();
         ShowMenu();
+    }
+
+    public string get_entry_state()
+    {
+        return GetEntryState();
+    }
+
+    public string get_surface_contract_key()
+    {
+        return GetSurfaceContractKey();
+    }
+
+    public global::Godot.Collections.Array<string> get_adapter_event_names()
+    {
+        return GetAdapterEventNames();
+    }
+
+    public string GetEntryState()
+    {
+        return EntryState;
+    }
+
+    public string GetSurfaceContractKey()
+    {
+        return SurfaceContractKey;
+    }
+
+    public global::Godot.Collections.Array<string> GetAdapterEventNames()
+    {
+        var names = new global::Godot.Collections.Array<string>();
+        foreach (var eventName in AdapterEventNames)
+        {
+            names.Add(eventName);
+        }
+
+        return names;
     }
 
     public override void _ExitTree()
