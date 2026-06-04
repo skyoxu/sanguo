@@ -10216,26 +10216,28 @@
     ],
     "owner": "gameplay",
     "test_refs": [
+      "Game.Core.Tests/Tasks/Task196CompletionCountTests.cs",
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
       "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
       "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
       "Tests.Godot/tests/Adapters/test_input_time_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd"
+      "Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-7c8908846638 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:500 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Chapter 7 completion-count evidence reports the currently expected completed task count as exactly 180.",
-      "If the Chapter 7 completion-count input is missing or cannot be resolved, the task does not silently report success and instead leaves auditable evidence of the unresolved count.",
-      "[OBL:T196.O2] Godot-side or adapter-facing tests cover the player-visible behavior for REQ-7c8908846638.",
-      "[OBL:T196.O2] Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior.",
-      "[OBL:T196.O3] The minimal scene, adapter, or UI wiring required by the REQ-7c8908846638 assertions is present and exercised by evidence.",
-      "[OBL:T196.O3] The minimal scene, adapter, or UI behavior required by the assertions must be wired.",
-      "[OBL:T196.O4] The implementation preserves deterministic core boundaries while satisfying REQ-7c8908846638.",
-      "[OBL:T196.O4] The implementation must preserve deterministic core boundaries.",
-      "[OBL:T196.O5] Chapter 3 coverage audit is rerun and its result is recorded as task evidence.",
-      "[OBL:T196.O5] The Chapter 3 coverage audit must be rerun.",
-      "[OBL:T196.O6] Chapter 3.8 triplet baseline validators are run after this task is written to a task view, with evidence recorded.",
-      "[OBL:T196.O6] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Requirement REQ-7c8908846638 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:500 Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Chapter 7 completion-count evidence reports the currently expected completed task count as exactly 180. Source: docs/gdd/ui-gdd-flow.md:500 Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs",
+      "If the Chapter 7 completion-count input is missing or cannot be resolved, the task does not silently report success and instead leaves auditable evidence of the unresolved count. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs",
+      "[OBL:T196.O2] Godot-side or adapter-facing tests cover the player-visible behavior for REQ-7c8908846638. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd Tests.Godot/tests/Adapters/test_event_bus_adapter.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd",
+      "[OBL:T196.O2] Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd Tests.Godot/tests/Adapters/test_event_bus_adapter.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd",
+      "[OBL:T196.O3] The minimal scene, adapter, or UI wiring required by the REQ-7c8908846638 assertions is present and exercised by evidence. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd Tests.Godot/tests/Adapters/test_event_bus_adapter.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd",
+      "[OBL:T196.O3] The minimal scene, adapter, or UI behavior required by the assertions must be wired. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd Tests.Godot/tests/Adapters/test_event_bus_adapter.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd",
+      "[OBL:T196.O4] The implementation preserves deterministic core boundaries while satisfying REQ-7c8908846638. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "[OBL:T196.O4] The implementation must preserve deterministic core boundaries. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "[OBL:T196.O5] Chapter 3 coverage audit is rerun and its result is recorded as task evidence. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs",
+      "[OBL:T196.O5] The Chapter 3 coverage audit must be rerun. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs",
+      "[OBL:T196.O6] Chapter 3.8 triplet baseline validators are run after this task is written to a task view, with evidence recorded. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs",
+      "[OBL:T196.O6] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view. Refs: Game.Core.Tests/Tasks/Task196CompletionCountTests.cs"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",
