@@ -46,6 +46,7 @@ public partial class SanguoGameLoopController : Node
     private const string UiActionCardPlay = "ui.sanguo.action_card.play";
     private const string UiActionCardSkip = "ui.sanguo.action_card.skip";
     private const string UiStrategemUse = "ui.sanguo.strategem.use";
+    private const string UiAdvanceTurnRejected = "ui.sanguo.advance_turn.rejected";
     private const string AiAutoAdvanceCausationId = "runtime.ai.auto.advance";
 
     private const int DefaultPlayersCount = 4;
@@ -1504,6 +1505,36 @@ public partial class SanguoGameLoopController : Node
         }
     }
 
+    private void PublishAdvanceTurnRejected(string correlationId, string causationId, Exception ex)
+    {
+        if (_bus == null || !IsGameOverRejection(ex))
+        {
+            return;
+        }
+
+        try
+        {
+            var data = JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                ["CorrelationId"] = correlationId ?? string.Empty,
+                ["CausationId"] = causationId ?? string.Empty,
+                ["Reason"] = ex.Message ?? string.Empty,
+            }, UiJsonOptions);
+
+            _bus.PublishSimple(UiAdvanceTurnRejected, nameof(SanguoGameLoopController), data);
+        }
+        catch (Exception publishEx)
+        {
+            GD.PushWarning($"SanguoGameLoopController: failed to publish ui.sanguo.advance_turn.rejected: {publishEx.Message}");
+        }
+    }
+
+    private static bool IsGameOverRejection(Exception ex)
+    {
+        return ex is InvalidOperationException
+            && ex.Message.Contains("GameOver", StringComparison.Ordinal);
+    }
+
     private void ResetRuntimeState()
     {
         _started = false;
@@ -1577,6 +1608,7 @@ public partial class SanguoGameLoopController : Node
         }
         catch (Exception ex)
         {
+            PublishAdvanceTurnRejected(correlationId, UiHudDiceRoll, ex);
             GD.PushWarning($"SanguoGameLoopController: failed to advance turn: {ex.Message}");
         }
         finally
@@ -1613,6 +1645,7 @@ public partial class SanguoGameLoopController : Node
         }
         catch (Exception ex)
         {
+            PublishAdvanceTurnRejected(correlationId, UiActionCardPlay, ex);
             GD.PushWarning($"SanguoGameLoopController: failed to play action card and advance turn: {ex.Message}");
         }
         finally
@@ -1665,6 +1698,7 @@ public partial class SanguoGameLoopController : Node
         }
         catch (Exception ex)
         {
+            PublishAdvanceTurnRejected(correlationId, UiTileActionSelected, ex);
             GD.PushWarning($"SanguoGameLoopController: failed to apply tile action: {ex.Message}");
         }
         finally
@@ -1720,6 +1754,7 @@ public partial class SanguoGameLoopController : Node
         }
         catch (Exception ex)
         {
+            PublishAdvanceTurnRejected(correlationId, AiAutoAdvanceCausationId, ex);
             GD.PushWarning($"SanguoGameLoopController: failed to auto-advance AI turn: {ex.Message}");
         }
         finally
