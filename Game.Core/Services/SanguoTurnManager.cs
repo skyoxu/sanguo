@@ -666,6 +666,33 @@ public sealed class SanguoTurnManager
 
         var occurredAt = DateTimeOffset.UtcNow;
         var previousDate = _currentDate;
+
+        await PruneEliminatedAiPlayersAsync(
+            activePlayerId: _playerOrder[_activePlayerIndex],
+            occurredAt: occurredAt,
+            correlationId: correlationId,
+            causationId: causationId);
+        if (_playerOrder.Length == 0)
+        {
+            _started = false;
+            _gameOverEndReason = SanguoGameEnded.ReasonNoPlayers;
+            var evt = new DomainEvent(
+                Type: SanguoGameEnded.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoGameEnded(
+                    GameId: _gameId,
+                    EndReason: SanguoGameEnded.ReasonNoPlayers,
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId
+                )),
+                Timestamp: DateTime.UtcNow,
+                Id: Guid.NewGuid().ToString("N")
+            );
+            await _bus.PublishAsync(evt);
+            return;
+        }
+
         var activePlayerId = _playerOrder[_activePlayerIndex];
 
         await TryTriggerGlobalTurnRandomEventIfBoundaryAsync(

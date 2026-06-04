@@ -429,7 +429,8 @@ public class SanguoTurnManagerTests
         await mgr.AdvanceTurnAsync(correlationId: "corr", causationId: "cmd-advance");
         var ended = bus.Published.Find(e => e.Type == SanguoGameTurnEnded.EventType)!;
         var endedPayload = ((JsonElementEventData)ended.Data!).Value;
-        endedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("ai-1");
+        endedPayload.GetProperty("ActivePlayerId").GetString().Should().Be("p1");
+        endedPayload.GetProperty("ActivePlayerId").GetString().Should().NotBe("ai-1");
 
         bus.Published.Should().NotContain(e => e.Type == SanguoGameTurnAdvanced.EventType, "last actor standing ends the game at end of turn");
         var gameEnded = bus.Published.Find(e => e.Type == SanguoGameEnded.EventType)!;

@@ -16,6 +16,7 @@ namespace Game.Core.Tests.Services;
 public sealed class PlayerEliminationTests
 {
     // ACC:T26.2
+    // ACC:T197.5
     [Fact]
     public async Task ShouldPublishGameEndedAndStopTurnRotation_WhenHumanEliminatedByToll()
     {
@@ -68,6 +69,8 @@ public sealed class PlayerEliminationTests
     }
 
     // ACC:T26.3
+    // ACC:T197.7
+    // ACC:T197.9
     [Fact]
     public async Task ShouldNotEndGameButShouldPruneAiAndUnownCities_WhenAiEliminatedByToll()
     {
