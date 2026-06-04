@@ -303,7 +303,7 @@ public sealed class Task186CombatHookSuiteCoverageTests
     }
 
     [Fact]
-    public void ShouldTreatCurrentTask186RunAsNonAuthoritativeForExternalMappedMethods()
+    public void ShouldTreatCurrentTask186RunAsNonAuthoritative_WhenExternalMappedMethodsExist()
     {
         var executedTestNames = new[]
         {
