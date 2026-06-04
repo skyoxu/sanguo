@@ -10120,30 +10120,32 @@
     "test_refs": [
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
       "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Tests.Godot/tests/UI/A11y/test_visible_labels.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
       "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
       "Tests.Godot/tests/Adapters/test_input_time_adapter.gd",
       "Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd",
-      "Tests.Godot/tests/UI/A11y/test_visible_labels.gd"
+      "Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-5bccd55885c2 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:480 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Requirement REQ-ead8b3e06504 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:487 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Requirement REQ-a6c275967f91 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:488 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Requirement REQ-2afa270c7b7e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:498 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
-      "Before implementation begins, the task view records visible requirement mappings for REQ-5bccd55885c2, REQ-ead8b3e06504, REQ-a6c275967f91, and REQ-2afa270c7b7e, each pointing back to its documented source line in docs/gdd/ui-gdd-flow.md.",
-      "The gameplay task remains blocked from implementation if any mapped requirement ID is missing, duplicated, or not traceable to the stated source document.",
-      "Adapter-facing or Godot-side evidence is attached for the mapped requirement IDs so a reviewer can verify which visible behavior each requirement covers without inferring it from implementation code.",
-      "The mapping preserves the referenced overlay, ADR, chapter, and test strategy context for PRD-SANGUO-T2 part 8 so Chapter 3 coverage validation can audit the task after it is written to the gameplay view.",
-      "[OBL:T195.O9] The minimal scene, adapter, or UI behavior required by the mapped assertions is wired and referenced by the attached evidence.",
-      "[OBL:T195.O9] The minimal required scene, adapter, or UI behavior must be wired to satisfy the assertions.",
-      "[OBL:T195.O10] The implementation preserves deterministic core boundaries; any Godot-facing wiring remains outside Game.Core contract logic unless already permitted by the architecture.",
-      "[OBL:T195.O10] The implementation must preserve deterministic core boundaries.",
-      "[OBL:T195.O11] After the task is written to the gameplay view, the Chapter 3 coverage audit is rerun and its evidence path is recorded.",
-      "[OBL:T195.O11] The Chapter 3 coverage audit must be rerun after the task work.",
-      "[OBL:T195.O12] After this task is written to a task view, the Chapter 3.8 triplet baseline validators are run and their evidence path is recorded.",
-      "[OBL:T195.O12] The Chapter 3.8 triplet baseline validators must run after writing this task to a task view.",
-      "[OBL:T195.O13] The task view preserves the full listed Test Refs set for audio player, data store, event bus, input time, resource loader, and visible labels coverage.",
-      "[OBL:T195.O13] The task must preserve all listed Godot test references, including audio, data store, event bus, input time, resource loader, and visible labels tests."
+      "Requirement REQ-5bccd55885c2 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:480 Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Requirement REQ-ead8b3e06504 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:487 Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Requirement REQ-a6c275967f91 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:488 Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Requirement REQ-2afa270c7b7e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:498 Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Before implementation begins, the task view records visible requirement mappings for REQ-5bccd55885c2, REQ-ead8b3e06504, REQ-a6c275967f91, and REQ-2afa270c7b7e, each pointing back to its documented source line in docs/gdd/ui-gdd-flow.md. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs",
+      "The gameplay task remains blocked from implementation if any mapped requirement ID is missing, duplicated, or not traceable to the stated source document. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs",
+      "Adapter-facing or Godot-side evidence is attached for the mapped requirement IDs so a reviewer can verify which visible behavior each requirement covers without inferring it from implementation code. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd Tests.Godot/tests/UI/A11y/test_visible_labels.gd",
+      "The mapping preserves the referenced overlay, ADR, chapter, and test strategy context for PRD-SANGUO-T2 part 8 so Chapter 3 coverage validation can audit the task after it is written to the gameplay view. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs",
+      "[OBL:T195.O9] The minimal scene, adapter, or UI behavior required by the mapped assertions is wired and referenced by the attached evidence. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "[OBL:T195.O9] The minimal required scene, adapter, or UI behavior must be wired to satisfy the assertions. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "[OBL:T195.O10] The implementation preserves deterministic core boundaries; any Godot-facing wiring remains outside Game.Core contract logic unless already permitted by the architecture. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "[OBL:T195.O10] The implementation must preserve deterministic core boundaries. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "[OBL:T195.O11] After the task is written to the gameplay view, the Chapter 3 coverage audit is rerun and its evidence path is recorded. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs",
+      "[OBL:T195.O11] The Chapter 3 coverage audit must be rerun after the task work. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs",
+      "[OBL:T195.O12] After this task is written to a task view, the Chapter 3.8 triplet baseline validators are run and their evidence path is recorded. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs",
+      "[OBL:T195.O12] The Chapter 3.8 triplet baseline validators must run after writing this task to a task view. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs",
+      "[OBL:T195.O13] The task view preserves the full listed Test Refs set for audio player, data store, event bus, input time, resource loader, and visible labels coverage. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd Tests.Godot/tests/Adapters/test_event_bus_adapter.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd Tests.Godot/tests/UI/A11y/test_visible_labels.gd",
+      "[OBL:T195.O13] The task must preserve all listed Godot test references, including audio, data store, event bus, input time, resource loader, and visible labels tests. Refs: Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd Tests.Godot/tests/Adapters/test_event_bus_adapter.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd Tests.Godot/tests/UI/A11y/test_visible_labels.gd"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",
@@ -10159,7 +10161,8 @@
       "docs/gdd/ui-gdd-flow.md:498",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md",
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd"
+      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Game.Core.Tests/Tasks/Task195RequirementMappingTests.cs"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:480",
