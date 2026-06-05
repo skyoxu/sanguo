@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 import tempfile
 import unittest
+import os
 from pathlib import Path
 from unittest import mock
 
@@ -183,6 +184,39 @@ class ScTestStepsUnitFallbackTests(unittest.TestCase):
             cmd = captured[0]
             self.assertEqual(refs, [cmd[idx + 1] for idx, token in enumerate(cmd[:-1]) if token == "--add"])
             self.assertNotIn("tests/Scenes", cmd)
+
+    def test_run_gdunit_hard_should_force_strict_exit_code_during_command(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci"
+            tests_project = root / "Tests.Godot"
+            (tests_project / "tests" / "Tasks").mkdir(parents=True, exist_ok=True)
+            refs = ["tests/Tasks/test_task_56_a.gd"]
+            observed: list[str | None] = []
+            previous = os.environ.get("GDUNIT_STRICT_EXIT_CODE")
+            os.environ["GDUNIT_STRICT_EXIT_CODE"] = "0"
+
+            def fake_run_cmd(_cmd, *, cwd=None, timeout_sec=0):  # noqa: ANN001
+                observed.append(os.environ.get("GDUNIT_STRICT_EXIT_CODE"))
+                return 1, "GDUNIT_DONE rc=1 out=logs/e2e\n"
+
+            try:
+                with (
+                    mock.patch.object(sc_steps, "repo_root", return_value=root),
+                    mock.patch.object(sc_steps, "today_str", return_value="2026-04-01"),
+                    mock.patch.object(sc_steps, "task_scoped_gdunit_refs", return_value=refs),
+                    mock.patch.object(sc_steps, "run_cmd", side_effect=fake_run_cmd),
+                ):
+                    step = sc_steps.run_gdunit_hard(out_dir, "godot.exe", 120, run_id="r5", task_id="56")
+
+                self.assertEqual(1, int(step["rc"]))
+                self.assertEqual(["1"], observed)
+                self.assertEqual("0", os.environ.get("GDUNIT_STRICT_EXIT_CODE"))
+            finally:
+                if previous is None:
+                    os.environ.pop("GDUNIT_STRICT_EXIT_CODE", None)
+                else:
+                    os.environ["GDUNIT_STRICT_EXIT_CODE"] = previous
 
 
 if __name__ == "__main__":

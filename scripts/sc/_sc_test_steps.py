@@ -182,7 +182,15 @@ def run_gdunit_hard(
     for add_dir in add_dirs:
         cmd += ["--add", add_dir]
     cmd += ["--timeout-sec", str(timeout_sec), "--rd", str(report_dir)]
-    rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=timeout_sec + 300)
+    previous_strict_exit = os.environ.get("GDUNIT_STRICT_EXIT_CODE")
+    os.environ["GDUNIT_STRICT_EXIT_CODE"] = "1"
+    try:
+        rc, out = run_cmd(cmd, cwd=repo_root(), timeout_sec=timeout_sec + 300)
+    finally:
+        if previous_strict_exit is None:
+            os.environ.pop("GDUNIT_STRICT_EXIT_CODE", None)
+        else:
+            os.environ["GDUNIT_STRICT_EXIT_CODE"] = previous_strict_exit
     log_path = out_dir / "gdunit-hard.log"
     write_text(log_path, out)
     write_text(repo_root() / report_dir / "run_id.txt", run_id + "\n")

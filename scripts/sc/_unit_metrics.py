@@ -52,10 +52,14 @@ def _collect_unit_metrics_from_dir(unit_dir: Path) -> dict[str, Any] | None:
         return None
 
     coverage = summary.get("coverage") if isinstance(summary.get("coverage"), dict) else {}
-    trx_path_str = None
+    stable_trx_path = unit_dir / "tests.trx"
+    stable_coverage_path = unit_dir / "coverage.cobertura.xml"
+    trx_path_str = str(stable_trx_path) if stable_trx_path.exists() else None
+    coverage_path_str = str(stable_coverage_path) if stable_coverage_path.exists() else None
     sel = summary.get("artifacts_selected")
     if isinstance(sel, dict):
-        trx_path_str = sel.get("trx")
+        trx_path_str = trx_path_str or sel.get("trx")
+        coverage_path_str = coverage_path_str or sel.get("coverage")
     trx_path = Path(trx_path_str) if trx_path_str else None
 
     counters = _parse_trx_counters(trx_path) if (trx_path and trx_path.exists()) else None
@@ -74,7 +78,7 @@ def _collect_unit_metrics_from_dir(unit_dir: Path) -> dict[str, Any] | None:
         },
         "tests": counters,
         "trx": str(trx_path) if trx_path else None,
-        "coverage_cobertura": (sel.get("coverage") if isinstance(sel, dict) else None),
+        "coverage_cobertura": coverage_path_str,
     }
 
 
@@ -108,4 +112,3 @@ def collect_unit_metrics(*, tests_all_log: Path | None, fallback_unit_dir: Path)
         unit_dir = fallback_unit_dir
 
     return _collect_unit_metrics_from_dir(unit_dir) if unit_dir.exists() else None
-

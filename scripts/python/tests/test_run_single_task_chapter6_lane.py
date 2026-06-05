@@ -800,6 +800,106 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
             self.assertEqual("P1", payload["profile_policy"]["fix_through"])
             self.assertEqual("check-tdd-plan", payload["steps"][2]["name"])
 
+    def test_main_should_treat_missing_latest_recovery_as_new_task_lane(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "chapter6-new-task"
+            argv = [
+                "run_single_task_chapter6_lane.py",
+                "--task-id",
+                "198",
+                "--godot-bin",
+                "C:/Godot/Godot.exe",
+                "--delivery-profile",
+                "fast-ship",
+                "--out-dir",
+                str(out_dir),
+            ]
+            executed_steps: list[str] = []
+
+            json_steps = iter(
+                [
+                    (
+                        {
+                            "name": "resume-task",
+                            "cmd": [],
+                            "rc": 2,
+                            "stdout_tail": "",
+                            "stderr_tail": "ERROR: failed to build task resume summary: No latest run index found. Pass --latest or provide enough filters.",
+                            "log": "resume.log",
+                        },
+                        {},
+                    ),
+                    (
+                        {
+                            "name": "chapter6-route-initial",
+                            "cmd": [],
+                            "rc": 2,
+                            "stdout_tail": "",
+                            "stderr_tail": "ERROR: failed to route chapter6 recovery: No latest run index found. Pass --latest or provide enough filters.",
+                            "log": "route.log",
+                        },
+                        {},
+                    ),
+                    (
+                        {
+                            "name": "chapter6-route-post-review",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "route-post.log",
+                        },
+                        {
+                            "preferred_lane": "inspect-first",
+                            "run_id": "run-198",
+                            "chapter6_next_action": "continue",
+                        },
+                    ),
+                    (
+                        {
+                            "name": "chapter6-route-post-needs-fix",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "route-final.log",
+                        },
+                        {"preferred_lane": "inspect-first", "run_id": "run-198"},
+                    ),
+                ]
+            )
+
+            def fake_run_json_step(*_args, **_kwargs):
+                return next(json_steps)
+
+            def fake_run_plain_step(*_args, name, cmd, **_kwargs):
+                executed_steps.append(str(name))
+                return {
+                    "name": name,
+                    "cmd": list(cmd),
+                    "rc": 0,
+                    "stdout_tail": "",
+                    "stderr_tail": "",
+                    "log": f"{name}.log",
+                }
+
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(lane, "_repo_root", return_value=root),
+                mock.patch.object(lane, "_run_json_step", side_effect=fake_run_json_step),
+                mock.patch.object(lane, "_run_plain_step", side_effect=fake_run_plain_step),
+            ):
+                rc = lane.main()
+
+            self.assertEqual(0, rc)
+            self.assertIn("check-tdd-plan", executed_steps)
+            self.assertIn("review-pipeline", executed_steps)
+            payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("ok", payload["status"])
+            self.assertEqual("no-latest-run-index", payload["resume"]["missing_recovery_reason"])
+            self.assertEqual("no-latest-run-index", payload["initial_route"]["missing_recovery_reason"])
+
     def test_main_should_stop_before_running_forbidden_review_pipeline_command(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
