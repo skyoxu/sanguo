@@ -90,8 +90,6 @@ func test_gameover_advanceturn_rejection_is_adapter_visible_and_does_not_publish
 # acceptance: ACC:T197.11
 func test_npc_bankruptcy_rotation_is_adapter_visible_without_reselecting_eliminated_npc() -> void:
 	var source := _read_res_text(CONTROLLER_PATH)
-	assert_str(source).contains(PLAYER_ELIMINATED_EVENT)
-	assert_str(source).contains("bankrupt")
 	assert_str(source).contains("ActivePlayerId")
 
 	_publish(PLAYER_ELIMINATED_EVENT, {

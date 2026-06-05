@@ -6185,7 +6185,17 @@
         ],
         "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs; Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd; Tests.Godot/tests/Adapters/test_event_bus_adapter.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd\nAcceptance: Requirement REQ-9f182f67ca3c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:402 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-354889f35b38 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:462 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-8361a5fe5b42 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:478 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Requirement REQ-6af68e453f04 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:501 Refs: Tests.Godot/Game.Godot/Scripts/UI/MainMenu.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent\nOwner: gameplay\nLayer: adapter",
         "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
+        "adrRefs": [
+          "ADR-0007",
+          "ADR-0024"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH05",
+          "CH06",
+          "CH07"
+        ]
       },
       {
         "id": 199,
