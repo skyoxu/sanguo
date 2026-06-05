@@ -238,7 +238,7 @@ layout_mode = 2
 
 [node name="CampaignParamsPanel" type="PanelContainer" parent="TopBar/TopStack"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 200)
 mouse_filter = 2
 
 [node name="VBox" type="VBoxContainer" parent="TopBar/TopStack/CampaignParamsPanel"]
@@ -246,7 +246,7 @@ layout_mode = 2
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 380.0
-offset_bottom = 112.0
+offset_bottom = 192.0
 
 [node name="CommanderKey" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
 layout_mode = 2
@@ -287,6 +287,29 @@ text = "Boss Pressure"
 [node name="BossPressureValue" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
 layout_mode = 2
 text = "No boss pressure"
+
+[node name="ResponseStatusPanel" type="VBoxContainer" parent="TopBar/TopStack/CampaignParamsPanel/VBox"]
+layout_mode = 2
+
+[node name="PersistenceStatus" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel"]
+layout_mode = 2
+text = "Persistence: unavailable"
+
+[node name="LocalizationStatus" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel"]
+layout_mode = 2
+text = "Localization: unavailable"
+
+[node name="AudioStatus" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel"]
+layout_mode = 2
+text = "Audio: unavailable"
+
+[node name="PerformanceStatus" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel"]
+layout_mode = 2
+text = "Performance: degraded"
+
+[node name="PlatformStatus" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel"]
+layout_mode = 2
+text = "Platform: Windows supported"
 
 [node name="StrategemPanel" type="PanelContainer" parent="TopBar/TopStack"]
 layout_mode = 2

@@ -1,0 +1,21 @@
+# Task 200 Add response render persistence localization audio acceptance-test generation plan
+
+- Title: Task 200 Add response render persistence localization audio acceptance-test generation plan
+- Status: active
+- Branch: task/T200
+- Git Head: 023139c83c5f74d5e11a472536d90e260a4858e4
+- Goal: Control acceptance-driven test generation complexity for task 200.
+- Scope: 0 missing refs across 0 test roots; seed refs: no missing refs detected
+- Current step: Review missing acceptance refs and choose the first safe red step.
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: Do not start Codex test generation until the ref mix and verify mode are explicit.
+- Next action: Run llm_generate_tests_from_acceptance_refs.py after confirming the sequence for missing refs.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 200 --resume`
+- Open questions: none recorded yet
+- Exit criteria: The next acceptance-driven test generation step is explicit and low-ambiguity.
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `200`
+- Related run id: n/a (no pipeline run id linked yet)
+- Related latest.json: n/a (no task-scoped latest.json pointer resolved yet)
+- Related pipeline artifacts: n/a (no pipeline artifact directory resolved yet)
