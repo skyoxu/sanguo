@@ -1,0 +1,21 @@
+# task-200-chapter6-residual-followup
+
+- Title: task-200-chapter6-residual-followup
+- Status: active
+- Branch: task/T200
+- Git Head: 023139c83c5f74d5e11a472536d90e260a4858e4
+- Goal: Close the recorded residual reviewer findings for Task 200.
+- Scope: No low priority findings were captured.
+- Current step: Residual Needs Fix recorded; wait for a change that hits the previous reviewer anchors before paying for another 6.8.
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: Do not reopen 6.7 without a fresh deterministic failure. Do not rerun 6.8 when current edits do not hit the recorded reviewer anchors.
+- Next action: py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 200 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 200 --resume`
+- Open questions: none recorded yet
+- Exit criteria: Either the recorded findings are cleared by a targeted 6.8 pass, or a later run supersedes this residual record.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-05-task-200-chapter6-residual-needs-fix-2.md`
+- Related task id(s): `200`
+- Related run id: `d708a6b22b194832b3ecf30df0c4c937`
+- Related latest.json: `logs/ci/2026-06-05/sc-review-pipeline-task-200/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-05/sc-review-pipeline-task-200-d708a6b22b194832b3ecf30df0c4c937`

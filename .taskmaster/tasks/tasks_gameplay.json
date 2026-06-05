@@ -10555,28 +10555,22 @@
     "test_refs": [
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
       "Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
-      "Tests.Godot/Game.Core/Domain/Player.cs",
+      "Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd",
       "Tests.Godot/tests/Adapters/Config/test_settings_persistence.gd",
       "Tests.Godot/tests/Adapters/Db/test_db_persistence_cross_restart.gd",
-      "Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd"
+      "Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
+      "Game.Core.Tests/Tasks/Task200ResponseStatusBoundaryTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-299f92124a27 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:460 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
-      "Governed player-visible response surfaces render the current persistence status, localization status, audio status, performance status, and platform status instead of leaving those status areas blank, stale, or hidden.",
-      "Persistence status shown on governed player-visible surfaces updates after a settings or database persistence action succeeds or fails, and failed persistence is surfaced without presenting the saved state as successful.",
-      "Localization status shown on governed player-visible surfaces reflects the active locale or localization availability state, and missing or unsupported localization is surfaced without silently falling back as if fully localized.",
-      "Audio status shown on governed player-visible surfaces reflects the configured audio adapter state, including unavailable or disabled audio, and the UI does not report audio as active when the adapter is missing or inactive.",
-      "Performance status shown on governed player-visible surfaces reflects the current governed performance state relevant to the player-facing response, and degraded or unavailable performance status is visible rather than omitted.",
-      "Platform status shown on governed player-visible surfaces reflects the current Windows/platform support state, and unsupported or unavailable platform state is visible rather than reported as ready.",
-      "The governed player-visible response surfaces remain renderable when persistence, localization, audio, performance, or platform status data is unavailable; unavailable fields show an explicit unavailable or degraded state rather than crashing or displaying misleading success.",
-      "[OBL:T200.O2] Godot-side or adapter-facing tests cover the player-visible response render behavior for persistence, localization, audio, performance, and platform status.",
-      "[OBL:T200.O2] Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior.",
-      "[OBL:T200.O4] Response render status wiring preserves deterministic core boundaries by keeping Godot-facing persistence, localization, audio, performance, and platform adapters outside Game.Core domain logic.",
-      "[OBL:T200.O4] The implementation must preserve deterministic core boundaries.",
-      "[OBL:T200.O5] Chapter 3 coverage audit is rerun after the response render status changes, with evidence recorded in logs.",
-      "[OBL:T200.O5] The Chapter 3 coverage audit must be rerun.",
-      "[OBL:T200.O6] Chapter 3.8 triplet baseline validators are run after this task is written to a task view, with validator evidence recorded in logs.",
-      "[OBL:T200.O6] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Governed player-visible response surfaces render the current persistence status, localization status, audio status, performance status, and platform status instead of leaving those status areas blank, stale, or hidden. Refs: Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd",
+      "Persistence status shown on governed player-visible surfaces updates after a settings or database persistence action succeeds or fails, and failed persistence is surfaced without presenting the saved state as successful. Refs: Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd Tests.Godot/tests/Adapters/Config/test_settings_persistence.gd Tests.Godot/tests/Adapters/Db/test_db_persistence_cross_restart.gd Tests.Godot/tests/Adapters/Db/test_db_transactions_and_pragmas.gd",
+      "Localization status shown on governed player-visible surfaces reflects the active locale or localization availability state, and missing or unsupported localization is surfaced without silently falling back as if fully localized. Refs: Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd",
+      "Audio status shown on governed player-visible surfaces reflects the configured audio adapter state, including unavailable or disabled audio, and the UI does not report audio as active when the adapter is missing or inactive. Refs: Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+      "Performance status shown on governed player-visible surfaces reflects the current governed performance state relevant to the player-facing response, and degraded or unavailable performance status is visible rather than omitted. Refs: Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd",
+      "Platform status shown on governed player-visible surfaces reflects the current Windows/platform support state, and unsupported or unavailable platform state is visible rather than reported as ready. Refs: Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd",
+      "The governed player-visible response surfaces remain renderable when persistence, localization, audio, performance, or platform status data is unavailable; unavailable fields show an explicit unavailable or degraded state rather than crashing or displaying misleading success. Refs: Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd",
+      "Godot-side or adapter-facing tests cover the player-visible response render behavior for persistence, localization, audio, performance, and platform status. Refs: Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd",
+      "Response render status wiring preserves deterministic core boundaries by keeping Godot-facing persistence, localization, audio, performance, and platform adapters outside Game.Core domain logic. Refs: Game.Core.Tests/Tasks/Task200ResponseStatusBoundaryTests.cs Tests.Godot/tests/UI/test_task200_response_render_status_surfaces.gd"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",

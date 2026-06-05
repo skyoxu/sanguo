@@ -20,6 +20,7 @@ public partial class HUD : Control, IHudEventHandlers
     private const string UiHudDiceRollEventType = "ui.hud.dice.roll";
     private const string UiHudSaveEventType = "ui.hud.save";
     private const string UiHudLoadEventType = "ui.hud.load";
+    private const string UiHudResponseStatusUpdatedEventType = "ui.hud.response.status.updated";
     private const string UiMenuSettingsEventType = "ui.menu.settings";
     private const string UiMenuHelpEventType = "ui.menu.help";
     private const string UiMenuReturnEventType = "ui.menu.return";
@@ -106,6 +107,11 @@ public partial class HUD : Control, IHudEventHandlers
     private Label? _campaignMapCycleValue;
     private Label? _campaignBossPressureKey;
     private Label? _campaignBossPressureValue;
+    private Label? _responsePersistenceStatus;
+    private Label? _responseLocalizationStatus;
+    private Label? _responseAudioStatus;
+    private Label? _responsePerformanceStatus;
+    private Label? _responsePlatformStatus;
     private Label? _activeStrategemUiTitle;
     private Button? _activeStrategemButton;
     private Label? _activeStrategemStatus;
@@ -201,6 +207,11 @@ public partial class HUD : Control, IHudEventHandlers
         _campaignMapCycleValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/MapCycleValue");
         _campaignBossPressureKey = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/BossPressureKey");
         _campaignBossPressureValue = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/BossPressureValue");
+        _responsePersistenceStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/PersistenceStatus");
+        _responseLocalizationStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/LocalizationStatus");
+        _responseAudioStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/AudioStatus");
+        _responsePerformanceStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/PerformanceStatus");
+        _responsePlatformStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/PlatformStatus");
         _activeStrategemUiTitle = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemTitle");
         _activeStrategemButton = GetNodeOrNull<Button>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemButton");
         _activeStrategemStatus = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemStatus");
@@ -571,6 +582,40 @@ public partial class HUD : Control, IHudEventHandlers
         _bus.PublishSimple(UiHudLoadEventType, nameof(HUD), payload);
     }
 
+    public void UpdateResponseStatusSurface(global::Godot.Collections.Dictionary status)
+    {
+        SetResponseStatus(_responsePersistenceStatus, "Persistence", ReadResponseStatus(status, "persistence", "unavailable"));
+        SetResponseStatus(_responseLocalizationStatus, "Localization", ReadResponseStatus(status, "localization", "unavailable"));
+        SetResponseStatus(_responseAudioStatus, "Audio", ReadResponseStatus(status, "audio", "unavailable"));
+        SetResponseStatus(_responsePerformanceStatus, "Performance", ReadResponseStatus(status, "performance", "degraded"));
+        SetResponseStatus(_responsePlatformStatus, "Platform", ReadResponseStatus(status, "platform", "Windows supported"));
+    }
+
+    private static string ReadResponseStatus(global::Godot.Collections.Dictionary? status, string key, string fallback)
+    {
+        if (status is not null && status.ContainsKey(key))
+        {
+            var value = status[key].AsString();
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value.Trim();
+            }
+        }
+
+        return fallback;
+    }
+
+    private static void SetResponseStatus(Label? label, string name, string value)
+    {
+        if (label is null)
+        {
+            return;
+        }
+
+        label.Text = $"{name}: {value}";
+        label.Visible = true;
+    }
+
     private void PublishMenuEvent(string type)
     {
         if (_bus == null)
@@ -633,7 +678,90 @@ public partial class HUD : Control, IHudEventHandlers
 
     private void OnDomainEventEmitted(string type, string source, string dataJson, string id, string specVersion, string dataContentType, string timestampIso)
     {
+        ApplyResponseStatusEvent(type, dataJson);
         _eventHandlersController?.HandleDomainEvent(type, source, dataJson, id, timestampIso);
+    }
+
+    private void ApplyResponseStatusEvent(string type, string dataJson)
+    {
+        if (string.Equals(type, UiHudSaveEventType, StringComparison.Ordinal))
+        {
+            SetResponseStatus(_responsePersistenceStatus, "Persistence", "saving");
+            return;
+        }
+
+        if (string.Equals(type, UiHudLoadEventType, StringComparison.Ordinal))
+        {
+            SetResponseStatus(_responsePersistenceStatus, "Persistence", "loading");
+            return;
+        }
+
+        if (string.Equals(type, SanguoGameSaved.EventType, StringComparison.Ordinal)
+            || string.Equals(type, EventTypes.SaveWriteSucceeded, StringComparison.Ordinal))
+        {
+            SetResponseStatus(_responsePersistenceStatus, "Persistence", "saved");
+            return;
+        }
+
+        if (string.Equals(type, SanguoGameLoaded.EventType, StringComparison.Ordinal)
+            || string.Equals(type, EventTypes.SaveLoaded, StringComparison.Ordinal))
+        {
+            SetResponseStatus(_responsePersistenceStatus, "Persistence", "loaded");
+            return;
+        }
+
+        if (string.Equals(type, EventTypes.SaveWriteFailed, StringComparison.Ordinal)
+            || string.Equals(type, EventTypes.SaveMigrationFailed, StringComparison.Ordinal))
+        {
+            SetResponseStatus(_responsePersistenceStatus, "Persistence", ReadPersistenceFailure(dataJson));
+            return;
+        }
+
+        if (!string.Equals(type, UiHudResponseStatusUpdatedEventType, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(dataJson, JsonOptions);
+            var root = doc.RootElement;
+            SetResponseStatus(_responsePersistenceStatus, "Persistence", ReadResponseStatus(root, "persistence", "unavailable"));
+            SetResponseStatus(_responseLocalizationStatus, "Localization", ReadResponseStatus(root, "localization", "unavailable"));
+            SetResponseStatus(_responseAudioStatus, "Audio", ReadResponseStatus(root, "audio", "unavailable"));
+            SetResponseStatus(_responsePerformanceStatus, "Performance", ReadResponseStatus(root, "performance", "degraded"));
+            SetResponseStatus(_responsePlatformStatus, "Platform", ReadResponseStatus(root, "platform", "Windows supported"));
+        }
+        catch (JsonException)
+        {
+            SetResponseStatus(_responsePersistenceStatus, "Persistence", "unavailable");
+            SetResponseStatus(_responseLocalizationStatus, "Localization", "unavailable");
+            SetResponseStatus(_responseAudioStatus, "Audio", "unavailable");
+            SetResponseStatus(_responsePerformanceStatus, "Performance", "degraded");
+            SetResponseStatus(_responsePlatformStatus, "Platform", "Windows supported");
+        }
+    }
+
+    private static string ReadPersistenceFailure(string dataJson)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(dataJson, JsonOptions);
+            var reason = TryGetStringLoose(doc.RootElement, "Reason")
+                ?? TryGetStringLoose(doc.RootElement, "Error")
+                ?? TryGetStringLoose(doc.RootElement, "Message");
+            return string.IsNullOrWhiteSpace(reason) ? "failed" : $"failed: {reason.Trim()}";
+        }
+        catch (JsonException)
+        {
+            return "failed";
+        }
+    }
+
+    private static string ReadResponseStatus(JsonElement root, string key, string fallback)
+    {
+        var value = TryGetStringLoose(root, key);
+        return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
     }
 
     private void RecordEventForUi(string type, string source, string id, string timestampIso, JsonElement root)
