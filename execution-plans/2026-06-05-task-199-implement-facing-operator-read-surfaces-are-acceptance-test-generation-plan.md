@@ -1,0 +1,22 @@
+# Task 199 Implement facing operator read surfaces are acceptance-test generation plan
+
+- Title: Task 199 Implement facing operator read surfaces are acceptance-test generation plan
+- Status: active
+- Branch: task/T199
+- Git Head: 077a1671f2e57fb270e1db14a690c99f892fde8f
+- Goal: Close Task 199 operator-facing read surface evidence through Chapter 6 without bypassing route stop-loss.
+- Scope: Task 199 task refs, acceptance anchors, and dedicated GdUnit evidence for operator-facing read-only surface behavior.
+- Current step: Stop at Chapter 6 inspect/recovery after post-fix deterministic gates passed; reviewer Needs Fix remains unverified because route reports `recent_failure_summary`.
+- Last completed step: 6.6 refactor passed after adding `Tests.Godot/tests/UI/test_task199_operator_read_surface.gd`; task-scoped `sc-test` and `sc-acceptance-check` also passed.
+- Stop-loss: Do not run fresh full 6.7 while `Forbidden commands` includes `py -3 scripts/sc/run_review_pipeline.py --task-id 199`. Do not run 6.8 unless routing changes to allow it or an approved fork is explicitly used.
+- Next action: Re-enter recovery with `resume-task --recommendation-only` and `chapter6-route --recommendation-only`; if route changes to a permitted narrow reviewer lane, rerun reviewer closure for Task 199.
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 199 --recommendation-only`
+- Open questions: none; blocked only by protocol route stop-loss, not missing local evidence.
+- Exit criteria: Protocol-permitted review evidence shows no P0/P1 Needs Fix for Task 199, then run 6.9 hard checks before commit/PR.
+- Related ADRs: ADR-0007; ADR-0024
+- Related decision logs: `decision-logs/2026-06-05-task-199-reviewer-stop-loss-after-operator-read-surface-fix.md`
+- Related task id(s): `199`
+- Related run id: `991be9b9665943e1bb3baf6d6d2f88c3`
+- Related latest.json: `logs/ci/2026-06-05/sc-review-pipeline-task-199/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-05/sc-review-pipeline-task-199-991be9b9665943e1bb3baf6d6d2f88c3`
+- Deterministic evidence: `logs/ci/2026-06-05/sc-test/summary.json`; `logs/ci/2026-06-05/sc-acceptance-check-task-199/summary.json`; `logs/ci/2026-06-05/sc-build-tdd/summary.refactor.json`

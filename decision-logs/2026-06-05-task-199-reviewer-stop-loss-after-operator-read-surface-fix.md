@@ -1,0 +1,22 @@
+# Task 199 reviewer stop-loss after operator read surface fix
+
+- Title: Task 199 reviewer stop-loss after operator read surface fix
+- Date: 2026-06-05
+- Status: proposed
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T199
+- Git Head: 077a1671f2e57fb270e1db14a690c99f892fde8f
+- Why now: Chapter 6 review for Task 199 produced repeated `review-needs-fix` fingerprints. After fixing the cited root cause with a dedicated operator read-surface test, protocol routing still reports `recommended_action=inspect`, `Chapter6 blocked by=recent_failure_summary`, and forbids a fresh full 6.7 rerun.
+- Context: The latest reviewer evidence before the fix is `logs/ci/2026-06-05/sc-needs-fix-fast-task-199/round-1/review-code-reviewer.md`, where code-reviewer reported P1 semantic evidence gaps. The fix adds `Tests.Godot/tests/UI/test_task199_operator_read_surface.gd` and rewires Task 199 acceptance refs to that dedicated evidence.
+- Decision: Stop hard reruns at the route stop-loss. Treat the remaining code-reviewer Needs Fix as not yet cleared until a future protocol-permitted narrow review or approved fork verifies the new dedicated test evidence.
+- Consequences: Fast-ship completion is not claimed in this state, even though deterministic gates are green after the fix. Do not run `py -3 scripts/sc/run_review_pipeline.py --task-id 199` while it remains in Forbidden commands.
+- Recovery impact: Resume with `py -3 scripts/python/dev_cli.py resume-task --task-id 199 --recommendation-only`, then `py -3 scripts/python/dev_cli.py chapter6-route --task-id 199 --recommendation-only`. If routing changes to `preferred_lane=run-6.8` or approval/fork is explicitly allowed, rerun the narrow reviewer closure against the current diff.
+- Validation: Deterministic post-fix evidence: `py -3 scripts/sc/test.py --type all --task-id 199 --godot-bin "$env:GODOT_BIN"` -> `SC_TEST status=ok`; `py -3 scripts/sc/acceptance_check.py --task-id 199 ...` -> `SC_ACCEPTANCE status=ok`; `py -3 scripts/sc/build.py tdd --task-id 199 --stage refactor` -> `SC_BUILD_TDD status=ok`.
+- Related ADRs: ADR-0007; ADR-0024
+- Related execution plans: `execution-plans/2026-06-05-task-199-implement-facing-operator-read-surfaces-are-acceptance-test-generation-plan.md`
+- Related task id(s): `199`
+- Related run id: `991be9b9665943e1bb3baf6d6d2f88c3`
+- Related latest.json: `logs/ci/2026-06-05/sc-review-pipeline-task-199/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-05/sc-review-pipeline-task-199-991be9b9665943e1bb3baf6d6d2f88c3`
+- Related fix evidence: `Tests.Godot/tests/UI/test_task199_operator_read_surface.gd`; `.taskmaster/tasks/tasks_gameplay.json`; `.taskmaster/tasks/tasks.json`

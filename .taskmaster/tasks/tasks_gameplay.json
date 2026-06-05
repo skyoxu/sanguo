@@ -10483,26 +10483,15 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/tests/Adapters/test_input_time_adapter.gd",
-      "Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
-      "Tests.Godot/Game.Core/Domain/Player.cs",
-      "Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd",
-      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd"
+      "Tests.Godot/tests/UI/test_task199_operator_read_surface.gd",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-8a9d05b5e651 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:311 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd",
-      "When a player-facing interaction surface is not appropriate for the scenario, an operator-facing read surface exposes the relevant state as read-only information without enabling player-facing mutation or interaction.",
-      "[OBL:T199.O4] Godot-side or adapter-facing tests cover the player-visible read-surface behavior for REQ-8a9d05b5e651.",
-      "[OBL:T199.O4] Godot-side or adapter-facing coverage must be added or updated for the player-visible behavior.",
-      "[OBL:T199.O5] The minimal scene, adapter, or UI wiring needed for the operator-facing read surface is present and exercised by the assertions.",
-      "[OBL:T199.O5] The minimal scene, adapter, or UI behavior required by the assertions must be wired.",
-      "[OBL:T199.O6] The implementation preserves deterministic core boundaries and keeps Godot-specific behavior outside Game.Core contracts and domain logic.",
-      "[OBL:T199.O6] Deterministic core boundaries must be preserved while implementing the task.",
-      "[OBL:T199.O7] Chapter 3 coverage audit is rerun after implementation and its evidence path is recorded.",
-      "[OBL:T199.O7] The Chapter 3 coverage audit must be rerun after implementation.",
-      "[OBL:T199.O8] Chapter 3.8 triplet baseline validators are run after the task is written to the task view and their evidence path is recorded.",
-      "[OBL:T199.O8] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Requirement REQ-8a9d05b5e651 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:311 Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd",
+      "When a player-facing interaction surface is not appropriate for the scenario, an operator-facing read surface exposes relevant runtime state as read-only information without enabling player-facing mutation or interaction. Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd",
+      "[OBL:T199.O4] Godot-side or adapter-facing tests cover the read-surface behavior for REQ-8a9d05b5e651. Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd",
+      "[OBL:T199.O5] The minimal scene, adapter, or UI wiring needed for the operator-facing read surface is present and exercised by assertions, without exposing mutation controls from the read surface. Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd",
+      "[OBL:T199.O6] The implementation preserves deterministic core boundaries and keeps Godot-specific read-surface behavior outside Game.Core contracts and domain logic. Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",
