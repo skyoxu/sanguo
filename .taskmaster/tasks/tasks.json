@@ -6206,9 +6206,19 @@
         "dependencies": [
           198
         ],
-        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/_index.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Adapters/test_input_time_adapter.gd; Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd; Tests.Godot/Game.Core/Domain/Player.cs; Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd; Tests.Godot/tests/Adapters/test_data_store_adapter.gd\nAcceptance: Requirement REQ-8a9d05b5e651 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:311 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_input_time_adapter.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; input-camera; intent\nOwner: gameplay\nLayer: adapter",
+        "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md; docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md; docs/architecture/overlays/PRD-SANGUO-V4/08/ACCEPTANCE_CHECKLIST.md\nTest Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd; Game.Core.Tests/Utilities/NoGodotDependencyTests.cs\nAcceptance: Requirement REQ-8a9d05b5e651 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:311 Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd; When a player-facing interaction surface is not appropriate for the scenario, an operator-facing read surface exposes relevant runtime state as read-only information without enabling player-facing mutation or interaction. Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd; [OBL:T199.O4] Godot-side or adapter-facing tests cover the read-surface behavior for REQ-8a9d05b5e651. Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd; [OBL:T199.O5] The minimal scene, adapter, or UI wiring needed for the operator-facing read surface is present and exercised by assertions, without exposing mutation controls from the read surface. Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd; [OBL:T199.O6] The implementation preserves deterministic core boundaries and keeps Godot-specific read-surface behavior outside Game.Core contracts and domain logic. Refs: Tests.Godot/tests/UI/test_task199_operator_read_surface.gd Game.Core.Tests/Utilities/NoGodotDependencyTests.cs\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; input-camera; intent\nOwner: gameplay\nLayer: adapter",
         "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
+        "adrRefs": [
+          "ADR-0007",
+          "ADR-0024"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH05",
+          "CH06",
+          "CH07"
+        ]
       },
       {
         "id": 200,
