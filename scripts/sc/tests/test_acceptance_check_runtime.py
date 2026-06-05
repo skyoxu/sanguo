@@ -22,6 +22,7 @@ from _acceptance_runtime import (  # noqa: E402
     should_mark_hard_failure,
     validate_arg_conflicts,
 )
+from acceptance_check import _unit_metrics_has_failures  # noqa: E402
 
 
 class AcceptanceCheckRuntimeTests(unittest.TestCase):
@@ -119,6 +120,11 @@ class AcceptanceCheckRuntimeTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             self.assertEqual(20, compute_perf_p95_ms(perf_p95_ms=None, require_perf=True))
             self.assertEqual(0, compute_perf_p95_ms(perf_p95_ms=None, require_perf=False))
+
+    def test_unit_metrics_failures_should_mark_hard_failure(self) -> None:
+        self.assertTrue(_unit_metrics_has_failures({"unit": {"tests": {"failed": 1}}}))
+        self.assertTrue(_unit_metrics_has_failures({"unit": {"tests": {"notExecuted": 1}}}))
+        self.assertFalse(_unit_metrics_has_failures({"unit": {"tests": {"failed": 0, "passed": 10}}}))
 
 
 if __name__ == "__main__":

@@ -727,6 +727,40 @@ def _run_json_step(out_dir: Path, *, name: str, cmd: list[str]) -> tuple[dict[st
     return step, payload
 
 
+def _is_missing_latest_run_index(step: dict[str, Any]) -> bool:
+    text = f"{step.get('stdout_tail') or ''}\n{step.get('stderr_tail') or ''}".lower()
+    return "no latest run index found" in text
+
+
+def _mark_missing_latest_as_nonblocking(step: dict[str, Any]) -> dict[str, Any]:
+    updated = dict(step)
+    updated["original_rc"] = updated.get("rc")
+    updated["rc"] = 0
+    updated["recovered_as"] = "no-latest-run-index"
+    return updated
+
+
+def _missing_latest_payload(task_id: str) -> dict[str, Any]:
+    return {
+        "task_id": str(task_id),
+        "run_id": "n/a",
+        "recommended_action": "",
+        "recommended_command": "",
+        "forbidden_commands": [],
+        "latest_reason": "n/a",
+        "missing_recovery_reason": "no-latest-run-index",
+        "latest_run_type": "n/a",
+        "latest_reuse_mode": "n/a",
+        "latest_artifact_integrity": "n/a",
+        "preferred_lane": "inspect-first",
+        "blocked_by": "n/a",
+        "chapter6_next_action": "",
+        "chapter6_can_skip_6_7": False,
+        "chapter6_can_go_to_6_8": False,
+        "chapter6_blocked_by": "",
+    }
+
+
 def _run_plain_step(out_dir: Path, *, name: str, cmd: list[str]) -> dict[str, Any]:
     rc, stdout, stderr = _run_cmd(cmd, cwd=_repo_root())
     log_path = _write_step_log(out_dir, name=name, cmd=cmd, stdout=stdout, stderr=stderr, rc=rc)
@@ -807,6 +841,9 @@ def main() -> int:
     }
 
     resume_step, resume_payload = _run_json_step(out_dir, name="resume-task", cmd=build_resume_task_cmd(task_id))
+    if int(resume_step["rc"]) != 0 and _is_missing_latest_run_index(resume_step):
+        resume_step = _mark_missing_latest_as_nonblocking(resume_step)
+        resume_payload = _missing_latest_payload(task_id)
     summary["steps"].append(resume_step)
     summary["resume"] = resume_payload
     if int(resume_step["rc"]) != 0:
@@ -822,6 +859,9 @@ def main() -> int:
         name="chapter6-route-initial",
         cmd=build_chapter6_route_cmd(task_id, record_residual=record_residual),
     )
+    if int(initial_route_step["rc"]) != 0 and _is_missing_latest_run_index(initial_route_step):
+        initial_route_step = _mark_missing_latest_as_nonblocking(initial_route_step)
+        initial_route = _missing_latest_payload(task_id)
     summary["steps"].append(initial_route_step)
     summary["initial_route"] = initial_route
     if int(initial_route_step["rc"]) != 0:

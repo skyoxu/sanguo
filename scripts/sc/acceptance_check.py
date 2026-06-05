@@ -95,6 +95,16 @@ def _append_risk_summary(
         return True, None
 
 
+def _unit_metrics_has_failures(metrics: dict[str, Any]) -> bool:
+    unit = metrics.get("unit") if isinstance(metrics.get("unit"), dict) else {}
+    tests = unit.get("tests") if isinstance(unit.get("tests"), dict) else {}
+    for key in ("failed", "error", "aborted", "notRunnable", "notExecuted"):
+        value = tests.get(key)
+        if isinstance(value, int) and value > 0:
+            return True
+    return False
+
+
 def _build_summary(
     *,
     mode: str,
@@ -313,6 +323,8 @@ def main() -> int:
         for s in steps
     )
     metrics = _collect_metrics(steps)
+    if _unit_metrics_has_failures(metrics):
+        hard_failed = True
 
     risk_summary_rel: str | None = None
     if is_enabled(only_steps, "risk"):
