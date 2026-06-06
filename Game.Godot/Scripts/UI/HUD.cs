@@ -112,6 +112,11 @@ public partial class HUD : Control, IHudEventHandlers
     private Label? _responseAudioStatus;
     private Label? _responsePerformanceStatus;
     private Label? _responsePlatformStatus;
+    private Label? _responseConfigStatus;
+    private Label? _responseGovernanceStatus;
+    private Label? _responseSaveStateStatus;
+    private Label? _responseMigrationStatus;
+    private Label? _responseAuditStatus;
     private Label? _activeStrategemUiTitle;
     private Button? _activeStrategemButton;
     private Label? _activeStrategemStatus;
@@ -212,6 +217,11 @@ public partial class HUD : Control, IHudEventHandlers
         _responseAudioStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/AudioStatus");
         _responsePerformanceStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/PerformanceStatus");
         _responsePlatformStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/PlatformStatus");
+        _responseConfigStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/ConfigStatus");
+        _responseGovernanceStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/GovernanceStatus");
+        _responseSaveStateStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/SaveStateStatus");
+        _responseMigrationStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/MigrationStatus");
+        _responseAuditStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/AuditStatus");
         _activeStrategemUiTitle = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemTitle");
         _activeStrategemButton = GetNodeOrNull<Button>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemButton");
         _activeStrategemStatus = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemStatus");
@@ -589,6 +599,11 @@ public partial class HUD : Control, IHudEventHandlers
         SetResponseStatus(_responseAudioStatus, "Audio", ReadResponseStatus(status, "audio", "unavailable"));
         SetResponseStatus(_responsePerformanceStatus, "Performance", ReadResponseStatus(status, "performance", "degraded"));
         SetResponseStatus(_responsePlatformStatus, "Platform", ReadResponseStatus(status, "platform", "Windows supported"));
+        SetResponseStatus(_responseConfigStatus, "Config", ReadResponseStatus(status, "config", "owner: system; state: unavailable"));
+        SetResponseStatus(_responseGovernanceStatus, "Governance", ReadResponseStatus(status, "governance", "owner: system; state: unavailable"));
+        SetResponseStatus(_responseSaveStateStatus, "Save State", ReadResponseStatus(status, "save_state", "owner: system; state: unavailable"));
+        SetResponseStatus(_responseMigrationStatus, "Migration", ReadResponseStatus(status, "migration", "owner: system; state: unavailable"));
+        SetResponseStatus(_responseAuditStatus, "Audit", ReadResponseStatus(status, "audit", "owner: system; state: unavailable"));
     }
 
     private static string ReadResponseStatus(global::Godot.Collections.Dictionary? status, string key, string fallback)
@@ -731,6 +746,11 @@ public partial class HUD : Control, IHudEventHandlers
             SetResponseStatus(_responseAudioStatus, "Audio", ReadResponseStatus(root, "audio", "unavailable"));
             SetResponseStatus(_responsePerformanceStatus, "Performance", ReadResponseStatus(root, "performance", "degraded"));
             SetResponseStatus(_responsePlatformStatus, "Platform", ReadResponseStatus(root, "platform", "Windows supported"));
+            SetResponseStatus(_responseConfigStatus, "Config", ReadResponseStatus(root, "config", "owner: system; state: unavailable"));
+            SetResponseStatus(_responseGovernanceStatus, "Governance", ReadResponseStatus(root, "governance", "owner: system; state: unavailable"));
+            SetResponseStatus(_responseSaveStateStatus, "Save State", ReadResponseStatus(root, "save_state", "owner: system; state: unavailable"));
+            SetResponseStatus(_responseMigrationStatus, "Migration", ReadResponseStatus(root, "migration", "owner: system; state: unavailable"));
+            SetResponseStatus(_responseAuditStatus, "Audit", ReadResponseStatus(root, "audit", "owner: system; state: unavailable"));
         }
         catch (JsonException)
         {
@@ -739,6 +759,11 @@ public partial class HUD : Control, IHudEventHandlers
             SetResponseStatus(_responseAudioStatus, "Audio", "unavailable");
             SetResponseStatus(_responsePerformanceStatus, "Performance", "degraded");
             SetResponseStatus(_responsePlatformStatus, "Platform", "Windows supported");
+            SetResponseStatus(_responseConfigStatus, "Config", "owner: system; state: unavailable");
+            SetResponseStatus(_responseGovernanceStatus, "Governance", "owner: system; state: unavailable");
+            SetResponseStatus(_responseSaveStateStatus, "Save State", "owner: system; state: unavailable");
+            SetResponseStatus(_responseMigrationStatus, "Migration", "owner: system; state: unavailable");
+            SetResponseStatus(_responseAuditStatus, "Audit", "owner: system; state: unavailable");
         }
     }
 

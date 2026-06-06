@@ -32,7 +32,7 @@ public class GameStateManagerSecurityTests
         );
 
     [Fact]
-    public async Task LoadGameWithDeeplyNestedJsonShouldThrowJsonException()
+    public async Task ShouldThrowJsonException_WhenLoadingGameWithDeeplyNestedJson()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -54,7 +54,7 @@ public class GameStateManagerSecurityTests
     }
 
     [Fact]
-    public async Task SaveGameWithOversizedScreenshotShouldThrowArgumentOutOfRangeException()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenSavingGameWithOversizedScreenshot()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -68,7 +68,7 @@ public class GameStateManagerSecurityTests
     }
 
     [Fact]
-    public async Task SaveGameWithOversizedTitleShouldThrowArgumentOutOfRangeException()
+    public async Task ShouldThrowArgumentOutOfRangeException_WhenSavingGameWithOversizedTitle()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -81,8 +81,30 @@ public class GameStateManagerSecurityTests
         ex.Which.ParamName.Should().Be("name");
     }
 
+    // ACC:T201.5
     [Fact]
-    public async Task LoadGameWithCorruptedChecksumShouldThrowInvalidOperationException()
+    public async Task ShouldKeepStateAndConfigUnchanged_WhenSaveOwnershipInputIsInvalid()
+    {
+        var store = new InMemoryDataStore();
+        var mgr = new GameStateManager(store);
+        var initialState = MakeState(level: 8, score: 420);
+        var initialConfig = MakeConfig();
+        mgr.SetState(initialState, initialConfig);
+
+        var stateBefore = mgr.GetState();
+        var configBefore = mgr.GetConfig();
+        var invalidTitle = new string('x', 101);
+
+        Func<Task> act = async () => await mgr.SaveGameAsync(name: invalidTitle);
+
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+        mgr.GetState().Should().BeEquivalentTo(stateBefore);
+        mgr.GetConfig().Should().BeEquivalentTo(configBefore);
+        store.Snapshot.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ShouldThrowInvalidOperationException_WhenLoadingGameWithCorruptedChecksum()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -117,4 +139,3 @@ public class GameStateManagerSecurityTests
         return sb.ToString();
     }
 }
-

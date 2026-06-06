@@ -96,3 +96,71 @@ func test_task200_response_status_surface_updates_from_event_bus_status_sources(
 	assert_str(_status_text(hud, "PersistenceStatus")).contains("failed")
 	assert_str(_status_text(hud, "PersistenceStatus")).contains("disk unavailable")
 	assert_str(_status_text(hud, "PersistenceStatus")).not_contains("saved")
+
+# ACC:T201.1
+# ACC:T201.2
+# ACC:T201.3
+# ACC:T201.4
+func test_task201_response_status_surface_shows_default_owner_state_for_build_save_governance_migration_and_audit() -> void:
+	var hud := await _hud()
+
+	for label_name in ["ConfigStatus", "GovernanceStatus", "SaveStateStatus", "MigrationStatus", "AuditStatus"]:
+		var text := _status_text(hud, label_name)
+		assert_str(text).contains("owner")
+		assert_str(text).contains("state")
+		assert_str(text).contains("unavailable")
+
+	assert_str(_status_text(hud, "ConfigStatus")).contains("Config")
+	assert_str(_status_text(hud, "GovernanceStatus")).contains("Governance")
+	assert_str(_status_text(hud, "SaveStateStatus")).contains("Save State")
+	assert_str(_status_text(hud, "MigrationStatus")).contains("Migration")
+	assert_str(_status_text(hud, "AuditStatus")).contains("Audit")
+
+# ACC:T201.5
+# ACC:T201.6
+func test_task201_response_status_surface_updates_owner_and_state_for_save_migration_and_audit_changes() -> void:
+	var hud := await _hud()
+	var status := {
+		"config": "owner: setup-system; state: valid",
+		"governance": "owner: quality-gate; state: enforced",
+		"save_state": "owner: player:p1; state: saved",
+		"migration": "owner: migration-service; state: current",
+		"audit": "owner: security-audit; state: writable"
+	}
+
+	hud.call("UpdateResponseStatusSurface", status)
+	await get_tree().process_frame
+
+	assert_str(_status_text(hud, "ConfigStatus")).contains("setup-system")
+	assert_str(_status_text(hud, "ConfigStatus")).contains("valid")
+	assert_str(_status_text(hud, "GovernanceStatus")).contains("quality-gate")
+	assert_str(_status_text(hud, "GovernanceStatus")).contains("enforced")
+	assert_str(_status_text(hud, "SaveStateStatus")).contains("player:p1")
+	assert_str(_status_text(hud, "SaveStateStatus")).contains("saved")
+	assert_str(_status_text(hud, "MigrationStatus")).contains("migration-service")
+	assert_str(_status_text(hud, "MigrationStatus")).contains("current")
+	assert_str(_status_text(hud, "AuditStatus")).contains("security-audit")
+	assert_str(_status_text(hud, "AuditStatus")).contains("writable")
+
+func test_task201_response_status_surface_shows_refusal_and_unchanged_state_when_save_or_build_state_is_invalid() -> void:
+	var hud := await _hud()
+	var status := {
+		"config": "owner: unavailable; state: refusal; unchanged: current-config",
+		"governance": "owner: quality-gate; state: refusal",
+		"save_state": "owner: unavailable; state: refusal; unchanged: quick-save",
+		"migration": "owner: migration-service; state: failed; unchanged: schema-v1",
+		"audit": "owner: security-audit; state: denied"
+	}
+
+	hud.call("UpdateResponseStatusSurface", status)
+	await get_tree().process_frame
+
+	assert_str(_status_text(hud, "ConfigStatus")).contains("refusal")
+	assert_str(_status_text(hud, "ConfigStatus")).contains("unchanged")
+	assert_str(_status_text(hud, "GovernanceStatus")).contains("refusal")
+	assert_str(_status_text(hud, "SaveStateStatus")).contains("unavailable")
+	assert_str(_status_text(hud, "SaveStateStatus")).contains("refusal")
+	assert_str(_status_text(hud, "SaveStateStatus")).contains("unchanged")
+	assert_str(_status_text(hud, "MigrationStatus")).contains("failed")
+	assert_str(_status_text(hud, "MigrationStatus")).contains("unchanged")
+	assert_str(_status_text(hud, "AuditStatus")).contains("denied")

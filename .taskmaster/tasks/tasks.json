@@ -6254,7 +6254,17 @@
         ],
         "details": "Story: TASK-GENERATION\nADR Refs: ADR-0007; ADR-0024\nChapters: CH01; CH05; CH06; CH07\nOverlays: docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-logging-policy-and-lint.md; docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-migration-compatibility.md; docs/architecture/overlays/PRD-SANGUO-T2/08/08-t2-city-ownership-model.md\nTest Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd; Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd; Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd; Game.Core.Tests/State/GameStateMachineTests.cs; Game.Core.Tests/State/GameStateManagerSecurityTests.cs; Game.Core.Tests/State/GameStateManagerTests.cs\nAcceptance: Requirement REQ-7533db839342 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:42 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd; Requirement REQ-3ef6c39ed545 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:341 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd; Requirement REQ-5aa767b38581 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:342 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd\nTest Strategy: Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.; Green: wire the minimal scene, adapter, or UI behavior required by the assertions.; Refactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.; Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.\nLabels: adapter; add; gameplay; gdd; generated; intent; save-meta\nOwner: gameplay\nLayer: adapter",
         "testStrategy": "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.\nGreen: wire the minimal scene, adapter, or UI behavior required by the assertions.\nRefactor: preserve deterministic core boundaries and rerun the Chapter 3 coverage audit.\nRun the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
-        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md"
+        "overlay": "docs/architecture/overlays/PRD-SANGUO-V4/08/_index.md",
+        "adrRefs": [
+          "ADR-0007",
+          "ADR-0024"
+        ],
+        "archRefs": [
+          "CH01",
+          "CH05",
+          "CH06",
+          "CH07"
+        ]
       },
       {
         "id": 202,
