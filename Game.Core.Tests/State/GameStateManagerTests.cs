@@ -13,62 +13,6 @@ using static Game.Core.Contracts.CoreGameEvents;
 
 namespace Game.Core.Tests.State;
 
-internal sealed class InMemoryDataStore : IDataStore
-{
-    private readonly Dictionary<string,string> _dict = new();
-    public Task SaveAsync(string key, string json) { _dict[key] = json; return Task.CompletedTask; }
-    public Task<string?> LoadAsync(string key) { _dict.TryGetValue(key, out var v); return Task.FromResult(v); }
-    public Task DeleteAsync(string key) { _dict.Remove(key); return Task.CompletedTask; }
-    public IReadOnlyDictionary<string,string> Snapshot => _dict;
-}
-
-internal sealed class SequencedLoadDataStore : IDataStore
-{
-    private readonly Dictionary<string, string> _storage = new();
-    private readonly Dictionary<string, Queue<string?>> _loadSequences = new();
-
-    public Task SaveAsync(string key, string json)
-    {
-        _storage[key] = json;
-        return Task.CompletedTask;
-    }
-
-    public Task<string?> LoadAsync(string key)
-    {
-        if (_loadSequences.TryGetValue(key, out var queue) && queue.Count > 0)
-        {
-            return Task.FromResult(queue.Dequeue());
-        }
-
-        _storage.TryGetValue(key, out var value);
-        return Task.FromResult(value);
-    }
-
-    public Task DeleteAsync(string key)
-    {
-        _storage.Remove(key);
-        return Task.CompletedTask;
-    }
-
-    public void Seed(string key, string value) => _storage[key] = value;
-
-    public void QueueLoad(string key, params string?[] values)
-    {
-        if (!_loadSequences.TryGetValue(key, out var queue))
-        {
-            queue = new Queue<string?>();
-            _loadSequences[key] = queue;
-        }
-
-        foreach (var value in values)
-        {
-            queue.Enqueue(value);
-        }
-    }
-
-    public IReadOnlyDictionary<string, string> Snapshot => _storage;
-}
-
 public class GameStateManagerTests
 {
     private static GameState MakeState(int level=1, int score=0)
@@ -123,7 +67,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task SaveLoadDeleteAndIndexWithCompressionWorksCorrectly()
+    public async Task ShouldSaveLoadDeleteAndIndex_WhenCompressionEnabled()
     {
         var store = new InMemoryDataStore();
         var opts = new GameStateManagerOptions(MaxSaves: 2, EnableCompression: true);
@@ -167,7 +111,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task AutoSaveToggleAndTickWorksCorrectly()
+    public async Task ShouldPersistAutoSaveIndex_WhenAutoSaveTickRuns()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -180,7 +124,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task SaveThrowsWhenStateMissingOrTitleTooLong()
+    public async Task ShouldThrow_WhenStateMissingOrTitleTooLong()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -194,7 +138,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task SaveAndLoadWithoutCompressionWorks()
+    public async Task ShouldSaveAndLoadWithoutCompression_WhenCompressionDisabled()
     {
         // Arrange - use EnableCompression: false to test non-compressed path
         var store = new InMemoryDataStore();
@@ -216,7 +160,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public void GetStateReturnsNullWhenNoStateSet()
+    public void ShouldReturnNullState_WhenNoStateSet()
     {
         // Arrange - create manager without setting state
         var store = new InMemoryDataStore();
@@ -230,7 +174,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public void GetConfigReturnsNullWhenNoConfigSet()
+    public void ShouldReturnNullConfig_WhenNoConfigSet()
     {
         // Arrange - create manager without setting config
         var store = new InMemoryDataStore();
@@ -244,7 +188,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public void GetStateReturnsCopyWhenStateExists()
+    public void ShouldReturnStateCopy_WhenStateExists()
     {
         // Arrange - set state
         var store = new InMemoryDataStore();
@@ -262,7 +206,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public void GetConfigReturnsCopyWhenConfigExists()
+    public void ShouldReturnConfigCopy_WhenConfigExists()
     {
         // Arrange - set config
         var store = new InMemoryDataStore();
@@ -280,7 +224,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public void CallbackExceptionIsReportedAndDoesNotThrow()
+    public void ShouldReportCallbackException_WhenSettingStateCallbackThrows()
     {
         var store = new InMemoryDataStore();
         var reporter = new CapturingErrorReporter();
@@ -298,7 +242,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public void OffEvent_WhenCallbackRemoved_DoesNotReceiveEvents()
+    public void ShouldNotReceiveEvents_WhenCallbackRemoved()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -320,7 +264,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task Destroy_WhenCalled_ClearsCallbacksResetsStateAndDisablesAutoSave()
+    public async Task ShouldClearCallbacksResetStateAndDisableAutoSave_WhenDestroyCalled()
     {
         var store = new InMemoryDataStore();
         var mgr = new GameStateManager(store);
@@ -345,7 +289,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task SaveGameAsync_WhenCallbackThrows_ReportsAndStillSaves()
+    public async Task ShouldReportAndStillSave_WhenSaveCallbackThrows()
     {
         var store = new InMemoryDataStore();
         var reporter = new CapturingErrorReporter();
@@ -365,7 +309,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task GetSaveListAsync_WhenIndexJsonIsNullLiteral_ReturnsEmptyList()
+    public async Task ShouldReturnEmptyList_WhenIndexJsonIsNullLiteral()
     {
         var store = new InMemoryDataStore();
         await store.SaveAsync("guild-manager-game:index", "null");
@@ -377,7 +321,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task SaveGameAsync_WhenIndexJsonIsNullLiteral_RebuildsIndexWithoutThrowing()
+    public async Task ShouldRebuildIndexWithoutThrowing_WhenIndexJsonIsNullLiteral()
     {
         var store = new InMemoryDataStore();
         await store.SaveAsync("guild-manager-game:index", "null");
@@ -395,7 +339,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public async Task SaveGameAsync_WhenCleanupReloadSeesMissingIndex_DoesNotThrowAndKeepsSave()
+    public async Task ShouldKeepSaveWithoutThrowing_WhenCleanupReloadSeesMissingIndex()
     {
         var store = new SequencedLoadDataStore();
         store.QueueLoad("guild-manager-game:index", "[]", null);
@@ -410,7 +354,7 @@ public class GameStateManagerTests
     }
 
     [Fact]
-    public void CallbackException_WhenLoggerProvidedButReporterMissing_LogsAndDoesNotThrow()
+    public void ShouldLogAndNotThrow_WhenLoggerProvidedButReporterMissing()
     {
         var store = new InMemoryDataStore();
         var logger = new CapturingLogger();
@@ -425,4 +369,60 @@ public class GameStateManagerTests
         logger.Errors[0].Exception.Should().BeOfType<InvalidOperationException>();
     }
 
+}
+
+internal sealed class InMemoryDataStore : IDataStore
+{
+    private readonly Dictionary<string,string> _dict = new();
+    public Task SaveAsync(string key, string json) { _dict[key] = json; return Task.CompletedTask; }
+    public Task<string?> LoadAsync(string key) { _dict.TryGetValue(key, out var v); return Task.FromResult(v); }
+    public Task DeleteAsync(string key) { _dict.Remove(key); return Task.CompletedTask; }
+    public IReadOnlyDictionary<string,string> Snapshot => _dict;
+}
+
+internal sealed class SequencedLoadDataStore : IDataStore
+{
+    private readonly Dictionary<string, string> _storage = new();
+    private readonly Dictionary<string, Queue<string?>> _loadSequences = new();
+
+    public Task SaveAsync(string key, string json)
+    {
+        _storage[key] = json;
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> LoadAsync(string key)
+    {
+        if (_loadSequences.TryGetValue(key, out var queue) && queue.Count > 0)
+        {
+            return Task.FromResult(queue.Dequeue());
+        }
+
+        _storage.TryGetValue(key, out var value);
+        return Task.FromResult(value);
+    }
+
+    public Task DeleteAsync(string key)
+    {
+        _storage.Remove(key);
+        return Task.CompletedTask;
+    }
+
+    public void Seed(string key, string value) => _storage[key] = value;
+
+    public void QueueLoad(string key, params string?[] values)
+    {
+        if (!_loadSequences.TryGetValue(key, out var queue))
+        {
+            queue = new Queue<string?>();
+            _loadSequences[key] = queue;
+        }
+
+        foreach (var value in values)
+        {
+            queue.Enqueue(value);
+        }
+    }
+
+    public IReadOnlyDictionary<string, string> Snapshot => _storage;
 }

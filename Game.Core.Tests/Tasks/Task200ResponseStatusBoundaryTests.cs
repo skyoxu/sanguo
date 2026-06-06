@@ -9,6 +9,8 @@ namespace Game.Core.Tests.Tasks;
 public sealed class Task200ResponseStatusBoundaryTests
 {
     // ACC:T200.9
+    // ACC:T201.7
+    // ACC:T201.8
     [Fact]
     [Trait("acceptance", "ACC:T200.9")]
     public void ShouldKeepResponseStatusAdaptersOutsideGameCore_WhenHudRendersPlatformAndAdapterState()
