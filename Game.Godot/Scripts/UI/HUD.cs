@@ -117,6 +117,7 @@ public partial class HUD : Control, IHudEventHandlers
     private Label? _responseSaveStateStatus;
     private Label? _responseMigrationStatus;
     private Label? _responseAuditStatus;
+    private Label? _completedCapabilityList;
     private Label? _activeStrategemUiTitle;
     private Button? _activeStrategemButton;
     private Label? _activeStrategemStatus;
@@ -222,6 +223,7 @@ public partial class HUD : Control, IHudEventHandlers
         _responseSaveStateStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/SaveStateStatus");
         _responseMigrationStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/MigrationStatus");
         _responseAuditStatus = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/AuditStatus");
+        _completedCapabilityList = GetNodeOrNull<Label>("TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel/CompletedCapabilityList");
         _activeStrategemUiTitle = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemTitle");
         _activeStrategemButton = GetNodeOrNull<Button>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemButton");
         _activeStrategemStatus = GetNodeOrNull<Label>("TopBar/TopStack/StrategemPanel/VBox/ActiveStrategemStatus");
@@ -606,6 +608,51 @@ public partial class HUD : Control, IHudEventHandlers
         SetResponseStatus(_responseAuditStatus, "Audit", ReadResponseStatus(status, "audit", "owner: system; state: unavailable"));
     }
 
+    public void UpdateCompletedCapabilitySurface(global::Godot.Collections.Array capabilities)
+    {
+        if (_completedCapabilityList is null)
+        {
+            return;
+        }
+
+        if (capabilities.Count == 0)
+        {
+            _completedCapabilityList.Text = "Completed Capabilities: unavailable";
+            _completedCapabilityList.Visible = true;
+            return;
+        }
+
+        var rows = new List<string>();
+        foreach (var item in capabilities)
+        {
+            var capability = item.AsGodotDictionary();
+            var id = ReadCapabilityField(capability, "id");
+            var title = ReadCapabilityField(capability, "title");
+            var completionState = ReadCapabilityField(capability, "completion_state");
+            var owner = ReadCapabilityField(capability, "owner");
+            var responsibility = ReadCapabilityField(capability, "responsibility");
+
+            if (string.IsNullOrWhiteSpace(id)
+                || string.IsNullOrWhiteSpace(completionState)
+                || string.IsNullOrWhiteSpace(owner)
+                || string.IsNullOrWhiteSpace(responsibility))
+            {
+                if (string.IsNullOrWhiteSpace(_completedCapabilityList.Text))
+                {
+                    _completedCapabilityList.Text = "Completed Capabilities: unavailable; refusal: missing source or ownership status";
+                }
+                _completedCapabilityList.Visible = true;
+                return;
+            }
+
+            var name = string.IsNullOrWhiteSpace(title) ? id : title;
+            rows.Add($"{id}: {completionState}; {name}; owner: {owner}; responsibility: {responsibility}");
+        }
+
+        _completedCapabilityList.Text = "Completed Capabilities:\n" + string.Join("\n", rows);
+        _completedCapabilityList.Visible = true;
+    }
+
     private static string ReadResponseStatus(global::Godot.Collections.Dictionary? status, string key, string fallback)
     {
         if (status is not null && status.ContainsKey(key))
@@ -618,6 +665,17 @@ public partial class HUD : Control, IHudEventHandlers
         }
 
         return fallback;
+    }
+
+    private static string ReadCapabilityField(global::Godot.Collections.Dictionary capability, string key)
+    {
+        if (!capability.ContainsKey(key))
+        {
+            return string.Empty;
+        }
+
+        var value = capability[key].AsString();
+        return string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
     }
 
     private static void SetResponseStatus(Label? label, string name, string value)

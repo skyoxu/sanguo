@@ -1,0 +1,21 @@
+# task-202-chapter6-residual-followup
+
+- Title: task-202-chapter6-residual-followup
+- Status: active
+- Branch: task/T202
+- Git Head: e8abf70e87dcf495fc2582ad6ac004344ff1205c
+- Goal: Close the recorded residual reviewer findings for Task 202.
+- Scope: P1 reviewer residuals from `code-reviewer` and `security-auditor` for Task 202 completed-capability planning surface semantics, negative path coverage, and evidence anchoring.
+- Current step: Residual Needs Fix recorded after deterministic 6.5/6.6 passed and top-level Chapter 6 routing stopped at `inspect` with `preferred_lane=record-residual`.
+- Last completed step: Dedicated T202 xUnit and GdUnit anchors were added and passed; 6.5 green and 6.6 refactor passed after the edits.
+- Stop-loss: Do not reopen 6.7 without a fresh deterministic failure. Do not run 6.8 unless `chapter6-route` or the top-level Chapter 6 orchestrator explicitly permits the narrow Needs Fix loop.
+- Next action: py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 202 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 202 --recommendation-only`
+- Open questions: none recorded yet
+- Exit criteria: Either the recorded findings are cleared by a targeted 6.8 pass, or a later run supersedes this residual record.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-08-task-202-chapter6-residual-needs-fix-2.md`
+- Related task id(s): `202`
+- Related run id: `686d0683354240ea809958e3e37db786`
+- Related latest.json: `logs/ci/2026-06-08/sc-review-pipeline-task-202/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-08/sc-review-pipeline-task-202-686d0683354240ea809958e3e37db786`
