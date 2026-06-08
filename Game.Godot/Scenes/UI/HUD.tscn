@@ -238,7 +238,7 @@ layout_mode = 2
 
 [node name="CampaignParamsPanel" type="PanelContainer" parent="TopBar/TopStack"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 200)
+custom_minimum_size = Vector2(0, 240)
 mouse_filter = 2
 
 [node name="VBox" type="VBoxContainer" parent="TopBar/TopStack/CampaignParamsPanel"]
@@ -330,6 +330,11 @@ text = "Migration: owner: system; state: unavailable"
 [node name="AuditStatus" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel"]
 layout_mode = 2
 text = "Audit: owner: system; state: unavailable"
+
+[node name="CompletedCapabilityList" type="Label" parent="TopBar/TopStack/CampaignParamsPanel/VBox/ResponseStatusPanel"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Completed Capabilities: unavailable"
 
 [node name="StrategemPanel" type="PanelContainer" parent="TopBar/TopStack"]
 layout_mode = 2

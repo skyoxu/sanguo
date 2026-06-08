@@ -36,6 +36,25 @@ def load_layer_meta_and_config():
     return LAYER_META, TASK_CONFIG
 
 
+def load_view_overlay_refs() -> Dict[int, List[str]]:
+    refs_by_task_id: Dict[int, List[str]] = {}
+    for path in (TASKS_BACK, TASKS_GAMEPLAY):
+        if not path.exists():
+            continue
+        entries: List[Dict[str, Any]] = json.loads(path.read_text(encoding="utf-8"))
+        for entry in entries:
+            taskmaster_id = entry.get("taskmaster_id")
+            if not isinstance(taskmaster_id, int):
+                continue
+            refs = entry.get("overlay_refs")
+            if not isinstance(refs, list):
+                continue
+            normalized = [str(ref).strip() for ref in refs if str(ref).strip()]
+            if normalized and taskmaster_id not in refs_by_task_id:
+                refs_by_task_id[taskmaster_id] = normalized
+    return refs_by_task_id
+
+
 def update_tasks_main() -> None:
     """
     Ensure every task in tasks.json has adrRefs/archRefs/overlay fields.
@@ -43,6 +62,7 @@ def update_tasks_main() -> None:
     Overlay is optional and left as None for now.
     """
     layer_meta, task_config = load_layer_meta_and_config()
+    overlay_refs_by_task_id = load_view_overlay_refs()
 
     data = json.loads(TASKS_MAIN.read_text(encoding="utf-8"))
     master = data.get("master", {})
@@ -64,9 +84,9 @@ def update_tasks_main() -> None:
             t["adrRefs"] = adr_refs
         if not t.get("archRefs"):
             t["archRefs"] = ch_refs
-        # Overlay is optional; we just ensure the field exists.
-        if "overlay" not in t:
-            t["overlay"] = None
+        if not t.get("overlay"):
+            overlay_refs = overlay_refs_by_task_id.get(tid, [])
+            t["overlay"] = overlay_refs[0] if overlay_refs else None
 
     TASKS_MAIN.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 

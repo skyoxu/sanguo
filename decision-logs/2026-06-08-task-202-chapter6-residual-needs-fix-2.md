@@ -1,0 +1,21 @@
+# task-202-chapter6-residual-needs-fix
+
+- Title: task-202-chapter6-residual-needs-fix
+- Date: 2026-06-08
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T202
+- Git Head: e8abf70e87dcf495fc2582ad6ac004344ff1205c
+- Why now: Chapter 6 routing determined that another immediate 6.8 rerun would not be cost-effective.
+- Context: The latest reviewer artifacts still report P1 Needs Fix items from `code-reviewer` and `security-auditor`. This turn added dedicated Task 202 HUD and evidence anchors and reran deterministic green/refactor gates, but protocol routing still chose `record-residual` instead of `run-6.8`.
+- Decision: Record the residual Needs Fix items and stop the current fast-ship closure loop because Chapter 6 routing returned `preferred_lane=record-residual` and `six_eight_worthwhile=no`.
+- Consequences: The task keeps explicit follow-up evidence instead of paying for another same-shape 6.8 rerun.
+- Recovery impact: Recovery should prefer the recorded follow-up plan over reopening 6.7 or repeating 6.8 without a route result that explicitly permits the narrow Needs Fix loop.
+- Validation: py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 202 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
+- Related ADRs: none yet
+- Related execution plans: none yet
+- Related task id(s): `202`
+- Related run id: `686d0683354240ea809958e3e37db786`
+- Related latest.json: `logs/ci/2026-06-08/sc-review-pipeline-task-202/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-08/sc-review-pipeline-task-202-686d0683354240ea809958e3e37db786`
