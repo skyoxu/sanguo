@@ -12422,26 +12422,25 @@
     "test_refs": [
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
       "Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
-      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "Game.Core.Tests/Tasks/Task220EvidenceTests.cs",
       "Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_input_time_adapter.gd",
-      "Tests.Godot/tests/Adapters/test_resource_loader_adapter.gd"
+      "Tests.Godot/tests/Adapters/test_data_store_adapter.gd"
     ],
     "acceptance": [
-      "Requirement REQ-3810a1457878 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:179 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
-      "When an adapter-facing or Godot-side contract evolves without an explicit later migration plan, existing contract fields and previously valid behaviors remain accepted and unchanged.",
-      "When a contract change would remove, rename, or change the meaning of an existing field or behavior, the change is rejected or blocked unless a later migration plan explicitly authorizes that contract change.",
-      "Traceable evidence links the additive contract-evolution rule to the affected adapter-facing or Godot-side coverage without relying on undocumented assumptions.",
-      "[OBL:T220.O5] Godot-side or adapter-facing coverage is added or updated for the player-visible contract-evolution behavior.",
-      "[OBL:T220.O5] Godot-side or adapter-facing coverage for the player-visible behavior must be added or updated.",
-      "[OBL:T220.O6] The minimal scene, adapter, or UI behavior required by the contract-evolution assertions is wired.",
-      "[OBL:T220.O6] The minimal scene, adapter, or UI behavior required by the assertions must be wired.",
-      "[OBL:T220.O7] Deterministic core boundaries are preserved while implementing the additive contract-evolution rule.",
-      "[OBL:T220.O7] Deterministic core boundaries must be preserved during refactor.",
-      "[OBL:T220.O8] Chapter 3 coverage audit evidence is produced after the contract-evolution task is implemented.",
-      "[OBL:T220.O8] The Chapter 3 coverage audit must be rerun during refactor.",
-      "[OBL:T220.O9] Chapter 3.8 triplet baseline validator evidence is produced after this task is written to the task view.",
-      "[OBL:T220.O9] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Requirement REQ-3810a1457878 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:179 Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
+      "When an adapter-facing or Godot-side contract evolves without an explicit later migration plan, existing contract fields and previously valid behaviors remain accepted and unchanged. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs Tests.Godot/tests/Adapters/test_event_bus_adapter.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "When a contract change would remove, rename, or change the meaning of an existing field or behavior, the change is rejected or blocked unless a later migration plan explicitly authorizes that contract change. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
+      "Traceable evidence links the additive contract-evolution rule to the affected adapter-facing or Godot-side coverage without relying on undocumented assumptions. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
+      "[OBL:T220.O5] Godot-side or adapter-facing coverage is added or updated for the player-visible contract-evolution behavior. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs Tests.Godot/tests/Adapters/test_event_bus_adapter.gd Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "[OBL:T220.O5] Godot-side or adapter-facing coverage for the player-visible behavior must be added or updated. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+      "[OBL:T220.O6] The minimal scene, adapter, or UI behavior required by the contract-evolution assertions is wired. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs Tests.Godot/tests/Adapters/test_event_bus_adapter.gd",
+      "[OBL:T220.O6] The minimal scene, adapter, or UI behavior required by the assertions must be wired. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs Tests.Godot/tests/Adapters/test_data_store_adapter.gd",
+      "[OBL:T220.O7] Deterministic core boundaries are preserved while implementing the additive contract-evolution rule. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs",
+      "[OBL:T220.O7] Deterministic core boundaries must be preserved during refactor. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs",
+      "[OBL:T220.O8] Chapter 3 coverage audit evidence is produced after the contract-evolution task is implemented. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs",
+      "[OBL:T220.O8] The Chapter 3 coverage audit must be rerun during refactor. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs",
+      "[OBL:T220.O9] Chapter 3.8 triplet baseline validator evidence is produced after this task is written to the task view. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs",
+      "[OBL:T220.O9] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view. Refs: Game.Core.Tests/Tasks/Task220EvidenceTests.cs"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",

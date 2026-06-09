@@ -13,6 +13,9 @@ const MUSIC_ID := "res://Game.Godot/Assets/Audio/music_loop.wav"
 # ACC:T193.2
 # ACC:T193.3
 # ACC:T193.4
+# ACC:T220.1
+# ACC:T220.4
+# ACC:T220.6
 func test_audio_player_adapter_creates_sfx_and_music_players_on_ready() -> void:
 	var adapter := preload("res://Game.Godot/Adapters/AudioPlayerAdapter.cs").new()
 	add_child(auto_free(adapter))
@@ -39,6 +42,27 @@ func test_audio_player_adapter_creates_sfx_and_music_players_on_ready() -> void:
 	await get_tree().process_frame
 	assert_bool(music.playing).is_false()
 	assert_object(sfx.stream).is_not_null()
+
+# ACC:T220.1
+# ACC:T220.4
+# ACC:T220.6
+func test_task220_audio_adapter_preserves_existing_playback_contract_when_optional_state_is_added() -> void:
+	var adapter := preload("res://Game.Godot/Adapters/AudioPlayerAdapter.cs").new()
+	add_child(auto_free(adapter))
+	await get_tree().process_frame
+
+	var music: AudioStreamPlayer = adapter.get_node_or_null("MusicPlayer")
+	assert_object(music).is_not_null()
+
+	adapter.call("PlayMusic", MUSIC_ID, 0.8, true)
+	await get_tree().process_frame
+	assert_bool(music.playing).is_true()
+	assert_object(music.stream).is_not_null()
+
+	adapter.call("PlayMusic", MUSIC_ID, 0.5, true)
+	await get_tree().process_frame
+	assert_bool(music.playing).is_true()
+	assert_object(music.stream).is_not_null()
 
 # ACC:T27.5
 # ACC:T188.17

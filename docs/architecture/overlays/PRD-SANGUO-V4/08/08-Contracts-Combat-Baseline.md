@@ -13,6 +13,7 @@ Test-Refs:
   - Game.Core.Tests/Domain/SanguoContractsTests.cs
   - Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs
 Contracts-Refs:
+  - Game.Core/Contracts/ContractEvolutionPolicy.cs
   - Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs
   - Game.Core/Contracts/Sanguo/SanguoCombatContracts.cs
 Status: Accepted
@@ -65,6 +66,7 @@ Recommended additive shape:
 - Existing public constructor argument order must remain valid for current call sites.
 - New fields should be nullable, optional, or default-initialized when added to existing records.
 - New record types must remain BCL-only and stay under `Game.Core.Contracts.Sanguo`.
+- Contract evolution policy must remain BCL-only under `Game.Core/Contracts/ContractEvolutionPolicy.cs`.
 - Overlay and contract evolution must satisfy `V4-A-024`: additive-only changes, unchanged event names, and no parallel combat event surface.
 
 ## Gate Ownership
@@ -72,6 +74,7 @@ Recommended additive shape:
 - Contract structure gate: `py -3 scripts/python/validate_contracts.py`
 - Domain contract lint gate: `py -3 scripts/python/check_domain_contracts.py`
 - Compatibility intent gate: `Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs`
+- Task 220 contract evolution evidence: `Game.Core.Tests/Tasks/Task220EvidenceTests.cs`
 
 ## Change Control
 
@@ -81,4 +84,4 @@ If v4 combat contract fields, event payloads, or runtime snapshot boundaries cha
 2. `docs/prd/PRD_V4_ACCEPTANCE_ASSERTIONS.md`
 3. `docs/prd/PRD_V4_TRACEABILITY_MATRIX.md`
 4. `docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md`
-5. `Game.Core/Contracts/Sanguo/` additive contract code
+5. `Game.Core/Contracts/ContractEvolutionPolicy.cs` and `Game.Core/Contracts/Sanguo/` additive contract code
