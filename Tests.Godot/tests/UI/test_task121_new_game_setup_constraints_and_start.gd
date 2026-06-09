@@ -214,7 +214,7 @@ func test_task121_commander_open_state_changes_p1_assignment_from_default_select
 	await get_tree().process_frame
 	var default_nodes := _find_menu_nodes(default_menu)
 	var default_payload := await _start_and_capture_menu_start_payload(default_menu, default_nodes)
-	var default_assigns := default_payload.get(KEY_CHARACTER_ASSIGNMENTS, {})
+	var default_assigns: Variant = default_payload.get(KEY_CHARACTER_ASSIGNMENTS, {})
 	assert_bool(default_assigns is Dictionary).is_true()
 	var default_p1 := str((default_assigns as Dictionary).get("p1", ""))
 	assert_str(default_p1).is_not_empty()
@@ -227,9 +227,8 @@ func test_task121_commander_open_state_changes_p1_assignment_from_default_select
 	assert_bool(_select_first_alternative_character(char_grid)).is_true()
 	await get_tree().process_frame
 	var open_payload := await _start_and_capture_menu_start_payload(open_menu, open_nodes)
-	var open_assigns := open_payload.get(KEY_CHARACTER_ASSIGNMENTS, {})
+	var open_assigns: Variant = open_payload.get(KEY_CHARACTER_ASSIGNMENTS, {})
 	assert_bool(open_assigns is Dictionary).is_true()
 	var open_p1 := str((open_assigns as Dictionary).get("p1", ""))
 	assert_str(open_p1).is_not_empty()
 	assert_str(open_p1).is_not_equal(default_p1)
-

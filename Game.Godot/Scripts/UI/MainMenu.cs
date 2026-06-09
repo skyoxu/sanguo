@@ -50,6 +50,7 @@ public partial class MainMenu : Control
 
     private const string TurnStarted = SanguoGameTurnStarted.EventType;
     private const string GameLoaded = SanguoGameLoaded.EventType;
+    private const string GameSaved = SanguoGameSaved.EventType;
     private const string HelpTutorialGroup = "help_tutorial";
     private const string HelpTutorialScenePath = "res://Game.Godot/Scenes/UI/HelpTutorial.tscn";
 
@@ -117,6 +118,7 @@ public partial class MainMenu : Control
     private EventBusAdapter? _bus;
     private bool _startPending;
     private bool _loadPending;
+    private bool _hasContinuation;
     private bool _newGameConfigReady;
     private string _aiSlotsLabel = "AI slots";
     private List<SanguoCharacterDefinition> _characters = new();
@@ -212,6 +214,7 @@ public partial class MainMenu : Control
         _statusLabel.Text = string.Empty;
         _startPending = false;
         _loadPending = false;
+        _hasContinuation = false;
         ApplyLocalizedTexts();
 
         WireNewGameConfigControls();
@@ -311,6 +314,16 @@ public partial class MainMenu : Control
         _btnStart.Disabled = !enabled;
     }
 
+    private void SetStartButtonRetryState(bool retry)
+    {
+        _btnStart.Text = retry ? "Retry Bootstrap" : TranslateOrFallback(StartButtonLabelKey, "Start");
+    }
+
+    private void RefreshContinueButtonState()
+    {
+        _btnLoad.Text = _hasContinuation ? "Continue" : TranslateOrFallback(MenuLoadLabelKey, "Load");
+    }
+
     private void ShowStatus(string message)
     {
         _statusLabel.Text = message ?? string.Empty;
@@ -378,7 +391,8 @@ public partial class MainMenu : Control
 
         _startPending = true;
         ClearStatus();
-        ShowStatus(TranslateOrFallback(MenuStatusStartingKey, "Starting..."));
+        SetStartButtonRetryState(false);
+        ShowStatus("Platform validation starting...");
         SetMenuButtonsEnabled(false);
         SetStartButtonEnabled(false);
         Publish(UiMenuStart, "ui", startConfigJson ?? "{}");
@@ -403,6 +417,7 @@ public partial class MainMenu : Control
     private void OnLoadPressed()
     {
         _loadPending = true;
+        ClearStatus();
         Publish(UiMenuLoad, "ui");
         Publish(UiHudLoad, "ui");
         _loadPanel.Visible = true;
@@ -477,8 +492,17 @@ public partial class MainMenu : Control
             ClearStatus();
             SetMenuButtonsEnabled(true);
             SetStartButtonEnabled(true);
+            SetStartButtonRetryState(false);
+            RefreshContinueButtonState();
             _loadPanel.Visible = false;
             ShowMenu();
+            return;
+        }
+
+        if (string.Equals(type, GameSaved, StringComparison.Ordinal))
+        {
+            _hasContinuation = true;
+            RefreshContinueButtonState();
             return;
         }
 
@@ -494,6 +518,8 @@ public partial class MainMenu : Control
             ClearStatus();
             SetMenuButtonsEnabled(true);
             SetStartButtonEnabled(true);
+            SetStartButtonRetryState(false);
+            RefreshContinueButtonState();
             SetConfigPanelVisible(false);
             _loadPanel.Visible = false;
             HideMenu();
@@ -512,6 +538,8 @@ public partial class MainMenu : Control
             ClearStatus();
             SetMenuButtonsEnabled(true);
             SetStartButtonEnabled(true);
+            SetStartButtonRetryState(false);
+            RefreshContinueButtonState();
             SetConfigPanelVisible(false);
             HideMenu();
             SetHudVisible(true);
@@ -523,10 +551,11 @@ public partial class MainMenu : Control
             _startPending = false;
             SetMenuButtonsEnabled(true);
             SetStartButtonEnabled(true);
+            SetStartButtonRetryState(true);
             Visible = true;
             SetConfigPanelVisible(true);
             SetHudVisible(false);
-            ShowStatus($"{TranslateOrFallback(MenuStatusStartFailedKey, "Start failed")}: {TranslateStartError(TryExtractStartFailedReason(dataJson) ?? "unknown")}");
+            ShowStatus($"Blocked validation: {TranslateOrFallback(MenuStatusStartFailedKey, "Start failed")}: {TranslateStartError(TryExtractStartFailedReason(dataJson) ?? "unknown")}");
         }
     }
 
@@ -772,6 +801,7 @@ public partial class MainMenu : Control
 
         UpdateCharacterInfoPanel();
         RenderCharacterCarousel();
+        RefreshContinueButtonState();
     }
 
     private string TranslateStartError(string error)

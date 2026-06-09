@@ -138,9 +138,6 @@ func _on_lose_hp() -> void:
 
 func _on_domain_event(type: String, source: String, data_json: String, id: String, spec: String, ct: String, ts: String) -> void:
     if type == "ui.menu.start":
-        var demo = get_node_or_null("/root/Main/EngineDemo")
-        if demo != null and demo.has_method("StartGame"):
-            demo.StartGame()
         var nav = get_node_or_null("/root/Main/ScreenNavigator")
         if nav != null and nav.has_method("SwitchTo"):
             var _use_demo := false
