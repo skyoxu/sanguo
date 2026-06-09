@@ -1,0 +1,21 @@
+# task-205-chapter6-residual-needs-fix
+
+- Title: task-205-chapter6-residual-needs-fix
+- Date: 2026-06-10
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T205
+- Git Head: e04177f8ce452f5c9eaf52ab421ad1438f26d4b4
+- Why now: Chapter 6 routing determined that another immediate 6.8 rerun would not be cost-effective.
+- Context: Deterministic evidence is sufficient, but reviewer closure is not complete. The latest reviewer artifacts still contain P1/P2/P3 Needs Fix findings around localization behavior, audio volume or mute behavior, load invalid-state UI behavior, and runtime status update or clear behavior.
+- Decision: Record the residual Needs Fix items and stop the current fast-ship closure loop because Chapter 6 routing returned `preferred_lane=inspect-first` / `six_eight_worthwhile=false`, not `run-6.8`.
+- Consequences: The task keeps explicit follow-up evidence instead of paying for another same-shape 6.8 rerun while the route forbids that lane. Task 205 is not reviewer-clean until a later targeted pass clears the P1/P2 findings or supersedes them.
+- Recovery impact: Recovery should prefer the recorded follow-up plan over reopening 6.7 or repeating 6.8 without fresh anchor hits.
+- Validation: py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 205 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
+- Related ADRs: none yet
+- Related execution plans: none yet
+- Related task id(s): `205`
+- Related run id: `369166d327234023ac51d42693bef8a2`
+- Related latest.json: `logs/ci/2026-06-10/sc-review-pipeline-task-205/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-10/sc-review-pipeline-task-205-369166d327234023ac51d42693bef8a2`

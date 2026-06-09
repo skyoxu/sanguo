@@ -11,6 +11,7 @@ public sealed class Task69ExplanationLocalizationGateTests
     private const string FriendlyFallback = "Explanation is temporarily unavailable.";
 
     // ACC:T69.5
+    // ACC:T205.4
     [Fact]
     [Trait("acceptance", "ACC:T69.5")]
     public void ShouldApplyBuildModePolicyForTask69KeyAndKeepNonTask69KeyOnFallbackPath_WhenTranslationIsMissing()

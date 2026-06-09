@@ -32,6 +32,7 @@ func _clear_config() -> void:
     if dir and dir.file_exists("settings.cfg"):
         dir.remove("settings.cfg")
 
+# ACC:T205.4
 func test_settings_locale_persist_cross_restart_via_config() -> void:
     var original_locale := ""
     if TranslationServer.has_method("get_locale"):
@@ -48,6 +49,10 @@ func test_settings_locale_persist_cross_restart_via_config() -> void:
     save_btn.emit_signal("pressed")
     await get_tree().process_frame
     assert_str(TranslationServer.get_locale()).contains("zh")
+    var lang_label = panel.get_node("Center/VBox/LangRow/LangLabel") as Label
+    assert_object(lang_label).is_not_null()
+    if lang_label != null:
+        assert_str(lang_label.text).is_not_empty()
 
     # simulate restart by freeing and recreating panel
     panel.queue_free()
@@ -57,5 +62,10 @@ func test_settings_locale_persist_cross_restart_via_config() -> void:
         panel2.call("ShowPanel")
     await get_tree().process_frame
     assert_str(TranslationServer.get_locale()).contains("zh")
+    if panel2 != null:
+        var lang_label2 = panel2.get_node("Center/VBox/LangRow/LangLabel") as Label
+        assert_object(lang_label2).is_not_null()
+        if lang_label2 != null:
+            assert_str(lang_label2.text).is_not_empty()
     if TranslationServer.has_method("set_locale") and original_locale.strip_edges().length() > 0:
         TranslationServer.set_locale(original_locale)

@@ -7,6 +7,7 @@ namespace Game.Core.Tests.Tasks;
 
 public sealed class Task69UiLocalizationWiringTests
 {
+    // ACC:T205.11
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
@@ -24,6 +25,7 @@ public sealed class Task69UiLocalizationWiringTests
         throw new DirectoryNotFoundException("Repo root not found (missing .taskmaster/tasks/tasks.json).");
     }
 
+    // ACC:T205.4
     [Fact]
     public void ShouldKeepTask69UiLocalizationWiringPointBoundToGate_WhenHandlingMissingTranslation()
     {

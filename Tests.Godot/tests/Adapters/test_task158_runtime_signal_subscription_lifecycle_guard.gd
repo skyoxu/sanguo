@@ -3,6 +3,7 @@ extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 const EVENT_TURN_STARTED := "core.sanguo.game.turn.started"
 const EVENT_TURN_ENDED := "core.sanguo.game.turn.ended"
 
+# ACC:T205.12
 class IntHolder:
 	extends RefCounted
 	var value: int
@@ -18,6 +19,7 @@ func _new_bus() -> Node:
 	return bus
 
 # ACC:T158.1
+# ACC:T205.6
 func test_should_track_runtime_subscription_guard_for_task164_closure_evidence() -> void:
 	var bus := _new_bus()
 	var active := 0

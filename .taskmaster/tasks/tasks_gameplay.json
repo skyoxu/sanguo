@@ -11007,27 +11007,31 @@
     "owner": "architecture",
     "test_refs": [
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/Game.Core/Domain/Player.cs",
-      "Tests.Godot/tests/Adapters/test_task158_runtime_signal_subscription_lifecycle_guard.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
+      "Tests.Godot/tests/UI/test_settings_locale_persist.gd",
+      "Tests.Godot/tests/UI/test_settings_locale.gd",
+      "Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
       "Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
-      "Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd"
+      "Tests.Godot/tests/Adapters/test_task158_runtime_signal_subscription_lifecycle_guard.gd",
+      "Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd"
     ],
     "acceptance": [
-      "Requirement REQ-a26479f0f807 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:459 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/Game.Core/Domain/Player.cs",
-      "When the player triggers save from the relevant UI or action surface, the current playable state is persisted and a subsequent load restores the saved state instead of starting from default state.",
-      "When the player triggers load from the main menu or relevant action surface, the game routes to the saved playable state when save data exists and refuses or disables the load path without mutating current state when save data is unavailable or invalid.",
-      "When the player changes localization settings, visible supported UI text updates to the selected locale and unsupported or missing localization keys fall back to a defined safe display value rather than blank or crashing output.",
-      "When the player tunes audio settings, the selected volume or mute state is applied to UI action sound playback and remains consistent across the relevant menu or HUD flow.",
-      "When the player inspects platform or runtime status, the UI displays the current supported status signal and updates or clears it according to runtime subscription lifecycle rules without duplicate stale subscriptions.",
-      "[OBL:T205.O9] A deterministic validator or evidence fixture fails when the required save, load, localization, audio, or runtime-status behavior is missing.",
-      "[OBL:T205.O9] A deterministic validator or evidence fixture must be added or updated so the missing behavior fails before implementation.",
-      "[OBL:T205.O10] After the failing validator or evidence fixture is added, the smallest implementation, validation, script, or evidence path required for the save, load, localization, audio, and runtime-status checks to pass is completed.",
-      "[OBL:T205.O11] Refactor keeps validator and evidence output stable except for intentional task T205 evidence updates.",
-      "[OBL:T205.O12] Task T205 evidence includes traceable references to ADR-0005 and ADR-0011 where the implemented save, load, localization, audio, or runtime-status behavior depends on those decisions.",
-      "[OBL:T205.O13] Task T205 evidence includes traceable references to the listed overlay documents for covered save, load, localization, audio, runtime-status, build, release, or quality-gate behavior.",
-      "[OBL:T205.O10] Chapter 3.8 triplet baseline validators are rerun after this task is written to a task view, with evidence recorded.",
-      "[OBL:T205.O10] Chapter 3 baseline validators must be rerun after this task is written to a task view."
+      "Requirement REQ-a26479f0f807 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:459 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "When the player triggers save from the relevant UI or action surface, the current playable state is persisted and a subsequent load restores the saved state instead of starting from default state. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
+      "When the player triggers load from the main menu or relevant action surface, the game routes to the saved playable state when save data exists and refuses or disables the load path without mutating current state when save data is unavailable or invalid. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
+      "When the player changes localization settings, visible supported UI text updates to the selected locale and unsupported or missing localization keys fall back to a defined safe display value rather than blank or crashing output. Refs: Tests.Godot/tests/UI/test_settings_locale_persist.gd Tests.Godot/tests/UI/test_settings_locale.gd Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "When the player tunes audio settings, the selected volume or mute state is applied to UI action sound playback and remains consistent across the relevant menu or HUD flow. Refs: Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd Tests.Godot/tests/UI/test_hud_plays_sfx_on_action.gd",
+      "When the player inspects platform or runtime status, the UI displays the current supported status signal and updates or clears it according to runtime subscription lifecycle rules without duplicate stale subscriptions. Refs: Tests.Godot/tests/Adapters/test_task158_runtime_signal_subscription_lifecycle_guard.gd Tests.Godot/tests/Scenes/Sanguo/test_sanguo_city_ownership_status_display.gd",
+      "[OBL:T205.O9] A deterministic validator or evidence fixture fails when the required save, load, localization, audio, or runtime-status behavior is missing. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
+      "[OBL:T205.O9] A deterministic validator or evidence fixture must be added or updated so the missing behavior fails before implementation. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
+      "[OBL:T205.O10] After the failing validator or evidence fixture is added, the smallest implementation, validation, script, or evidence path required for the save, load, localization, audio, and runtime-status checks to pass is completed. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Tests.Godot/tests/UI/test_main_menu_load_play_quit_routing.gd",
+      "[OBL:T205.O11] Refactor keeps validator and evidence output stable except for intentional task T205 evidence updates. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+      "[OBL:T205.O12] Task T205 evidence includes traceable references to ADR-0005 and ADR-0011 where the implemented save, load, localization, audio, or runtime-status behavior depends on those decisions. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
+      "[OBL:T205.O13] Task T205 evidence includes traceable references to the listed overlay documents for covered save, load, localization, audio, runtime-status, build, release, or quality-gate behavior. Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Tests.Godot/tests/Adapters/test_task158_runtime_signal_subscription_lifecycle_guard.gd",
+      "[OBL:T205.O10] Chapter 3.8 triplet baseline validators are rerun after this task is written to a task view, with evidence recorded. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "[OBL:T205.O10] Chapter 3 baseline validators must be rerun after this task is written to a task view. Refs: Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
@@ -11041,7 +11045,12 @@
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t57-action-cards.md",
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Tests.Godot/Game.Core/Domain/Player.cs"
+      "Game.Core.Tests/Services/SanguoSaveLoadServiceTests.cs",
+      "Game.Core.Tests/Tasks/Task69UiLocalizationWiringTests.cs",
+      "Game.Core.Tests/Tasks/Task69ExplanationLocalizationGateTests.cs",
+      "Tests.Godot/tests/UI/test_settings_locale_persist.gd",
+      "Tests.Godot/tests/UI/test_settings_panel_applies_audio_volume.gd",
+      "Tests.Godot/tests/UI/test_settings_locale.gd"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:459"

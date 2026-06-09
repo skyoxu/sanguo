@@ -8,6 +8,7 @@ func _clear_config() -> void:
 		dir.remove(CFG_FILENAME)
 
 # ACC:T29.4
+# ACC:T205.5
 func test_settings_panel_volume_slider_applies_master_bus_volume() -> void:
 	_clear_config()
 	var packed := load("res://Game.Godot/Scenes/UI/SettingsPanel.tscn") as PackedScene
