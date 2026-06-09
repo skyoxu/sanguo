@@ -10916,26 +10916,24 @@
     "test_refs": [
       "Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd",
       "Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
       "Game.Core.Tests/State/GameStateManagerTests.cs",
-      "Tests.Godot/Game.Core/State/GameStateMachine.cs",
-      "Tests.Godot/Game.Core/State/GameStateManager.cs"
+      "Game.Core.Tests/State/GameStateManagerSecurityTests.cs"
     ],
     "acceptance": [
       "Requirement REQ-abdb34bae805 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:40 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Game.Core.Tests/State/GameStateMachineTests.cs",
       "Requirement REQ-0bb6d191e6fa is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:56 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Game.Core.Tests/State/GameStateMachineTests.cs",
       "Requirement REQ-8c3e825df5c6 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:318 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Game.Core.Tests/State/GameStateMachineTests.cs",
       "Requirement REQ-c60e713d3813 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:336 Refs: Tests.Godot/tests/UI/test_task58_city_actions_build_and_owner_label.gd Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Startup, continue, and runtime entry each resolve through distinct, explicit state transitions, and none of them may silently fall through to an unspecified default state.",
-      "A missing, invalid, or incomplete startup/continue/runtime entry condition is rejected or recovered deterministically, with a testable outcome that preserves the previous valid state or lands in a defined recovery state.",
-      "[OBL:T204.O5] A deterministic validator or evidence fixture fails when startup state build progression behavior is missing.",
-      "[OBL:T204.O5] A deterministic validator or evidence fixture must be added or updated so it fails when the required behavior is missing.",
-      "[OBL:T204.O6] The task includes the minimal validation, script, or evidence path required for the startup state build progression gate to pass.",
-      "[OBL:T204.O6] The smallest validation, script, or evidence path required for this task must be implemented.",
-      "[OBL:T204.O7] Chapter 3 baseline validators are rerun after this task is written to a task view, and their output remains stable.",
-      "[OBL:T204.O7] Chapter 3 baseline validators must be rerun after the task is written to a task view, with stable output.",
-      "[OBL:T204.O8] Chapter 3.8 triplet baseline validators are run after this task is written to a task view.",
-      "[OBL:T204.O8] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Startup, continue, and runtime entry each resolve through distinct, explicit state transitions, and none of them may silently fall through to an unspecified default state. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "A missing, invalid, or incomplete startup/continue/runtime entry condition is rejected or recovered deterministically, with a testable outcome that preserves the previous valid state or lands in a defined recovery state. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "[OBL:T204.O5] A deterministic validator or evidence fixture fails when startup state build progression behavior is missing. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "[OBL:T204.O5] A deterministic validator or evidence fixture must be added or updated so it fails when the required behavior is missing. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "[OBL:T204.O6] The task includes the minimal validation, script, or evidence path required for the startup state build progression gate to pass. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "[OBL:T204.O6] The smallest validation, script, or evidence path required for this task must be implemented. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "[OBL:T204.O7] Chapter 3 baseline validators are rerun after this task is written to a task view, and their output remains stable. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "[OBL:T204.O7] Chapter 3 baseline validators must be rerun after the task is written to a task view, with stable output. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "[OBL:T204.O8] Chapter 3.8 triplet baseline validators are run after this task is written to a task view. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs",
+      "[OBL:T204.O8] The Chapter 3.8 triplet baseline validators must be run after writing this task to a task view. Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
