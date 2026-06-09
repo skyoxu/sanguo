@@ -234,6 +234,7 @@ func test_display_differs_for_two_distinct_ownership_inputs() -> void:
 
 # ACC:T23.6
 # ACC:T189.4
+# ACC:T205.6
 func test_updates_display_when_city_bought_event_emitted_for_matching_city() -> void:
     var root = await _instantiate_ownership_ui()
     assert_object(root).is_not_null()
@@ -250,6 +251,7 @@ func test_updates_display_when_city_bought_event_emitted_for_matching_city() -> 
 
 
 # ACC:T189.7
+# ACC:T205.6
 func test_does_not_update_display_when_city_bought_event_targets_other_city() -> void:
     var root = await _instantiate_ownership_ui()
     assert_object(root).is_not_null()
@@ -279,3 +281,24 @@ func test_does_not_update_display_when_city_bought_payload_is_invalid_json() -> 
     _publish_city_bought("g1", "p2", "c1", "{invalid_json")
     await get_tree().process_frame
     assert_str(label.text).is_equal(_expected_owner_text("p1"))
+
+
+# ACC:T205.6
+func test_does_not_update_display_after_runtime_subscription_is_cleared_on_exit_tree() -> void:
+    var root = await _instantiate_ownership_ui()
+    assert_object(root).is_not_null()
+    var label := _get_status_label(root)
+
+    assert_bool(_try_set_city_id(root, "c1")).is_true()
+    assert_bool(_try_set_ownership(root, "p1")).is_true()
+    await get_tree().process_frame
+    assert_str(label.text).is_equal(_expected_owner_text("p1"))
+
+    remove_child(root)
+    await get_tree().process_frame
+
+    _publish_city_bought("g1", "p2", "c1")
+    await get_tree().process_frame
+    assert_str(label.text).is_equal(_expected_owner_text("p1"))
+
+    root.queue_free()

@@ -39,6 +39,21 @@ func _create_menu() -> Node:
     add_child(auto_free(menu))
     return menu
 
+func _add_named_control(path: String) -> Control:
+    var parts := path.split("/", false)
+    var parent: Node = get_tree().get_root()
+    for raw_part in parts:
+        var part := str(raw_part)
+        var existing := parent.get_node_or_null(part)
+        if existing == null:
+            var node := Control.new()
+            node.name = part
+            parent.add_child(auto_free(node))
+            parent = node
+        else:
+            parent = existing
+    return parent as Control
+
 func _event_types() -> Array:
     var types: Array[String] = []
     for e in _events:
@@ -69,6 +84,10 @@ func _read_res_text(path: String) -> String:
     return f.get_as_text(true)
 
 # ACC:T28.4
+# ACC:T205.2
+# ACC:T205.7
+# ACC:T205.8
+# ACC:T205.9
 func test_load_action_is_distinct_from_play_and_quit_when_present() -> void:
     _events.clear()
     var menu = _create_menu()
@@ -97,6 +116,7 @@ func test_load_action_is_distinct_from_play_and_quit_when_present() -> void:
         assert_bool((load_panel as Control).visible).is_true()
 
 # ACC:T28.5
+# ACC:T205.3
 func test_load_produces_observable_state_when_present() -> void:
     _events.clear()
     var menu = _create_menu()
@@ -120,6 +140,45 @@ func test_load_produces_observable_state_when_present() -> void:
     assert_object(load_panel).is_not_null()
     if load_panel != null:
         assert_bool((load_panel as Control).visible).is_true()
+
+# ACC:T205.3
+func test_load_without_loaded_event_does_not_mutate_current_menu_surface() -> void:
+    _events.clear()
+    var hud := _add_named_control("Main/SplitRoot/TopArea/HudLayer/HUD")
+    var board := _add_named_control("Main/SplitRoot/BottomArea/BoardArea/BoardViewportContainer/BoardViewport/SanguoBoardView")
+    hud.visible = false
+    board.visible = false
+
+    var menu = _create_menu()
+    await get_tree().process_frame
+
+    var btn_load = menu.get_node_or_null("MenuRow/MenuBox/BtnLoad")
+    var load_panel = menu.get_node_or_null("LoadPanel")
+    var config_panel = menu.get_node_or_null("ConfigCenter/NewGameConfig")
+    assert_object(btn_load).is_not_null()
+    assert_object(load_panel).is_not_null()
+    assert_object(config_panel).is_not_null()
+    if btn_load == null or load_panel == null or config_panel == null:
+        return
+
+    assert_bool(menu.visible).is_true()
+    assert_bool((load_panel as Control).visible).is_false()
+    assert_bool((config_panel as Control).visible).is_false()
+
+    _events.clear()
+    btn_load.emit_signal("pressed")
+    await get_tree().process_frame
+
+    var types = _event_types()
+    assert_bool(types.has(EVT_LOAD)).is_true()
+    assert_bool(types.has(EVT_START)).is_false()
+    assert_bool(types.has(EVT_QUIT)).is_false()
+    assert_bool(types.has(EVT_SETTINGS)).is_false()
+    assert_bool(menu.visible).is_true()
+    assert_bool((load_panel as Control).visible).is_true()
+    assert_bool((config_panel as Control).visible).is_false()
+    assert_bool(hud.visible).is_false()
+    assert_bool(board.visible).is_false()
 
 # ACC:T28.6
 func test_play_and_quit_semantics_are_not_confused_smoke() -> void:

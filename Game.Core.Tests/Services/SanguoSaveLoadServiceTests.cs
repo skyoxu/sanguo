@@ -83,6 +83,11 @@ internal sealed record FlakySaveDataStore : IDataStore
 
 public sealed class SanguoSaveLoadServiceTests
 {
+    // ACC:T205.1
+    // ACC:T205.10
+    // ACC:T205.11
+    // ACC:T205.13
+    // ACC:T205.14
     // ACC:T184.10
     [Fact]
     public void ShouldThrowArgumentNullException_WhenConstructingWithNullBus()
@@ -157,6 +162,7 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     // ACC:T18.3
+    // ACC:T205.3
     [Fact]
     public async Task ShouldThrowAndNotPublishLoadedEvent_WhenLoadingMissingOrCorruptedSave()
     {
@@ -186,6 +192,10 @@ public sealed class SanguoSaveLoadServiceTests
     }
 
     // ACC:T18.4
+    // ACC:T205.2
+    // ACC:T205.7
+    // ACC:T205.8
+    // ACC:T205.9
     [Fact]
     public async Task ShouldPersistReadableJsonAndReturnSlotId_WhenSavingSnapshot()
     {
