@@ -21,6 +21,8 @@ func _force_managed() -> Node:
     helper.ForceManaged()
     return helper
 
+# ACC:T220.3
+# ACC:T220.10
 func test_migration_ensure_min_version() -> void:
     var path = "user://utdb_%s/migrate.db" % Time.get_unix_time_from_system()
     var db = await _new_db("SqlDb")
@@ -37,3 +39,24 @@ func test_migration_ensure_min_version() -> void:
     helper.EnsureMinVersion(1)
     var after:int = helper.GetSchemaVersion()
     assert_int(after).is_greater_equal(1)
+
+# ACC:T220.3
+# ACC:T220.10
+func test_task220_migration_plan_evidence_is_required_before_schema_contract_can_move_forward() -> void:
+    var path = "user://utdb_%s/task220_migration.db" % Time.get_unix_time_from_system()
+    var db = await _new_db("SqlDb")
+    var helper = _force_managed()
+    var ok = db.TryOpen(path)
+    assert_bool(ok).is_true()
+    helper.CreateSchema()
+
+    var version_before:int = helper.GetSchemaVersion()
+    assert_int(version_before).is_greater_equal(1)
+
+    helper.ExecSql("UPDATE schema_version SET version=0 WHERE id=1;")
+    var downgraded:int = helper.GetSchemaVersion()
+    assert_int(downgraded).is_less(1)
+
+    helper.EnsureMinVersion(version_before)
+    var version_after:int = helper.GetSchemaVersion()
+    assert_int(version_after).is_greater_equal(version_before)

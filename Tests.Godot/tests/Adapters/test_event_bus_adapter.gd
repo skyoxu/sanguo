@@ -59,6 +59,9 @@ func _new_bus(name: String = "Task190EventBus") -> Node:
 	return bus
 
 # ACC:T190.6
+# ACC:T220.2
+# ACC:T220.5
+# ACC:T220.6
 func test_event_bus_publishsimple_preserves_order_for_same_inputs() -> void:
 	var bus := _new_bus()
 	var capture := _EventCapture.new()
@@ -75,6 +78,26 @@ func test_event_bus_publishsimple_preserves_order_for_same_inputs() -> void:
 	assert_str(capture.types[1]).is_equal(EVENT_TYPE + ".2")
 	assert_str(capture.payloads[0]).contains("\"seq\":1")
 	assert_str(capture.payloads[1]).contains("\"seq\":2")
+
+# ACC:T220.2
+# ACC:T220.5
+# ACC:T220.6
+func test_task220_event_bus_accepts_additive_payload_fields_without_changing_existing_payload() -> void:
+	var bus := _new_bus("Task220EventBus")
+	var capture := _EventCapture.new()
+	var handler := Callable(capture, "on_emitted")
+	var additive_payload := "{\"name\":\"save.completed\",\"payload\":{\"slotId\":\"slot-a\"},\"traceId\":\"task-220\"}"
+
+	bus.DomainEventEmitted.connect(handler)
+	bus.call("PublishSimple", "core.sanguo.task220.contract.evolved", "ut", additive_payload)
+	await get_tree().process_frame
+	bus.DomainEventEmitted.disconnect(handler)
+
+	assert_int(capture.types.size()).is_equal(1)
+	assert_str(capture.types[0]).is_equal("core.sanguo.task220.contract.evolved")
+	assert_str(capture.payloads[0]).is_equal(additive_payload)
+	assert_str(capture.payloads[0]).contains("\"traceId\":\"task-220\"")
+	assert_str(capture.payloads[0]).contains("\"slotId\":\"slot-a\"")
 
 # ACC:T190.5
 func test_event_bus_economy_projection_exposes_applied_multiplier_effect() -> void:
