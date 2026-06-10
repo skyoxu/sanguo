@@ -10,8 +10,10 @@
 - Last completed step: Deterministic acceptance refresh passed with `status=ok` in `logs/ci/2026-06-10/sc-acceptance-check-task-206/summary.json`.
 - Stop-loss: Do not run `py -3 scripts/sc/run_review_pipeline.py --task-id 206` while it remains forbidden by `resume-task` / `chapter6-route`. Do not force `llm_review_needs_fix_fast.py` while `preferred_lane=inspect-first` or `six_eight_worthwhile=no`.
 - Next action: If a future route changes to `preferred_lane=run-6.8` with real Needs Fix still present, run the route-recommended narrow reviewer confirmation. Otherwise keep this residual as the fast-ship closure record.
-- Recovery commands: `py -3 scripts/python/dev_cli.py resume-task --task-id 206 --recommendation-only`; `py -3 scripts/python/dev_cli.py chapter6-route --task-id 206 --recommendation-only`
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 206 --recommendation-only`; `py -3 scripts/python/dev_cli.py chapter6-route --task-id 206 --recommendation-only`
+- Open questions: none recorded yet
 - Exit criteria: Either a future route-authorized reviewer pass clears the stale sidecar, or this residual remains accepted for fast-ship completion.
+- Related ADRs: ADR-0018, ADR-0021, ADR-0025, ADR-0005, ADR-0015, ADR-0024
 - Related decision logs: `decision-logs/2026-06-10-task-206-fast-ship-residual-closure.md`
 - Related task id(s): `206`
 - Related run id: `e081d8639c424b8592f5d63b49066db5`
