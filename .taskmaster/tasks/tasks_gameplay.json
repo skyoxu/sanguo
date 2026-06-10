@@ -11101,19 +11101,23 @@
     "owner": "architecture",
     "test_refs": [
       "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd",
+      "Tests.Godot/tests/UI/test_task203_continue_retry_bootstrap_flow.gd",
       "Tests.Godot/tests/Scenes/Smoke/test_menu_play_starts_game_loop.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_menu_quit_is_consumed_by_game_loop.gd",
+      "Game.Core.Tests/Tasks/Task206TaskViewEvidenceTests.cs",
       "Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs",
-      "Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs"
+      "Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs",
+      "Tests.Godot/tests/Scenes/Smoke/test_menu_quit_is_consumed_by_game_loop.gd"
     ],
     "acceptance": [
-      "The startup and main scene smoke coverage verifies that the canonical launch path reaches a playable or explicitly recoverable state for REQ-943e3e409bd8, with traceable evidence from docs/gdd/ui-gdd-flow.cn.md:262. Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd",
-      "The startup flow coverage verifies that continue, retry guidance, or new-game entry produces the expected observable transition or recovery result for REQ-e0579534b553, with traceable evidence from docs/gdd/ui-gdd-flow.cn.md:403. Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd",
-      "The gameplay-loop smoke coverage verifies that runtime events produce readable phase, timer, HP, reward, prompt, and outcome state for REQ-9d056b5790b7, with traceable evidence from docs/gdd/ui-gdd-flow.cn.md:435. Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd",
-      "The end-state smoke coverage verifies that victory, defeat, or failed-start recovery is surfaced as an explicit UI state instead of leaving the player in an ambiguous or unchanged state for REQ-4f8bfa3615cd, with traceable evidence from docs/gdd/ui-gdd-flow.cn.md:451. Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/Scenes/Smoke/test_task47_main_scene_smoke_wrapper.gd",
-      "A deterministic validation or evidence fixture fails when the UI GDD CN part 1 startup and core-loop smoke obligations are missing, and passes only when the referenced Godot smoke paths and core-domain evidence paths are present and executable.",
-      "After the acceptance evidence is written to the task view, the Chapter 3.8 triplet baseline validators complete without changing the generated acceptance ordering or dropping existing traceability tokens."
+      "The startup and main scene smoke coverage verifies that the canonical launch path reaches a playable or explicitly recoverable state, including observable validation before gameplay, for REQ-943e3e409bd8, with traceable evidence from docs/gdd/ui-gdd-flow.cn.md:262. Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/UI/test_task203_continue_retry_bootstrap_flow.gd",
+      "The startup flow coverage verifies that new-game entry produces the expected observable transition or recovery result for REQ-e0579534b553, with traceable evidence from docs/gdd/ui-gdd-flow.cn.md:403. Refs: Tests.Godot/tests/Scenes/Smoke/test_menu_play_starts_game_loop.gd",
+      "The gameplay-loop smoke coverage verifies that runtime UI surfaces expose readable core-loop state containers for active player, date/progress, money, HP, action prompts, and event outcome messages for REQ-9d056b5790b7, with traceable evidence from docs/gdd/ui-gdd-flow.cn.md:435. Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
+      "The end-state smoke coverage verifies that victory, defeat, or failed-start recovery can be surfaced through explicit settlement or retry UI state containers instead of leaving the player in an ambiguous or unchanged state for REQ-4f8bfa3615cd, with traceable evidence from docs/gdd/ui-gdd-flow.cn.md:451. Refs: Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd Tests.Godot/tests/UI/test_task203_continue_retry_bootstrap_flow.gd",
+      "A deterministic validation or evidence fixture fails when the UI GDD CN part 1 startup and core-loop smoke obligations are missing, and passes only when the referenced Godot smoke paths and core-domain evidence paths are present and executable. Refs: Game.Core.Tests/Tasks/Task206TaskViewEvidenceTests.cs Game.Core.Tests/Tasks/Task1EnvironmentEvidencePersistenceTests.cs Game.Core.Tests/Tasks/Task1ToolchainVersionChecksTests.cs",
+      "After the acceptance evidence is written to the task view, the Chapter 3.8 triplet baseline validators complete without changing the generated acceptance ordering or dropping existing traceability tokens. Refs: Game.Core.Tests/Tasks/Task206TaskViewEvidenceTests.cs",
+      "The startup flow negative-path coverage verifies that the Quit action is consumed by the game loop without leaving the player in an ambiguous state, matching the UI GDD expectation for REQ-e0579534b553. Refs: Tests.Godot/tests/Scenes/Smoke/test_menu_quit_is_consumed_by_game_loop.gd",
+      "The main menu exposes a Continue entry that, when selected after a saved state exists, produces an observable resume flow instead of bootstrapping a new run, satisfying the UI GDD continue requirement for REQ-943e3e409bd8. Refs: Tests.Godot/tests/UI/test_task203_continue_retry_bootstrap_flow.gd",
+      "The failure recovery surface exposes Retry guidance that replaces a failed bootstrap result with a clear transition into a playable session or explicit recovery state for REQ-4f8bfa3615cd. Refs: Tests.Godot/tests/UI/test_task203_continue_retry_bootstrap_flow.gd"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",

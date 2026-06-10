@@ -41,6 +41,7 @@ func _read_res_text(path: String) -> String:
     return f.get_as_text(true)
 
 # ACC:T28.7
+# ACC:T206.7
 func test_menu_quit_event_is_consumed_by_game_loop_controller() -> void:
     var controller = preload("res://Game.Godot/Scripts/Sanguo/SanguoGameLoopController.cs").new()
     add_child(auto_free(controller))

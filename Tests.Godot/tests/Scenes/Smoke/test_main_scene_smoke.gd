@@ -16,6 +16,39 @@ func test_main_scene_instantiates_and_visible() -> void:
     assert_bool(scene.is_inside_tree()).is_true()
     assert_bool(scene.visible).is_true()
 
+# ACC:T206.1
+# ACC:T206.3
+# ACC:T206.4
+func test_main_scene_exposes_core_playable_recovery_surfaces() -> void:
+    var scene := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
+    add_child(auto_free(scene))
+    await get_tree().process_frame
+
+    assert_object(scene.get_node_or_null("MenuLayer/MainMenu")).is_not_null()
+    var hud = scene.get_node_or_null("SplitRoot/TopArea/HudLayer/HUD")
+    assert_object(hud).is_not_null()
+    if hud != null:
+        assert_object(hud.get_node_or_null("TopBar/TopStack/HBox/ActivePlayerLabel")).is_not_null()
+        assert_object(hud.get_node_or_null("TopBar/TopStack/HBox/DateLabel")).is_not_null()
+        assert_object(hud.get_node_or_null("TopBar/TopStack/HBox/MoneyLabel")).is_not_null()
+        assert_object(hud.get_node_or_null("TopBar/TopStack/HBox/HealthLabel")).is_not_null()
+        assert_object(hud.get_node_or_null("EventResultPopup/Center/Panel/VBox/Message")).is_not_null()
+        assert_object(hud.get_node_or_null("ActionPanel/VBox/ActionTitle")).is_not_null()
+    assert_object(scene.get_node_or_null("SplitRoot/BottomArea/BoardArea/BoardViewportContainer/BoardViewport/SanguoBoardView")).is_not_null()
+    assert_object(scene.get_node_or_null("SplitRoot/BottomArea/BoardArea/Overlays/SanguoBattleView")).is_not_null()
+    var settlement = scene.get_node_or_null("SplitRoot/BottomArea/BoardArea/Overlays/SettlementScreen")
+    assert_object(settlement).is_not_null()
+    if settlement != null:
+        assert_object(settlement.get_node_or_null("Center/Panel/VBox/Title")).is_not_null()
+        assert_object(settlement.get_node_or_null("Center/Panel/VBox/WinnerLabel")).is_not_null()
+        assert_object(settlement.get_node_or_null("Center/Panel/VBox/StatsSnapshotLabel")).is_not_null()
+        assert_object(settlement.get_node_or_null("Center/Panel/VBox/Buttons/NewGameButton")).is_not_null()
+
+    var output := scene.get_node_or_null("SplitRoot/TopArea/VBox/Output")
+    assert_object(output).is_not_null()
+    if output != null:
+        assert_str(str(output.text)).is_equal("Ready")
+
 # ACC:T1.2
 func test_can_instantiate_csharp_scriptclass() -> void:
     var bus := preload("res://Game.Godot/Adapters/EventBusAdapter.cs").new()
