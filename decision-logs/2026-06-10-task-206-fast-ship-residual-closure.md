@@ -16,7 +16,9 @@
 - Consequences: Do not run the forbidden full 6.7 pipeline or force 6.8 while `chapter6-route` remains `inspect-first` / `six_eight_worthwhile=no`. A future clean reviewer confirmation may supersede this record if routing permits a narrow pass.
 - Recovery impact: Future recovery should consume this decision before reopening 6.7 or 6.8. Prefer `resume-task --recommendation-only` and `chapter6-route --recommendation-only`; only proceed to reviewer confirmation when route permits it.
 - Validation: `py -3 scripts/python/dev_cli.py resume-task --task-id 206 --recommendation-only`; `py -3 scripts/python/dev_cli.py chapter6-route --task-id 206 --recommendation-only`; `py -3 scripts/python/dev_cli.py inspect-run --task-id 206 --kind pipeline --recommendation-only`; `py -3 scripts/sc/acceptance_check.py --task-id 206 --out-per-task --delivery-profile fast-ship --security-profile host-safe --require-task-test-refs --subtasks-coverage warn --perf-p95-ms 33 --godot-bin "$env:GODOT_BIN"`
+- Related ADRs: ADR-0018, ADR-0021, ADR-0025, ADR-0005, ADR-0015, ADR-0024
 - Related execution plans: `execution-plans/2026-06-10-task-206-fast-ship-residual-closure-followup.md`
 - Related task id(s): `206`
+- Related run id: `e081d8639c424b8592f5d63b49066db5`
 - Related latest.json: `logs/ci/2026-06-10/sc-review-pipeline-task-206/latest.json`
 - Related pipeline artifacts: `logs/ci/2026-06-10/sc-review-pipeline-task-206-e081d8639c424b8592f5d63b49066db5`
