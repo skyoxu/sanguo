@@ -97,6 +97,7 @@ func _publish_test_event(event_type: String, payload_json: String = "{}") -> voi
 
 # acceptance: ACC:T203.1
 # acceptance: ACC:T203.4
+# ACC:T206.1
 func test_task203_start_shows_platform_validation_state_before_gameplay() -> void:
 	var main := _create_main()
 	await get_tree().process_frame
@@ -131,6 +132,7 @@ func test_task203_start_shows_platform_validation_state_before_gameplay() -> voi
 # acceptance: ACC:T203.5
 # acceptance: ACC:T203.8
 # acceptance: ACC:T203.9
+# ACC:T206.8
 func test_task203_continue_is_visible_only_after_saved_state_and_does_not_bootstrap_new_run() -> void:
 	var main := _create_main()
 	await get_tree().process_frame
@@ -171,6 +173,8 @@ func test_task203_continue_is_visible_only_after_saved_state_and_does_not_bootst
 
 # acceptance: ACC:T203.6 ACC:T203.7 ACC:T203.10 ACC:T203.11
 # acceptance: ACC:T203.12 ACC:T203.13 ACC:T203.14 ACC:T203.15
+# ACC:T206.4
+# ACC:T206.9
 func test_task203_blocked_validation_shows_retry_and_retry_replaces_failed_result() -> void:
 	_set_resource_loader_port(PATH_FAILING_LOADER)
 

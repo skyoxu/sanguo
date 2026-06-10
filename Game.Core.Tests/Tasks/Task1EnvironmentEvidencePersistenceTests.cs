@@ -24,6 +24,7 @@ public sealed class Task1EnvironmentEvidencePersistenceTests
 
     private const string ChecklistRelativePath = "docs/architecture/overlays/PRD-SANGUO-T2/08/ACCEPTANCE_CHECKLIST.md";
 
+    // ACC:T206.5
     [Fact]
     public void ShouldPersistExpectedEvidenceFilesAndTaskJson_WhenTask1PreflightHasRun()
     {

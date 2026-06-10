@@ -1,0 +1,22 @@
+# task-206-fast-ship-residual-closure
+
+- Title: task-206-fast-ship-residual-closure
+- Date: 2026-06-10
+- Status: accepted
+- Supersedes: `decision-logs/2026-06-10-task-206-chapter6-residual-needs-fix-2.md`
+- Superseded by: none
+- Branch: task/T206
+- Git Head: 309d9be1e25649647639849cea26bdddbfda5d56
+- Delivery profile: fast-ship
+- Why now: Chapter 6 routing recommends inspect-first and marks another immediate 6.8 pass as not worthwhile, while refreshed deterministic acceptance evidence is green.
+- Context: The latest pipeline pointer remains `e081d8639c424b8592f5d63b49066db5` with `failure_kind=review-needs-fix`. The remaining reviewer sidecar aggregates two medium findings, and the underlying reviewer markdown contains stale P1 text for weak `ACC:T206.3` / `ACC:T206.4` coverage in `Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd`.
+- Current evidence: `logs/ci/2026-06-10/sc-acceptance-check-task-206/summary.json` reports `status=ok`; `acceptance-refs`, `acceptance-anchors`, `tests-all`, `security-hard`, and `perf-budget` are OK. Unit tests report 4/4 passed and perf p95 is 7.28 ms under the 33 ms budget.
+- Resolution evidence: `Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd` now asserts concrete HUD/runtime surfaces for active player, date/timer, money/reward, HP, event prompt/result message, action title, and settlement outcome labels/buttons. `Tests.Godot/tests/UI/test_task203_continue_retry_bootstrap_flow.gd` covers retry and failed-start recovery anchors. `Tests.Godot/tests/Scenes/Smoke/test_menu_quit_is_consumed_by_game_loop.gd` covers quit consumption.
+- Decision: Treat Task 206 as fast-ship closable with a recorded residual: the reviewer sidecar is stale and not re-reviewed, but there is no fresh deterministic P0/P1 failure after the coverage fixes.
+- Consequences: Do not run the forbidden full 6.7 pipeline or force 6.8 while `chapter6-route` remains `inspect-first` / `six_eight_worthwhile=no`. A future clean reviewer confirmation may supersede this record if routing permits a narrow pass.
+- Recovery impact: Future recovery should consume this decision before reopening 6.7 or 6.8. Prefer `resume-task --recommendation-only` and `chapter6-route --recommendation-only`; only proceed to reviewer confirmation when route permits it.
+- Validation: `py -3 scripts/python/dev_cli.py resume-task --task-id 206 --recommendation-only`; `py -3 scripts/python/dev_cli.py chapter6-route --task-id 206 --recommendation-only`; `py -3 scripts/python/dev_cli.py inspect-run --task-id 206 --kind pipeline --recommendation-only`; `py -3 scripts/sc/acceptance_check.py --task-id 206 --out-per-task --delivery-profile fast-ship --security-profile host-safe --require-task-test-refs --subtasks-coverage warn --perf-p95-ms 33 --godot-bin "$env:GODOT_BIN"`
+- Related execution plans: `execution-plans/2026-06-10-task-206-fast-ship-residual-closure-followup.md`
+- Related task id(s): `206`
+- Related latest.json: `logs/ci/2026-06-10/sc-review-pipeline-task-206/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-10/sc-review-pipeline-task-206-e081d8639c424b8592f5d63b49066db5`
