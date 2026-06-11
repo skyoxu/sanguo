@@ -46,7 +46,7 @@ public sealed class Task78SplitIntegrationTests
     // ACC:T78.3
     [Fact]
     [Trait("acceptance", "ACC:T78.3")]
-    public void ShouldCloseOnlyWhenSplitEvidenceIsCompleteAndDeterministic()
+    public void ShouldCloseTask78_WhenSplitEvidenceIsCompleteAndDeterministic()
     {
         var closed = Task78SplitClosure.Evaluate(
             new[] { 119, 120 },
