@@ -1,0 +1,21 @@
+# task-208-chapter6-residual-followup
+
+- Title: task-208-chapter6-residual-followup
+- Status: superseded
+- Branch: task/T208
+- Git Head: 2b37c795bd2a329be7143dd002e254bfbe8f7592
+- Goal: Historical follow-up plan for a residual reviewer finding that has now been cleared.
+- Scope: Superseded by clean fork run `735d2ab9e62d471f86b41c595dc4429b`.
+- Current step: Closed by the clean Chapter 6 fork and 6.9 hard checks.
+- Last completed step: 6.9 local hard checks passed.
+- Stop-loss: Do not reopen this residual plan unless a later run creates a fresh Needs Fix finding.
+- Next action: none
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 208 --recommendation-only`
+- Open questions: none recorded yet
+- Exit criteria: Met by clean fork run and local hard checks.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-11-task-208-chapter6-residual-needs-fix.md`
+- Related task id(s): `208`
+- Related run id: `735d2ab9e62d471f86b41c595dc4429b`
+- Related latest.json: `logs/ci/2026-06-11/sc-review-pipeline-task-208/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-11/sc-review-pipeline-task-208-735d2ab9e62d471f86b41c595dc4429b`
