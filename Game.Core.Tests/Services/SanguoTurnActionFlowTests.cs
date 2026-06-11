@@ -191,6 +191,7 @@ public sealed class SanguoTurnActionFlowTests
         published.Should().Contain(e => e.Type == SanguoPlayerStateChanged.EventType && ((JsonElementEventData)e.Data!).Value.GetProperty("PlayerId").GetString() == "p2");
     }
 
+    // ACC:T207.1
     // ACC:T98.1
     [Fact]
     public async Task ShouldRejectSecondActionCardAttemptAndEmitDeterministicExplain_WhenSameTurnSecondActionIsAttempted()

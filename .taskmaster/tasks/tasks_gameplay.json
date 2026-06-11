@@ -11191,20 +11191,21 @@
     "owner": "architecture",
     "test_refs": [
       "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+      "Tests.Godot/tests/Scenes/Smoke/test_menu_play_start_failure_shows_error.gd",
       "Game.Core.Tests/Services/PlayerEliminationTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs",
       "Game.Core.Tests/Tasks/Task25AiTests.cs",
       "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
-      "Tests.Godot/Game.Core/Domain/Player.cs",
-      "Tests.Godot/Game.Core/Services/CollisionService.cs"
+      "Game.Core.Tests/Tasks/Task207TaskViewEvidenceTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-8dccb4e63c2f is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:467 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/Services/PlayerEliminationTests.cs",
-      "Requirement REQ-dbedca93ccdd is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.cn.md:483 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/Services/PlayerEliminationTests.cs",
-      "Task 25 AI behavior is covered by deterministic core tests in Game.Core.Tests/Tasks/Task25AiTests.cs, and those tests fail when the referenced UI GDD CN part 2 requirement behavior is missing or regresses.",
-      "Core utility coverage in Game.Core.Tests/Utilities/NoGodotDependencyTests.cs verifies that Game.Core contract and domain code remain free of Godot.* dependencies for the referenced requirements.",
-      "Player elimination behavior is covered by Game.Core.Tests/Services/PlayerEliminationTests.cs with observable assertions for eliminated-player state changes and refusal of invalid no-op elimination outcomes.",
-      "Godot audio player adapter node wiring is covered by Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd with assertions that required configured nodes are present and usable rather than silently absent.",
-      "The referenced Chapter 3.8 triplet baseline validators can be rerun after this task is written to the gameplay view and report stable acceptance refs and traceability for the updated acceptance set."
+      "In-game action-card turn-window behavior is covered by deterministic core tests proving that a player can successfully play at most one action card during TurnPhase.BeforeRoll per turn, and that a second same-turn attempt is rejected without a played event or additional action-card step delta. Source: docs/gdd/ui-gdd-flow.cn.md:461 Refs: Game.Core.Tests/Services/SanguoTurnActionFlowTests.cs",
+      "Start-game failure recovery is covered by a Godot smoke test proving that a failed start path restores the main menu to an interactive visible state and shows an observable status label instead of leaving the player in a dead route. Source: docs/gdd/ui-gdd-flow.cn.md:463 Refs: Tests.Godot/tests/Scenes/Smoke/test_menu_play_start_failure_shows_error.gd",
+      "Task 25 AI behavior is covered by deterministic core tests in Game.Core.Tests/Tasks/Task25AiTests.cs for Godot-free policy dependencies, reproducible baseline decisions, optimized non-skip behavior for active players, and eliminated-player skip behavior. Refs: Game.Core.Tests/Tasks/Task25AiTests.cs",
+      "Core utility coverage in Game.Core.Tests/Utilities/NoGodotDependencyTests.cs verifies that Game.Core contract and domain code remain free of Godot.* dependencies for the referenced requirements. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "Player elimination behavior is covered by Game.Core.Tests/Services/PlayerEliminationTests.cs with observable assertions for eliminated-player state changes and refusal of invalid no-op elimination outcomes. Refs: Game.Core.Tests/Services/PlayerEliminationTests.cs",
+      "Godot audio player adapter node wiring is covered by Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd with assertions that required configured nodes are present and usable rather than silently absent. Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
+      "The Chapter 3.8 triplet baseline validator rerun for Task 207 is represented by task-scoped validation evidence that verifies stable acceptance refs and traceability after writing the updated acceptance set to the gameplay view. Refs: Game.Core.Tests/Tasks/Task207TaskViewEvidenceTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",

@@ -1,0 +1,26 @@
+# task-207-chapter6-residual-needs-fix
+
+- Title: task-207-chapter6-residual-needs-fix
+- Date: 2026-06-11
+- Status: superseded
+- Supersedes: none
+- Superseded by: Task 207 local deterministic closure on 2026-06-11
+- Branch: task/T207
+- Git Head: a51961b2200de76fb43a3efde7401426bded6a88
+- Why now: Chapter 6 routing determined that another immediate 6.8 rerun would not be cost-effective.
+- Context: Deterministic evidence was sufficient, but 6.8 reported semantic reviewer findings. First, `ACC:T207.7` pointed to behavior test files while the obligation was about Chapter 3.8 triplet validator rerun evidence. After that was fixed, the next 6.8 pass reported that `ACC:T207.1/.2/.3/.6` were too broad for the UI GDD CN source obligations.
+- Decision: The original P2 root cause was addressed by adding `Game.Core.Tests/Tasks/Task207TaskViewEvidenceTests.cs` and rewriting `ACC:T207.7` to reference that executable task-view evidence. The later P1/P2 semantic findings were addressed by rewriting Task 207 acceptance items to bind specific obligations to existing tests: action-card turn-window behavior, start-failure recovery, narrowed AI behavior, player elimination, and audio adapter node wiring.
+- Consequences: The known reviewer findings are locally fixed and deterministic checks pass, but reviewer re-verification is not clean because Chapter 6 route currently recommends inspect and `six_eight_worthwhile=no`.
+- Recovery impact: Recovery should not treat this decision log as an open implementation residual by itself; first read the latest `resume-task` / `chapter6-route` fields. A new reviewer pass should only run when the route moves away from `inspect-first` or when a deliberate protocol override is chosen.
+- Validation: py -3 scripts/sc/llm_review_needs_fix_fast.py --task-id 207 --delivery-profile fast-ship --rerun-failing-only --max-rounds 1
+- Original residual finding: P2 `semantic-equivalence-auditor` finding in `logs/ci/2026-06-11/sc-needs-fix-fast-task-207/round-1/review-semantic-equivalence-auditor.md`.
+- Later semantic finding: P1/P2 `semantic-equivalence-auditor` findings in the refreshed `logs/ci/2026-06-11/sc-needs-fix-fast-task-207/round-1/review-semantic-equivalence-auditor.md` after the routed 6.8 pass.
+- Local fix evidence: `dotnet test Game.Core.Tests\Game.Core.Tests.csproj --filter "FullyQualifiedName~Task207TaskViewEvidenceTests|FullyQualifiedName~SanguoTurnActionFlowTests" --no-restore` passed; `py -3 scripts/sc/build.py tdd --task-id 207 --stage refactor --delivery-profile fast-ship --security-profile host-safe` passed.
+- Remaining blocker: `py -3 scripts/python/dev_cli.py chapter6-route --task-id 207 --recommendation-only` reports `preferred_lane=inspect-first`, `chapter6_next_action=inspect`, `blocked_by=review-needs-fix`, and `six_eight_worthwhile=no`.
+- Related ADRs: none yet
+- Related execution plans: none yet
+- Related task id(s): `207`
+- Related run id: `78a6a614bdbb463599ade5c6aaf04960`
+- Related latest.json: `logs/ci/2026-06-11/sc-review-pipeline-task-207/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-11/sc-review-pipeline-task-207-78a6a614bdbb463599ade5c6aaf04960`
+- Related 6.8 artifacts: `logs/ci/2026-06-11/sc-needs-fix-fast-task-207/summary.json`
