@@ -20,6 +20,7 @@ public sealed class Task25AiTests
         referenced.Should().NotContain(a => a.Name != null && a.Name.StartsWith("Godot", StringComparison.OrdinalIgnoreCase));
     }
 
+    // ACC:T207.3
     // ACC:T25.2
     [Fact]
     [Trait("acceptance", "ACC:T25.2")]

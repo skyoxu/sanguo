@@ -20,6 +20,7 @@ public sealed class NoGodotDependencyTests
     // ACC:T194.10
     // ACC:T195.11
     // ACC:T195.12
+    // ACC:T207.4
     [Fact]
     public void ShouldNotReferenceGodot_WhenInspectingGameCoreAssemblyReferences()
     {

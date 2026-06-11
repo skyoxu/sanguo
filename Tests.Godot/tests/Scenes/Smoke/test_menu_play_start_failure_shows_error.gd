@@ -37,6 +37,7 @@ func before() -> void:
 func _on_evt(type, _source, _data_json, _id, _spec, _ct, _ts) -> void:
     _types.append(str(type))
 
+# ACC:T207.2
 # ACC:T28.9
 func test_play_start_failure_keeps_menu_visible_and_shows_error() -> void:
     _types.clear()
@@ -75,4 +76,3 @@ func test_play_start_failure_keeps_menu_visible_and_shows_error() -> void:
         assert_str((status as Label).text).is_not_empty()
 
     assert_bool((btn_play as Button).disabled).is_false()
-
