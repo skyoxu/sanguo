@@ -9954,7 +9954,8 @@
     "test_refs": [
       "Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
       "Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
-      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "acceptance": [
       "A map definition with tiles containing at least one tile id is accepted as valid, and completion can safely read tiles[0]. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
@@ -9962,7 +9963,17 @@
       "xUnit coverage proves tiles.length >= 1 is required before completion succeeds, including a passing case with tiles[0] present and a failing case with tiles empty. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
       "Godot-side or adapter-facing coverage proves valid tile ids are exposed through the runtime mapping completion boundary. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
       "Godot-side or adapter-facing coverage proves an empty tiles array does not advance to completion success. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
-      "Tile-id validation and mapping completion logic preserve deterministic core boundaries and do not introduce Godot dependencies into core contracts or domain logic. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
+      "Tile-id validation and mapping completion logic preserve deterministic core boundaries and do not introduce Godot dependencies into core contracts or domain logic. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "The tile-id mapping completion task remains traceable to ADR-0007 and ADR-0024 without duplicating threshold or contract text from those sources. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The task view keeps PRD-SANGUO-V4 overlay references for combat baseline and acceptance checklist context. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "The runtime mapping completion boundary exposes valid tile ids through Godot-side evidence without moving adapter behavior into deterministic core. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
+      "The empty-tile negative path remains covered at both validation and runtime mapping completion boundaries. Refs: Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
+      "Task 193 implementation evidence preserves existing Task53 map configuration validation coverage for non-empty tiles. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "Task 193 implementation evidence preserves existing Task53 map configuration validation coverage for empty tiles. Refs: Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
+      "Task 193 refactor evidence keeps deterministic core dependency checks green after the tile-id mapping completion work. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "Task 193 task-view evidence remains bound to the integration aggregation contract for Chapter 6 process validation. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T193.O10] Chapter 3.8 triplet baseline validators are rerun after this task is written to the task view, with evidence recorded in logs. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T193.O10] Chapter 3 coverage audit is rerun after refactor, with evidence recorded for this task. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "test_strategy": [
       "Red: add or update Godot-side or adapter-facing coverage for the player-visible behavior.",
@@ -9974,7 +9985,8 @@
     "evidence_refs": [
       "Game.Core.Tests/Tasks/Task53MapConfigValidationTests.cs",
       "Tests.Godot/tests/Scenes/Sanguo/test_task193_tile_id_mapping_completion.gd",
-      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "source_refs": [],
     "requirement_ids": [],
@@ -10038,9 +10050,9 @@
       "If the shaped spec link cannot resolve to a valid task evidence target, the matrix row remains visibly incomplete and the task is not accepted as implemented. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
       "[OBL:T194.O12] Task 194 的实现不得把 Godot API、场景节点或适配器依赖引入 deterministic core 边界。 Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
       "[OBL:T194.O12] The implementation must preserve deterministic core boundaries while refactoring. Refs: Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
-      "[OBL:T194.O13] Task 194 完成后必须重跑 Chapter 3 coverage audit，并记录可追溯证据路径。 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T194.O13] Chapter 3 coverage audit is rerun after Task 194, with evidence recorded in a traceable path. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
       "[OBL:T194.O13] The Chapter 3 coverage audit must be rerun after the refactor work. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
-      "[OBL:T194.O14] Task 194 写入任务视图后必须运行 Chapter 3.8 triplet baseline validators，并记录通过证据路径。 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T194.O14] Chapter 3.8 triplet baseline validators are run after Task 194 is written to the task view, with evidence recorded in a traceable path. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
       "[OBL:T194.O14] After writing this task to a task view, the Chapter 3.8 triplet baseline validators must be run. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "test_strategy": [
@@ -11365,36 +11377,31 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd",
-      "Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
-      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
-      "Tests.Godot/tests/Scenes/Sanguo/test_task53_sanguo_map_tile_name_fallback.gd",
-      "Tests.Godot/tests/UI/test_hud_sfx_does_not_stop_music.gd",
-      "Tests.Godot/tests/UI/test_settings_panel_invalid_resolution_fallback.gd"
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "acceptance": [
-      "Requirement REQ-aad35164836e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:348 Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
-      "Requirement REQ-f59afce38183 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:371 Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
-      "Requirement REQ-d85b7992354d is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:383 Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
-      "Requirement REQ-191893d791d8 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:413 Refs: Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd",
-      "Validation outcomes that affect the deterministic draft are exposed through a governed read surface instead of remaining only in logs, transient state, or internal validator output.",
-      "Fallback outcomes that affect the deterministic draft are exposed through a governed read surface, including the observable fallback result and the fact that fallback was used.",
-      "Migration outcomes that affect the deterministic draft are exposed through a governed read surface, including whether migration ran, succeeded, failed, or was refused.",
-      "When validation, fallback, or migration produces an outcome that cannot be represented on the governed read surface, the deterministic draft is not silently accepted as unchanged; the missing surfaced outcome is reported as a validation failure.",
-      "[OBL:T209.O7] The task adds or updates the minimal deterministic validator, script, or evidence fixture required to verify surfaced validation outcomes.",
-      "[OBL:T209.O7] The implementation must provide the smallest validation, script, or evidence path required to pass.",
-      "[OBL:T209.O8] Validator output for this task remains stable across repeated runs with the same inputs.",
-      "[OBL:T209.O8] Validator output must remain stable after refactor.",
-      "[OBL:T209.O9] Chapter 3.8 triplet baseline validators are rerun after this task is written to the task view, with evidence captured.",
-      "[OBL:T209.O9] The Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view.",
-      "[OBL:T209.O10] The quality-gates GdUnit adapter security aggregation test reference has traceable evidence for the surfaced validation outcome behavior.",
-      "[OBL:T209.O10] The quality-gates GdUnit adapter security aggregation test reference must have traceable evidence for this task.",
-      "[OBL:T209.O11] The map tile name fallback test reference has traceable evidence for the surfaced fallback outcome behavior.",
-      "[OBL:T209.O11] The map tile name fallback test reference must have traceable evidence for this task.",
-      "[OBL:T209.O12] The HUD SFX music-continuity test reference has traceable evidence for any surfaced validation or fallback outcome it contributes to the deterministic draft.",
-      "[OBL:T209.O12] The HUD SFX/music fallback or validation test reference must have traceable evidence for this task.",
-      "[OBL:T209.O13] The invalid resolution fallback test reference has traceable evidence for the surfaced fallback outcome behavior.",
-      "[OBL:T209.O13] The invalid resolution fallback test reference must have traceable evidence for this task."
+      "Requirement REQ-aad35164836e is implemented with traceable governed read-surface evidence. Source: docs/gdd/ui-gdd-flow.md:348 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-f59afce38183 is implemented with traceable governed read-surface evidence. Source: docs/gdd/ui-gdd-flow.md:371 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-d85b7992354d is implemented with traceable governed read-surface evidence. Source: docs/gdd/ui-gdd-flow.md:383 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Requirement REQ-191893d791d8 is implemented with traceable governed read-surface evidence. Source: docs/gdd/ui-gdd-flow.md:413 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Validation outcomes that affect the deterministic draft are exposed through a governed read surface instead of remaining only in logs, transient state, or internal validator output. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Fallback outcomes that affect the deterministic draft are exposed through a governed read surface, including the observable fallback result and the fact that fallback was used. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Migration outcomes that affect the deterministic draft are exposed through a governed read surface, including whether migration ran, succeeded, failed, or was refused. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "When validation, fallback, or migration produces an outcome that cannot be represented on the governed read surface, the deterministic draft is not silently accepted as unchanged; the missing surfaced outcome is reported as a validation failure. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O7] The task adds or updates the minimal deterministic validator, script, or evidence fixture required to verify surfaced validation outcomes. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O7] The implementation must provide the smallest validation, script, or evidence path required to pass. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O8] Validator output for this task remains stable across repeated runs with the same inputs. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O8] Validator output must remain stable after refactor. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O9] Chapter 3.8 triplet baseline validators are rerun after this task is written to the task view, with evidence captured. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O9] The Chapter 3.8 triplet baseline validators must be rerun after writing this task to a task view. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O10] The quality-gates GdUnit adapter security aggregation test reference has traceable evidence for the surfaced validation outcome behavior. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O10] The quality-gates GdUnit adapter security aggregation test reference must have traceable evidence for this task. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O11] The governed read-surface fixture has traceable evidence for the tile-name surfaced fallback outcome behavior. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O11] The tile-name fallback outcome evidence must remain bound to the governed read-surface fixture. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O12] The governed read-surface integration evidence includes traceable validation, fallback, and migration outcome coverage for the deterministic draft. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O12] The governed read-surface evidence must remain bound to Task 209 rather than unrelated UI continuity checks. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O13] The governed read-surface fixture has traceable evidence for the surfaced invalid-resolution fallback outcome behavior. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "[OBL:T209.O13] The invalid-resolution fallback outcome evidence must remain bound to the governed read-surface fixture. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
@@ -11410,8 +11417,8 @@
       "docs/gdd/ui-gdd-flow.md:413",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t61-ai-minimal-deterministic.md",
-      "Tests.Godot/tests/Adapters/Db/test_concurrent_read_same_db.gd",
-      "Tests.Godot/tests/Adapters/Db/test_db_migration_hook.gd"
+      "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
+      "Tests.Godot/tests/Integration/fixtures/task209_governed_read_surface.json"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:348",

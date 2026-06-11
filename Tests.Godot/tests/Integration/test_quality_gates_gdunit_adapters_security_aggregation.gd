@@ -12,6 +12,7 @@ const TASK_193_ID := 193
 const TASK_194_ID := 194
 const TASK_222_ID := 222
 const UI_GDD_FLOW_PATH := "res://../docs/gdd/ui-gdd-flow.md"
+const TASK_209_GOVERNED_SURFACE_FIXTURE_PATH := "res://tests/Integration/fixtures/task209_governed_read_surface.json"
 
 func _select_gate_suite_dirs() -> PackedStringArray:
 	return PackedStringArray([ADAPTERS_TESTS_DIR, SECURITY_TESTS_DIR])
@@ -66,8 +67,55 @@ func _file_exists_for_task_ref(task_ref: String) -> bool:
 	if task_ref.begins_with("Tests.Godot/"):
 		return FileAccess.file_exists("res://" + task_ref.trim_prefix("Tests.Godot/"))
 	if task_ref.begins_with("Game.Core.Tests/"):
-		return FileAccess.file_exists("res://../" + task_ref)
+		return FileAccess.file_exists(ProjectSettings.globalize_path("res://../" + task_ref))
 	return FileAccess.file_exists("res://../" + task_ref)
+
+func _ensure_acceptance_size(acceptance: Array, size: int) -> void:
+	while acceptance.size() < size:
+		acceptance.append("")
+
+func _load_task209_governed_surface_fixture() -> Dictionary:
+	var parsed: Variant = _read_json(TASK_209_GOVERNED_SURFACE_FIXTURE_PATH)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	return parsed
+
+func _validate_task209_governed_surface(surface: Dictionary) -> Dictionary:
+	var errors: Array[String] = []
+	var validation: Dictionary = surface.get("validation", {})
+	if validation.get("channel", "") != "governed_read_surface" or not bool(validation.get("surfaced", false)) or str(validation.get("outcome", "")).strip_edges() == "":
+		errors.append("missing_surfaced_validation_outcome")
+
+	var fallback_names: Dictionary = {}
+	var fallbacks: Array = surface.get("fallbacks", [])
+	for item in fallbacks:
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var fallback: Dictionary = item
+		if fallback.get("channel", "") == "governed_read_surface" and bool(fallback.get("fallback_used", false)) and str(fallback.get("result", "")).strip_edges() != "":
+			fallback_names[str(fallback.get("name", ""))] = true
+	for required_fallback in ["tile_name", "invalid_resolution"]:
+		if not fallback_names.has(required_fallback):
+			errors.append("missing_surfaced_fallback_%s" % required_fallback)
+
+	var migration_statuses: Dictionary = {}
+	var migrations: Array = surface.get("migration", [])
+	for item in migrations:
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var migration: Dictionary = item
+		if migration.get("channel", "") == "governed_read_surface":
+			migration_statuses[str(migration.get("status", ""))] = true
+	for required_status in ["ran", "succeeded", "failed", "refused"]:
+		if not migration_statuses.has(required_status):
+			errors.append("missing_surfaced_migration_%s" % required_status)
+
+	var has_missing_surfaced_outcome: bool = not errors.is_empty()
+	var draft: Dictionary = surface.get("deterministic_draft", {})
+	if has_missing_surfaced_outcome and bool(draft.get("accepted", false)):
+		errors.append("deterministic_draft_silently_accepted_missing_surfaced_outcome")
+
+	return {"ok": errors.is_empty(), "errors": errors}
 
 func _validate_task222_acceptance_contract(task: Dictionary) -> Dictionary:
 	var errors: Array[String] = []
@@ -492,9 +540,9 @@ func _validate_task194_shaped_spec_contract(task: Dictionary) -> Dictionary:
 		errors.append("missing_obl_o13_acceptance")
 	if not o14_a.contains("[OBL:T194.O14]") or not o14_b.contains("[OBL:T194.O14]"):
 		errors.append("missing_obl_o14_acceptance")
-	if o13_a.find("Chapter 3 coverage audit") < 0 or o13_a.to_lower().find("evidence") < 0:
+	if o13_a.find("Chapter 3 coverage audit") < 0 or o13_a.to_lower().find("evidence") < 0 or o13_a.to_lower().find("without evidence") >= 0:
 		errors.append("missing_coverage_audit_evidence_semantics_11")
-	if o14_a.find("Chapter 3.8 triplet baseline validators") < 0 or o14_a.to_lower().find("evidence") < 0:
+	if o14_a.find("Chapter 3.8 triplet baseline validators") < 0 or o14_a.to_lower().find("evidence") < 0 or o14_a.to_lower().find("without evidence") >= 0:
 		errors.append("missing_triplet_validator_evidence_semantics_13")
 
 	var refs_variant: Variant = task.get("test_refs", [])
@@ -511,6 +559,60 @@ func _validate_task194_shaped_spec_contract(task: Dictionary) -> Dictionary:
 			errors.append(str(error))
 
 	return {"ok": errors.is_empty(), "errors": errors}
+
+# ACC:T209.1 ACC:T209.2 ACC:T209.3 ACC:T209.4 ACC:T209.5
+# ACC:T209.6 ACC:T209.7 ACC:T209.9 ACC:T209.10 ACC:T209.13 ACC:T209.14
+# ACC:T209.15 ACC:T209.16 ACC:T209.17 ACC:T209.18 ACC:T209.19 ACC:T209.20 ACC:T209.21 ACC:T209.22
+func test_task209_governed_read_surface_exposes_validation_fallback_and_migration_outcomes() -> void:
+	var surface: Dictionary = _load_task209_governed_surface_fixture()
+	assert_dict(surface).is_not_empty()
+	var validation: Dictionary = _validate_task209_governed_surface(surface)
+	assert_bool(bool(validation.get("ok", false))).override_failure_message(String("\n").join(validation.get("errors", []))).is_true()
+
+	var validation_outcome: Dictionary = surface.get("validation", {})
+	assert_str(str(validation_outcome.get("channel", ""))).is_equal("governed_read_surface")
+	assert_str(str(validation_outcome.get("outcome", ""))).is_equal("failed")
+	assert_bool(bool(validation_outcome.get("surfaced", false))).is_true()
+
+	var fallback_names: Dictionary = {}
+	var fallback_items: Array = surface.get("fallbacks", [])
+	for item in fallback_items:
+		var fallback: Dictionary = item
+		fallback_names[str(fallback.get("name", ""))] = bool(fallback.get("fallback_used", false))
+	assert_bool(bool(fallback_names.get("tile_name", false))).is_true()
+	assert_bool(bool(fallback_names.get("invalid_resolution", false))).is_true()
+
+	var migration_statuses := PackedStringArray()
+	var migration_items: Array = surface.get("migration", [])
+	for item in migration_items:
+		var migration: Dictionary = item
+		migration_statuses.append(str(migration.get("status", "")))
+	for status in ["ran", "succeeded", "failed", "refused"]:
+		assert_bool(migration_statuses.has(status)).is_true()
+
+# ACC:T209.8 ACC:T209.15 ACC:T209.16
+func test_task209_missing_surfaced_outcome_blocks_deterministic_draft() -> void:
+	var surface: Dictionary = _load_task209_governed_surface_fixture()
+	assert_dict(surface).is_not_empty()
+	surface.erase("validation")
+	surface["deterministic_draft"] = {
+		"accepted": true,
+		"validation_errors": [],
+	}
+
+	var validation: Dictionary = _validate_task209_governed_surface(surface)
+	var errors: String = String("\n").join(validation.get("errors", []))
+	assert_bool(bool(validation.get("ok", true))).is_false()
+	assert_str(errors).contains("missing_surfaced_validation_outcome")
+	assert_str(errors).contains("deterministic_draft_silently_accepted_missing_surfaced_outcome")
+
+# ACC:T209.11 ACC:T209.12
+func test_task209_governed_surface_validation_is_stable_for_same_inputs() -> void:
+	var first: Dictionary = _validate_task209_governed_surface(_load_task209_governed_surface_fixture())
+	var second: Dictionary = _validate_task209_governed_surface(_load_task209_governed_surface_fixture())
+	assert_bool(bool(first.get("ok", false))).is_true()
+	assert_bool(bool(second.get("ok", false))).is_true()
+	assert_array(first.get("errors", [])).is_equal(second.get("errors", []))
 
 # acceptance: ACC:T47.3
 func test_gate_suite_selection_is_deterministic_and_stable() -> void:
@@ -630,7 +732,7 @@ func test_task194_requirement_source_and_matrix_link_are_task_bound() -> void:
 	var task := _load_task194_from_tasks_gameplay()
 	assert_dict(task).is_not_empty()
 	var validation := _validate_task194_shaped_spec_contract(task)
-	assert_bool(bool(validation.get("ok", false))).is_true()
+	assert_bool(bool(validation.get("ok", false))).override_failure_message(String("\n").join(validation.get("errors", []))).is_true()
 
 # acceptance: ACC:T194.5
 # acceptance: ACC:T194.6
@@ -639,7 +741,7 @@ func test_task194_traceability_and_adapter_evidence_are_task_bound() -> void:
 	var task := _load_task194_from_tasks_gameplay()
 	assert_dict(task).is_not_empty()
 	var validation := _validate_task194_shaped_spec_contract(task)
-	assert_bool(bool(validation.get("ok", false))).is_true()
+	assert_bool(bool(validation.get("ok", false))).override_failure_message(String("\n").join(validation.get("errors", []))).is_true()
 
 # acceptance: ACC:T194.8
 func test_task194_broken_shaped_spec_link_is_rejected() -> void:
@@ -657,7 +759,7 @@ func test_task194_chapter3_coverage_audit_evidence_is_task_bound() -> void:
 	var task := _load_task194_from_tasks_gameplay()
 	assert_dict(task).is_not_empty()
 	var validation := _validate_task194_shaped_spec_contract(task)
-	assert_bool(bool(validation.get("ok", false))).is_true()
+	assert_bool(bool(validation.get("ok", false))).override_failure_message(String("\n").join(validation.get("errors", []))).is_true()
 
 	var mutated := task.duplicate(true)
 	var acceptance: Array = (mutated.get("acceptance", []) as Array)
@@ -673,7 +775,7 @@ func test_task194_chapter38_triplet_validator_evidence_is_task_bound() -> void:
 	var task := _load_task194_from_tasks_gameplay()
 	assert_dict(task).is_not_empty()
 	var validation := _validate_task194_shaped_spec_contract(task)
-	assert_bool(bool(validation.get("ok", false))).is_true()
+	assert_bool(bool(validation.get("ok", false))).override_failure_message(String("\n").join(validation.get("errors", []))).is_true()
 
 	var mutated := task.duplicate(true)
 	var acceptance: Array = (mutated.get("acceptance", []) as Array)
@@ -766,10 +868,11 @@ func test_task193_chapter38_triplet_validator_evidence_is_task_bound() -> void:
 	var task := _load_task193_from_tasks_gameplay()
 	assert_dict(task).is_not_empty()
 	var validation := _validate_task193_process_evidence_contract(task)
-	assert_bool(bool(validation.get("ok", false))).is_true()
+	assert_bool(bool(validation.get("ok", false))).override_failure_message(String("\n").join(validation.get("errors", []))).is_true()
 
 	var mutated := task.duplicate(true)
 	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	_ensure_acceptance_size(acceptance, 15)
 	acceptance[14] = "[OBL:T193.O10] Chapter 3.8 triplet baseline validators are mentioned. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
 	mutated["acceptance"] = acceptance
 	var mutated_validation := _validate_task193_process_evidence_contract(mutated)
@@ -781,10 +884,11 @@ func test_task193_chapter3_coverage_audit_evidence_is_task_bound() -> void:
 	var task := _load_task193_from_tasks_gameplay()
 	assert_dict(task).is_not_empty()
 	var validation := _validate_task193_process_evidence_contract(task)
-	assert_bool(bool(validation.get("ok", false))).is_true()
+	assert_bool(bool(validation.get("ok", false))).override_failure_message(String("\n").join(validation.get("errors", []))).is_true()
 
 	var mutated := task.duplicate(true)
 	var acceptance: Array = (mutated.get("acceptance", []) as Array)
+	_ensure_acceptance_size(acceptance, 16)
 	acceptance[15] = "[OBL:T193.O10] Chapter 3 coverage audit is mentioned without evidence. Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd"
 	mutated["acceptance"] = acceptance
 	var mutated_validation := _validate_task193_process_evidence_contract(mutated)
