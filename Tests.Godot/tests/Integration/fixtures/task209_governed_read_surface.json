@@ -1,0 +1,51 @@
+{
+  "surface_name": "task209_governed_read_surface",
+  "deterministic_draft": {
+    "accepted": true,
+    "validation_errors": []
+  },
+  "validation": {
+    "channel": "governed_read_surface",
+    "outcome": "failed",
+    "surfaced": true,
+    "source": "deterministic_validator_evidence"
+  },
+  "fallbacks": [
+    {
+      "name": "tile_name",
+      "result": "sanguo.tile.city.luoyang",
+      "fallback_used": true,
+      "channel": "governed_read_surface",
+      "source": "tile_display_read_model"
+    },
+    {
+      "name": "invalid_resolution",
+      "result": "1280x720",
+      "fallback_used": true,
+      "channel": "governed_read_surface",
+      "source": "settings_panel_read_model"
+    }
+  ],
+  "migration": [
+    {
+      "status": "ran",
+      "channel": "governed_read_surface",
+      "source": "migration_validator_evidence"
+    },
+    {
+      "status": "succeeded",
+      "channel": "governed_read_surface",
+      "source": "migration_validator_evidence"
+    },
+    {
+      "status": "failed",
+      "channel": "governed_read_surface",
+      "source": "migration_validator_evidence"
+    },
+    {
+      "status": "refused",
+      "channel": "governed_read_surface",
+      "source": "migration_validator_evidence"
+    }
+  ]
+}
