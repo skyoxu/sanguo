@@ -1,0 +1,22 @@
+# Task 211 Validate part 4 resolve back xunit gdunit smoke acceptance-test generation plan
+
+- Title: Task 211 Validate part 4 resolve back xunit gdunit smoke acceptance-test generation plan
+- Status: completed
+- Branch: task/T211
+- Git Head: bb8eb88ddd3258ec01b640bc8db9a2aff47f7fbb
+- Goal: Control acceptance-driven test generation complexity for task 211.
+- Scope: 0 missing refs across 0 test roots; seed refs: no missing refs detected
+- Current step: Completed; acceptance refs, anchors, task-scoped tests, Chapter 6 pipeline, and local hard checks are clean.
+- Last completed step: `py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"` completed successfully.
+- Stop-loss: Do not start Codex test generation until the ref mix and verify mode are explicit.
+- Next action: none; Task 211 Chapter 6 evidence is clean.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 211 --resume`
+- Open questions: none recorded yet
+- Exit criteria: Met by clean task pipeline and repo hard checks.
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `211`
+- Related run id: `e63fb3055b0743c48720d4934f9b4ef0`
+- Related latest.json: `logs/ci/2026-06-12/sc-review-pipeline-task-211/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-12/sc-review-pipeline-task-211-e63fb3055b0743c48720d4934f9b4ef0`
+- Related local hard checks: `logs/ci/2026-06-13/local-hard-checks-7b783bd1fb0a49d7a67c6b7439af0d20`

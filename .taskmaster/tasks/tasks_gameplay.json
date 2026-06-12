@@ -11559,22 +11559,20 @@
     ],
     "owner": "architecture",
     "test_refs": [
+      "Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs",
       "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
       "Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_glue_connections.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_main_scene_smoke.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_menu_play_start_fails_when_pack_index_invalid.gd",
-      "Tests.Godot/tests/Scenes/Smoke/test_menu_play_start_failure_shows_error.gd"
+      "Game.Core.Tests/Tasks/Task47QualityGatesGdUnitAggregationTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-24b36f4beb7c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:494 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
-      "Requirement REQ-20a6e55ecb84 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:495 Refs: Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
-      "Each evidence entry for this task resolves to an existing xUnit, GdUnit, smoke, or CI output path that is already referenced by the task view; unresolved, missing, or unrelated evidence paths are reported as validation failures.",
-      "The validation result identifies which referenced xUnit, GdUnit, smoke, or CI output satisfies each acceptance item, and leaves the task failing when no such referenced output can be resolved.",
-      "[OBL:T211.O4] For unchanged task view inputs, rerunning the validation produces stable output for resolved evidence mappings and failure reporting.",
-      "[OBL:T211.O4] The validation output must remain stable across reruns for the same task view inputs.",
-      "[OBL:T211.O5] After this task is written to a task view, the Chapter 3.8 triplet baseline validators are rerun and their output path is recorded as task evidence.",
-      "[OBL:T211.O5] The Chapter 3.8 triplet baseline validators must be rerun after this task is written to a task view, with evidence captured."
+      "Requirement REQ-24b36f4beb7c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:494 Refs: Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
+      "Requirement REQ-20a6e55ecb84 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:495 Refs: Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
+      "Each evidence entry for this task resolves to an existing xUnit, GdUnit, smoke, or CI output path that is already referenced by the task view; unresolved, missing, or unrelated evidence paths are reported as validation failures. Refs: Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs Game.Core.Tests/Tasks/Task47QualityGatesGdUnitAggregationTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
+      "The validation result identifies which referenced xUnit, GdUnit, smoke, or CI output satisfies each acceptance item, and leaves the task failing when no such referenced output can be resolved. Refs: Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs Game.Core.Tests/Tasks/Task47QualityGatesGdUnitAggregationTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
+      "[OBL:T211.O4] For unchanged task view inputs, rerunning the validation produces stable output for resolved evidence mappings and failure reporting. Refs: Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
+      "[OBL:T211.O4] The validation output must remain stable across reruns for the same task view inputs. Refs: Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
+      "[OBL:T211.O5] After this task is written to a task view, the Chapter 3.8 triplet baseline validators are rerun and their output path is recorded as task evidence. Refs: Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd",
+      "[OBL:T211.O5] The Chapter 3.8 triplet baseline validators must be rerun after this task is written to a task view, with evidence captured. Refs: Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
@@ -11588,6 +11586,8 @@
       "docs/gdd/ui-gdd-flow.md:495",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md",
+      "Game.Core.Tests/Tasks/Task47QualityGatesGdUnitAggregationTests.cs",
+      "Game.Core.Tests/Tasks/Task211EvidenceResolutionTests.cs",
       "Tests.Godot/tests/Integration/test_quality_gates_gdunit_adapters_security_aggregation.gd",
       "Tests.Godot/tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd"
     ],

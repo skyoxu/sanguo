@@ -1,0 +1,22 @@
+# task-211-chapter6-residual-needs-fix
+
+- Title: task-211-chapter6-residual-needs-fix
+- Date: 2026-06-12
+- Status: superseded
+- Supersedes: none
+- Superseded by: clean Task 211 pipeline `e63fb3055b0743c48720d4934f9b4ef0`
+- Branch: task/T211
+- Git Head: bb8eb88ddd3258ec01b640bc8db9a2aff47f7fbb
+- Why now: Chapter 6 routing determined that another immediate 6.8 rerun would not be cost-effective.
+- Context: Initial reviewer findings were recorded after deterministic evidence was sufficient. They were later addressed by strengthening Task 211 evidence-resolution tests.
+- Decision: Supersede the residual record because the latest Task 211 pipeline is clean and recovery now reports no follow-up action.
+- Consequences: Recovery should use the clean latest pipeline instead of reopening this residual follow-up.
+- Recovery impact: Prefer `logs/ci/2026-06-12/sc-review-pipeline-task-211/latest.json`, currently pointing to clean run `e63fb3055b0743c48720d4934f9b4ef0`.
+- Validation: `py -3 scripts/python/dev_cli.py resume-task --task-id 211 --recommendation-only` reports `failure_code=ok`; local hard checks passed with run `7b783bd1fb0a49d7a67c6b7439af0d20`.
+- Related ADRs: none yet
+- Related execution plans: none yet
+- Related task id(s): `211`
+- Related run id: `e63fb3055b0743c48720d4934f9b4ef0`
+- Related latest.json: `logs/ci/2026-06-12/sc-review-pipeline-task-211/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-12/sc-review-pipeline-task-211-e63fb3055b0743c48720d4934f9b4ef0`
+- Related local hard checks: `logs/ci/2026-06-13/local-hard-checks-7b783bd1fb0a49d7a67c6b7439af0d20`
