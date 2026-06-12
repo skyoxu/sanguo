@@ -11474,28 +11474,20 @@
     ],
     "owner": "architecture",
     "test_refs": [
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Game.Core.Tests/State/GameStateManagerTests.cs",
-      "Tests.Godot/Game.Core/Domain/Player.cs",
-      "Tests.Godot/Game.Core/State/GameStateMachine.cs"
+      "Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-bb0d152f4450 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:475 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Requirement REQ-4a051ffdf874 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:476 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Requirement REQ-25feee4ce95c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:479 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Requirement REQ-cf9ed989279a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:493 Refs: Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Inspecting config state reports the active configuration values, validation status, governance metadata, migration compatibility state, and report metadata needed to determine whether the config is shippable.",
-      "Invalid, missing, or migration-incompatible config data is reported as a validation failure with unchanged runtime state rather than being accepted silently.",
-      "The task evidence shows the inspected config validation and migration results against the referenced governance, logging policy, migration compatibility, and game start config overlays.",
-      "The Chapter 3 baseline validators can be rerun after the gameplay task view is written, and their output remains stable for this task.",
-      "[OBL:T210.O9] A deterministic validator or evidence fixture fails when the required config inspection validation or migration behavior is missing.",
-      "[OBL:T210.O9] A deterministic validator or evidence fixture must fail when the required behavior is missing.",
-      "[OBL:T210.O10] The task adds only the minimal validation, script, or evidence path needed for the config inspection migration check to pass.",
-      "[OBL:T210.O11] The task evidence traces the config inspection validation and migration result against ADR-0005 and ADR-0011.",
-      "[OBL:T210.O10] The inspected config validation and migration evidence includes the referenced Godot adapter, core state manager, state machine, security, and domain test targets.",
-      "[OBL:T210.O10] The task must use the referenced test files as evidence targets for the migration inspection validation."
+      "Requirement REQ-bb0d152f4450 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:475 Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "Requirement REQ-4a051ffdf874 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:476 Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "Requirement REQ-25feee4ce95c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:479 Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "Requirement REQ-cf9ed989279a is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:493 Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "Inspecting config state reports active configuration values, validation status, governance metadata, migration compatibility state, and report metadata including report id, generator, and generated-at UTC timestamp needed to determine whether the config is shippable. Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "Invalid, missing, or migration-incompatible config data is reported as a validation failure with unchanged runtime state rather than being accepted silently. Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "The task evidence asserts that the config inspection report includes the referenced governance/build-release, logging policy, migration compatibility, and game start config overlay references. Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "[OBL:T210.O9] A deterministic validator or evidence fixture fails when the required config inspection validation or migration behavior is missing. Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "[OBL:T210.O11] The task evidence traces the config inspection validation and migration result against ADR-0005 and ADR-0011. Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "[OBL:T210.O10] The inspected config validation and migration evidence uses the task-specific config inspection service and verifies the real game start config validator, migration compatibility report generator, and migration completeness validator. Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs",
+      "[OBL:T210.O10] The task-specific inspection test is the evidence target for migration inspection validation and must fail when the production validation or migration compatibility behavior is missing. Refs: Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs"
     ],
     "test_strategy": [
       "Red: add or update a deterministic validator or evidence fixture that fails on the missing behavior.",
@@ -11511,8 +11503,7 @@
       "docs/gdd/ui-gdd-flow.md:493",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-governance-build-release-quality-gates.md",
       "docs/architecture/overlays/PRD-SANGUO-V3/08/08-governance-logging-policy-and-lint.md",
-      "Tests.Godot/tests/Adapters/Config/test_audio_player_adapter_nodes.gd",
-      "Game.Core.Tests/State/GameStateMachineTests.cs"
+      "Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:475",
