@@ -1,0 +1,24 @@
+# Task 210 Validate part 3 config validation migration inspect state acceptance-test generation plan
+
+- Title: Task 210 Validate part 3 config validation migration inspect state acceptance-test generation plan
+- Status: active
+- Branch: task/T210
+- Git Head: a1544f5ed354c9454a63a26c2b004d3cccf38a2d
+- Goal: Close Task 210 with real config inspection, validation, migration, governance, and report metadata evidence.
+- Scope: Task 210 gameplay task view, task-specific deterministic tests, and the real production/script artifact path that proves config inspection semantics.
+- Current step: Stop-loss after repeated P1 reviewer Needs Fix; inspect and replace test-local fixture evidence with real implementation or script output evidence.
+- Last completed step: Chapter 6.6 refactor passed after Task 210 refs/anchors were updated; 6.7 deterministic gates passed in run `5d79a96c35b34d13b05ae004dfbd0030`.
+- Stop-loss: `chapter6-route` reports `preferred_lane=inspect-first`, `blocked_by=recent_failure_summary`, `six_eight_worthwhile=no`, and `residual_recording=eligible`. Do not enter 6.8 unless a later route reports `preferred_lane=run-6.8`. Do not run forbidden plain 6.7 rerun commands.
+- Next action: Replace `Game.Core.Tests/Tasks/Task210ConfigInspectionValidationMigrationTests.cs` test-local `ConfigInspectionValidator` / report fixtures with assertions against a real production validator/report generator or deterministic script/artifact output. Then rerun 6.4 -> 6.5 -> 6.6 and ask `chapter6-route` again.
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 210 --recommendation-only --recommendation-format json`
+- Route command: `py -3 scripts/python/dev_cli.py chapter6-route --task-id 210 --recommendation-only --recommendation-format json`
+- Forbidden commands observed: `py -3 scripts/sc/run_review_pipeline.py --task-id 210`
+- Open questions: Which real production or script artifact should become the SSoT for Task 210 config inspection reports: an existing `Game.Core.Services.Sanguo` migration report path, a new BCL-only core validator, or a deterministic CI evidence artifact parser?
+- Exit criteria: No P0/P1 Needs Fix remains in code-reviewer or security-auditor, deterministic gates are green, and route no longer reports stop-loss for repeated review-needs-fix.
+- Related ADRs: ADR-0005, ADR-0011
+- Related decision logs: `decision-logs/2026-06-12-task-210-stop-loss-reviewer-needs-fix.md`
+- Related task id(s): `210`
+- Related run id: `5d79a96c35b34d13b05ae004dfbd0030`
+- Related latest.json: `logs/ci/2026-06-12/sc-review-pipeline-task-210/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-12/sc-review-pipeline-task-210-5d79a96c35b34d13b05ae004dfbd0030`
+- Related reviewer evidence: `logs/ci/2026-06-12/sc-llm-review-task-210/review-code-reviewer.md`; `logs/ci/2026-06-12/sc-llm-review-task-210/review-security-auditor.md`

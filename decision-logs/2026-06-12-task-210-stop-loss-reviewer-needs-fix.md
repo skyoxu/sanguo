@@ -1,0 +1,21 @@
+# Task 210 stop loss reviewer needs fix
+
+- Title: Task 210 stop loss reviewer needs fix
+- Date: 2026-06-12
+- Status: proposed
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T210
+- Git Head: a1544f5ed354c9454a63a26c2b004d3cccf38a2d
+- Why now: Task 210 reached two Chapter 6 review runs with the same review-needs-fix family. The latest route reports `preferred_lane=inspect-first`, `blocked_by=recent_failure_summary`, `six_eight_worthwhile=no`, and forbids another plain full rerun.
+- Context: The deterministic path is green in run `5d79a96c35b34d13b05ae004dfbd0030`: `sc-test=ok`, `sc-acceptance-check=ok`, and `sc-llm-review=ok`, but the artifact reviewer still reports P1 Needs Fix from code-reviewer and security-auditor.
+- Decision: Stop the Chapter 6 loop for this turn instead of entering 6.8 or paying another 6.7 rerun. The remaining P1 must be fixed by replacing the test-local Task 210 fixture with evidence that calls a real production validator, a real report generator path, or a real deterministic script/artifact output.
+- Consequences: Task 210 is not complete. Do not mark the task done and do not open a PR as complete until reviewer P1 is cleared by a new allowed route.
+- Recovery impact: Resume with `py -3 scripts/python/dev_cli.py resume-task --task-id 210 --recommendation-only --recommendation-format json`, then `py -3 scripts/python/dev_cli.py chapter6-route --task-id 210 --recommendation-only --recommendation-format json`. Do not run `py -3 scripts/sc/run_review_pipeline.py --task-id 210` while it remains forbidden.
+- Validation: Latest evidence is `logs/ci/2026-06-12/sc-review-pipeline-task-210-5d79a96c35b34d13b05ae004dfbd0030/summary.json`, `agent-review.json`, `repair-guide.json`, and `logs/ci/2026-06-12/sc-llm-review-task-210/review-code-reviewer.md` / `review-security-auditor.md`.
+- Related ADRs: ADR-0005, ADR-0011
+- Related execution plans: `execution-plans/2026-06-12-task-210-validate-part-3-config-validation-migration-inspect-state-acceptance-test-generation-plan.md`
+- Related task id(s): `210`
+- Related run id: `5d79a96c35b34d13b05ae004dfbd0030`
+- Related latest.json: `logs/ci/2026-06-12/sc-review-pipeline-task-210/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-12/sc-review-pipeline-task-210-5d79a96c35b34d13b05ae004dfbd0030`
