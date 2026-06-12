@@ -1,0 +1,22 @@
+# task-211-chapter6-residual-followup
+
+- Title: task-211-chapter6-residual-followup
+- Status: completed
+- Branch: task/T211
+- Git Head: bb8eb88ddd3258ec01b640bc8db9a2aff47f7fbb
+- Goal: Close the recorded residual reviewer findings for Task 211.
+- Scope: The code-reviewer and security-auditor findings were addressed by strengthening task-scoped evidence-resolution tests.
+- Current step: Completed; latest task pipeline has no reviewer Needs Fix.
+- Last completed step: targeted 6.8 follow-up plus clean local hard checks.
+- Stop-loss: Do not reopen 6.7 without a fresh deterministic failure. Do not rerun 6.8 when current edits do not hit the recorded reviewer anchors.
+- Next action: none; latest recovery recommends no follow-up action.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 211 --resume`
+- Open questions: none recorded yet
+- Exit criteria: Met by clean pipeline `e63fb3055b0743c48720d4934f9b4ef0` and local hard checks `7b783bd1fb0a49d7a67c6b7439af0d20`.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-12-task-211-chapter6-residual-needs-fix.md`
+- Related task id(s): `211`
+- Related run id: `e63fb3055b0743c48720d4934f9b4ef0`
+- Related latest.json: `logs/ci/2026-06-12/sc-review-pipeline-task-211/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-12/sc-review-pipeline-task-211-e63fb3055b0743c48720d4934f9b4ef0`
+- Related local hard checks: `logs/ci/2026-06-13/local-hard-checks-7b783bd1fb0a49d7a67c6b7439af0d20`
