@@ -145,6 +145,9 @@ func _restore_locale(original: String) -> void:
 		TranslationServer.set_locale(original)
 
 # ACC:T178.3
+# ACC:T212.1
+# ACC:T212.2
+# ACC:T212.5
 func test_task178_runtime_combat_events_render_pressure_targeting_outcome_and_feedback() -> void:
 	var original_locale := _set_locale("en")
 	var hud := await _hud()
@@ -184,6 +187,8 @@ func test_task178_runtime_combat_events_render_pressure_targeting_outcome_and_fe
 	_restore_locale(original_locale)
 
 # ACC:T178.4
+# ACC:T212.2
+# ACC:T212.3
 func test_task178_empty_state_keeps_no_active_pressure_without_combat_data() -> void:
 	var original_locale := _set_locale("en")
 	var hud := await _hud()
@@ -204,6 +209,10 @@ func test_task178_empty_state_keeps_no_active_pressure_without_combat_data() -> 
 	_restore_locale(original_locale)
 
 # ACC:T178.5
+# ACC:T212.1
+# ACC:T212.2
+# ACC:T212.4
+# ACC:T212.5
 func test_task178_invalid_or_blocked_combat_state_shows_explicit_feedback_instead_of_silent() -> void:
 	var original_locale := _set_locale("en")
 	var event_sink := _create_event_capture_sink()
@@ -275,6 +284,8 @@ func test_task178_invalid_or_blocked_combat_state_shows_explicit_feedback_instea
 	_restore_locale(original_locale)
 
 # ACC:T178.9
+# ACC:T212.2
+# ACC:T212.3
 func test_task178_camera_feedback_resets_to_neutral_when_pressure_signal_is_cleared() -> void:
 	var original_locale := _set_locale("en")
 	var hud := await _hud()

@@ -124,6 +124,7 @@ func test_task54_starting_money_preset_is_valid_and_carried_in_started_config() 
 	assert_bool(VALID_STARTING_MONEY_PRESETS.has(preset)).is_true()
 	assert_int(preset).is_equal(20000)
 
+# ACC:T212.3
 func test_task54_character_assignments_are_complete_and_unique() -> void:
 	var main = preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
 	add_child(auto_free(main))

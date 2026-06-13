@@ -11640,37 +11640,33 @@
     ],
     "owner": "gameplay",
     "test_refs": [
+      "Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs",
       "Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
       "Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Tests.Godot/tests/UI/test_task121_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Tests.Godot/tests/UI/test_task122_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Tests.Godot/tests/UI/test_task94_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs"
+      "Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs",
+      "Game.Core.Tests/Services/SanguoTurnManagerTests.cs",
+      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
+      "Game.Core.Tests/Utilities/NoGodotDependencyTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-f6b6b4aa1166 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:53 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Requirement REQ-0ce27e6f06b1 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:330 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Requirement REQ-6ae13dc0829e is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:427 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Requirement REQ-5d725df4a84c is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:428 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd",
-      "Combat pressure targeting interactions expose only governed UI or adapter surfaces for selecting, inspecting, or confirming combat targets, and invalid target selections are refused without changing combat state.",
-      "Camera interaction during combat pressure targeting presents the selected or hovered combat target state without bypassing core combat rules or mutating economy, progression, or meta state directly.",
-      "Economy multiplier and applied multiplier effects caused by combat-related interactions are resolved through the documented governed surfaces and produce observable state or event output instead of direct UI-only mutation.",
-      "Progression and meta-system effects triggered by combat, card, building, event, or game-end interactions are routed through governed contracts and leave unrelated state unchanged when the interaction is invalid.",
-      "Contract event data used by combat, economy, progression, and meta interaction surfaces remains serializable through the core contract boundary without requiring Godot-specific types in core logic.",
-      "[OBL:T212.O6] Primary deterministic combat pressure targeting behavior is covered by xUnit tests in Game.Core.Tests.",
-      "[OBL:T212.O6] The primary deterministic behavior must have xUnit coverage.",
-      "[OBL:T212.O7] Combat pressure targeting rule decisions are implemented in pure Game.Core logic and are exercised by deterministic assertions.",
-      "[OBL:T212.O7] The implementation must place the required assertion-backed behavior in pure core logic.",
-      "[OBL:T212.O8] Chapter 3 coverage audit is rerun after refactor, with evidence recorded and previously passing tests preserved.",
-      "[OBL:T212.O8] The Chapter 3 coverage audit must be rerun after refactor with passing tests preserved.",
-      "[OBL:T212.O9] Chapter 3.8 triplet baseline validators are run after the task view update, with validator evidence recorded.",
-      "[OBL:T212.O9] Chapter 3.8 triplet baseline validators must be run after this task is written to a task view."
+      "Combat pressure targeting UI flow exposes a governed selectable target surface and backs visible pressure, targeting, and pathing-fallback states with deterministic UI evidence, including an explicit missing-path or blocked-target feedback state instead of logs-only or hidden state. Source: docs/gdd/ui-gdd-flow.md:53 docs/gdd/ui-gdd-flow.md:329 docs/gdd/ui-gdd-flow.md:427 docs/gdd/ui-gdd-flow.md:428 Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
+      "Combat pressure targeting camera feedback presents no-active-combat or camera-ownership-not-ready, hovered, selected, invalid, and reset target states without requiring direct economy, progression, or meta mutation from the UI layer. Source: docs/gdd/ui-gdd-flow.md:330 docs/gdd/ui-gdd-flow.md:357 Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
+      "Combat pressure targeting interactions are exercised from a deterministic new-game setup with selected players and character assignments preserved before targeting begins. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs Tests.Godot/tests/UI/Task54/test_task54_new_game_setup_starts_game_with_selected_players_and_money.gd",
+      "Combat pressure targeting interactions expose only governed UI or adapter surfaces for selecting, inspecting, or confirming combat targets, and invalid target selections are refused without changing combat state. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
+      "Camera interaction during combat pressure targeting presents the selected or hovered combat target state without bypassing core combat rules or mutating economy, progression, or meta state directly. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
+      "Economy multiplier and applied multiplier effects caused by combat-related interactions are resolved through the documented governed surfaces and produce observable state or event output instead of direct UI-only mutation. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs",
+      "Progression and meta-system effects triggered by combat-related interactions are routed through governed contracts: valid progression interactions produce observable progression state or event output, valid meta/game-end interactions update only their intended meta state, and invalid interactions leave combat, economy, progression, and meta state unchanged. Refs: Game.Core.Tests/Services/SanguoTurnManagerTests.cs Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs",
+      "Contract event data used by combat, economy, progression, and meta interaction surfaces remains serializable through the core contract boundary without requiring Godot-specific types in core logic. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Utilities/NoGodotDependencyTests.cs",
+      "[OBL:T212.O6] Primary deterministic combat pressure targeting behavior is covered by xUnit tests in Game.Core.Tests. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs",
+      "[OBL:T212.O7] Combat pressure targeting rule decisions are implemented in pure Game.Core logic and are exercised by deterministic assertions. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs"
     ],
     "test_strategy": [
       "Red: add or update xUnit coverage for the primary deterministic behavior.",
       "Green: implement the minimal pure-core logic required by the assertions.",
       "Refactor: preserve passing tests and rerun the Chapter 3 coverage audit.",
-      "Run the Chapter 3.8 triplet baseline validators after writing this task to a task view."
+      "Run the Chapter 3.8 triplet baseline validators after writing this task to a task view.",
+      "[OBL:T212.O8] Chapter 3 coverage audit is rerun after refactor, with evidence recorded and previously passing tests preserved. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs",
+      "[OBL:T212.O9] Chapter 3.8 triplet baseline validators are run after the task view update, with validator evidence recorded. Refs: Game.Core.Tests/Tasks/Task212CombatPressureTargetingCameraInteractTests.cs"
     ],
     "contractRefs": [
       "core.combat.loop.hard_stopped"
