@@ -11834,29 +11834,21 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Game.Core.Tests/State/GameStateManagerTests.cs",
-      "Tests.Godot/Game.Core/Domain/Player.cs",
-      "Tests.Godot/Game.Core/State/GameStateMachine.cs",
-      "Tests.Godot/Game.Core/State/GameStateManager.cs"
+      "Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-7f86c36e6c71 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:447 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "After a part 2 completion result is produced, the UI state exposes the deterministic resource outcome for the player to read.",
-      "After a part 2 completion result is produced, the UI state exposes the deterministic progression outcome for the player to read.",
-      "[OBL:T214.O1] A1: 实现 part 2 completion result 的 deterministic resource 读取逻辑，并能返回稳定、可复现的 completion result。",
-      "[OBL:T214.O1] 实现必须提供 part 2 completion result 的 deterministic resource 读取行为，且读取结果可由测试稳定复现。",
-      "[OBL:T214.O2] A2: 当 deterministic resource 读取输入无效时，必须拒绝读取并保持 completion result 状态不变。",
-      "[OBL:T214.O2] 非法或不可接受的 deterministic resource 读取输入必须被拒绝，且不得推进 completion result 状态。",
-      "[OBL:T214.O3] A3: 新增或更新 xUnit 测试覆盖 deterministic resource 读取的主要确定性行为。",
-      "[OBL:T214.O3] 必须新增或更新 xUnit 覆盖 primary deterministic behavior。",
-      "[OBL:T214.O4] A4: 实现限于 Game.Core 的 pure-core 逻辑，不引入 Godot 依赖。",
-      "[OBL:T214.O4] 实现必须限制在纯 core 逻辑的最小必要变更内。",
-      "[OBL:T214.O5] A5: 保持相关测试通过，并提供 Chapter 3 coverage audit 重跑证据。",
-      "[OBL:T214.O5] 完成后必须保持测试通过并重跑 Chapter 3 coverage audit。",
-      "[OBL:T214.O6] A6: 写入任务视图后运行 Chapter 3.8 triplet baseline validators，并保留证据。",
-      "[OBL:T214.O6] 写入任务视图后必须运行 Chapter 3.8 triplet baseline validators。"
+      "Requirement REQ-7f86c36e6c71 is implemented with traceable evidence for a player-readable UI state/read-model. Source: docs/gdd/ui-gdd-flow.md:447 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "After a part 2 completion result is produced, the player-readable UI state/read-model contains a deterministic resource outcome field matching the produced completion result. Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "After a part 2 completion result is produced, the player-readable UI state/read-model contains a deterministic progression outcome field matching the produced completion result. Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "When deterministic resource read input is invalid, the read is rejected and the existing player-readable UI state/read-model remains unchanged. Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "[OBL:T214.O1] A1: 实现 part 2 completion result 的 deterministic resource 读取逻辑，并能返回稳定、可复现的 player-readable UI state/read-model。 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "[OBL:T214.O1] 实现必须提供 part 2 completion result 的 deterministic resource 读取行为，且读取结果可由测试稳定复现。 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "[OBL:T214.O2] A2: 当 deterministic resource 读取输入无效时，必须拒绝读取并保持 player-readable UI state/read-model 状态不变。 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "[OBL:T214.O2] 非法或不可接受的 deterministic resource 读取输入必须被拒绝，且不得推进 player-readable UI state/read-model。 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "[OBL:T214.O3] A3: 新增或更新 xUnit 测试覆盖 deterministic resource 读取的主要确定性行为。 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "[OBL:T214.O3] 必须新增或更新 xUnit 覆盖 primary deterministic behavior。 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "[OBL:T214.O4] A4: 实现限于 Game.Core 的 pure-core 逻辑，不引入 Godot 依赖。 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs",
+      "[OBL:T214.O4] 实现必须限制在纯 core 逻辑的最小必要变更内。 Refs: Game.Core.Tests/Tasks/Task214CompletionResultDeterministicResourceTests.cs"
     ],
     "test_strategy": [
       "Red: add or update xUnit coverage for the primary deterministic behavior.",
