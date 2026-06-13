@@ -1639,6 +1639,24 @@ public sealed class SanguoTurnManager
 
         if (!player.TrySpend(cost))
         {
+            var rejected = new DomainEvent(
+                Type: SanguoBuildingBuildRejected.EventType,
+                Source: nameof(SanguoTurnManager),
+                Data: JsonElementEventData.FromObject(new SanguoBuildingBuildRejected(
+                    GameId: _gameId,
+                    PlayerId: playerId,
+                    CityId: city.Id,
+                    BuildingId: picked.BuildingId,
+                    AttemptedLevel: newLevel,
+                    ReasonCode: SanguoBuildingBuildRejected.ReasonInsufficientResources,
+                    RequiredMoney: cost.ToDecimal(),
+                    AvailableMoney: player.Money.ToDecimal(),
+                    OccurredAt: occurredAt,
+                    CorrelationId: correlationId,
+                    CausationId: causationId)),
+                Timestamp: occurredAt.UtcDateTime,
+                Id: Guid.NewGuid().ToString("N"));
+            await _bus.PublishAsync(rejected);
             return;
         }
 
