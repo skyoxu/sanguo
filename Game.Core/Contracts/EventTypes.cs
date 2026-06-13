@@ -75,6 +75,7 @@ public static class EventTypes
     public const string SanguoAiDecisionMade = "core.sanguo.ai.decision.made";
     public const string SanguoBoardTokenMoved = "core.sanguo.board.token.moved";
     public const string SanguoBossChallengePrompted = "core.sanguo.boss.challenge.prompted";
+    public const string SanguoBuildingBuildRejected = "core.sanguo.building.build.rejected";
     public const string SanguoBuildingBuilt = "core.sanguo.building.built";
     public const string SanguoCardLost = "core.sanguo.card.lost";
     public const string SanguoCityBought = "core.sanguo.city.bought";

@@ -181,3 +181,33 @@ public sealed record SanguoBuildingBuilt(
     /// </summary>
     public const string EventType = "core.sanguo.building.built";
 }
+
+/// <summary>
+/// Domain event: core.sanguo.building.build.rejected
+/// Description: Emitted when a building build or upgrade action is rejected by core rules.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004, ADR-0005.
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md.
+/// </remarks>
+public sealed record SanguoBuildingBuildRejected(
+    string GameId,
+    string PlayerId,
+    string CityId,
+    string BuildingId,
+    int AttemptedLevel,
+    string ReasonCode,
+    decimal RequiredMoney,
+    decimal AvailableMoney,
+    DateTimeOffset OccurredAt,
+    string CorrelationId,
+    string? CausationId
+)
+{
+    public const string ReasonInsufficientResources = "insufficient_resources";
+
+    /// <summary>
+    /// CloudEvents type for this domain event.
+    /// </summary>
+    public const string EventType = "core.sanguo.building.build.rejected";
+}
