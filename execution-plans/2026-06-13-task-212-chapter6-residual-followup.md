@@ -1,0 +1,23 @@
+# task-212-chapter6-residual-followup
+
+- Title: task-212-chapter6-residual-followup
+- Status: closed-by-clean-override-run
+- Branch: task/T212
+- Git Head: 8ce44d79279ed02a91d17e478a3254b8b4e5a0fd
+- Goal: Close the recorded reviewer findings for Task 212 without violating Chapter 6 routing or forbidden commands.
+- Scope: Targeted fixes for recorded code-reviewer/security-auditor anchor findings, plus formal override/reset pipeline evidence after user approval.
+- Current step: Latest formal pipeline is clean. `resume-task --recommendation-only` reports `failure_code=ok`, `latest_reason=pipeline_clean`, `chapter6_next_action=continue`, and `blocked_by=n/a`.
+- Last completed step: Project-approved override/reset run completed with `SC_AGENT_REVIEW status=pass` and `SC_REVIEW_PIPELINE status=ok` at `logs/ci/2026-06-13/sc-review-pipeline-task-212-9dd59e41ce824e72bc8131092680f06b`.
+- Stop-loss: Do not run ordinary `py -3 scripts/sc/run_review_pipeline.py --task-id 212`; recovery still lists it under forbidden commands. Further reruns require a new route decision or explicit project-approved override.
+- Next action: Run Chapter 6.9 repository hard checks, then prepare commit/PR closure if 6.9 is clean.
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 212 --recommendation-only`
+- Open questions: none
+- Exit criteria: Satisfied for task-level implementation and review evidence. Remaining closure gate is repository-level 6.9 validation.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-13-task-212-chapter6-residual-needs-fix.md`
+- Related task id(s): `212`
+- Related prior run id(s): `1e97a89f86a1433fa1a5f34d525152e3`, `f4b61f5c804544cbbd5b8002e4ece5ff`, `24b53c55a2fa4682969841eb3ceeb7a9`
+- Related run id: `9dd59e41ce824e72bc8131092680f06b`
+- Related latest.json: `logs/ci/2026-06-13/sc-review-pipeline-task-212/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-13/sc-review-pipeline-task-212-9dd59e41ce824e72bc8131092680f06b`
+- Validation evidence: `logs/ci/2026-06-13/sc-review-pipeline-task-212-9dd59e41ce824e72bc8131092680f06b/summary.json`; `logs/ci/2026-06-13/sc-review-pipeline-task-212-9dd59e41ce824e72bc8131092680f06b/agent-review.json`; `logs/ci/2026-06-13/sc-review-pipeline-task-212-9dd59e41ce824e72bc8131092680f06b/child-artifacts/sc-llm-review/summary.json`; `logs/ci/2026-06-13/sc-test/summary.json`; `logs/ci/2026-06-13/task-212-acceptance-refs-refactor-after-anchor-fix.json`; `logs/ci/2026-06-13/task-212-acceptance-anchors-refactor-after-anchor-fix.json`
