@@ -12103,29 +12103,24 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Game.Core.Tests/State/GameStateManagerTests.cs",
-      "Tests.Godot/Game.Core/State/GameStateMachine.cs",
-      "Tests.Godot/Game.Core/State/GameStateManager.cs",
-      "Tests.Godot/Game.Core/State/SaveData.cs"
+      "Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-a0178269e8a3 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:398 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Requirement REQ-e62fc0b7c763 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:411 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Requirement REQ-a194ce2754f2 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:412 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Requirement REQ-da7e12f9552b is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:414 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Entering campaign runmode applies only the defined campaign failure-state isolation boundary, with an observable state, event, or output showing that the campaign path is isolated.",
-      "Entering campaign runmode does not apply campaign isolation behavior to non-campaign paths, and those paths remain observable as unchanged by this split.",
-      "Core tests verify both the campaign-isolated path and at least one non-campaign path so the runmode boundary cannot pass by leaving all paths unmodified.",
-      "[OBL:T217.O7] The campaign failure runmode isolation behavior is implemented in pure core logic without requiring Godot runtime state.",
-      "[OBL:T217.O7] Implementation must be limited to pure-core logic required by the assertions.",
-      "[OBL:T217.O8] Existing relevant state/core test coverage remains passing after the runmode isolation change.",
-      "[OBL:T217.O8] Existing passing tests must remain passing after refactor.",
-      "[OBL:T217.O9] Chapter 3 coverage audit is rerun with evidence recorded for this task.",
-      "[OBL:T217.O9] The Chapter 3 coverage audit must be rerun.",
-      "[OBL:T217.O10] Chapter 3.8 triplet baseline validators are run after this task is written to the task view, with evidence recorded.",
-      "[OBL:T217.O10] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Requirement REQ-a0178269e8a3 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:398 Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "Requirement REQ-e62fc0b7c763 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:411 Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "Requirement REQ-a194ce2754f2 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:412 Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "Requirement REQ-da7e12f9552b is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:414 Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "Entering campaign runmode applies only the defined campaign failure-state isolation boundary, with an observable state, event, or output showing that the campaign path is isolated. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "Entering campaign runmode does not apply campaign isolation behavior to non-campaign paths, and those paths remain observable as unchanged by this split. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "Core tests verify both the campaign-isolated path and at least one non-campaign path so the runmode boundary cannot pass by leaving all paths unmodified. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "[OBL:T217.O7] The campaign failure runmode isolation behavior is implemented in pure core logic without requiring Godot runtime state. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "[OBL:T217.O7] Implementation must be limited to pure-core logic required by the assertions. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "[OBL:T217.O8] Existing relevant state/core test coverage remains passing after the runmode isolation change. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "[OBL:T217.O8] Existing passing tests must remain passing after refactor. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "[OBL:T217.O9] Chapter 3 coverage audit is rerun with evidence recorded for this task. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "[OBL:T217.O9] The Chapter 3 coverage audit must be rerun. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "[OBL:T217.O10] Chapter 3.8 triplet baseline validators are run after this task is written to the task view, with evidence recorded. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs",
+      "[OBL:T217.O10] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view. Refs: Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs"
     ],
     "test_strategy": [
       "Red: add or update xUnit coverage for the primary deterministic behavior.",
@@ -12143,8 +12138,7 @@
       "docs/gdd/ui-gdd-flow.md:414",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-t51-economy-multipliers-and-applied-multipliers.md",
-      "Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Game.Core.Tests/State/GameStateManagerSecurityTests.cs"
+      "Game.Core.Tests/Tasks/Task217CampaignRunmodeIsolationTests.cs"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:398",
