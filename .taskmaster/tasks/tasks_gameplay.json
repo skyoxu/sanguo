@@ -12195,30 +12195,11 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Game.Core.Tests/State/GameStateManagerTests.cs",
-      "Tests.Godot/Game.Core/State/GameStateMachine.cs",
-      "Tests.Godot/Game.Core/State/GameStateManager.cs",
-      "Tests.Godot/Game.Core/State/SaveData.cs"
+      "Game.Core.Tests/Tasks/Task218StateFailureTilesGameoverTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-fd0168e767b6 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:430 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Requirement REQ-fc9b155607cb is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:462 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Requirement REQ-dc4cc4f0f7ae is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:478 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Requirement REQ-424e75ff42a2 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:501 Refs: Game.Core.Tests/State/GameStateMachineTests.cs Game.Core.Tests/State/GameStateManagerSecurityTests.cs",
-      "Given a map definition is validated by the core state failure path, when tiles is empty, then validation rejects the map definition as invalid and does not attempt to read tiles[0].",
-      "Given a map definition is validated by the core state failure path, when tiles contains at least one tile, then validation permits tiles[0] access for subsequent gameover/failure-state processing.",
-      "[OBL:T218.O7] Given T218 primary deterministic behavior is implemented, then xUnit coverage is added or updated for the behavior and its evidence is traceable.",
-      "[OBL:T218.O7] Primary deterministic behavior must have added or updated xUnit coverage.",
-      "[OBL:T218.O8] Given T218 assertions are satisfied, then the required state failure/gameover logic is implemented in pure core code.",
-      "[OBL:T218.O8] The implementation must keep the task logic in pure core code.",
-      "[OBL:T218.O9] Given T218 is complete, then the relevant existing passing tests remain green with traceable evidence.",
-      "[OBL:T218.O9] Passing tests must be preserved after refactor.",
-      "[OBL:T218.O10] Given T218 refactor is complete, then the Chapter 3 coverage audit is rerun and evidence is recorded.",
-      "[OBL:T218.O10] The Chapter 3 coverage audit must be rerun after refactor.",
-      "[OBL:T218.O11] Given T218 is written to a task view, then the Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
-      "[OBL:T218.O11] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Given a map definition is validated by the core state failure path, when tiles is empty, then validation rejects the map definition as invalid and does not attempt to read tiles[0]. Refs: Game.Core.Tests/Tasks/Task218StateFailureTilesGameoverTests.cs",
+      "Given a map definition is validated by the core state failure path, when tiles contains at least one tile, then validation permits tiles[0] access for subsequent failure-state/gameover processing. Refs: Game.Core.Tests/Tasks/Task218StateFailureTilesGameoverTests.cs"
     ],
     "test_strategy": [
       "Red: add or update xUnit coverage for the primary deterministic behavior.",
@@ -12236,8 +12217,7 @@
       "docs/gdd/ui-gdd-flow.md:501",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "Game.Core.Tests/State/GameStateMachineTests.cs",
-      "Game.Core.Tests/State/GameStateManagerSecurityTests.cs"
+      "Game.Core.Tests/Tasks/Task218StateFailureTilesGameoverTests.cs"
     ],
     "source_refs": [
       "docs/gdd/ui-gdd-flow.md:430",
