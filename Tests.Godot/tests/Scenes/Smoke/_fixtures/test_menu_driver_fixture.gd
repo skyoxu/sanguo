@@ -10,6 +10,11 @@ const _BTN_PLAY_PATHS: Array[String] = [
 	"VBox/BtnPlay",
 ]
 
+const _BTN_LOAD_PATHS: Array[String] = [
+	"MenuRow/MenuBox/BtnLoad",
+	"VBox/BtnLoad",
+]
+
 const _BTN_START_PATHS: Array[String] = [
 	"ConfigCenter/NewGameConfig/Margin/Root/BottomBar/BottomButtons/BtnStart",
 	"ConfigCenter/NewGameConfig/VBox/BtnStart",
@@ -34,8 +39,27 @@ static func resolve_menu(root: Node) -> Node:
 static func resolve_play_button(menu: Node) -> Button:
 	return _resolve_button(menu, _BTN_PLAY_PATHS)
 
+static func resolve_load_button(menu: Node) -> Button:
+	return _resolve_button(menu, _BTN_LOAD_PATHS)
+
 static func resolve_start_button(menu: Node) -> Button:
 	return _resolve_button(menu, _BTN_START_PATHS)
+
+static func resolve_status_label(menu: Node) -> Label:
+	if menu == null:
+		return null
+	var node = menu.get_node_or_null("StatusLabel")
+	if node is Label:
+		return node
+	return null
+
+static func resolve_load_panel(menu: Node) -> Control:
+	if menu == null:
+		return null
+	var node = menu.get_node_or_null("LoadPanel")
+	if node is Control:
+		return node
+	return null
 
 static func resolve_quit_button(menu: Node) -> Button:
 	return _resolve_button(menu, _BTN_QUIT_PATHS)
@@ -60,4 +84,3 @@ static func _resolve_button(root: Node, paths: Array[String]) -> Button:
 		if node is Button:
 			return node
 	return null
-

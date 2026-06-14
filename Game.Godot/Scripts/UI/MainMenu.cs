@@ -416,6 +416,14 @@ public partial class MainMenu : Control
 
     private void OnLoadPressed()
     {
+        if (!_hasContinuation)
+        {
+            _loadPending = false;
+            _loadPanel.Visible = false;
+            ShowStatus("Continue unavailable: no valid continue state");
+            return;
+        }
+
         _loadPending = true;
         ClearStatus();
         Publish(UiMenuLoad, "ui");
