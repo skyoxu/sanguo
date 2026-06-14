@@ -1,11 +1,15 @@
 extends "res://addons/gdUnit4/src/GdUnitTestSuite.gd"
 
+const MenuTestDriver = preload("res://tests/Scenes/Smoke/_fixtures/test_menu_driver_fixture.gd")
+
 var _evt_got := false
 var _evt_type := ""
+var _evt_types: Array = []
 
 func _on_domain_event(type, _source, _data_json, _id, _spec, _ct, _ts) -> void:
     _evt_got = true
     _evt_type = str(type)
+    _evt_types.append(str(type))
 
 # ACC:T1.1
 # ACC:T184.7
@@ -19,12 +23,20 @@ func test_main_scene_instantiates_and_visible() -> void:
 # ACC:T206.1
 # ACC:T206.3
 # ACC:T206.4
+# ACC:T215.1
 func test_main_scene_exposes_core_playable_recovery_surfaces() -> void:
     var scene := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
     add_child(auto_free(scene))
     await get_tree().process_frame
 
     assert_object(scene.get_node_or_null("MenuLayer/MainMenu")).is_not_null()
+    var menu := MenuTestDriver.resolve_menu(scene)
+    assert_object(menu).is_not_null()
+    if menu != null:
+        assert_object(MenuTestDriver.resolve_play_button(menu)).is_not_null()
+        assert_object(MenuTestDriver.resolve_load_button(menu)).is_not_null()
+        assert_object(MenuTestDriver.resolve_start_button(menu)).is_not_null()
+        assert_object(MenuTestDriver.resolve_status_label(menu)).is_not_null()
     var hud = scene.get_node_or_null("SplitRoot/TopArea/HudLayer/HUD")
     assert_object(hud).is_not_null()
     if hud != null:

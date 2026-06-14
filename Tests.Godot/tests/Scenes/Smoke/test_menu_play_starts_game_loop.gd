@@ -25,6 +25,7 @@ func _on_evt(type, _source, _data_json, _id, _spec, _ct, _ts) -> void:
 
 # ACC:T28.8
 # ACC:T206.2
+# ACC:T215.1 ACC:T215.5
 func test_play_is_consumed_and_turn_started_is_published() -> void:
     _types.clear()
     var main = preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
