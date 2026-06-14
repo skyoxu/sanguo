@@ -1,0 +1,23 @@
+# Task 218 Develop part 4 state failure tiles the gameover acceptance-test generation plan
+
+- Title: Task 218 Develop part 4 state failure tiles the gameover acceptance-test generation plan
+- Status: complete
+- Branch: task/T218
+- Git Head: e86832f5fb68d9eff1b9ee2753131d2c4ff5ef56
+- Goal: Control acceptance-driven test generation complexity for task 218.
+- Scope: 0 missing refs across 0 test roots; seed refs: no missing refs detected
+- Current step: Closed after Chapter 6.9 hard checks passed.
+- Last completed step: 6.9 local hard checks passed.
+- Stop-loss: Full 6.7 rerun was forbidden after the first clean deterministic pipeline; targeted 6.8 was used for the semantic reviewer finding.
+- Next action: None for Task 218 unless a new review finding is introduced.
+- Recovery command: `py -3 scripts/python/dev_cli.py resume-task --task-id 218 --recommendation-only`
+- Open questions: none recorded yet
+- Exit criteria: Task 218 acceptance is narrowed to the two map tiles invariants, xUnit evidence exists, 6.8 reviewer closure is clean, and 6.9 hard checks pass.
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `218`
+- Related run id: `3c738de607c147bebc904f81023aac5e`
+- Related latest.json: `logs/ci/2026-06-14/sc-review-pipeline-task-218/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-14/sc-review-pipeline-task-218-3c738de607c147bebc904f81023aac5e`
+- Related 6.8 artifacts: `logs/ci/2026-06-14/sc-needs-fix-fast-task-218/summary.json`
+- Related 6.9 artifacts: `logs/ci/2026-06-14/local-hard-checks-2e16b6c968cf4539bdacd7c00e86f6f1/hard/summary.json`
