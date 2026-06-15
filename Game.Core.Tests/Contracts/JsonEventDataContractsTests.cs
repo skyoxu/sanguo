@@ -11,6 +11,7 @@ namespace Game.Core.Tests.Contracts;
 public sealed class JsonEventDataContractsTests
 {
     private const int TaskId178 = 178;
+    private const int TaskId219 = 219;
     private const string CandidatePath = "docs/gdd/ui-gdd-flow.candidates.json";
     private const string CandidateScreenGroup = "Combat Pressure And Interaction Surfaces";
 
@@ -179,6 +180,70 @@ public sealed class JsonEventDataContractsTests
         line.Should().Contain("targeting is cleared");
         line.Should().Contain("returns to neutral state");
         line.Should().Contain("without stale focus cues");
+    }
+
+    // ACC:T219.1
+    [Trait("acceptance", "ACC:T219.1")]
+    [Fact]
+    public void ShouldBindTask219ToReadableLoopSourceRequirements_WhenReadingGameplayAcceptance()
+    {
+        var gameplay = LoadTaskFromView("tasks_gameplay.json", TaskId219);
+
+        AcceptanceLine(gameplay, 0).Should().Contain("REQ-f3bdfec8e344");
+    }
+
+    // ACC:T219.2
+    [Trait("acceptance", "ACC:T219.2")]
+    [Fact]
+    public void ShouldBindTask219ToReadableLoopUiFlowRequirement_WhenReadingGameplayAcceptance()
+    {
+        var gameplay = LoadTaskFromView("tasks_gameplay.json", TaskId219);
+
+        AcceptanceLine(gameplay, 1).Should().Contain("REQ-40ca2ff8bb7b");
+    }
+
+    // ACC:T219.3
+    // ACC:T219.4
+    // ACC:T219.5
+    // ACC:T219.6
+    // ACC:T219.7
+    [Trait("acceptance", "ACC:T219.3")]
+    [Trait("acceptance", "ACC:T219.4")]
+    [Trait("acceptance", "ACC:T219.5")]
+    [Trait("acceptance", "ACC:T219.6")]
+    [Trait("acceptance", "ACC:T219.7")]
+    [Fact]
+    public void ShouldRequireTask219ReadableLoopUiSurfaces_WhenReadingGameplayAcceptance()
+    {
+        var gameplay = LoadTaskFromView("tasks_gameplay.json", TaskId219);
+
+        AcceptanceLine(gameplay, 2).Should().ContainAll("phase", "pressure", "resources", "HP", "prompt", "outcome");
+        AcceptanceLine(gameplay, 3).Should().Contain("updates");
+        AcceptanceLine(gameplay, 4).Should().ContainAll("player action", "visible context", "outcome impact");
+        AcceptanceLine(gameplay, 5).Should().ContainAll("refusal reason", "state unchanged", "visible refusal feedback");
+        AcceptanceLine(gameplay, 6).Should().ContainAll("loop progression path", "blocked or invalid action path", "observable UI text");
+    }
+
+    [Fact]
+    public void ShouldRequireTask219PureCoreDeterministicCoverage_WhenReadingGameplayAcceptance()
+    {
+        var gameplay = LoadTaskFromView("tasks_gameplay.json", TaskId219);
+
+        AcceptanceLine(gameplay, 7).Should().ContainAll("xUnit coverage", "deterministic loop behavior");
+        AcceptanceLine(gameplay, 8).Should().ContainAll("xUnit coverage", "primary deterministic behavior");
+        AcceptanceLine(gameplay, 9).Should().ContainAll("pure core logic", "Godot UI code limited to presentation");
+        AcceptanceLine(gameplay, 10).Should().ContainAll("pure core logic");
+    }
+
+    [Fact]
+    public void ShouldRequireTask219PostRefactorAuditEvidence_WhenReadingGameplayAcceptance()
+    {
+        var gameplay = LoadTaskFromView("tasks_gameplay.json", TaskId219);
+
+        AcceptanceLine(gameplay, 11).Should().ContainAll("passing relevant tests", "Chapter 3 coverage audit");
+        AcceptanceLine(gameplay, 12).Should().ContainAll("Chapter 3 coverage audit", "preserving passing tests");
+        AcceptanceLine(gameplay, 13).Should().ContainAll("Chapter 3.8 triplet baseline validators", "evidence is recorded");
+        AcceptanceLine(gameplay, 14).Should().ContainAll("Chapter 3.8 triplet baseline validators", "task view");
     }
 
     private static JsonDocument LoadJsonDocument(string repoRelativePath)

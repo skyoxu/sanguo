@@ -145,6 +145,11 @@ func _restore_locale(original: String) -> void:
 		TranslationServer.set_locale(original)
 
 # ACC:T178.3
+# ACC:T219.1
+# ACC:T219.2
+# ACC:T219.3
+# ACC:T219.4
+# ACC:T219.6
 # ACC:T212.1
 # ACC:T212.2
 # ACC:T212.5
@@ -152,13 +157,19 @@ func test_task178_runtime_combat_events_render_pressure_targeting_outcome_and_fe
 	var original_locale := _set_locale("en")
 	var hud := await _hud()
 	var pressure_label: Label = hud.get_node("TopBar/TopStack/CampaignParamsPanel/VBox/BossPressureValue")
+	var money_label: Label = hud.get_node("TopBar/TopStack/HBox/MoneyLabel")
+	var hp_label: Label = hud.get_node("TopBar/TopStack/HBox/HealthLabel")
 
+	hud.SetHealth(82)
 	_bus.PublishSimple(EVENT_BOSS_CHALLENGE_PROMPTED, "ut", "{\"BossId\":\"boss_yellow_turban\",\"RoundNumber\":6,\"WinRateTier\":\"mid\",\"NextRoundPressureForecast\":4,\"KeyLossSummary\":\"camp_hp_risk\",\"FailConsequence\":\"return_to_camp_end_round\"}")
 	_bus.PublishSimple(EVENT_COMBAT_STARTED, "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"EncounterId\":\"enc-178\",\"RandomSeed\":42}")
 	_bus.PublishSimple(EVENT_COMBAT_ENDED, "ut", "{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"EncounterId\":\"enc-178\",\"Result\":{\"Outcome\":\"win\",\"MoneyDelta\":12,\"EncounterTarget\":2,\"EffectiveCombatRating\":7}}")
 	var items := await _wait_for_log_items(hud, 3)
 
 	assert_int(items.size()).is_greater_equal(3)
+	assert_str(money_label.text).contains("Money")
+	assert_str(hp_label.text).contains("82")
+	assert_str(pressure_label.text).contains("R6")
 	assert_str(pressure_label.text).contains("+4")
 
 	var joined := "\n".join(items)
@@ -209,6 +220,8 @@ func test_task178_empty_state_keeps_no_active_pressure_without_combat_data() -> 
 	_restore_locale(original_locale)
 
 # ACC:T178.5
+# ACC:T219.5
+# ACC:T219.7
 # ACC:T212.1
 # ACC:T212.2
 # ACC:T212.4
@@ -248,6 +261,7 @@ func test_task178_invalid_or_blocked_combat_state_shows_explicit_feedback_instea
 	assert_int(first_items.size()).is_greater_equal(1)
 	assert_str(first_items[first_items.size() - 1]).is_equal(toast_text)
 
+	var pressure_before_skip := str(pressure_label.text)
 	var reason_key := _translate_field(EVENT_OBJECTIVE_SKIPPED, "detail", "reason", "reason")
 	var reason_value := _translate_token("objective_skip_reason", "run_ended_in_boss")
 	var affected_surface_key := _translate_field(EVENT_OBJECTIVE_SKIPPED, "detail", "affected_surface", "affected_surface")
@@ -265,6 +279,7 @@ func test_task178_invalid_or_blocked_combat_state_shows_explicit_feedback_instea
 	await get_tree().process_frame
 	var after_skip_events := _count_event_type(event_sink, EVENT_UI_TILE_ACTION_SELECTED)
 	assert_int(after_skip_events).is_equal(before_skip_events)
+	assert_str(pressure_label.text).is_equal(pressure_before_skip)
 	assert_str(pressure_label.text).contains("R6")
 	assert_str(pressure_label.text).contains("+0")
 	var first_details := _details_text(hud)

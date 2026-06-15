@@ -12276,27 +12276,24 @@
     "test_refs": [
       "Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
       "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoEconomyMoneyDeltaAppliedMultipliersContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs"
     ],
     "acceptance": [
       "Requirement REQ-f3bdfec8e344 is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:41 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
       "Requirement REQ-40ca2ff8bb7b is implemented with traceable evidence. Source: docs/gdd/ui-gdd-flow.md:329 Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
-      "The loop UI displays the current phase, pressure value or state, available resources, HP state, active prompt, and latest outcome in visible user-facing surfaces without requiring logs, debug overlays, or external documentation.",
-      "When phase, pressure, resources, HP, prompt, or outcome changes during the loop, the UI updates the corresponding visible value or state before the player must make the next decision.",
-      "Prompts that require player action include enough visible context to understand the relevant pressure, resource, HP, and expected outcome impact before the action is selected.",
-      "If a loop action cannot proceed because of insufficient resources, invalid phase, HP state, or pressure constraints, the UI shows the refusal reason and leaves the loop state unchanged except for the visible refusal feedback.",
-      "Automated coverage verifies at least one loop progression path and at least one blocked or invalid action path using observable UI text, state, or emitted contract data rather than implementation-only flags.",
-      "[OBL:T219.O4] Automated xUnit coverage verifies the primary deterministic loop behavior for phase, pressure, resources, HP, prompt, or outcome state.",
-      "[OBL:T219.O4] Automated xUnit coverage must verify the primary deterministic behavior for this task.",
-      "[OBL:T219.O5] The deterministic loop behavior required by these assertions is implemented in pure core logic, with Godot UI code limited to presentation and adapter wiring.",
-      "[OBL:T219.O5] The implementation must place the required deterministic behavior in pure core logic.",
-      "[OBL:T219.O6] Evidence includes passing relevant tests and a rerun Chapter 3 coverage audit after the refactor step.",
-      "[OBL:T219.O6] Chapter 3 coverage audit must be rerun after refactor while preserving passing tests.",
-      "[OBL:T219.O7] After this task is written to a task view, Chapter 3.8 triplet baseline validators are run and evidence is recorded.",
-      "[OBL:T219.O7] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "The loop UI displays the current phase, pressure value or state, available resources, HP state, active prompt, and latest outcome in visible user-facing surfaces without requiring logs, debug overlays, or external documentation. Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
+      "When phase, pressure, resources, HP, prompt, or outcome changes during the loop, the UI updates the corresponding visible value or state before the player must make the next decision. Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
+      "Prompts that require player action include enough visible context to understand the relevant pressure, resource, HP, and expected outcome impact before the action is selected. Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
+      "If a loop action cannot proceed because of insufficient resources, invalid phase, HP state, or pressure constraints, the UI shows the refusal reason and leaves the loop state unchanged except for the visible refusal feedback. Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
+      "Automated coverage verifies at least one loop progression path and at least one blocked or invalid action path using observable UI text, state, or emitted contract data rather than implementation-only flags. Refs: Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
+      "[OBL:T219.O4] Automated xUnit coverage verifies the primary deterministic loop behavior for phase, pressure, resources, HP, prompt, or outcome state. Refs: Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
+      "[OBL:T219.O4] Automated xUnit coverage must verify the primary deterministic behavior for this task. Refs: Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs Tests.Godot/tests/UI/test_task178_combat_pressure_and_interaction_surfaces.gd",
+      "[OBL:T219.O5] The deterministic loop behavior required by these assertions is implemented in pure core logic, with Godot UI code limited to presentation and adapter wiring. Refs: Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs",
+      "[OBL:T219.O5] The implementation must place the required deterministic behavior in pure core logic. Refs: Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs",
+      "[OBL:T219.O6] Evidence includes passing relevant tests and a rerun Chapter 3 coverage audit after the refactor step. Refs: Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs",
+      "[OBL:T219.O6] Chapter 3 coverage audit must be rerun after refactor while preserving passing tests. Refs: Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs",
+      "[OBL:T219.O7] After this task is written to a task view, Chapter 3.8 triplet baseline validators are run and evidence is recorded. Refs: Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs",
+      "[OBL:T219.O7] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view. Refs: Game.Core.Tests/Tasks/Task219ReadableLoopSummaryTests.cs"
     ],
     "test_strategy": [
       "Red: add or update xUnit coverage for the primary deterministic behavior.",
