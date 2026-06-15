@@ -1,0 +1,21 @@
+# task-224-fast-ship-residual-closure
+
+- Title: task-224-fast-ship-residual-closure
+- Date: 2026-06-15
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T224
+- Git Head: 9b81632d4593ae19b27d4f23c422dddee2c89a68
+- Why now: Chapter 6 route reports preferred_lane=inspect-first, six_eight_worthwhile=no, and residual_recording=eligible after deterministic and acceptance refreshes passed.
+- Context: Latest pipeline run 6783ba85e3ad4954ac2a08f56b821e31 remains pipeline_clean with failure_kind=review-needs-fix because the reviewer sidecar still points at stale findings about weak Task 224 acceptance anchors. The current changes moved ACC:T224 anchors onto production-path Godot roundtrip coverage, removed fake/string-only xUnit acceptance evidence, and refreshed task refs. Deterministic evidence is green: sc-build-tdd refactor ok, sc-test all ok, sc-acceptance ok, and acceptance preflight refs/anchors ok.
+- Decision: Treat Task 224 as fast-ship closable with a recorded residual: do not run the forbidden full 6.7 command or force 6.8 while route remains inspect-first / six_eight_worthwhile=no. Keep the reviewer sidecar residual explicit for future route-authorized cleanup.
+- Consequences: The task keeps auditable follow-up evidence instead of spending another same-shape reviewer pass against a stale sidecar. Future work can clear the residual if chapter6-route later permits a narrow 6.8 pass.
+- Recovery impact: Recovery must start with resume-task --recommendation-only and chapter6-route --recommendation-only. Prefer this residual closure record over reopening full 6.7; only enter 6.8 if preferred_lane=run-6.8 and real Needs Fix remains present.
+- Validation: sc-build-tdd refactor ok; sc-test all ok; sc-acceptance ok; acceptance-preflight refs/anchors ok; resume-task/chapter6-route/inspect-run recommendation-only consumed.
+- Related ADRs: none yet
+- Related execution plans: `execution-plans/2026-06-15-task-224-fast-ship-residual-closure-followup.md`
+- Related task id(s): `224`
+- Related run id: `6783ba85e3ad4954ac2a08f56b821e31`
+- Related latest.json: `logs/ci/2026-06-15/sc-review-pipeline-task-224/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-15/sc-review-pipeline-task-224-6783ba85e3ad4954ac2a08f56b821e31`
