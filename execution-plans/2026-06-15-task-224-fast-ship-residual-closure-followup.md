@@ -1,0 +1,21 @@
+# task-224-fast-ship-residual-closure-followup
+
+- Title: task-224-fast-ship-residual-closure-followup
+- Status: active
+- Branch: task/T224
+- Git Head: 9b81632d4593ae19b27d4f23c422dddee2c89a68
+- Goal: Preserve Task 224 fast-ship closure while keeping a narrow route-authorized path to clear the stale reviewer sidecar.
+- Scope: Stale reviewer sidecar for weak ACC:T224 acceptance anchor evidence; current production-path Godot anchors, xUnit core resolver evidence, task refs, deterministic tests, and acceptance gates are green.
+- Current step: Fast-ship residual closure recorded after deterministic and acceptance refreshes passed.
+- Last completed step: n/a (new execution plan scaffold; no completed step recorded yet)
+- Stop-loss: Do not run py -3 scripts/sc/run_review_pipeline.py --task-id 224 while it remains forbidden. Do not force llm_review_needs_fix_fast.py while preferred_lane=inspect-first or six_eight_worthwhile=no. Do not enter 6.8 unless preferred_lane=run-6.8 and real Needs Fix remains present.
+- Next action: Start future recovery with resume-task --recommendation-only, then chapter6-route --recommendation-only, then inspect-run only if route still says inspect-first. If route changes to run-6.8, use the route-recommended narrow reviewer confirmation.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 224 --resume`
+- Open questions: none recorded yet
+- Exit criteria: Either a future route-authorized reviewer pass clears the stale sidecar, or this residual remains accepted for fast-ship completion with deterministic gates green.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-15-task-224-fast-ship-residual-closure.md`
+- Related task id(s): `224`
+- Related run id: `6783ba85e3ad4954ac2a08f56b821e31`
+- Related latest.json: `logs/ci/2026-06-15/sc-review-pipeline-task-224/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-15/sc-review-pipeline-task-224-6783ba85e3ad4954ac2a08f56b821e31`

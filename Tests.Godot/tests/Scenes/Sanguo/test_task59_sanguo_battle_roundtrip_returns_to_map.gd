@@ -56,6 +56,17 @@ func _wait_for_event(type_name: String, max_frames: int = 180) -> void:
 	assert_bool(_last_event(type_name).size() > 0).is_true()
 
 
+func _wait_for_event_from(type_name: String, from_index: int, max_frames: int = 180) -> Dictionary:
+	for _i in range(max_frames):
+		for index in range(from_index, _events.size()):
+			var e: Dictionary = _events[index]
+			if str(e.get("type", "")) == type_name:
+				return e
+		await get_tree().process_frame
+	assert_bool(false).is_true()
+	return {}
+
+
 func _wait_for_event_for_corr(type_name: String, correlation_id: String, max_frames: int = 180) -> Dictionary:
 	for _i in range(max_frames):
 		for e in _events_of_type(type_name):
@@ -67,9 +78,12 @@ func _wait_for_event_for_corr(type_name: String, correlation_id: String, max_fra
 	return {}
 
 
-func _wait_for_health_event_for_corr(correlation_id: String, max_frames: int = 180) -> Dictionary:
+func _wait_for_health_event_for_corr(correlation_id: String, from_index: int = 0, max_frames: int = 180) -> Dictionary:
 	for _i in range(max_frames):
-		for e in _events_of_type(CORE_HEALTH_UPDATED):
+		for index in range(from_index, _events.size()):
+			var e: Dictionary = _events[index]
+			if str(e.get("type", "")) != CORE_HEALTH_UPDATED:
+				continue
 			var payload: Dictionary = JSON.parse_string(str(e.get("data_json", "{}")))
 			if str(payload.get("correlationId", "")) == correlation_id:
 				return payload
@@ -86,6 +100,27 @@ func _wait_for_turn_started(active_player_id: String, max_frames: int = 300) -> 
 				return
 		await get_tree().process_frame
 	assert_bool(false).is_true()
+
+
+func _wait_for_turn_started_from(active_player_id: String, from_index: int, max_frames: int = 300) -> void:
+	for _i in range(max_frames):
+		for index in range(from_index, _events.size()):
+			var e: Dictionary = _events[index]
+			if str(e.get("type", "")) != CORE_TURN_STARTED:
+				continue
+			var payload: Dictionary = JSON.parse_string(str(e.get("data_json", "{}")))
+			if str(payload.get("ActivePlayerId", "")) == active_player_id:
+				return
+		await get_tree().process_frame
+	assert_bool(false).is_true()
+
+
+func _wait_for_enabled_button(button: Button, max_frames: int = 120) -> void:
+	for _i in range(max_frames):
+		if not button.disabled:
+			return
+		await get_tree().process_frame
+	assert_bool(button.disabled).is_false()
 
 
 func _assert_returned_to_main_loop(main: Node, active_player_id: String, max_frames: int = 600) -> void:
@@ -165,6 +200,7 @@ func test_task59_roundtrip_enters_battle_view_and_returns_to_map_and_allows_cont
 # ACC:T182.3
 # ACC:T182.4
 # ACC:T182.10
+# ACC:T224.1 ACC:T224.2 ACC:T224.3 ACC:T224.4 ACC:T224.5
 func test_task182_win_combat_keeps_combat_end_hp_on_return() -> void:
 	var main := preload("res://Game.Godot/Scenes/Main.tscn").instantiate()
 	add_child(auto_free(main))
@@ -203,7 +239,7 @@ func test_task182_win_combat_keeps_combat_end_hp_on_return() -> void:
 	var win_stats: Dictionary = win_main.get("Stats", {})
 	var win_current_hp := int(win_stats.get("CurrentHP", -1))
 	assert_bool(win_current_hp > 0).is_true()
-	var win_health_payload := await _wait_for_health_event_for_corr(win_corr, 180)
+	var win_health_payload := await _wait_for_health_event_for_corr(win_corr, 0, 180)
 	var win_reported_hp := int(win_health_payload.get("value", -1))
 	assert_int(win_reported_hp).is_equal(win_current_hp)
 	assert_str(hp_label.text).contains(str(win_reported_hp))
@@ -228,18 +264,20 @@ func test_task182_loss_combat_restores_half_max_hp_on_return() -> void:
 	var hp_label: Label = hud.get_node("TopBar/TopStack/HBox/HealthLabel")
 	var dice: Button = hud.get_node("TopBar/TopStack/HBox/DiceButton")
 
-	var lose_start := "{\"map_id\":\"map001\",\"players_count\":4,\"starting_money_preset\":5000,\"global_event_interval_turns\":5,\"random_seed\":9,\"character_assignments\":{\"p1\":\"c_zhuge_liang\",\"ai-1\":\"c_lu_bu\",\"ai-2\":\"c_cao_cao\",\"ai-3\":\"c_sun_quan\"}}"
+	var lose_start := "{\"map_id\":\"map001\",\"players_count\":4,\"starting_money_preset\":5000,\"global_event_interval_turns\":5,\"random_seed\":7,\"character_assignments\":{\"p1\":\"c_zhuge_liang\",\"ai-1\":\"c_lu_bu\",\"ai-2\":\"c_cao_cao\",\"ai-3\":\"c_sun_quan\"}}"
 	_bus.PublishSimple(UI_MENU_START, "ut", lose_start)
 	await _wait_for_turn_started("p1", 240)
+	await _wait_for_enabled_button(dice, 180)
+	var roll_event_start := _events.size()
 	dice.emit_signal("pressed")
-	await _wait_for_event(UI_DICE_ROLL, 120)
-	var lose_ui := _last_event(UI_DICE_ROLL)
+	var lose_ui := await _wait_for_event_from(UI_DICE_ROLL, roll_event_start, 180)
 	var lose_ui_payload: Dictionary = JSON.parse_string(str(lose_ui.get("data_json", "{}")))
 	var lose_corr := str(lose_ui_payload.get("CorrelationId", ""))
 	assert_bool(lose_corr.length() > 0).is_true()
 	var lose_moved := await _wait_for_event_for_corr(CORE_TOKEN_MOVED, lose_corr, 240)
 	var lose_to_index := int(lose_moved.get("ToIndex", -1))
 	assert_int(lose_to_index).is_equal(6)
+	var health_event_start := _events.size()
 
 	_bus.PublishSimple(UI_TILE_ACTION_SELECTED, "ut",
 		"{\"GameId\":\"g1\",\"PlayerId\":\"p1\",\"ToIndex\":%d,\"Action\":\"start_combat\",\"CorrelationId\":\"%s\",\"CausationId\":\"%s\"}" % [lose_to_index, lose_corr, UI_TILE_ACTION_SELECTED])
@@ -251,7 +289,7 @@ func test_task182_loss_combat_restores_half_max_hp_on_return() -> void:
 	var lose_stats: Dictionary = lose_main.get("Stats", {})
 	var lose_max_hp := int(lose_stats.get("MaxHP", -1))
 	assert_bool(lose_max_hp > 0).is_true()
-	var lose_health_payload := await _wait_for_health_event_for_corr(lose_corr, 180)
+	var lose_health_payload := await _wait_for_health_event_for_corr(lose_corr, health_event_start, 180)
 	var lose_reported_hp := int(lose_health_payload.get("value", -1))
 	assert_int(lose_reported_hp).is_equal(int(lose_max_hp / 2))
 	assert_str(hp_label.text).contains(str(lose_reported_hp))
