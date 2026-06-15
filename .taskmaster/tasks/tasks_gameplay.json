@@ -12451,29 +12451,19 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/Game.Core/Domain/Player.cs",
-      "Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd",
-      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-a7e8048a0491 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:20 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd",
-      "Requirement REQ-27efd0f0580f is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:50 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd",
-      "Requirement REQ-ac76d5b5eed8 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:96 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd",
-      "Requirement REQ-190c71c34423 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:157 Refs: Tests.Godot/Game.Core/Domain/Player.cs Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd",
-      "Player character combat attributes are represented as explicit character state and are consumed by combat resolution so that changing an attribute changes the deterministic combat result under otherwise identical inputs.",
-      "[OBL:T223.O2] Primary deterministic character-attribute combat behavior is covered by xUnit tests.",
-      "[OBL:T223.O2] Primary deterministic behavior must have xUnit coverage added or updated.",
-      "[OBL:T223.O3] Character-attribute combat resolution is implemented in pure core logic without Godot runtime dependencies.",
-      "[OBL:T223.O3] The implementation must keep the combat attribute behavior in pure core logic rather than Godot scene or adapter logic.",
-      "[OBL:T223.O4] Existing relevant passing tests remain passing after the character-attribute combat change.",
-      "[OBL:T223.O4] Existing passing tests must remain passing after the change.",
-      "[OBL:T223.O5] Chapter 3 coverage audit is rerun with traceable evidence after the task change.",
-      "[OBL:T223.O5] The Chapter 3 coverage audit must be rerun after the refactor step.",
-      "[OBL:T223.O6] Chapter 3.8 triplet baseline validators are run after writing this task to a task view.",
-      "[OBL:T223.O6] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Requirement REQ-a7e8048a0491 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:20 Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "Requirement REQ-27efd0f0580f is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:50 Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "Requirement REQ-ac76d5b5eed8 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:96 Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "Requirement REQ-190c71c34423 is implemented with traceable evidence. Source: docs/prd/PRD_V4_RULES_FREEZE.md:157 Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "Player character combat attributes are represented as explicit character state and consumed by SanguoCombatResolver: under otherwise identical deterministic inputs, changing each PRD v4 player combat attribute changes the deterministic effective combat rating. Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "When a valid player attribute payload is supplied, v4 combat win/loss authority is derived from the supplied runtime combat attributes rather than legacy CombatRating; CombatRating remains the compatibility fallback when the attribute payload is unavailable. Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "[OBL:T223.O2] Primary deterministic character-attribute combat behavior is covered by xUnit tests. Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "[OBL:T223.O3] Character-attribute combat resolution is implemented in pure core logic without Godot runtime dependencies. Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "[OBL:T223.O4] Existing relevant passing tests remain passing after the character-attribute combat change. Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs",
+      "[OBL:T223.O5] Chapter 3 coverage audit and Chapter 3.8 triplet validators are recorded as task closure evidence, not as substitutes for behavior coverage. Refs: Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs"
     ],
     "test_strategy": [
       "Red: add or update xUnit coverage for the primary deterministic behavior.",
@@ -12491,8 +12481,7 @@
       "docs/prd/PRD_V4_RULES_FREEZE.md:157",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
       "docs/architecture/overlays/PRD-SANGUO-V3/08/08-feature-slice-t2-setup-map-character-events-cards-buildings-combat-gameend.md",
-      "Tests.Godot/Game.Core/Domain/Player.cs",
-      "Tests.Godot/addons/gdUnit4/src/core/attributes/TestCaseAttribute.gd"
+      "Game.Core.Tests/Tasks/Task223CharacterAttributesCombatUseTests.cs"
     ],
     "source_refs": [
       "docs/prd/PRD_V4_RULES_FREEZE.md:20",
