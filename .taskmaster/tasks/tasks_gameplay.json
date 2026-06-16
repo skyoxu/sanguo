@@ -12698,28 +12698,23 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoDataCatalogV2ContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoEconomyAppliedMultipliersContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoEconomyMoneyDeltaAppliedMultipliersContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoEventContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-698a6d643eff is implemented with traceable evidence. Source: docs/prd/prd_v4.md:500 Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs",
-      "Requirement REQ-e0be38d2d0c2 is implemented with traceable evidence. Source: docs/prd/prd_v4.md:504 Refs: Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs",
-      "Runtime player stats expose a `playerFinalHp` value in the relevant core data contract or event payload so consumers can read the player's final HP after the runtime outcome is produced.",
-      "Contract serialization and deserialization preserve `playerFinalHp` with the expected JSON field name and numeric value when runtime player stats are round-tripped.",
-      "When runtime player stats are produced for an outcome with a known final player HP, the emitted `playerFinalHp` equals that final HP instead of being omitted, defaulted, or derived from an unrelated HP value.",
-      "[OBL:T226.O4] xUnit coverage is added or updated for the primary deterministic runtime player stats behavior involving `playerFinalHp`.",
-      "[OBL:T226.O4] Primary deterministic behavior must have xUnit coverage.",
-      "[OBL:T226.O5] `playerFinalHp` production is implemented in pure core logic without adding Godot-dependent behavior to the core contract path.",
-      "[OBL:T226.O5] Implementation must be minimal pure-core logic required by the assertions.",
-      "[OBL:T226.O6] After the refactor, the relevant previously passing test set remains passing and evidence is recorded.",
-      "[OBL:T226.O6] Chapter 3 coverage audit is rerun after the change and evidence is recorded.",
-      "[OBL:T226.O6] The Chapter 3 coverage audit must be rerun after refactor.",
-      "[OBL:T226.O7] Chapter 3.8 triplet baseline validators are run after the task view is written and evidence is recorded.",
-      "[OBL:T226.O7] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Requirement REQ-698a6d643eff is implemented with traceable evidence. Source: docs/prd/prd_v4.md:500 Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "Requirement REQ-e0be38d2d0c2 is implemented with traceable evidence. Source: docs/prd/prd_v4.md:504 Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "Runtime player stats expose a `playerFinalHp` value in the relevant core data contract or event payload so consumers can read the player's final HP after the runtime outcome is produced. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "Contract serialization and deserialization preserve `playerFinalHp` with the expected JSON field name and numeric value when runtime player stats are round-tripped. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "When runtime player stats are produced for an outcome with a known final player HP, the emitted `playerFinalHp` equals that final HP instead of being omitted, defaulted, or derived from an unrelated HP value. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O4] xUnit coverage is added or updated for the primary deterministic runtime player stats behavior involving `playerFinalHp`. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O4] Primary deterministic behavior must have xUnit coverage. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O5] `playerFinalHp` production is implemented in pure core logic without adding Godot-dependent behavior to the core contract path. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O5] Implementation must be minimal pure-core logic required by the assertions. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O6] After the refactor, the relevant previously passing test set remains passing and evidence is recorded. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O6] Chapter 3 coverage audit is rerun after the change and evidence is recorded. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O6] The Chapter 3 coverage audit must be rerun after refactor. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O7] Chapter 3.8 triplet baseline validators are run after the task view is written and evidence is recorded. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs",
+      "[OBL:T226.O7] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view. Refs: Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs"
     ],
     "test_strategy": [
       "Red: add or update xUnit coverage for the primary deterministic behavior.",
@@ -12735,8 +12730,7 @@
       "docs/prd/prd_v4.md:504",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvents-Core.md",
       "docs/architecture/overlays/PRD-SANGUO-T2/08/08-Contracts-CloudEvent.md",
-      "Game.Core.Tests/Contracts/JsonEventDataContractsTests.cs",
-      "Game.Core.Tests/Contracts/SanguoDataCatalogContractsTests.cs"
+      "Game.Core.Tests/Tasks/Task226PlayerFinalHpRuntimeStatsTests.cs"
     ],
     "source_refs": [
       "docs/prd/prd_v4.md:500",

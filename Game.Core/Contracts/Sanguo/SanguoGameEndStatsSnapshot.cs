@@ -12,7 +12,8 @@ namespace Game.Core.Contracts.Sanguo;
 /// </remarks>
 public sealed record SanguoGameEndPlayerStats(
     string PlayerId,
-    decimal Money
+    decimal Money,
+    int PlayerFinalHp = 0
 );
 
 /// <summary>
@@ -28,4 +29,3 @@ public sealed record SanguoGameEndStatsSnapshot(
     long TreasuryMinorUnits,
     IReadOnlyList<SanguoGameEndPlayerStats> Players
 );
-
