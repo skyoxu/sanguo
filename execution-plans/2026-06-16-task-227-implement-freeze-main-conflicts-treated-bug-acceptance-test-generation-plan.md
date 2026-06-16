@@ -1,0 +1,21 @@
+# Task 227 Implement freeze main conflicts treated bug acceptance-test generation plan
+
+- Title: Task 227 Implement freeze main conflicts treated bug acceptance-test generation plan
+- Status: completed
+- Branch: task/T227
+- Git Head: ec51c13d3e92ae6d54be63eaa22f6730358eb893
+- Goal: Control acceptance-driven test generation complexity for task 227.
+- Scope: 0 missing refs across 0 test roots; seed refs: no missing refs detected
+- Current step: Completed.
+- Last completed step: Task 227 red/green/refactor, review pipeline, targeted Needs Fix closure, and local hard checks all completed with clean final evidence.
+- Stop-loss: Do not start Codex test generation until the ref mix and verify mode are explicit.
+- Next action: none; task evidence is complete.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 227 --resume`
+- Open questions: none recorded yet
+- Exit criteria: The next acceptance-driven test generation step is explicit and low-ambiguity.
+- Related ADRs: none yet
+- Related decision logs: none yet
+- Related task id(s): `227`
+- Related run id: `a0faecfbf5734bcfb47295d87070c6ce`
+- Related latest.json: `logs/ci/2026-06-16/sc-review-pipeline-task-227/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-16/sc-review-pipeline-task-227-a0faecfbf5734bcfb47295d87070c6ce`
