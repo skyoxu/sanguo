@@ -1,0 +1,21 @@
+# task-227-chapter6-residual-followup
+
+- Title: task-227-chapter6-residual-followup
+- Status: completed
+- Branch: task/T227
+- Git Head: ec51c13d3e92ae6d54be63eaa22f6730358eb893
+- Goal: Close the recorded residual reviewer findings for Task 227.
+- Scope: No low priority findings were captured.
+- Current step: Completed by the later clean Task 227 review pipeline and local hard checks.
+- Last completed step: `py -3 scripts/python/dev_cli.py inspect-run --kind pipeline --latest logs/ci/2026-06-16/sc-review-pipeline-task-227/latest.json` returned status ok, and `py -3 scripts/python/dev_cli.py run-local-hard-checks --godot-bin "$env:GODOT_BIN"` returned status ok.
+- Stop-loss: Do not reopen 6.7 without a fresh deterministic failure. Do not rerun 6.8 when current edits do not hit the recorded reviewer anchors.
+- Next action: none; latest Task 227 pipeline and repo hard checks are clean.
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 227 --resume`
+- Open questions: none recorded yet
+- Exit criteria: Met by clean pipeline run `a0faecfbf5734bcfb47295d87070c6ce` and local hard checks run `ef72ef08fdbe450f83c104b7fd713d99`.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-16-task-227-chapter6-residual-needs-fix.md`
+- Related task id(s): `227`
+- Related run id: `1f9bc8ae9c7e43b785409f7d8316377f`
+- Related latest.json: `logs/ci/2026-06-16/sc-review-pipeline-task-227/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-16/sc-review-pipeline-task-227-1f9bc8ae9c7e43b785409f7d8316377f`
