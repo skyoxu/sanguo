@@ -1,0 +1,21 @@
+# task-225-chapter6-residual-needs-fix
+
+- Title: task-225-chapter6-residual-needs-fix
+- Date: 2026-06-16
+- Status: accepted
+- Supersedes: none
+- Superseded by: none
+- Branch: task/T225
+- Git Head: 037820a7c9f9d5c23dc4ff8a1592f75d8ae33674
+- Why now: Chapter 6 routing determined that another immediate 6.8 rerun was not cost-effective while the latest pipeline was blocked by repeated `review-needs-fix` fingerprints.
+- Context: The recorded residual finding is a medium/P2 `code-reviewer` finding for `ACC:T225.6`: the previous review said the random-event combat reference test sampled only `enc_event_combat_small` instead of all catalog-backed combat events.
+- Decision: Record the residual Needs Fix item, note that the code has since hit the reviewer anchor by iterating all `startCombat` random events with an `encounterId`, and require a protocol-approved narrow reviewer verification before clearing the residual.
+- Consequences: The task keeps explicit follow-up evidence and avoids reopening full 6.7 while still preserving the reviewer clearing requirement.
+- Recovery impact: Recovery should prefer the recorded follow-up plan and only run a new reviewer verification when `resume-task` / `chapter6-route` explicitly allows the narrow lane.
+- Validation: py -3 scripts/python/dev_cli.py resume-task --task-id 225
+- Related ADRs: none yet
+- Related execution plans: `execution-plans/2026-06-16-task-225-chapter6-residual-followup.md`
+- Related task id(s): `225`
+- Related run id: `471d62bc4b544119af899b128c6f6938`
+- Related latest.json: `logs/ci/2026-06-16/sc-review-pipeline-task-225/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-16/sc-review-pipeline-task-225-471d62bc4b544119af899b128c6f6938`

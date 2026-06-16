@@ -1,0 +1,21 @@
+# task-225-chapter6-residual-followup
+
+- Title: task-225-chapter6-residual-followup
+- Status: active
+- Branch: task/T225
+- Git Head: 037820a7c9f9d5c23dc4ff8a1592f75d8ae33674
+- Goal: Close the recorded residual reviewer finding for Task 225.
+- Scope: Medium/P2 `code-reviewer` finding for `ACC:T225.6` random-event combat refs. The reviewer said the test only sampled `enc_event_combat_small` while `Data/random_events.json` includes `enc_event_combat_small`, `enc_event_combat_medium`, and `enc_event_combat_large`.
+- Current step: Reviewer anchor has been hit in code by iterating all `startCombat` random events with an `encounterId` and asserting each resolves to the same catalog id.
+- Last completed step: Updated Task225 combat catalog tests to cover all catalog-backed random combat events, then ran deterministic checks and full local hard checks successfully.
+- Stop-loss: Do not reopen 6.7 without a fresh deterministic failure. Do not rerun 6.8 unless `resume-task` / `chapter6-route` explicitly allows a narrow reviewer verification lane.
+- Next action: py -3 scripts/python/dev_cli.py resume-task --task-id 225 --recommendation-only
+- Recovery command: `py -3 scripts/sc/run_review_pipeline.py --task-id 225 --resume`
+- Open questions: none recorded yet
+- Exit criteria: Either the recorded findings are cleared by a targeted 6.8 pass, or a later run supersedes this residual record.
+- Related ADRs: none yet
+- Related decision logs: `decision-logs/2026-06-16-task-225-chapter6-residual-needs-fix.md`
+- Related task id(s): `225`
+- Related run id: `471d62bc4b544119af899b128c6f6938`
+- Related latest.json: `logs/ci/2026-06-16/sc-review-pipeline-task-225/latest.json`
+- Related pipeline artifacts: `logs/ci/2026-06-16/sc-review-pipeline-task-225-471d62bc4b544119af899b128c6f6938`
