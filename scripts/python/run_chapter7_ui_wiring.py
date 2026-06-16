@@ -902,6 +902,12 @@ def main(argv: list[str] | None = None) -> int:
             'gameplay_story_id': args.gameplay_story_id,
             'planned_steps': planned_steps,
         }
+        if args.out_json:
+            out = Path(args.out_json)
+            if not out.is_absolute():
+                out = repo_root / out
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
