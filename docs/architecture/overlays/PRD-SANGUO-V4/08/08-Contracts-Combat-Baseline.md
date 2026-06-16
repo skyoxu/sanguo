@@ -14,6 +14,7 @@ Test-Refs:
   - Game.Core.Tests/Tasks/Task73ContractCompatibilityGateTests.cs
 Contracts-Refs:
   - Game.Core/Contracts/ContractEvolutionPolicy.cs
+  - Game.Core/Contracts/Sanguo/CombatCatalog.cs
   - Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs
   - Game.Core/Contracts/Sanguo/SanguoCombatContracts.cs
 Status: Accepted
@@ -26,6 +27,7 @@ This page defines the minimal additive contract baseline for PRD-SANGUO-V4 comba
 ## Reused Contract Surfaces
 
 - `Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs` remains the player character schema entry point.
+- `Game.Core/Contracts/Sanguo/CombatCatalog.cs` defines the formal enemy and Boss combat catalog contract surface.
 - `Game.Core/Contracts/Sanguo/GameStartConfig.cs` remains the game-start contract surface.
 - `Game.Core/Contracts/Sanguo/SanguoCombatContracts.cs` remains the combat event and result surface.
 - Existing event names `core.sanguo.combat.started` and `core.sanguo.combat.ended` stay unchanged.

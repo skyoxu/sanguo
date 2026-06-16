@@ -12618,28 +12618,23 @@
     ],
     "owner": "gameplay",
     "test_refs": [
-      "Tests.Godot/Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs",
-      "Tests.Godot/Game.Core/Contracts/Sanguo/AppliedMultipliers.cs",
-      "Tests.Godot/Game.Core/Contracts/Sanguo/BoardEvents.cs",
-      "Tests.Godot/Game.Core/Contracts/Sanguo/EconomyEvents.cs",
-      "Tests.Godot/Game.Core/Contracts/Sanguo/GameEvents.cs",
-      "Tests.Godot/Game.Core/Contracts/Sanguo/GameStartConfig.cs"
+      "Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs"
     ],
     "acceptance": [
-      "Requirement REQ-5a9e9d2867cc is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:13 Refs: Tests.Godot/Game.Core/Contracts/Sanguo/SanguoCharacterDefinition.cs Tests.Godot/Game.Core/Contracts/Sanguo/AppliedMultipliers.cs",
-      "Character definitions expose extended combat attributes while preserving the existing CombatRating field and loading existing character data without dropping, renaming, or invalidating CombatRating.",
-      "Formal enemy and Boss combat catalog entries exist for combat encounters, and random event combat references can be resolved to explicit enemy or Boss definitions instead of only storing encounterId and encounterTarget.",
-      "Automated coverage verifies the extended character combat attributes and formal enemy/Boss catalog resolution, including a failing validation path for unresolved combat encounter references.",
-      "[OBL:T225.O5] xUnit coverage is added or updated for the primary deterministic combat character/catalog behavior.",
-      "[OBL:T225.O5] Coverage for the primary deterministic behavior must be added or updated in xUnit.",
-      "[OBL:T225.O6] The combat attribute and enemy/Boss catalog resolution logic is implemented in pure core code and is testable without Godot runtime dependencies.",
-      "[OBL:T225.O6] The implementation must keep the deterministic behavior in pure core logic.",
-      "[OBL:T225.O7] Existing relevant tests remain passing after the combat character/catalog changes.",
-      "[OBL:T225.O7] Passing tests must be preserved after refactor.",
-      "[OBL:T225.O8] Chapter 3 coverage audit is rerun and its evidence path is recorded.",
-      "[OBL:T225.O8] The Chapter 3 coverage audit must be rerun after refactor.",
-      "[OBL:T225.O9] Chapter 3.8 triplet baseline validators are run after the task view update and their evidence path is recorded.",
-      "[OBL:T225.O9] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view."
+      "Requirement REQ-5a9e9d2867cc is implemented with traceable evidence. Source: docs/prd/PRD_V4_TRACEABILITY_MATRIX.md:13 Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "Character definitions expose extended combat attributes while preserving the existing CombatRating field and loading existing character data without dropping, renaming, or invalidating CombatRating. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "Formal enemy and Boss combat catalog entries exist for combat encounters, and random event combat references can be resolved to explicit enemy or Boss definitions instead of only storing encounterId and encounterTarget. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "Automated coverage verifies the extended character combat attributes and formal enemy/Boss catalog resolution, including a failing validation path for unresolved combat encounter references. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O5] xUnit coverage is added or updated for the primary deterministic combat character/catalog behavior. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O5] Coverage for the primary deterministic behavior must be added or updated in xUnit. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O6] The combat attribute and enemy/Boss catalog resolution logic is implemented in pure core code and is testable without Godot runtime dependencies. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O6] The implementation must keep the deterministic behavior in pure core logic. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O7] Existing relevant tests remain passing after the combat character/catalog changes. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O7] Passing tests must be preserved after refactor. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O8] Chapter 3 coverage audit is rerun and its evidence path is recorded. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O8] The Chapter 3 coverage audit must be rerun after refactor. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O9] Chapter 3.8 triplet baseline validators are run after the task view update and their evidence path is recorded. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs",
+      "[OBL:T225.O9] Chapter 3.8 triplet baseline validators must be run after writing this task to a task view. Refs: Game.Core.Tests/Tasks/Task225CombatCatalogTests.cs"
     ],
     "test_strategy": [
       "Red: add or update xUnit coverage for the primary deterministic behavior.",

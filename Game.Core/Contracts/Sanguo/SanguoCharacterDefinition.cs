@@ -84,5 +84,34 @@ public sealed record SanguoCharacterDefinition(
     string PortraitPath,
     int StartingMoneyStepDelta,
     SanguoEconomyStepDeltas EconomyStepDeltas,
-    SanguoCharacterCombatProfile? CombatProfile = null
+    SanguoCharacterCombatProfile? CombatProfile = null,
+    int Attack = 0,
+    int Defense = 0,
+    int Health = 0,
+    int Morale = 0
 );
+
+/// <summary>
+/// DTO: CharacterDefinition
+/// Description: Compact character combat definition surface for formal combat catalogs.
+/// </summary>
+/// <remarks>
+/// Related ADRs: ADR-0004 (event bus and contracts), ADR-0005 (quality gates).
+/// Overlay reference: docs/architecture/overlays/PRD-SANGUO-V4/08/08-Contracts-Combat-Baseline.md.
+/// </remarks>
+public sealed class CharacterDefinition
+{
+    public string Id { get; set; } = string.Empty;
+
+    public string Name { get; set; } = string.Empty;
+
+    public int CombatRating { get; set; }
+
+    public int Attack { get; set; }
+
+    public int Defense { get; set; }
+
+    public int Health { get; set; }
+
+    public int Morale { get; set; }
+}
