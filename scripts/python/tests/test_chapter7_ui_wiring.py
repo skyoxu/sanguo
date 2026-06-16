@@ -888,6 +888,24 @@ class Chapter7UiWiringTests(unittest.TestCase):
         self.assertEqual(0, rc)
         self.assertEqual(["collect", "write-doc", "validate"], payload["planned_steps"])
 
+    def test_self_check_should_write_out_json_when_requested(self) -> None:
+        run_module = _load_module("run_chapter7_ui_wiring_module_for_self_check_out_json", "scripts/python/run_chapter7_ui_wiring.py")
+        with tempfile.TemporaryDirectory() as td:
+            out_json = Path(td) / "logs" / "ci" / "chapter7-self-check.json"
+            output = io.StringIO()
+            with redirect_stdout(output):
+                rc = run_module.main([
+                    "--delivery-profile", "fast-ship",
+                    "--write-doc",
+                    "--self-check",
+                    "--out-json", str(out_json),
+                ])
+            payload = json.loads(out_json.read_text(encoding="utf-8"))
+
+        self.assertEqual(0, rc)
+        self.assertEqual("ok", payload["status"])
+        self.assertEqual(["collect", "write-doc", "validate"], payload["planned_steps"])
+
     def test_create_tasks_should_consume_only_ui_gdd_candidate_sidecar(self) -> None:
         module = _load_module("create_chapter7_tasks_module", "scripts/python/create_chapter7_tasks_from_ui_candidates.py")
         with tempfile.TemporaryDirectory() as td:
