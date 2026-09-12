@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Game.Core.Domain.Entities;
 using Game.Core.Ports;
