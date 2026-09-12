@@ -17,7 +17,7 @@ jobs:
     env:
       PYTHONIOENCODING: 'utf-8'
       PYTHONUTF8: '1'
-      FINALIZE_ATTEMPT: '4'
+      FINALIZE_ATTEMPT: '5'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -84,6 +84,38 @@ jobs:
           if (Test-Path docs/knowledge/generated/task-115-semantic.json) { throw 'stale task-115 semantic remains' }
           if (Test-Path docs/knowledge/generated/task-18-semantic.json) { throw 'stale task-18 semantic remains' }
 
+      - name: Adapt Impact repository identity and hard gate registration
+        shell: pwsh
+        run: |
+          @'
+          import json
+          from pathlib import Path
+
+          config_path = Path('scripts/python/impact_analysis_config.v1.json')
+          config = json.loads(config_path.read_text(encoding='utf-8'))
+          config['identity_files'] = [p for p in config['identity_files'] if p != 'global.json']
+          if 'GodotGame.csproj' not in config['identity_files']:
+              config['identity_files'].insert(1, 'GodotGame.csproj')
+          config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
+
+          test_path = Path('scripts/python/tests/test_impact_analysis_index.py')
+          text = test_path.read_text(encoding='utf-8')
+          text = text.replace('"NewRouge.csproj": "<Project Sdk=\\"Godot.NET.Sdk/4.5.1\\" />\\n",', '"GodotGame.csproj": "<Project Sdk=\\"Godot.NET.Sdk/4.5.1\\" />\\n",')
+          text = text.replace('            "global.json": "{\\"sdk\\":{\\"version\\":\\"8.0.100\\"}}\\n",\n', '')
+          test_path.write_text(text, encoding='utf-8', newline='\n')
+
+          gate_path = Path('scripts/python/run_gate_bundle.py')
+          gate = gate_path.read_text(encoding='utf-8')
+          marker = '                "scripts.sc.tests.test_migrate_task_optional_hints",\n                "-v",'
+          addition = '''                "scripts.sc.tests.test_migrate_task_optional_hints",\n                "scripts.python.tests.test_impact_analysis_index",\n                "scripts.python.tests.test_impact_analysis_index_repository_smoke",\n                "scripts.python.tests.test_analyze_impact_cli",\n                "scripts.python.tests.test_impact_analyzer",\n                "scripts.python.tests.test_run_single_task_chapter6_lane",\n                "-v",'''
+          if 'scripts.python.tests.test_impact_analysis_index' not in gate:
+              if marker not in gate:
+                  raise SystemExit('obligations_unittest insertion point not found')
+              gate = gate.replace(marker, addition, 1)
+          gate_path.write_text(gate, encoding='utf-8', newline='\n')
+          '@ | py -3 -
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Project Health localhost regressions
         shell: pwsh
         env:
@@ -113,6 +145,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add scripts/python/project_health_knowledge.py
+          git add scripts/python/impact_analysis_config.v1.json
+          git add scripts/python/tests/test_impact_analysis_index.py
+          git add scripts/python/run_gate_bundle.py
           git add docs/knowledge/generated
           git add docs/knowledge/catalog/knowledge-catalog.json
           git add -u .github/workflows/_one_shot_finalize_project_health.yml
