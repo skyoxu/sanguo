@@ -11,7 +11,7 @@ PYTHON_DIR = ROOT / "scripts" / "python"
 if str(PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(PYTHON_DIR))
 
-from project_health_knowledge import load_config, validate_config
+from project_health_knowledge import DEFAULT_CONFIG, load_config, validate_config
 
 
 class ProjectHealthSanguoConfigTests(unittest.TestCase):
@@ -22,6 +22,9 @@ class ProjectHealthSanguoConfigTests(unittest.TestCase):
     def test_repository_config_is_the_effective_project_health_config(self) -> None:
         self.assertEqual(load_config(ROOT), self.config)
         self.assertEqual(validate_config(ROOT, self.config), self.config)
+
+    def test_fallback_defaults_match_repository_config(self) -> None:
+        self.assertEqual(DEFAULT_CONFIG, self.config)
 
     def test_task_scene_bindings_are_real_sanguo_surfaces(self) -> None:
         bindings = self.config.get("task_scene_bindings", [])
@@ -37,16 +40,18 @@ class ProjectHealthSanguoConfigTests(unittest.TestCase):
             self.assertIn(binding["witness"], script_text)
 
     def test_default_binding_uses_task_192_main_menu_not_newrouge_reward(self) -> None:
-        binding = self.config["task_scene_bindings"][0]
-        self.assertEqual(binding["task_id"], 192)
-        self.assertEqual(binding["scene"], "Game.Godot/Scenes/UI/Task192MainMenuSurface.tscn")
-        self.assertNotIn("Reward", json.dumps(self.config, ensure_ascii=False))
+        for config in (self.config, DEFAULT_CONFIG):
+            binding = config["task_scene_bindings"][0]
+            self.assertEqual(binding["task_id"], 192)
+            self.assertEqual(binding["scene"], "Game.Godot/Scenes/UI/Task192MainMenuSurface.tscn")
+            self.assertNotIn("Reward", json.dumps(config, ensure_ascii=False))
 
     def test_query_aliases_cover_sanguo_navigation_terms(self) -> None:
-        aliases = self.config["query_aliases"]
-        self.assertIn("MainMenu", aliases["主菜单"])
-        self.assertIn("SanguoBattle", aliases["战斗"])
-        self.assertIn("Sanguo", aliases["三国"])
+        for config in (self.config, DEFAULT_CONFIG):
+            aliases = config["query_aliases"]
+            self.assertIn("MainMenu", aliases["主菜单"])
+            self.assertIn("SanguoBattle", aliases["战斗"])
+            self.assertIn("Sanguo", aliases["三国"])
 
 
 if __name__ == "__main__":
