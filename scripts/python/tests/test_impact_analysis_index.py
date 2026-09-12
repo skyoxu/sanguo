@@ -1579,7 +1579,7 @@ class ProductionReadinessEvidenceTests(unittest.TestCase):
                 sys.executable,
                 str(script),
                 "--baseline",
-                "985f095e4975e7cf1c4477993447c2cfd4f2ed5c",
+                "9429c69c2d7e27eeb97e1bcb992e841c8ba3a4e7",
                 "--output",
                 str(output),
                 cwd=ROOT,
@@ -1587,9 +1587,14 @@ class ProductionReadinessEvidenceTests(unittest.TestCase):
             self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
             evidence = json.loads(output.read_text(encoding="utf-8"))
         self.assertEqual(evidence["status"], "passed")
+        self.assertEqual(evidence["baseline"], "9429c69c2d7e27eeb97e1bcb992e841c8ba3a4e7")
         self.assertEqual(evidence["included_bom_count"], 0)
-        self.assertEqual(evidence["cleaned_prefix_only_count"], 36)
-        self.assertEqual(evidence["excluded_baseline_match_count"], 41)
+        self.assertEqual(evidence["cleaned_prefix_only_count"], 19)
+        included_bom_evidence = [item for item in evidence["files"] if item["included"]]
+        self.assertEqual(
+            sum(1 for item in included_bom_evidence if item["removed_bom_only"]),
+            19,
+        )
         self.assertNotIn("index_id", evidence)
 
 
