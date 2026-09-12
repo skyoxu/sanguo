@@ -78,6 +78,32 @@ def _control_plane_clean(root: Path) -> bool:
     return completed.returncode == 0 and not completed.stdout.strip()
 
 
+def _snapshot_fresh(root: Path, snapshot: dict[str, Any]) -> bool:
+    ref = snapshot.get("ref")
+    commit = snapshot.get("commit")
+    sources = snapshot.get("sources")
+    if not isinstance(ref, str) or not isinstance(commit, str) or not isinstance(sources, list):
+        return False
+    current = _git(root, "rev-parse", ref)
+    if current.returncode:
+        return False
+    current_commit = current.stdout.strip()
+    ancestor = _git(root, "merge-base", "--is-ancestor", commit, current_commit)
+    if ancestor.returncode:
+        return False
+    for source in sources:
+        if not isinstance(source, dict) or not isinstance(source.get("path"), str) or not isinstance(source.get("sha256"), str):
+            return False
+        blob = subprocess.run(
+            ["git", "-C", str(root), "show", f"{current_commit}:{source['path']}"],
+            capture_output=True,
+            check=False,
+        )
+        if blob.returncode or hashlib.sha256(blob.stdout).hexdigest() != source["sha256"]:
+            return False
+    return True
+
+
 def _matches(candidate: dict[str, Any], expectation: dict[str, Any]) -> bool:
     path = str(candidate.get("path", ""))
     any_paths = expectation.get("any_paths", [])
@@ -217,8 +243,11 @@ def _validate_generation(root: Path, pointer: dict[str, Any], *, require_current
             raise PublicationBlocked(f"generation_artifact_hash_invalid:{name}")
         artifacts[name] = artifact
     if require_current_ref:
-        current = _git(root, "rev-parse", str(manifest.get("authority_ref")))
-        if current.returncode or current.stdout.strip() != manifest.get("main_commit"):
+        snapshot = artifacts.get("snapshot")
+        if (not isinstance(snapshot, dict)
+                or snapshot.get("ref") != manifest.get("authority_ref")
+                or snapshot.get("commit") != manifest.get("main_commit")
+                or not _snapshot_fresh(root, snapshot)):
             raise PublicationBlocked("authority_ref_moved")
     return manifest, artifacts
 

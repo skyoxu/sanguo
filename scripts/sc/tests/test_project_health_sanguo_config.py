@@ -13,7 +13,7 @@ if str(PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(PYTHON_DIR))
 
 from _project_health_tasks import task_details
-from project_health_knowledge import load_config, validate_config
+from project_health_knowledge import DEFAULT_CONFIG, load_config, validate_config
 
 
 class ProjectHealthSanguoConfigTests(unittest.TestCase):
@@ -43,6 +43,13 @@ class ProjectHealthSanguoConfigTests(unittest.TestCase):
         self.assertEqual(binding["task_id"], 192)
         self.assertEqual(binding["scene"], "Game.Godot/Scenes/UI/Task192MainMenuSurface.tscn")
         self.assertNotIn("Reward", json.dumps(self.config, ensure_ascii=False))
+
+    def test_fallback_default_config_is_sanguo_native(self) -> None:
+        binding = DEFAULT_CONFIG["task_scene_bindings"][0]
+        self.assertEqual(binding["task_id"], 192)
+        self.assertEqual(binding["scene"], "Game.Godot/Scenes/UI/Task192MainMenuSurface.tscn")
+        self.assertNotIn("Reward", json.dumps(DEFAULT_CONFIG, ensure_ascii=False))
+        self.assertIn("Sanguo", DEFAULT_CONFIG["query_aliases"]["三国"])
 
     def test_query_aliases_cover_sanguo_navigation_terms(self) -> None:
         aliases = self.config["query_aliases"]

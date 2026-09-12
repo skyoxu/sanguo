@@ -60,6 +60,38 @@ def _git_blob(root: Path, commit: str, path: str) -> bytes:
     return completed.stdout
 
 
+
+
+def _snapshot_fresh(root: Path, snapshot: dict[str, Any]) -> bool:
+    ref = snapshot.get("ref")
+    commit = snapshot.get("commit")
+    sources = snapshot.get("sources")
+    if not isinstance(ref, str) or not isinstance(commit, str) or not isinstance(sources, list):
+        return False
+    current = _git_text(root, "rev-parse", ref)
+    completed = subprocess.run(
+        ["git", "-C", str(root), "merge-base", "--is-ancestor", commit, current],
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode:
+        return False
+    for source in sources:
+        if not isinstance(source, dict):
+            return False
+        path = source.get("path")
+        expected = source.get("sha256")
+        if not isinstance(path, str) or not isinstance(expected, str):
+            return False
+        try:
+            current_blob = _git_blob(root, current, path)
+        except FreezeBlocked:
+            return False
+        if hashlib.sha256(current_blob).hexdigest() != expected:
+            return False
+    return True
+
+
 def _policy(root: Path, consumer: str, policy_revision: str) -> dict[str, Any]:
     registry = json.loads(
         (root / "knowledge/policies/consumer-policies.v1.json").read_text(encoding="utf-8")
@@ -123,7 +155,12 @@ def freeze(
     commit = snapshot.get("commit")
     if not isinstance(ref, str) or not isinstance(commit, str):
         raise FreezeBlocked("snapshot_invalid")
-    if _git_text(root, "rev-parse", ref) != commit:
+    catalog = json.loads((root / "knowledge/catalogs/repository-knowledge-catalog.v1.json").read_text(encoding="utf-8"))
+    authority_snapshot = catalog.get("source_snapshot", {})
+    if (not isinstance(authority_snapshot, dict)
+            or authority_snapshot.get("ref") != ref
+            or authority_snapshot.get("commit") != commit
+            or not _snapshot_fresh(root, authority_snapshot)):
         raise FreezeBlocked("authority_ref_moved")
     publication_generation, publication_sha256 = _publication_lineage(root, commit)
 
