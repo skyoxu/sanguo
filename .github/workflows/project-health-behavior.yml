@@ -75,6 +75,40 @@ jobs:
           py -3 scripts/python/publish_knowledge_catalog.py --check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Impact BOM preflight
+        shell: pwsh
+        run: |
+          @'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          root = Path.cwd()
+          sys.path.insert(0, str(root / 'scripts/python'))
+          import impact_analysis_index as index
+
+          config = index.validate_config(json.loads((root / 'scripts/python/impact_analysis_config.v1.json').read_text(encoding='utf-8')))
+          identities = set(config['identity_files'])
+          roots = config['scan_roots']
+          tracked = subprocess.check_output(['git', 'ls-files'], text=True, encoding='utf-8').splitlines()
+          bom_paths = []
+          for path in tracked:
+              selected = (
+                  index._path_selected(path, roots, identities)
+                  and index._exclusion_reason(path, config['exclusions']) is None
+                  and index._source_rule(path, config['source_rules']) is not None
+                  and not path.lower().endswith('.gd')
+              )
+              if selected and (root / path).is_file() and (root / path).read_bytes().startswith(b'\xef\xbb\xbf'):
+                  bom_paths.append(path)
+          print(f'IMPACT_BOM_COUNT={len(bom_paths)}')
+          for path in bom_paths:
+              print(f'IMPACT_BOM {path}')
+          if bom_paths:
+              raise SystemExit(1)
+          '@ | py -3 -
+
       - name: Impact regressions
         shell: pwsh
         run: |
