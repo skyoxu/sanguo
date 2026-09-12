@@ -5,9 +5,7 @@ on:
     branches:
       - fix/knowledge-publication-lifecycle-20260912
     paths:
-      - 'scripts/python/_third_round_knowledge_patch.py'
-      - 'scripts/python/_third_round_followup_fix.py'
-      - '.github/workflows/_one_shot_third_round_knowledge.yml'
+      - 'scripts/python/_third_round_run_marker.py'
 
 permissions:
   contents: write
@@ -31,13 +29,14 @@ jobs:
           git branch -f main origin/main
           git rev-parse refs/heads/main
 
-      - name: Apply source and workflow repairs
+      - name: Apply non-workflow repairs
         shell: pwsh
         run: |
           py -3 scripts/python/_third_round_knowledge_patch.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           py -3 scripts/python/_third_round_followup_fix.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git checkout -- .github/workflows/project-health-behavior.yml .github/workflows/publish-knowledge-catalog.yml
 
       - name: Rebuild Sanguo Project Health resource knowledge
         shell: pwsh
@@ -80,21 +79,44 @@ jobs:
           py -3 -m unittest scripts.python.tests.test_knowledge_publication scripts.python.tests.test_knowledge_freeze -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Commit repaired state before publication validation
+      - name: Commit and push non-workflow repair
         shell: pwsh
         run: |
           Remove-Item -Force scripts/python/_third_round_knowledge_patch.py
           Remove-Item -Force scripts/python/_third_round_followup_fix.py
-          Remove-Item -Force .github/workflows/_one_shot_third_round_knowledge.yml
+          Remove-Item -Force scripts/python/_third_round_run_marker.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git status --short
+          $paths = @(
+            'docs/knowledge/catalog/knowledge-catalog.json',
+            'docs/knowledge/generated/task-resource-links.json',
+            'docs/knowledge/generated/task-115-semantic.json',
+            'docs/knowledge/generated/task-18-semantic.json',
+            'knowledge/README.md',
+            'scripts/python/freeze_knowledge_context.py',
+            'scripts/python/generate_knowledge_links.py',
+            'scripts/python/init_knowledge_catalog.py',
+            'scripts/python/knowledge_locator.py',
+            'scripts/python/project_health_knowledge.py',
+            'scripts/python/publish_knowledge_catalog.py',
+            'scripts/python/tests/test_generate_knowledge_links.py',
+            'scripts/python/tests/test_knowledge_freeze.py',
+            'scripts/python/tests/test_knowledge_publication.py',
+            'scripts/sc/tests/test_project_health_sanguo_config.py',
+            'scripts/python/_third_round_knowledge_patch.py',
+            'scripts/python/_third_round_followup_fix.py',
+            'scripts/python/_third_round_run_marker.py'
+          )
+          git add -A -- $paths
+          $unexpected = git status --porcelain | Where-Object { $_ -notmatch '^.. (docs/knowledge/|knowledge/README.md|scripts/python/|scripts/sc/tests/test_project_health_sanguo_config.py)' }
+          if ($unexpected) { throw "unexpected worktree changes: $($unexpected -join '; ')" }
           git diff --cached --quiet
-          if ($LASTEXITCODE -eq 0) { throw 'third-round repair produced no changes' }
+          if ($LASTEXITCODE -eq 0) { throw 'third-round repair produced no staged changes' }
           git commit -m 'fix: close Sanguo knowledge publication lifecycle'
           git push origin HEAD:fix/knowledge-publication-lifecycle-20260912
-          if (git status --porcelain) { throw 'repair commit did not leave a clean worktree' }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git reset --hard HEAD
+          if (git status --porcelain) { throw 'repair push did not leave a clean worktree' }
 
       - name: Validate reproducible Knowledge publication
         shell: pwsh
@@ -112,9 +134,12 @@ jobs:
           git clean -fd -- knowledge/indexes/generations
           if (git status --porcelain) { throw 'publication validation cleanup did not restore a clean worktree' }
 
-      - name: Verify workflow governance
+      - name: Verify persistent workflow governance
         shell: pwsh
         run: |
+          Remove-Item -Force .github/workflows/_one_shot_third_round_knowledge.yml
           py -3 scripts/python/check_workflow_gate_enforcement.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $gateCode = $LASTEXITCODE
+          git checkout -- .github/workflows/_one_shot_third_round_knowledge.yml
+          if ($gateCode -ne 0) { exit $gateCode }
           if (git status --porcelain) { throw 'third-round repair left uncommitted files' }
