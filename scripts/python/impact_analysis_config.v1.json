@@ -33,7 +33,7 @@
   ],
   "identity_files": [
     "project.godot",
-    "NewRouge.csproj",
+    "GodotGame.csproj",
     "Game.Core/Game.Core.csproj",
     "Game.Core.Tests/Game.Core.Tests.csproj",
     "Tests.Godot/Tests.Godot.csproj",
