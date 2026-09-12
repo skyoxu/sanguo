@@ -70,9 +70,11 @@ jobs:
       - name: Knowledge control plane regressions
         shell: pwsh
         run: |
-          py -3 scripts/python/validate_knowledge_control_plane.py
+          py -3 scripts/python/publish_knowledge_catalog.py --publish
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           py -3 scripts/python/publish_knowledge_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/validate_knowledge_control_plane.py --require-generated
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # Includes real repository build/reuse smoke and Sanguo-bound readiness evidence.
