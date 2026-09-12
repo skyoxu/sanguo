@@ -20,7 +20,7 @@ Operate Chapter 2 from `workflow.md` idempotently for a business repository that
 
 ## Repository Layout
 
-Template and business repositories are siblings under one parent directory, for example `<parent>/godotgame`, `<parent>/sanguo`, and `<parent>/newrouge`.
+Template and business repositories are siblings under one parent directory, for example `<parent>/godotgame`, `<parent>/<business-repo-a>`, and `<parent>/<business-repo-b>`.
 
 ## Purpose
 
@@ -48,10 +48,32 @@ Chapter 2 is an early bootstrap workflow. Prefer direct repository checks and pr
 
 1. Resolve the target business repo as a sibling of the template repo.
 2. Clean copied template names, paths, workflow names, release names, project paths, and PRD ids.
-3. Rebuild entry indexes in README.md, AGENTS.md, docs/PROJECT_DOCUMENTATION_INDEX.md, and docs/agents/00-index.md.
-4. Run repository-level hard checks immediately after cleanup and index repair.
-5. Optionally start the local project-health service when browser-based health inspection is useful; keep it bound to 127.0.0.1.
-6. Use OpenAI backend bootstrap only when the repo explicitly opts into openai-api transport, and keep it out of default CI until checklist self-checks are clean.
+3. Ensure `docs/prd`, `docs/gdd`, and `docs/prototypes` exist as the primary PRD, GDD, and prototype document directories.
+4. 初始化完成后，分两步向玩家提问：
+   - 第 1 步：游戏名称。
+   - 第 2 步：游戏类型或参考游戏名称。
+5. Classify the Step 2 answer with `codex exec` against exactly one of the 24 ids in `docs/game-type-guides/game-types.csv`; never leave it unclassified or outside the canonical set.
+6. 将结果写入 `AGENTS.md` 与 `README.md` 的 `## Game Project Metadata` 段：
+   - `Game Name: <player input>`
+   - `Game Type: <canonical id>`
+   - `Game Type Source: <player input>`
+   - `Game Type Guide: docs/game-type-guides/<canonical id>.md`
+7. Rebuild entry indexes in README.md, AGENTS.md, docs/PROJECT_DOCUMENTATION_INDEX.md, and docs/agents/00-index.md.
+8. Run repository-level hard checks immediately after cleanup and index repair.
+9. Optionally start the local project-health service when browser-based health inspection is useful; keep it bound to 127.0.0.1.
+10. Use OpenAI backend bootstrap only when the repo explicitly opts into openai-api transport, and keep it out of default CI until checklist self-checks are clean.
+11. Chapter 2 ????????????? project-health ?????
+    - URL: read `logs/ci/project-health/server.json` -> `url` when available.
+    - HTML: `logs/ci/project-health/latest.html`.
+
+## Game Type Classification Prompt
+
+Use `codex exec` in read-only mode from the target repo. Provide the player answer, the game name when available, and the canonical CSV rows from `docs/game-type-guides/game-types.csv`. Require JSON with one `game_type` id and a short reason. If the answer names a reference game, classify by gameplay fit rather than title similarity.
+
+## 用户交互文案要求
+
+- Chapter 2 面向用户的提问、确认、缺失项提示必须使用中文。
+- 涉及中文写入的文件更新必须通过 Python 且显式 `encoding=\"utf-8\"` 执行，避免 PowerShell 编码干扰导致乱码。
 
 ## Stop-Loss Signals
 
@@ -63,16 +85,13 @@ Chapter 2 is an early bootstrap workflow. Prefer direct repository checks and pr
 
 ## Business Evidence References
 
-Generated evidence lives under `references/business-repos/` and may include:
-
-- `references/business-repos/sanguo.md`
-- `references/business-repos/newrouge.md`
+Generated evidence may live under `references/business-repos/<repo>.md`. These files are optional regression evidence from known business repositories; they must not define production generation rules.
 
 ## Maintenance
 
-Refresh evidence after new business-repo logs are generated:
+Refresh optional evidence after new business-repo logs are generated:
 
 ```powershell
-py -3 scripts/python/update_workflow_chapter_skills.py sanguo
-py -3 scripts/python/update_workflow_chapter_skills.py newrouge
+py -3 scripts/python/update_workflow_chapter_skills.py <business-repo>
+py -3 scripts/python/update_workflow_chapter_skills.py <business-repo-a>,<business-repo-b>
 ```

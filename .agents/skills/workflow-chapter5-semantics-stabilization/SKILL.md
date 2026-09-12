@@ -17,6 +17,7 @@ Operate Chapter 5 from `workflow.md` idempotently for a business repository that
 - Keep generated code, scripts, tests, comments, and log messages in English.
 - Do not modify the business repo unless the user explicitly asks for that change.
 - Do not rerun expensive steps before reading existing recovery artifacts.
+- During Knowledge Control Plane migration, Locator candidates are shadow-only and cannot satisfy acceptance/semantic obligations without direct-source reread and consumer judgment.
 
 ## Repository Layout
 
@@ -38,20 +39,24 @@ Start with the lightweight single-task lane. Escalate to batch instability only 
 
 Chapter 5 evidence is usually sparse, so workflow.md remains the governing source and logs only tune failure-family recognition.
 
+A `logs/ci/knowledge-context/**` bundle is optional shadow routing evidence only. It cannot replace acceptance refs, task triplets, overlays, or direct source authority.
+
 ## Required Reading
 
 1. Read the relevant Chapter 5 section in the template repo `workflow.md`.
-2. Optionally read `references/business-repos/<repo>.md` only as empirical validation evidence when the target business repo has a generated reference.
-3. If that optional evidence file is missing or stale, run `py -3 scripts/python/update_workflow_chapter_skills.py <repo>` from the template repo.
+2. Read `docs/workflows/knowledge-context-shadow.md` before using the optional Chapter 5 knowledge preflight.
+3. Optionally read `references/business-repos/<repo>.md` only as empirical validation evidence when the target business repo has a generated reference.
+4. If that optional evidence file is missing or stale, run `py -3 scripts/python/update_workflow_chapter_skills.py <repo>` from the template repo.
 
 ## Idempotent Procedure
 
 1. Resolve the target business repo as a sibling of the template repo.
 2. Check task triplet validity before semantic stabilization work.
-3. Run lightweight semantic checks before any batch lane.
-4. Treat acceptance extraction failure as a stop-and-fix signal, not a reason to add more downstream review.
-5. Escalate to batch instability only when the same failure family repeats across tasks.
-6. Record durable rule feedback only when a repeated workflow rule gap is proven.
+3. Optionally run the Chapter 5 shadow knowledge preflight from `docs/workflows/knowledge-context-shadow.md`. If it returns `fallback_required`, continue from direct authoritative sources.
+4. Run lightweight semantic checks before any batch lane.
+5. Treat acceptance extraction failure as a stop-and-fix signal, not a reason to add more downstream review.
+6. Escalate to batch instability only when the same failure family repeats across tasks.
+7. Record durable rule feedback only when a repeated workflow rule gap is proven.
 
 ## Stop-Loss Signals
 
@@ -60,6 +65,7 @@ Chapter 5 evidence is usually sparse, so workflow.md remains the governing sourc
 - Route evidence recommends inspect-first, record-residual, fix-deterministic, repo-noise-stop, or pause.
 - The same deterministic failure fingerprint appears repeatedly.
 - The next action would duplicate work already covered by task, overlay, candidate, or manifest evidence.
+- A Locator candidate cannot be re-read/hash-verified from repository authority; reject it and use the direct-source path.
 
 ## Business Evidence References
 

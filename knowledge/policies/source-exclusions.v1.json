@@ -1,0 +1,18 @@
+{
+  "schema_version": "newrouge.knowledge-source-exclusions.v1",
+  "rules": [
+    {"id": "logs", "disposition": "excluded", "path_prefix": "logs", "reason": "Run evidence is not global repository truth."},
+    {"id": "backup", "disposition": "excluded", "path_prefix": "backup", "reason": "Backup content must not outrank current sources."},
+    {"id": "migration", "disposition": "excluded", "path_prefix": "docs/migration", "reason": "Migration records are historical unless explicitly requested."},
+    {"id": "godot-cache", "disposition": "excluded", "path_prefix": ".godot", "reason": "Engine cache is generated."},
+    {"id": "bin", "disposition": "excluded", "path_pattern": "**/bin/**", "reason": "Build output is generated."},
+    {"id": "obj", "disposition": "excluded", "path_pattern": "**/obj/**", "reason": "Build output is generated."},
+    {"id": "skill-business-evidence", "disposition": "excluded", "path_pattern": ".agents/skills/**/references/business-repos/**", "reason": "Generated business-repository regression evidence is empirical input, not repository policy or authority."},
+    {"id": "workflow-examples", "disposition": "excluded", "path_prefix": "docs/workflows/examples", "reason": "Examples are illustrative artifacts and must not satisfy current repository authority queries."},
+    {"id": "workflow-templates", "disposition": "excluded", "path_prefix": "docs/workflows/templates", "reason": "Template seeds are not current repository-instance facts; model them separately if repository-template lifecycle is introduced."},
+    {"id": "knowledge-derived", "disposition": "excluded", "path_prefix": "knowledge/catalogs", "reason": "Derived catalogs cannot recursively become source truth."},
+    {"id": "knowledge-snapshots", "disposition": "excluded", "path_prefix": "knowledge/snapshots", "reason": "Derived snapshots cannot recursively become source truth."},
+    {"id": "knowledge-projections", "disposition": "excluded", "path_prefix": "knowledge/projections", "reason": "Consumer projections are derived state."},
+    {"id": "knowledge-indexes", "disposition": "excluded", "path_prefix": "knowledge/indexes", "reason": "Publication indexes are derived state."}
+  ]
+}

@@ -1,0 +1,417 @@
+{
+  "status": "verified",
+  "task_id": "115",
+  "generated_by": "llm-assisted-semantic-analysis",
+  "backend": "codex-cli",
+  "entries": [
+    {
+      "id": "config:115:Game.Core/Data/act1-config.json",
+      "path": "Game.Core/Data/act1-config.json",
+      "explanation": "Defines the Act 1 route graph and associates combat nodes with reward pool identifiers. It determines which route node follows each reward-producing encounter.",
+      "modification_guidance": "Keep node IDs, next-node references, encounter IDs, and reward pool IDs consistent with their referenced definitions. Change this file only if the reward return destination or encounter-to-reward association must change.",
+      "modification_impact": "Changing the selected fields can redirect post-reward progression, select a different reward pool, or break route resolution when an identifier no longer matches another definition.",
+      "parameters": [
+        {
+          "pointer": "/node_graph/nodes/0/reward_pool_id",
+          "meaning": "Identifies the reward pool associated with the first combat node.",
+          "value": "reward.act1.normal_1",
+          "line": 15,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/node_graph/nodes/0/next/0",
+          "meaning": "Defines one valid route destination after the first combat node is completed.",
+          "value": "event-02",
+          "line": 17,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/node_graph/nodes/0/next/1",
+          "meaning": "Defines the alternate valid route destination after the first combat node is completed.",
+          "value": "combat-02",
+          "line": 18,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/node_graph/nodes/2/reward_pool_id",
+          "meaning": "Identifies the reward pool associated with the second combat node.",
+          "value": "reward.act1.normal_2",
+          "line": 40,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/node_graph/nodes/2/next/0",
+          "meaning": "Defines the route destination after the second combat node is completed.",
+          "value": "combat-03",
+          "line": 42,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/node_graph/nodes/4/reward_pool_id",
+          "meaning": "Identifies the reward pool associated with the reward-focused combat node.",
+          "value": "reward.act1.normal_3",
+          "line": 63,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/node_graph/nodes/4/next/0",
+          "meaning": "Defines the route destination after the reward-focused combat node is completed.",
+          "value": "rest-04",
+          "line": 65,
+          "evidence_status": "field_exists_semantic_inference"
+        }
+      ],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:115:Game.Core/Data/m1-reward-pools.json",
+      "path": "Game.Core/Data/m1-reward-pools.json",
+      "explanation": "Defines encounter reward entries and the card-choice pools used to construct selectable rewards. The identifiers in this file connect Act 1 encounters to concrete card choices and other reward entries.",
+      "modification_guidance": "Preserve reward pool and card-choice pool identifiers referenced by the Act 1 configuration. Keep each card identifier aligned with a definition in the card definitions file. Adjust choice counts or pool membership only when the task requires changing what Reward confirmation can write back.",
+      "modification_impact": "Changes can alter the reward payload offered for an encounter and the card identifier committed after confirmation. Invalid pool or card identifiers can prevent the reward selection from being resolved correctly.",
+      "parameters": [
+        {
+          "pointer": "/reward_pools/0/id",
+          "meaning": "Identifies the reward definition referenced by the first normal Act 1 encounter.",
+          "value": "reward.act1.normal_1",
+          "line": 5,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/reward_pools/0/entries/common_card_choice/pick",
+          "meaning": "Sets the number of common card choices requested for the first normal reward.",
+          "value": 3,
+          "line": 10,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/reward_pools/0/entries/common_card_choice/pool_id",
+          "meaning": "Selects the card-choice pool used by the first normal reward.",
+          "value": "reward.act1.normal.common",
+          "line": 10,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/reward_pools/2/id",
+          "meaning": "Identifies the reward definition referenced by the second normal Act 1 encounter.",
+          "value": "reward.act1.normal_2",
+          "line": 27,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/reward_pools/2/entries/common_card_choice/pool_id",
+          "meaning": "Selects the common card-choice pool used by the second normal reward.",
+          "value": "reward.act1.normal.common",
+          "line": 32,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/reward_pools/3/id",
+          "meaning": "Identifies the reward definition referenced by the third normal Act 1 encounter.",
+          "value": "reward.act1.normal_3",
+          "line": 38,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/reward_pools/3/entries/common_card_choice/pool_id",
+          "meaning": "Selects the common card-choice pool used by the third normal reward.",
+          "value": "reward.act1.normal.common",
+          "line": 43,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/card_choice_pools/0/id",
+          "meaning": "Identifies the common card pool used by normal Act 1 rewards.",
+          "value": "reward.act1.normal.common",
+          "line": 67,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/card_choice_pools/0/cards/0",
+          "meaning": "Provides the first card identifier eligible for the normal common reward pool.",
+          "value": "card.warrior.heavy_strike",
+          "line": 69,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/card_choice_pools/0/cards/1",
+          "meaning": "Provides the second card identifier eligible for the normal common reward pool.",
+          "value": "card.warrior.iron_wave",
+          "line": 70,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/card_choice_pools/0/cards/2",
+          "meaning": "Provides the third card identifier eligible for the normal common reward pool.",
+          "value": "card.warrior.cleave",
+          "line": 71,
+          "evidence_status": "field_exists_semantic_inference"
+        }
+      ],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:115:Game.Core/Data/m1-card-definitions.json",
+      "path": "Game.Core/Data/m1-card-definitions.json",
+      "explanation": "Defines the card records referenced by reward choice pools. Reward confirmation must write back a card identifier that resolves to one of these definitions.",
+      "modification_guidance": "Keep card IDs stable when fixing confirmation or skip routing. If an ID must change, update every reward pool and other data source that references it. Card costs, effects, and presentation keys are unrelated to route ownership unless the selected reward itself is being changed.",
+      "modification_impact": "Changing a card ID affects reward lookup and deck writeback references. Changing card properties affects the card granted by a confirmed selection but does not define the return route.",
+      "parameters": [
+        {
+          "pointer": "/cards/3/id",
+          "meaning": "Identifies Heavy Strike for lookup from reward card pools.",
+          "value": "card.warrior.heavy_strike",
+          "line": 81,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/4/id",
+          "meaning": "Identifies Iron Wave for lookup from reward card pools.",
+          "value": "card.warrior.iron_wave",
+          "line": 93,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/5/id",
+          "meaning": "Identifies Cleave for lookup from reward card pools.",
+          "value": "card.warrior.cleave",
+          "line": 106,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/6/id",
+          "meaning": "Identifies Power Through for lookup from rare reward card pools.",
+          "value": "card.warrior.power_through",
+          "line": 118,
+          "evidence_status": "field_exists_semantic_inference"
+        }
+      ],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:115:Game.Godot/Translations/en.csv",
+      "path": "Game.Godot/Translations/en.csv",
+      "explanation": "Provides English UI strings consumed by the Reward screen and other interfaces.",
+      "modification_guidance": "Keep translation keys aligned with the keys requested by Reward code. Add or edit only strings needed for confirmation, skip, feedback, or return controls, and preserve the CSV structure.",
+      "modification_impact": "Edits change English Reward labels or feedback text. Removing or renaming a referenced key can expose an unresolved localization key in the interface.",
+      "parameters": [],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:115:Game.Godot/Translations/zh-CN.csv",
+      "path": "Game.Godot/Translations/zh-CN.csv",
+      "explanation": "Provides Simplified Chinese UI strings consumed by the Reward screen and other interfaces.",
+      "modification_guidance": "Mirror any task-relevant Reward key changes made in the English catalog while preserving the CSV structure and exact key names.",
+      "modification_impact": "Edits change Simplified Chinese Reward labels or feedback text. Missing corresponding keys can make localized Reward controls inconsistent with the English interface.",
+      "parameters": [],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "asset:115:Game.Godot/Assets/Textures/Cards/card_reward_defend.png",
+      "path": "Game.Godot/Assets/Textures/Cards/card_reward_defend.png",
+      "explanation": "Supplies Defend reward artwork and is also declared as the Reward screen's fallback card texture.",
+      "modification_guidance": "A replacement should remain a Godot-importable PNG at the same path when code references are retained. Preserve suitable card-art dimensions, aspect ratio, transparency, and readable composition for the Reward card slot. If the file is moved or renamed, update every listed source binding.",
+      "modification_impact": "Replacing the file changes the artwork associated with Defend and the fallback image used when Reward cannot select another card texture. Changing its path without updating bindings leaves those references stale.",
+      "parameters": [],
+      "bindings": [
+        {
+          "source": "Game.Godot/Scripts/Main.gd",
+          "line": 602,
+          "evidence": "return \"res://Game.Godot/Assets/Textures/Cards/card_reward_defend.png\"",
+          "meaning": "Maps a card-art selection in the main flow to the Defend reward texture.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "source": "Game.Godot/Scripts/Main.gd",
+          "line": 819,
+          "evidence": "return \"res://Game.Godot/Assets/Textures/Cards/card_reward_defend.png\"",
+          "meaning": "Maps the Defend reward card identifier to this texture path.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "source": "Game.Godot/Scripts/RewardScene.gd",
+          "line": 3,
+          "evidence": "const CARD_FALLBACK_TEXTURE := \"res://Game.Godot/Assets/Textures/Cards/card_reward_defend.png\"",
+          "meaning": "Declares this image as the fallback texture for Reward card presentation.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "asset"
+    },
+    {
+      "id": "asset:115:Game.Godot/Assets/Textures/Cards/card_reward_heavy_strike.png",
+      "path": "Game.Godot/Assets/Textures/Cards/card_reward_heavy_strike.png",
+      "explanation": "Supplies card artwork for Heavy Strike, one of the cards listed in normal Act 1 reward pools.",
+      "modification_guidance": "A replacement should remain a Godot-importable PNG at the same path and retain a card-oriented aspect ratio suitable for Reward texture buttons. If renamed or relocated, update all listed source references.",
+      "modification_impact": "Replacing the file changes Heavy Strike's reward artwork. Moving it without updating the mappings leaves the configured texture references stale.",
+      "parameters": [],
+      "bindings": [
+        {
+          "source": "Game.Godot/Scripts/Main.gd",
+          "line": 590,
+          "evidence": "return \"res://Game.Godot/Assets/Textures/Cards/card_reward_heavy_strike.png\"",
+          "meaning": "Returns this texture for a Heavy Strike card-art mapping.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "source": "Game.Godot/Scripts/Main.gd",
+          "line": 596,
+          "evidence": "return \"res://Game.Godot/Assets/Textures/Cards/card_reward_heavy_strike.png\"",
+          "meaning": "Returns this texture for an additional card-art mapping that uses Heavy Strike artwork.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "source": "Game.Godot/Scripts/Main.gd",
+          "line": 821,
+          "evidence": "return \"res://Game.Godot/Assets/Textures/Cards/card_reward_heavy_strike.png\"",
+          "meaning": "Maps the Heavy Strike reward card identifier to this texture path.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "asset"
+    },
+    {
+      "id": "scene:115:Game.Godot/Scenes/Reward.tscn",
+      "path": "Game.Godot/Scenes/Reward.tscn",
+      "explanation": "Defines the Reward screen hierarchy, card selection controls, and action area used for confirming a reward or skipping it.",
+      "modification_guidance": "Preserve node paths expected by RewardScene.gd when editing the hierarchy. Place confirm and skip controls under the existing Actions container unless the script bindings are updated with the scene. Keep card ArtButton nodes interactive and maintain stable slot paths for selection handling.",
+      "modification_impact": "Changing action or card-slot node paths requires corresponding script updates. Editing button types can affect signal wiring, while layout changes affect the visible selection and action controls. Removing the root script binding disconnects the scene from its Reward behavior.",
+      "parameters": [],
+      "bindings": [
+        {
+          "node_path": ".",
+          "type": "Control",
+          "line": 5,
+          "meaning": "Defines the Reward screen root and its attached Reward script.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "VBox/CardList",
+          "type": "VBoxContainer",
+          "line": 27,
+          "meaning": "Contains the card reward slots presented for selection.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "VBox/CardList/CardSlot1/Body/ArtButton",
+          "type": "TextureButton",
+          "line": 38,
+          "meaning": "Provides the interactive artwork control for the first reward choice.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "VBox/CardList/CardSlot2/Body/ArtButton",
+          "type": "TextureButton",
+          "line": 58,
+          "meaning": "Provides the interactive artwork control for the second reward choice.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "VBox/CardList/CardSlot3/Body/ArtButton",
+          "type": "TextureButton",
+          "line": 78,
+          "meaning": "Provides the interactive artwork control for the third reward choice.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "VBox/Actions",
+          "type": "HBoxContainer",
+          "line": 91,
+          "meaning": "Contains the Reward action controls associated with confirmation and skipping.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "scene"
+    },
+    {
+      "id": "scene:115:Game.Godot/Scenes/Main.tscn",
+      "path": "Game.Godot/Scenes/Main.tscn",
+      "explanation": "Defines the application-level scene that owns the screen host and navigation node used by route-level transitions.",
+      "modification_guidance": "Keep ScreenRoot and ScreenNavigator available at their existing paths while changing Reward return behavior. Route transitions should target the route owner through this navigation structure; hierarchy changes must be accompanied by updates to code that resolves these nodes.",
+      "modification_impact": "Renaming or moving the screen host or navigator can break scene replacement and the shared return path used after Reward confirmation or skip. Changing overlay or menu layers can also alter which controls receive input during navigation.",
+      "parameters": [],
+      "bindings": [
+        {
+          "node_path": ".",
+          "type": "Control",
+          "line": 14,
+          "meaning": "Defines the application scene root and attaches the main orchestration script.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "ScreenRoot",
+          "type": "Control",
+          "line": 45,
+          "meaning": "Provides the host container for route-selected screens.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "ScreenNavigator",
+          "type": "Node",
+          "line": 54,
+          "meaning": "Provides the navigation component responsible for screen transitions.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "Overlays",
+          "type": "Control",
+          "line": 57,
+          "meaning": "Provides the application overlay container whose input and stacking behavior may interact with screen transitions.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "scene"
+    },
+    {
+      "id": "scene:115:Game.Godot/Scenes/Map/Map.tscn",
+      "path": "Game.Godot/Scenes/Map/Map.tscn",
+      "explanation": "Defines the route map that receives control after a Reward completion path returns to route-owned navigation.",
+      "modification_guidance": "Preserve the root script binding and route node paths used by map logic. Reward confirmation and skip should return through the route owner rather than directly editing these map controls. Update scene paths and map script lookups together if the hierarchy changes.",
+      "modification_impact": "Changing route button paths or the root script binding can affect route selection after returning from Reward. Layout-only edits change map presentation but do not define reward writeback.",
+      "parameters": [],
+      "bindings": [
+        {
+          "node_path": ".",
+          "type": "Control",
+          "line": 5,
+          "meaning": "Defines the map root and attaches the map behavior script.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "RouteTree",
+          "type": "VBoxContainer",
+          "line": 32,
+          "meaning": "Contains the selectable route nodes displayed after returning to the map.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "RouteTree/Floor2/combat_02",
+          "type": "Button",
+          "line": 56,
+          "meaning": "Represents the second-floor combat route destination referenced by the Act 1 graph.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "RouteTree/Floor3/combat_03",
+          "type": "Button",
+          "line": 68,
+          "meaning": "Represents the reward-focused combat route node referenced by the Act 1 graph.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "RouteTree/Floor4/rest_04",
+          "type": "Button",
+          "line": 76,
+          "meaning": "Represents the rest destination that follows the reward-focused combat node.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "scene"
+    }
+  ]
+}

@@ -1,0 +1,526 @@
+{
+  "status": "verified",
+  "task_id": "18",
+  "generated_by": "llm-assisted-semantic-analysis",
+  "backend": "codex-cli",
+  "entries": [
+    {
+      "id": "config:18:Game.Core/Data/act1-config.json",
+      "path": "Game.Core/Data/act1-config.json",
+      "explanation": "Defines the Act 1 combat nodes, encounter identifiers, enemy rosters, and reward pools used when the combat scene is opened from the map flow.",
+      "modification_guidance": "Keep combat node encounter IDs aligned with keys under encounter_rosters and with enemy definition IDs. Change only the encounter and roster fields needed to populate the combat shell.",
+      "modification_impact": "Changes can alter which enemies and rewards the combat UI must represent for an Act 1 encounter. Broken identifier references can prevent the shell from receiving coherent encounter data.",
+      "parameters": [
+        {
+          "pointer": "/node_graph/nodes/0/encounter_id",
+          "meaning": "Selects the encounter roster for the first combat node.",
+          "value": "act1-slime-scout",
+          "line": 14,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/encounters/encounter_rosters/act1-slime-scout/0/runtime_id",
+          "meaning": "Provides the first enemy instance identifier exposed to combat bindings.",
+          "value": "act1-slime-scout",
+          "line": 104,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/encounters/encounter_rosters/act1-slime-scout/0/enemy_id",
+          "meaning": "Links the first enemy instance to its enemy definition.",
+          "value": "act1-slime-scout",
+          "line": 105,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/encounters/encounter_rosters/act1-slime-scout/1/runtime_id",
+          "meaning": "Provides the second enemy instance identifier exposed to combat bindings.",
+          "value": "act1-slime-scout-b",
+          "line": 108,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/encounters/encounter_rosters/act1-slime-scout/1/enemy_id",
+          "meaning": "Links the second enemy instance to its enemy definition.",
+          "value": "act1-moss-rat",
+          "line": 109,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/encounters/enemy_definitions_file",
+          "meaning": "Identifies the enemy definition file used to resolve roster members.",
+          "value": "Game.Core/Data/act1-enemy-definitions.json",
+          "line": 100,
+          "evidence_status": "field_exists_semantic_inference"
+        }
+      ],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:18:Game.Core/Data/act1-enemy-definitions.json",
+      "path": "Game.Core/Data/act1-enemy-definitions.json",
+      "explanation": "Defines enemy identity, category, health, attack, defense, and intent pools for combat UI presentation.",
+      "modification_guidance": "Preserve enemy IDs referenced by Act 1 rosters. Coordinate stat or intent-pool changes with health displays, status panels, and intent presentation.",
+      "modification_impact": "Changes affect the enemy values and classifications that combat UI bindings must display. Renaming an ID can break roster resolution.",
+      "parameters": [
+        {
+          "pointer": "/enemy_definitions/0/id",
+          "meaning": "Stable identifier used to resolve the slime scout definition.",
+          "value": "act1-slime-scout",
+          "line": 5,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemy_definitions/0/name_key",
+          "meaning": "Localization key for the slime scout name.",
+          "value": "enemy.act1.slime_scout.name",
+          "line": 6,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemy_definitions/0/stats/hp",
+          "meaning": "Maximum health value presented for the slime scout.",
+          "value": 18,
+          "line": 9,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemy_definitions/0/stats/attack",
+          "meaning": "Base attack attribute associated with the slime scout.",
+          "value": 5,
+          "line": 10,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemy_definitions/0/stats/defense",
+          "meaning": "Base defense attribute associated with the slime scout.",
+          "value": 2,
+          "line": 11,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemy_definitions/0/intentPools/0",
+          "meaning": "First intent pool entry available to the slime scout.",
+          "value": "light_attack",
+          "line": 14,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemy_definitions/1/id",
+          "meaning": "Stable identifier used to resolve the moss rat definition.",
+          "value": "act1-moss-rat",
+          "line": 19,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemy_definitions/1/name_key",
+          "meaning": "Localization key for the moss rat name.",
+          "value": "enemy.act1.moss_rat.name",
+          "line": 20,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemy_definitions/1/stats/hp",
+          "meaning": "Maximum health value presented for the moss rat.",
+          "value": 22,
+          "line": 23,
+          "evidence_status": "field_exists_semantic_inference"
+        }
+      ],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:18:Game.Core/Data/m1-card-definitions.json",
+      "path": "Game.Core/Data/m1-card-definitions.json",
+      "explanation": "Supplies card names, descriptions, costs, targeting rules, types, and effect values for cards rendered in the combat hand.",
+      "modification_guidance": "Keep card IDs synchronized with the starting deck and reward pools. Preserve localization keys or update both translation files when visible card text changes.",
+      "modification_impact": "Changes affect card labels, costs, targeting behavior, and effect summaries consumed by combat card controls.",
+      "parameters": [
+        {
+          "pointer": "/cards/0/id",
+          "meaning": "Stable identifier for the Strike card.",
+          "value": "card.warrior.strike",
+          "line": 6,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/0/name_key",
+          "meaning": "Localization key used for the Strike card title.",
+          "value": "card.warrior.strike.name",
+          "line": 7,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/0/description_key",
+          "meaning": "Localization key used for the Strike card description.",
+          "value": "card.warrior.strike.description",
+          "line": 8,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/0/cost",
+          "meaning": "Energy cost displayed for the Strike card.",
+          "value": 1,
+          "line": 9,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/0/type",
+          "meaning": "Card classification used by combat presentation and interaction logic.",
+          "value": "attack",
+          "line": 10,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/0/target",
+          "meaning": "Declares that Strike requires an enemy target.",
+          "value": "enemy",
+          "line": 11,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/0/base_effect/damage",
+          "meaning": "Base damage value represented by the Strike card.",
+          "value": 6,
+          "line": 14,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/1/id",
+          "meaning": "Stable identifier for the Defend card.",
+          "value": "card.warrior.defend",
+          "line": 37,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/1/cost",
+          "meaning": "Energy cost displayed for the Defend card.",
+          "value": 1,
+          "line": 40,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/1/base_effect/block",
+          "meaning": "Block value represented by the Defend card.",
+          "value": 5,
+          "line": 45,
+          "evidence_status": "field_exists_semantic_inference"
+        }
+      ],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:18:Game.Core/Data/m1-enemy-intent-definitions.json",
+      "path": "Game.Core/Data/m1-enemy-intent-definitions.json",
+      "explanation": "Defines enemy intent identifiers, icons, localized text keys, effects, targets, timing, and numeric amounts for the combat intent UI.",
+      "modification_guidance": "Keep enemy IDs aligned with enemy definitions and use icon IDs supported by the combat presentation code. Update effect text and amounts together so the displayed intent remains internally consistent.",
+      "modification_impact": "Changes affect the intent icon, description, amount, target, and timing information that enemy UI elements expose.",
+      "parameters": [
+        {
+          "pointer": "/enemies/0/enemyId",
+          "meaning": "Associates the first intent set with the slime scout.",
+          "value": "act1-slime-scout",
+          "line": 8,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemies/0/intents/0/intentId",
+          "meaning": "Stable identifier for the mixed attack-and-block intent.",
+          "value": "intent.attack_block",
+          "line": 11,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemies/0/intents/0/iconId",
+          "meaning": "Selects the icon identifier presented for this intent.",
+          "value": "icon_sword",
+          "line": 12,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemies/0/intents/0/textKey",
+          "meaning": "Localization key for the intent description.",
+          "value": "combat.intent.mixed_attack_block",
+          "line": 13,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemies/0/intents/0/effects/0/amount",
+          "meaning": "Attack amount represented by the intent.",
+          "value": 6,
+          "line": 17,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemies/0/intents/0/effects/0/target",
+          "meaning": "Declares the player as the attack target.",
+          "value": "player",
+          "line": 19,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemies/0/intents/0/effects/1/amount",
+          "meaning": "Block amount represented by the intent.",
+          "value": 4,
+          "line": 23,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/enemies/0/intents/0/effects/1/timing",
+          "meaning": "Declares when the block effect is applied.",
+          "value": "next_enemy_turn",
+          "line": 24,
+          "evidence_status": "field_exists_semantic_inference"
+        }
+      ],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:18:Game.Core/Data/m1-warrior-starting-deck.json",
+      "path": "Game.Core/Data/m1-warrior-starting-deck.json",
+      "explanation": "Defines the card IDs and quantities used to populate the warrior's initial combat deck and hand flow.",
+      "modification_guidance": "Reference only card IDs present in the card definitions file. Treat count changes as changes to the card population that the combat hand, draw, and discard UI must accommodate.",
+      "modification_impact": "Changes alter the mix and quantity of cards available to combat UI bindings.",
+      "parameters": [
+        {
+          "pointer": "/cards/0/card_id",
+          "meaning": "References the Strike card definition.",
+          "value": "card.warrior.strike",
+          "line": 8,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/0/count",
+          "meaning": "Sets the number of Strike cards in the starting deck.",
+          "value": 5,
+          "line": 9,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/1/card_id",
+          "meaning": "References the Defend card definition.",
+          "value": "card.warrior.defend",
+          "line": 12,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/1/count",
+          "meaning": "Sets the number of Defend cards in the starting deck.",
+          "value": 4,
+          "line": 13,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/2/card_id",
+          "meaning": "References the Battle Focus card definition.",
+          "value": "card.warrior.battle_focus",
+          "line": 16,
+          "evidence_status": "field_exists_semantic_inference"
+        },
+        {
+          "pointer": "/cards/2/count",
+          "meaning": "Sets the number of Battle Focus cards in the starting deck.",
+          "value": 1,
+          "line": 17,
+          "evidence_status": "field_exists_semantic_inference"
+        }
+      ],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:18:Game.Godot/Translations/en.csv",
+      "path": "Game.Godot/Translations/en.csv",
+      "explanation": "Provides English text resolved from combat, card, enemy, intent, and HUD localization keys.",
+      "modification_guidance": "Add or update entries for every visible key introduced by the combat shell. Keep the key set synchronized with the Chinese translation file.",
+      "modification_impact": "Changes affect English labels and descriptions displayed by combat UI bindings.",
+      "parameters": [],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "config:18:Game.Godot/Translations/zh-CN.csv",
+      "path": "Game.Godot/Translations/zh-CN.csv",
+      "explanation": "Provides Simplified Chinese text resolved from combat, card, enemy, intent, and HUD localization keys.",
+      "modification_guidance": "Add or update entries matching every combat key in the English translation file while preserving the existing CSV structure and UTF-8 encoding.",
+      "modification_impact": "Changes affect Simplified Chinese labels and descriptions displayed by combat UI bindings.",
+      "parameters": [],
+      "bindings": [],
+      "kind": "config"
+    },
+    {
+      "id": "asset:18:Game.Godot/Assets/Textures/Cards/card_spore_slash.png",
+      "path": "Game.Godot/Assets/Textures/Cards/card_spore_slash.png",
+      "explanation": "Card artwork referenced by the main flow and exposed as a combat-scene card texture candidate.",
+      "modification_guidance": "Replace the file at the same path and retain a Godot-supported PNG format. Match the existing artwork's intended card framing and transparency so card controls can continue using the texture without path changes.",
+      "modification_impact": "Replacement changes the artwork presented wherever these exact resource references are used. Different dimensions, aspect ratio, or transparency can affect cropping, scaling, and visual alignment in card controls.",
+      "parameters": [],
+      "bindings": [
+        {
+          "source": "Game.Godot/Scripts/Main.gd",
+          "line": 52,
+          "evidence": "\"res://Game.Godot/Assets/Textures/Cards/card_spore_slash.png\",",
+          "meaning": "References the card texture through the project-root resource path.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "source": "Game.Godot/Scripts/Main.gd",
+          "line": 53,
+          "evidence": "\"res://../Game.Godot/Assets/Textures/Cards/card_spore_slash.png\"",
+          "meaning": "Provides the alternate relative resource path for the same card texture.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "source": "Game.Godot/Scripts/UI/CombatScene.cs",
+          "line": 7039,
+          "evidence": "yield return \"res://Game.Godot/Assets/Textures/Cards/card_spore_slash.png\";",
+          "meaning": "Includes the texture among card asset paths exposed by the combat scene code.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "asset"
+    },
+    {
+      "id": "asset:18:Game.Godot/Assets/Textures/Combat/Enemies/enemy_fungal_knight_target.png",
+      "path": "Game.Godot/Assets/Textures/Combat/Enemies/enemy_fungal_knight_target.png",
+      "explanation": "Enemy artwork referenced by combat-scene asset selection for an enemy target presentation.",
+      "modification_guidance": "Replace the file at the same path and retain a Godot-supported PNG format. Preserve suitable transparency, subject bounds, and aspect ratio for placement inside the enemy battle-stage controls.",
+      "modification_impact": "Replacement changes the enemy image selected by these combat-scene references. Different canvas bounds or aspect ratio can alter scaling and alignment within the enemy stage.",
+      "parameters": [],
+      "bindings": [
+        {
+          "source": "Game.Godot/Scripts/UI/CombatScene.cs",
+          "line": 7004,
+          "evidence": "yield return \"res://Game.Godot/Assets/Textures/Combat/Enemies/enemy_fungal_knight_target.png\";",
+          "meaning": "Exposes the fungal knight target texture as a combat enemy asset path.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "source": "Game.Godot/Scripts/UI/CombatScene.cs",
+          "line": 7015,
+          "evidence": "yield return $\"res://Game.Godot/Assets/Textures/Combat/Enemies/enemy_fungal_knight_target.png\";",
+          "meaning": "Provides another combat enemy asset selection path for the same texture.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "asset"
+    },
+    {
+      "id": "asset:18:Game.Godot/Assets/Textures/Combat/Enemies/enemy_m1_slime_b.png",
+      "path": "Game.Godot/Assets/Textures/Combat/Enemies/enemy_m1_slime_b.png",
+      "explanation": "Alternate slime enemy artwork referenced by combat-scene enemy asset selection.",
+      "modification_guidance": "Replace the file at the same path and retain a Godot-supported PNG format. Keep the subject scale, transparent margins, and aspect ratio compatible with other enemy portraits used in the battle stage.",
+      "modification_impact": "Replacement changes the alternate slime image selected by the listed combat bindings. Canvas or subject-bound changes can produce inconsistent sizing beside other enemies.",
+      "parameters": [],
+      "bindings": [
+        {
+          "source": "Game.Godot/Scripts/UI/CombatScene.cs",
+          "line": 7008,
+          "evidence": "yield return \"res://Game.Godot/Assets/Textures/Combat/Enemies/enemy_m1_slime_b.png\";",
+          "meaning": "Exposes the alternate slime texture as a combat enemy asset path.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "source": "Game.Godot/Scripts/UI/CombatScene.cs",
+          "line": 7012,
+          "evidence": "yield return \"res://Game.Godot/Assets/Textures/Combat/Enemies/enemy_m1_slime_b.png\";",
+          "meaning": "Provides another enemy asset selection reference to the alternate slime texture.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "asset"
+    },
+    {
+      "id": "scene:18:Game.Godot/Scenes/Combat.tscn",
+      "path": "Game.Godot/Scenes/Combat.tscn",
+      "explanation": "Defines the combat UI shell, including the full-screen HUD, player stage, enemy stage, enemy roster, status area, and hand presentation containers.",
+      "modification_guidance": "Preserve node paths consumed by the combat script when changing layout or styling. Edit container dimensions and spacing together, and account for the existing hidden legacy hand controls when wiring the visible hand fan. Node renames or type changes require corresponding script binding updates.",
+      "modification_impact": "Layout edits affect sizing, placement, and hierarchy across the combat screen. Removing, renaming, or changing the type of a bound node can invalidate scene-script lookups, while container changes can reposition their descendants.",
+      "parameters": [],
+      "bindings": [
+        {
+          "node_path": ".",
+          "type": "Control",
+          "line": 102,
+          "meaning": "Root Control that owns the combat scene script and full-screen layout.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD",
+          "type": "Control",
+          "line": 111,
+          "meaning": "Full-screen parent for combat presentation and interaction controls.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/PlayerBattleStagePanel",
+          "type": "PanelContainer",
+          "line": 145,
+          "meaning": "Frames the player-side battle presentation.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/PlayerBattleStagePanel/PlayerTargetHighlight",
+          "type": "PanelContainer",
+          "line": 153,
+          "meaning": "Optional overlay used to represent player targeting state.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/PlayerBattleStagePanel/PlayerBattleStageMargin/PlayerBattleStage/PlayerPortraitFrame/PlayerPortrait",
+          "type": "TextureRect",
+          "line": 184,
+          "meaning": "Texture control intended to present the player portrait.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/HandFanLayer",
+          "type": "Control",
+          "line": 192,
+          "meaning": "Control layer that defines the visible hand-card presentation region.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/EnemyRosterPanel",
+          "type": "VBoxContainer",
+          "line": 207,
+          "meaning": "Container for enemy roster information.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/EnemyRosterPanel/EnemyRosterContainer",
+          "type": "HBoxContainer",
+          "line": 219,
+          "meaning": "Horizontal container where enemy roster controls can be added.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/EnemyBattleStagePanel",
+          "type": "PanelContainer",
+          "line": 224,
+          "meaning": "Frames the main enemy-side battle presentation.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/EnemyBattleStagePanel/EnemyBattleStageMargin/EnemyBattleStage",
+          "type": "HBoxContainer",
+          "line": 238,
+          "meaning": "Horizontal container that governs enemy stage alignment and spacing.",
+          "evidence_status": "static_binding_semantic_explanation"
+        },
+        {
+          "node_path": "HUD/EnemyStatusPanel",
+          "type": "VBoxContainer",
+          "line": 199,
+          "meaning": "Container for enemy status and intent-related UI.",
+          "evidence_status": "static_binding_semantic_explanation"
+        }
+      ],
+      "kind": "scene"
+    }
+  ]
+}

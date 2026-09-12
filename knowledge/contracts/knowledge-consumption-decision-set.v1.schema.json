@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "newrouge.knowledge-consumption-decision-set.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "consumer", "request_id", "source_bundle_sha256", "decisions"],
+  "properties": {
+    "schema_version": {"const": "newrouge.knowledge-consumption-decision-set.v1"},
+    "consumer": {"enum": ["repository-session", "chapter4", "chapter5", "chapter6", "review"]},
+    "request_id": {"type": "string", "minLength": 1},
+    "source_bundle_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "knowledge-consumption-decision.v1.schema.json"}
+    }
+  }
+}

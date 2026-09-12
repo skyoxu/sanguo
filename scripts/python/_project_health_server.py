@@ -8,6 +8,8 @@ import socket
 import subprocess
 import sys
 import time
+import json
+from urllib.request import urlopen
 from pathlib import Path
 from typing import Any
 
@@ -108,19 +110,23 @@ def can_reuse_server(info: dict[str, Any], *, root: Path, preferred_port: int = 
         return False
     if int(preferred_port or 0) > 0 and port != int(preferred_port):
         return False
-    return port_accepts_connections(port)
+    return port_accepts_connections(port) and is_knowledge_server(port)
+
+
+def is_knowledge_server(port: int) -> bool:
+    try:
+        with urlopen(f"http://{HOST}:{port}/api/knowledge/session", timeout=1) as response:
+            return json.load(response).get('service') == 'project-health-knowledge-v1'
+    except Exception:
+        return False
 
 
 def spawn_detached_http_server(*, root: Path, port: int) -> int:
     cmd = [
         sys.executable,
-        "-m",
-        "http.server",
-        str(port),
-        "--bind",
-        HOST,
-        "-d",
-        str(dashboard_dir(root)),
+        str(Path(__file__).with_name('_project_health_http.py')),
+        "--port", str(port),
+        "--repo-root", str(root),
     ]
     kwargs: dict[str, Any] = {
         "cwd": str(root),

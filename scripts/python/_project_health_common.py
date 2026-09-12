@@ -1726,6 +1726,7 @@ def dashboard_html(
         <h1>项目健康总览</h1>
         <div>该页面聚合项目健康检查结果 + logs/ci 下可整合的 JSON 报告索引。</div>
         <div class="actions">
+          <a class="btn" href="/knowledge/">Knowledge + Impact</a>
           <button class="btn" onclick="window.location.reload()">手动刷新</button>
         </div>
       </div>
