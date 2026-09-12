@@ -103,10 +103,33 @@ jobs:
           Remove-Item -Force scripts/python/_third_round_knowledge_patch.py
           Remove-Item -Force scripts/python/_third_round_followup_fix.py
           Remove-Item -Force scripts/python/_third_round_run_marker.py
-          git checkout -- docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md
+          $eolRepair = @'
+          from pathlib import Path
+          import subprocess
+
+          rel = "docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md"
+          path = Path(rel)
+          blob = subprocess.check_output(["git", "show", f"HEAD:{rel}"])
+          current = path.read_bytes()
+
+          def normalize(data: bytes) -> bytes:
+              return data.replace(b"\r\r\n", b"\n").replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+          expected = normalize(blob)
+          actual = normalize(current)
+          if actual != expected:
+              raise SystemExit("business acceptance scenario has semantic drift beyond line endings")
+          if b"\r" not in blob:
+              raise SystemExit("expected malformed CR line endings are no longer present in HEAD blob")
+          path.write_bytes(expected)
+          print("normalized CR/CRLF line endings to repository-required LF")
+          '@
+          $eolRepair | py -3 -
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           $paths = @(
+            'docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md',
             'docs/knowledge/catalog/knowledge-catalog.json',
             'docs/knowledge/generated/task-resource-links.json',
             'docs/knowledge/generated/task-115-semantic.json',
@@ -127,8 +150,12 @@ jobs:
             'scripts/python/_third_round_run_marker.py'
           )
           git add -A -- $paths
-          $unexpected = git status --porcelain | Where-Object { $_ -notmatch '^.. (docs/knowledge/|knowledge/README.md|scripts/python/|scripts/sc/tests/test_project_health_sanguo_config.py)' }
+          $unexpected = git status --porcelain | Where-Object {
+            $_ -notmatch '^.. (docs/knowledge/|knowledge/README.md|scripts/python/|scripts/sc/tests/test_project_health_sanguo_config.py|docs/architecture/overlays/PRD-SANGUO-V3/08/08-business-acceptance-scenarios.md)'
+          }
           if ($unexpected) { throw "unexpected worktree changes: $($unexpected -join '; ')" }
+          git diff --cached --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           git diff --cached --quiet
           if ($LASTEXITCODE -eq 0) { throw 'third-round repair produced no staged changes' }
           git commit -m 'fix: close Sanguo knowledge publication lifecycle'
