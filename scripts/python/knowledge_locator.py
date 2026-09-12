@@ -26,15 +26,20 @@ def _fresh(root: Path, catalog: dict[str, Any]) -> bool:
     snapshot = catalog.get("source_snapshot", {})
     ref = snapshot.get("ref")
     commit = snapshot.get("commit")
-    if not isinstance(ref, str) or not isinstance(commit, str):
+    sources = snapshot.get("sources")
+    if not isinstance(ref, str) or not isinstance(commit, str) or not isinstance(sources, list):
         return False
     current = subprocess.run(["git", "-C", str(root), "rev-parse", ref], capture_output=True, text=True, encoding="utf-8", check=False)
-    if current.returncode or current.stdout.strip() != commit:
+    if current.returncode:
         return False
-    for source in snapshot.get("sources", []):
+    current_commit = current.stdout.strip()
+    ancestor = subprocess.run(["git", "-C", str(root), "merge-base", "--is-ancestor", commit, current_commit], capture_output=True, check=False)
+    if ancestor.returncode:
+        return False
+    for source in sources:
         if not isinstance(source, dict):
             return False
-        if _git_blob_hash(root, commit, str(source.get("path", ""))) != source.get("sha256"):
+        if _git_blob_hash(root, current_commit, str(source.get("path", ""))) != source.get("sha256"):
             return False
     return True
 

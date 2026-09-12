@@ -88,6 +88,25 @@ class KnowledgePublicationTests(unittest.TestCase):
         check = self.run_publish("--check")
         self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
 
+    def test_check_accepts_derived_only_commit_after_publication(self) -> None:
+        first = self.run_publish("--publish")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        subprocess.check_call(["git", "add", "knowledge/catalogs", "knowledge/snapshots", "knowledge/projections", "knowledge/indexes"], cwd=self.repo)
+        subprocess.check_call(["git", "commit", "-m", "publish derived state"], cwd=self.repo, stdout=subprocess.DEVNULL)
+        check = self.run_publish("--check")
+        self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
+
+    def test_check_blocks_when_authority_source_moves_after_publication(self) -> None:
+        first = self.run_publish("--publish")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        readme = self.repo / "README.md"
+        readme.write_text("# Game\nChanged authority.\n", encoding="utf-8")
+        subprocess.check_call(["git", "add", "README.md"], cwd=self.repo)
+        subprocess.check_call(["git", "commit", "-m", "move authority"], cwd=self.repo, stdout=subprocess.DEVNULL)
+        check = self.run_publish("--check")
+        self.assertNotEqual(check.returncode, 0)
+        self.assertEqual(json.loads(check.stdout)["reason"], "authority_ref_moved")
+
     def test_check_blocks_when_bound_control_plane_artifact_drifts(self) -> None:
         first = self.run_publish("--publish")
         self.assertEqual(first.returncode, 0, first.stdout + first.stderr)

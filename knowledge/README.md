@@ -1,4 +1,4 @@
-# newrouge Repository Knowledge Control Plane
+# Sanguo Repository Knowledge Control Plane
 
 This directory contains **derived repository knowledge infrastructure**. It does not replace repository source authority.
 

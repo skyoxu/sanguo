@@ -166,6 +166,16 @@ class KnowledgeFreezeTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 2)
         self.assertIn("rejected_candidate_cannot_satisfy", json.loads(completed.stdout)["reason"])
 
+    def test_locator_and_freeze_allow_derived_publication_commit(self) -> None:
+        bundle = self.bundle()
+        bundle_rel, decisions_rel = self.inputs(bundle)
+        subprocess.check_call(["git", "add", "knowledge/catalogs", "knowledge/snapshots", "knowledge/projections", "knowledge/indexes"], cwd=self.repo)
+        subprocess.check_call(["git", "commit", "-m", "publish derived state"], cwd=self.repo, stdout=subprocess.DEVNULL)
+        refreshed = self.bundle()
+        self.assertEqual(refreshed["snapshot"], bundle["snapshot"])
+        completed = self.freeze(bundle_rel, decisions_rel)
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+
     def test_freeze_blocks_after_authority_ref_moves(self) -> None:
         bundle_rel, decisions_rel = self.inputs(self.bundle())
         (self.repo / "docs/prd/game.md").write_text("# Game PRD\nChanged.\n", encoding="utf-8")

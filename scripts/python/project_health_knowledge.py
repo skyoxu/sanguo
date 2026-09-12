@@ -38,11 +38,14 @@ DEFAULT_CONFIG = {
     'source_path_bindings': SOURCE_PATH_BINDINGS,
     'gdd_paths': ['docs/gdd/ui-gdd-flow.md'],
     'task_scene_bindings': [{
-        'task_id': 115, 'scene': 'Game.Godot/Scenes/Reward.tscn', 'node': '.',
-        'script': 'Game.Godot/Scripts/RewardScene.gd',
-        'witness': 'func _claim_reward(reward_type: String, selected_card_id: String, selected_index: int) -> void:'
+        'task_id': 192, 'scene': 'Game.Godot/Scenes/UI/Task192MainMenuSurface.tscn', 'node': '.',
+        'script': 'Game.Godot/Scripts/UI/Task192MainMenuSurface.gd',
+        'witness': 'func get_surface_contract_key() -> String:'
     }],
-    'query_aliases': {'奖励': ['Reward'], '存档': ['Save'], '战斗': ['Combat']},
+    'query_aliases': {
+        '主菜单': ['MainMenu'], '开始菜单': ['MainMenu'], '设置': ['Settings'],
+        '战斗': ['Battle', 'SanguoBattle'], '三国': ['Sanguo']
+    },
 }
 
 

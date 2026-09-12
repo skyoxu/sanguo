@@ -8,7 +8,7 @@ from pathlib import Path
 FILES = {
     "README.md": "# 项目资源知识目录\n\nChapter 6 发现的配置、素材、场景、代码和测试关联。运行日志仍只写入 logs/**。\n",
     "schema/resource-link.schema.json": {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "required": ["id", "path", "kind", "confidence", "source_revision", "evidence"]},
-    "catalog/knowledge-catalog.json": {"schema_version": "1.0", "project": "newrouge", "entries": [], "last_scan_revision": None},
+    "catalog/knowledge-catalog.json": {"schema_version": "1.0", "project": "sanguo", "entries": [], "last_scan_revision": None},
     "catalog/config-catalog.json": {"schema_version": "1.0", "entries": []},
     "catalog/asset-catalog.json": {"schema_version": "1.0", "entries": []},
     "generated/task-resource-links.json": {"schema_version": "1.0", "generated": [], "source_revision": None},
