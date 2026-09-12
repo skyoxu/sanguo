@@ -33,11 +33,9 @@
   ],
   "identity_files": [
     "project.godot",
-    "GodotGame.csproj",
     "Game.Core/Game.Core.csproj",
     "Game.Core.Tests/Game.Core.Tests.csproj",
     "Tests.Godot/Tests.Godot.csproj",
-    "global.json",
     "scripts/python/impact_analysis_handoff.py",
     "scripts/python/impact_analysis_index.py",
     "scripts/python/build_impact_index.py",
