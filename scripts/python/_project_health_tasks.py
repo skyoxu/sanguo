@@ -7,22 +7,42 @@ from collections import Counter
 from pathlib import Path
 
 
+def _canonical_tasks(tasks: list[dict]) -> list[dict]:
+    """Collapse same-identity enrichment records while rejecting identity conflicts.
+
+    Sanguo's Taskmaster history can contain an older task record followed by a
+    regenerated, richer record with the same id/title.  Project Health treats
+    the later record as the current projection without mutating Taskmaster.
+    Reusing an id for a different title remains an ambiguous SSOT conflict and
+    fails closed.
+    """
+    order: list[str] = []
+    by_id: dict[str, dict] = {}
+    for task in tasks:
+        identity = str(task['id'])
+        previous = by_id.get(identity)
+        if previous is None:
+            order.append(identity)
+            by_id[identity] = task
+            continue
+        if str(previous.get('title', '')).strip() != str(task.get('title', '')).strip():
+            raise ValueError(f'Conflicting duplicate SSOT task id: {identity}')
+        by_id[identity] = task
+    return [by_id[identity] for identity in order]
+
+
 def task_details(root) -> list[dict]:
     """Read the task triplet from a source adapter or a filesystem root."""
     def read(relative: str):
         if not isinstance(root, Path):
             return json.loads(root.read_text(relative))
         return json.loads((root / Path(relative)).read_text(encoding='utf-8-sig'))
-    tasks = read('.taskmaster/tasks/tasks.json')['master']['tasks']
+    tasks = _canonical_tasks(read('.taskmaster/tasks/tasks.json')['master']['tasks'])
     views = {name: read(f'.taskmaster/tasks/{name}.json')
              for name in ('tasks_back', 'tasks_gameplay')}
     result = []
-    seen = set()
     for task in tasks:
         identity = str(task['id'])
-        if identity in seen:
-            raise ValueError(f'Duplicate SSOT task id: {identity}')
-        seen.add(identity)
         mappings = {name: [{key: value for key, value in row.items() if key not in task}
                            for row in rows if str(row.get('taskmaster_id')) == identity]
                     for name, rows in views.items()}
