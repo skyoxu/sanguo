@@ -1,0 +1,45 @@
+# ADR-0035: Repository Knowledge Control Plane
+
+- Status: Accepted
+- Date: 2026-09-02
+- Context:
+  - `sanguo` has explicit repository authority across `AGENTS.md`, Taskmaster, PRD/GDD, ADR/Base/Overlay, contracts, testing rules, workflow docs, execution plans, and decision logs.
+  - Current RAG/session guidance is primarily human-readable routing. It does not provide deterministic source snapshots, typed catalogs, consumer policy, source-hash verification, or bounded machine-readable retrieval.
+  - The upstream knowledge-control-plane lineage includes hosted/SaaS capabilities that are not appropriate for this Windows-only single-player game repository.
+- Decision:
+  - Introduce a derived Repository Knowledge Control Plane under `knowledge/**`.
+  - Repository source remains authoritative; generated knowledge artifacts may not override source.
+  - Initial domains are `toolchain`, `game-design`, `game-runtime`, and `delivery`.
+  - Keep domain, visibility, lifecycle, and enforcement level as independent dimensions.
+  - Initial enforcement target is E1 retrieval scope only.
+  - Locator output is location-only and deterministic by default.
+  - Every candidate is bound to source SHA-256 and trusted source ref/commit.
+  - Consumers own semantic accept/reject decisions; ranking alone cannot satisfy a required context class.
+  - Default trusted ref is `refs/heads/main`; dirty worktree state is not published as repository fact.
+  - Exclude `logs/**`, backups, migration history, engine/build caches, and derived knowledge layers from ordinary global semantic retrieval.
+  - Existing direct-source routing remains the safe fallback during rollout.
+- Consequences:
+  - Positive:
+    - Agents can locate authority without blind repository scans.
+    - Historical/superseded/transient sources can be policy-scoped instead of competing equally with current authority.
+    - Context can later be frozen for Chapter 4/5/6 and review consumers without turning generated artifacts into source truth.
+    - Knowledge freshness is machine-verifiable against committed repository bytes.
+  - Costs / risks:
+    - Catalog and projections are additional derived artifacts requiring maintenance.
+    - Consumer adapters must remain aligned with `sanguo` business authority instead of copying upstream business examples mechanically.
+    - E1/freeze contracts do not provide secure E2 repository isolation while agents retain general repository read access.
+- Explicitly out of scope:
+  - Hosted Context Gate behavior.
+  - SaaS account/project/tenant isolation.
+  - HMAC-signed runtime manifests, nonce/expiry enforcement, SQLite manifest persistence.
+  - Whole-asset semantic/vector indexing.
+  - Default LLM-based retrieval.
+- Supersedes: None
+- References:
+  - `AGENTS.md`
+  - `docs/agents/13-rag-sources-and-session-ssot.md`
+  - `docs/agents/16-directory-responsibilities.md`
+  - `docs/PROJECT_DOCUMENTATION_INDEX.md`
+  - `knowledge/README.md`
+  - `knowledge/policies/consumer-policies.v1.json`
+  - `knowledge/policies/source-exclusions.v1.json`
