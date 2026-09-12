@@ -1,0 +1,76 @@
+name: One-shot apply Sanguo Impact adaptation
+
+on:
+  push:
+    branches:
+      - align/project-health-sanguo-behavior-20260912
+    paths:
+      - .github/workflows/_one_shot_apply_impact_sanguo.yml
+
+permissions:
+  contents: write
+
+jobs:
+  adapt-impact:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: align/project-health-sanguo-behavior-20260912
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Adapt Impact identity and tests
+        shell: pwsh
+        run: |
+          $configPath = 'scripts/python/impact_analysis_config.v1.json'
+          $config = Get-Content $configPath -Raw | ConvertFrom-Json
+          $config.identity_files = @($config.identity_files | Where-Object { $_ -ne 'global.json' })
+          $config | ConvertTo-Json -Depth 100 | Set-Content $configPath -Encoding utf8NoBOM
+
+          $testPath = 'scripts/python/tests/test_impact_analysis_index.py'
+          $text = Get-Content $testPath -Raw
+          $text = $text.Replace('"NewRouge.csproj": "<Project Sdk=\"Godot.NET.Sdk/4.5.1\" />\n",', '"GodotGame.csproj": "<Project Sdk=\"Godot.NET.Sdk/4.5.1\" />\n",')
+          $text = $text.Replace('            "global.json": "{\"sdk\":{\"version\":\"8.0.100\"}}\n",' + "`r`n", '')
+          $text = $text.Replace('            "global.json": "{\"sdk\":{\"version\":\"8.0.100\"}}\n",' + "`n", '')
+          [System.IO.File]::WriteAllText((Resolve-Path $testPath), $text, (New-Object System.Text.UTF8Encoding($false)))
+
+          $gatePath = 'scripts/python/run_gate_bundle.py'
+          $gate = Get-Content $gatePath -Raw
+          if (-not $gate.Contains('scripts.python.tests.test_impact_analysis_index')) {
+            $needle = '                "scripts.sc.tests.test_migrate_task_optional_hints",' + "`n" + '                "-v",'
+            if (-not $gate.Contains($needle)) {
+              $needle = '                "scripts.sc.tests.test_migrate_task_optional_hints",' + "`r`n" + '                "-v",'
+            }
+            if (-not $gate.Contains($needle)) { throw 'Impact gate insertion point not found' }
+            $replacement = '                "scripts.sc.tests.test_migrate_task_optional_hints",' + "`n" +
+              '                "scripts.python.tests.test_impact_analysis_index",' + "`n" +
+              '                "scripts.python.tests.test_impact_analysis_index_repository_smoke",' + "`n" +
+              '                "scripts.python.tests.test_analyze_impact_cli",' + "`n" +
+              '                "scripts.python.tests.test_impact_analyzer",' + "`n" +
+              '                "scripts.python.tests.test_run_single_task_chapter6_lane",' + "`n" +
+              '                "-v",'
+            $gate = $gate.Replace($needle, $replacement)
+            [System.IO.File]::WriteAllText((Resolve-Path $gatePath), $gate, (New-Object System.Text.UTF8Encoding($false)))
+          }
+      - name: Run Impact regressions
+        shell: pwsh
+        run: |
+          py -3 -m unittest discover -s scripts/python/tests -p 'test_impact*.py' -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Commit adapted Impact state
+        shell: pwsh
+        run: |
+          Remove-Item .github/workflows/_one_shot_apply_impact_sanguo.yml
+          Remove-Item .github/workflows/_one_shot_finalize_project_health.yml -ErrorAction SilentlyContinue
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/python/impact_analysis_config.v1.json
+          git add scripts/python/tests/test_impact_analysis_index.py
+          git add scripts/python/run_gate_bundle.py
+          git add -u .github/workflows/_one_shot_apply_impact_sanguo.yml
+          git add -u .github/workflows/_one_shot_finalize_project_health.yml
+          git diff --cached --check
+          git commit -m "fix: adapt Impact analysis to Sanguo repository"
+          git push origin HEAD:align/project-health-sanguo-behavior-20260912
