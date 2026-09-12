@@ -17,6 +17,7 @@ jobs:
     env:
       PYTHONIOENCODING: 'utf-8'
       PYTHONUTF8: '1'
+      FINALIZE_ATTEMPT: '3'
     steps:
       - uses: actions/checkout@v4
         with:
