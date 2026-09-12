@@ -1,0 +1,48 @@
+name: One-shot publish Sanguo knowledge
+
+on:
+  push:
+    branches:
+      - align/project-health-sanguo-behavior-20260912
+    paths:
+      - .github/workflows/_one_shot_publish_sanguo_knowledge.yml
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: 'utf-8'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: align/project-health-sanguo-behavior-20260912
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Publish knowledge from Sanguo main
+        shell: pwsh
+        run: |
+          py -3 scripts/python/publish_knowledge_catalog.py --publish
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/validate_knowledge_control_plane.py --require-generated
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Commit generated Sanguo knowledge
+        shell: pwsh
+        run: |
+          Remove-Item .github/workflows/_one_shot_publish_sanguo_knowledge.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A knowledge
+          git add -u .github/workflows/_one_shot_publish_sanguo_knowledge.yml
+          git diff --cached --check
+          git commit -m "chore: publish Sanguo knowledge baseline"
+          git push origin HEAD:align/project-health-sanguo-behavior-20260912
