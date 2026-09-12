@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -11,6 +12,7 @@ PYTHON_DIR = ROOT / "scripts" / "python"
 if str(PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(PYTHON_DIR))
 
+from _project_health_tasks import task_details
 from project_health_knowledge import DEFAULT_CONFIG, load_config, validate_config
 
 
@@ -52,6 +54,37 @@ class ProjectHealthSanguoConfigTests(unittest.TestCase):
             self.assertIn("MainMenu", aliases["主菜单"])
             self.assertIn("SanguoBattle", aliases["战斗"])
             self.assertIn("Sanguo", aliases["三国"])
+
+    def _task_root(self, tasks: list[dict]) -> tempfile.TemporaryDirectory:
+        temporary = tempfile.TemporaryDirectory()
+        root = Path(temporary.name)
+        task_dir = root / ".taskmaster/tasks"
+        task_dir.mkdir(parents=True)
+        (task_dir / "tasks.json").write_text(
+            json.dumps({"master": {"tasks": tasks}}, ensure_ascii=False), encoding="utf-8"
+        )
+        for name in ("tasks_back.json", "tasks_gameplay.json"):
+            (task_dir / name).write_text("[]\n", encoding="utf-8")
+        temporary.root = root  # type: ignore[attr-defined]
+        return temporary
+
+    def test_same_title_duplicate_task_uses_later_enriched_record(self) -> None:
+        with self._task_root([
+            {"id": "50", "title": "Same task", "status": "done", "details": "legacy"},
+            {"id": 50, "title": "Same task", "status": "deferred", "details": "Story: richer"},
+        ]) as temporary:
+            rows = task_details(Path(temporary))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["task"]["details"], "Story: richer")
+        self.assertEqual(rows[0]["task"]["status"], "deferred")
+
+    def test_conflicting_duplicate_task_id_fails_closed(self) -> None:
+        with self._task_root([
+            {"id": "50", "title": "Original", "status": "done"},
+            {"id": 50, "title": "Different task", "status": "pending"},
+        ]) as temporary:
+            with self.assertRaisesRegex(ValueError, "Conflicting duplicate SSOT task id: 50"):
+                task_details(Path(temporary))
 
 
 if __name__ == "__main__":
