@@ -1,4 +1,4 @@
-﻿using Godot;
+using Godot;
 using Game.Godot.Adapters;
 using Game.Godot.Adapters.Db;
 using System.Collections.Generic;

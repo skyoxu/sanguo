@@ -1,4 +1,4 @@
-﻿# task-166-chapter6-residual-followup
+# task-166-chapter6-residual-followup
 
 - Title: task-166-chapter6-residual-followup
 - Status: active

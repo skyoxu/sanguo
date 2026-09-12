@@ -1,4 +1,4 @@
-﻿using Godot;
+using Godot;
 using Game.Godot.Scripts.Utils;
 
 namespace Game.Godot.Examples.Components;
