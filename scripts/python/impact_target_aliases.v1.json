@@ -1,0 +1,8 @@
+{
+  "alias_table_revision": "newrouge.impact-target-aliases.v1",
+  "aliases": {
+    "contract": {},
+    "event": {}
+  },
+  "schema_version": "newrouge.impact-target-aliases.v1"
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "newrouge.knowledge-locator-request.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "request_id", "consumer", "query", "snapshot", "policy_revision"],
+  "properties": {
+    "schema_version": {"const": "newrouge.knowledge-locator-request.v1"},
+    "request_id": {"type": "string", "minLength": 1},
+    "consumer": {"enum": ["repository-session", "chapter4", "chapter5", "chapter6", "review"]},
+    "query": {"type": "string", "minLength": 1},
+    "snapshot": {
+      "type": "object", "additionalProperties": false, "required": ["ref", "commit"],
+      "properties": {"ref": {"type": "string", "minLength": 1}, "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}}
+    },
+    "policy_revision": {"const": "newrouge-knowledge-consumer-policies.v1"}
+  }
+}

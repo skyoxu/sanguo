@@ -1,0 +1,247 @@
+{
+  "allow_identity_only": false,
+  "analysis_config_revision": "newrouge.impact-analysis-config.v1",
+  "exclusions": [
+    {
+      "path_prefix": ".git",
+      "reason": "git_internal"
+    },
+    {
+      "path_prefix": ".godot",
+      "reason": "godot_editor_cache"
+    },
+    {
+      "path_pattern": "*/bin/*",
+      "reason": "build_output"
+    },
+    {
+      "path_pattern": "*/obj/*",
+      "reason": "build_output"
+    },
+    {
+      "path_pattern": "*.g.cs",
+      "reason": "generated_source"
+    },
+    {
+      "path_pattern": "*.generated.cs",
+      "reason": "generated_source"
+    },
+    {
+      "path_pattern": "*.Designer.cs",
+      "reason": "generated_source"
+    }
+  ],
+  "identity_files": [
+    "project.godot",
+    "NewRouge.csproj",
+    "Game.Core/Game.Core.csproj",
+    "Game.Core.Tests/Game.Core.Tests.csproj",
+    "Tests.Godot/Tests.Godot.csproj",
+    "global.json",
+    "scripts/python/impact_analysis_handoff.py",
+    "scripts/python/impact_analysis_index.py",
+    "scripts/python/build_impact_index.py",
+    "scripts/python/impact_analysis_config.v1.json",
+    "scripts/python/impact_target_aliases.v1.json",
+    "scripts/python/impact_runtime.py"
+  ],
+  "index_schema": "newrouge.impact-index.v1",
+  "maximum_file_size_bytes": 4194304,
+  "scan_roots": [
+    "Game.Core",
+    "Game.Core.Tests",
+    "Game.Godot",
+    "Tests.Godot",
+    ".taskmaster/tasks",
+    "docs/adr",
+    "docs/architecture",
+    "execution-plans",
+    "decision-logs"
+  ],
+  "schema_version": "newrouge.impact-analysis-config.v1",
+  "source_rules": [
+    {
+      "binary": false,
+      "parser_family": "csharp-text",
+      "parser_version": "v1",
+      "path_prefixes": [
+        "Game.Core/Contracts"
+      ],
+      "source_kind": "contract",
+      "suffixes": [
+        ".cs"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "json-text",
+      "parser_version": "v1",
+      "path_prefixes": [
+        ".taskmaster/tasks"
+      ],
+      "source_kind": "task",
+      "suffixes": [
+        ".json"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "markdown-text",
+      "parser_version": "v1",
+      "path_prefixes": [
+        "docs/adr"
+      ],
+      "source_kind": "adr",
+      "suffixes": [
+        ".md"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "markdown-text",
+      "parser_version": "v1",
+      "path_prefixes": [
+        "docs/architecture"
+      ],
+      "source_kind": "architecture",
+      "suffixes": [
+        ".md"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "markdown-text",
+      "parser_version": "v1",
+      "path_prefixes": [
+        "execution-plans"
+      ],
+      "source_kind": "task",
+      "suffixes": [
+        ".md"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "markdown-text",
+      "parser_version": "v1",
+      "path_prefixes": [
+        "decision-logs"
+      ],
+      "source_kind": "decision",
+      "suffixes": [
+        ".md"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "python-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "tooling",
+      "suffixes": [
+        ".py"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "csharp-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "csharp",
+      "suffixes": [
+        ".cs"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "godot-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "scene",
+      "suffixes": [
+        ".tscn"
+      ]
+    },
+    {
+      "binary": true,
+      "parser_family": "gdscript-opaque",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "script",
+      "suffixes": [
+        ".gd"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "godot-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "resource",
+      "suffixes": [
+        ".tres"
+      ]
+    },
+    {
+      "binary": true,
+      "parser_family": "binary-hash",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "resource",
+      "suffixes": [
+        ".res"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "json-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "structured-data",
+      "suffixes": [
+        ".json"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "markdown-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "knowledge",
+      "suffixes": [
+        ".md"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "plain-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "knowledge",
+      "suffixes": [
+        ".txt"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "xml-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "project",
+      "suffixes": [
+        ".csproj"
+      ]
+    },
+    {
+      "binary": false,
+      "parser_family": "godot-project-text",
+      "parser_version": "v1",
+      "path_prefixes": [],
+      "source_kind": "project",
+      "suffixes": [
+        ".godot"
+      ]
+    }
+  ],
+  "text_encoding": "utf-8-no-bom"
+}

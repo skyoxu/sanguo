@@ -1,0 +1,77 @@
+{
+  "schema_version": "newrouge.knowledge-evaluation-suite.v1",
+  "cases": [
+    {
+      "id": "repository-rules",
+      "consumer": "repository-session",
+      "query": "Repository Guide Context Reset startup order",
+      "must_include": [
+        {
+          "any_paths": ["AGENTS.md"],
+          "domains": ["toolchain"],
+          "statuses": ["active"]
+        }
+      ],
+      "forbidden_path_prefixes": ["logs/", "backup/", "docs/migration/"]
+    },
+    {
+      "id": "workflow-authority",
+      "consumer": "repository-session",
+      "query": "workflow Chapter 6 single task daily loop",
+      "must_include": [
+        {
+          "any_paths": ["workflow.md"],
+          "domains": ["toolchain"],
+          "statuses": ["active"]
+        }
+      ],
+      "forbidden_path_prefixes": ["logs/"]
+    },
+    {
+      "id": "architecture-index",
+      "consumer": "chapter4",
+      "query": "ADR index Godot accepted proposed superseded",
+      "must_include": [
+        {
+          "any_paths": ["docs/architecture/ADR_INDEX_GODOT.md"],
+          "domains": ["game-runtime"],
+          "statuses": ["active"]
+        }
+      ]
+    },
+    {
+      "id": "contract-authority",
+      "consumer": "chapter4",
+      "query": "Game.Core Contracts SSoT",
+      "must_include": [
+        {
+          "any_path_prefixes": ["docs/adr/", "Game.Core/Contracts/"],
+          "domains": ["game-runtime"]
+        }
+      ]
+    },
+    {
+      "id": "task-delivery-context",
+      "consumer": "chapter6",
+      "query": "taskmaster overlay refs acceptance linkage",
+      "must_include": [
+        {
+          "any_path_prefixes": [".taskmaster/tasks/", "execution-plans/"],
+          "domains": ["delivery"]
+        }
+      ]
+    },
+    {
+      "id": "review-no-log-authority",
+      "consumer": "review",
+      "query": "review pipeline run protocol delivery profile",
+      "must_include": [
+        {
+          "any_path_prefixes": ["docs/workflows/", ".agents/skills/"],
+          "domains": ["toolchain"]
+        }
+      ],
+      "forbidden_path_prefixes": ["logs/"]
+    }
+  ]
+}

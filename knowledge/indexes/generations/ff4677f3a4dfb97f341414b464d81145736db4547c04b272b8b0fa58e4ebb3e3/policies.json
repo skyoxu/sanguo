@@ -1,0 +1,321 @@
+{
+  "policies": [
+    {
+      "consumer": "repository-session",
+      "domains": [
+        "toolchain",
+        "game-design",
+        "game-runtime",
+        "delivery"
+      ],
+      "exact_paths": [
+        "AGENTS.md",
+        "README.md",
+        "workflow.md",
+        "DELIVERY_PROFILE.md",
+        "docs/PROJECT_DOCUMENTATION_INDEX.md",
+        "docs/testing-framework.md"
+      ],
+      "freeze_point": "session-context-ready",
+      "historical_mode": "exact-only",
+      "lifecycles": [
+        "repository-source"
+      ],
+      "max_candidates": 24,
+      "minimum_confidence": "medium",
+      "optional_context_classes": [
+        "task-context",
+        "architecture-context",
+        "workflow-context"
+      ],
+      "path_prefixes": [
+        "docs/agents/",
+        "docs/prd/",
+        "docs/gdd/",
+        "docs/adr/",
+        "docs/architecture/",
+        "docs/workflows/",
+        "execution-plans/",
+        "decision-logs/",
+        ".taskmaster/"
+      ],
+      "required_context_classes": [
+        "repository-rules"
+      ],
+      "statuses": [
+        "active",
+        "conditional",
+        "historical"
+      ],
+      "visibility": [
+        "active",
+        "dependency",
+        "conditional"
+      ]
+    },
+    {
+      "consumer": "chapter4",
+      "context_query_exact_path_templates": {
+        "product-intent": [
+          "docs/prd/{scope}.md"
+        ]
+      },
+      "context_query_max_candidates": 4,
+      "context_query_terms": {
+        "architecture-authority": [
+          "architecture",
+          "adr",
+          "base"
+        ],
+        "product-intent": [
+          "产品",
+          "目标"
+        ]
+      },
+      "domains": [
+        "toolchain",
+        "game-design",
+        "game-runtime"
+      ],
+      "exact_paths": [
+        "AGENTS.md",
+        "workflow.md",
+        ".taskmaster/docs/prd.txt"
+      ],
+      "freeze_point": "before-overlay-write",
+      "historical_mode": "forbidden",
+      "lifecycles": [
+        "repository-source"
+      ],
+      "max_candidates": 24,
+      "minimum_confidence": "medium",
+      "optional_context_classes": [
+        "existing-overlay",
+        "contract-authority"
+      ],
+      "path_prefixes": [
+        "docs/prd/",
+        "docs/gdd/",
+        "docs/adr/",
+        "docs/architecture/",
+        "Game.Core/Contracts/",
+        ".agents/skills/workflow-chapter4-"
+      ],
+      "required_context_classes": [
+        "product-intent",
+        "architecture-authority"
+      ],
+      "statuses": [
+        "active",
+        "conditional"
+      ],
+      "visibility": [
+        "active",
+        "dependency",
+        "conditional"
+      ]
+    },
+    {
+      "consumer": "chapter5",
+      "context_query_attribution_prefixes": {
+        "acceptance-scope": [
+          ".taskmaster/tasks/",
+          "docs/architecture/overlays/"
+        ],
+        "semantic-authority": [
+          "docs/adr/",
+          "docs/architecture/base/",
+          "Game.Core/Contracts/"
+        ]
+      },
+      "context_query_max_candidates": 6,
+      "context_query_scope_preference": {
+        "acceptance-scope": "task-view-first"
+      },
+      "context_query_scope_types": {
+        "acceptance-scope": [
+          "task"
+        ],
+        "semantic-authority": [
+          "adr"
+        ]
+      },
+      "context_query_terms": {
+        "acceptance-scope": [],
+        "semantic-authority": []
+      },
+      "domains": [
+        "toolchain",
+        "game-design",
+        "game-runtime",
+        "delivery"
+      ],
+      "exact_paths": [
+        "AGENTS.md",
+        "workflow.md",
+        "docs/testing-framework.md",
+        ".taskmaster/docs/prd.txt"
+      ],
+      "freeze_point": "before-semantic-stabilization",
+      "historical_mode": "exact-only",
+      "lifecycles": [
+        "repository-source"
+      ],
+      "max_candidates": 28,
+      "minimum_confidence": "medium",
+      "optional_context_classes": [
+        "historical-decision"
+      ],
+      "path_prefixes": [
+        "docs/prd/",
+        "docs/gdd/",
+        "docs/adr/",
+        "docs/architecture/",
+        "Game.Core/Contracts/",
+        ".taskmaster/tasks/",
+        "execution-plans/",
+        ".agents/skills/workflow-chapter5-"
+      ],
+      "required_context_classes": [
+        "acceptance-scope",
+        "semantic-authority"
+      ],
+      "statuses": [
+        "active",
+        "conditional",
+        "historical"
+      ],
+      "visibility": [
+        "active",
+        "dependency",
+        "conditional"
+      ]
+    },
+    {
+      "consumer": "chapter6",
+      "context_query_attribution_prefixes": {
+        "implementation-authority": [
+          "docs/adr/",
+          "docs/architecture/base/",
+          "Game.Core/Contracts/"
+        ],
+        "task-context": [
+          ".taskmaster/tasks/"
+        ]
+      },
+      "context_query_max_candidates": 6,
+      "context_query_scope_preference": {
+        "task-context": "task-view-first"
+      },
+      "context_query_scope_types": {
+        "implementation-authority": [
+          "adr"
+        ],
+        "task-context": [
+          "task"
+        ]
+      },
+      "context_query_terms": {
+        "implementation-authority": [],
+        "task-context": []
+      },
+      "domains": [
+        "toolchain",
+        "game-design",
+        "game-runtime",
+        "delivery"
+      ],
+      "exact_paths": [
+        "AGENTS.md",
+        "workflow.md",
+        "docs/testing-framework.md",
+        ".taskmaster/docs/prd.txt"
+      ],
+      "freeze_point": "before-red",
+      "historical_mode": "exact-only",
+      "lifecycles": [
+        "repository-source"
+      ],
+      "max_candidates": 32,
+      "minimum_confidence": "medium",
+      "optional_context_classes": [
+        "test-context",
+        "decision-context"
+      ],
+      "path_prefixes": [
+        "docs/prd/",
+        "docs/gdd/",
+        "docs/adr/",
+        "docs/architecture/",
+        "Game.Core/Contracts/",
+        ".taskmaster/tasks/",
+        "execution-plans/",
+        "decision-logs/",
+        ".agents/skills/workflow-chapter6-"
+      ],
+      "required_context_classes": [
+        "task-context",
+        "implementation-authority"
+      ],
+      "statuses": [
+        "active",
+        "conditional",
+        "historical"
+      ],
+      "visibility": [
+        "active",
+        "dependency",
+        "conditional"
+      ]
+    },
+    {
+      "consumer": "review",
+      "domains": [
+        "toolchain",
+        "game-design",
+        "game-runtime",
+        "delivery"
+      ],
+      "exact_paths": [
+        "AGENTS.md",
+        "README.md",
+        "workflow.md",
+        "DELIVERY_PROFILE.md"
+      ],
+      "freeze_point": "review-run-input",
+      "historical_mode": "exact-only",
+      "lifecycles": [
+        "repository-source"
+      ],
+      "max_candidates": 32,
+      "minimum_confidence": "medium",
+      "optional_context_classes": [
+        "architecture-context",
+        "delivery-context"
+      ],
+      "path_prefixes": [
+        "docs/",
+        "Game.Core/Contracts/",
+        ".taskmaster/tasks/",
+        "execution-plans/",
+        "decision-logs/",
+        ".agents/skills/"
+      ],
+      "required_context_classes": [
+        "review-scope"
+      ],
+      "statuses": [
+        "active",
+        "conditional",
+        "historical"
+      ],
+      "visibility": [
+        "active",
+        "dependency",
+        "conditional"
+      ]
+    }
+  ],
+  "policy_revision": "newrouge-knowledge-consumer-policies.v1",
+  "schema_version": "newrouge.knowledge-consumer-policies.v1"
+}

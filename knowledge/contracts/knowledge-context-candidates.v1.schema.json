@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "newrouge.knowledge-context-candidates.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mode",
+    "consumer",
+    "request_id",
+    "query",
+    "status",
+    "locator_status",
+    "policy_revision",
+    "semantic_decision_required",
+    "freeze_state",
+    "candidates",
+    "fallback"
+  ],
+  "properties": {
+    "schema_version": {"const": "newrouge.knowledge-context-candidates.v1"},
+    "mode": {"const": "shadow"},
+    "consumer": {"enum": ["repository-session", "chapter4", "chapter5", "chapter6", "review"]},
+    "request_id": {"type": "string", "minLength": 1},
+    "query": {"type": "string", "minLength": 1},
+    "status": {"enum": ["shadow_ready", "fallback_required"]},
+    "locator_status": {"enum": ["matched", "insufficient_match", "unavailable"]},
+    "snapshot": {"type": ["object", "null"]},
+    "policy_revision": {"const": "newrouge-knowledge-consumer-policies.v1"},
+    "semantic_decision_required": {"const": true},
+    "freeze_state": {"const": "unfrozen"},
+    "candidates": {"type": "array", "items": {"type": "object"}},
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "reason", "authority_route"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "reason": {"type": ["string", "null"]},
+        "authority_route": {"const": "docs/agents/13-rag-sources-and-session-ssot.md"}
+      }
+    }
+  }
+}

@@ -17,6 +17,7 @@ Operate Chapter 4 from `workflow.md` idempotently for a business repository that
 - Keep generated code, scripts, tests, comments, and log messages in English.
 - Do not modify the business repo unless the user explicitly asks for that change.
 - Do not rerun expensive steps before reading existing recovery artifacts.
+- During Knowledge Control Plane migration, knowledge lookup is shadow-only: candidates must be re-read from source and never count as architecture/contract authority by themselves.
 
 ## Repository Layout
 
@@ -38,20 +39,24 @@ Enter Chapter 4 only after the Chapter 3 triplet baseline is clean. Use batch dr
 
 Chapter 4 depends on real overlay and contract files. Use business-repo overlays and Game.Core/Contracts as structural evidence, but keep workflow.md as the execution policy source.
 
+A `logs/ci/knowledge-context/**` shadow bundle is optional routing evidence only. It is not part of the overlay/contract SSoT.
+
 ## Required Reading
 
 1. Read the relevant Chapter 4 section in the template repo `workflow.md`.
-2. Optionally read `references/business-repos/<repo>.md` only as empirical validation evidence when the target business repo has a generated reference.
-3. If that optional evidence file is missing or stale, run `py -3 scripts/python/update_workflow_chapter_skills.py <repo>` from the template repo.
+2. Read `docs/workflows/knowledge-context-shadow.md` before using the optional Knowledge Locator shadow preflight.
+3. Optionally read `references/business-repos/<repo>.md` only as empirical validation evidence when the target business repo has a generated reference.
+4. If that optional evidence file is missing or stale, run `py -3 scripts/python/update_workflow_chapter_skills.py <repo>` from the template repo.
 
 ## Idempotent Procedure
 
 1. Confirm the Chapter 3.9 triplet baseline is clean before generating overlays.
-2. Generate overlay skeletons through batch dry-run, batch simulate, single-page repair for outliers, and limited apply.
-3. Do not perform full apply in the first overlay pass, and do not mix acceptance rewrites into overlay generation.
-4. Freeze overlay refs with sync_task_overlay_refs and validate_overlay_execution, then rerun task refs and triplet validators.
-5. Create or adjust contract skeletons under Game.Core/Contracts only, using the workflow contract templates.
-6. Validate contract baseline with validate_contracts, check_domain_contracts, and Game.Core.Tests before leaving Chapter 4.
+2. Before the first overlay/contract write, optionally run the Chapter 4 shadow knowledge preflight from `docs/workflows/knowledge-context-shadow.md`. If it returns `fallback_required`, continue with the direct authoritative sources; do not block Chapter 4 on the shadow layer.
+3. Generate overlay skeletons through batch dry-run, batch simulate, single-page repair for outliers, and limited apply.
+4. Do not perform full apply in the first overlay pass, and do not mix acceptance rewrites into overlay generation.
+5. Freeze overlay refs with sync_task_overlay_refs and validate_overlay_execution, then rerun task refs and triplet validators.
+6. Create or adjust contract skeletons under Game.Core/Contracts only, using the workflow contract templates.
+7. Validate contract baseline with validate_contracts, check_domain_contracts, and Game.Core.Tests before leaving Chapter 4.
 
 ## Stop-Loss Signals
 
@@ -60,6 +65,7 @@ Chapter 4 depends on real overlay and contract files. Use business-repo overlays
 - Route evidence recommends inspect-first, record-residual, fix-deterministic, repo-noise-stop, or pause.
 - The same deterministic failure fingerprint appears repeatedly.
 - The next action would duplicate work already covered by task, overlay, candidate, or manifest evidence.
+- A shadow knowledge candidate conflicts with direct repository authority; direct source wins and the shadow result must be treated as stale/invalid.
 
 ## Business Evidence References
 

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "newrouge.knowledge-index-pointer.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generation_id", "generation_sha256", "source_snapshot_id", "authority_ref", "main_commit"],
+  "properties": {
+    "schema_version": {"const": "newrouge.knowledge-index-pointer.v1"},
+    "generation_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "generation_sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "source_snapshot_id": {"type": "string", "minLength": 1},
+    "authority_ref": {"type": "string", "minLength": 1},
+    "main_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+  }
+}

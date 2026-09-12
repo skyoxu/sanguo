@@ -1,0 +1,4078 @@
+{
+  "commit": "17e70086ae2ce5111a0ada56e421680b8ccc5b84",
+  "ref": "refs/heads/main",
+  "schema_version": "newrouge.repository-source-snapshot.v1",
+  "snapshot_id": "8d3e51e93f4a8d7013d285985379cf09fe8320f2873f52ef8497061e4edf7fc9",
+  "sources": [
+    {
+      "path": ".agents/skills/pr-ci-artifact-repair/SKILL.md",
+      "sha256": "e144cc819d451663a0ca0d4f6013cf7527caf50d4614b8eb457735ca640af681",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/pr-ci-artifact-repair/references/history-patterns.md",
+      "sha256": "e005a8df77f1b72b0cb1bddfd21abd29d7259a14a836ff1eace2c20452feaad3",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter2-repository-bootstrap/SKILL.md",
+      "sha256": "7d2e6f2b6eb511dfdbef2f717ed7efb03673aac400ece8869c6ab99bb06bb941",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter2-repository-bootstrap/references/workflow-source.md",
+      "sha256": "b3392e46ca8a9d18c473291883e9b0af9b081ff039c24f2a00c63fcfd6739475",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter3-task-triplet-baseline/SKILL.md",
+      "sha256": "0de634e15a2d3c6a946c85685b561e412b59422038346c9e2873cedc0c04530d",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter3-task-triplet-baseline/references/workflow-source.md",
+      "sha256": "7439447292710afd8bdfc1a52dae2591c5265734a9d9c497eaf01674aea4c90a",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter4-overlays-contracts-baseline/SKILL.md",
+      "sha256": "cd79dd14e3d4e6ea5f5795ae09e4d4103b56c26894ef7f111ff9a51f26e0adc1",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter4-overlays-contracts-baseline/references/workflow-source.md",
+      "sha256": "a1ded3cda8d8496def695a22090f885913f928fa0dcf2fb9c3b913cb879d6220",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter5-semantics-stabilization/SKILL.md",
+      "sha256": "89c1f808e7737a568b8b0ba358507807d2af965dbea5642766b19f41cdef0301",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter5-semantics-stabilization/references/workflow-source.md",
+      "sha256": "623603d69dd3c44cd39daa8dc459603e2b18c09f6f6ceb726dcb82d80a2d5e46",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter6-single-task-daily-loop/SKILL.md",
+      "sha256": "bebd45c31560f33854e88da52d479193731c70eeacbe9fdaa10cc8ec0473e82d",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter6-single-task-daily-loop/references/workflow-source.md",
+      "sha256": "dfca4172a6de97813ec152970fc91a169b7e1cc77fdda99e0dfac8da51559f18",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter7-ui-wiring-closure/SKILL.md",
+      "sha256": "0aac28f17263ccb386fd8b9fdbdf067bf5c992833138ee04319ec8f425915018",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".agents/skills/workflow-chapter7-ui-wiring-closure/references/workflow-source.md",
+      "sha256": "09c774321318ad9e7e743b5e8082b99cf61c5caa9b33b0804da344e810e05d01",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": ".taskmaster/docs/prd.txt",
+      "sha256": "612ee3f9b091e2acae67459aed3344895b4adfd063f05a98cfeb7036a01b4823",
+      "source_role": "product-authority"
+    },
+    {
+      "path": ".taskmaster/tasks/tasks.json",
+      "sha256": "ad65b38cc3a809d79da9cd58679525554be1a39d0e4c8eceb8431c3eeeb6af62",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": ".taskmaster/tasks/tasks_back.json",
+      "sha256": "a32b7e86cdd00728d92fa15daa394d3cb6688e086d8dc6e073cdaa5469fe2df9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": ".taskmaster/tasks/tasks_gameplay.json",
+      "sha256": "98ca29b4956936e5c7e8e43a0494da0e8c6f61cab12cd0be52aa6afe4b89273d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "52da5bbe800f670c5bcd459f5c223bc5e8dc46e90b007bcd4c5a8f9e9f6687f0",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "DELIVERY_PROFILE.md",
+      "sha256": "5729ffb40f616ba96d13d4b58bd77d63a66f2567fb94642ab16b8179f5d228e9",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Cards/CardDefinition.cs",
+      "sha256": "573c0cc64004d14b2b58139125606491264f1a44c32c57348f773faf187eace9",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Cards/CardForm.cs",
+      "sha256": "cb2534daa45d301fa0428bbb167517ae85e3895cc93ee224f224987d91ff5177",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Cards/CardInstance.cs",
+      "sha256": "9d35a67fd7a0889dd0659b1629f8fb578a9ce76c670fb418e8f1d5dbeeaa83e1",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Cards/CardInstanceModifier.cs",
+      "sha256": "f5bd1a5c3d7fbc59dbd58f2bf40fb8b0dcd5def7240d27dc39262bc00a085530",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Cards/CardPoolDefinition.cs",
+      "sha256": "99e6332ab2649d1a392f248a72bbabe723793cf8225691ccf1b75a644f7cd51e",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Cards/UpgradeRoute.cs",
+      "sha256": "41dd4530e61a79dbdc2e254a3b7086449cb03953793cbd38c9ec3bc61a8a1fa1",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Combat/CombatHudSnapshot.cs",
+      "sha256": "56f5c6b1da7fd16e2a2e64724d789d74a6d1e918017b69bc9750aa51615a3f65",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Combat/CombatLoop.cs",
+      "sha256": "7d5c43196518d560c4c3c85890037aabc653875ce6a56eda3e38b60f56b64410",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Combat/CombatRuntimeResolutionContracts.cs",
+      "sha256": "56fd4a13169927900793683f863f69f778e51aac6749a490669d4752458cf3e8",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Combat/CombatTurnProgression.cs",
+      "sha256": "128fc29845edf24b383874c3e484429b8a51103ae9f4a711ec82ed5c4228924f",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Config/ActConfig.cs",
+      "sha256": "669ce7079e409384a7d765036c6948c1b180b137d5dc4a9953827172195ad63d",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Config/ActConfigLoadResult.cs",
+      "sha256": "dabc5611f47f0ab4db5a8b8059e7964b8ed6ce3662cca5df492cb212db381971",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Config/DifficultyConfig.cs",
+      "sha256": "776904e872fff4cf08abc5efccb1a6fdae03bfeddca5f0fb8739feb5ec25c758",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Content/CurseDefinition.cs",
+      "sha256": "78ec191132a1c1bf02289b1e17732c93791d689e600658aa372309f358b18cb2",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Content/RelicDefinition.cs",
+      "sha256": "8e0157709a868fff5e1aa240c0b0251cdceac409a069a6b85ae39809f461dbe6",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Content/RelicInstance.cs",
+      "sha256": "a890a2276f3ce98505e07351ab60303ee5351fba2c5ec0dc3965585f08403033",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/DomainEvent.cs",
+      "sha256": "27b80d732aaa3e3df6c2646e0bf3c6f5b6d87bb479cc0dfdaf23a7a994170b89",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/EventTypes.cs",
+      "sha256": "4dc84f316c225094559dae6774d80da345b92ab4ac72d3e8a02efb086d0279f6",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/ActConfigLoadedEvent.cs",
+      "sha256": "c49b8255225fbc5a78d4ce0a42e5ccf1feeb7dba45486b527221b53498c65804",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/AuditLoggedEvent.cs",
+      "sha256": "8b8611a182e4ae836ca7d05095460bbb1714fe9570811c4bdc0532ff82946a5b",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/AutosaveWrittenEvent.cs",
+      "sha256": "e67d252c386789af3653f7b17169d655a9b3f1c10c7f14ad437f4908b8c93607",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CardPlayed.cs",
+      "sha256": "885cbfa2a240cdd87d4233404c814cd6d5edc79814d59e7e783ccc785ac0e88a",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CardUltimatePromotedEvent.cs",
+      "sha256": "83564ebf171fbfd0fd98e3b94223fad926b68f006202abe4f213d939b22a9529",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CardUpgradedEvent.cs",
+      "sha256": "54cfbfbd64c677509ba95df8784994f0980b93b38896dc82e90a603c06244242",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatCardInvalidPlayBlockedEvent.cs",
+      "sha256": "c7ff5061b3146fdf8f16dd0d8505308394bd582e9c3f3d29f35c02dd77407673",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatCardPlayedEvent.cs",
+      "sha256": "ee432e36b743178e8a666555a6b65fe69d2a8c45bce9b878c75dd1ff26b9bc86",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatDamageResolvedEvent.cs",
+      "sha256": "3590f5e049c8828c1ec1952a7b6a14fb8c1234f8dec49806e6080c71bb1667f6",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatEndedEvent.cs",
+      "sha256": "f25f0d39ad3ac14903fc5750ddab1a099c170a9ed16627956ea016e7db8af436",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatFixedDamageResolvedEvent.cs",
+      "sha256": "04e8339270ef669be767be8187eb75fcb826b16998827f52e9cdf60c8a118aee",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatLoopHardStoppedEvent.cs",
+      "sha256": "3e8c1fc8f09525863e705e90d6bb7bd7c29e611b7de3b8a73cbd713075978e26",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatStarted.cs",
+      "sha256": "36f64c26e96c3164e035926ec04deff57f7d692bfdc96bc2512e0e2d01fe30ba",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatStartedEvent.cs",
+      "sha256": "5d074e5d0faf7cc5d2b6be3887246493fb1231887985bdf88570b7e6c9c15e66",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CombatTurnStartedEvent.cs",
+      "sha256": "c8273fc4ce9cf52d889158d21e0dcefab4fc8ca55919ef5061f49a07fd5368dc",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CurseAddedEvent.cs",
+      "sha256": "42c4d66f58546282668800d7aa4910ea573e02ab5f879b0c71d3cd8ea1041e95",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/CurseRemovedEvent.cs",
+      "sha256": "d0334d67ea1b54aa5fc4361a6edfba369b3a7e7327f0fdb69cd68ca1dd81e73c",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/DarkCostAppliedEvent.cs",
+      "sha256": "aa90e435c1dead5d5bdc6a35182785215ce669ea7e00a0eb8d2b0e35f9ed435c",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/DeckDiscardedEvent.cs",
+      "sha256": "abe8beaa0e690e768605e0373e11914eff728473c6f3e5ecff70870564ec3cc4",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/DeckDrawnEvent.cs",
+      "sha256": "e515c216f3eaf19209744fa621285453ad67a38e4819dfe8fe8fc770126e901c",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/DeckExhaustedEvent.cs",
+      "sha256": "ddd5cc4e1b380189d7ebeb940635dd7ad2e758525a6f9708273a496499cdc91d",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/DeckInitializedEvent.cs",
+      "sha256": "b664c2c8708dc284d988a096f49316db9e477460b412bd47bb7d30a836798b69",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/DeckRetainedEvent.cs",
+      "sha256": "a299439aa861969b79feed043a81a78ff0dd678c25a21eacd0ca550471949f37",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/DeckShuffledEvent.cs",
+      "sha256": "8fe132561c04d5a5332f855282927edcb25f84cc9abdf1231b69dd66d05f1e62",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/DifficultyModifierAppliedEvent.cs",
+      "sha256": "244f49718ee48bb37807512857449abe5d110cbd497630fc68c9ec7b2e316336",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/EventChoiceCommittedEvent.cs",
+      "sha256": "984897597f2273ab26ed0c27171fe998efe16cf15fcf202c3398eadd9ef38d0f",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/EventEnteredEvent.cs",
+      "sha256": "ac566257eb6801c147f2280ba194320995dd7e52fb1b21f175f99cdb4c563cca",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/HealthUpdatedEvent.cs",
+      "sha256": "c3d5c8b8550237024ac7ac6df777d918e06d29c1883facb7af8f38bf696b3e67",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/IntentSelectedEvent.cs",
+      "sha256": "c11379dacc7a8c31d2999a9ecd4a36892a6c547b359d1012ba47a2b701de7cd3",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/MapNodeEnteredEvent.cs",
+      "sha256": "84b374fe58110ecb8285ae0326b7068aea57cb86895f5ba72626027f738d839a",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/MapNodeLockedEvent.cs",
+      "sha256": "90807430a7df72a587b913c01565d6aee05aaf1b5fbcea0b6ab6c8358ba4c7b5",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/MapNodeSelectedEvent.cs",
+      "sha256": "e21245517bc0aed0e2a3ad814d6025b8b3166f9ced6ce0d0ea1edf208f193aaf",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/MapPathBacktrackBlockedEvent.cs",
+      "sha256": "dbae9b4cc13c0f0670d0f39c550e003526ec49ce4ea1784366bae88809c90a53",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RelicGrantedEvent.cs",
+      "sha256": "bafdc5c9d165777eb383233a0e0263f87c0e0ef544d89ea580555a81afdd8c65",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RestOptionSelectedEvent.cs",
+      "sha256": "5ab7122243aa8ed41b2fb5260c523e59834e5efdaa1a57910d2b2caad96edca1",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RewardOfferLockedEvent.cs",
+      "sha256": "82a6ce51dbab3e443b05f9f1922cdcc38c2ce93d75c12e12a71dd101284a6deb",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RewardOfferPresentedEvent.cs",
+      "sha256": "50aea42a7fb3a7d1dcf02d93705a555e1874079029499243bba296ea3baef7a0",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RewardOfferSelectedEvent.cs",
+      "sha256": "b38a418ca18e71f3510e207ec7ac3626c8381c6448e4d9228be234465636b66a",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RewardOfferSkippedEvent.cs",
+      "sha256": "1db401f68a8359da635055be7369783cdfbba57c2bc46220458f506d6a73698c",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RngStreamAdvancedEvent.cs",
+      "sha256": "83c750eb23aa57b12bafcd0eac9db5c617762aa577b6363b5e5e9f7a0570525d",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RngStreamRestoredEvent.cs",
+      "sha256": "aea89ea838ac77bfccba369f6b24488e9cdeb25ea5e7dd8a2ee67f824ef81bd2",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RunCharacterSelectedEvent.cs",
+      "sha256": "0f9660c7117992057f4244966f2a7601c26f210d46992444448e072bebd3d77d",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RunContinueBlockedEvent.cs",
+      "sha256": "1f18538be9de97c9d89b1041f757c755dae3c7bb8a62d493032cb9121ea6894d",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RunDifficultySelectedEvent.cs",
+      "sha256": "e8f099e47795cb79baeeca638c486ca8a4f6c03b72fa2bd155c9460e3a12af75",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RunResumedEvent.cs",
+      "sha256": "5daea37cb0fdbd4a0cc8698f7f3e8d7c161b0c0029462ca74e5bf1dfcd5b1194",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RunStartedEvent.cs",
+      "sha256": "3a4cb8e28785ee878a268c5593c64daaef3d059bb294cdc14d41abc233605082",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/RunStateTransitionedEvent.cs",
+      "sha256": "c5dbdfbbeb4171ec5656b58ac2ae7d8477aaf207396dbf7571b26a69af5bb61a",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/SaveLoadedEvent.cs",
+      "sha256": "111460f888c3dfdefd3fe939d3c6ce6a0a367d095b19d0a459c10b8c21a64fa1",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/SaveMigrationFailedEvent.cs",
+      "sha256": "8f9b2365cde60ecece5e797974ede46319b81d6da83574246b0f8e4cbfd16a2c",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/SaveWriteFailedEvent.cs",
+      "sha256": "996a0b4c713b5e2cffa41be870df1954c0014c05c28e71e9c579326eb5564f2a",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/SaveWriteSucceededEvent.cs",
+      "sha256": "cafb1f1adfdc57e7f3ac4ebdb0e54104cd41a3602202cbd48afc39339b7b1321",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/ScoreUpdatedEvent.cs",
+      "sha256": "85cd4b74f5a01b0548640215be1ab2672e76db2ad483abf4b37339b8989414dc",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/ShopCurseRemovedEvent.cs",
+      "sha256": "cd057946885c17efe3c59e990aca42a6ffc0b47705295e45f8b854cc9b079aee",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/ShopInventoryLockedEvent.cs",
+      "sha256": "ca0dd3c68d2abbfdc6a6266516ca686643f0bf13f946dce0755601ebeef976b8",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/ShopItemPurchasedEvent.cs",
+      "sha256": "1561c671fc9bcf897aecc1f2bfafd7365a6163a3d7f39760d909c279ac9755b5",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/StatusAppliedEvent.cs",
+      "sha256": "01b35f6a32359375f0ee803b7f3f98c79ce5fda83036a03c2c5f14175c8fbd63",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/StatusDispelledEvent.cs",
+      "sha256": "f560eb943e6f9bf1f7df386fc904ea4a3e246821b0ed849510a20558f1174bff",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/StatusExpiredEvent.cs",
+      "sha256": "8c16375458bd0d47123124d6de3cb7e7bbdcc72789131c58b2543035cdfe4959",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/StatusStackedEvent.cs",
+      "sha256": "958e3c308241b7921e4005a54072a2854429d06491d0c97007f388567b036b6e",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Events/TraceabilityCheckedEvent.cs",
+      "sha256": "b8ac35c9fdba8edf633c94faa1c865cdd56f26628749abedb264721e50638e80",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Guild/GuildMemberJoined.cs",
+      "sha256": "873cd549b198ddf2db2f70139fb2a79e767bc06127998c212af7633d408e5ec7",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/IActConfigProvider.cs",
+      "sha256": "3d541e18764f060bbffec6238ec01964c210b270fe27d67d8f9e3a1d9fed39f9",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/ICurseService.cs",
+      "sha256": "c17f438981a98e360038175529d44958c8e2ccc3c8f306c9bd5ca7a0d4ac610d",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/IDifficultyProvider.cs",
+      "sha256": "fc78ed1ea157fab1b65b36515d925d00461d703b3da4a91bd7e871d3bcdf04a5",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/IEventBus.cs",
+      "sha256": "91b497e332e5321e31db517e38fbd06e28ccb152f3e808ea6f370271e98068c3",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/IOfferService.cs",
+      "sha256": "c56f521abe248fef291cb3e557a13709c5e1a570b1543d8b52713f91d617fbdb",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/IRelicService.cs",
+      "sha256": "a8f0574f8d52c1a6152afe609f8047a7435ee3876f0de2e140be2af3e589b16f",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/IRngStreamRegistry.cs",
+      "sha256": "de9efb6bdec66666c66b1c101b983f11d258274f53967c470abf22d3c6ba721a",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/IRunCommandHandler.cs",
+      "sha256": "cc286cbfc0ca3fd49a7e489d383d96d4c8eb88b84249a8108ea8a8db33d421ab",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/ISaveMigrationService.cs",
+      "sha256": "0f3496946560ce43ba4e0a91f4daf7a06926b7198d1a6c1d16066885e588852b",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/ISaveService.cs",
+      "sha256": "44bc91c0200aa498a731a817721b046d98b1f0f54b0e081f112d8ff63a7a7f93",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Interfaces/IStatusService.cs",
+      "sha256": "2597ace2218693f03f7e671ac5457733f7229a1f043732ce39a6c4e1597ec0e0",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Offers/OfferItem.cs",
+      "sha256": "9c0ad32b7780847ef38b2bebb3673b199c666505f7d3312b26c3e7740ac80d9d",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Offers/OfferLockSnapshot.cs",
+      "sha256": "16b54355f43fe6a8c3acc36803cba8051523916d942e791964424a386e551b84",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Offers/OfferProvenance.cs",
+      "sha256": "281b4e675c5d3a463ad75e89fca43f4bd490dee4df639858717a92c278dca5dc",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Offers/OfferSourceType.cs",
+      "sha256": "434f06d5d8d85a9a3f66758e6acaebbea74a83608419abf45142c75e8bba848a",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/RngStreamType.cs",
+      "sha256": "965887b016452403a3ef6cd96ba6f23ec378fc9dedc8f50f53b8046ff961fd10",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Run/CombatResolutionCommandPayload.cs",
+      "sha256": "476c8be8a49929f3bfc3961451c57c7269416a7715f132beddbe8f0f542065e0",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Run/RunCommand.cs",
+      "sha256": "bd2a7484680ebbd1966987bed8c2f571decf53ffa918856d0704435d25157031",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Run/RunState.cs",
+      "sha256": "a651037e3de0675f635b52a9976f913d0284fedec6c37bf36dce1a0ea3b3ed91",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Run/RunTransition.cs",
+      "sha256": "f5af88c8ebfd6456f1d7c7be632c60dd5768540f5d166479b56d4faa4b1d76bb",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/AutosaveSnapshot.cs",
+      "sha256": "1283b5d8865068335362bcf6ac7e2c6ae56b01e81fb6410346f9e7dbbf8a3910",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/ContinueGateDecision.cs",
+      "sha256": "a65b8dd60484a9203f641b89db45b22db1684487ced42fb6241a869fc72f1de4",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/ContinueLoadValidationResult.cs",
+      "sha256": "dcc7aef1c256063290cca1e1dadc1437a29658bdc3fd56e34ceb88fc676e70bd",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/ContinueMetadata.cs",
+      "sha256": "212932020cb6d9b206e1048b0e2dd8839ea34b05bd4b6ae39f49d5ff889d6e2a",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/RunSummaryMetadata.cs",
+      "sha256": "5640d2bc597a39d5ad249b3c7477a5fa331c85332830278b2c952dad3d684f75",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/RunSummaryOwnerSurface.cs",
+      "sha256": "925d901be10fb7beb4c1c925c89011d20472156f31582efa1c96fbf623407ffa",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/RunSummaryOwnershipPolicy.cs",
+      "sha256": "2e94af4aa5aa248189c8c741770dca1c4ad2d2dadbbb1af8d7d6b2ad6f412612",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/RunSummaryOwnershipSelection.cs",
+      "sha256": "a6ef64be6ef805f9f588950c8f93f65d46bc310eeda3dfb5953aa7fedc177976",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/RunSummaryOwnershipValidationResult.cs",
+      "sha256": "9fd8cc35e1ef7182063ee6bd8aae0762c72cc69e6171f493252abd2144403b5e",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Save/SaveMigrationResult.cs",
+      "sha256": "150b025e04d8e7244c5669187fd58a7b372e331ed42f0d600425b2d17d33e90b",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Status/ExpiresTiming.cs",
+      "sha256": "99b4fb2a850f89e6d90b1953701ecfd2944fbaaa2acc4dc40c0fc7167780b285",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Status/Status.cs",
+      "sha256": "f2166e8105486ccd4855c3e1ad292b6ca8b66b2b427871852c961d69452c2e82",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Status/StatusInstance.cs",
+      "sha256": "f2f643d45978ca4dc5cba6b3e256c6715b9c5d17a7ede56418cdd1d6bc978698",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Status/StatusOperations.cs",
+      "sha256": "71e82d307ed10957618ee77d4a387d2bddf4b7b2e89469b448df07c449fa88e0",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "Game.Core/Contracts/Status/StatusType.cs",
+      "sha256": "0384d770d797012a0612ac502fbbbda346e16d425c9a40831e61384cfa4af630",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "README.md",
+      "sha256": "06a5cc924aa2073b35ed06e6b0cae664ecf74d243afe6ee9d9b7406655f0c5cf",
+      "source_role": "repository-overview"
+    },
+    {
+      "path": "decision-logs/2026-03-19-agent-review-sidecar-contract.md",
+      "sha256": "02ea8ded2c19d4a7d1b577321822c1d038b6756cb42a0046a3e9800ae6d128ea",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-03-19-agents-index-and-persistent-harness.md",
+      "sha256": "0e4b8145e918811092cb5f1021b88ae7a3e969a32c66e61dc44aec45115eca43",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-03-28-t56-execution-policy-and-gate-strategy.md",
+      "sha256": "8806bc8ed9ed38eacfe7e070f10acae50de32c6ecf932e125794869211b0b589",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-01-task7-ch6-recovery-decision.md",
+      "sha256": "871e17ad274c7f5ae3190f92185a0215a5b163e48846d49d929c572b3808a40b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-03-task23-needs-fix-register.md",
+      "sha256": "169ec698776b198322e2554300e73b1c7d9097a6db14c7f75b93d7023930796e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-03-task7-llm-needs-fix-evidence-gap.md",
+      "sha256": "292b09d9cfcd86d96b0e6ce27981ff9fefe652028fc30247fc38c41a46a24d87",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-04-task55-needs-fix-carryover-after-6-8.md",
+      "sha256": "7a4d1b17af6adde3ec4845ad2f66c68f87ef8f004232b284cf1fbfcb5c718316",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-04-task9-chapter6-execution-strategy.md",
+      "sha256": "fb57330b98536c7eb7813c1ca334ce48bd7584f01f127966b302f37fac76bbda",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-06-task-14-manual-flow-evidence.md",
+      "sha256": "6bd0ceee9dacc233b6732af698bf620998019eac98d56267d6a2fa575ab6da75",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-09-task15-p2-needs-fix-followup.md",
+      "sha256": "5af9fb2bcae58bae61accba556158b74db65d9b90abb137410a8d20c5d200c56",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-11-task-16-chapter6-residual-needs-fix-2.md",
+      "sha256": "e678c2457606984a1a23ea61fbe9a000b2e55c443399c124682ea0fb0ecedce3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-11-task-16-chapter6-residual-needs-fix-3.md",
+      "sha256": "9e774bf8c1d14fadc66889b2aa69f946888b3f6c84da0bfbe17584d12eba0cc4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-11-task-16-chapter6-residual-needs-fix-4.md",
+      "sha256": "9e774bf8c1d14fadc66889b2aa69f946888b3f6c84da0bfbe17584d12eba0cc4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-11-task-16-chapter6-residual-needs-fix.md",
+      "sha256": "e678c2457606984a1a23ea61fbe9a000b2e55c443399c124682ea0fb0ecedce3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-11-task16-approval-pending-artifact-integrity-stoploss.md",
+      "sha256": "be8e2c8721213083b66288b788b811f1e855451fa2da464241222a1a782d9a9a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-11-task16-review-needs-fix-rerun-guard-stoploss.md",
+      "sha256": "45a63242150b5fbb681b7e200b16bab5c27c6b0d5fee9f9129a5b3175e1cf489",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-10-chapter6-residual-needs-fix-2.md",
+      "sha256": "2927aface735827824d59de30d8cba520640047d946e737c1faebb55801ecc74",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-10-chapter6-residual-needs-fix-3.md",
+      "sha256": "30b962b9c3380b697c3068b0e6950acc684490e6675f58a302eb17c91e8fa579",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-10-chapter6-residual-needs-fix-4.md",
+      "sha256": "972438c45036527daf980e848a1b16166e35cbf7efe10b6b98291131434d2d93",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-10-chapter6-residual-needs-fix-5.md",
+      "sha256": "bd2c42ffd096a4ecf3766e0a9048ad0d657aa6ece0b846bfab37320f37f2d0d3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-10-chapter6-residual-needs-fix.md",
+      "sha256": "e07cf8ffadbe4e874f8c8bfe12afec3a5acb9fb45e6efd0b6f995f3fae7a2612",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-22-chapter6-residual-needs-fix.md",
+      "sha256": "42f6622c4158c2be620ca7a5b4d299526260e1dffdb5ef7875b283ff03bad189",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-24-chapter6-residual-needs-fix-2.md",
+      "sha256": "d5ce364852af55bc99b9f3927f4cab7824d9ff2eb5d5199ec3e1a560f28538ad",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-24-chapter6-residual-needs-fix-3.md",
+      "sha256": "d5ce364852af55bc99b9f3927f4cab7824d9ff2eb5d5199ec3e1a560f28538ad",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-24-chapter6-residual-needs-fix.md",
+      "sha256": "d5ce364852af55bc99b9f3927f4cab7824d9ff2eb5d5199ec3e1a560f28538ad",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-14-task-25-chapter6-residual-needs-fix.md",
+      "sha256": "224720662e134cdb66f9a7dc0064221789a80484efa8bc3bf2db5bf4f4eba2cf",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-17-chapter6-residual-needs-fix.md",
+      "sha256": "5cf7c30c5cad7bedb464e9dfabe7832ed8745a38a83090b62a4782f6f91cd7d5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-26-chapter6-residual-needs-fix.md",
+      "sha256": "1383bebdc8b8f458e9b12b4d68fd9f8c7dbbb070d747da3fe520f259d8722942",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-27-chapter6-residual-needs-fix-2.md",
+      "sha256": "272d10f89508688b72ca7ce01ad0e53ac250710d6b9662aa45a1014aa0ef7d8a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-27-chapter6-residual-needs-fix.md",
+      "sha256": "6ec2a079206ca10809f36357c3655155c54712b074dddfeb1385b3bd847790c8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-31-chapter6-residual-needs-fix.md",
+      "sha256": "17c1d210166327a098f623de99e91f5cf0b5bb10b5da789dbb929638c6c82022",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-32-chapter6-residual-needs-fix.md",
+      "sha256": "26df04c640001cdbb255571ae37640a39db269e710db29fa4e1ce58552ebac03",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-39-chapter6-residual-needs-fix-2.md",
+      "sha256": "8488f36c3ab13b94fee1da1ebdea1d4db7c57806548be3f9a91fa7eb295dc323",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-39-chapter6-residual-needs-fix.md",
+      "sha256": "31e8562e0135fa504653e48b966505ede5ca2c89c863ecdd9f51fa378fce2950",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-40-chapter6-residual-needs-fix.md",
+      "sha256": "58c5d22a98a68272716cc163df6e701cbf1103649b4d6a476c99775f635650dc",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-42-chapter6-residual-needs-fix.md",
+      "sha256": "4f22386c8ccc786a5b7cc051f1372692bc3a855a7587b722517befc80a700a96",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-43-chapter6-residual-needs-fix-2.md",
+      "sha256": "1d9f9d9f8cf9753b3ac35dc3ac5f5ffad81a40af9e8ac6d39c4ec9cf2a5fa7a2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-43-chapter6-residual-needs-fix.md",
+      "sha256": "1d9f9d9f8cf9753b3ac35dc3ac5f5ffad81a40af9e8ac6d39c4ec9cf2a5fa7a2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-15-task-52-chapter6-residual-needs-fix.md",
+      "sha256": "093095e1a394f873f4178890472f1555a5946b6c8314df879daec8526894844b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-16-task-18-chapter6-residual-needs-fix-2.md",
+      "sha256": "50605f95ae1ac84fbc2e2d5132c46b3bce8179aeeb4d25ea87a33369d2277869",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-16-task-18-chapter6-residual-needs-fix.md",
+      "sha256": "fa622aebc2c8471594f7ff258a93a1bb0e4d0233ce8837f545e431fb58bf9534",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-16-task-50-chapter6-residual-needs-fix.md",
+      "sha256": "b55aaf698aa143f774b5988615019cc9fa95e459735a85d6d4e589192f394ac1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-16-task-52-chapter6-residual-needs-fix.md",
+      "sha256": "125d7f6df281730b8966c90fe0de858ca6dd3026b374f4308c410c2be930a1ae",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-34-chapter6-residual-needs-fix.md",
+      "sha256": "cd2f1edbb9a68584603d955bd6e687bd3f9c3dd8e5004e7a0f84907b979b17b4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix-2.md",
+      "sha256": "b90014f0eae98f327db116be76b9108de5e797b7137d8934877e5968410edab9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix-3.md",
+      "sha256": "b90014f0eae98f327db116be76b9108de5e797b7137d8934877e5968410edab9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix-4.md",
+      "sha256": "875f9f8e3bb8f8a8bf1d7d991fda7fd4889aff92ea64bef84aae668fb851c820",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix-5.md",
+      "sha256": "875f9f8e3bb8f8a8bf1d7d991fda7fd4889aff92ea64bef84aae668fb851c820",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix-6.md",
+      "sha256": "875f9f8e3bb8f8a8bf1d7d991fda7fd4889aff92ea64bef84aae668fb851c820",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix-7.md",
+      "sha256": "875f9f8e3bb8f8a8bf1d7d991fda7fd4889aff92ea64bef84aae668fb851c820",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix-8.md",
+      "sha256": "c43ba312c2ff0dc984f531ba5986c9df1aa6c94ced62d9310af9b9eccfe0d268",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix-9.md",
+      "sha256": "e10152d20040792ec2e91252aa09ccf32e977c3ce0b06dfe5318e35f5d13d15f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-37-chapter6-residual-needs-fix.md",
+      "sha256": "d0871e40a6ccb99997227576aa060ede6d50c859ee6e50036462fb5f8a45ba21",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-45-chapter6-residual-needs-fix.md",
+      "sha256": "764372174e17390a443ceaae82429b57f5da457d1da808d70efb5f418abbb3c8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-46-chapter6-residual-needs-fix-2.md",
+      "sha256": "ff465cc12525a9f61909038faa4e61b799769b0e7fecb4797e100291a91744c0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-46-chapter6-residual-needs-fix.md",
+      "sha256": "8a500bf077d4128704b1f375bc002e68304a3b72491514d48c69316e23a02a72",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-57-chapter6-residual-needs-fix-2.md",
+      "sha256": "d6fe39655dc7fc6c06746c367e1ce8774baebe77c6d31a3dd8f45ffe09987a88",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-17-task-57-chapter6-residual-needs-fix.md",
+      "sha256": "d6fe39655dc7fc6c06746c367e1ce8774baebe77c6d31a3dd8f45ffe09987a88",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-19-chapter6-residual-needs-fix-2.md",
+      "sha256": "4cedb4190917472c41058f49831e6aaa038f9612f33acba11c4c58eee7c0a238",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-19-chapter6-residual-needs-fix.md",
+      "sha256": "4cedb4190917472c41058f49831e6aaa038f9612f33acba11c4c58eee7c0a238",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-20-chapter6-residual-needs-fix.md",
+      "sha256": "91fa4fb0b42302f8349e93551bd2e9a7b24a7003107125de728308c473c4113e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-21-chapter6-residual-needs-fix.md",
+      "sha256": "507127f19e796adc0f87dea0fff2aa7068596e5e77ffcfda90e8d4141b8388d0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-38-chapter6-residual-needs-fix-5.md",
+      "sha256": "9accafc4daaea63bca49b49a49a05dee185b62fad39a72dc346f767b4f930071",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-38-chapter6-residual-needs-fix.md",
+      "sha256": "bfae4f43f8a7bb7e410cf2c1d337452046994a64c2e4ac57c97ae3ba183ee37b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-48-chapter6-residual-needs-fix-2.md",
+      "sha256": "4116439e26a0dedb8dec6441ae701526b0bc8197357301bb22d7dede7792b3c1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-48-chapter6-residual-needs-fix.md",
+      "sha256": "4116439e26a0dedb8dec6441ae701526b0bc8197357301bb22d7dede7792b3c1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-58-chapter6-residual-needs-fix-2.md",
+      "sha256": "7d4cfa454a56b9347a7c4df8058d61063caa613d0eec9c233848880792ade8e5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-58-chapter6-residual-needs-fix-3.md",
+      "sha256": "5e1ad4820028660e1991f574fb851212369d11a2e7f297b0beaa1b0c5f3f8a05",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-18-task-58-chapter6-residual-needs-fix.md",
+      "sha256": "73c223f670cf6773bdcf1a8d07c65b85b5f81ca9371dc44ee0edd6ce23bdc5c0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-33-chapter6-residual-needs-fix.md",
+      "sha256": "d86e366ada0bfd7c8b517347aa8b98d84f302234447af7d4a19b0d9997f06d57",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-36-chapter6-residual-needs-fix-2.md",
+      "sha256": "e788e2abfed7fb7815fe8180a7221e31754ee491321c5bbaed11fb34fe6e8706",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-36-chapter6-residual-needs-fix.md",
+      "sha256": "e1197061304b2411713738ecc86327780c51f2d71f19a9529e08f2b0fbcdb9ba",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-47-chapter6-residual-needs-fix-2.md",
+      "sha256": "a545328436b5b6a91beb44e1bdd30b2ba45a323f4e01f251e73f4bbaee356cea",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-47-chapter6-residual-needs-fix.md",
+      "sha256": "a545328436b5b6a91beb44e1bdd30b2ba45a323f4e01f251e73f4bbaee356cea",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-48-chapter6-residual-needs-fix-2.md",
+      "sha256": "e1a064a7d1a5e3ec9286c2aaea1788b57d1c5c8f943587ee859b13a25f98f049",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-48-chapter6-residual-needs-fix-3.md",
+      "sha256": "e1a064a7d1a5e3ec9286c2aaea1788b57d1c5c8f943587ee859b13a25f98f049",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-48-chapter6-residual-needs-fix-4.md",
+      "sha256": "e1a064a7d1a5e3ec9286c2aaea1788b57d1c5c8f943587ee859b13a25f98f049",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-48-chapter6-residual-needs-fix-5.md",
+      "sha256": "56c9190bdb11378fb6ae89cac02e496d9add7746061a822b3604f88a247adcdb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-48-chapter6-residual-needs-fix.md",
+      "sha256": "2861192da06f5c74cb6f4638c2c6d93d3fde2a6d258a57b0f90274466a75eeb8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-49-chapter6-residual-needs-fix.md",
+      "sha256": "e89c1dcec59a24d99086e676e45679d30f3e548042802e59d0185c30a7588fd7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-51-chapter6-residual-needs-fix-2.md",
+      "sha256": "1854bdb7b9d4ce22966eaa3cad25c9c5b4c9c35c410d3b4f08252dc265cd84f9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-51-chapter6-residual-needs-fix-3.md",
+      "sha256": "95bffc60ffaa4f41ffcb21b8615a8ba0360615e22be4dda50b98543451adf4cc",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-51-chapter6-residual-needs-fix-4.md",
+      "sha256": "95bffc60ffaa4f41ffcb21b8615a8ba0360615e22be4dda50b98543451adf4cc",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-51-chapter6-residual-needs-fix-5.md",
+      "sha256": "95bffc60ffaa4f41ffcb21b8615a8ba0360615e22be4dda50b98543451adf4cc",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-51-chapter6-residual-needs-fix-6.md",
+      "sha256": "14f64ae8e42a67fcc12c0d8d8ced70f67fcc8cad9cdd7b37c484bdcdf9d05efa",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-19-task-51-chapter6-residual-needs-fix.md",
+      "sha256": "1854bdb7b9d4ce22966eaa3cad25c9c5b4c9c35c410d3b4f08252dc265cd84f9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-60-chapter6-residual-needs-fix-2.md",
+      "sha256": "c6eb7c64d82c3b4ec452111afb8a68d32661970623e1ed8c7c14953c4834e7de",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-60-chapter6-residual-needs-fix.md",
+      "sha256": "d3ce5eff837dfbace43d8c51f7c288dc1d6871c16dfbe875d8b64199d5d81db6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-61-chapter6-residual-needs-fix.md",
+      "sha256": "d1a5e912c7779d4ed6d2e50e26113eb30e5908406cd8e0f4a20578a5a5e22af4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-62-chapter6-residual-needs-fix-2.md",
+      "sha256": "ca2d7217254357b46038eb1011ce326d10887513b54bc579be2f929aabbc4846",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-62-chapter6-residual-needs-fix-3.md",
+      "sha256": "a3e59a0a0e2176a2882a1e7ef9f783fef2b588a64f2623ef3c5d2120bb8c5cbe",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-62-chapter6-residual-needs-fix-4.md",
+      "sha256": "ef857e38fdabdb43796f415aa18446ca7eb8afac5708d5ca8e3b87d9630558c5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-62-chapter6-residual-needs-fix.md",
+      "sha256": "ab0b41c80747c229b8718d2c14fb1b432ec3aefc2d63faed732f7043cd3a27ca",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-63-chapter6-residual-needs-fix-2.md",
+      "sha256": "323fae126fcfa685572855bad175cf637a2639190fd8de2e17fa63473a6d3e30",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-63-chapter6-residual-needs-fix.md",
+      "sha256": "caab745dec1392969070a7d4f79f52206f0b4bf9edc76f3df563a9cb04a55081",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-66-chapter6-residual-needs-fix.md",
+      "sha256": "74de5bdd66464ae7083c2b3103de87551235661d0df83dec9f74faaa52c664c8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-21-task-69-chapter6-residual-needs-fix.md",
+      "sha256": "d66e2778c89d8dcca7eb295d3f36ede2e929129b6dfd573142c23dc3f7b582b3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-22-task-67-chapter6-residual-needs-fix-2.md",
+      "sha256": "848c4cb9a90444d624cce7ca9ae77368f1ba8a4f474b2c135f6a3a9a2f646b80",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-22-task-67-chapter6-residual-needs-fix.md",
+      "sha256": "79a5be764f9d01148c4b104ab821cb58c8b57e1114eb8e868e60286c6b6be110",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-23-task-65-chapter6-residual-needs-fix.md",
+      "sha256": "eb2908db1d2ec62138d7ff146e9e3e67f60848ecf7bb5519a66f5af2dab4f168",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-23-task-68-chapter6-residual-needs-fix.md",
+      "sha256": "9b61ca661a14316e001ddef7149a9ca41f5c1f52d33764e501ebd4998fb8a177",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-27-task-70-chapter6-residual-needs-fix-2.md",
+      "sha256": "e903f6be9db0e335acaa633d6c51f9136f708e43c4dc90ce72702d502c7abe6a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-27-task-70-chapter6-residual-needs-fix.md",
+      "sha256": "e903f6be9db0e335acaa633d6c51f9136f708e43c4dc90ce72702d502c7abe6a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-27-task-71-chapter6-residual-needs-fix-2.md",
+      "sha256": "40f2c0a763f894d3fe0b462587669d76755e231ef1d902c27a9ccbb52cf3bf74",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-27-task-71-chapter6-residual-needs-fix.md",
+      "sha256": "40f2c0a763f894d3fe0b462587669d76755e231ef1d902c27a9ccbb52cf3bf74",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-27-task-72-chapter6-residual-needs-fix.md",
+      "sha256": "6a3b46ee1d1f1ae161043b2669d1ed80558e3b361bf0238ace6372f94c1326a6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-28-task-114-chapter6-residual-needs-fix.md",
+      "sha256": "b005fa3a881bc5b53e129a2a848f60e4b522daef7580b531329676f6bbcf6f06",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-28-task-115-chapter6-residual-needs-fix.md",
+      "sha256": "5dd9be596280b0eacccf170ed4aba336c4d6d0ab5a143f5bcc7ed5abdb5fbd3a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-28-task-73-chapter6-residual-needs-fix.md",
+      "sha256": "732fb0be65da3ebaf3747d6d94acd5d1c454bc96368a195b4a83f9f27eb87fac",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-28-task-75-chapter6-residual-needs-fix-2.md",
+      "sha256": "d0eade58baf98bd53ad4ebcf17de9383a796f6a5003f45d76ce283716e767f4e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-28-task-75-chapter6-residual-needs-fix.md",
+      "sha256": "fcc6b20d7a44e614d82031f9260e63b78ead5f514bb1aa91c9f631bdf094c4d3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-28-task-85-chapter6-residual-needs-fix.md",
+      "sha256": "0686efddd5a7d64c36b2c75e7c9ebd3409f90213aaac6739dca86e7374ed3017",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-28-task-86-chapter6-residual-needs-fix.md",
+      "sha256": "5f6384624528d13cf1ec8b5dff737635d2860a5240e06cb97e385edef0386a44",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-29-task-76-chapter6-residual-needs-fix.md",
+      "sha256": "55868b4d5ee91d571e12ef4a3b46c78cf7f16c64e822dcbccea03c03eaba8ae4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-29-task-80-chapter6-residual-needs-fix.md",
+      "sha256": "e74e696cfffe51a3a06463b29374d778037ba65a7308d1af4470b9b82b590f0a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-29-task-81-chapter6-residual-needs-fix.md",
+      "sha256": "5ad814e5947764302ec4e4b6a1db3e39582cd072ec0c9f023192ad58e473061e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-29-task-87-chapter6-residual-needs-fix.md",
+      "sha256": "a96b893767f0fd4c4c8106ac96da3106678be2411ab3b59d6c2c1e34229c98dc",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-29-task-88-chapter6-residual-needs-fix.md",
+      "sha256": "ae2def03d6de5e90418d756a10eafcc51042b046f395c2b77db07eea449383d3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-30-task-83-chapter6-residual-needs-fix-2.md",
+      "sha256": "af4bff44ffb633b6d56fa57b27d89bd2cf39533b1815870c5f1fbb81fc0e9a4e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-30-task-83-chapter6-residual-needs-fix-3.md",
+      "sha256": "64c437174709f5488e1fffe79eb709c14f89baf1ff6da6a65e9c47881a54072a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-30-task-83-chapter6-residual-needs-fix-4.md",
+      "sha256": "28e4accce5c62e75941680d463391158dc8f1141304e1d22ce3a7f084a64b7ed",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-30-task-83-chapter6-residual-needs-fix.md",
+      "sha256": "ed145d30fb8669a4cf51c08375894356e13005653e9dccf5f7e48b53f1d01468",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-30-task-88-chapter6-residual-needs-fix.md",
+      "sha256": "7217e211fd15c0cda2999589662d5155635f9977a9ab04422c0018f07812bda7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-30-task-97-chapter6-residual-needs-fix-2.md",
+      "sha256": "290baaab2827904d6fcececa89d904da3b806bb8796527d3529a6df48f40f605",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-30-task-97-chapter6-residual-needs-fix-3.md",
+      "sha256": "eb7112f474933a173599a01cb300c6b3d86b9bb292010fde7d3ab1bc377f710e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-04-30-task-97-chapter6-residual-needs-fix.md",
+      "sha256": "9fe09ad735388e5382b71fdfbe94b15d67e4ba2ecb152fe523f8eb760fd391ad",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-01-task-89-chapter6-residual-needs-fix-2.md",
+      "sha256": "9050b59e93b9a5bc2dea678ea865074fe75b6ea773eab515c0b6f7f175293aff",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-01-task-89-chapter6-residual-needs-fix.md",
+      "sha256": "9050b59e93b9a5bc2dea678ea865074fe75b6ea773eab515c0b6f7f175293aff",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-01-task-91-chapter6-residual-needs-fix-2.md",
+      "sha256": "4755fd023fd4775fa2c9c07186ebb773636faa9acdb801a50e8a706874ae4a89",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-01-task-91-chapter6-residual-needs-fix.md",
+      "sha256": "fd417d0506d64bc163d09ce82605d0adddb41564d692194779a5a0dae5c99af5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-02-task-105-chapter6-residual-needs-fix-2.md",
+      "sha256": "75aa0cef1ee21399f303dfbb5ef495d58b8b85fbf5f6fa3ac5dde6141e65212b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-02-task-105-chapter6-residual-needs-fix.md",
+      "sha256": "5dfa364f45c9893d095268ce1fb9e818bb550e5a30712c8354b6cc6e3970763a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-02-task-107-chapter6-residual-needs-fix.md",
+      "sha256": "17db437140eb8ad86c6162295abf12ea7ca53e09f063642b79c64277decdf8fd",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-02-task-82-chapter6-residual-needs-fix.md",
+      "sha256": "341d14bd29cf1cb09d152369cde6bed7c98672df321e1e6d232cd63e50f12bee",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-02-task-90-chapter6-residual-needs-fix.md",
+      "sha256": "adbe4b0f3d528f4ddcbf0f2285b849e9ff75d9b09828b5647e85ae004e20376d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-110-chapter6-stop-loss-needs-fix-state.md",
+      "sha256": "a7d429f77bf7b1e4313f69aa9a41c41a8d8f0ea824b06d9679ec411f70811553",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-10.md",
+      "sha256": "e9056ba07d23f1b85a88c209ff76d25c0fffa915075d10f18bb5a6ec5f5a58da",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-11.md",
+      "sha256": "b1f6b2b8f6125899b192bf2097163ffa1c815083e36d75cd12830f0ecd9d123e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-12.md",
+      "sha256": "b1f6b2b8f6125899b192bf2097163ffa1c815083e36d75cd12830f0ecd9d123e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-13.md",
+      "sha256": "b1f6b2b8f6125899b192bf2097163ffa1c815083e36d75cd12830f0ecd9d123e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-14.md",
+      "sha256": "d5329bf40e7e903bec270aacbfd3e4bec70168c8a38c3e7c823251fa9ea30c2e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-2.md",
+      "sha256": "bcc2598be7ae5c956baec02ed7b02b04719426ce58e5a6c4adb40c5ac33f604b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-3.md",
+      "sha256": "40acc2d3638e9a6c48f0471c5ec6ab7d1265369fdfa1eec336a95c064ce1e58c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-4.md",
+      "sha256": "792fc8f56c1dbee453ae3388bd88c6a0acb7e30d765d66cac11820a301f0017c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-5.md",
+      "sha256": "fe0cf2efa0f80e8f15c44bd818da51c545cdb5c1bd3707b7d3ad92ba5aea6221",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-6.md",
+      "sha256": "8053971f6f00610523e0f739cff5d716f9052883fcec6d2a17a5117bccf3cffa",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-7.md",
+      "sha256": "f9ad0eb5fbee51329e50b455564cedca18ddffaea383eb867c13435ae7d0f748",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-8.md",
+      "sha256": "13e39c5b2fded85bb3f5e60c37f1eed6ef1b5beefdc9b6b25b05a7a6b148bea5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix-9.md",
+      "sha256": "6f7af80dbaf76364fba73c3485b4ced0dcf5049573da2c607682cb75bb298250",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-111-chapter6-residual-needs-fix.md",
+      "sha256": "26395b8ff70874b936c3d233ba1735ae0a11bf9dd7ceac3dcc05cee67a42f3ad",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-116-chapter6-residual-needs-fix-2.md",
+      "sha256": "25c18683094f4ee51d0101868420c35dd7145db08207a9388ed342d463d54040",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-03-task-116-chapter6-residual-needs-fix.md",
+      "sha256": "145627a092e2fd568ad9faae54f9844da58b1d9d51532e69d35753f54f165195",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-74-chapter6-residual-needs-fix-2.md",
+      "sha256": "90af8588b5e00009d29b96995cdffa7415f7751208a60bafebdd98d8a22c101c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-74-chapter6-residual-needs-fix.md",
+      "sha256": "90af8588b5e00009d29b96995cdffa7415f7751208a60bafebdd98d8a22c101c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-78-chapter6-residual-needs-fix-2.md",
+      "sha256": "a9b0a388ce701c7dfcc8581809231bd56365264219abe7b9a8c1e26971e936c2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-78-chapter6-residual-needs-fix-3.md",
+      "sha256": "acd793c0a7f9e69c7ec00c084c924c22a38096e1ebdf619984894a733af4f197",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-78-chapter6-residual-needs-fix-4.md",
+      "sha256": "c6d454a8aa2bff571d77fed50b0e3b4f447efd4d8f193cd2bbe1dcb904894c77",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-78-chapter6-residual-needs-fix-5.md",
+      "sha256": "c6d454a8aa2bff571d77fed50b0e3b4f447efd4d8f193cd2bbe1dcb904894c77",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-78-chapter6-residual-needs-fix-6.md",
+      "sha256": "c6d454a8aa2bff571d77fed50b0e3b4f447efd4d8f193cd2bbe1dcb904894c77",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-78-chapter6-residual-needs-fix-7.md",
+      "sha256": "a4de40ef45da698e7125ef18dc4168d8ea2bc399ccc3b12d8f1427c63e3da3f1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-04-task-78-chapter6-residual-needs-fix.md",
+      "sha256": "a4e3ac4f553f79ae3273d308bce0e1f09af55289908652bab87352cd29e5a695",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-05-task-92-chapter6-residual-needs-fix.md",
+      "sha256": "0aa15a3795ee4a78d581836788c6ae9f2d33d5503db378fa144cff2926a90901",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-05-task-93-chapter6-residual-needs-fix-2.md",
+      "sha256": "a2c4fb441e37c2eed854bd16ef13dfe2bcf77905717fb3bd5594742cea5d3f33",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-05-task-93-chapter6-residual-needs-fix.md",
+      "sha256": "a2c4fb441e37c2eed854bd16ef13dfe2bcf77905717fb3bd5594742cea5d3f33",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-06-task-102-chapter6-residual-p3-weak-assertion-follow-up.md",
+      "sha256": "17fb2bd9810aa6af9339e0680b184c696a0434090333cbd18654f507e995d96f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-06-task-103-chapter6-residual-needs-fix.md",
+      "sha256": "18f89d96bf293c2ac7e27360c6dc6d4aba26264de0ba40df3b87cdd2bd335567",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-06-task-104-chapter6-residual-needs-fix.md",
+      "sha256": "b795f58bfae61556ef1da404b892f8a45d5bbae565fb26929be61cc2f8349dc4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-06-task-108-chapter6-residual-needs-fix.md",
+      "sha256": "f1390bcc8d44fb7de40171466aa5362ddda5d26247f610239464f876f0a6af40",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-07-task-109-chapter6-residual-needs-fix-2.md",
+      "sha256": "cee04b8983a259b2293bdf19ff86407675af11dbcd35c69a772b7edd73f52892",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-07-task-109-chapter6-residual-needs-fix.md",
+      "sha256": "cee04b8983a259b2293bdf19ff86407675af11dbcd35c69a772b7edd73f52892",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-09-task-125-chapter6-semantic-needs-fix-stop-loss.md",
+      "sha256": "d2df74091caace04fb38251dce24a81616439c5f770e6bf5d24b3c1c3e4eb86f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-10-task-124-chapter6-residual-needs-fix.md",
+      "sha256": "5401457589a6e446c08163350ede3b97f7443b4c85ec047af6b43e3533e3819b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-10-task-126-chapter6-residual-needs-fix.md",
+      "sha256": "ef14cff10a65eac998be2ff12986c78330b139a944cd2eb77b1a65e3bebaaa10",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-10-task-128-chapter6-residual-needs-fix-2.md",
+      "sha256": "4dd84c27c246d4bf3ae987b215033fed9850b3bc7519582ff212b200f28e9388",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-10-task-128-chapter6-residual-needs-fix.md",
+      "sha256": "440adb78e212bb332c913212d69e212ad3c080085de7104aba841d4b07bb44e9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-12-task-130-chapter6-residual-needs-fix.md",
+      "sha256": "2e9ed99db2ef8c8256e1023035448ff1825a61357c73ec7be5cef10a3b83dca7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-13-task-74-live-scene-gap-reopen.md",
+      "sha256": "5d6a43e0c3ad62cdfc0adc78e1a97be49cc033fffae0f60a1a081f867955af25",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-21-run-26225431992-failure-analysis.md",
+      "sha256": "67da3a070c4612808c4bb9dccbe07c9bef1b0634539bd37b7ce8e3402add25ee",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-21-run-26226864893-failure-analysis.md",
+      "sha256": "057b1134d2aaf3c061eb0577147b7dd65e2e22c3f1ddc8bea86596bae5b22ba8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-21-run-26229415858-failure-analysis.md",
+      "sha256": "58a774ee468814eb37482e816f2110bf724e563a2dbbc4266088577d9baaeb9c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-21-run-26232020840-failure-analysis.md",
+      "sha256": "d73947c7915c279d2829c3986320829cc97c4ee4a25727c06eb5de2dfc0a1101",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-21-run-26232713748-failure-analysis.md",
+      "sha256": "71f93c94e31de43c7526e69c9ee32378f62f847a19024ae8755c0c65280b28d3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-21-run-26233333372-failure-analysis.md",
+      "sha256": "d60f36ed5f9051a11ce38f8d9e998b2ddf162855c23099694bac28a43a92a540",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26235504203-failure-analysis.md",
+      "sha256": "ccf5055fe3ad4bf8b6b9839e3e3822ce2102ea8793654a214addb86c9013e073",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26239701712-failure-analysis.md",
+      "sha256": "36ef7707b3604e008ebae7d31d4cfda43e9823f03abbe96cca8edd69737d5e36",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26240595752-failure-analysis.md",
+      "sha256": "eafb164b46204f9638962b838a07f66158e0e5b71b0dad6dab8334bed9a2b0d0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26243883712-failure-analysis.md",
+      "sha256": "783cf9a317f6d3c2bcc02645469d8b9407f4f3f5012da5743deb767afe4f33c0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26245088173-failure-analysis.md",
+      "sha256": "c1dffc7dc4bbb29c1365402eb8b83362b942710e7f4bf228cac5c7d0260c636c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26245567157-failure-analysis.md",
+      "sha256": "95c82376c45c913f34cd2fb904068d3766f452ab0d5d0032df4c30bec9763ccb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26266960414-failure-analysis.md",
+      "sha256": "3aa8d5f73821befed7416d9cf03e1c1784aaa8fe19d9c71e019a3976685f8d9a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26267417919-failure-analysis.md",
+      "sha256": "82fd2cdcbb110538c875f79495ca27c1d536dae20042ccccec402a3e399a4fb3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26268076658-failure-analysis.md",
+      "sha256": "b309879b447c857a5f81cd82da9c99446ea847969beb5dc260fad0aeb8ab08f5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26269469736-failure-analysis.md",
+      "sha256": "6ed748f13927c6b17b03eef2b3cb52b5cb77fdde6ee4b611a3451da875ec8326",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26270996986-failure-analysis.md",
+      "sha256": "6728caa20f00ca18137139ca0370cd431465bc7d504c77d6dfd19bbed9aebad5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26273323011-failure-analysis.md",
+      "sha256": "29789ffa5d315829573c4ad0de5deb98bc8818506fa4c10dcee567345d679605",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26275559462-failure-analysis.md",
+      "sha256": "ac51a2a6e5204b223ba880d03ea316fea7394435fe2afc340295a6e58dfb3282",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26276083401-failure-analysis.md",
+      "sha256": "8bdc722a5b5f723b9af723129fe517e01ed9b51257e0706f35c3ab1fdc4253b4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26277571264-failure-analysis.md",
+      "sha256": "5357f9bc8fdac11b0fb8720a38fa42421117a3cb84d19611c9bd58eb9a59a1a6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26279613766-failure-analysis.md",
+      "sha256": "4582e31decd6c7d21d4f15a6c7ef5f1afc3022f0cc5884991630e100fc9c9522",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26281365480-failure-analysis.md",
+      "sha256": "f9e554bb4b5a37a697b8ddac3142232bb521a2f7c9c2452f32cea1704732d22c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-22-run-26283827938-failure-analysis.md",
+      "sha256": "22abbc5974ba9ee8099eecae765901d0d3bb229d5556d067c678bca1d76cc45a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-23-run-26324124720-failure-analysis.md",
+      "sha256": "723f94eacff8b9d375972bd95d1baa074b1306d72218db55f0f37f69ca70272a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-23-run-26334095006-failure-analysis.md",
+      "sha256": "d0f3ee9ebbb2da89fd724d0bd5446eb132c71f19efbed547475a78875e2a4abf",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-23-run-26334453770-failure-analysis.md",
+      "sha256": "e48108dbda2cb7db7f18dead6b8c8a7f4c1162cf768c9b93f1b3305cf3ccd488",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-23-run-26334998766-failure-analysis.md",
+      "sha256": "d224336a12fea131f90f59dca55977f7b971243de43f5fa4db765092f61cb114",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-23-run-26335345084-failure-analysis.md",
+      "sha256": "b4662be416bc465d8d44e78e9e104a5b5492b795d8d16bd62d1f2a973d960bfa",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-23-run-26335879347-failure-analysis.md",
+      "sha256": "9bfefa6404bc3890bc34d95ba0351e2e5667d4950c13583b7b865a57c8e1cd0a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-23-run-26336247211-failure-analysis.md",
+      "sha256": "278b91386772bea94739615c1b7db20a165685beab08e141cfe737f7e2d46c1f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-23-run-26336644402-failure-analysis.md",
+      "sha256": "799fd9850417d7433ce9422f5e1193f14b64f6d77d8b4d72ab3ec9b6c66bd3aa",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-24-run-26337110878-failure-analysis.md",
+      "sha256": "4d04c8bc90dfc5ca40c3a26e8e7e49a5289635d03c762686e6f11a08f9a0da5d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-24-run-26337401561-failure-analysis.md",
+      "sha256": "cdd63cab6f686ee2f8b0a299635d277bbc31fb866dc750f566ed1f26732727cf",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-24-run-26339198233-failure-analysis.md",
+      "sha256": "63d8bb31d0f1c290fd1308434e4717c42521102f8066c531880991480ce0cd56",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-24-run-26365001211-failure-analysis.md",
+      "sha256": "87e13d405f1fea6c3d2ce4abe6c110686db131777842ead4133ca7f5fae9c794",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-24-task-132-chapter6-residual-needs-fix.md",
+      "sha256": "9780dc67a44ddd69fffd11d38a3ca6254428194a91c2ef0b1f4e2f03e405ae54",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-25-run-26366174244-failure-analysis.md",
+      "sha256": "d1338495e6f43ae63d31ee73a56fa1b33395d32632afd35fb57de9992058c369",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-27-run-26459147059-failure-analysis.md",
+      "sha256": "060b2aa645ba2ec87247bbe2e07bc80cfc522b48d09076cd1ea0c483d23ac04a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/2026-05-27-run-26462153590-failure-analysis.md",
+      "sha256": "edf3adfea6e78206d533b11355a2f31679a7ba2ee4ea7b19c405b3fb54cff209",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/README.md",
+      "sha256": "c638d4249bbeffcabe443c548d9b28bbf4fb09dfd54ddc578fb48e24ca2d6fec",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "decision-logs/TEMPLATE.md",
+      "sha256": "1775b84d9de9a995c5cb31c11899833a62d8c7a492602c64b772fdeb38466c9a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "docs/PROJECT_DOCUMENTATION_INDEX.md",
+      "sha256": "9b02f516766c0a6955f9842b2b3843114f87b91d985c2bf73c851d2ad3f55821",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0001-tech-stack.md",
+      "sha256": "9fa559c5ffc798fbbad1e8ba907337183ba03e7d80448ac46ceb3dace4990d55",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0002-legacy-desktop-shell-security-baseline.md",
+      "sha256": "928f4dc4e41129116561b682c7517984503e6350cb548ccd3f52619bdc0db423",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0003-observability-release-health.md",
+      "sha256": "7daaeff4894e6b1656ca53353eca83b723c8bfa74753d1323e3a1caab929f9d1",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0004-event-bus-and-contracts.md",
+      "sha256": "15ea9d92271178373e1e15ddce60d75bc06652aac4643918d13deb98ad4c5322",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0005-quality-gates.md",
+      "sha256": "a5a250cd40993a593a62e3a25fabf12bf3fa38911c803b22226acc836d27f733",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0006-data-storage.md",
+      "sha256": "5e1808b1c8e84fb5e10d0a756846cdd53bcebf1044bfc0e1285d90eeb7ae9458",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0007-ports-adapters.md",
+      "sha256": "6c04048443ec2a54d3bdb67bc9f10341d1c04a7fda62464d56d4c8a516abf1bb",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0008-deployment-release.md",
+      "sha256": "867fbd8eb0c3d5f6e733868cd0ab691844d73d9c174f8e50ca36bd58d924ffcf",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0009-cross-platform.md",
+      "sha256": "c6423317f8f041a67fb2173fa4579e7a5a48c1d6b02a6e81f562b1ded7a6ec22",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0010-internationalization.md",
+      "sha256": "e7f281a46894331cac02b44c7819e43c8c866cf94990b44971c6aaf5cd51dc50",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0011-windows-only-platform-and-ci.md",
+      "sha256": "6a43136c74a4db30fcfa7c1da897e6df5a895eb4ae5aceb1239788fd88c6bc01",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0012-pr-template-conditional-rendering.md",
+      "sha256": "9cf70a84c1f99d868c7c1da17cafbcf1305572d822747ca37e4ca18eb9f661f0",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0015-performance-budgets-and-gates.md",
+      "sha256": "00c3625daf1400b8f0e2b65a4ca3f642da0c1e82e19aecdc8343f6ed90fe4a20",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0016-api-contracts-openapi.md",
+      "sha256": "4a70ec7489f11c1968c09f5a24e926dacc2cc2dccfd9acb40b9e9c006579aabc",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0017-quality-intelligence-dashboard-and-governance.md",
+      "sha256": "a2a9ce2e1a0446b5a66ee3a9408d82dfdc8926cbb6ccf4c2469d6ce34427c511",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0018-godot-runtime-and-distribution.md",
+      "sha256": "e73954aecacc7b3b694d0e3ea3cdeb9fcd03fffef65bab40bec2ddb8339f4d94",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0019-godot-security-baseline.md",
+      "sha256": "dbc4963058d675ebf98158169994eb41082ea3c2a8c79da65780e4b14b253fad",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0020-contract-location-standardization.md",
+      "sha256": "176ef6f28b61cbb0bbe2eda9300f5abc8a27b0ab80c4c693adb0a60b622d99c8",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0021-csharp-domain-layer-architecture.md",
+      "sha256": "483b79d46e29ca50c6ceb6d656f7e7a916ed7311579d981ce76eaa49291d9b5b",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0022-godot-signal-system-and-contracts.md",
+      "sha256": "e7ac30110e69b5be0a8b1a89a29238ce666894eab0372f10c062c51fbf89c707",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0023-settings-ssot-configfile.md",
+      "sha256": "279788d6f4c15a479e049726de1fa13d35744981305d3ce4944a7ca1f77e0a09",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0024-template-lineage-and-naming.md",
+      "sha256": "57a0e314deae56b389861b93cfcab523060bfa190e9ae14402f5da83b94403cb",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0025-godot-test-strategy.md",
+      "sha256": "67e11300f164a11fd00c5c7694464483e7735dc239fd9263bb0a6a8368538628",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0026-event-publish-failure-strategy.md",
+      "sha256": "70557c9c91c923bc0e6922bcf1eedcfca176d2a0183842ce2925761c28074edf",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0027-ownership-write-entry.md",
+      "sha256": "e8c1c6fd440af2251e3b300e6649440bc11336db218d743b24e9fca6e78577fa",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0028-event-usage-tiering.md",
+      "sha256": "e462adc5482889bfae390fda501dfbbda09d0f68b12c5520a3cc315b59c6ea8f",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0029-error-handling-policy.md",
+      "sha256": "9c5b7baa0bcad1f8c5128dd417394d1773b6941d79c34be6523f7528fbcf455f",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0030-core-threading-model.md",
+      "sha256": "07810be470cf2f5e4b76170f87743cf246a3a51ac8abf60414850dbac7b894c8",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0031-build-reproducibility-and-version-pinning.md",
+      "sha256": "7641380f11da52ca5d78c8d23cf6d128623d49429618f085184e6ff3c7a56a29",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0032-save-resume-determinism.md",
+      "sha256": "ea9e22053cc68d9f12c5d627b4fec8958efd216ada25066bce610ee94121efa4",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0033-card-identity-and-forms.md",
+      "sha256": "36beb5d605a81725f45f97b9174472287d583906beb2bb7d6dbfe9eb46feac9b",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/ADR-0034-security-profile-host-safe.md",
+      "sha256": "17804764683f5f4a7739a49df673e1a3cdb029b139f057542813271b8389b96e",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/addenda/ADR-0005-godot-quality-gates-addendum.md",
+      "sha256": "d63e1f1dd2588efb81fd95d06a8c22ca844054403ebfac1d6c0293200e0622e3",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/addenda/ADR-0006-godot-data-storage-addendum.md",
+      "sha256": "5c339d1223ed06d2bb069002cf702c5cb5596d141b1a86908241cf1995337afd",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/adr/guide.md",
+      "sha256": "361e992453ca350a26b06045de140ed431df4a46e22505daf85b5426c426b983",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/agents/00-index.md",
+      "sha256": "055c34b45c92929445bf06efb76366fc9ff23fbc5885a26ca314f88e1283a92b",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/01-session-recovery.md",
+      "sha256": "19bb33c673a672b1ea00af444f19826d761a29b83850e7d5a3e565eefbef8a74",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/02-repo-map.md",
+      "sha256": "471d31169ad275ef068157a991282f6906d56473d2a406a1cba6cfd1ad2139e1",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/03-persistent-harness.md",
+      "sha256": "5e922c5b012af91a1d0961e5039ccc982a6f5574015a12e2f3ee7e5650a9be64",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/04-closed-loop-testing.md",
+      "sha256": "edd39930f7fcdd44bd13b896cffaf080019211b1a298930916beccf92fdd7a09",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/05-architecture-guardrails.md",
+      "sha256": "879d684ff77bad674001350c060cdabf90afd7b7ab2b4adc93c1bc3606051328",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/06-harness-marathon.md",
+      "sha256": "9f0dbf16c8b7d833191dd12d1a843dda4454bb779540a51ba0137446b029230e",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/07-agent-to-agent-review.md",
+      "sha256": "8d83af3a5de3980dd1850db3462603e3d53a5cd47d7a1420c1f66f8e556cd130",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/08-project-basics.md",
+      "sha256": "82a948403180317106f3a11f42088030c31213ff0979a8d750e3beaa2435aa74",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/09-quality-gates-and-done.md",
+      "sha256": "0a263bcc1199414da853d30a27d1815db13827ea6da2c3cd3dd00f3b24cca3cb",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/10-template-customization.md",
+      "sha256": "b4e0adcf9467005cadd91234a3be13ed92495f526b0b0fb21eb72c4f62813a6f",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/11-agents-construction-principles.md",
+      "sha256": "bc9279e7c5d8116884560b5c3390d9c2a60bfccf7829a7419ac5ac344e0911fe",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/12-execution-rules.md",
+      "sha256": "9b76ca0471205d04652211b3d26c79dff844dc25f30b4fcbd286198062bdfab5",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/13-rag-sources-and-session-ssot.md",
+      "sha256": "bba474b70effca440319d3a6083513db28e64786a444fa1be649f5ff380ed70e",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/14-startup-stack-and-template-structure.md",
+      "sha256": "c0cfdf52c29ce8848f0abb89ffb3895212f55c4dbfc5d9386e2e8d5b44432b29",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/15-security-release-health-and-runtime-ops.md",
+      "sha256": "cb52ee61a70b2d8d6afc15cc045b886984f2375d14e94656fdf2d73c3f14adf4",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/agents/16-directory-responsibilities.md",
+      "sha256": "a6ab5bf1a92a8460be89bedef3e1d69490c627ee31eba6194dc55fd18f047d88",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/architecture/ADR_INDEX_GODOT.md",
+      "sha256": "5a592b1a2a3ecbc94208769eca15d47460fe0194286725267155e4469e1d08bb",
+      "source_role": "navigation-authority"
+    },
+    {
+      "path": "docs/architecture/base/00-README.md",
+      "sha256": "f7fb25e4d032b1ef1727f2b7581ccd0167552ee743d04b4e80d9c9cf3e12dbc1",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/01-introduction-and-goals-v2.md",
+      "sha256": "3f2a5eed758a7402cad21d5c7f27f3ef7e056a0ca49805223430937c4a284b53",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/02-security-baseline-godot-v2.md",
+      "sha256": "b8d532f1135f96fe3ed73d5d5560bdb94b9d79031fd63f7e4a04083b68ae00cc",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/03-observability-sentry-logging-v2.md",
+      "sha256": "aae684894f2a65211528ea93d3b9b42eea067aa48d368228fa2f7b643a702a79",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/04-system-context-c4-event-flows-v2.md",
+      "sha256": "a204e2382b1813bdce11ac5fdc9d57146f2fec324ced402aed26b77eec578946",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/05-data-models-and-storage-ports-v2.md",
+      "sha256": "8bed1f14c0262306b613083007146959ebc23d620181dd96348afabc7afd9399",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/06-runtime-view-loops-state-machines-error-paths-v2.md",
+      "sha256": "65567712381288b0e0fe946e10e9031420f2a7c3d81bd4655b1710a1589db2a3",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/07-dev-build-and-gates-v2.md",
+      "sha256": "d68f809ac0b90422faff91764194188b2caef19af5823279bf9c53c61d4de127",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/08-crosscutting-and-feature-slices.base.md",
+      "sha256": "582aefedf1dde6564987036cbb610c262ef6a5eb5c9c4b322a6102c2b572eb48",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/09-performance-and-capacity-v2.md",
+      "sha256": "e491a7f54a6cd4b6c9b8e698ee88e74f35a739791f1c6fdf7dffa34c911545b3",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/10-i18n-ops-release-v2.md",
+      "sha256": "9942643a7899b7626bde602f582b9523e62bbe351a3c09c8f41fdfbf6c91139c",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/11-risks-and-technical-debt-v2.md",
+      "sha256": "ccbc9bb7aaaf57875376f832189e119cc8ab5b7cae193a858fa510094621fbd6",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/12-glossary-v2.md",
+      "sha256": "39877a0ac9abad1205d0e64568daf154601f8d020888aefc462729615377a55c",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/ZZZ-encoding-fixture-bad.md",
+      "sha256": "9f5814839cb0e7651592c278a626d2fc170d02269f769a09a2a70e81e91e36aa",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/ZZZ-encoding-fixture-clean.md",
+      "sha256": "3ab48f4db6a57f6a8061da6af3fec703e5027a7f36485599d0faed40b2b98020",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/architecture-completeness-checklist.md",
+      "sha256": "c2e1698c90e49bd92249763088f340aa61ffde68dea609d44e715774f651c9f2",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/base/front-matter-standardization-example.md",
+      "sha256": "5ca791be3065602491789a9a0e32444c07d67bec8b71b049484023eac9830849",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/08-Contracts-M1.md",
+      "sha256": "684db98b33a250c3f2cc3daa1e55115490062f4855a6e1854465e7b7eea5ba1f",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/08-Feature-Slice-M1-Warrior.md",
+      "sha256": "4649cdc6a56ee3a8954a58fcbae1add4d4498321133884ac08116f1b92794323",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/08-Observability-M1.md",
+      "sha256": "985eb7115bc40dc567413e2b2d6ca2649f3afc2486e92a76ce0f66a5da862ed8",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/08-Testing-M1.md",
+      "sha256": "43e4914e215e933ea28785e930179d90a3f4668638d756cff8ccd4bad71a31b8",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/ACCEPTANCE_CHECKLIST.md",
+      "sha256": "462b9a0b00e637150bd174832d1ad1c8e1f007544acac6d2669afc48d67ec548",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/_index.md",
+      "sha256": "dd886cabd09812abaf038acad7775776b3c05799405b66a1742071838ce98caf",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/architecture/overlays/PRD-NEWROUGE-GAME-0001/08/overlay-manifest.json",
+      "sha256": "8a4d9ae4cdcf22b9e48b8e2f52ce86132ea51aa621b6e3fd84375df849689485",
+      "source_role": "architecture-authority"
+    },
+    {
+      "path": "docs/game-type-guides/README.md",
+      "sha256": "e10e893bf74fe934804aea90e504d3a5d006250ce70932f22f1f9c4a70ab04af",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/action-platformer.md",
+      "sha256": "f1cbe9e9a52acd01ff120d05ce22fa81b30500933f62a3c6c36642280244057c",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/adventure.md",
+      "sha256": "06aa57786c2e7ebc7580d501fcdefaabb28933c7b5785d6643bf643f58ae13e7",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/card-game.md",
+      "sha256": "6b9298ace2607c8e93d64533e6406828053234282e4977e4407faa2e9302fd0a",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/fighting.md",
+      "sha256": "52e5a142aac496ae7154fc0829bfbce1ef22296f0a464cf8e595aa14ca02eb86",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/horror.md",
+      "sha256": "7ff7599d5701bb7a8ef0e14f3ba614626cdd0d8960a8e880fc1cd41c5f508f75",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/idle-incremental.md",
+      "sha256": "515b52bb301e467c1f096cc55abde47159bb0b0d87157b9fa565973b48601ddf",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/metroidvania.md",
+      "sha256": "2a8c101dda7911d1cd1d9c66d1be86af3725832f5dcc7fab71e95204f45614ea",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/moba.md",
+      "sha256": "92d0ba9f7508a38d5bfeac1651c6aee8a1a58c54659ad3f0e0d1fd678a1ef498",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/party-game.md",
+      "sha256": "0cc50b3aede0c45c94cdff743cdac2d8ad67421ea80497a29d2300a1744ea703",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/puzzle.md",
+      "sha256": "f9c08b6f087bfaa41ea08c9dfa78aa034f5ae46b627b9f476bdf8b4f5c3389ed",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/racing.md",
+      "sha256": "085ea5d0914d7bc6a233c479d0ad6288a575ad1c8b9a8a85881e779fac0e60fc",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/rhythm.md",
+      "sha256": "83bbf1761fdc604b8c2b50ed86c5874cce331417e1b3a46c65cb6c4c1a7c8db2",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/roguelike.md",
+      "sha256": "fb1ebc838011020a6f740e6fb4f2ceb81be8477f9c67bc7ae3a8e34dfe548f00",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/rpg.md",
+      "sha256": "5aa57ecefb448a0507ee0c8d503b43bd34d0c612ba130240d1af9842b80cba50",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/sandbox.md",
+      "sha256": "836f656bbaae549f31ac574c0865a61de451c08ab8c561db2c93398e147ece85",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/shooter.md",
+      "sha256": "2452850295ac2b9fac04ce2d6126bfc19bb7dccbb04c40e7f89c801aecc5555d",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/simulation.md",
+      "sha256": "fd74a7d21243f8d9827fe6a99263579309bc0aabd9e56261d3dd4eb5cfc75ad5",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/sports.md",
+      "sha256": "2247ea87dbca74e879f8c686d9e80434618e9e61bd3572739274c1af64cb0bb8",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/strategy.md",
+      "sha256": "997380919f6c1b408906c364f74e728b9c6b45bf2960d1f0bfe8b0def594735e",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/survival.md",
+      "sha256": "3647795ee0073a85217633412a41a938e51a553776acbe9ac953fb403e3437f9",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/text-based.md",
+      "sha256": "5895ca65dc93f676bb33b754f2c6be85d5d9b651df87d8431d404dc9bb736ee7",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/tower-defense.md",
+      "sha256": "03a2cc577fdd1a183ba04409b01b22f2f38713d28f1278481b0f221858f97ec8",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/turn-based-tactics.md",
+      "sha256": "30a150d8a0ab746f0c67d414be79e7e421fff1b8b7a1b716e64800df72bdb6c2",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/game-type-guides/visual-novel.md",
+      "sha256": "2d98f4c682f0abbd6330ac1bad04600c596e6b27302adbe9510fc0c0bf53052c",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/gdd/GDD-NEWROUGE-V1.md",
+      "sha256": "59d3c769a6d3a34865ed7af3e3b14482b1ab4eaf1931ccdd2a6e95cc72265bd9",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/gdd/m1-playable-setup.md",
+      "sha256": "9df994072d134694a5b4bc67898de0501ad66a8d7320161550757be0e5fd56df",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/gdd/m1-playable-setup.zh-CN.md",
+      "sha256": "6dc4d0d0769f897bc3a73b46137ca1608a8e1b137ab4968d75d4ae5685603100",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/gdd/m1-translation-loading-strategy.zh-CN.md",
+      "sha256": "e01dc4a179794719c6b553915d7a9049ca9a9f246dbf06044a326770e19f1582",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/gdd/t1-t69-m1-wiring-audit.md",
+      "sha256": "45a3c1c878c2c5be2223c6657a73dec846453157a33400efc4f325cc3bf948b0",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/gdd/ui-gdd-flow.candidates.json",
+      "sha256": "bc86505eb146c50232f2f2b74464318f485625baeefeb82f4dc2c110b508e0c6",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/gdd/ui-gdd-flow.md",
+      "sha256": "c7aac390ab480ec10b11f38ab4bcf48944289f721c091f9cc6f806d30447e8a0",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/BALANCE-REGRESSION-BASELINE-NEWROUGE-V1.md",
+      "sha256": "0560edcc35a984bc2d032e4d418888edc8eb70844f654c3ee058d36c3fe29dc6",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/CARD-ID-CATALOG-NEWROUGE-V1.md",
+      "sha256": "169a09125027edae4e254a9a1f1bb895d06d98b191ef155d02386c2402154684",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/CONTENT-AUTHORING-ENTRY-NEWROUGE-V1.md",
+      "sha256": "01cf2405ed8a611a8c8724cee459e41a0bacf63b0e6891aa2575f8a0f0a50bd9",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/CONTENT-POWER-BOUNDS-AND-COMBO-RULES-NEWROUGE-V1.md",
+      "sha256": "e34107183ec8096876f11b987e77098af66451983843045099d95a200c5ab2c9",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/CONTENT-REVIEW-CHECKLIST-NEWROUGE-V1.md",
+      "sha256": "54901e2bd4c68de8a64219bac992f6c6495d0bfc62f72847d410e31561bc8a58",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/COPY-FORBIDDEN-WORDS-QA-CHECKLIST-NEWROUGE-V1.md",
+      "sha256": "0582153cb14fa74922367dbb45543d3688bcae2588706473e5cd03331131751c",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/EVENT-ID-CATALOG-NEWROUGE-V1.md",
+      "sha256": "553a796090b6369a0f83c4bd3bb4f5d620d4aa736d4247a28e1aeb8b6ebc1419",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/MECHANICS-EDGE-CASES-SSOT-NEWROUGE-V1.md",
+      "sha256": "68a0cb0ce4d8a3aa1183b985b039242533d9de010b194062a24f8306babcd1fd",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/NARRATIVE-AND-COPY-STYLE-GUIDE-NEWROUGE-V1.md",
+      "sha256": "b864655d907344e32404ffa8176de90b748517313fc19ecb3d0e64f0dbb155d9",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/PLAYER-CONFUSION-FIX-TRACKER-NEWROUGE-V1.md",
+      "sha256": "7c2a784929576ff30f11aabe6d4c0812920bb26f515b41c009beea6f38cd8333",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/PLAYER-FEEDBACK-EXPLAINABILITY-NEWROUGE-V1.md",
+      "sha256": "959a644fbde068d0a5fdc96c35b56b35d4f7a6b9feeb5b7573cc77e605c874b3",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/PLAYTEST-ISSUE-GRADING-AND-REVISION-GUIDE-NEWROUGE-V1.md",
+      "sha256": "4dbdc28269a607baa14521deef1d72102688bc370480d3c84d6629ab60c09a81",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/PLAYTEST-SCRIPT-60MIN-NEWROUGE-V1.md",
+      "sha256": "13e515f93cc8a01c0871914d22dff7fc47f1874bfdaf633ae41f5ec44f450e82",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/PRD-NEWROUGE-GAME-0001.md",
+      "sha256": "a913933dcecb4cfc5e1141e802f0759f2c079c350df945930000b7682d965ae5",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/RELIC-ID-CATALOG-NEWROUGE-V1.md",
+      "sha256": "43e75479a7dab13cb88e51b2285e881356ed8e7e95d82c2897574b18299a03d3",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/SCREEN-BY-SCREEN-PLAYER-SPECS-NEWROUGE-V1.md",
+      "sha256": "06f4dca27aaa0224bcb451a0193d9d2a7360940a47659c771a00a82359cdbae8",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/SSOT-LOCKS-NEWROUGE-V1.md",
+      "sha256": "264c1ec35a81fd0addbf0f1fa6c22ac047a5251a06974292145a1e1533d54574",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/prd/TERMS-AND-COPY-GLOSSARY-NEWROUGE-V1.md",
+      "sha256": "3f852c4cef6e3e8eb5cdf54d26a13f08c24863caaf681eb943daea25dcb3ce08",
+      "source_role": "product-authority"
+    },
+    {
+      "path": "docs/testing-framework.md",
+      "sha256": "a2c0a8fb57323f4e946c15b6a5243639591f445390cbc2526cb7ebc09087c066",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/GM-NG-T2-playable-guide.md",
+      "sha256": "930d23abce1f5e590aaef83887ddbd78be113959ad6d8ac0c8121b27b95c60bc",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/README.cn.md",
+      "sha256": "1ecd8e28fc07f4c3af25ab0e9918eb925dae4bace573d2ed04097c4d9c7fc5c8",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/README.md",
+      "sha256": "1c84120b6f80f09d08a5f7bd47b0fccd7741384daf01ae6f1df947a50f7f6127",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/acceptance-check-and-llm-review.md",
+      "sha256": "455cbc608c6118f1142394ec11d92ed5741a7fe4c3fb56fc87e63bde97ac621a",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/acceptance-semantic-governance-template.md",
+      "sha256": "e9504c0b7f9d2edccab8e1e738fbfc9730787dd305e01104dfc68c43af3424be",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/acceptance-semantics-methodology.md",
+      "sha256": "b01f50636f83b5a9f31e3828057028518a07facc8d2aca5277fc8f3b95a92d2c",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/build_taskmaster_tasks.md",
+      "sha256": "7cf6d741198584d137e1314b0b1ad4cceef722b23d09215bc1a5454277bbefd2",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/business-repo-upgrade-guide.md",
+      "sha256": "c617587b6a1ea08aac7d3dc1aca7e5f7b7e16c7c19853da07749f7a6e3a94cf7",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/chapter-6-t56-optimization-guide.md",
+      "sha256": "778f7ae7be84c20d523edd3395849c35ef9b6e1c8f7a440cd24255af469b8f07",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/chapter7-profile-guide.md",
+      "sha256": "f0d3bf6dda3fb89650e42fbbed53785387dec6aa6abc8de35da9a8a7a11abef4",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/chapter7-profile.json",
+      "sha256": "5d2d7c41dbae2497cd18f9d26ff15cf41cdc91ed10f8024ef88fe7722afa5802",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/cloud-platform-evolution-plan.cn.md",
+      "sha256": "dd5d6fdfa08a579c4aeef9d2ae88715b33175d172c17890d061c1c353bbc7ca7",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/cloud-platform-evolution-plan.md",
+      "sha256": "ff3056f3e6284fbfa8ebcbd27e56dfdcb97413059d0388b391f288c691133d16",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/cloud-user-telemetry-and-feedback-plan.cn.md",
+      "sha256": "d5b8e905393145de2d14034f697e7fa8b7b9e2f097aa969815b10b88cd6288a0",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/cloud-user-telemetry-and-feedback-plan.md",
+      "sha256": "e959a39acfe2f145d097495f5b34e770192f6ab4c6eea40d96b0eae6bb61bef0",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/contracts-catalog-guide.md",
+      "sha256": "c1767e2ef6ee8f8faf1dc32898927d0695865891f4242c9b3ff0fb2418d6de8c",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/contracts-template-v1.md",
+      "sha256": "17d0f6fc22b151e1a0b3b4dce3b86ea2df3966e017d07380dbcd89fa08341323",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/doc-stack-convergence-guide.md",
+      "sha256": "7150aec0cdca8180ca6fae7ab0b724378a08a003abe3fa5523b880d1610a8986",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/gate-bundle.md",
+      "sha256": "34d9d1ada89e737776f05023bcb1b4275723bda88a0c6f00fc9211be61a039a5",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/harness-boundary-matrix.md",
+      "sha256": "d2df4cbc6a12f5f6e422bc5bda3ff696707f57805d88786f18875a3e9dd7f965",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/hermes-openai-api-and-orchestration-optimization-plan.md",
+      "sha256": "fc3445e9051ee4df303a360386c4b4aa9387a07e630704a2be8a5d8095cc936e",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/local-hard-checks.md",
+      "sha256": "caa5bb993cb627ffb6b85e2d3ceeb6aeb78d86b44f87e013a610d16c0e9941f6",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/openspec-vs-current-stack.md",
+      "sha256": "8f000f3056e53709592100b7cc70986f91a7e8acdc9693c37bd02be30d5d7af4",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/overlay-generation-quickstart.md",
+      "sha256": "ae9d15212eb459ab894efbc005d619ead9e4d1ef7f50eaf334d5f2fefba84677",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/overlay-generation-sop.md",
+      "sha256": "e226e01de0b66c5fc9507faf3fb0eeff85b79af3e0a0f43a92f8c7f43ef847fc",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/overlays-authoring-guide.md",
+      "sha256": "c23c808e75d145d70b5a93372de1730a7ee798e5467af6c8d25214e29122baba",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/project-health-dashboard.md",
+      "sha256": "193bc7c49494682a8adf49e544b5c73f15013e7690cb74573e5b70f2a7cf9393",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/prototype-7day-playable-godot-zh.md",
+      "sha256": "21412e3b8949ebbbe66faa948c38ed5f6a053b42caee8ed8828d62fcd9a9d111",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/prototype-lane-playbook.md",
+      "sha256": "08279cdd0c4cf7960d90457a2aca669671fb7d5212f84081232b556ec43b2db3",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/prototype-lane.md",
+      "sha256": "ebc51bfaad2687e8554fb03ed7fd72fa8df56b0b9cde1038d8042f36f7b17f26",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/prototype-tdd.md",
+      "sha256": "083c60773fe523217402dbbeb553c1085abc2bfd2e6ffb6cb63f30764dfc183f",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/prototype-workflow-zh.md",
+      "sha256": "447b701ef0002fd576acae6a90dcffb6b30f797efa004d728cfda5ae11fcb977",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/run-protocol.md",
+      "sha256": "879771b24fbef807d26c7add779261e024dbefcaf362366eb0d9cce9f1b53ae2",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/script-entrypoints-index.md",
+      "sha256": "821f41fdebd60ba0f48ac6fd5b0049b3347af0a0faf4b0b556f40b90e1f62a4e",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/serena-mcp-command-reference.md",
+      "sha256": "f5242cd4478c058db8bceaf31cb3f98f77f61421202b2d259bd826bc6141356d",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/stable-public-entrypoints.md",
+      "sha256": "7f100bb94e3c1b891f79c30dae5618b8d2eb85fed3bcde444c1311715fd743f0",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/superclaude-command-reference.md",
+      "sha256": "bc0cc6bdb2e8053e755d53ba158fadb25905628209df1bc8026cfbb987712e85",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/superpowers-vs-chapter6-router.md",
+      "sha256": "7255d163de0cd9f1d8f308b9bd42550889d62d780f1f48a9371a4d395363b381",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/task-master-superclaude-integration.md",
+      "sha256": "d13210ed0479de5913938edc8aaccca66abaefa4d726d9f1d3635ea44d053d55",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/task-semantics-gates-evolution.md",
+      "sha256": "980eae2150ab80980360842845aad3c4354b97ed6738ff0130bd640715720c4d",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/template-bootstrap-checklist.md",
+      "sha256": "9aed20c7cbeda35281395fdde0ba3f6de23594521c8955185697caaae15d4e06",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/template-upgrade-protocol.md",
+      "sha256": "80a5c95c0e134e7daa8c0dd8f440d3bafa185b15b81e308c302cf49fe0636b9f",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/unified-pipeline-command-whitelist.txt",
+      "sha256": "2014897aaa1e775d61d6b5cdd459bbc1347fc32ae9c7c54b123aa77404d8400c",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "docs/workflows/workflow-rule-feedback-protocol.md",
+      "sha256": "8857a6c2c721d7c87340dd6429453bedfe9fffb861a2cec596742b39b949c1d9",
+      "source_role": "repository-authority"
+    },
+    {
+      "path": "execution-plans/2026-03-19-phase1-agent-harness-foundation.md",
+      "sha256": "504b726f12337b8d2a24ec3f3542f946e0f4bf8fe503a11c5ae2541f44de4584",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-03-19-phase2-agent-review-sidecar.md",
+      "sha256": "6ead448825f19713ac562fe9659621fdc4b91755f9b402f642843bcc8ef62e7b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-03-28-t56-daily-loop-preflight.md",
+      "sha256": "b930c2811fb45308709d97eccb7a2f968dd6acd7804d995b95106bef7488c06d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-03-31-t23-chapter6-preflight-execution-plan.md",
+      "sha256": "03c4e2372e8a22fd8f5aee61047af66fa0281ce186a5eed412258d07f1249657",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-03-31-task-23-set-up-translations-system-with-key-naming-conventions-acceptance-test-generation-plan.md",
+      "sha256": "61ccd049b8c5daa15af7b10e285371e9da37155f10405e205d5e18728752f7eb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-01-task-7-set-up-event-bus-and-contracts-location-acceptance-test-generation-plan.md",
+      "sha256": "31697a0d9df83d3fe0bd39b73ae9575d1e8ef04bc690b1b26a32a51dfdc74761",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-01-task7-ch6-tdd-preflight.md",
+      "sha256": "7e6e5f71732fbd979bc186a61fbb677a824ad165e491ff705243a59225bd0dde",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-03-task23-needs-fix-followup.md",
+      "sha256": "b88f56da461a8669b025cc47dede58af3ab4ba7ab0d21f4b3cdaa7007150c85d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-03-task7-needs-fix-followup.md",
+      "sha256": "1e6a74b27b816b1290b170bcb278269384052c7355140a2752199c87e35bec6e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-04-task-55-coverage-thresholds-as-configurable-soft-hard-gate-acceptance-test-generation-plan.md",
+      "sha256": "1b7f13a12cb045a302300cd9e43c597538d85b53683b10f03e92159a46df09c6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-04-task55-needs-fix-followup.md",
+      "sha256": "41b2f7079c1606eff501a4c5470b5deace7bcaf0bd689a494e50b394faecbaa9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-04-task9-chapter6-daily-loop.md",
+      "sha256": "e041614a00f6a61048d6b00a2c38d1775fad3b0e4a046b4841bf0a3a20a3360b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-05-task-11-implement-combat-resolution-pipeline-core-acceptance-test-generation-plan.md",
+      "sha256": "84c7037153921a335e3fb29ce3b1a0bbab94f121e4da1606d2d64cbdfcb8ff05",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-05-task11-ch6-daily-loop.md",
+      "sha256": "edcb3d071c5f90b34a5dcb6e6893fd05d12f37ce67274a677cde18297d61bf8c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-05-task8-ch6-daily-loop.md",
+      "sha256": "92caeeef17a5ffa7c0038ccf809a7f0c150c740bcc8309e0eddfeae716058d05",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-06-task-14-chapter6-execution.md",
+      "sha256": "00b1ae2b4f69f942d530be689ec665519f85a5f06d0e9e0ebbe7b08ebdedcde0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-09-task-15-implement-difficulty-selection-ui-acceptance-test-generation-plan.md",
+      "sha256": "d89a6f0c4722ab1cb2c1390d55050730052a67d098f6f172a53f2851d32dec1c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-09-task15-p2-needs-fix-followup.md",
+      "sha256": "5331a107c2aa5f4de1ba5082a9451c3006b32c58e868435bd7982edcdf8742d4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-11-task-16-chapter6-residual-followup-2.md",
+      "sha256": "c96ff862417277c99feadd4e4ae9bdc4fe5b4c1c7085d8ff71e6a4aec54e48d0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-11-task-16-chapter6-residual-followup-3.md",
+      "sha256": "0620d839d6a0de174961875c2e6008369081a5d0ec5bf27dc20d790fd6a46954",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-11-task-16-chapter6-residual-followup-4.md",
+      "sha256": "e7300fdadadc882d3286bd442dd9056ae5284c15a48c728aab1bde4ac5d0b6c8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-11-task-16-chapter6-residual-followup.md",
+      "sha256": "d16c651507b49e6083c60b478cf091027f5854aa3497a0dfa89c051e2ee9353e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-11-task-16-implement-character-selection-ui-for-warrior-only-acceptance-test-generation-plan.md",
+      "sha256": "0533b6d96f61d852e261e2b4940d0d875402ed729cf054f83cb48b6875dc230d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-11-task16-chapter6-stoploss-followup.md",
+      "sha256": "14fd7d5e068355def6ac8b89d869f09672ada5eeb51af8f174b5867822bcf052",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-11-task16-review-needs-fix-followup.md",
+      "sha256": "32a1808d7cf5cc43af1ae91ee5956f298c2492f5e31f86992c9b1b8fa6dd5a5b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-13-task-24-implement-warrior-starting-deck-with-10-cards-acceptance-test-generation-plan.md",
+      "sha256": "c77653aa985269894861a4a964f865d7d1d5705c7641023bc6a9d32e4755aeae",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-10-chapter6-residual-followup-2.md",
+      "sha256": "3911e5a5a5474766d691e103f141a5456e91f8ca40b6ee968588acee4162f392",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-10-chapter6-residual-followup-3.md",
+      "sha256": "1f133271e2e4dbc2cc7046dc1474fe68a73d78517c0e82a5b9c414d37150b3cb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-10-chapter6-residual-followup-4.md",
+      "sha256": "7d9b8954be079f27003fcbe6dc176e6a2f4f33c3b432f3548ca9881d3e260974",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-10-chapter6-residual-followup-5.md",
+      "sha256": "f957d368334de61d2d8b4aea46f71c479d00990ce890bdd391735c0c38eab062",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-10-chapter6-residual-followup.md",
+      "sha256": "2c64a1311197985eaa993870d710392c79c52ff508e608ee5483b4034c1bf054",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-10-implement-status-application-stacking-and-decay-acceptance-test-generation-plan.md",
+      "sha256": "e09a6480c7f67ccaf37ddff2001c90d71e6ea765743b95df3f5a32dd6d49fb05",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-22-chapter6-residual-followup.md",
+      "sha256": "1e538b30dd3dad6791c7c5a54994ea9ba32ced6de6f73c4f62991a2389590d30",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-22-implement-event-scene-with-dark-cost-examples-acceptance-test-generation-plan.md",
+      "sha256": "9923ff6ce38f55869f5ef5a0a59e98360d896440930bd59727ef3cf0a6ea2652",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-24-chapter6-residual-followup-2.md",
+      "sha256": "983af9d28c0a1277739c2d76a4d16e56b01186ea9a6536e1f163c26d9e561cfe",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-24-chapter6-residual-followup-3.md",
+      "sha256": "5378765790032390333e1b3e92a8159b79c0ed975df76597912a4466abb2fd9f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-24-chapter6-residual-followup.md",
+      "sha256": "62cbf4372216bda0460156a6b81e85f0c8ce12606e511ce0d3011ac002eda790",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-25-chapter6-residual-followup.md",
+      "sha256": "9262d5a333fd806a77e9071ddf0f47fec750209fcb4c6f5df6bb0ca527fa291a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-14-task-25-implement-rage-as-state-buff-for-warrior-acceptance-test-generation-plan.md",
+      "sha256": "cb7cd9f54fd310aa0aa069b61b0f63bd95d38c8a37bc6363747c7328eb31ee12",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-17-chapter6-residual-followup.md",
+      "sha256": "43c065208fb1e2a9f1dde429e1e1dccc4496e8f4b8d5c4b7fe78bbc3b2ac44a9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-17-create-modular-act-structure-for-map-system-acceptance-test-generation-plan.md",
+      "sha256": "4ba0019fbc9d667e1876d1317595bc79410dd8b0d677286c5f56b207c886aeba",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-26-chapter6-residual-followup.md",
+      "sha256": "1cc422601ffbcbd41cd209e483db884660685fd390602065d6a315bff03b57f5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-26-define-difficulty-configuration-contract-and-immutability-acceptance-test-generation-plan.md",
+      "sha256": "2885bf1656bb28f11f57ae6a8381aa2cc5f5df87abde3537a90df7b77b6abad1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-27-chapter6-residual-followup-2.md",
+      "sha256": "f2306c8cd7c308778ecd80440bff7b67e6ee86af33ed797ff56c1a3324e561aa",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-27-chapter6-residual-followup.md",
+      "sha256": "c25512281543a00b4f34e965bfbd3d623512226d784e1b43573570e037002a66",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-27-implement-difficulty-rule-modifiers-acceptance-test-generation-plan.md",
+      "sha256": "754f90912aaf05f31e18b3b1c44e09de0efe76f68676f1a616b4d9670ed31d5c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-31-chapter6-residual-followup.md",
+      "sha256": "61ccebc942300d829dd2100f0844f9f1760625d22adc3cfc873cede5d76c7316",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-31-implement-20-starting-relic-definitions-and-uniqueness-checks-acceptance-test-generation-plan.md",
+      "sha256": "611ca35421bc0066d57281ca1b89edcc2a61c521dd580d36c8831c280a3154f5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-32-chapter6-residual-followup.md",
+      "sha256": "e6921b681d08f5f188f3d429c905f016cc5a8b9a86c3e22f21e87a109f14c8a4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-32-implement-curse-cards-and-removal-services-acceptance-test-generation-plan.md",
+      "sha256": "00a577b1e9c161974cca5e162725fad7941546846c75c5649a25ec44857804d7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-39-chapter6-residual-followup-2.md",
+      "sha256": "727dbdb82c51e7e4fd1fb74554943120441055f2791add99e821be10b4e73b35",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-39-chapter6-residual-followup.md",
+      "sha256": "73082290c82113a1394658d1e389a29c399cebd3606aa454db77d428303a092c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-39-populate-translations-for-m1-cards-relics-events-acceptance-test-generation-plan.md",
+      "sha256": "6d1be9a9facb01e86698c83a71adcd6bc966b223c21fa617d8586ba504465a72",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-40-chapter6-residual-followup.md",
+      "sha256": "4d6e208fd6e60840d206074d375eef076dc8ed28c662c2f7621d759be82a6947",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-40-define-act-1-enemy-data-and-definitions-acceptance-test-generation-plan.md",
+      "sha256": "a6f0073990e9db46bd3b6fbd92f3c7a14d4c1accf3514ed349957c864d44480e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-42-chapter6-residual-followup.md",
+      "sha256": "d62c378ca19574e82b66681e197cef654af76c194953fc8e5a061ada85d90486",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-42-map-node-entry-gating-and-backtracking-rules-acceptance-test-generation-plan.md",
+      "sha256": "ab20759b0d45608ae0f1c4e82ca6e23f28d8bca1b562aafddea4e4a934d8e656",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-43-chapter6-residual-followup-2.md",
+      "sha256": "29e6001885b11569cda02a36b004e4320d73a641f09c81c9c572530cc0358a1a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-43-chapter6-residual-followup.md",
+      "sha256": "3e8ed82aa4ab2bebf05079f917968bbd6168dee5fb58f117c0c159004ff5d661",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-43-run-state-machine-with-command-only-transitions-acceptance-test-generation-plan.md",
+      "sha256": "abe263f720c983411afc20ccd93b297e95f99f7335786311c22798acf701e6ac",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-52-chapter6-residual-followup.md",
+      "sha256": "6f365f6c436c5329d222e378e40d0cc2e389d3976861753bdd852e19fb977524",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-15-task-52-implement-enemy-intent-selection-logic-acceptance-test-generation-plan.md",
+      "sha256": "e26d393db3cfc530b845a984ef014fa0e9d79486ecea12576b8a371635434446",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-16-task-18-chapter6-implementation-plan.md",
+      "sha256": "44c1a1d9b07048e31f960bffbd454719cf60359100ef833a23bf2404df2805eb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-16-task-18-chapter6-residual-followup-2.md",
+      "sha256": "d1310746cfa19bdb448a45903ed14fee2cf68772aed3e9e22cfb353930ff37d8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-16-task-18-chapter6-residual-followup.md",
+      "sha256": "76a655aae7ec959a6903ac35da5a573531a5dd569eda19eecc92ddb91ba31184",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-16-task-18-implement-combat-scene-ui-shell-and-bindings-acceptance-test-generation-plan.md",
+      "sha256": "ffd7378535fb593635384a764ee0b825af60f54bd58866f4b138a419e8a68c25",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-16-task-37-single-slot-continue-metadata-and-integrity-checks-acceptance-test-generation-plan.md",
+      "sha256": "57deb3792c2e129214b7ce41a5fb5a21e5da7619fe4877a82192fec170164fbe",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-16-task-50-chapter6-residual-followup.md",
+      "sha256": "55ef1795f4878634a40d7f3bd7a8d645458edeeaa083dc9f1c39b1071c1b4b4d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-16-task-50-implement-save-migration-validation-and-failure-blocking-acceptance-test-generation-plan.md",
+      "sha256": "b56d60a35f291ea9033231029f057e3f4660cea5cfdb4bf00270427899dac5c3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-16-task-52-chapter6-residual-followup.md",
+      "sha256": "c2d8db0d8afb9fec66335595a79b5c150a7fd0f64ff959316fa8983cc5e25ef3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-34-chapter6-residual-followup.md",
+      "sha256": "8842c3632f591e39af8f29b0317c70edb69d99c805c2f836d61f34e5b535174c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-34-implement-card-targeting-and-drag-ux-acceptance-test-generation-plan.md",
+      "sha256": "bf6a8de731ce69dfaa5c03112800bc3452249079a99118ffbafb53992767e661",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup-2.md",
+      "sha256": "9f7c8b72ea644aab4001fcc901dd73fdbfaa264a0a35efd1b2fe76e3353e558c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup-3.md",
+      "sha256": "c2a58550bc4fabacea22d6599f5382b0b840986ec46ad9f5a18d0ce7b253d3c4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup-4.md",
+      "sha256": "53c9aa564b05749bd267506ed2c00208a17a22abce6088ae878b4032c5782667",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup-5.md",
+      "sha256": "837153d206d7040602d35cf5bc7ac78b3cef4f5b7d1f69a12f5c1b1cc357ee9f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup-6.md",
+      "sha256": "a00821a4cfe5139f9634e39f1b8161cca0d1943036a21a979f6bfe92cba23bc0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup-7.md",
+      "sha256": "eadebbe3993aacf728918dc0912c1ec48f6817269d60cde8f834357d563c0de6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup-8.md",
+      "sha256": "2f23b5acbbc337901760c88053749cd5ca757229eda4777b15767cf077cbe8d5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup-9.md",
+      "sha256": "85a89313c759e8b111a10081f15d2d25aaabbf8b7f4050166956da57e2450078",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-37-chapter6-residual-followup.md",
+      "sha256": "a4dab8d7aeca444f678a07e7575bb60c2942ea542a4df2c15bf4c34c8183b2c4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-45-chapter6-residual-followup.md",
+      "sha256": "5aca24efdd8b1ed4a516ed673230868c69f2e174d9c287a74d62fcd505ba1c20",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-45-display-difficulty-in-hud-and-run-summary-acceptance-test-generation-plan.md",
+      "sha256": "e7cbf535020c91627900e828897120ea9a7ea017ca95d7d519aa60c0c0eb20ea",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-46-chapter6-residual-followup-2.md",
+      "sha256": "c6227ab9def01efb5a1a0d4388077a5fdc8546a669fddc0ee649056936e9ccc2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-46-chapter6-residual-followup.md",
+      "sha256": "b8d223e04a3a594befece70abac44378aec1a6f4c19fbf88ecd004bfac4ba8f7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-46-implement-offer-locking-generation-using-rng-streams-acceptance-test-generation-plan.md",
+      "sha256": "2033dd2036656630940327606247e5e2ad35a67aea43636bf483e81ce788a86a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-57-chapter6-residual-followup-2.md",
+      "sha256": "d637c96e2c2f052c76d76e7f09af84993e1db623ef6fe748851b3592e59ef440",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-57-chapter6-residual-followup.md",
+      "sha256": "b7556c5a1c549ce3fe8ddc216373d63ae7227920f6e831197e413a797af8a6f8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-17-task-57-traceability-gate-for-adr-chapter-overlay-links-acceptance-test-generation-plan.md",
+      "sha256": "a59a491a5ff4784ff30fbe1b53c207709aa9fe873415e139e1ee6c81ffb7a39b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-19-chapter6-residual-followup-2.md",
+      "sha256": "84b083206d6973c0cac2bbaec8d2030ce02e4881b45a4d1e85457ee98df2b1d7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-19-chapter6-residual-followup.md",
+      "sha256": "84b044cae140e1f4e542a3267f4b75168ee3be76e9337f938748af29c34b6946",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-19-implement-reward-scene-with-card-three-choice-one-and-offer-locking-acceptance-test-generation-plan.md",
+      "sha256": "f43547e5ecb4ab028d6aeb4aab2d8c48ebff3b1aea6001eedf1a7f6fc896e1a3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-20-chapter6-residual-followup.md",
+      "sha256": "184a3c35e8dc8ce447f48634186c6bfa6c196a6bf9deaf37f2aef042abc6fd19",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-20-implement-shop-scene-with-inventory-locking-and-no-upgrade-context-acceptance-test-generation-plan.md",
+      "sha256": "d730c0f6b304092eb46c8c5abdf983d5fbcb3910699a621a711e1a6489d0a454",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-21-chapter6-residual-followup.md",
+      "sha256": "5f3095ae673483f82ac1f59f67d9c2f745a733797d7ac710b110e029475fb2ad",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-21-implement-rest-scene-with-free-upgrade-option-acceptance-test-generation-plan.md",
+      "sha256": "29fd3b9e5d05c31877eee9a35919fef3be5856772edc5378163d0aff9b7a089b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-38-audit-logging-for-determinism-and-security-events-acceptance-test-generation-plan.md",
+      "sha256": "547f875c8ec7b706bcbb4aebf8f34e3385346eb07c7774fd1b5fd6dfbdd2c011",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-38-chapter6-residual-followup-5.md",
+      "sha256": "9877a4b0d43ee32a6b765aac5abdbe5368ca16cc35a8f335b54947a7ff312ef2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-38-chapter6-residual-followup.md",
+      "sha256": "e523d8f42a9ee4b6c23b09da935e26319d4715cdf7b987927e6335ded7340b78",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-48-chapter6-residual-followup-2.md",
+      "sha256": "dc2f3fabeeb4f53661edb53702feacade36e5ecf004dd8debfe32fd00f8522a7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-48-chapter6-residual-followup.md",
+      "sha256": "7e16583a9412a5fa5169dc93eab39d59ece4bca9aededd24583780c9f936f1f0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-48-implement-damage-calculation-and-aoe-ordering-acceptance-test-generation-plan.md",
+      "sha256": "f21a39c72da493b0122672f4aa0597e620c533d5e9aca94e409f65ca993acd55",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-58-chapter6-residual-followup-2.md",
+      "sha256": "240a7a4d91dac6de9a5dd7a10c82ab90fa3d9907f40f1d596aa9f47afd2f7313",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-58-chapter6-residual-followup-3.md",
+      "sha256": "466fd978871d6d963ee4fa48de76ac5165c0e26b162f851baaa82902458c4cb9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-58-chapter6-residual-followup.md",
+      "sha256": "af64a822c6a385daf9fa26c353a63a5321ac6039c72782b238c6b986e26e9050",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-18-task-58-semantic-scope-governance-for-soft-review-stabilization-acceptance-test-generation-plan.md",
+      "sha256": "8daf52d1b78d74ee4b458f05d72aaa664e409f252307fcc528fd606480b06428",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-33-chapter6-residual-followup.md",
+      "sha256": "8e1e956f7b0c6077a7d63ad91b03dc4d15991ffb1ddcb3be15b54458f27f973d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-33-implement-deck-operations-service-draw-discard-exhaust-retain-acceptance-test-generation-plan.md",
+      "sha256": "c715af8e1d6763940ca595d7109a2e66b6a2ee9199ce9a6d4f819c1cbfb69c93",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-35-implement-end-of-combat-resolution-pipeline-acceptance-test-generation-plan.md",
+      "sha256": "20f9f6c013efcc7b883ba129fa35723ec7ba2a6b56cbe6dc919d3f878e4ea775",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-36-chapter6-residual-followup-2.md",
+      "sha256": "7d47e1ccb74c637f760561c6320a27d08d035a495bf75bd42f29189be326b206",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-36-chapter6-residual-followup.md",
+      "sha256": "bdca39eb2bbc40c5ac4b0f91d78b539e304a81161eb4f01f04703be9ee219960",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-36-implement-autosave-triggers-per-determinism-policy-acceptance-test-generation-plan.md",
+      "sha256": "d39c4e0031f6cbde1fe067a42d3fd3c900580f0f05f78546a7dffe70b86fec17",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-41-implement-enemy-intent-display-and-preview-ui-acceptance-test-generation-plan.md",
+      "sha256": "9f080942fc9a0ce76b1626c89478eb1492e76f05447a818b66bb15bf325f2723",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-44-deterministic-resume-integration-tests-headless-acceptance-test-generation-plan.md",
+      "sha256": "a2be83c0afb4abfd2034b893ca95b467de49164aa124e3d249d3ab1d815e4548",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-47-chapter6-residual-followup-2.md",
+      "sha256": "681d1f36726eac8a1b3145e58849590027891b4efb7e43e035c6e15dfadc3208",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-47-chapter6-residual-followup.md",
+      "sha256": "9c93ea0776d48d575f526124dccc05ceb39ef91e5145a365cfe58b6a0fdc78e9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-47-implement-status-trigger-ordering-and-fixed-damage-rules-acceptance-test-generation-plan.md",
+      "sha256": "9481ed5445bb3422d51d1babe14b1b3693dc467c69207087a9b509eaa4b3d99b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-48-chapter6-residual-followup-2.md",
+      "sha256": "35cbd05e5245a9677d214b32f40ebaaa72654704a343d167fc21bec873b019ac",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-48-chapter6-residual-followup-3.md",
+      "sha256": "b8ee07ca47b7543317d548db4d48f5be30843c78fddba766c5ce523ca8790bdc",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-48-chapter6-residual-followup-4.md",
+      "sha256": "620f6272cd2dcc3603b501f891f8cdc247b236d2f2061d0b5da3a0db5ace57a1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-48-chapter6-residual-followup-5.md",
+      "sha256": "90a47dff5d86b678ea106a82b4d6c120f92c531061e18254b63564b1740a628a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-48-chapter6-residual-followup.md",
+      "sha256": "bc366d61371375d7c6d23aec4f1615e932f766f29c1c4cb4b60fb6504b6bda68",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-49-chapter6-residual-followup.md",
+      "sha256": "e1652ab00c87d6879a3fa4c581c7b55a9a105629a4a73e1d20c21e5e50b4d36b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-49-implement-stability-safeguards-for-combat-loop-acceptance-test-generation-plan.md",
+      "sha256": "d2e9e5d80ba01286469bd9fcc01286b9a51bb90215519f0de81d404ec1b6c141",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-51-chapter6-residual-followup-2.md",
+      "sha256": "6dbd51cdbaa1d93260021dfc1d1df94c33f493d6113feb10afd9a08a842fc472",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-51-chapter6-residual-followup-3.md",
+      "sha256": "d835839ece20ab65ad0bd44de208b02ed21ad94d46b98284815857c14183571e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-51-chapter6-residual-followup-4.md",
+      "sha256": "8769ea9dea8194c71228f358f9116bd9721fca5733001ac5b5d300f52d8a8583",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-51-chapter6-residual-followup-5.md",
+      "sha256": "f5f7e7b09eb8dbeacc33f1a0ad85821f8878696dd91ff02c86a4c7a580970e0e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-51-chapter6-residual-followup-6.md",
+      "sha256": "c045247c7f8b6fb0b2a29c19d44b1bde2e2ca37ac9ee6a9c7e87768f79b7ed50",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-51-chapter6-residual-followup.md",
+      "sha256": "17ec0ad95826d063bc7dd4f44d35f04f6ff9fef471e066164cc3e64b666ef51b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-19-task-51-integrate-combat-turn-flow-and-persistence-acceptance-test-generation-plan.md",
+      "sha256": "ac799bdb105bb737c13ef911b22d1c9eb79a75e056dd45e48a818cf6c8cec2e8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-20-task-59-rewire-m1-run-entry-from-main-menu-to-difficulty-character-and-map-acceptance-test-generation-plan.md",
+      "sha256": "2e68f1c4f2b612eb851bfb3d45ea20b4250447e2d312de92912a7aae285a5d8c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-60-chapter6-residual-followup-2.md",
+      "sha256": "e9d0aa85910e1f79548f35e02c04fd03adff6b5b64e1dfd1a77fd6af2570f12c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-60-chapter6-residual-followup.md",
+      "sha256": "443331c0546747f186cee62b1face6309d574e662f23ac5de8ce3e0f7a3cb56c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-60-implement-map-to-node-route-ownership-for-the-m1-playable-loop-acceptance-test-generation-plan.md",
+      "sha256": "17224d4952022a46a2d3c08667846cd63aad8bb98fabb927745d7d63290b60d0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-61-chapter6-residual-followup.md",
+      "sha256": "476ac22ff0952a47f07d954a72e92c5f2b72b8ae7e30bea0eccb972a3776c69a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-61-implement-standalone-reward-scene-and-route-integration-acceptance-test-generation-plan.md",
+      "sha256": "f6d2910d89406799c94f1af2712a95c94719a2013383959f8bc1f36d68ae1519",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-62-chapter6-residual-followup-2.md",
+      "sha256": "547d03fc68933e89f3e0b806e7577361910de609f8a6c87f91a324ec565007c3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-62-chapter6-residual-followup-3.md",
+      "sha256": "f3454a28bbf7cabc52e22fda2fcddc46169c7a3a081461f9857ac1229d4131f6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-62-chapter6-residual-followup-4.md",
+      "sha256": "180d1d7736e8bea2d4544f14763145fad62eae97ed95994012e121676aeee822",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-62-chapter6-residual-followup.md",
+      "sha256": "65b18323e07a4fecc7debc01f05c009c50cd92a2a8cdaa8180e846a81cbe2b77",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-62-implement-standalone-rest-scene-and-route-integration-acceptance-test-generation-plan.md",
+      "sha256": "9258aee4a0d910729326bf9066386e057109a58d437529912536500270e0dc9a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-63-chapter6-residual-followup-2.md",
+      "sha256": "c64486473a1b6ca272635f898abd97b7d7dc88c0d4502f02797e0114d0871884",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-63-chapter6-residual-followup.md",
+      "sha256": "1677aea08b7f06e47f03c99ed8675eed567c60b4fc0b9ef864a0d1e634167f2f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-63-implement-continue-blocked-state-ux-and-recovery-messaging-acceptance-test-generation-plan.md",
+      "sha256": "cfabaf0320a96e0a8c3da77c553af76ca1214c98b1cc55035a64931e9496f6a5",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-66-chapter6-residual-followup.md",
+      "sha256": "3e82c0686f61bbbddedd8869c92a3c39405633d3d397899053be58602d382e3d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-66-define-and-implement-run-summary-surface-ownership-acceptance-test-generation-plan.md",
+      "sha256": "d5c5cf1887d6503eb3343477d62c9e1a2a33c65ff5b62a5add70916910defab2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-69-chapter6-residual-followup.md",
+      "sha256": "ffd7cf49fb4de84b089661ba1148e5c58f3f301706f5735698857b3e8c44be9a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-21-task-69-implement-event-result-explainability-and-node-feedback-routing-acceptance-test-generation-plan.md",
+      "sha256": "3d70fc775c3cb514e046d5b416ec8f786c81ace15267a3b0e9b2dc6969aa4b6d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-22-task-64-implement-combat-hud-explainability-and-command-feedback-acceptance-test-generation-plan.md",
+      "sha256": "e5ebf64d61f52b233b40b934df392cf096276bdf28290a039d186c185971143b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-22-task-65-implement-m1-visible-text-flow-validation-across-ui-scenes-acceptance-test-generation-plan.md",
+      "sha256": "0051cac617e92cc68ecc77fb865b02f24d536c27ab693af2f794cc0b0e6c0f0b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-22-task-67-chapter6-residual-followup-2.md",
+      "sha256": "33a685840ad85aeb5d0c146fd5d07ed10c494ea1354b3a41e006439d8d7bd9ab",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-22-task-67-chapter6-residual-followup.md",
+      "sha256": "e7efcd1d068286fbb59ad434ae98cee912d69b65a450832b57bcd6aabb977e2e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-22-task-67-implement-real-shop-ui-behavior-binding-and-route-ownership-acceptance-test-generation-plan.md",
+      "sha256": "dfb7b047bb5bb1768c57247d186c0acd319af135dd0570bd5c657b140debfb3f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-23-task-65-chapter6-residual-followup.md",
+      "sha256": "1f7d3a16925fcd0696bfa0b6302d7d4edefaa62d8509ba0377c1ccbae3a26871",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-23-task-68-chapter6-residual-followup.md",
+      "sha256": "1254e03ebd56c84365d69ba59c2108274fa5c7e21e6f58505c842ccf989e6d59",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-23-task-68-implement-m1-ui-focus-and-accessibility-pass-acceptance-test-generation-plan.md",
+      "sha256": "10fb0467646662a7ca8c3efe74970cf27d98bdec92792465a4a4f8a3e7d9e6ca",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-23-task-73-implement-combat-targeting-multi-enemy-lifecycle-and-victory-routing-acceptance-test-generation-plan.md",
+      "sha256": "37fc79c3d11f64d3ea04d2c9f3789e423dd37c7d6d899e1ccea8b70050a77369",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-70-chapter6-residual-followup-2.md",
+      "sha256": "5064103f8b71dd7a6dfab15f2fc405551015e74e6ffa1e5169fd66ee5077821c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-70-chapter6-residual-followup.md",
+      "sha256": "d244b423901f7c76adea52beec1734bb1282b040f802edc64be3fd894c3b9fcd",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-70-upgrade-map-route-graph-visualization-on-top-of-existing-route-ownership-acceptance-test-generation-plan.md",
+      "sha256": "b8bdb99fea142800a9f42cf090c47a96f8eea944229f787c58fdbaccc70d69b1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-71-chapter6-residual-followup-2.md",
+      "sha256": "31eb12f511d02fe2f9fb6cebb786649239a4f24bd73cb1c5c2f7f734b7ef0bea",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-71-chapter6-residual-followup.md",
+      "sha256": "d6036fb508d9f6db9d07f5b616d5879205ef425ff48c0662ca3fbc782ed2d8fc",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-71-consolidate-combat-deck-lifecycle-wiring-as-the-umbrella-task-for-t80-t82-acceptance-test-generation-plan.md",
+      "sha256": "5083b5beb06b6d5b578198d23da8c584ab0d176f9f01233514a02ad7de224d7b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-72-bind-combatscene-to-existing-data-driven-card-definitions-and-localized-card-text-acceptance-test-generation-plan.md",
+      "sha256": "24efc88dc9a1fe19c40e1d9654ba99367b646e5537d54183db8540950c2c59cb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-72-chapter6-residual-followup.md",
+      "sha256": "3e3253e5048ceb08d631b24988c0d010c335361ebea9332f7b7771598f0c2d7c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-27-task-84-generate-reward-offers-from-existing-card-drop-pools-on-first-entry-acceptance-test-generation-plan.md",
+      "sha256": "abcd6bd6610aff7c94d0a853ad1de792dd9e35cf6ca424fafc40a4475402ab57",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-114-chapter6-residual-followup.md",
+      "sha256": "784232f006be206197e058ffe43304f1e9924f43ec4fa6e4e7bead5ed55d05c0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-114-stabilize-reward-offer-lock-re-entry-and-invalid-pool-fallback-acceptance-test-generation-plan.md",
+      "sha256": "a116ef2862cd1e3c815f259b4cad339fd1e6b6e399354dee2a956ddc7e63c47a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-115-chapter6-residual-followup.md",
+      "sha256": "4d25050b2b0844ec76e651de41c27a1a5d0b6643fc758051a6961a1dbd11cf75",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-115-resolve-reward-confirm-writeback-and-skip-through-the-route-owned-return-path-acceptance-test-generation-plan.md",
+      "sha256": "69ba2ea76c37d9836cffc5dec29598cb6f7dd1095ba3e8977ad31027c00fcf0a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-73-chapter6-residual-followup.md",
+      "sha256": "889f742aeb7c40352c3d757ab7823a860feca2978df4f481ffce514ac87e8cec",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-75-chapter6-residual-followup-2.md",
+      "sha256": "e5c44e276166b591d08b623835d88c0c845b157f17ddd786319bf7041c1e23b9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-75-chapter6-residual-followup.md",
+      "sha256": "5678845cfb30d300c7767d89bf3e4aa492a20f1435e641cd9e4283c5d8809fdf",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-75-wire-existing-status-contracts-and-rules-into-visible-combat-status-effects-acceptance-test-generation-plan.md",
+      "sha256": "9392f5ebbac311bf19eafe81a945778a1d5c381dafa45a37d557cb2db45bb65e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-79-unify-combat-defeat-trigger-by-hp-change-event-and-single-resolution-guard-acceptance-test-generation-plan.md",
+      "sha256": "b7cc00563ac3076aa273c7e5d44a4cf179be0168ab81a36510f8517edf70f457",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-85-chapter6-residual-followup.md",
+      "sha256": "0ac971223d81b5ceaf34f89c856cb1cf1607a9fffbc1719e1d5930f6c0337892",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-85-complete-reward-three-choice-selection-and-confirm-gating-on-the-existing-reward-scene-acceptance-test-generation-plan.md",
+      "sha256": "a67fd1c68e8d7db7f417c384fe0477753317acf17c722b29588f40be960d6e82",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-86-chapter6-residual-followup.md",
+      "sha256": "37cdb15aaca0f83ef00220e8044384f41b38a3adaeb45ff25af2aa83b40f735d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-28-task-86-generate-route-graph-from-existing-actconfig-for-the-live-map-path-acceptance-test-generation-plan.md",
+      "sha256": "961cca4577a31c69312f30dca5f5691b38afb82449638234fc2d64fc7cbd0c16",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-76-bind-enemy-intent-generation-and-preview-to-data-driven-ai-on-existing-intent-surfaces-acceptance-test-generation-plan.md",
+      "sha256": "4842e2bd34320310a9fc9efd3faed7e43a50251ea9de34fc54842cc4d9f1c638",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-76-chapter6-residual-followup.md",
+      "sha256": "59df70a7b0735b83a8bc3231df30d2d222eb6014967d12f1193531ec90d17115",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-80-chapter6-residual-followup.md",
+      "sha256": "aae21a4bc70411e9566772562cb6f21c9511aea99310427487f01c5b89dc91ec",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-80-wire-combatscene-to-existing-deckservice-runtime-state-instead-of-local-pile-counters-acceptance-test-generation-plan.md",
+      "sha256": "300aa336d9811c01a2556f8cd350e11ed250a2799d6bfead3b07932c267008eb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-81-chapter6-residual-followup.md",
+      "sha256": "8d2b8a19865c08eb6652b665a3d42f4d659eadcc4a494ffcd17214d91e50713d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-81-expose-draw-empty-reshuffle-cycle-through-existing-deckservice-backed-combat-runtime-acceptance-test-generation-plan.md",
+      "sha256": "566cf7ae70c5cb0c99b05fabb43d1f289049f8589a1815415c74740bac777149",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-87-chapter6-residual-followup.md",
+      "sha256": "e1009a43c4c119ea5ac5596e0ca27d84802656ec8bddae19b35d21651bdab618",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-87-resume-continue-into-real-map-or-combat-entry-boundaries-from-autosave-metadata-acceptance-test-generation-plan.md",
+      "sha256": "ed440a82ca5205383136683f1cfb3b93ae69f6972ae11fd8c2397ffc017846f2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-88-chapter6-residual-followup.md",
+      "sha256": "6217c1b89438ef7a5266a889abb968474cba3df25f9c581d371e4a805fc61d38",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-29-task-88-integrate-relic-acquisition-equip-state-and-player-facing-display-on-the-shared-run-path-acceptance-test-generation-plan.md",
+      "sha256": "c1c5d2f376c2a4ba5c715aedd807ac62ab6afb3af800f6a4be4ad0ba4b2cbb64",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-83-chapter6-residual-followup-2.md",
+      "sha256": "c23b0c7b80b82a32e7c6fc1f246d969e55c779cde847ecfb978594781a1ba86e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-83-chapter6-residual-followup-3.md",
+      "sha256": "d5e2989a83175e74acfbd84817aa301825bb62b5e234b5ff9818907feae54a77",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-83-chapter6-residual-followup-4.md",
+      "sha256": "3b624574ce7358b0ab1d5f8fb7f77dcf038428af78962ae7880e04225621958d",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-83-chapter6-residual-followup.md",
+      "sha256": "be1541a363f579b37d7d42d616bb13adb426b40fef4c657c748f4d8f7a0093be",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-83-hand-off-combatscene-card-play-to-the-existing-combatservice-runtime-acceptance-test-generation-plan.md",
+      "sha256": "b28c8833d54e948ae7eac5862071a159b7de50a7599634b672d0bd396465c80c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-88-chapter6-residual-followup.md",
+      "sha256": "4c01065afcf59d4ebc4185bf9454008539595028b0804bc220399060a352e537",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-97-bind-generated-actconfig-route-data-onto-the-live-map-surface-and-route-states-acceptance-test-generation-plan.md",
+      "sha256": "51e7d691e6b5a17621a2b3ad48858745185268f21ccdb7cde20a7b71e77f1fae",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-97-chapter6-residual-followup-2.md",
+      "sha256": "57e6e6b58931ac0f4a177e4d1d85c61de9eeabb2eab027c6e8fa8d1d75472f25",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-97-chapter6-residual-followup-3.md",
+      "sha256": "5b45aeda1c09a799bda9e3785791e2c825b31183e04a4385c59debf30b30fb7c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-04-30-task-97-chapter6-residual-followup.md",
+      "sha256": "e312fe9f1816ba44a7e6a23d2c4557cd11116ae211e56e4a4330ff8d8c2661b2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-77-integrate-trigger-registration-and-combat-time-hooks-into-the-shared-combat-runtime-acceptance-test-generation-plan.md",
+      "sha256": "a4e0af586fe149618028932e527b0a633b55f365347aa6bcdb12fba3d407be8f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-82-add-combat-deck-total-display-on-top-of-deckservice-backed-pile-state-acceptance-test-generation-plan.md",
+      "sha256": "244585d89164ace52c49173b5591d8b17de073bbd4139ed352199659d9a07764",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-89-chapter6-residual-followup-2.md",
+      "sha256": "1e9f031d0c5bad4d51465e43a7094dc9db37994a958876e001b659ff4e441096",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-89-chapter6-residual-followup.md",
+      "sha256": "f7e9208ce241d8a5077305ba9e43021302efd490bf1aa8d0b1cc90adf9e4ab3e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-89-instantiate-combat-enemy-runtime-from-existing-enemy-data-definitions-acceptance-test-generation-plan.md",
+      "sha256": "1b75f05e9051b2b256771c0bce5de1bc9d54f1e475743c6e7fde07d32373a919",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-91-chapter6-residual-followup-2.md",
+      "sha256": "d07fcf312a229fd60a34883aab080ffc66f4e9b5de5d543d0ae38dca3fee82d6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-91-chapter6-residual-followup.md",
+      "sha256": "2c7debb68b68d592366dac787ca96634cecb48c614ed29dc20d262065f2c5a74",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-91-expand-the-run-summary-into-a-stored-data-backed-settlement-surface-acceptance-test-generation-plan.md",
+      "sha256": "b659ef323ffd2e72e43d6788b302b0dbc67f0aeea1dfce4410edbaa90e74ab28",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-95-seed-combatservice-runtime-from-the-warrior-starting-deck-on-combat-entry-acceptance-test-generation-plan.md",
+      "sha256": "fedaa3147968fedbbb9bd564c485b03b8dd87c23bed8db0c755fdfddec240dd2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-01-task-98-restore-locked-reward-shop-and-event-surfaces-after-continue-acceptance-test-generation-plan.md",
+      "sha256": "99ccb19cc0179fda2adb8e020b1c2c89dcf98b9689282be0741fe533ef99d7c8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-105-chapter6-residual-followup-2.md",
+      "sha256": "0b66f4421f89b978ce1332e3a669adb1dd0dd3ab69845b76d3e7f94c868c1867",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-105-chapter6-residual-followup.md",
+      "sha256": "9bad52706748e2263424225fc8374a741ec6f3c86dfa691424578be3365a01c0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-105-resolve-enemy-turn-actions-and-no-repeat-guardrails-from-the-displayed-intent-path-acceptance-test-generation-plan.md",
+      "sha256": "13688a8ed6c810b50eb28e9a57d86cc9a4248333054357a51934e0aa77411e01",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-107-chapter6-residual-followup.md",
+      "sha256": "f24789f5c141649f1107136ec220ea19a6d5440a0784676b9d086832eff563c6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-107-complete-settlement-metadata-for-rewards-and-relics-acceptance-test-generation-plan.md",
+      "sha256": "e0ac46b3c076086f5febb3bad362bff19a811c42071d54d9d436e1a3b69aa91c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-116-bind-combat-enemy-surfaces-and-invalid-definition-fallback-to-data-backed-runtime-enemies-acceptance-test-generation-plan.md",
+      "sha256": "7ac282c9b28a1cd73dccb35654ea17d1a9f7d533ea36b8db3cee27dd2e239769",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-82-chapter6-residual-followup.md",
+      "sha256": "b6d7f41b0f0346d7e3500c6d2e4360c63a7c6dbe75ee7cd1ab1b84a551cb7eee",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-90-chapter6-residual-followup.md",
+      "sha256": "cd36efe661cc3a202222ce417105185323fdfd8e575f8998efe6c12ba04d5a78",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-90-promote-status-trigger-ordering-and-fixed-damage-rules-into-the-live-combat-runtime-acceptance-test-generation-plan.md",
+      "sha256": "fe4433fc3cbe7c95db547a7c14960f3cd9dc3105d98f45040cfc0efdf941e654",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-96-promote-rage-into-the-live-combatservice-backed-player-runtime-acceptance-test-generation-plan.md",
+      "sha256": "446ca76959e7298f0b2538df9d0c81345213111914542cfad613d62c678a0075",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-02-task-99-drive-relic-runtime-effects-through-the-shared-combat-trigger-path-acceptance-test-generation-plan.md",
+      "sha256": "27d51fa90b2708aaa0f26c1046921a98cff66647d92044990cc0155da8d53009",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-100-promote-aoe-and-multi-hit-ordering-rules-into-the-live-combat-runtime-acceptance-test-generation-plan.md",
+      "sha256": "6142f8b006d36c74ff99b0f828ce4b7313b79333c7cb40d1f480d2da611c9419",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-106-integrate-powers-and-relics-as-visible-and-effectful-combat-participants-acceptance-test-generation-plan.md",
+      "sha256": "6aa7cffb35eb433521865e07c964d789a2c8015ac3e095f5ce0018e33004f5a9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-110-drive-relic-runtime-effects-through-shared-run-trigger-boundaries-acceptance-test-generation-plan.md",
+      "sha256": "23c05ad219402c978f2f25d69e1cd04a4718c6555336badc533caace2e5c4a06",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-110-review-needs-fix-state-reconciliation.md",
+      "sha256": "0601ca338b9d3bdb1693b7eca17bd09ae2a2e13540ba855a77c50b0c4df1dc0e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-10.md",
+      "sha256": "00170587c730a2b59074e0b23c2859a2db48022999d7b6fef293d49c8de4a2ad",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-11.md",
+      "sha256": "6d2c6aa62cb396a8d27c9b761719f8d89a22b3475a2dc2e042ea0b3ef7c3791f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-12.md",
+      "sha256": "276ada9408405f27ffecc331c3c3bd77cc4ff7a41d65d1ce20410d949c38cbf2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-13.md",
+      "sha256": "2e55ab16b7d0fef37197cfb9c01b96ae93f07022ec0331c955c238c8e70682ca",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-14.md",
+      "sha256": "f7d7349802b90df9813bae9c5470e2f38360d8ab45f1274e961a99903f41abc8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-2.md",
+      "sha256": "42f58eadb86b330220a0cbf99ae90fbaf9cdcb7c65474fdd82b8bc8ad41e6425",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-3.md",
+      "sha256": "335f70710ee743c1a4aab58b6ce61a54fca90c0840ac7d126e4626e0923e9c7c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-4.md",
+      "sha256": "59546d286ae305fe7667d218535847f2d6d0b17c5843b841a5fd3033132cd00c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-5.md",
+      "sha256": "f59d82ca6945381e00cf218950bbbf410175fae23c1531caf32df6900649605c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-6.md",
+      "sha256": "79fc3ab98213f03163f3d21fd227b2d70fce94878ab9953c56851256544bafe9",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-7.md",
+      "sha256": "933def64e7a24f17fbcb08bca52d991742d202e4428980f9d79c9ee1d7feba1a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-8.md",
+      "sha256": "f8d40efb78f8e644523eac99a70445e6ac4ee23dca26c950fdad30bf95f9d6df",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup-9.md",
+      "sha256": "e5e1f46d5a4e6531cbbfbfcc7691758d877bbe9fe9e90af639c906eb5deba423",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-chapter6-residual-followup.md",
+      "sha256": "410e9f21327322bf579164a05c13ce3e42b79cc05d867e4384afec942c5616f4",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-111-integrate-potions-as-visible-and-effectful-combat-participants-acceptance-test-generation-plan.md",
+      "sha256": "d6b8ce080aaeef82710ee4fcbcea9ed50299f20f117757074943d3cbc3ca25f8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-116-chapter6-residual-followup-2.md",
+      "sha256": "c43c27161b8ef6d71e7918917618ee96ee73b5f63ca948bfd4cdc3dc362597ba",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-03-task-116-chapter6-residual-followup.md",
+      "sha256": "887e316fec814e0b3e6ef0ff5fb3f171eae9ff6cdb9f8426957367d2a7a03216",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-101-align-player-visible-combat-feedback-with-the-promoted-runtime-rule-results-acceptance-test-generation-plan.md",
+      "sha256": "782dc6db9c63f7e3d8cff62b646ce1a8387e22c5faacfaec3db64f095b0bb3db",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-74-chapter6-residual-followup-2.md",
+      "sha256": "2abbadf0228eb07cabb0239065005044ef14ee4b19dda50b6b65e6866ece0fe1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-74-chapter6-residual-followup.md",
+      "sha256": "851bee4c296e8bc09e09c97cb814e8036143a9750489caf91667cab936535e54",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-74-upgrade-existing-targeting-flow-with-slay-the-spire-style-card-drag-ux-acceptance-test-generation-plan.md",
+      "sha256": "7fb355897488395019bbd942f1ab504284a8a36ddc99ff8bcaedfd3018ab87a6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-78-chapter6-residual-followup-2.md",
+      "sha256": "e87782286d8a300ada8fd733e9e6e97ea706624504db001dd35d0490adac778c",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-78-chapter6-residual-followup-3.md",
+      "sha256": "10a234f731798b277a8737e9883cafe844ef48e13de5ce33c7adf4e870074259",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-78-chapter6-residual-followup-4.md",
+      "sha256": "9a1a1db074bdb9e22248f196f8303e09e42f22c6bb7a40cbcf3ef30af07fca66",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-78-chapter6-residual-followup-5.md",
+      "sha256": "9ef4a974d281246d13a11ce757c7149c1189b04e0cd5a10f5f202ccdbb99dbd3",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-78-chapter6-residual-followup-6.md",
+      "sha256": "012699ba4b15d3489493465095d76e28ad70b5f3c02692dadeb7a0e549f831cd",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-78-chapter6-residual-followup-7.md",
+      "sha256": "6bdb6c0993aeb5b24f42f00a2c1cf1245a701f4a1412264d2d52127f81b672fb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-78-chapter6-residual-followup.md",
+      "sha256": "c66fa7be5c42b97f09f6a7608d16244dda1eb7697632e7216718248c888c727b",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-04-task-78-layer-combat-presentation-feedback-on-top-of-deterministic-state-without-mutating-runtime-logic-acceptance-test-generation-plan.md",
+      "sha256": "edbb60fe0a40e5dc3eb6138ab75a7a56240fa4372270f1859d0f67a198ef45df",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-05-task-92-chapter6-residual-followup.md",
+      "sha256": "58aab4c8467b1798e2ce8c98f8528424fec1f1f1bc43fcea4d874fddd2b31986",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-05-task-92-promote-architecture-boundary-tests-into-the-main-task-line-for-core-versus-godot-protection-acceptance-test-generation-plan.md",
+      "sha256": "fd3bc29cbaf4ad0dab9ca2533d9b81cd813fc75774f524cff773147bf3dbfea7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-05-task-93-add-deny-by-default-external-process-execution-guard-and-audit-coverage-acceptance-test-generation-plan.md",
+      "sha256": "fd24ea5fd2dbe87bf133253258f37ff28ed0fa9d8ea485b7b0091a3870b79dee",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-05-task-93-chapter6-residual-followup-2.md",
+      "sha256": "41a25b4bb6faaff5776582ef9a888363eaa9e814503c29092291fe559da966d2",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-05-task-93-chapter6-residual-followup.md",
+      "sha256": "ef01e6f1b57ddbc5df5ad2f07b58a005bbe5f2ac19a551d8ca7d597a36e0329e",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-06-task-102-residual-follow-up-after-chapter6-inspect-first-stop-loss.md",
+      "sha256": "c37a42d238f7d0eff67fbe6be1096e74d733ad6dcf5d321582f347c38803abac",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-06-task-103-chapter6-residual-followup.md",
+      "sha256": "c09072c097f8dcf9ec48b052c05aa30795a384aad915c9aef7dc46b8507e2ae7",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-06-task-104-chapter6-residual-followup.md",
+      "sha256": "ff6b6c3ada466a31bff2ed5c69dbf2a7afbe11450c7891dc3ff36498e83902ae",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-06-task-108-chapter6-residual-followup.md",
+      "sha256": "6b958dba7e1a5e94b047c9f6cec053c23d9ed1e07ba4abc1d39b87906c27b6d0",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-06-task-108-enemy-intent-review-split-governance-evidence.md",
+      "sha256": "a1779324bd7e32e968b58eb67bd21e32127e073e7804d81df459571ab8308530",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-06-task-94-validate-security-sensitive-signal-contracts-before-wider-runtime-expansion-acceptance-test-generation-plan.md",
+      "sha256": "b0708a2017e0aba9c86437d4950ff0eb6fef5d8f9a5a048361a4290fa627ea4f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-07-task-109-chapter6-residual-followup-2.md",
+      "sha256": "9486c588d730a4652d063e4aa59d1a29a133bc66d68e73ad705982fc65f332fd",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-07-task-109-chapter6-residual-followup.md",
+      "sha256": "b5c2f7ce9fdae837bfd2083760c506e192dc0f2e122d1721560c4f1b0fcbcdbb",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-07-task-109-settlement-review-lane-split-governance-evidence.md",
+      "sha256": "33cfeee8c454ba49cf3d385eb8f751d83b8e27741f9e9bc8f3964d9ebb2aa5d6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-09-task-125-wire-ui-combat-runtime-bootstrap-surfaces-acceptance-test-generation-plan.md",
+      "sha256": "ce361234006c2bd3d52ea42c7e1061c0010af22f62aacc55356f7bb18b6d7360",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-10-task-123-wire-ui-map-path-and-continue-surfaces-acceptance-test-generation-plan.md",
+      "sha256": "6e19bf1c3dcb946ffbd3a249affbfcd92f33cf6a75a4ec2374d2d0b40630ef6f",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-10-task-124-chapter6-residual-followup.md",
+      "sha256": "3e7d9db5aee3e37543f9b495a65733e86d601a70605cb192293e8acaa764f758",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-10-task-124-wire-ui-combat-card-play-surfaces-acceptance-test-generation-plan.md",
+      "sha256": "8d21f469670a3482eedaa81d40dc1c4382b5278ec7a3464d6f788c33f3dd0dd1",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-10-task-126-chapter6-residual-followup.md",
+      "sha256": "466fc508b3592aaf74bb4b8cb3581bd8c29cc1525c297942b2201422b4449509",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-10-task-126-wire-ui-enemy-intent-and-resolution-surfaces-acceptance-test-generation-plan.md",
+      "sha256": "b641c8ec89e3d0d07539f769589d92a099607b8bfd25342fbba58c2ce3aff995",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-10-task-128-chapter6-residual-followup-2.md",
+      "sha256": "cb823070643e9f9f930ef0e8b8d9cd7b784abf5b1ec474b82409045b9e00783a",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-10-task-128-chapter6-residual-followup.md",
+      "sha256": "2117cac27256d534c4d502aa46ede01c53cb971fe25d7f95c6ebf79ce7753d36",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-10-task-128-wire-ui-reward-offer-and-confirm-surfaces-acceptance-test-generation-plan.md",
+      "sha256": "f28190a1dc90410a1d47b771e4d73d1d33ebcb76734bb593fb30d4353ff68c98",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-11-task-129-wire-ui-relic-and-combat-participant-surfaces-acceptance-test-generation-plan.md",
+      "sha256": "edf39e3e26e11b891054c69908e65bd7cfb001b3cb492f26e4a3a33150c1fd49",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-12-task-130-wire-ui-settlement-and-run-summary-surfaces-acceptance-test-generation-plan.md",
+      "sha256": "64870f6cdba084c9f3e116dd6b8083f3b2b93606c726ac963eaed4e323b39409",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-13-task-74-live-scene-gap-follow-up-plan.md",
+      "sha256": "99fdbc93a57f7f38723f2106c13e876026da68731bde9734759b5363e31b8f01",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-23-task-133-add-a-pre-snapshot-runtime-modifier-pipeline-for-reward-entries-acceptance-test-generation-plan.md",
+      "sha256": "c3a0fa7d1d1ce238805e147b7f80fb55faa8cc7c41801d12b5ac760321454a84",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-24-task-132-chapter6-residual-followup.md",
+      "sha256": "b7a18dc07354e7ecad2e77e4ba1a5a25dfe7e5e1f23fc3d3c1c4ecaf7afd2220",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-24-task-132-promote-live-relic-rewards-from-placeholder-text-to-a-config-driven-effect-catalog-acceptance-test-generation-plan.md",
+      "sha256": "3a2c7d7c7ff86986a9d2c8b362028e905b2750c023cf8691b4ea5e2306a5cae6",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/2026-05-25-task-131-extend-enemy-intent-runtime-to-resolve-structured-multi-effect-actions-from-displayed-previews-acceptance-test-generation-plan.md",
+      "sha256": "2d96da3707c52a3ad9b833e853c446f2086817648aa85ab4cef39505d967b8de",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/README.md",
+      "sha256": "3e97e84f94fcfcae09bc0129aaecdf412fa3d74a28780804427c12795647e8c8",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "execution-plans/TEMPLATE.md",
+      "sha256": "61f14b5b29caea25950f0b27caa7cf63aa41760a26f0df4ceb84d82365f8c880",
+      "source_role": "delivery-authority"
+    },
+    {
+      "path": "workflow.md",
+      "sha256": "1728c8f8cb8acd61bee1ea976a6ab9c202ede320eca6d8224bc00e01baa57d1c",
+      "source_role": "repository-authority"
+    }
+  ]
+}

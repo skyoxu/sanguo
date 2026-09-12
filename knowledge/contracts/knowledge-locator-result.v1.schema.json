@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "newrouge.knowledge-locator-result.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "request_id", "status", "snapshot", "policy_revision", "candidates"],
+  "properties": {
+    "schema_version": {"const": "newrouge.knowledge-locator-result.v1"},
+    "request_id": {"type": ["string", "null"]},
+    "status": {"enum": ["matched", "insufficient_match", "blocked"]},
+    "snapshot": {"type": ["object", "null"]},
+    "policy_revision": {"type": ["string", "null"]},
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module_id", "path", "anchor", "line_start", "line_end", "source_sha256", "primary_domain", "status", "provenance", "rank_evidence"]
+      }
+    }
+  }
+}

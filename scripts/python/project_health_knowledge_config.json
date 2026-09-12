@@ -1,0 +1,59 @@
+{
+  "source_paths": [
+    ".taskmaster/tasks",
+    "docs/prd",
+    "docs/adr",
+    "docs/architecture",
+    "docs/agents",
+    "docs/workflows",
+    "Game.Core",
+    "Game.Godot",
+    "Game.Core.Tests",
+    "Tests.Godot",
+    "README.md",
+    "AGENTS.md",
+    "DELIVERY_PROFILE.md",
+    "workflow.md",
+    "docs/testing-framework.md"
+  ],
+  "source_path_bindings": {
+    "tasks": ".taskmaster/tasks",
+    "product_requirements": "docs/prd",
+    "architecture_decisions": "docs/adr",
+    "architecture": "docs/architecture",
+    "agent_rules": "docs/agents",
+    "workflows": "docs/workflows",
+    "domain_code": "Game.Core",
+    "engine_code": "Game.Godot",
+    "domain_tests": "Game.Core.Tests",
+    "engine_tests": "Tests.Godot",
+    "project_entry": "README.md",
+    "repository_rules": "AGENTS.md",
+    "delivery_profile": "DELIVERY_PROFILE.md",
+    "root_workflow": "workflow.md",
+    "testing_rules": "docs/testing-framework.md"
+  },
+  "gdd_paths": [
+    "docs/gdd/ui-gdd-flow.md"
+  ],
+  "task_scene_bindings": [
+    {
+      "task_id": 115,
+      "scene": "Game.Godot/Scenes/Reward.tscn",
+      "node": ".",
+      "script": "Game.Godot/Scripts/RewardScene.gd",
+      "witness": "func _claim_reward(reward_type: String, selected_card_id: String, selected_index: int) -> void:"
+    }
+  ],
+  "query_aliases": {
+    "奖励": [
+      "Reward"
+    ],
+    "存档": [
+      "Save"
+    ],
+    "战斗": [
+      "Combat"
+    ]
+  }
+}

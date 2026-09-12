@@ -17,6 +17,7 @@ Operate Chapter 6 from `workflow.md` idempotently for a business repository that
 - Keep generated code, scripts, tests, comments, and log messages in English.
 - Do not modify the business repo unless the user explicitly asks for that change.
 - Do not rerun expensive steps before reading existing recovery artifacts.
+- During Knowledge Control Plane migration, the Chapter 6 knowledge query is shadow-only and may run only before RED; RED/GREEN/REFACTOR must not silently widen semantic context.
 
 ## Repository Layout
 
@@ -32,26 +33,30 @@ Use the top-level Chapter 6 orchestrator unless active-task or chapter6-route al
 
 ## Primary Command Or Action
 
-`py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin \"$env:GODOT_BIN\" --delivery-profile <profile>`
+`py -3 scripts/python/dev_cli.py run-single-task-chapter6 --task-id <id> --godot-bin "$env:GODOT_BIN" --delivery-profile <profile>`
 
 ## Evidence Rule
 
 Chapter 6 has dense business-repo logs. Always read active-task, latest.json, summary.json, repair-guide, agent-review, and run-events before paying for another 6.7 or 6.8.
 
+A `logs/ci/knowledge-context/**` file is a separate shadow routing artifact. It is not part of `summary.json`, `execution-context.json`, `latest.json`, or the review sidecar protocol.
+
 ## Required Reading
 
 1. Read the relevant Chapter 6 section in the template repo `workflow.md`.
-2. Optionally read `references/business-repos/<repo>.md` only as empirical validation evidence when the target business repo has a generated reference.
-3. If that optional evidence file is missing or stale, run `py -3 scripts/python/update_workflow_chapter_skills.py <repo>` from the template repo.
+2. Read `docs/workflows/knowledge-context-shadow.md` before using the optional pre-RED knowledge preflight.
+3. Optionally read `references/business-repos/<repo>.md` only as empirical validation evidence when the target business repo has a generated reference.
+4. If that optional evidence file is missing or stale, run `py -3 scripts/python/update_workflow_chapter_skills.py <repo>` from the template repo.
 
 ## Idempotent Procedure
 
 1. Read active-task first when a task id exists.
 2. Run resume-task and chapter6-route recommendation-only before expensive reruns.
-3. Use the TDD order 6.3, 6.4, 6.5, 6.6 before 6.7 unless recovery evidence says otherwise.
-4. Run 6.7 only when deterministic evidence is stale or required by changed implementation, tests, contracts, scripts, or runtime assets.
-5. Run 6.8 only when route evidence says Needs Fix cleanup is the right lane.
-6. Run 6.9 repository validation before commit or PR closure.
+3. After route recovery and before RED, optionally run the Chapter 6 shadow knowledge preflight from `docs/workflows/knowledge-context-shadow.md`. If it returns `fallback_required`, continue from direct authoritative sources. Do not issue another semantic Locator query during the same RED/GREEN/REFACTOR sequence.
+4. Use the TDD order 6.3, 6.4, 6.5, 6.6 before 6.7 unless recovery evidence says otherwise.
+5. Run 6.7 only when deterministic evidence is stale or required by changed implementation, tests, contracts, scripts, or runtime assets.
+6. Run 6.8 only when route evidence says Needs Fix cleanup is the right lane.
+7. Run 6.9 repository validation before commit or PR closure.
 
 ## Stop-Loss Signals
 
@@ -60,6 +65,7 @@ Chapter 6 has dense business-repo logs. Always read active-task, latest.json, su
 - Route evidence recommends inspect-first, record-residual, fix-deterministic, repo-noise-stop, or pause.
 - The same deterministic failure fingerprint appears repeatedly.
 - The next action would duplicate work already covered by task, overlay, candidate, or manifest evidence.
+- A task scope change would require a new knowledge query after RED; stop and create a new explicit preflight/context revision instead of widening context invisibly.
 
 ## Business Evidence References
 

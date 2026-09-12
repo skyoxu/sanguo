@@ -150,6 +150,8 @@ py -3 scripts/python/dev_cli.py inspect-run --kind local-hard-checks
 
 ### 2.4 可选：启动本地 project-health 页面服务
 
+服务首页的 `Knowledge + Impact` 链接进入 `/knowledge/` 二级页，提供 main-only 快照扫描、知识与 Impact 前置查询、GDD 配置及任务/场景证据。完整使用与边界见 [project-health-knowledge](docs/workflows/project-health-knowledge.md)。页面不改 chapter 技能，也不自动创建正式冻结交接工件。
+
 如果你希望在浏览器里稳定查看本仓的健康页，而不是只打开静态文件，可启动本地服务：
 
 ```powershell
@@ -169,10 +171,10 @@ py -3 scripts/python/dev_cli.py project-health-scan --serve
 - 同仓存在活跃服务时会复用
 - 选中的 URL 和 PID 会写入 `logs/ci/project-health/server.json`
 
-Chapter 2 ????????????? project-health ????????????????
+Chapter 2 任务完毕时，必须向用户展示 project-health 的访问信息（至少包含以下两项）：
 
-- ?? URL????? `logs/ci/project-health/server.json` ? `url` ????????????? `py -3 scripts/python/dev_cli.py serve-project-health` ? `py -3 scripts/python/dev_cli.py project-health-scan --serve`?
-- ???????`logs/ci/project-health/latest.html`
+- 访问 URL：优先读取 `logs/ci/project-health/server.json` 的 `url` 字段；若不存在则提示先执行 `py -3 scripts/python/dev_cli.py serve-project-health` 或 `py -3 scripts/python/dev_cli.py project-health-scan --serve`。
+- 静态页面文件：`logs/ci/project-health/latest.html`
 
 ### 2.5 可选：OpenAI backend bootstrap
 
