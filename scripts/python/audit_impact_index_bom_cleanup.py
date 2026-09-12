@@ -16,6 +16,40 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import impact_analysis_index as index  # noqa: E402
 
 
+def ensure_baseline_revision(revision: str) -> None:
+    """Ensure a fixed same-repository baseline exists in shallow CI checkouts."""
+    verify = subprocess.run(
+        ["git", "-C", str(ROOT), "cat-file", "-e", f"{revision}^{{commit}}"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    if verify.returncode == 0:
+        return
+
+    fetched = subprocess.run(
+        ["git", "-C", str(ROOT), "fetch", "--no-tags", "--depth=1", "origin", revision],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+    )
+    if fetched.returncode:
+        detail = (fetched.stderr or fetched.stdout or "").strip()
+        raise RuntimeError(f"unable to fetch baseline revision: {detail}")
+
+    verify = subprocess.run(
+        ["git", "-C", str(ROOT), "cat-file", "-e", f"{revision}^{{commit}}"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    if verify.returncode:
+        raise RuntimeError("baseline revision is unavailable after fetch")
+
+
 def baseline_tree(revision: str) -> dict[str, bytes]:
     result = subprocess.run(["git", "-C", str(ROOT), "archive", revision], capture_output=True, timeout=120)
     if result.returncode:
@@ -34,6 +68,7 @@ def main() -> int:
     args = parser.parse_args()
     cfg_path = ROOT / "scripts/python/impact_analysis_config.v1.json"
     config = index.validate_config(json.loads(cfg_path.read_text(encoding="utf-8")))
+    ensure_baseline_revision(args.baseline)
     listed = subprocess.run(["git", "-C", str(ROOT), "ls-tree", "-r", "--name-only", args.baseline], capture_output=True, text=True, encoding="utf-8", timeout=30)
     if listed.returncode:
         raise RuntimeError("unable to enumerate baseline tree")
