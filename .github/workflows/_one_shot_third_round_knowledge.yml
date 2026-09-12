@@ -56,6 +56,7 @@ jobs:
           $catalog = Get-Content docs/knowledge/catalog/knowledge-catalog.json -Raw | ConvertFrom-Json
           if ($links.source_revision -ne $mainSha) { throw "task-resource-links source_revision mismatch: $($links.source_revision) != $mainSha" }
           if ($links.generated.Count -lt 1) { throw 'task-resource-links rebuild produced no entries' }
+          if ($catalog.project -ne 'sanguo') { throw "knowledge catalog project identity is not Sanguo: $($catalog.project)" }
           $tracked = @{}
           git ls-tree -r --name-only refs/heads/main | ForEach-Object { $tracked[$_] = $true }
           $allEntries = @($links.generated) + @($catalog.entries)
@@ -79,27 +80,7 @@ jobs:
           py -3 -m unittest scripts.python.tests.test_knowledge_publication scripts.python.tests.test_knowledge_freeze -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Validate reproducible Knowledge publication
-        shell: pwsh
-        env:
-          PYTHONIOENCODING: 'utf-8'
-          PYTHONUTF8: '1'
-        run: |
-          py -3 scripts/python/publish_knowledge_catalog.py --publish
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          py -3 scripts/python/publish_knowledge_catalog.py --check
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          py -3 scripts/python/validate_knowledge_control_plane.py --require-generated
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          git checkout -- knowledge/catalogs knowledge/snapshots knowledge/projections knowledge/indexes
-
-      - name: Verify workflow governance
-        shell: pwsh
-        run: |
-          py -3 scripts/python/check_workflow_gate_enforcement.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Commit repaired state
+      - name: Commit repaired state before publication validation
         shell: pwsh
         run: |
           Remove-Item -Force scripts/python/_third_round_knowledge_patch.py
@@ -113,3 +94,27 @@ jobs:
           if ($LASTEXITCODE -eq 0) { throw 'third-round repair produced no changes' }
           git commit -m 'fix: close Sanguo knowledge publication lifecycle'
           git push origin HEAD:fix/knowledge-publication-lifecycle-20260912
+          if (git status --porcelain) { throw 'repair commit did not leave a clean worktree' }
+
+      - name: Validate reproducible Knowledge publication
+        shell: pwsh
+        env:
+          PYTHONIOENCODING: 'utf-8'
+          PYTHONUTF8: '1'
+        run: |
+          py -3 scripts/python/publish_knowledge_catalog.py --publish
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/publish_knowledge_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/validate_knowledge_control_plane.py --require-generated
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git reset --hard HEAD
+          git clean -fd -- knowledge/indexes/generations
+          if (git status --porcelain) { throw 'publication validation cleanup did not restore a clean worktree' }
+
+      - name: Verify workflow governance
+        shell: pwsh
+        run: |
+          py -3 scripts/python/check_workflow_gate_enforcement.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (git status --porcelain) { throw 'third-round repair left uncommitted files' }
