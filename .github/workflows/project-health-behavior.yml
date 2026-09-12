@@ -49,32 +49,6 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Expose local main authority ref
-        shell: pwsh
-        run: |
-          git show-ref --verify --quiet refs/heads/main
-          if ($LASTEXITCODE -ne 0) {
-            git branch main origin/main
-          }
-
-      - name: Project Health localhost regressions
-        shell: pwsh
-        env:
-          CI: ''
-        run: |
-          py -3 -m unittest scripts.sc.tests.test_project_health_sanguo_config scripts.sc.tests.test_project_health_http_surface scripts.sc.tests.test_project_health_server scripts.sc.tests.test_project_health_cli_status scripts.sc.tests.test_dev_cli_project_health_commands -v
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node --check scripts/python/project_health_knowledge.js
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Knowledge control plane regressions
-        shell: pwsh
-        run: |
-          py -3 scripts/python/validate_knowledge_control_plane.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          py -3 scripts/python/publish_knowledge_catalog.py --check
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
       - name: Impact BOM preflight
         shell: pwsh
         run: |
@@ -108,6 +82,32 @@ jobs:
           if bom_paths:
               raise SystemExit(1)
           '@ | py -3 -
+
+      - name: Expose local main authority ref
+        shell: pwsh
+        run: |
+          git show-ref --verify --quiet refs/heads/main
+          if ($LASTEXITCODE -ne 0) {
+            git branch main origin/main
+          }
+
+      - name: Project Health localhost regressions
+        shell: pwsh
+        env:
+          CI: ''
+        run: |
+          py -3 -m unittest scripts.sc.tests.test_project_health_sanguo_config scripts.sc.tests.test_project_health_http_surface scripts.sc.tests.test_project_health_server scripts.sc.tests.test_project_health_cli_status scripts.sc.tests.test_dev_cli_project_health_commands -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --check scripts/python/project_health_knowledge.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Knowledge control plane regressions
+        shell: pwsh
+        run: |
+          py -3 scripts/python/validate_knowledge_control_plane.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/publish_knowledge_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Impact regressions
         shell: pwsh
