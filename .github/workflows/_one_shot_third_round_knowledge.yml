@@ -6,6 +6,7 @@ on:
       - fix/knowledge-publication-lifecycle-20260912
     paths:
       - 'scripts/python/_third_round_knowledge_patch.py'
+      - 'scripts/python/_third_round_followup_fix.py'
       - '.github/workflows/_one_shot_third_round_knowledge.yml'
 
 permissions:
@@ -34,6 +35,8 @@ jobs:
         shell: pwsh
         run: |
           py -3 scripts/python/_third_round_knowledge_patch.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/_third_round_followup_fix.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Rebuild Sanguo Project Health resource knowledge
@@ -100,6 +103,7 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item -Force scripts/python/_third_round_knowledge_patch.py
+          Remove-Item -Force scripts/python/_third_round_followup_fix.py
           Remove-Item -Force .github/workflows/_one_shot_third_round_knowledge.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
