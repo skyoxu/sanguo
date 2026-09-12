@@ -1,0 +1,80 @@
+name: Project Health Behavior
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/python/project_health_*'
+      - 'scripts/python/_project_health_*'
+      - 'scripts/python/*knowledge*'
+      - 'scripts/python/*impact*'
+      - 'scripts/python/tests/test_impact*.py'
+      - 'scripts/sc/tests/test_project_health*.py'
+      - 'scripts/sc/tests/test_dev_cli_project_health_commands.py'
+      - 'knowledge/**'
+      - 'docs/agents/13-rag-sources-and-session-ssot.md'
+      - 'docs/adr/ADR-0035-repository-knowledge-control-plane.md'
+      - 'docs/workflows/knowledge-context-*.md'
+      - '.github/workflows/project-health-behavior.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/python/project_health_*'
+      - 'scripts/python/_project_health_*'
+      - 'scripts/python/*knowledge*'
+      - 'scripts/python/*impact*'
+      - 'scripts/python/tests/test_impact*.py'
+      - 'scripts/sc/tests/test_project_health*.py'
+      - 'scripts/sc/tests/test_dev_cli_project_health_commands.py'
+      - 'knowledge/**'
+      - 'docs/agents/13-rag-sources-and-session-ssot.md'
+      - 'docs/adr/ADR-0035-repository-knowledge-control-plane.md'
+      - 'docs/workflows/knowledge-context-*.md'
+      - '.github/workflows/project-health-behavior.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  behavior:
+    runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: 'utf-8'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Expose local main authority ref
+        shell: pwsh
+        run: |
+          git show-ref --verify --quiet refs/heads/main
+          if ($LASTEXITCODE -ne 0) {
+            git branch main origin/main
+          }
+
+      - name: Project Health localhost regressions
+        shell: pwsh
+        run: |
+          py -3 -m unittest scripts.sc.tests.test_project_health_sanguo_config scripts.sc.tests.test_project_health_http_surface scripts.sc.tests.test_project_health_server scripts.sc.tests.test_project_health_cli_status scripts.sc.tests.test_dev_cli_project_health_commands -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --check scripts/python/project_health_knowledge.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Knowledge control plane regressions
+        shell: pwsh
+        run: |
+          py -3 scripts/python/validate_knowledge_control_plane.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/publish_knowledge_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Impact regressions
+        shell: pwsh
+        run: |
+          py -3 -m unittest discover -s scripts/python/tests -p 'test_impact*.py' -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
