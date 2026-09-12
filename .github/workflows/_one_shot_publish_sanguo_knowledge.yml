@@ -1,4 +1,5 @@
 name: One-shot publish Sanguo knowledge
+# Retry after adding the required Knowledge governance and routing documents.
 
 on:
   push:
