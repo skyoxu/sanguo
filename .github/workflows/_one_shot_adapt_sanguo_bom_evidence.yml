@@ -1,0 +1,105 @@
+name: One-shot adapt Sanguo BOM evidence
+
+on:
+  push:
+    branches:
+      - align/project-health-sanguo-behavior-20260912
+    paths:
+      - .github/workflows/_one_shot_adapt_sanguo_bom_evidence.yml
+
+permissions:
+  contents: write
+
+jobs:
+  adapt-evidence:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: align/project-health-sanguo-behavior-20260912
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Verify Sanguo pre-cleanup baseline evidence
+        shell: pwsh
+        run: |
+          py -3 scripts/python/audit_impact_index_bom_cleanup.py --baseline 9429c69c2d7e27eeb97e1bcb992e841c8ba3a4e7 --output logs/ci/sanguo-bom-evidence.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          @'
+          import json
+          from pathlib import Path
+          evidence = json.loads(Path('logs/ci/sanguo-bom-evidence.json').read_text(encoding='utf-8'))
+          print(json.dumps({
+              'baseline': evidence['baseline'],
+              'included_bom_count': evidence['included_bom_count'],
+              'cleaned_prefix_only_count': evidence['cleaned_prefix_only_count'],
+              'excluded_baseline_match_count': evidence['excluded_baseline_match_count'],
+          }, indent=2))
+          if evidence['included_bom_count'] != 0:
+              raise SystemExit(f"expected zero current included BOM files, got {evidence['included_bom_count']}")
+          if evidence['cleaned_prefix_only_count'] != 19:
+              raise SystemExit(f"expected 19 Sanguo BOM-only cleanups, got {evidence['cleaned_prefix_only_count']}")
+          '@ | py -3 -
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Adapt readiness test to Sanguo baseline
+        shell: pwsh
+        run: |
+          git checkout origin/main -- scripts/python/audit_impact_index_bom_cleanup.py
+          @'
+          from pathlib import Path
+          path = Path('scripts/python/tests/test_impact_analysis_index.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''                "985f095e4975e7cf1c4477993447c2cfd4f2ed5c",
+                "--output",
+                str(output),
+                cwd=ROOT,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+            evidence = json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual(evidence["status"], "passed")
+        self.assertEqual(evidence["included_bom_count"], 0)
+        self.assertEqual(evidence["cleaned_prefix_only_count"], 36)
+        self.assertEqual(evidence["excluded_baseline_match_count"], 41)
+        self.assertNotIn("index_id", evidence)
+'''
+          new = '''                "9429c69c2d7e27eeb97e1bcb992e841c8ba3a4e7",
+                "--output",
+                str(output),
+                cwd=ROOT,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+            evidence = json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual(evidence["status"], "passed")
+        self.assertEqual(evidence["baseline"], "9429c69c2d7e27eeb97e1bcb992e841c8ba3a4e7")
+        self.assertEqual(evidence["included_bom_count"], 0)
+        self.assertEqual(evidence["cleaned_prefix_only_count"], 19)
+        included_bom_evidence = [item for item in evidence["files"] if item["included"]]
+        self.assertEqual(
+            sum(1 for item in included_bom_evidence if item["removed_bom_only"]),
+            19,
+        )
+        self.assertNotIn("index_id", evidence)
+'''
+          if old not in text:
+              raise SystemExit('expected upstream BOM readiness block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8', newline='\n')
+          '@ | py -3 -
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Commit Sanguo readiness evidence
+        shell: pwsh
+        run: |
+          Remove-Item .github/workflows/_one_shot_adapt_sanguo_bom_evidence.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/python/audit_impact_index_bom_cleanup.py
+          git add scripts/python/tests/test_impact_analysis_index.py
+          git add -u .github/workflows/_one_shot_adapt_sanguo_bom_evidence.yml
+          git diff --cached --check
+          git commit -m "test: bind Impact BOM evidence to Sanguo baseline"
+          git push origin HEAD:align/project-health-sanguo-behavior-20260912
