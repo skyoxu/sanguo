@@ -1,0 +1,43 @@
+name: One-shot apply Impact evidence patch
+
+on:
+  push:
+    branches:
+      - align/project-health-sanguo-behavior-20260912
+    paths:
+      - .github/workflows/_one_shot_apply_impact_evidence_patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: align/project-health-sanguo-behavior-20260912
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply patch
+        shell: pwsh
+        run: py -3 scripts/python/_one_shot_impact_bom_evidence_patch.py
+      - name: Commit patch
+        shell: pwsh
+        run: |
+          Remove-Item .github/workflows/_one_shot_apply_impact_evidence_patch.yml
+          Remove-Item .github/workflows/_one_shot_adapt_sanguo_bom_evidence.yml
+          Remove-Item scripts/python/_one_shot_impact_bom_evidence_patch.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/python/audit_impact_index_bom_cleanup.py
+          git add scripts/python/tests/test_impact_analysis_index.py
+          git add -u .github/workflows/_one_shot_apply_impact_evidence_patch.yml
+          git add -u .github/workflows/_one_shot_adapt_sanguo_bom_evidence.yml
+          git add -u scripts/python/_one_shot_impact_bom_evidence_patch.py
+          git diff --cached --check
+          git commit -m "test: bind Impact BOM evidence to Sanguo baseline"
+          git push origin HEAD:align/project-health-sanguo-behavior-20260912
