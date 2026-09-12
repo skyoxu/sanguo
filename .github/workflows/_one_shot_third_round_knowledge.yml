@@ -50,13 +50,19 @@ jobs:
           Remove-Item -Force -ErrorAction SilentlyContinue docs/knowledge/generated/task-18-semantic.json
           $mainSha = (git rev-parse refs/heads/main).Trim()
           $links = Get-Content docs/knowledge/generated/task-resource-links.json -Raw | ConvertFrom-Json
+          $catalog = Get-Content docs/knowledge/catalog/knowledge-catalog.json -Raw | ConvertFrom-Json
           if ($links.source_revision -ne $mainSha) { throw "task-resource-links source_revision mismatch: $($links.source_revision) != $mainSha" }
           if ($links.generated.Count -lt 1) { throw 'task-resource-links rebuild produced no entries' }
-          $text = Get-Content docs/knowledge/generated/task-resource-links.json -Raw
-          $catalogText = Get-Content docs/knowledge/catalog/knowledge-catalog.json -Raw
-          foreach ($stale in @('Game.Core/Data/act1-config.json','Game.Godot/Scenes/Reward.tscn','Game.Godot/Scripts/RewardScene.gd')) {
-            if ($text.Contains($stale) -or $catalogText.Contains($stale)) { throw "stale upstream resource remains: $stale" }
+          $tracked = @{}
+          git ls-tree -r --name-only refs/heads/main | ForEach-Object { $tracked[$_] = $true }
+          $allEntries = @($links.generated) + @($catalog.entries)
+          $missing = @($allEntries | Where-Object { $_.path -and -not $tracked.ContainsKey([string]$_.path) })
+          if ($missing.Count -gt 0) {
+            $sample = ($missing | Select-Object -First 10 | ForEach-Object { $_.path }) -join ', '
+            throw "rebuilt resource entries reference paths absent from Sanguo main: $sample"
           }
+          if (Test-Path docs/knowledge/generated/task-115-semantic.json) { throw 'stale task-115 semantic file remains' }
+          if (Test-Path docs/knowledge/generated/task-18-semantic.json) { throw 'stale task-18 semantic file remains' }
 
       - name: Run focused regressions
         shell: pwsh
