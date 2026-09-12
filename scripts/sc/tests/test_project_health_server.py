@@ -64,7 +64,7 @@ class ProjectHealthServerTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with mock.patch.object(server_module, "is_process_alive", return_value=True), mock.patch.object(
+            with mock.patch.object(server_module, "is_knowledge_server", return_value=True), mock.patch.object(server_module, "is_process_alive", return_value=True), mock.patch.object(
                 server_module,
                 "port_accepts_connections",
                 return_value=True,
