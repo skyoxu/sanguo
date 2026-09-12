@@ -1,0 +1,72 @@
+name: Publish knowledge catalog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-knowledge-catalog.yml"
+      - "README.md"
+      - "AGENTS.md"
+      - "workflow.md"
+      - "DELIVERY_PROFILE.md"
+      - "docs/**"
+      - ".taskmaster/**"
+      - "Game.Core/Contracts/**"
+      - "knowledge/policies/**"
+      - "knowledge/evaluation/**"
+      - "scripts/python/*knowledge*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: knowledge-catalog-main
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Publish and validate
+        shell: pwsh
+        run: |
+          py -3 scripts/python/publish_knowledge_catalog.py --publish
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/publish_knowledge_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          py -3 scripts/python/validate_knowledge_control_plane.py --require-generated
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Open generated-state pull request
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $changes = git status --porcelain -- knowledge
+          if (-not $changes) {
+            Write-Host "Generated state is already current."
+            exit 0
+          }
+          $branch = "automation/knowledge-catalog-$($env:GITHUB_SHA.Substring(0,12))"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c $branch
+          git add knowledge
+          git commit -m "chore(knowledge): publish catalog for main $env:GITHUB_SHA"
+          git push --set-upstream origin $branch
+          $existing = gh pr list --base main --head $branch --state open --json number --jq '.[0].number'
+          if ($existing) {
+            Write-Host "Publication PR already exists: #$existing"
+            exit 0
+          }
+          gh pr create --base main --head $branch --title "chore(knowledge): publish catalog for main" --body "Automated publication of derived knowledge state for main commit $env:GITHUB_SHA. The publication stays valid after merge only while its authority-source hashes remain unchanged."
