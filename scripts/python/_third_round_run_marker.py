@@ -1,2 +1,2 @@
 # Temporary trigger for the final third-round Knowledge repair run.
-# attempt 2: persistent workflows are managed outside the Actions bot commit.
+# attempt 3: rerun after discarding scan-only line-ending drift from the failing Action.
