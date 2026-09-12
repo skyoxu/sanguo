@@ -17,7 +17,7 @@ jobs:
     env:
       PYTHONIOENCODING: 'utf-8'
       PYTHONUTF8: '1'
-      FINALIZE_ATTEMPT: '3'
+      FINALIZE_ATTEMPT: '4'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -86,6 +86,8 @@ jobs:
 
       - name: Project Health localhost regressions
         shell: pwsh
+        env:
+          CI: ''
         run: |
           py -3 -m unittest scripts.sc.tests.test_project_health_sanguo_config scripts.sc.tests.test_project_health_http_surface scripts.sc.tests.test_project_health_server scripts.sc.tests.test_project_health_cli_status scripts.sc.tests.test_dev_cli_project_health_commands -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
