@@ -1,0 +1,90 @@
+name: One-shot sync requested feature parity from newrouge
+
+on:
+  push:
+    branches:
+      - sync/newrouge-feature-parity-20260912
+    paths:
+      - .github/workflows/_one_shot_sync_newrouge_features.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: sync/newrouge-feature-parity-20260912
+          fetch-depth: 0
+
+      - name: Fetch source repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git remote add newrouge https://github.com/skyoxu/newrouge.git
+          git fetch --depth=1 newrouge main
+
+      - name: Sync requested functional surface
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Exact-sync the canonical workflow/chapter skill surface and knowledge tree.
+          exact_paths=(
+            workflow.md
+            .agents/skills/workflow-chapter2-repository-bootstrap
+            .agents/skills/workflow-chapter3-task-triplet-baseline
+            .agents/skills/workflow-chapter4-overlays-contracts-baseline
+            .agents/skills/workflow-chapter5-semantics-stabilization
+            .agents/skills/workflow-chapter6-single-task-daily-loop
+            .agents/skills/workflow-chapter7-ui-wiring-closure
+            .agents/skills/maintain-knowledge-base
+            .agents/skills/pr-ci-artifact-repair
+            knowledge
+          )
+          for path in "${exact_paths[@]}"; do
+            git rm -r -f --ignore-unmatch -- "$path" >/dev/null 2>&1 || true
+            git checkout newrouge/main -- "$path"
+          done
+
+          # Sync the complete Project Health / Knowledge / Impact Python feature closure,
+          # including UI assets, configs, and feature-specific tests. Preserve unrelated
+          # sanguo scripts and business code.
+          mapfile -t feature_files < <(
+            git ls-tree -r --name-only newrouge/main -- scripts/python | \
+              grep -E '^scripts/python/(((_?project_health|serve_project_health|.*knowledge.*|.*impact.*)[^/]*)|(tests/[^/]*(project_health|knowledge|impact)[^/]*))$' || true
+          )
+          for file in "${feature_files[@]}"; do
+            mkdir -p "$(dirname "$file")"
+            git show "newrouge/main:$file" > "$file"
+          done
+
+          # Project-health and knowledge documentation required to operate the migrated surface.
+          mapfile -t doc_files < <(
+            git ls-tree -r --name-only newrouge/main -- docs | \
+              grep -E '^docs/(knowledge/|project-health[^/]*$)' || true
+          )
+          for file in "${doc_files[@]}"; do
+            mkdir -p "$(dirname "$file")"
+            git show "newrouge/main:$file" > "$file"
+          done
+
+          # Remove the one-shot transport workflow itself from the final feature diff.
+          rm -f .github/workflows/_one_shot_sync_newrouge_features.yml
+
+      - name: Commit synchronized features
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No feature changes were required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat: align workflow knowledge impact and project health"
+          git push origin HEAD:sync/newrouge-feature-parity-20260912
