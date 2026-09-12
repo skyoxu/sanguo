@@ -32,6 +32,24 @@ jobs:
       - name: Apply non-workflow repairs
         shell: pwsh
         run: |
+          $shim = @'
+          from pathlib import Path
+          path = Path("scripts/python/_third_round_knowledge_patch.py")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              "def write(path: str, text: str) -> None:\n    target = ROOT / path\n",
+              "def write(path: str, text: str) -> None:\n    if path.startswith('.github/workflows/'):\n        return\n    target = ROOT / path\n",
+              1,
+          )
+          text = text.replace(
+              "def replace_once(path: str, old: str, new: str) -> None:\n    text = read(path)\n",
+              "def replace_once(path: str, old: str, new: str) -> None:\n    if path.startswith('.github/workflows/'):\n        return\n    text = read(path)\n",
+              1,
+          )
+          path.write_text(text, encoding="utf-8", newline="\n")
+          '@
+          $shim | py -3 -
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           py -3 scripts/python/_third_round_knowledge_patch.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           py -3 scripts/python/_third_round_followup_fix.py
