@@ -25,12 +25,14 @@ Knowledge 页面现在提供只读 Godot 场景图 `/knowledge/scenes`。图从�
 
 场景详情展示 Node、附着脚本、函数、事件、资源和任务知识关联。PNG/JPEG/WebP/SVG/GIF 图片仍通过 revision-bound Git blob 接口读取；用户浏览不会执行游戏或修改源文件。
 
+场景页同时提供 **Scene route tree** 与 **Scene composition** 两种只读视图。composition 可以按 scene/script/config/image/audio/other 过滤，支持 include-unreachable 开关与分页，并展示来源、置信度、Task IDs 和 Data dictionary 说明。未确认场景页支持按 parse error / attached scripts 过滤，保持探索证据与正式 runtime reachability 分离。
+
 ## 页面能力
 
 1. **Knowledge query**：输入中文需求、英文符号或文件路径，选择 consumer，查看 KCP 候选、实际 query、GDD 补充来源和 main 快照源码。
 2. **Impact preview**：从精确 target 进入 Impact 关联文件、场景、测试、风险和解析遗漏。自然语言不会被直接冒充为 symbol id。
 3. **Task navigation**：任务列表分页查看配置、代码、场景节点、素材、测试与原始证据。
-4. **Godot scene graph**：查看 main scene 的静态 route tree、场景/脚本/资源详情和未确认场景。
+4. **Godot scene graph**：查看 main scene 的静态 route tree、scene composition、场景/脚本/资源详情和未确认场景。
 5. **Source view**：源码链接绑定扫描 revision；revision 变化时拒绝混用快照。
 6. **Runtime verification**：支持 local main 与 workspace 两种副本验证，运行产物只写到 `logs/ci/project-health-knowledge/runtime/`。
 7. **Local configuration**：页面可编辑并保存 `scripts/python/project_health_knowledge_config.json`；保存配置与重新扫描是两个独立动作。
@@ -105,4 +107,13 @@ node --check scripts/python/project_health_scenes.js
 node --check scripts/python/project_health_unreachable.js
 ```
 
-GitHub Actions 的 `Project Health Behavior` workflow 持续执行这一行为级门禁。
+需要浏览器级验收时，可在已启动的本地 Project Health 服务上运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/browser/run_project_health_tests.ps1
+py -3 scripts/python/verify_project_health_browser.py --url http://127.0.0.1:8767
+```
+
+前者验证 scene route tree、composition filtering/pagination、unconfirmed filtering 与 restart probe；后者生成可重复截图证据到 `logs/ci/<date>/knowledge-browser/`。两者都是本地/显式验收入口，不改变 CI 默认不启动持久服务的安全边界。
+
+GitHub Actions 的 `Project Health Behavior` workflow 持续执行行为级 Python/HTTP/JS 门禁。
