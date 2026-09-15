@@ -5,30 +5,38 @@ on:
     paths:
       - 'scripts/python/project_health_*'
       - 'scripts/python/_project_health_*'
+      - 'scripts/python/_godot_scene_graph.py'
       - 'scripts/python/*knowledge*'
       - 'scripts/python/*impact*'
       - 'scripts/python/tests/test_impact*.py'
       - 'scripts/sc/tests/test_project_health*.py'
+      - 'scripts/sc/tests/test_godot_scene_graph.py'
+      - 'scripts/sc/tests/test_chapter6_knowledge.py'
       - 'scripts/sc/tests/test_dev_cli_project_health_commands.py'
       - 'knowledge/**'
       - 'docs/agents/13-rag-sources-and-session-ssot.md'
       - 'docs/adr/ADR-0035-repository-knowledge-control-plane.md'
       - 'docs/workflows/knowledge-context-*.md'
+      - 'docs/workflows/project-health-knowledge.md'
       - '.github/workflows/project-health-behavior.yml'
   push:
     branches: [main]
     paths:
       - 'scripts/python/project_health_*'
       - 'scripts/python/_project_health_*'
+      - 'scripts/python/_godot_scene_graph.py'
       - 'scripts/python/*knowledge*'
       - 'scripts/python/*impact*'
       - 'scripts/python/tests/test_impact*.py'
       - 'scripts/sc/tests/test_project_health*.py'
+      - 'scripts/sc/tests/test_godot_scene_graph.py'
+      - 'scripts/sc/tests/test_chapter6_knowledge.py'
       - 'scripts/sc/tests/test_dev_cli_project_health_commands.py'
       - 'knowledge/**'
       - 'docs/agents/13-rag-sources-and-session-ssot.md'
       - 'docs/adr/ADR-0035-repository-knowledge-control-plane.md'
       - 'docs/workflows/knowledge-context-*.md'
+      - 'docs/workflows/project-health-knowledge.md'
       - '.github/workflows/project-health-behavior.yml'
 
 permissions:
@@ -62,9 +70,13 @@ jobs:
         env:
           CI: ''
         run: |
-          py -3 -m unittest scripts.sc.tests.test_project_health_sanguo_config scripts.sc.tests.test_project_health_http_surface scripts.sc.tests.test_project_health_server scripts.sc.tests.test_project_health_cli_status scripts.sc.tests.test_dev_cli_project_health_commands -v
+          py -3 -m unittest scripts.sc.tests.test_project_health_sanguo_config scripts.sc.tests.test_project_health_http_surface scripts.sc.tests.test_project_health_server scripts.sc.tests.test_project_health_cli_status scripts.sc.tests.test_dev_cli_project_health_commands scripts.sc.tests.test_godot_scene_graph -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --check scripts/python/project_health_knowledge.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --check scripts/python/project_health_scenes.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --check scripts/python/project_health_unreachable.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Knowledge control plane regressions
