@@ -223,6 +223,7 @@ function renderTaskDetail(detail) {
     more.addEventListener('toggle',()=>{if(more.open && !more.dataset.loaded){more.dataset.loaded='true';renderNavigation(detail.navigation,more,true);}});
   }
   if(detail.resource_knowledge?.length){const box=document.createElement('details');const summary=document.createElement('summary');summary.textContent=`资源知识（按类型，共 ${detail.resource_knowledge.length} 条）`;box.append(summary);for(const [kind,title] of [['config','配置文件'],['asset','素材'],['scene','场景'],['code','代码'],['test','测试']]){const items=detail.resource_knowledge.filter(x=>x.kind===kind);if(!items.length)continue;const group=document.createElement('details');const label=document.createElement('summary');label.textContent=`${title}（${items.length}）`;group.append(label);for(const item of items){const p=document.createElement('p');p.textContent=`${item.path} — 证据置信度：${item.confidence}`;group.append(p);}box.append(group);}el('detail-links').append(box);}
+  if(detail.chapter6_capture){const capture=detail.chapter6_capture;const box=document.createElement('details');const summary=document.createElement('summary');summary.textContent=`Chapter 6 element capture (${capture.elements?.length || 0})`;box.append(summary);const status=document.createElement('p');status.textContent=`Documentation gaps: ${capture.documentation_gaps?.length || 0} · non-blocking`;box.append(status);for(const item of capture.elements || []){const p=document.createElement('p');p.textContent=`${item.path} · ${item.kind || 'resource'} · ${item.status}`;box.append(p);}if(capture.documentation_gaps?.length){const gaps=document.createElement('details');const gs=document.createElement('summary');gs.textContent='Documentation gaps';gaps.append(gs);for(const gap of capture.documentation_gaps){const p=document.createElement('p');p.textContent=`${gap.severity} · ${gap.path} · ${gap.reason}`;gaps.append(p);}box.append(gaps);}el('detail-links').append(box);}
   const raw=document.createElement('details');raw.id='raw-evidence';const label=document.createElement('summary');label.textContent='Original task and evidence';raw.append(label);el('detail-links').append(raw);
   raw.addEventListener('toggle',()=>{if(raw.open && !raw.dataset.loaded){raw.dataset.loaded='true';const pre=document.createElement('pre');pre.textContent=pretty(detail);raw.append(pre);}});
 }
@@ -268,6 +269,8 @@ async function loadTasks(page=1) {
 }
 async function loadStatus() {
   const state = await api('status'); el('revision').textContent = state.revision ? `${state.branch} @ ${state.revision} | scanned ${state.scanned_at}` : 'No successful local scan yet.';
+  const unreachableLink = document.querySelector('[data-unreachable-link]');
+  if (unreachableLink) unreachableLink.href = '/knowledge/scenes/unreachable';
   el('publication').textContent = `Published KCP pointer matches scan: ${state.publication.matches_scan}. ${state.publication.note}`;
   if (!configLoaded) renderConfigEditor(await api('config')); el('summary').replaceChildren();
   const addMetric = (key,value,kind=null) => {
@@ -287,6 +290,33 @@ async function loadStatus() {
   for(const file of state.gdd_files) {const p=document.createElement('p'); if(file.available) p.append(sourceLink(file.path)); else p.textContent=file.path+' — missing or unsupported at main';el('gdds').append(p);}
   await loadTasks(currentPage);
 }
+function sceneButton(label, action) { const b=document.createElement('button'); b.type='button'; b.textContent=label; b.onclick=action; return b; }
+function renderSceneGraph(graph) {
+  const box=el('scene-graph'); box.replaceChildren();
+  if (!document.querySelector('[data-scene-probe]')) { const probe=sceneButton('Restart probe',()=>run(async()=>{await api('scan',{}); await loadStatus();})); probe.dataset.sceneProbe='true'; probe.title='Run the complete deterministic main snapshot probe'; box.before(probe); }
+  if (!document.querySelector('[data-unreachable-link]')) { const link=document.createElement('a'); link.dataset.unreachableLink='true'; link.href='/knowledge/scenes/unreachable'; link.textContent='Open unconfirmed scenes page'; link.style.display='inline-block'; link.style.margin='8px 0'; box.before(link); }
+  if(!graph.main_scene){ box.textContent='No configured main scene.'; return; }
+  const children={}; for(const edge of (graph.edges||[])){(children[edge.source] ||= []).push(edge.target);}
+  const seen=new Set();
+  function draw(path, parent, depth=0){
+    const row=document.createElement('div'); row.className='scene-tree-row'; const node=graph.nodes?.[path]||{};
+    const label=sceneButton(`${path} [${node.classification||'unknown'}]`,()=>showSceneDetail(path,graph)); label.title=node.description || 'Static Godot scene'; row.append(label); parent.append(row);
+    if(seen.has(path)){row.append(document.createTextNode(' (cycle)')); return;} seen.add(path);
+    for(const child of [...new Set(children[path]||[])]) { const branch=document.createElement('div'); branch.className='scene-tree-children'; row.append(branch); if(graph.nodes?.[child]) draw(child,branch,depth+1); else branch.append(document.createTextNode(child+' (missing)')); }
+  }
+  draw(graph.main_scene,box);
+  const requestedScene=new URLSearchParams(location.search).get('scene'); if(requestedScene && graph.nodes?.[requestedScene]) showSceneDetail(requestedScene,graph);
+  const unconfirmed=Object.values(graph.nodes||{}).filter(n=>n.classification==='unreachable-candidate');
+  el('scene-unreachable').onclick=()=>{box.replaceChildren(); unconfirmed.forEach(n=>draw(n.path,box)); if(!unconfirmed.length) box.textContent='No unconfirmed scenes.';};
+  el('scene-graph-refresh').onclick=()=>run(async()=>renderSceneGraph(await api('scene-graph')));
+}
+async function loadUnreachablePage() {
+  const result = await api('godot/unreachable'); const box=el('scene-graph'); box.replaceChildren();
+  const heading=document.createElement('p'); heading.textContent=`Unconfirmed scenes (${result.items?.length||0}); static analysis only.`; box.append(heading);
+  for(const item of (result.items||[])){ const row=document.createElement('div'); row.className='scene-tree-row'; const b=sceneButton(item.path,()=>showSceneDetail(item.path,{nodes:{[item.path]:item}})); b.title=item.description||'Static Godot scene'; row.append(b); box.append(row); }
+  if(!result.items?.length) box.append(document.createTextNode('No unconfirmed scenes.'));
+}
+function showSceneDetail(path, graph){ const box=el('scene-detail'); box.hidden=false; box.replaceChildren(); const scene=graph.nodes[path]||{}; const h=document.createElement('h3'); h.textContent=path; box.append(h); const p=document.createElement('p'); p.textContent=`${scene.description||'Godot scene'} · ${scene.classification||'unknown'}${scene.parse_error?' · '+scene.parse_error:''}`; box.append(p); for(const node of scene.nodes||[]){ const d=document.createElement('details'); const s=document.createElement('summary'); s.textContent=`${node.parent}/${node.name} (${node.type})`; d.append(s); if(node.instance)d.append(document.createTextNode('Scene: '+node.instance)); if(node.resources?.length)d.append(document.createTextNode(' Resources: '+[...new Set(node.resources)].join(', '))); box.append(d); } for(const script of (scene.external_resources ? Object.values(scene.external_resources).filter(x=>x.endsWith('.cs')||x.endsWith('.gd')) : [])){ const b=sceneButton('Open script relations: '+script,()=>api('godot/script?path='+encodeURIComponent(script)).then(r=>{const d=document.createElement('details');const s=document.createElement('summary');s.textContent='Script relationships: '+script;d.append(s);for(const item of (r.item||[])){const p=document.createElement('p');p.textContent=`${item.kind||'scene-reference'} → ${item.target||'dynamic'} (line ${item.line||'?'}; ${item.classification||''})`;d.append(p);}box.append(d)})); box.append(b); } }
 function actionEntry(item) {
   const row=document.createElement('p');row.className='action-entry';
   if(item.kind==='task') {
@@ -318,13 +348,14 @@ async function search(target) {
   const freshness=result.snapshot_freshness;el('snapshot-warning').hidden=!freshness.stale;
   el('snapshot-warning').textContent=freshness.stale?`Snapshot is stale. Results describe ${freshness.snapshot_revision}; current HEAD is ${freshness.current_revision}.`:'';
   renderActionable(result);
-  el('knowledge').replaceChildren(); for(const hit of result.knowledge) {const p=document.createElement('p');p.append(sourceLink(hit.path),` · line ${hit.line_start} · ${hit.matched_query}`);el('knowledge').append(p);}
+  el('knowledge').replaceChildren(); for(const hit of result.knowledge) {const p=document.createElement('p');p.append(sourceLink(hit.path), hit.dictionary ? ` · ${hit.dictionary.description}` : ` · line ${hit.line_start} · ${hit.matched_query}`);el('knowledge').append(p);}
   el('supplements').replaceChildren();for(const hit of result.gdd_supplements) el('supplements').append(sourceLink(hit.path));
   el('targets').replaceChildren();el('target-count').textContent=`${result.impact_target_total} candidate targets; showing at most 80. ${result.impact_skipped_methods.length} unsupported method signatures omitted (details in evidence JSON). Narrow the query if needed. Select one to analyze.`;
   for(const hit of result.impact_targets) el('targets').append(button(hit.type+' · '+hit.id,()=>search({type:hit.type,id:hit.id})));
   el('preview').textContent=pretty(result);
 }
 const consumerHelp = {
+  dictionary: '数据字典：只搜索已生成的数据字典条目，适合查找 Godot 场景、Node、脚本、配置和素材的用途说明。',
   'repository-session': '综合查找：范围最广，适合不确定信息位于何处时查找仓库文档、代码和任务上下文。',
   chapter4: '架构与契约：优先查找架构设计、功能切面、ADR 和契约边界。',
   chapter5: '验收与规则：优先查找验收标准、语义约束、测试要求和历史决策。',
@@ -352,4 +383,4 @@ el('clear-selection').onclick=()=>{selectedTasks.clear();loadTasks(currentPage);
 el('clear-filter').onclick=()=>run(()=>setFilter(null,null));
 el('save-config').onclick=()=>run(async()=>{await api('config',collectConfigEditor());el('publication').textContent='配置已保存。请重新扫描本地 main；当前结果仍使用上一次扫描配置。';});
 el('query-form').onsubmit=e=>{e.preventDefault();run(()=>search());};
-run(async()=>{token=(await api('session')).token;await refreshOperation();await loadStatus();operationPoll=setInterval(refreshOperation,1000);});
+run(async()=>{token=(await api('session')).token;await refreshOperation();if(location.pathname==='/knowledge/scenes/unreachable') await loadUnreachablePage(); else await loadStatus();operationPoll=setInterval(refreshOperation,1000);});
