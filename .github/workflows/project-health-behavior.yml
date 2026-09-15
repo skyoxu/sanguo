@@ -5,7 +5,7 @@ on:
     paths:
       - 'scripts/python/project_health_*'
       - 'scripts/python/_project_health_*'
-      - 'scripts/python/_godot_scene_graph.py'
+      - 'scripts/python/_godot_scene_graph*'
       - 'scripts/python/*knowledge*'
       - 'scripts/python/*impact*'
       - 'scripts/python/tests/test_impact*.py'
@@ -24,7 +24,7 @@ on:
     paths:
       - 'scripts/python/project_health_*'
       - 'scripts/python/_project_health_*'
-      - 'scripts/python/_godot_scene_graph.py'
+      - 'scripts/python/_godot_scene_graph*'
       - 'scripts/python/*knowledge*'
       - 'scripts/python/*impact*'
       - 'scripts/python/tests/test_impact*.py'
