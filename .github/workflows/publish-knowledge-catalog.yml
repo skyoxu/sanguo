@@ -9,12 +9,18 @@ on:
       - "AGENTS.md"
       - "workflow.md"
       - "DELIVERY_PROFILE.md"
+      - ".agents/skills/**"
       - "docs/**"
       - ".taskmaster/**"
       - "Game.Core/Contracts/**"
+      - "execution-plans/**"
+      - "decision-logs/**"
       - "knowledge/policies/**"
       - "knowledge/evaluation/**"
-      - "scripts/python/*knowledge*.py"
+      - "scripts/python/_knowledge_catalog_builder.py"
+      - "scripts/python/_knowledge_locator_core.py"
+      - "scripts/python/publish_knowledge_catalog.py"
+      - "scripts/python/prepare_knowledge_context.py"
   workflow_dispatch:
 
 permissions:
