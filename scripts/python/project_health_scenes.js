@@ -128,6 +128,8 @@ async function loadGraph() {
   const confirmed = Object.values(graph.nodes || {}).filter(item => item.classification === 'confirmed-reachable').length;
   const possible = (graph.edges || []).filter(item => item.evidence_level === 'possible').length;
   el('scene-status').textContent = `${Object.keys(graph.nodes || {}).length} scenes · ${confirmed} confirmed reachable · ${possible} possible relations · revision ${graph.revision || 'snapshot'}`;
+  const requested = new URLSearchParams(location.search).get('scene');
+  if (requested && graph.nodes?.[requested]) showDetail(requested);
 }
 
 async function restartProbe() {
