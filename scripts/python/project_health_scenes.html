@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Godot Scene Graph · Project Health</title><link rel="stylesheet" href="/knowledge/style.css"><script src="/knowledge/scenes.js" defer></script></head>
+<body><main><nav><a href="/latest.html">Project Health</a> / <a href="/knowledge/">Knowledge + Impact</a> / Godot scene graph <span class="badge">MAIN ONLY</span></nav>
+<div class="row"><h1>Godot scene graph</h1><button id="scene-refresh" type="button">Refresh graph</button><button id="scene-probe" type="button">Restart probe</button><a href="/knowledge/scenes/unreachable">Unconfirmed scenes</a></div>
+<p id="scene-status" role="status">Loading deterministic scene graph…</p><p>Green routes are statically effective. Yellow routes are references without enough trigger evidence. Unconfirmed scenes are not treated as runtime-reachable.</p>
+<div id="scene-graph" class="scene-map"></div>
+<dialog id="scene-detail"><button id="scene-detail-close" type="button">Close</button><h2 id="scene-detail-title"></h2><div id="scene-detail-body"></div></dialog>
+</main></body></html>
