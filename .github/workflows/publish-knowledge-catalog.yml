@@ -17,10 +17,7 @@ on:
       - "decision-logs/**"
       - "knowledge/policies/**"
       - "knowledge/evaluation/**"
-      - "scripts/python/_knowledge_catalog_builder.py"
-      - "scripts/python/_knowledge_locator_core.py"
-      - "scripts/python/publish_knowledge_catalog.py"
-      - "scripts/python/prepare_knowledge_context.py"
+      - "scripts/python/*knowledge*.py"
   workflow_dispatch:
 
 permissions:
