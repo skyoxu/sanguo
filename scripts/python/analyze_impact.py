@@ -206,7 +206,20 @@ def _rollback_report(output: Path, owned_identity: Any, report_data: bytes) -> l
 def _failure_evidence(root: Path, output: Path | None, run_id: str, target: Any,
                       revision: str | None, reason: ImpactIndexError) -> dict[str, Any]:
     isolated = root / "logs" / "ci" / _utc_date() / "impact-analysis" / ("failed-" + run_id) / "impact-report.v1.json"
-    candidates = [output, isolated] if output is not None and output != isolated else [isolated]
+    # A collision means another writer owns the requested output directory.
+    # Publish diagnostics in an isolated run directory first so the losing
+    # writer never races the winner while attempting to write its failure pair.
+    concurrent_collision = reason.code == "lock_unavailable" or (
+        reason.code == "index_identity_collision"
+        and any(marker in reason.reason for marker in (
+            "another writer owns the output directory",
+            "output report or run manifest already exists",
+        ))
+    )
+    if concurrent_collision:
+        candidates = [isolated, output] if output is not None and output != isolated else [isolated]
+    else:
+        candidates = [output, isolated] if output is not None and output != isolated else [isolated]
     errors = []
     for candidate in candidates:
         try:
