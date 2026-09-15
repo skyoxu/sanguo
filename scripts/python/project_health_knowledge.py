@@ -17,6 +17,7 @@ from _knowledge_catalog_builder import DirectorySnapshot, LocalMainSnapshot, bui
 from _knowledge_locator_core import locate, tokens
 from _project_health_tasks import attach_task_scenes, task_details, task_page, task_summary
 from _project_health_navigation import ASSET_SUFFIXES, CONFIG_SUFFIXES, build_navigation
+from _godot_scene_graph import build_scene_graph
 from impact_analysis_index import build_and_publish_index
 from impact_analysis_index import ImpactIndexError
 from impact_analyzer import ImpactAnalyzer
@@ -58,6 +59,60 @@ def write_json(path: Path, data) -> None:
     temporary = path.with_name(path.name + '.' + uuid.uuid4().hex + '.tmp')
     temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
     os.replace(temporary, path)
+
+
+def build_godot_element_index(root: Path, scene_graph: dict, sources: dict, tasks: list[dict], previous: dict | None = None, file_manifest: list[str] | None = None) -> dict:
+    """Build a project-level, deterministic index of Godot elements and documentation gaps."""
+    task_text = [json.dumps(detail, ensure_ascii=False) for detail in tasks]
+    elements = []
+    scene_nodes = scene_graph.get('nodes', {}) if isinstance(scene_graph, dict) else {}
+    references = scene_graph.get('code_references', []) if isinstance(scene_graph, dict) else []
+    referenced_paths = {str(edge.get('target')) for edge in references if isinstance(edge, dict) and edge.get('target')}
+    for path, scene in sorted(scene_nodes.items()):
+        summary = scene.get('functional_summary', {})
+        status = 'verified' if scene.get('classification') == 'confirmed-reachable' else 'inferred'
+        elements.append({'path': path, 'kind': 'scene', 'status': status,
+                         'nodes': [{'path': f"{node.get('parent') or '.'}/{node.get('name') or '(unnamed)'}", 'type': node.get('type')} for node in scene.get('nodes', [])],
+                         'scripts': summary.get('scripts', []), 'events': summary.get('events', []),
+                         'task_ids': sorted({str(x.get('task', {}).get('id')) for x in tasks if path in json.dumps(x, ensure_ascii=False)})})
+    candidate_paths = set(sources)
+    candidate_paths.update(file_manifest or [])
+    for path in sorted(candidate_paths):
+        suffix = Path(path).suffix.lower()
+        if suffix not in ('.gd', '.cs', '.tres', '.res') and suffix not in CONFIG_SUFFIXES and suffix not in ASSET_SUFFIXES:
+            continue
+        if suffix == '.tscn':
+            continue
+        if suffix in ('.gd', '.cs') and not path.startswith('Game.Godot/'):
+            continue
+        if suffix not in ('.gd', '.cs') and not path.startswith('Game.Godot/') and path not in referenced_paths:
+            continue
+        kind = 'script' if suffix in ('.gd', '.cs') else 'config' if suffix in CONFIG_SUFFIXES or suffix in ('.tres', '.res') else 'asset'
+        related_ids = sorted({str(x.get('task', {}).get('id')) for x, text in zip(tasks, task_text) if path in text})
+        status = 'verified' if related_ids else 'unmapped'
+        elements.append({'path': path, 'kind': kind, 'status': status, 'task_ids': related_ids})
+    current = {item['path'] for item in elements}
+    old = {item.get('path') for item in (previous or {}).get('elements', [])
+           if item.get('path') and (str(item['path']).endswith('.tscn') or str(item['path']).startswith('Game.Godot/'))}
+    stale = [{'path': path, 'status': 'stale', 'reason': 'Element existed in the previous index but is absent from the current scan.'} for path in sorted(old - current)]
+    gaps = [{'severity': 'P1' if item['kind'] in {'scene', 'script'} else 'P2', 'path': item['path'], 'reason': 'Element has no verified task association.'} for item in elements if item['status'] == 'unmapped']
+    return {'schema_version': 'newrouge.godot-element-index.v1', 'source_revision': None, 'elements': elements, 'stale': stale, 'documentation_gaps': gaps, 'blocking': False}
+
+
+QUERY_EVIDENCE_LIMIT = 200
+
+
+def prune_query_evidence(root: Path, keep: int = QUERY_EVIDENCE_LIMIT) -> None:
+    directory = base_dir(root) / 'queries'
+    if not directory.exists():
+        return
+    files = sorted((p for p in directory.glob('*.json') if p.is_file()),
+                   key=lambda p: p.stat().st_mtime, reverse=True)
+    for path in files[max(0, keep):]:
+        try:
+            path.unlink()
+        except OSError:
+            continue
 
 
 def read_json(path: Path):
@@ -150,7 +205,7 @@ def scan(root: Path) -> dict:
         required = ['.taskmaster/tasks/tasks.json', '.taskmaster/tasks/tasks_back.json',
                     '.taskmaster/tasks/tasks_gameplay.json', 'knowledge/policies/consumer-policies.v1.json',
                     'knowledge/policies/source-exclusions.v1.json', *config['gdd_paths']]
-        allowed = config['source_paths'] + config['gdd_paths'] + ['knowledge/policies']
+        allowed = config['source_paths'] + config['gdd_paths'] + ['knowledge/policies', 'project.godot']
         for prefix in config['source_paths'] + config['gdd_paths']:
             if not any(p == prefix or p.startswith(prefix.rstrip('/') + '/') for p in trusted.paths):
                 raise ValueError('Configured source does not exist: ' + prefix)
@@ -164,6 +219,8 @@ def scan(root: Path) -> dict:
         index = {'status': 'unavailable', 'reason': 'Impact index is not built by exploratory scan'}
         # Only tracked, bounded UTF-8 source files enter the investigation workspace.
         selected = {m['source_path'] for m in catalog['modules']}
+        if 'project.godot' in trusted.paths:
+            selected.add('project.godot')
         selected.update(config['gdd_paths'])
         selected.update(p for p in trusted.paths if p.startswith(('Game.Godot/', 'Game.Core/', 'Game.Core.Tests/', 'Tests.Godot/'))
                         and Path(p).suffix.lower() in ({'.tscn', '.cs', '.gd'} | CONFIG_SUFFIXES))
@@ -177,6 +234,15 @@ def scan(root: Path) -> dict:
                     pass
         details = task_details(trusted)
         attach_task_scenes(details, sources, config['task_scene_bindings'])
+        scene_graph = build_scene_graph(sources, details, known_paths=trusted.paths)
+        previous_index_path = root / 'docs/knowledge/catalog/godot-elements.json'
+        previous_index = read_json(previous_index_path) if previous_index_path.exists() else None
+        file_manifest = sorted(set(sources) | {p for p in trusted.paths
+                             if p.startswith(('Game.Core/', 'Game.Godot/', 'Tests.Godot/', 'Game.Core.Tests/'))
+                             and Path(p).suffix.lower() in ASSET_SUFFIXES})
+        godot_elements = build_godot_element_index(root, scene_graph, sources, details, previous_index, file_manifest)
+        godot_elements['source_revision'] = revision
+        write_json(previous_index_path, godot_elements)
         gdds = [{'path': p, 'available': p in sources, 'role': 'supplementary-design-source',
                  'sha256': trusted.digest(p) if p in sources else None}
                 for p in config['gdd_paths']]
@@ -186,14 +252,11 @@ def scan(root: Path) -> dict:
                   'snapshot': None, 'summary': task_summary(details), 'tasks': details,
                   'gdd_files': gdds, 'config': config, 'index': index,
                   'catalog': catalog, 'policies': policies, 'projections': projections,
-                  'sources': sources,
-                  'file_manifest': sorted(set(sources) | {p for p in trusted.paths
-                      if p.startswith(('Game.Core/', 'Game.Godot/', 'Tests.Godot/', 'Game.Core.Tests/'))
-                      and Path(p).suffix.lower() in ASSET_SUFFIXES}),
+                  'sources': sources, 'scene_graph': scene_graph, 'godot_elements': godot_elements,
+                  'file_manifest': file_manifest,
                   'publication': {'main_commit': publication.get('main_commit'),
                   'matches_scan': publication.get('main_commit') == revision,
                   'note': 'Exploratory catalogs are not published or frozen KCP authority.'}}
-        # Commit only complete successful scans; failures retain the previous dated result.
         write_json(base / 'latest.json', result)
         return status(root, result)
     finally:
@@ -274,6 +337,13 @@ def status(root: Path, state: dict) -> dict:
         state['summary'] = task_summary(state['tasks'])
     result = {key: state.get(key) for key in ('schema_version', 'revision', 'scanned_at', 'branch',
                                               'summary', 'gdd_files', 'publication', 'config')}
+    graph = state.get('scene_graph', {})
+    result['scene_graph'] = {
+        'main_scene': graph.get('main_scene'),
+        'nodes': len(graph.get('nodes', {})),
+        'confirmed_reachable': sum(1 for n in graph.get('nodes', {}).values() if n.get('classification') == 'confirmed-reachable'),
+        'diagnostics': len(graph.get('diagnostics', [])),
+    }
     runtime_path = base_dir(root) / 'runtime' / 'latest.json'
     if runtime_path.exists():
         runtime = read_json(runtime_path)
@@ -292,7 +362,6 @@ ACTION_NAVIGATION_LIMIT = 4
 
 
 def _search_terms(text: str) -> set[str]:
-    """Return small deterministic search terms with light English normalization."""
     result = set()
     separated = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', text)
     for value in re.findall(r'[\w]+', separated.casefold(), flags=re.UNICODE):
@@ -350,7 +419,6 @@ def _actionable_results(root: Path, state: dict, queries: list[str]) -> dict:
     needles = set().union(*query_needles) if query_needles else set()
 
     def best_score(text: str) -> tuple[int, int]:
-        """Score against each query variant so aliases do not dilute matches."""
         scores = [_term_score(text, terms) for terms in query_needles]
         return max(scores, key=lambda score: (score[0] == score[1], score[0], -score[1]),
                    default=(0, 0))
@@ -363,16 +431,13 @@ def _actionable_results(root: Path, state: dict, queries: list[str]) -> dict:
         pattern = rf'(?<!{boundary}){re.escape(candidate)}(?!{boundary})'
         return re.search(pattern, normalized_query) is not None
 
-    exact_paths = {path for path in state.get('file_manifest', [])
-                   if path_is_explicit(path)}
+    exact_paths = {path for path in state.get('file_manifest', []) if path_is_explicit(path)}
     task_candidates = []
     for detail in state.get('tasks', []):
         task = detail.get('task', {})
-        searchable = json.dumps({'task': task, 'mappings': detail.get('mappings', {})},
-                                ensure_ascii=False)
+        searchable = json.dumps({'task': task, 'mappings': detail.get('mappings', {})}, ensure_ascii=False)
         matched, total = best_score(searchable)
-        exact_task = re.search(r'\btask\s*#?\s*' + re.escape(str(task.get('id'))) + r'\b',
-                               query_text, flags=re.IGNORECASE)
+        exact_task = re.search(r'\btask\s*#?\s*' + re.escape(str(task.get('id'))) + r'\b', query_text, flags=re.IGNORECASE)
         if exact_task or (matched and (matched == total or matched >= min(2, total))):
             title_matched, _ = best_score(str(task.get('title', '')))
             score = 1000 if exact_task else 500 + matched * 40 + title_matched * 15
@@ -387,14 +452,12 @@ def _actionable_results(root: Path, state: dict, queries: list[str]) -> dict:
         current = groups[group].get(key)
         if (current is None
                 or strength_rank[item['evidence_strength']] > strength_rank[current['evidence_strength']]
-                or (item['evidence_strength'] == current['evidence_strength']
-                    and item['score'] > current['score'])):
+                or (item['evidence_strength'] == current['evidence_strength'] and item['score'] > current['score'])):
             groups[group][key] = item
 
     for score, detail in task_candidates:
         task = detail['task']
-        put('tasks', str(task['id']), _action_item(
-            'task', None, score, 'direct', 'Task title or definition matches the query.', task))
+        put('tasks', str(task['id']), _action_item('task', None, score, 'direct', 'Task title or definition matches the query.', task))
     for score, detail in task_candidates[:ACTION_NAVIGATION_LIMIT]:
         task = detail['task']
         navigation = build_navigation(detail, state)
@@ -403,8 +466,7 @@ def _actionable_results(root: Path, state: dict, queries: list[str]) -> dict:
             for nav_item in navigation.get(group, []):
                 path = nav_item['path']
                 focus = nav_item.get('focus', 'core')
-                strength = ('confirmed' if focus == 'core' and
-                            nav_item.get('evidence_kind') != 'static_candidate' else 'inferred')
+                strength = ('confirmed' if focus == 'core' and nav_item.get('evidence_kind') != 'static_candidate' else 'inferred')
                 relation_score = score - (35 if strength == 'confirmed' else 180)
                 direct, _ = best_score(path)
                 if path in exact_paths:
@@ -412,14 +474,11 @@ def _actionable_results(root: Path, state: dict, queries: list[str]) -> dict:
                     strength = 'direct'
                 else:
                     relation_score += direct * 30
-                item = _action_item(output_kind, path, relation_score, strength,
-                                    f'Linked through task {task_id} navigation evidence.')
+                item = _action_item(output_kind, path, relation_score, strength, f'Linked through task {task_id} navigation evidence.')
                 item['related_task_ids'] = [task_id]
                 put(group, path, item)
 
-    source_groups = (('configs', 'config', CONFIG_SUFFIXES),
-                     ('code', 'code', {'.cs', '.gd'}),
-                     ('tests', 'test', {'.cs', '.gd'}))
+    source_groups = (('configs', 'config', CONFIG_SUFFIXES), ('code', 'code', {'.cs', '.gd'}), ('tests', 'test', {'.cs', '.gd'}))
     for path in state.get('file_manifest', []):
         suffix = PurePosixPath(path).suffix.lower()
         for group, kind, suffixes in source_groups:
@@ -433,25 +492,19 @@ def _actionable_results(root: Path, state: dict, queries: list[str]) -> dict:
                 continue
             matched, total = best_score(path)
             if path in exact_paths:
-                put(group, path, _action_item(kind, path, 1400, 'direct',
-                                              'Exact scanned path matches the query.'))
+                put(group, path, _action_item(kind, path, 1400, 'direct', 'Exact scanned path matches the query.'))
             elif total and matched == total:
-                put(group, path, _action_item(kind, path, 420 + matched * 20, 'direct',
-                                              'Scanned path matches all query terms.'))
+                put(group, path, _action_item(kind, path, 420 + matched * 20, 'direct', 'Scanned path matches all query terms.'))
 
     ordered_groups = {}
     kind_order = {'task': 0, 'config': 1, 'code': 2, 'test': 3}
     for name in ('tasks', 'configs', 'code', 'tests'):
-        items = sorted(groups[name].values(), key=lambda item: (
-            -strength_rank[item['evidence_strength']], -item['score'],
-            kind_order[item['kind']], item.get('path', ''), item.get('task_id', '')))
+        items = sorted(groups[name].values(), key=lambda item: (-strength_rank[item['evidence_strength']], -item['score'], kind_order[item['kind']], item.get('path', ''), item.get('task_id', '')))
         visible = items[:ACTION_GROUP_LIMIT]
-        ordered_groups[name] = {'items': visible, 'total': len(items),
-                                'truncated': max(0, len(items) - len(visible))}
+        ordered_groups[name] = {'items': visible, 'total': len(items), 'truncated': max(0, len(items) - len(visible))}
     top = []
     for name, limit in (('tasks', 2), ('configs', 1), ('code', 1), ('tests', 1)):
-        evidenced = [item for item in ordered_groups[name]['items']
-                     if item['evidence_strength'] != 'inferred']
+        evidenced = [item for item in ordered_groups[name]['items'] if item['evidence_strength'] != 'inferred']
         top.extend(evidenced[:limit])
     return {**ordered_groups, 'top': top, 'group_limit': ACTION_GROUP_LIMIT}
 
@@ -466,6 +519,41 @@ def query(root: Path, state: dict, request: dict) -> dict:
             queries.extend(values)
     queries = list(dict.fromkeys(queries))[:12]
     consumer = request.get('consumer', 'repository-session')
+    if consumer == 'dictionary':
+        entries = (state.get('scene_graph') or {}).get('data_dictionary', {}).get('entries', {})
+        if not entries:
+            index = state.get('godot_elements', {})
+            entries = {item['path']: {'kind': item.get('kind'), 'path': item.get('path'),
+                                      'description': f"{item.get('kind', 'Godot')} element {item.get('path')}; status {item.get('status', 'unknown')}."}
+                       for item in index.get('elements', []) if item.get('path')}
+        hits = []
+        for text in queries:
+            needles = _search_terms(text)
+            for path, entry in entries.items():
+                haystack = f"{path} {entry.get('description', '')}"
+                matched, total = _term_score(haystack, needles)
+                if matched and (matched == total or matched >= min(2, total)):
+                    hits.append((matched, path, text, entry))
+        unique = {}
+        for score, path, text, entry in sorted(hits, key=lambda item: (-item[0], item[1])):
+            unique.setdefault(path, {'path': path, 'line_start': 0, 'line_end': 0,
+                                     'matched_query': text, 'dictionary': entry, 'score': score})
+        result = {'status': 'exploratory', 'handoff_eligible': False, 'revision': state['revision'],
+                  'queries': queries, 'consumer': consumer, 'knowledge': list(unique.values()),
+                  'gdd_supplements': [], 'impact_targets': [], 'impact_target_total': 0,
+                  'impact_preview': None, 'impact_skipped_methods': [],
+                  'actionable_results': {'tasks': {'items': [], 'total': 0, 'truncated': 0},
+                                         'configs': {'items': [], 'total': 0, 'truncated': 0},
+                                         'code': {'items': [], 'total': 0, 'truncated': 0},
+                                         'tests': {'items': [], 'total': 0, 'truncated': 0}},
+                  'scene_graph': state.get('scene_graph', {}),
+                  'snapshot_freshness': _snapshot_freshness(root, state['revision']),
+                  'next_step': 'Dictionary results are based on the latest local snapshot.'}
+        evidence = base_dir(root) / 'queries' / (uuid.uuid4().hex + '.json')
+        write_json(evidence, result)
+        prune_query_evidence(root)
+        result['evidence_path'] = evidence.relative_to(root).as_posix()
+        return result
     policy = next((p for p in state['policies']['policies'] if p['consumer'] == consumer), None)
     projection = next((p for p in state['projections']['projections'] if p['consumer'] == consumer), None)
     if not policy or not projection:
@@ -483,8 +571,6 @@ def query(root: Path, state: dict, request: dict) -> dict:
     analyzer = ImpactAnalyzer.from_exploratory_sources(state.get('sources', {}), state['revision'])
     targets = []
     needles = set(t for q in queries for t in tokens(q))
-    # Exploratory scans may not have a formal Impact index. Catalog/query results
-    # remain useful, while formal handoff is explicitly unavailable.
     if analyzer:
         for symbol in analyzer.resolver.symbol_index.symbols:
             if symbol.kind.startswith('__'):
@@ -505,36 +591,33 @@ def query(root: Path, state: dict, request: dict) -> dict:
               'impact_target_total': len(targets), 'impact_preview': preview,
               'impact_skipped_methods': analyzer.resolver.symbol_index.skipped_methods if analyzer else [],
               'actionable_results': _actionable_results(root, state, queries),
+              'scene_graph': state.get('scene_graph', {}),
               'snapshot_freshness': freshness,
               'next_step': 'Select an exact Impact target. Formal handoff requires existing KCP accept/freeze and analyze_impact CLI.'}
     evidence = base_dir(root) / 'queries' / (uuid.uuid4().hex + '.json')
     write_json(evidence, result)
+    prune_query_evidence(root)
     result['evidence_path'] = evidence.relative_to(root).as_posix()
     return result
 
 
 def attach_semantic_navigation(navigation: dict, semantic: dict, sources: dict | None = None) -> None:
     sources = sources or {}
-    by_key = {(item.get('kind'), item.get('path')): item for item in semantic.get('entries', [])
-              if isinstance(item, dict)}
+    by_key = {(item.get('kind'), item.get('path')): item for item in semantic.get('entries', []) if isinstance(item, dict)}
     for group, kind in (('configs', 'config'), ('assets', 'asset'), ('scenes', 'scene')):
         for item in navigation.get(group, []):
             item['semantic'] = by_key.get((kind, item.get('path')))
             if kind != 'config':
                 continue
-            confirmed = {field.get('pointer'): {**field, 'confirmation': 'static_record_identity'}
-                         for field in item.get('focused_fields', []) if field.get('pointer')}
+            confirmed = {field.get('pointer'): {**field, 'confirmation': 'static_record_identity'} for field in item.get('focused_fields', []) if field.get('pointer')}
             reader_text = '\n'.join(sources.get(reader.get('reader'), '') for reader in item.get('readers', []))
             quoted_keys = set(re.findall(r'["\']([A-Za-z_][A-Za-z0-9_]*)["\']', reader_text))
             fields_by_pointer = {field.get('pointer'): field for field in item.get('fields', [])}
             for parameter in (item.get('semantic') or {}).get('parameters', []):
                 pointer = parameter.get('pointer') or parameter.get('key')
-                segments = [segment.replace('~1', '/').replace('~0', '~')
-                            for segment in str(pointer or '').split('/') if segment and not segment.isdigit()]
-                if (pointer in fields_by_pointer and segments and segments[-1] in quoted_keys
-                        and any(segment in quoted_keys for segment in segments[:-1])):
-                    confirmed[pointer] = {**fields_by_pointer[pointer],
-                                          'confirmation': 'semantic_reconstruction+static_reader_key_chain'}
+                segments = [segment.replace('~1', '/').replace('~0', '~') for segment in str(pointer or '').split('/') if segment and not segment.isdigit()]
+                if (pointer in fields_by_pointer and segments and segments[-1] in quoted_keys and any(segment in quoted_keys for segment in segments[:-1])):
+                    confirmed[pointer] = {**fields_by_pointer[pointer], 'confirmation': 'semantic_reconstruction+static_reader_key_chain'}
             item['confirmed_fields'] = list(confirmed.values())
 
 
@@ -564,7 +647,7 @@ def main(argv=None) -> int:
                          'gdd_files': [], 'publication': {'main_commit': None,
                          'matches_scan': False, 'note': 'No successful local main scan yet.'},
                          'config': config, 'tasks': [], 'sources': {}, 'policies': {},
-                         'projections': {}, 'catalog': {}, 'index': {}}
+                         'projections': {}, 'catalog': {}, 'index': {}, 'scene_graph': {}, 'godot_elements': {}}
             if args.action == 'status':
                 apply_runtime_results(root, state)
                 result = status(root, state)
@@ -581,6 +664,9 @@ def main(argv=None) -> int:
                 if links_path.exists():
                     links = read_json(links_path).get('generated', [])
                     result['resource_knowledge'] = [entry for entry in links if str(entry.get('task_id')) == str(args.task_id)]
+                capture_path = root / 'docs/knowledge/generated' / f'chapter6-task-{args.task_id}-elements.json'
+                if capture_path.exists():
+                    result['chapter6_capture'] = read_json(capture_path)
                 semantic_path = root / 'docs/knowledge/generated' / f'task-{args.task_id}-semantic.json'
                 if semantic_path.exists():
                     semantic = read_json(semantic_path)
