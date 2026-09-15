@@ -15,12 +15,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
+from _godot_scene_graph import build_scene_graph
 from project_health_knowledge import CONFIG, safe_file, write_json, validate_config, load_config, read_json, base_dir
 
 
 def image_bytes(root, path, revision):
     safe_file(root, path)
-    types = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp'}
+    types = {
+        '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+        '.webp': 'image/webp', '.svg': 'image/svg+xml', '.gif': 'image/gif',
+    }
     mime = types.get(Path(path).suffix.lower())
     state = read_json(base_dir(root) / 'latest.json')
     if not mime or path not in state.get('file_manifest', []):
@@ -33,6 +37,36 @@ def image_bytes(root, path, revision):
         raise ValueError('Image exceeds the 16 MiB preview limit')
     data = subprocess.run(['git', '-C', str(root), 'cat-file', 'blob', object_name], capture_output=True, timeout=15, check=True).stdout
     return data, mime
+
+
+def scene_graph_snapshot(root: Path) -> tuple[dict, dict]:
+    """Build scene graph from the immutable revision captured by the latest scan."""
+    snapshot = base_dir(root) / 'latest.json'
+    state = read_json(snapshot) if snapshot.exists() else {}
+    revision = state.get('revision')
+    sources = dict(state.get('sources') or {})
+    if revision and re.fullmatch(r'[0-9a-f]{40,64}', str(revision)) and 'project.godot' not in sources:
+        proc = subprocess.run(
+            ['git', '-C', str(root), 'show', f'{revision}:project.godot'],
+            capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=15,
+        )
+        if proc.returncode == 0:
+            sources['project.godot'] = proc.stdout
+    graph = build_scene_graph(
+        sources,
+        state.get('tasks') or [],
+        known_paths=state.get('file_manifest') or tuple(sources),
+    )
+    dictionary_path = root / 'docs/knowledge/catalog/godot-elements.json'
+    if dictionary_path.exists():
+        try:
+            dictionary = read_json(dictionary_path)
+            if dictionary.get('source_revision') == revision:
+                graph['data_dictionary'] = dictionary
+        except (OSError, ValueError, json.JSONDecodeError):
+            pass
+    return state, graph
+
 
 RUNTIME_HOST_TIMEOUT_SECONDS = 3690
 
@@ -112,6 +146,22 @@ def handler_factory(root: Path):
                     self.cli('status')
                 elif parsed.path == '/api/knowledge/config':
                     self.send(load_config(root))
+                elif parsed.path == '/api/knowledge/scene-graph':
+                    state, graph = scene_graph_snapshot(root)
+                    self.send({'revision': state.get('revision'), 'file_manifest': state.get('file_manifest', []), **graph})
+                elif parsed.path in ('/api/knowledge/godot/scene', '/api/knowledge/godot/script', '/api/knowledge/godot/unreachable'):
+                    state, graph = scene_graph_snapshot(root)
+                    if parsed.path.endswith('/unreachable'):
+                        items = [item for item in graph.get('nodes', {}).values() if item.get('classification') == 'unreachable-candidate']
+                        self.send({'revision': state.get('revision'), 'items': items})
+                    else:
+                        path = params.get('path', [''])[0].replace('\\', '/')
+                        safe_file(root, path)
+                        item = graph.get('nodes', {}).get(path) if parsed.path.endswith('/scene') else [ref for ref in graph.get('code_references', []) if ref.get('source') == path]
+                        if item is None or item == []:
+                            self.send({'reason': 'Scene or script not found'}, 404)
+                        else:
+                            self.send({'revision': state.get('revision'), 'path': path, 'item': item})
                 elif parsed.path == '/api/knowledge/tasks':
                     args = ['--page', params.get('page', ['1'])[0]]
                     if params.get('filter_kind', [''])[0]:
@@ -128,18 +178,26 @@ def handler_factory(root: Path):
                 elif parsed.path in ('/knowledge', '/knowledge/'):
                     self.send(Path(__file__).with_name('project_health_knowledge.html').read_text(encoding='utf-8'),
                               content_type='text/html; charset=utf-8')
+                elif parsed.path == '/knowledge/scenes':
+                    self.send(Path(__file__).with_name('project_health_scenes.html').read_text(encoding='utf-8'),
+                              content_type='text/html; charset=utf-8')
+                elif parsed.path == '/knowledge/scenes/unreachable':
+                    self.send(Path(__file__).with_name('project_health_unreachable.html').read_text(encoding='utf-8'),
+                              content_type='text/html; charset=utf-8')
+                elif parsed.path == '/knowledge/scenes.js':
+                    self.send(Path(__file__).with_name('project_health_scenes.js').read_text(encoding='utf-8'), content_type='text/javascript')
+                elif parsed.path == '/knowledge/unreachable.js':
+                    self.send(Path(__file__).with_name('project_health_unreachable.js').read_text(encoding='utf-8'), content_type='text/javascript')
                 elif parsed.path in ('/knowledge/app.js', '/knowledge/style.css'):
                     suffix = 'js' if parsed.path.endswith('.js') else 'css'
                     text = Path(__file__).with_name('project_health_knowledge.' + suffix).read_text(encoding='utf-8')
                     self.send(text, content_type='text/javascript' if suffix == 'js' else 'text/css')
                 elif parsed.path in ('/', '/latest.html'):
-                    # The existing dashboard has inline scripts/styles; retain its rendering behavior.
                     self.send((root / 'logs/ci/project-health/latest.html').read_text(encoding='utf-8'),
                               content_type='text/html; charset=utf-8')
                 elif parsed.path.startswith('/api/'):
                     self.send({'reason': 'Not found'}, 404)
                 else:
-                    # Keep report JSON/Markdown links, but never serve private snapshots or directories.
                     relative = parsed.path.lstrip('/')
                     path = safe_file(root / 'logs/ci/project-health', relative)
                     if path.suffix not in ('.json', '.md', '.txt') or not path.is_file():
