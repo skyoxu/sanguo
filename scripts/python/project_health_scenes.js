@@ -269,9 +269,24 @@ function compositionResources() {
       if (entry.task_id) taskByPath.set(scene.path, [...(taskByPath.get(scene.path) || []), {id: String(entry.task_id), relation: 'direct-scene', level: entry.level}]);
     }
   }
-  for (const scene of Object.values(graphState?.nodes || {})) {
-    if (!includeUnreachable.checked && scene.classification !== 'confirmed-reachable') continue;
-    add(scene.path, 'scene', {nodes: scene.nodes?.length || 0, scripts: scene.functional_summary?.scripts?.length || 0, tasks: taskByPath.get(scene.path) || [], origins: [scene.classification === 'confirmed-reachable' ? 'route tree' : 'unreachable candidate']});
+  const nodes = graphState?.nodes || {};
+  const routeTreeScenes = new Set();
+  const pendingScenes = graphState?.main_scene && nodes[graphState.main_scene] ? [graphState.main_scene] : [];
+  const edgesBySource = new Map();
+  for (const edge of graphState?.edges || []) {
+    if (!edge.source || !edge.target || !nodes[edge.target]) continue;
+    if (!edgesBySource.has(edge.source)) edgesBySource.set(edge.source, []);
+    edgesBySource.get(edge.source).push(edge.target);
+  }
+  while (pendingScenes.length) {
+    const scenePath = pendingScenes.pop();
+    if (routeTreeScenes.has(scenePath)) continue;
+    routeTreeScenes.add(scenePath);
+    for (const target of edgesBySource.get(scenePath) || []) pendingScenes.push(target);
+  }
+  for (const scene of Object.values(nodes)) {
+    if (!includeUnreachable.checked && !routeTreeScenes.has(scene.path)) continue;
+    add(scene.path, 'scene', {nodes: scene.nodes?.length || 0, scripts: scene.functional_summary?.scripts?.length || 0, tasks: taskByPath.get(scene.path) || [], origins: [routeTreeScenes.has(scene.path) ? 'route tree' : 'unreachable candidate']});
     for (const script of scene.functional_summary?.scripts || []) add(script, 'script', {tasks: taskByPath.get(scene.path) || [], origins: ['attached to scene']});
     for (const config of scene.functional_summary?.config_references || []) add(config, 'config', {tasks: taskByPath.get(scene.path) || [], origins: ['scene script reference']});
     for (const node of scene.nodes || []) {
