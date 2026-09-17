@@ -12,6 +12,13 @@ from pathlib import Path, PurePosixPath
 from project_health_knowledge import safe_file, write_json
 
 
+def _is_regenerable_gdunit_import(path: str) -> bool:
+    """Return whether a path is a GdUnit plugin-owned derived import cache."""
+    candidate = PurePosixPath(path)
+    return (path.startswith('Tests.Godot/addons/gdUnit4/') and path.endswith('.import') and
+            not candidate.is_absolute() and '..' not in candidate.parts)
+
+
 def prepare_snapshot(root: Path, destination: Path, revision: str, mode: str, deadline: float) -> dict:
     destination.mkdir(parents=True, exist_ok=False)
 
@@ -33,6 +40,8 @@ def prepare_snapshot(root: Path, destination: Path, revision: str, mode: str, de
                     continue
                 if stat.S_ISLNK(item.external_attr >> 16):
                     raise ValueError('Runtime snapshot does not support tracked symlinks: ' + item.filename)
+                if _is_regenerable_gdunit_import(item.filename):
+                    continue
                 target = safe_file(destination, item.filename)
                 data = bundle.read(item)
                 target.parent.mkdir(parents=True, exist_ok=True)
@@ -46,6 +55,10 @@ def prepare_snapshot(root: Path, destination: Path, revision: str, mode: str, de
             if any(p in {'.git', 'logs', '.godot', 'bin', 'obj', 'reports', '__pycache__'} for p in PurePosixPath(name).parts):
                 continue
             source = safe_file(root, name)
+            if source.is_symlink():
+                raise ValueError('Runtime snapshot does not support workspace symlinks: ' + name)
+            if _is_regenerable_gdunit_import(name):
+                continue
             if not source.is_file():
                 continue
             data = source.read_bytes()
