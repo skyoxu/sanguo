@@ -2,6 +2,37 @@ const { test, expect } = require('@playwright/test');
 
 const base = () => process.env.PROJECT_HEALTH_URL || 'http://127.0.0.1:8767';
 
+const syntheticGraph = () => ({
+  revision: 'synthetic-revision',
+  main_scene: 'Game.Godot/Scenes/Test/Main.tscn',
+  nodes: {
+    'Game.Godot/Scenes/Test/Main.tscn': {
+      path: 'Game.Godot/Scenes/Test/Main.tscn', classification: 'confirmed-reachable',
+      nodes: [], knowledge_context: [], functional_summary: { scripts: [], config_references: [] }
+    },
+    'Game.Godot/Scenes/Test/Deep.tscn': {
+      path: 'Game.Godot/Scenes/Test/Deep.tscn', classification: 'unreachable-candidate',
+      nodes: [], knowledge_context: [], functional_summary: { scripts: [], config_references: [] }
+    },
+    'Game.Godot/Scenes/Test/Outside.tscn': {
+      path: 'Game.Godot/Scenes/Test/Outside.tscn', classification: 'unreachable-candidate',
+      nodes: [], knowledge_context: [], functional_summary: { scripts: [], config_references: [] }
+    }
+  },
+  edges: [{
+    source: 'Game.Godot/Scenes/Test/Main.tscn', target: 'Game.Godot/Scenes/Test/Deep.tscn',
+    evidence_level: 'possible', kind: 'scene-reference'
+  }],
+  code_references: [],
+  script_task_context: {},
+  data_dictionary: { entries: {} },
+  file_manifest: [
+    'Game.Godot/Scenes/Test/Main.tscn',
+    'Game.Godot/Scenes/Test/Deep.tscn',
+    'Game.Godot/Scenes/Test/Outside.tscn'
+  ]
+});
+
 test.describe('project health Godot scene knowledge', () => {
   test('exposes the scene graph entry from Knowledge + Impact', async ({ page }) => {
     await page.goto(base() + '/knowledge/');
@@ -36,6 +67,58 @@ test.describe('project health Godot scene knowledge', () => {
     await page.locator('select[aria-label="Resource type"]').selectOption('script');
     await expect(page.locator('tr[data-resource-type="script"]').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Next' })).toBeVisible();
+  });
+
+  test('refreshes scene composition after a delayed graph response', async ({ page }) => {
+    let releaseGraphResponse;
+    const graphResponseReleased = new Promise(resolve => { releaseGraphResponse = resolve; });
+    await page.route('**/api/knowledge/scene-graph', async route => {
+      await graphResponseReleased;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(syntheticGraph()) });
+    });
+
+    await page.goto(base() + '/knowledge/scenes');
+    await page.getByRole('button', { name: 'Scene composition' }).click();
+    await expect(page.locator('#scene-structure')).toContainText('No resources in this category.');
+
+    releaseGraphResponse();
+
+    await expect(page.locator('tr[data-resource-type="scene"]').first()).toBeVisible();
+  });
+
+  test('keeps route-tree controls active after a delayed graph response', async ({ page }) => {
+    let releaseGraphResponse;
+    const graphResponseReleased = new Promise(resolve => { releaseGraphResponse = resolve; });
+    await page.route('**/api/knowledge/scene-graph', async route => {
+      await graphResponseReleased;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(syntheticGraph()) });
+    });
+
+    await page.goto(base() + '/knowledge/scenes');
+    await expect(page.getByRole('button', { name: 'Scene route tree' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.scene-composition-toolbar')).toBeHidden();
+
+    releaseGraphResponse();
+
+    await expect(page.locator('[data-scene-path]').first()).toBeVisible();
+    await expect(page.locator('.scene-composition-toolbar')).toBeHidden();
+  });
+
+  test('uses route-tree closure by default and adds outside scenes only on request', async ({ page }) => {
+    await page.route('**/api/knowledge/scene-graph', route => route.fulfill({
+      status: 200, contentType: 'application/json', body: JSON.stringify(syntheticGraph())
+    }));
+
+    await page.goto(base() + '/knowledge/scenes');
+    await page.getByRole('button', { name: 'Scene composition' }).click();
+
+    const deepRouteScene = page.locator('tr[data-resource-path="Game.Godot/Scenes/Test/Deep.tscn"]');
+    const outsideRouteScene = page.locator('tr[data-resource-path="Game.Godot/Scenes/Test/Outside.tscn"]');
+    await expect(deepRouteScene).toBeVisible();
+    await expect(outsideRouteScene).toHaveCount(0);
+
+    await page.locator('#include-unreachable').check();
+    await expect(outsideRouteScene).toBeVisible();
   });
 
   test('opens unconfirmed scene page and filters entries', async ({ page }) => {
