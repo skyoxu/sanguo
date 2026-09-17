@@ -121,6 +121,28 @@ class SnapshotHardeningTests(unittest.TestCase):
             self.assertEqual(task['status'], 'passed')
             self.assertTrue(task['runtime_verified'])
 
+    def test_main_run_becomes_unverified_when_retained_plugin_file_changes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            retained_path = 'Tests.Godot/addons/gdUnit4/scripts/gdunit.gd'
+            _, ref = self._runtime_fixture(root, retained_path)
+
+            def passing_run(run_root, task, godot_bin, timeout, source_revision):
+                changed = Path(task['_execution_root']) / retained_path
+                changed.write_text('changed-during-run', encoding='utf-8')
+                return {
+                    'task_id': '18', 'source_revision': source_revision, 'test_refs': [ref], 'scenes': [],
+                    'status': 'passed', 'reason': None, 'started_at': 's', 'finished_at': 'f',
+                    'evidence_path': 'logs/ci/project-health-knowledge/runtime/task.json', 'exit_code': 0,
+                    'runtime_verified': False,
+                }
+
+            with patch('project_health_runtime._run_task', side_effect=passing_run):
+                result = verify(root, 'godot.exe', 10, task_id='18', mode='main')
+            task = result['tasks'][0]
+            self.assertEqual(task['status'], 'runtime_unverified')
+            self.assertFalse(task['runtime_verified'])
+
     def test_main_run_becomes_unverified_when_retained_project_import_changes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
