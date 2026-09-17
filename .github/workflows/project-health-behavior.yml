@@ -74,7 +74,7 @@ jobs:
         env:
           CI: ''
         run: |
-          py -3 -m unittest scripts.sc.tests.test_project_health_sanguo_config scripts.sc.tests.test_project_health_http_surface scripts.sc.tests.test_project_health_server scripts.sc.tests.test_project_health_cli_status scripts.sc.tests.test_project_health_knowledge scripts.sc.tests.test_dev_cli_project_health_commands scripts.sc.tests.test_godot_scene_graph scripts.sc.tests.test_chapter6_knowledge -v
+          py -3 -m unittest scripts.sc.tests.test_project_health_sanguo_config scripts.sc.tests.test_project_health_http_surface scripts.sc.tests.test_project_health_server scripts.sc.tests.test_project_health_cli_status scripts.sc.tests.test_project_health_knowledge scripts.sc.tests.test_project_health_runtime_snapshot scripts.sc.tests.test_dev_cli_project_health_commands scripts.sc.tests.test_godot_scene_graph scripts.sc.tests.test_chapter6_knowledge -v
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --check scripts/python/project_health_knowledge.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
