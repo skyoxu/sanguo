@@ -1,0 +1,82 @@
+{
+  "schema_version": "newrouge.mvg-integration.v1",
+  "mvg_id": "boot-pilot",
+  "scope_note": "Bounded Sanguo startup integration pilot. It verifies one cross-task MainMenu/new-game/bootstrap chain; it does not establish whole-MVG coverage, visual quality, control feel, save/reload completeness, or human gameplay approval.",
+  "flows": [
+    {
+      "id": "mainmenu-config-and-boot",
+      "outcome": "A player opens the real MainMenu new-game configuration, submits a valid GameStartConfig, and the integrated boot path emits the Sanguo game/turn start signals.",
+      "task_ids": [
+        50,
+        94,
+        176
+      ],
+      "source_paths": [
+        "Game.Core/Contracts/Sanguo/GameStartConfig.cs",
+        "Game.Core/Contracts/Sanguo/GameStartConfigValidator.cs",
+        "Game.Godot/Scripts/UI/MainMenu.cs",
+        "Game.Godot/Scenes/UI/MainMenu.tscn",
+        "Game.Godot/Scenes/Main.tscn",
+        "Tests.Godot/tests/Integration/Mvg/mainmenu_fixture.gd"
+      ],
+      "handoffs": [
+        {
+          "producer_task": 50,
+          "consumer_task": 94,
+          "owner_task": 94,
+          "contract_ref": "Game.Core/Contracts/Sanguo/GameStartConfig.cs",
+          "behavior": "Preserve a validated, reproducible Sanguo game-start configuration from configuration rules into the player-facing start surface.",
+          "test_ids": [
+            "boot-core",
+            "boot-setup"
+          ]
+        },
+        {
+          "producer_task": 94,
+          "consumer_task": 176,
+          "owner_task": 176,
+          "contract_ref": "Game.Core/Contracts/EventTypes.cs",
+          "behavior": "Drive the real MainMenu start action through engine input and observe the integrated Sanguo game-start and turn-start route.",
+          "test_ids": [
+            "boot-setup",
+            "boot-input"
+          ]
+        }
+      ],
+      "test_ids": [
+        "boot-core",
+        "boot-setup",
+        "boot-input"
+      ]
+    }
+  ],
+  "tests": [
+    {
+      "id": "boot-core",
+      "kind": "dotnet",
+      "state": "implemented",
+      "evidence_level": "domain-integration",
+      "path": "Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs",
+      "selector": "Game.Core.Tests.Tasks.Task50GameStartConfigTests",
+      "min_tests": 15
+    },
+    {
+      "id": "boot-setup",
+      "kind": "gdunit",
+      "state": "implemented",
+      "evidence_level": "scene-method",
+      "path": "Tests.Godot/tests/UI/test_task94_new_game_setup_constraints_and_start.gd",
+      "min_tests": 2
+    },
+    {
+      "id": "boot-input",
+      "kind": "gdunit",
+      "state": "implemented",
+      "evidence_level": "engine-input",
+      "path": "Tests.Godot/tests/Integration/Mvg/test_mainmenu_input_journey.gd",
+      "min_tests": 1,
+      "challenge": "disconnect-mainmenu-input",
+      "challenge_failure_marker": "MVG_MAINMENU_INPUT_DID_NOT_OPEN_CONFIG"
+    }
+  ]
+}
