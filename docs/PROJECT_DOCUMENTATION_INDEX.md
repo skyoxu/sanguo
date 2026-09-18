@@ -98,3 +98,5 @@ Current stop-loss families:
 
 - [Chapter 7 Profile Guide](workflows/chapter7-profile-guide.md)
 - [Chapter 7 Profile](workflows/chapter7-profile.json)
+
+- [MVG 集成验收](workflows/mvg-integration-acceptance.md)：交接归属、整合提交测试、保守 Impact 回归建议与可选变异实验。
