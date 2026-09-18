@@ -1,0 +1,60 @@
+{
+  "schema_version": "sanguo.upstream-migration-ledger.v1",
+  "source_repository": "skyoxu/newrouge",
+  "target_repository": "skyoxu/sanguo",
+  "policy": {
+    "generated_state": "rebuild-in-target",
+    "business_specific_state": "adapt-or-exclude",
+    "unknown_change_scope": "full-validation",
+    "duplicate_open_prs": "forbidden"
+  },
+  "historical_preledger_prs": [249, 250, 251],
+  "records": [
+    {
+      "id": "newrouge-project-health-impact-20260915",
+      "migration_key": "skyoxu/newrouge@fe222e37187e76e849b20bebae39c56906286a69->skyoxu/sanguo",
+      "source_prs": [174],
+      "source_commits": ["fe222e37187e76e849b20bebae39c56906286a69"],
+      "target_pr": 253,
+      "target_branch": "feat/align-newrouge-evolution-20260915",
+      "target_base": "74ea63cf2d5b938c4b6fdf973a7b62297b50844d",
+      "status": "merged",
+      "mode": "adapted",
+      "scope": ["project-health", "knowledge", "impact", "scene-graph"],
+      "excluded": ["newrouge business data", "generated knowledge publication state", "vendor-only scene UI assets"]
+    },
+    {
+      "id": "newrouge-project-health-snapshot-scenes-20260917",
+      "migration_key": "skyoxu/newrouge@c586393493b42abc5364430b98ea960a34631ece->skyoxu/sanguo",
+      "source_prs": [176, 178],
+      "source_commits": [
+        "b3c3c4ed3a3203980a5cbdd819eaf614ca9d5a53",
+        "c586393493b42abc5364430b98ea960a34631ece"
+      ],
+      "target_pr": 255,
+      "target_branch": "fix/align-newrouge-evolution-20260917",
+      "target_base": "677585ee7d92e19bce827b97515631d52e502d90",
+      "status": "merged",
+      "mode": "adapted",
+      "scope": ["project-health-runtime-snapshot", "scene-composition"],
+      "excluded": ["_bmad-output", "generated godot element catalog", "newrouge business scene names"]
+    },
+    {
+      "id": "newrouge-mvg-impact-20260918",
+      "migration_key": "skyoxu/newrouge@9f75081ae80e2b8eb1c222eda3ad9def93ef09b5->skyoxu/sanguo",
+      "source_prs": [180],
+      "source_commits": ["9f75081ae80e2b8eb1c222eda3ad9def93ef09b5"],
+      "target_pr": 256,
+      "target_branch": "feat/align-mvg-impact-evolution-20260918",
+      "target_base": "95f8ff659296f51822c323be2366fbb713c501f3",
+      "status": "open",
+      "mode": "adapted",
+      "scope": ["mvg-acceptance", "impact-recommendation", "workflow-governance"],
+      "excluded": ["newrouge Reward production code", "Reward task IDs", "derived Knowledge publication state"],
+      "evidence": {
+        "mvg_workflow_run": 35344470746,
+        "mvg_artifact": 10546029218
+      }
+    }
+  ]
+}
