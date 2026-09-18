@@ -193,6 +193,8 @@ Chapter 2 任务完毕时，必须向用户展示 project-health 的访问信息
 
 ## 3. Phase 1: Task Triplet Initialization
 
+MVG 集成补充：按 [MVG 集成验收](docs/workflows/mvg-integration-acceptance.md) 建立链路清单，复用真实任务指定交接归属；只有无人承担时才补集成任务。
+
 ### 3.0 Choose The Chapter 3 Route First
 
 Do not treat `tasks.json` as a file that must be authored directly by Taskmaster MCP.
@@ -444,6 +446,8 @@ Default output:
 This check is for regression evidence only. Do not tune Chapter 3 rules to exactly reproduce a mature repo's Chapter 4/5/6/7 task history.
 
 ## 4. Phase 2：Overlays 与 Contracts 基线
+
+MVG 集成补充：清单中的交接必须有生产方、消费方、归属任务、现有契约引用和测试责任；运行 plan 检查引用缺口。见 [MVG 集成验收](docs/workflows/mvg-integration-acceptance.md)。
 
 ### 4.1 只有 triplet 有效后，才生成 overlay skeletons
 
@@ -707,6 +711,8 @@ py -3 scripts/python/run_obligations_freeze_pipeline.py --skip-jitter --raw logs
 ```
 
 ## 6. Phase 4: Single Task Daily Loop
+
+MVG 集成补充：单任务期间逐步实现链路测试；MVG 收尾对整合提交运行完整清单，保存运行证据。沿用本章 review 与门禁。见 [MVG 集成验收](docs/workflows/mvg-integration-acceptance.md)。
 
 This chapter is the main daily loop for a single task: recovery inspection, TDD, review pipeline, Needs Fix convergence, and pre-commit hard checks.
 
@@ -1373,6 +1379,8 @@ Inspect these first after a failure:
 - 读 6.7 summary 的最短路径：先看 `reason` / `diagnostics.rerun_guard` / `diagnostics.rerun_forbidden`，再看 `dominant_cost_phase` / `step_duration_totals`，最后再决定是否需要加 reviewer 或 step timeout。
 
 ## 7. Phase 5: Chapter 7 UI Wiring Closure
+
+MVG 集成补充：关键旅程使用真实场景准备、引擎输入、有界状态等待和清理；不得把静态接线或业务方法调用等同输入验证。见 [MVG 集成验收](docs/workflows/mvg-integration-acceptance.md)。
 
 Chapter 7 runs after the formal task backlog has been completed through Chapter 6. Its purpose is to convert completed domain and gameplay capabilities into player-facing UI wiring based on `docs/gdd/ui-gdd-flow.md`.
 
