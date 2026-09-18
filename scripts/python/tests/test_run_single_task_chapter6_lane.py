@@ -31,6 +31,55 @@ lane = _load_module("single_task_chapter6_lane_module", "scripts/python/run_sing
 
 
 class RunSingleTaskChapter6LaneTests(unittest.TestCase):
+    def test_handoff_builder_forwards_all_arguments(self) -> None:
+        cmd = lane.build_review_pipeline_cmd(
+            "15",
+            profile_policy=lane.resolve_profile_policy("fast-ship"),
+            godot_bin="C:/Godot/Godot.exe",
+            frozen_context="logs/ci/context.frozen.json",
+            impact_report="logs/ci/impact-report.json",
+            revision="a" * 40,
+        )
+        self.assertEqual(
+            [
+                "--frozen-context", "logs/ci/context.frozen.json",
+                "--impact-report", "logs/ci/impact-report.json",
+                "--revision", "a" * 40,
+            ],
+            cmd[-6:],
+        )
+
+    def test_partial_handoff_is_rejected_fail_closed(self) -> None:
+        result = lane.validate_handoff(
+            "logs/ci/context.frozen.json",
+            "",
+            "a" * 40,
+            repo_root=REPO_ROOT,
+            consumer="chapter6",
+            task_id="15",
+        )
+        self.assertFalse(result.ok)
+        self.assertEqual("invalid_kcp_binding", result.code)
+        self.assertEqual(11, result.exit_code)
+
+    def test_review_context_plan_stops_at_pending_review(self) -> None:
+        plan = {
+            "status": "planned",
+            "stop_reason": "",
+            "steps": [
+                {"name": "resume-task", "cmd": ["resume"]},
+                {"name": "red-first", "cmd": ["red"]},
+                {"name": "review-pipeline", "cmd": ["review"]},
+                {"name": "local-hard-checks", "cmd": ["hard"]},
+            ],
+        }
+        stopped = lane._stop_plan_at_review_context_boundary(plan)
+        self.assertEqual("blocked", stopped["status"])
+        self.assertEqual("review_context_required", stopped["stop_reason"])
+        self.assertEqual("review-pipeline", stopped["pending_step"])
+        self.assertEqual(["resume-task", "red-first", "review-pipeline"], [step["name"] for step in stopped["steps"]])
+        self.assertIn("consumer=review", stopped["next_action"])
+
     def test_resolve_profile_policy_should_default_to_p0_for_playable_ea(self) -> None:
         policy = lane.resolve_profile_policy("playable-ea")
 
