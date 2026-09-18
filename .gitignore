@@ -80,6 +80,7 @@ Thumbs.db
 *.pdb
 
 # Godot editor binaries/downloads (keep project assets only)
+/godot/
 Godot_v*.exe
 Godot_*.zip
 
