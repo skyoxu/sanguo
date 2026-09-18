@@ -1,0 +1,71 @@
+{
+  "schema_version": "newrouge.mvg-integration.v1",
+  "mvg_id": "sanguo-gameover-pilot",
+  "scope_note": "Bounded MVG pilot for Sanguo. It proves economy boundary rules plus one real game-over -> main-menu engine-action journey. It is not complete MVG coverage or human playtest approval.",
+  "flows": [
+    {
+      "id": "economy-to-gameover-return",
+      "outcome": "Economy multiplier boundaries stay valid while the real game-over surface accepts engine action input for the main-menu route and continue remains gated.",
+      "task_ids": [13, 197, 198],
+      "source_paths": [
+        "Game.Core/Domain/SanguoEconomyRules.cs",
+        "Game.Godot/Scripts/UI/GameOverFailMenu.gd",
+        "Game.Godot/Scripts/UI/ContinueGateDialog.gd",
+        "Game.Godot/Scenes/UI/GameOverFailMenu.tscn",
+        "Game.Godot/Scenes/UI/MainMenu.tscn",
+        "Game.Godot/Scenes/UI/ContinueGateDialog.tscn"
+      ],
+      "handoffs": [
+        {
+          "producer_task": 13,
+          "consumer_task": 197,
+          "owner_task": 197,
+          "contract_ref": "Game.Core/Domain/SanguoEconomyRules.cs",
+          "behavior": "Economy boundary rules remain deterministic before failure-state handling.",
+          "test_ids": ["economy-boundaries"]
+        },
+        {
+          "producer_task": 197,
+          "consumer_task": 198,
+          "owner_task": 198,
+          "contract_ref": "Game.Godot/Scripts/UI/GameOverFailMenu.gd",
+          "behavior": "Failure state exposes a real main-menu route controlled by the game-over surface.",
+          "test_ids": ["gameover-input"]
+        },
+        {
+          "producer_task": 198,
+          "consumer_task": 198,
+          "owner_task": 198,
+          "contract_ref": "Game.Godot/Scripts/UI/ContinueGateDialog.gd",
+          "behavior": "Continue remains blocked after game-over failure while main-menu return stays available.",
+          "test_ids": ["gameover-input"]
+        }
+      ],
+      "test_ids": ["economy-boundaries", "gameover-input"]
+    }
+  ],
+  "tests": [
+    {
+      "id": "economy-boundaries",
+      "kind": "dotnet",
+      "state": "implemented",
+      "evidence_level": "domain-integration",
+      "path": "Game.Core.Tests/Domain/MvgEconomyMutationProbeTests.cs",
+      "selector": "Game.Core.Tests.Domain.MvgEconomyMutationProbeTests",
+      "min_tests": 3
+    },
+    {
+      "id": "gameover-input",
+      "kind": "gdunit",
+      "state": "implemented",
+      "evidence_level": "engine-input",
+      "path": "Tests.Godot/tests/Integration/Mvg/test_gameover_main_menu_journey.gd",
+      "min_tests": 1,
+      "challenge": {
+        "env_var": "MVG_INPUT_CHALLENGE",
+        "env_value": "disconnect-main-menu-input",
+        "failure_marker": "MVG_MAIN_MENU_INPUT_DID_NOT_ROUTE"
+      }
+    }
+  ]
+}
