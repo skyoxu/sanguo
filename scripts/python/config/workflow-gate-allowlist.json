@@ -18,7 +18,8 @@
     "scripts/python/publish_knowledge_catalog.py",
     "scripts/python/validate_knowledge_control_plane.py",
     "scripts/python/run_mvg_acceptance.py",
-    "scripts/python/run_mvg_mutation_probe.py"
+    "scripts/python/run_mvg_mutation_probe.py",
+    "scripts/python/check_migration_ledger.py"
   ],
   "required_bundle_workflows": [
     ".github/workflows/windows-quality-gate.yml",
