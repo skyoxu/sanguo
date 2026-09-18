@@ -1,0 +1,69 @@
+name: MVG Integration Pilot
+
+on:
+  workflow_dispatch:
+    inputs:
+      mutation_probe:
+        description: Run the optional seeded Sanguo startup mutation experiment
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - '.github/workflows/mvg-integration.yml'
+      - 'scripts/python/*mvg*'
+      - 'scripts/python/tests/test_mvg*'
+      - 'scripts/python/_project_health_runtime_snapshot.py'
+      - 'scripts/python/run_gdunit.py'
+      - 'scripts/python/check_workflow_gate_enforcement.py'
+      - 'scripts/python/config/workflow-gate-allowlist.json'
+      - 'docs/testing/mvg/**'
+      - 'Game.Core/Contracts/Sanguo/GameStartConfig*.cs'
+      - 'Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs'
+      - 'Game.Godot/Scripts/UI/MainMenu.cs'
+      - 'Game.Godot/Scenes/UI/MainMenu.tscn'
+      - 'Game.Godot/Scenes/Main.tscn'
+      - 'Tests.Godot/tests/UI/test_task94_new_game_setup_constraints_and_start.gd'
+      - 'Tests.Godot/tests/UI/test_task176_mainmenu_boot_flow.gd'
+      - 'Tests.Godot/tests/Integration/Mvg/**'
+
+permissions:
+  contents: read
+
+jobs:
+  boot-pilot:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: 'utf-8'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Download Godot .NET
+        shell: pwsh
+        run: ./scripts/ci/download_godot_release.ps1 -Version '4.5.1' -PreferConsole
+      - name: Verify MVG runner failure handling
+        run: python -m unittest discover -s scripts/python/tests -p test_mvg_acceptance.py -v
+      - name: Run committed Sanguo boot pilot and disconnected-input challenge
+        shell: pwsh
+        run: python scripts/python/run_mvg_acceptance.py --mode run --snapshot commit --revision HEAD --godot-bin $env:GODOT_BIN --timeout-sec 1200 --challenge-input
+      - name: Optional seeded mutation experiment
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mutation_probe }}
+        run: python scripts/python/run_mvg_mutation_probe.py --snapshot commit --revision HEAD
+      - name: Upload execution evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mvg-integration-evidence
+          path: |
+            logs/ci/mvg-acceptance/**
+            logs/ci/mvg-mutation/**
+            !logs/**/snapshot/**
+          retention-days: 14
