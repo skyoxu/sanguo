@@ -69,6 +69,9 @@ jobs:
       - name: Run committed Sanguo boot pilot and disconnected-input challenge
         shell: pwsh
         run: python scripts/python/run_mvg_acceptance.py --mode run --snapshot commit --revision HEAD --godot-bin $env:GODOT_BIN --timeout-sec 1200 --challenge-input
+      - name: Run workspace Sanguo boot pilot
+        shell: pwsh
+        run: python scripts/python/run_mvg_acceptance.py --mode run --snapshot workspace --revision HEAD --godot-bin $env:GODOT_BIN --timeout-sec 1200
       - name: Optional seeded mutation experiment
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mutation_probe }}
         run: python scripts/python/run_mvg_mutation_probe.py --snapshot commit --revision HEAD
