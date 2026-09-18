@@ -498,6 +498,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_ch6.add_argument("--security-profile", default="")
     p_ch6.add_argument("--fix-through", default="", choices=["", "P0", "P1", "P2", "P3"])
     p_ch6.add_argument("--out-dir", default="")
+    p_ch6.add_argument("--frozen-context", default="")
+    p_ch6.add_argument("--impact-report", default="")
+    p_ch6.add_argument("--revision", default="")
+    p_ch6.add_argument("--binding-evidence", default="")
     p_ch6.add_argument("--self-check", action="store_true")
     p_ch6.set_defaults(func=cmd_run_single_task_chapter6)
 
