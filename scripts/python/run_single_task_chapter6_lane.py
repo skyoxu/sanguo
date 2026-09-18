@@ -9,6 +9,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from impact_analysis_handoff import validate_handoff
+
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
@@ -66,7 +68,14 @@ def resolve_profile_policy(
     }
 
 
-def build_resume_task_cmd(task_id: str) -> list[str]:
+def _append_handoff_args(cmd: list[str], *, frozen_context: str = "", impact_report: str = "", revision: str = "") -> list[str]:
+    for name, value in (("frozen-context", frozen_context), ("impact-report", impact_report), ("revision", revision)):
+        if str(value or "").strip():
+            cmd.extend([f"--{name}", str(value)])
+    return cmd
+
+
+def build_resume_task_cmd(task_id: str, *, frozen_context: str = "", impact_report: str = "", revision: str = "") -> list[str]:
     return [
         "py",
         "-3",
@@ -80,7 +89,7 @@ def build_resume_task_cmd(task_id: str) -> list[str]:
     ]
 
 
-def build_chapter6_route_cmd(task_id: str, *, record_residual: bool) -> list[str]:
+def build_chapter6_route_cmd(task_id: str, *, record_residual: bool, frozen_context: str = "", impact_report: str = "", revision: str = "") -> list[str]:
     cmd = [
         "py",
         "-3",
@@ -147,7 +156,7 @@ def build_build_tdd_cmd(task_id: str, *, stage: str, profile_policy: dict[str, s
     ]
 
 
-def build_review_pipeline_cmd(task_id: str, *, profile_policy: dict[str, str], godot_bin: str, fork: bool = False) -> list[str]:
+def build_review_pipeline_cmd(task_id: str, *, profile_policy: dict[str, str], godot_bin: str, fork: bool = False, frozen_context: str = "", impact_report: str = "", revision: str = "") -> list[str]:
     cmd = [
         "py",
         "-3",
@@ -163,11 +172,11 @@ def build_review_pipeline_cmd(task_id: str, *, profile_policy: dict[str, str], g
         cmd += ["--godot-bin", str(godot_bin)]
     if fork:
         cmd.append("--fork")
-    return cmd
+    return _append_handoff_args(cmd, frozen_context=frozen_context, impact_report=impact_report, revision=revision)
 
 
-def build_review_pipeline_fork_cmd(task_id: str, *, profile_policy: dict[str, str], godot_bin: str) -> list[str]:
-    return build_review_pipeline_cmd(task_id, profile_policy=profile_policy, godot_bin=godot_bin, fork=True)
+def build_review_pipeline_fork_cmd(task_id: str, *, profile_policy: dict[str, str], godot_bin: str, frozen_context: str = "", impact_report: str = "", revision: str = "") -> list[str]:
+    return build_review_pipeline_cmd(task_id, profile_policy=profile_policy, godot_bin=godot_bin, fork=True, frozen_context=frozen_context, impact_report=impact_report, revision=revision)
 
 
 def build_needs_fix_fast_cmd(task_id: str, *, profile_policy: dict[str, str]) -> list[str]:
@@ -488,6 +497,9 @@ def build_orchestration_decision(
     post_review_route: dict[str, Any],
     final_route: dict[str, Any],
     resume_payload: dict[str, Any] | None = None,
+    frozen_context: str = "",
+    impact_report: str = "",
+    revision: str = "",
 ) -> dict[str, Any]:
     initial_route_eval = _evaluate_route_state(initial_route, allow_needs_fix=True)
     post_review_route_eval = _evaluate_route_state(post_review_route, allow_needs_fix=True)
@@ -556,7 +568,14 @@ def build_execution_plan(
             [
                 _build_step(
                     "review-pipeline-fork",
-                    build_review_pipeline_fork_cmd(task_id, profile_policy=profile_policy, godot_bin=godot_bin),
+                    build_review_pipeline_fork_cmd(
+                        task_id,
+                        profile_policy=profile_policy,
+                        godot_bin=godot_bin,
+                        frozen_context=frozen_context,
+                        impact_report=impact_report,
+                        revision=revision,
+                    ),
                 ),
                 _build_step("chapter6-route-post-review", build_chapter6_route_cmd(task_id, record_residual=record_residual)),
             ]
@@ -621,7 +640,17 @@ def build_execution_plan(
             _build_step("red-first", build_red_first_cmd(task_id, profile_policy=profile_policy, godot_bin=godot_bin)),
             _build_step("green", build_build_tdd_cmd(task_id, stage="green", profile_policy=profile_policy)),
             _build_step("refactor", build_build_tdd_cmd(task_id, stage="refactor", profile_policy=profile_policy)),
-            _build_step("review-pipeline", build_review_pipeline_cmd(task_id, profile_policy=profile_policy, godot_bin=godot_bin)),
+            _build_step(
+                "review-pipeline",
+                build_review_pipeline_cmd(
+                    task_id,
+                    profile_policy=profile_policy,
+                    godot_bin=godot_bin,
+                    frozen_context=frozen_context,
+                    impact_report=impact_report,
+                    revision=revision,
+                ),
+            ),
             _build_step("chapter6-route-post-review", build_chapter6_route_cmd(task_id, record_residual=record_residual)),
         ]
     )
@@ -783,6 +812,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fix-through", default="")
     parser.add_argument("--out-dir", default="")
     parser.add_argument("--self-check", action="store_true")
+    parser.add_argument("--frozen-context", default="")
+    parser.add_argument("--impact-report", default="")
+    parser.add_argument("--revision", default="")
+    parser.add_argument("--binding-evidence", default="")
     return parser
 
 
@@ -796,6 +829,13 @@ def main() -> int:
         security_profile=str(args.security_profile),
         fix_through=str(args.fix_through),
     )
+
+    handoff = validate_handoff(args.frozen_context, args.impact_report, args.revision, repo_root=_repo_root(), consumer="chapter6", task_id=task_id, binding_evidence=args.binding_evidence)
+    if not handoff.ok:
+        payload = {"cmd": "run-single-task-chapter6", "task_id": task_id, "status": "fail", "stop_reason": handoff.code, "handoff": {"code": handoff.code, "reason": handoff.reason}, "steps": [], "out_dir": str(out_dir).replace("\\", "/")}
+        _write_json(out_dir / "summary.json", payload)
+        print(f"SINGLE_TASK_CHAPTER6 status=fail task={task_id} stop={handoff.code}")
+        return handoff.exit_code
 
     if bool(args.self_check):
         placeholder_route = {
@@ -812,6 +852,9 @@ def main() -> int:
             post_review_route={"preferred_lane": "inspect-first"},
             final_route={"preferred_lane": "inspect-first"},
             resume_payload={},
+            frozen_context=args.frozen_context,
+            impact_report=args.impact_report,
+            revision=args.revision,
         )
         payload = {
             "cmd": "run-single-task-chapter6",
@@ -962,7 +1005,7 @@ def main() -> int:
     elif decision["initial_phase"]["action"] == "fork":
         if not _run_required(
             "review-pipeline-fork",
-            build_review_pipeline_fork_cmd(task_id, profile_policy=profile_policy, godot_bin=str(args.godot_bin)),
+            build_review_pipeline_fork_cmd(task_id, profile_policy=profile_policy, godot_bin=str(args.godot_bin), frozen_context=args.frozen_context, impact_report=args.impact_report, revision=args.revision),
         ):
             return 1
         post_review_route = _run_route("chapter6-route-post-review")
@@ -1004,7 +1047,7 @@ def main() -> int:
             ("red-first", build_red_first_cmd(task_id, profile_policy=profile_policy, godot_bin=str(args.godot_bin))),
             ("green", build_build_tdd_cmd(task_id, stage="green", profile_policy=profile_policy)),
             ("refactor", build_build_tdd_cmd(task_id, stage="refactor", profile_policy=profile_policy)),
-            ("review-pipeline", build_review_pipeline_cmd(task_id, profile_policy=profile_policy, godot_bin=str(args.godot_bin))),
+            ("review-pipeline", build_review_pipeline_cmd(task_id, profile_policy=profile_policy, godot_bin=str(args.godot_bin), frozen_context=args.frozen_context, impact_report=args.impact_report, revision=args.revision)),
         ]
         for name, cmd in full_path_steps:
             if not _run_required(name, cmd):
