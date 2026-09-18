@@ -87,7 +87,10 @@
         "impact-recommendation",
         "workflow-governance",
         "runtime-snapshot-integrity",
-        "impact-handoff-integrity"
+        "impact-handoff-integrity",
+        "chapter6-handoff-routing",
+        "review-consumer-handoff",
+        "review-context-boundary"
       ],
       "excluded": [
         "newrouge Reward production code",
@@ -98,7 +101,24 @@
       "evidence": {
         "mvg_workflow_run": 35344470746,
         "mvg_artifact": 10546029218
-      }
+      },
+      "historical_gap_sources": [
+        {
+          "source_pr": 158,
+          "source_commit": "c29169acdbfc1107bcd9961864a5faecfb445498",
+          "repaired_scope": [
+            "chapter6-handoff-routing",
+            "review-consumer-handoff"
+          ]
+        },
+        {
+          "source_pr": 165,
+          "source_commit": "5827a61a7f123005c6357a5a6ed93be939cdb522",
+          "repaired_scope": [
+            "review-context-boundary"
+          ]
+        }
+      ]
     }
   ]
 }
