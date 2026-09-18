@@ -84,6 +84,7 @@ from _llm_review_tier import resolve_llm_review_tier_plan
 from _summary_schema import SummarySchemaError, validate_pipeline_summary
 from _util import repo_root, write_json, write_text
 from _active_task_sidecar import write_active_task_sidecar as _write_active_task_sidecar_impl
+from impact_analysis_handoff import validate_handoff
 
 
 def current_git_fingerprint() -> dict[str, Any]:
@@ -1849,13 +1850,34 @@ def main() -> int:
         print("[sc-review-pipeline] ERROR: --resume, --abort, and --fork are mutually exclusive.")
         return 2
 
+    handoff = validate_handoff(
+        args.frozen_context,
+        args.impact_report,
+        args.revision,
+        repo_root=repo_root(),
+        consumer="review",
+        binding_evidence=args.binding_evidence,
+    )
+    if not handoff.ok:
+        print(f"[sc-review-pipeline] ERROR: {handoff.code}: {handoff.reason}")
+        return handoff.exit_code
+
     requested_run_id = str(args.run_id or "").strip() or uuid.uuid4().hex
     run_id = requested_run_id
     source_execution_context: dict[str, Any] | None = None
+    source_handoff_identity: dict[str, Any] | None = None
 
     try:
         if args.resume or args.abort:
             out_dir, summary, marathon_state = _load_source_run(task_id, (args.run_id or "").strip() or None)
+            source_handoff_path = out_dir / "impact-analysis-handoff.json"
+            if source_handoff_path.exists():
+                try:
+                    loaded_handoff = json.loads(source_handoff_path.read_text(encoding="utf-8"))
+                    if isinstance(loaded_handoff, dict):
+                        source_handoff_identity = loaded_handoff
+                except Exception:
+                    source_handoff_identity = None
             source_execution_context = _read_execution_context(out_dir)
             if args.resume:
                 blocked, message = _enforce_approval_contract(
@@ -1870,6 +1892,14 @@ def main() -> int:
             requested_run_id = str(summary.get("requested_run_id") or run_id).strip() or run_id
         elif args.fork:
             source_out_dir, source_summary, source_state = _load_source_run(task_id, (args.fork_from_run_id or "").strip() or None)
+            source_handoff_path = source_out_dir / "impact-analysis-handoff.json"
+            if source_handoff_path.exists():
+                try:
+                    loaded_handoff = json.loads(source_handoff_path.read_text(encoding="utf-8"))
+                    if isinstance(loaded_handoff, dict):
+                        source_handoff_identity = loaded_handoff
+                except Exception:
+                    source_handoff_identity = None
             source_execution_context = _read_execution_context(source_out_dir)
             blocked, message = _enforce_approval_contract(
                 action="fork",
@@ -1939,6 +1969,27 @@ def main() -> int:
     except FileNotFoundError:
         print("[sc-review-pipeline] ERROR: no existing pipeline run found for resume/abort/fork.")
         return 2
+
+    if handoff.ok and handoff.identity is not None:
+        if source_handoff_identity is not None and source_handoff_identity != handoff.identity:
+            print("[sc-review-pipeline] ERROR: invalid_kcp_binding: resume/fork handoff identity mismatch")
+            return 11
+        identity_path = out_dir / "impact-analysis-handoff.json"
+        if (args.resume or args.fork) and identity_path.exists():
+            try:
+                prior = json.loads(identity_path.read_text(encoding="utf-8"))
+            except Exception:
+                prior = None
+            if prior != handoff.identity:
+                print("[sc-review-pipeline] ERROR: invalid_kcp_binding: resume/fork handoff identity mismatch")
+                return 11
+        else:
+            try:
+                identity_path.parent.mkdir(parents=True, exist_ok=True)
+                identity_path.write_text(json.dumps(handoff.identity, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+            except OSError as exc:
+                print(f"[sc-review-pipeline] ERROR: invalid_kcp_binding: cannot persist handoff identity: {exc}")
+                return 11
 
     try:
         delivery_profile, security_profile = _resolve_pipeline_profiles(
