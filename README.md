@@ -130,3 +130,5 @@ Recovery stop-loss rules:
 - Chapter 7 UI wiring: [docs/gdd/ui-gdd-flow.md](docs/gdd/ui-gdd-flow.md)
 - Chapter 7 profile guide: [docs/workflows/chapter7-profile-guide.md](docs/workflows/chapter7-profile-guide.md)
 - Default Chapter 7 profile: [docs/workflows/chapter7-profile.json](docs/workflows/chapter7-profile.json)
+
+MVG 集成验收入口与 Sanguo 启动试点：[使用说明](docs/workflows/mvg-integration-acceptance.md)。
