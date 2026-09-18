@@ -912,3 +912,5 @@ func test_settings_saved_uses_configfile() -> void:
     var err := cfg.load("user://settings.cfg")
     assert_int(err).is_equal(Error.OK)
 ```
+
+MVG 跨任务链路验证：[集成验收与可选变异实验](workflows/mvg-integration-acceptance.md)。
