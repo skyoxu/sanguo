@@ -9,6 +9,7 @@ on:
         default: false
   pull_request:
     paths:
+      - '.gitignore'
       - '.github/workflows/mvg-integration.yml'
       - 'scripts/python/*mvg*'
       - 'scripts/python/tests/test_mvg*'
