@@ -62,7 +62,22 @@ def _extract_gate_scripts(commands: list[dict[str, Any]]) -> set[str]:
 
 def _extract_workflow_scripts(text: str) -> set[str]:
     pattern = re.compile(r"scripts/python/[A-Za-z0-9_.-]+\.py")
-    return {match.group(0).replace("\\", "/") for match in pattern.finditer(text)}
+    # Inspect run scalar bodies, not trigger paths, names or comments.
+    commands = []
+    run_indent = None
+    for line in text.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        if run_indent is not None and indent > run_indent:
+            commands.append(line)
+            continue
+        run_indent = None
+        match = re.match(r"^(\s*)(?:-\s+)?run:\s*(.*)$", line)
+        if match:
+            commands.append(match.group(2))
+            run_indent = line.index("run:")
+    return {match.group(0) for match in pattern.finditer("\n".join(commands))}
 
 
 def _load_allowlist(repo_root: Path, allowlist_path: Path) -> dict[str, Any]:
