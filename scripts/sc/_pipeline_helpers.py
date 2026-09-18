@@ -81,6 +81,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dry-run", action="store_true", help="Print planned commands without executing.")
     parser.add_argument("--allow-overwrite", action="store_true", help="Allow reusing an existing task+run_id output directory by deleting it first.")
     parser.add_argument("--force-new-run-id", action="store_true", help="When task+run_id directory exists, auto-generate a new run_id instead of failing.")
+    parser.add_argument("--frozen-context", default=None, help="Frozen KCP context path for impact handoff.")
+    parser.add_argument("--impact-report", default=None, help="Impact analysis report path for handoff.")
+    parser.add_argument("--revision", default=None, help="Full Git revision bound to the handoff.")
+    parser.add_argument("--binding-evidence", default=None, help="Binding evidence sidecar for impact handoff.")
     return parser
 
 
