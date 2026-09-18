@@ -149,6 +149,21 @@ class MvgAcceptanceTests(unittest.TestCase):
                         '<Counters total="2" passed="2" failed="0"/></TestRun>')
         self.assertFalse(read_test_evidence(self.root, 'dotnet', 'Expected', 1)['passed'])
 
+    def test_duplicate_test_identity_across_reports_fails_closed(self):
+        one = self.root / 'one'
+        two = self.root / 'two'
+        one.mkdir()
+        two.mkdir()
+        (one / 'results.trx').write_text(
+            '<TestRun><UnitTestResult executionId="run-one" testName="Expected.A" outcome="Passed"/></TestRun>'
+        )
+        (two / 'results.trx').write_text(
+            '<TestRun><UnitTestResult executionId="run-two" testName="Expected.A" outcome="Passed"/></TestRun>'
+        )
+        result = read_test_evidence(self.root, 'dotnet', 'Expected', 1)
+        self.assertFalse(result['passed'])
+        self.assertEqual('duplicate-test-results', result['reason'])
+
     def test_commit_recommendation_does_not_include_head_or_working_changes(self):
         from run_mvg_acceptance import changed_paths
         calls = []
