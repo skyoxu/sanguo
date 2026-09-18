@@ -37,5 +37,6 @@
 - ADR-0009: 跨平台适配策略（已被 Windows-only 平台策略替代） — `docs/adr/ADR-0009-cross-platform.md`
 
 ## 需要处理（Status 缺失/非 Accepted）
+- ADR-0037: Bounded MVG Integration Evidence (Status=Proposed) — `docs/adr/ADR-0037-mvg-integration-evidence.md`
 - ADR-0017: Quality Intelligence Dashboard and Governance (Status=Proposed) — `docs/adr/ADR-0017-quality-intelligence-dashboard-and-governance.md`
 - ADR-0016: API 契约与 OpenAPI 基线 (Status=Missing) — `docs/adr/ADR-0016-api-contracts-openapi.md`
