@@ -12,11 +12,15 @@ on:
       - '.github/workflows/mvg-integration.yml'
       - 'scripts/python/*mvg*'
       - 'scripts/python/tests/test_mvg*'
+      - 'scripts/python/check_migration_ledger.py'
+      - 'scripts/python/tests/test_migration_ledger.py'
       - 'scripts/python/_project_health_runtime_snapshot.py'
       - 'scripts/python/run_gdunit.py'
       - 'scripts/python/check_workflow_gate_enforcement.py'
       - 'scripts/python/config/workflow-gate-allowlist.json'
       - 'docs/testing/mvg/**'
+      - 'docs/migration/upstream-sync-ledger.json'
+      - 'docs/migration/UPSTREAM_RECONCILIATION_POLICY.md'
       - 'Game.Core/Contracts/Sanguo/GameStartConfig*.cs'
       - 'Game.Core.Tests/Tasks/Task50GameStartConfigTests.cs'
       - 'Game.Godot/Scripts/UI/MainMenu.cs'
@@ -28,6 +32,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   boot-pilot:
@@ -46,6 +51,15 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Verify migration ledger structure
+        run: python scripts/python/check_migration_ledger.py
+      - name: Reject duplicate canonical migration PRs
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/python/check_migration_ledger.py --check-open-prs
+      - name: Verify migration ledger regressions
+        run: python -m unittest discover -s scripts/python/tests -p test_migration_ledger.py -v
       - name: Download Godot .NET
         shell: pwsh
         run: ./scripts/ci/download_godot_release.ps1 -Version '4.5.1' -PreferConsole
