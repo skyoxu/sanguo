@@ -19,6 +19,15 @@ def _is_regenerable_gdunit_import(path: str) -> bool:
             not candidate.is_absolute() and '..' not in candidate.parts)
 
 
+def _is_workspace_ignored(path: str) -> bool:
+    parts = PurePosixPath(path).parts
+    if any(p in {'.git', 'logs', '.godot', 'obj', 'reports', '__pycache__'} for p in parts):
+        return True
+    if 'bin' in parts and not path.startswith('Tests.Godot/addons/gdUnit4/bin/'):
+        return True
+    return False
+
+
 def prepare_snapshot(root: Path, destination: Path, revision: str, mode: str, deadline: float) -> dict:
     destination.mkdir(parents=True, exist_ok=False)
 
@@ -52,7 +61,7 @@ def prepare_snapshot(root: Path, destination: Path, revision: str, mode: str, de
                                capture_output=True, check=True, timeout=remaining()).stdout.decode('utf-8').split('\0')
         for name in sorted(set(names) - {''}):
             remaining()
-            if any(p in {'.git', 'logs', '.godot', 'bin', 'obj', 'reports', '__pycache__'} for p in PurePosixPath(name).parts):
+            if _is_workspace_ignored(name):
                 continue
             source = safe_file(root, name)
             if source.is_symlink():
