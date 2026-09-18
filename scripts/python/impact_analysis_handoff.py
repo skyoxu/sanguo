@@ -133,9 +133,24 @@ def validate_handoff(
     if str(report.get("schema_version") or "") != "newrouge.impact-analysis.v1":
         return _fail("invalid_kcp_binding", "unsupported impact report schema")
     manifest_path = report_path.with_name("run-manifest.v1.json")
-    if binding_evidence and manifest_path.exists():
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return _fail("invalid_kcp_binding", "impact run manifest is missing or invalid")
+    if not isinstance(manifest, dict) or str(manifest.get("schema_version") or "") != "newrouge.impact-analysis-run-manifest.v1":
+        return _fail("invalid_kcp_binding", "unsupported impact run manifest schema")
+    actual_report_hash = hashlib.sha256(report_bytes).hexdigest()
+    actual_report_path = report_path.relative_to(root).as_posix()
+    if str(manifest.get("report_sha256") or "").strip().lower() != actual_report_hash:
+        return _fail("invalid_kcp_binding", "impact report hash manifest mismatch")
+    if str(manifest.get("report_path") or "").strip() != actual_report_path:
+        return _fail("invalid_kcp_binding", "impact report path manifest mismatch")
+    if str(manifest.get("repository_revision") or "").strip() != requested_revision:
+        return _fail("revision_mismatch", "impact report revision manifest mismatch")
+    if str(manifest.get("status") or "").strip().lower() != str(report.get("status") or "").strip().lower():
+        return _fail("invalid_kcp_binding", "impact report status manifest mismatch")
+    if binding_evidence:
         try:
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             expected_path = str(manifest.get("binding_evidence_path") or "")
             expected_sha = str(manifest.get("binding_evidence_sha256") or "")
             sidecar = _resolve_repo_path(str(binding_evidence), root)
@@ -143,7 +158,7 @@ def validate_handoff(
             actual_sha = hashlib.sha256(sidecar.read_bytes()).hexdigest() if sidecar and sidecar.exists() else ""
             if expected_path != actual_path or expected_sha != actual_sha:
                 return _fail("invalid_kcp_binding", "binding evidence manifest mismatch")
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError):
+        except (OSError, ValueError):
             return _fail("invalid_kcp_binding", "binding evidence manifest is invalid")
     if not isinstance(report.get("target"), dict):
         return _fail("invalid_kcp_binding", "impact report target is missing")
@@ -168,7 +183,7 @@ def validate_handoff(
     identity = {
         "revision": requested_revision,
         "frozen_context_sha256": actual_frozen_hash,
-        "impact_report_sha256": hashlib.sha256(report_bytes).hexdigest(),
+        "impact_report_sha256": actual_report_hash,
         "index_id": str(report.get("index_id") or ""),
         "index_sha256": str(report.get("index_sha256") or ""),
         "knowledge_binding": dict(binding),
