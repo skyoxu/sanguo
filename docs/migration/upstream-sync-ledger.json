@@ -68,14 +68,34 @@
     },
     {
       "id": "newrouge-mvg-impact-20260918",
-      "migration_key": "skyoxu/newrouge@a8e2f39872c39ffe4ee38461076279353d0d5b0e->skyoxu/sanguo",
+      "migration_key": "skyoxu/newrouge@548af63fb1aa2e220dff0042161671acd23b36d5->skyoxu/sanguo",
       "source_prs": [
         180,
-        182
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        190,
+        191,
+        193,
+        192,
+        194
       ],
       "source_commits": [
         "9f75081ae80e2b8eb1c222eda3ad9def93ef09b5",
-        "a8e2f39872c39ffe4ee38461076279353d0d5b0e"
+        "a8e2f39872c39ffe4ee38461076279353d0d5b0e",
+        "84a7f242b48d7aec9bcfe8d248867e81e6b943f1",
+        "c6ec8f99138ae9b62ac95b6e22ec0f1cee2b4fcf",
+        "c758a5ec87cb1f2829c09566d0978770dd59a7b3",
+        "6a76e973b3c97a0ad191e95bdcaa45e495a88999",
+        "0d9b28b7e4ad79bced6b562b3852a9d58e36f5a7",
+        "76cdbdb2de02ac6dee717376eee9ec9656c091da",
+        "7ffd6c903fe41064822a4325d7dc82842b8bc376",
+        "b57009d9cb73301a1121aed9b080b17af9b3a25a",
+        "cc9243de579398f6bb8af3291bd8396eb9e9a305",
+        "548af63fb1aa2e220dff0042161671acd23b36d5"
       ],
       "target_pr": 256,
       "target_branch": "feat/align-mvg-impact-evolution-20260918",
@@ -90,12 +110,19 @@
         "impact-handoff-integrity",
         "chapter6-handoff-routing",
         "review-consumer-handoff",
-        "review-context-boundary"
+        "review-context-boundary",
+        "project-health-hard-gate-coverage",
+        "repository-neutral-reconciliation",
+        "mvg-coverage-contract",
+        "knowledge-full-rebuild",
+        "project-health-browser-test-isolation",
+        "canonical-target-pr-guard"
       ],
       "excluded": [
-        "newrouge Reward production code",
-        "Reward task IDs",
-        "derived Knowledge publication state",
+        "newrouge Reward production code and Reward task IDs",
+        "newrouge M1 critical/full business flow manifests and source-specific resume journey",
+        "derived Knowledge publication state from source PRs #185/#186/#190/#194",
+        "newrouge-specific decision logs and execution plans",
         "newrouge Chapter 6 fixture-only test deltas not present in Sanguo"
       ],
       "evidence": {
@@ -118,7 +145,9 @@
             "review-context-boundary"
           ]
         }
-      ]
+      ],
+      "reconciliation_manifests": "docs/migration/reconciliation/newrouge-pr-183.json .. newrouge-pr-194.json",
+      "final_source_boundary": "548af63fb1aa2e220dff0042161671acd23b36d5"
     }
   ]
 }

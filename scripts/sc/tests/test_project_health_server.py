@@ -98,7 +98,7 @@ class ProjectHealthServerTests(unittest.TestCase):
             spawn_mock.assert_called_once()
 
     def test_project_health_scan_cli_should_optionally_serve(self) -> None:
-        with mock.patch.object(
+        with mock.patch.dict(scan_cli_module.os.environ, {"CI": ""}), mock.patch.object(
             scan_cli_module,
             "project_health_scan",
             return_value={"status": "warn", "exit_code": 0},
