@@ -157,7 +157,12 @@ def main() -> int:
         scripts = sorted(_extract_workflow_scripts(text))
 
         run_gate_bundle_present = "scripts/python/run_gate_bundle.py" in scripts
-        direct_gate_calls = sorted([s for s in scripts if s in bundle_gate_scripts and s != "scripts/python/run_gate_bundle.py"])
+        direct_gate_calls = sorted([
+            s for s in scripts
+            if s in bundle_gate_scripts
+            and s != "scripts/python/run_gate_bundle.py"
+            and s not in allowed_direct_scripts
+        ])
         unknown_direct = sorted([s for s in scripts if s not in allowed_direct_scripts and s not in bundle_gate_scripts])
 
         file_violations: list[dict[str, Any]] = []
