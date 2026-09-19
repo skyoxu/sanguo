@@ -81,7 +81,8 @@ py -3 scripts/python/remind_overlay_task_drift.py --write --overlay-index docs/a
 - `llm_align_acceptance_semantics.py`
 - `llm_check_subtasks_coverage.py`
 - `check_obligations_reuse_regression.py`
-- `cross_repo_migration_reconciliation`（`check_cross_repo_migration.py --require-manifests`，离线验证逐 source PR changed-file 对账）
+- `check_cross_repo_migration.py`
+  - bundle 以 `--require-manifests` 离线验证逐 source PR changed-file 对账；PR workflow 的 `--check-open-prs` 属于显式 allowlist 的在线 canonical-PR 审计。
 - hard unittest 额外覆盖 `test_cross_repo_migration`、`test_generate_knowledge_links`、Godot scene graph / Project Health navigation / runtime snapshot / server / Chapter6 knowledge regressions
 - `obligations unittest suite`（`test_obligations_guard.py` / `test_obligations_extract_helpers.py` / `test_obligations_code_fingerprint.py` / `test_obligations_output_contract.py` / `test_obligations_cli_guards.py` / `test_obligations_pipeline_order.py`）
 - `check_gate_bundle_consistency.py`
