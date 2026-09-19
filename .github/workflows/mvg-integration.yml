@@ -22,6 +22,7 @@ on:
       - 'scripts/python/check_workflow_gate_enforcement.py'
       - 'scripts/python/config/workflow-gate-allowlist.json'
       - 'docs/testing/mvg/**'
+      - '.taskmaster/tasks/tasks.json'
       - 'docs/migration/upstream-sync-ledger.json'
       - 'docs/migration/reconciliation/**'
       - 'docs/migration/UPSTREAM_RECONCILIATION_POLICY.md'
