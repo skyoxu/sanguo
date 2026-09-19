@@ -1,0 +1,52 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 191,
+    "merge_commit": "7ffd6c903fe41064822a4325d7dc82842b8bc376",
+    "changed_file_count": 3,
+    "changed_files": [
+      "scripts/python/generate_knowledge_links.py",
+      "scripts/python/run_gate_bundle.py",
+      "scripts/sc/tests/test_generate_knowledge_links.py"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": "scripts/python/generate_knowledge_links.py",
+      "classification": "already_present",
+      "target_paths": [
+        "scripts/python/generate_knowledge_links.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_generate_knowledge_links.py"
+      ],
+      "rationale": "Sanguo already contains the full-rebuild stale-catalog fix."
+    },
+    {
+      "source_path": "scripts/python/run_gate_bundle.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/run_gate_bundle.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_generate_knowledge_links.py"
+      ],
+      "rationale": "Target promotes its local knowledge-link regression module into hard gates."
+    },
+    {
+      "source_path": "scripts/sc/tests/test_generate_knowledge_links.py",
+      "classification": "already_present",
+      "target_paths": [
+        "scripts/python/tests/test_generate_knowledge_links.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_generate_knowledge_links.py"
+      ],
+      "rationale": "Equivalent Sanguo regression exists under the target Python test package."
+    }
+  ]
+}

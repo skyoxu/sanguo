@@ -1,0 +1,28 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 193,
+    "merge_commit": "b57009d9cb73301a1121aed9b080b17af9b3a25a",
+    "changed_file_count": 1,
+    "changed_files": [
+      "scripts/browser/project_health.spec.js"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": "scripts/browser/project_health.spec.js",
+      "classification": "already_present",
+      "target_paths": [
+        "scripts/browser/project_health.spec.js"
+      ],
+      "validation_paths": [
+        "scripts/browser/project_health.spec.js"
+      ],
+      "rationale": "Sanguo already uses the synthetic Main/Deep/Outside scene graph fixture."
+    }
+  ]
+}

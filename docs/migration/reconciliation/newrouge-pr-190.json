@@ -1,0 +1,107 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 190,
+    "merge_commit": "76cdbdb2de02ac6dee717376eee9ec9656c091da",
+    "changed_file_count": 13,
+    "changed_files": [
+      "knowledge/catalogs/repository-knowledge-catalog.v1.json",
+      "knowledge/indexes/current.json",
+      "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/catalog.json",
+      "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/evaluation.json",
+      "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/exclusions.json",
+      "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/manifest.json",
+      "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/policies.json",
+      "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/projections.json",
+      "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/query_suite.json",
+      "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/snapshot.json",
+      "knowledge/indexes/last-known-good.json",
+      "knowledge/projections/consumer-projections.v1.json",
+      "knowledge/snapshots/repository-source-snapshot.v1.json"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": "knowledge/catalogs/repository-knowledge-catalog.v1.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/current.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/catalog.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/evaluation.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/exclusions.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/manifest.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/policies.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/projections.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/query_suite.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/generations/e5d722971b487cd6340157bd8e0da72b854d616194a669d2859b831706d65c48/snapshot.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/indexes/last-known-good.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/projections/consumer-projections.v1.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    },
+    {
+      "source_path": "knowledge/snapshots/repository-source-snapshot.v1.json",
+      "classification": "derived_regenerate",
+      "regeneration_command": "py -3 scripts/python/publish_knowledge_catalog.py --publish",
+      "rationale": "Generated Knowledge publication state is rebuilt from Sanguo-owned inputs."
+    }
+  ]
+}

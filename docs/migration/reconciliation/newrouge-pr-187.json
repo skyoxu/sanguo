@@ -1,0 +1,124 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 187,
+    "merge_commit": "0d9b28b7e4ad79bced6b562b3852a9d58e36f5a7",
+    "changed_file_count": 12,
+    "changed_files": [
+      ".github/workflows/mvg-integration.yml",
+      "README.md",
+      "Tests.Godot/tests/Integration/test_headless_resume_repeatability.gd",
+      "decision-logs/2026-09-19-mvg-coverage-tiers.md",
+      "docs/testing/mvg/m1-critical.json",
+      "docs/testing/mvg/m1-full.json",
+      "docs/testing/mvg/reward-pilot.json",
+      "docs/workflows/mvg-integration-acceptance.md",
+      "execution-plans/2026-09-19-mvg-full-scope-expansion.md",
+      "scripts/python/_mvg_manifest.py",
+      "scripts/python/run_mvg_acceptance.py",
+      "scripts/python/tests/test_mvg_acceptance.py"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": ".github/workflows/mvg-integration.yml",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        ".github/workflows/mvg-integration.yml"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_mvg_acceptance.py"
+      ],
+      "rationale": "Sanguo keeps its real boot-pilot workflow while adopting the shared coverage contract."
+    },
+    {
+      "source_path": "README.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "README.md"
+      ],
+      "validation_paths": [
+        "docs/workflows/mvg-integration-acceptance.md"
+      ],
+      "rationale": "Target documentation describes pilot semantics instead of claiming newrouge M1 scope."
+    },
+    {
+      "source_path": "Tests.Godot/tests/Integration/test_headless_resume_repeatability.gd",
+      "classification": "business_only_drop",
+      "rationale": "newrouge-specific resume journey is outside the current Sanguo boot pilot."
+    },
+    {
+      "source_path": "decision-logs/2026-09-19-mvg-coverage-tiers.md",
+      "classification": "business_only_drop",
+      "rationale": "Source-specific coverage-tier decision log is replaced by Sanguo-owned acceptance documentation."
+    },
+    {
+      "source_path": "docs/testing/mvg/m1-critical.json",
+      "classification": "business_only_drop",
+      "rationale": "newrouge M1 critical business flow inventory is not portable to Sanguo."
+    },
+    {
+      "source_path": "docs/testing/mvg/m1-full.json",
+      "classification": "business_only_drop",
+      "rationale": "newrouge M1 full business flow inventory is not portable to Sanguo."
+    },
+    {
+      "source_path": "docs/testing/mvg/reward-pilot.json",
+      "classification": "business_only_drop",
+      "rationale": "newrouge Reward pilot is business-specific and is not copied."
+    },
+    {
+      "source_path": "docs/workflows/mvg-integration-acceptance.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/mvg-integration-acceptance.md"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_mvg_acceptance.py"
+      ],
+      "rationale": "Target documents the same coverage contract with Sanguo pilot boundaries."
+    },
+    {
+      "source_path": "execution-plans/2026-09-19-mvg-full-scope-expansion.md",
+      "classification": "business_only_drop",
+      "rationale": "Source-specific M1 execution plan is not target governance state."
+    },
+    {
+      "source_path": "scripts/python/_mvg_manifest.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/_mvg_manifest.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_mvg_acceptance.py"
+      ],
+      "rationale": "Repository-neutral coverage validation is adopted; target manifest remains pilot."
+    },
+    {
+      "source_path": "scripts/python/run_mvg_acceptance.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/run_mvg_acceptance.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_mvg_acceptance.py"
+      ],
+      "rationale": "Target keeps boot-pilot default while exposing coverage evidence in summaries."
+    },
+    {
+      "source_path": "scripts/python/tests/test_mvg_acceptance.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/tests/test_mvg_acceptance.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_mvg_acceptance.py"
+      ],
+      "rationale": "Coverage contract regressions are adopted in the Sanguo test suite."
+    }
+  ]
+}
