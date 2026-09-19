@@ -1,0 +1,89 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 183,
+    "merge_commit": "84a7f242b48d7aec9bcfe8d248867e81e6b943f1",
+    "changed_file_count": 6,
+    "changed_files": [
+      "docs/workflows/gate-bundle.md",
+      "docs/workflows/knowledge-context-freeze.md",
+      "scripts/python/_godot_scene_graph.py",
+      "scripts/python/run_gate_bundle.py",
+      "scripts/sc/tests/test_godot_scene_graph.py",
+      "scripts/sc/tests/test_project_health_server.py"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": "docs/workflows/gate-bundle.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/gate-bundle.md"
+      ],
+      "validation_paths": [
+        "scripts/python/run_gate_bundle.py"
+      ],
+      "rationale": "Target gate documentation is retained with Sanguo-specific hard-gate composition."
+    },
+    {
+      "source_path": "docs/workflows/knowledge-context-freeze.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/knowledge-context-freeze.md"
+      ],
+      "validation_paths": [
+        "scripts/sc/tests/test_project_health_runtime_snapshot.py"
+      ],
+      "rationale": "Target freeze documentation remains bound to Sanguo snapshot semantics."
+    },
+    {
+      "source_path": "scripts/python/_godot_scene_graph.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/_godot_scene_graph.py"
+      ],
+      "validation_paths": [
+        "scripts/sc/tests/test_godot_scene_graph.py"
+      ],
+      "rationale": "Sanguo uses a unified effective scene_edges adjacency instead of upstream event_links/controller_links layers."
+    },
+    {
+      "source_path": "scripts/python/run_gate_bundle.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/run_gate_bundle.py"
+      ],
+      "validation_paths": [
+        "scripts/sc/tests/test_godot_scene_graph.py",
+        "scripts/sc/tests/test_project_health_server.py"
+      ],
+      "rationale": "Project Health obligations are promoted into the Sanguo hard unittest bundle."
+    },
+    {
+      "source_path": "scripts/sc/tests/test_godot_scene_graph.py",
+      "classification": "already_present",
+      "target_paths": [
+        "scripts/sc/tests/test_godot_scene_graph.py"
+      ],
+      "validation_paths": [
+        "scripts/sc/tests/test_godot_scene_graph.py"
+      ],
+      "rationale": "Target already owns scene-graph regressions for its native graph implementation."
+    },
+    {
+      "source_path": "scripts/sc/tests/test_project_health_server.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/sc/tests/test_project_health_server.py"
+      ],
+      "validation_paths": [
+        "scripts/sc/tests/test_project_health_server.py"
+      ],
+      "rationale": "Serve-mode regression is made CI-safe when promoted into hard gates."
+    }
+  ]
+}

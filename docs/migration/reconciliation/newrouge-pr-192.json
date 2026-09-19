@@ -1,0 +1,46 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 192,
+    "merge_commit": "cc9243de579398f6bb8af3291bd8396eb9e9a305",
+    "changed_file_count": 3,
+    "changed_files": [
+      "docs/workflows/cross-repo-migration-reconciliation.md",
+      "scripts/python/check_cross_repo_migration.py",
+      "scripts/python/tests/test_cross_repo_migration.py"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": "docs/workflows/cross-repo-migration-reconciliation.md",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/workflows/cross-repo-migration-reconciliation.md"
+      ],
+      "source_blob_sha": "c4d2dae333642230285bcba929664af4204ac9f6",
+      "rationale": "Repository-neutral protocol file is intentionally byte-identical to upstream #192."
+    },
+    {
+      "source_path": "scripts/python/check_cross_repo_migration.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/check_cross_repo_migration.py"
+      ],
+      "source_blob_sha": "198c8cb2f6eaa4b1c8bceda257aa8a0f7e6f306b",
+      "rationale": "Repository-neutral protocol file is intentionally byte-identical to upstream #192."
+    },
+    {
+      "source_path": "scripts/python/tests/test_cross_repo_migration.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_cross_repo_migration.py"
+      ],
+      "source_blob_sha": "aef9cbf80f5c8e6239988afe4dae7fdde5ed2cf8",
+      "rationale": "Repository-neutral protocol file is intentionally byte-identical to upstream #192."
+    }
+  ]
+}

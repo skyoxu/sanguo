@@ -1,0 +1,88 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 184,
+    "merge_commit": "c6ec8f99138ae9b62ac95b6e22ec0f1cee2b4fcf",
+    "changed_file_count": 6,
+    "changed_files": [
+      "docs/workflows/cross-repo-migration-reconciliation.md",
+      "docs/workflows/gate-bundle.md",
+      "docs/workflows/template-upgrade-protocol.md",
+      "scripts/python/check_cross_repo_migration.py",
+      "scripts/python/run_gate_bundle.py",
+      "scripts/python/tests/test_cross_repo_migration.py"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": "docs/workflows/cross-repo-migration-reconciliation.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/cross-repo-migration-reconciliation.md"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_cross_repo_migration.py"
+      ],
+      "rationale": "Target carries the later #192 superset of this repository-neutral protocol."
+    },
+    {
+      "source_path": "docs/workflows/gate-bundle.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/gate-bundle.md"
+      ],
+      "validation_paths": [
+        "scripts/python/run_gate_bundle.py"
+      ],
+      "rationale": "Sanguo gate docs are adapted to its existing ledger plus file-level reconciliation."
+    },
+    {
+      "source_path": "docs/workflows/template-upgrade-protocol.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/template-upgrade-protocol.md"
+      ],
+      "validation_paths": [
+        "docs/workflows/cross-repo-migration-reconciliation.md"
+      ],
+      "rationale": "Template upgrade guidance keeps target-native wording while adopting reconciliation obligations."
+    },
+    {
+      "source_path": "scripts/python/check_cross_repo_migration.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/check_cross_repo_migration.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_cross_repo_migration.py"
+      ],
+      "rationale": "Target carries the later #192 checker superset."
+    },
+    {
+      "source_path": "scripts/python/run_gate_bundle.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/run_gate_bundle.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_cross_repo_migration.py"
+      ],
+      "rationale": "Sanguo hard gates validate the adopted reconciliation protocol."
+    },
+    {
+      "source_path": "scripts/python/tests/test_cross_repo_migration.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/tests/test_cross_repo_migration.py"
+      ],
+      "validation_paths": [
+        "scripts/python/tests/test_cross_repo_migration.py"
+      ],
+      "rationale": "Target carries the later #192 regression superset."
+    }
+  ]
+}
