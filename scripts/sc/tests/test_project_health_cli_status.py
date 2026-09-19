@@ -77,6 +77,10 @@ class ProjectHealthCliStatusTests(unittest.TestCase):
             project_health_scan_module,
             "ensure_project_health_server",
             return_value={"url": "http://127.0.0.1:8765/latest.html"},
+        ), mock.patch.dict(
+            project_health_scan_module.os.environ,
+            {"CI": ""},
+            clear=False,
         ), mock.patch("sys.stdout", stdout):
             rc = project_health_scan_module.main(["--repo-root", "demo-root", "--serve"])
 
@@ -104,6 +108,10 @@ class ProjectHealthCliStatusTests(unittest.TestCase):
                 "url": "http://127.0.0.1:8765/latest.html",
                 "server_json": "logs/ci/project-health/server.json",
             },
+        ), mock.patch.dict(
+            serve_project_health_module.os.environ,
+            {"CI": ""},
+            clear=False,
         ), mock.patch("sys.stdout", stdout):
             rc = serve_project_health_module.main(["--repo-root", "demo-root"])
 
