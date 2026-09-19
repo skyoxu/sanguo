@@ -78,7 +78,8 @@ def run(args: argparse.Namespace, root: Path | None = None) -> int:
             summary['input_manifest'] = str(out / 'input-manifest.json')
         doc = read_manifest(execution_root, args.manifest)
         errors = validate_manifest(execution_root, doc, executable=args.mode == 'run')
-        summary.update(mvg_id=doc.get('mvg_id'), manifest=args.manifest, validation_errors=errors)
+        summary.update(mvg_id=doc.get('mvg_id'), manifest=args.manifest,
+                       coverage=doc.get('coverage', {}), validation_errors=errors)
         if errors:
             raise ValueError('; '.join(errors))
         comparison_revision = revision if args.snapshot == 'commit' else git(root, 'rev-parse', 'HEAD')
