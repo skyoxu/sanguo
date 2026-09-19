@@ -70,7 +70,12 @@ Related durable protocol:
    - If the repo uses gate bundle docs, sync mirror-runtime gate docs together with the gate list.
 7. Business-local adaptation
    - Rename project references, update overlay roots, adapt domain contract paths, and remove template fallback assumptions.
-8. Validation and stop-loss
+8. Source-PR reconciliation
+   - Create or update `docs/migration/reconciliation/<source>-<pr>.json` from each authoritative merged source PR inventory.
+   - Classify every source file exactly once; generated publication state must be `derived_regenerate`, not copied.
+   - Run `py -3 scripts/python/check_cross_repo_migration.py --manifest <manifest> --verify-source-github` during creation/review and the deterministic offline checker in target hard gates.
+   - Bind the canonical target PR to the final source boundary with a unique `Migration-Key`.
+9. Validation and stop-loss
    - Run the minimum validation bundle before opening a PR.
 
 ## Required Localization Checklist
@@ -135,6 +140,7 @@ Minimum validation:
 
 ## Stop-Loss Rules
 - Do not copy compare-specific conclusions into stable docs without extracting the durable rule first.
+- Do not call a cross-repo upgrade reconciled from a compare summary alone; freeze each merged source PR changed-file inventory and classify it in the reconciliation manifests.
 - Do not overwrite business task triplet files with template examples.
 - Do not copy project names, PRD IDs, or solution paths blindly.
 - Do not wire new workflows until all referenced local scripts exist.
