@@ -563,6 +563,9 @@ def build_execution_plan(
     post_review_route: dict[str, Any],
     final_route: dict[str, Any],
     resume_payload: dict[str, Any] | None = None,
+    frozen_context: str = "",
+    impact_report: str = "",
+    revision: str = "",
 ) -> dict[str, Any]:
     record_residual = str(profile_policy.get("record_residual") or "").strip().lower() == "true"
     decision = build_orchestration_decision(
