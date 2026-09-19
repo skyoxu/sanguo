@@ -26,9 +26,16 @@ class MvgAcceptanceTests(unittest.TestCase):
             path.write_text('content', encoding='utf-8')
         path = self.root / '.taskmaster/tasks/tasks.json'
         path.parent.mkdir(parents=True)
-        path.write_text(json.dumps({'master': {'tasks': [{'id': 1}, {'id': 2}]}}))
+        path.write_text(json.dumps({'master': {'tasks': [{'id': 1, 'status': 'done'}, {'id': 2, 'status': 'done'}]}}))
         self.manifest = {
             'schema_version': 'newrouge.mvg-integration.v1', 'mvg_id': 'pilot',
+            'coverage': {
+                'mode': 'pilot',
+                'scope_id': 'unit-test-pilot',
+                'required_flow_ids': ['claim'],
+                'blocking_task_ids': [],
+                'excluded_claims': ['Synthetic fixture does not represent product-wide MVG coverage.'],
+            },
             'flows': [{'id': 'claim', 'outcome': 'Claim once', 'task_ids': [1, 2],
                        'source_paths': ['Game.Core/A.cs'],
                        'handoffs': [{'producer_task': 1, 'consumer_task': 2, 'owner_task': 2,
@@ -39,6 +46,46 @@ class MvgAcceptanceTests(unittest.TestCase):
                        'evidence_level': 'domain-integration',
                        'path': 'Game.Core.Tests/A.cs',
                        'selector': 'Game.Core.Tests.A', 'min_tests': 1}]}
+
+    def test_coverage_contract_rejects_missing_or_mismatched_scope(self):
+        for mutate in [
+            lambda doc: doc.pop('coverage'),
+            lambda doc: doc['coverage'].__setitem__('required_flow_ids', ['other']),
+            lambda doc: doc['coverage'].__setitem__('excluded_claims', []),
+        ]:
+            with self.subTest(mutate=mutate):
+                doc = copy.deepcopy(self.manifest)
+                mutate(doc)
+                self.assertTrue(validate_manifest(self.root, doc))
+
+    def test_full_scope_blocks_execution_until_all_scoped_tasks_are_done(self):
+        tasks_path = self.root / '.taskmaster/tasks/tasks.json'
+        tasks_path.write_text(json.dumps({'master': {'tasks': [
+            {'id': 1, 'status': 'done'},
+            {'id': 2, 'status': 'pending'},
+        ]}}))
+        doc = copy.deepcopy(self.manifest)
+        doc['coverage'] = {
+            'mode': 'full',
+            'scope_id': 'm1-player-loop',
+            'required_flow_ids': ['claim', 'resume', 'combat'],
+            'blocking_task_ids': [2],
+            'excluded_claims': ['Human gameplay approval remains separate.'],
+        }
+        doc['flows'] = [
+            doc['flows'][0],
+            {**copy.deepcopy(doc['flows'][0]), 'id': 'resume'},
+            {**copy.deepcopy(doc['flows'][0]), 'id': 'combat'},
+        ]
+        self.assertEqual([], validate_manifest(self.root, doc, executable=False))
+        errors = validate_manifest(self.root, doc, executable=True)
+        self.assertTrue(any('blocked by non-done tasks [2]' in item for item in errors))
+
+    def test_critical_scope_requires_multiple_done_flows(self):
+        doc = copy.deepcopy(self.manifest)
+        doc['coverage'].update(mode='critical', scope_id='m1-critical')
+        errors = validate_manifest(self.root, doc, executable=True)
+        self.assertTrue(any('critical mode requires at least two flows' in item for item in errors))
 
     def test_planning_allows_missing_planned_test_but_execution_rejects_it(self):
         self.manifest['tests'][0].update(state='planned', path='Game.Core.Tests/Future.cs')
@@ -66,6 +113,9 @@ class MvgAcceptanceTests(unittest.TestCase):
         self.assertEqual(['claim-test'], known['required_tests'])
         unknown = recommend(self.manifest, ['Game.Godot/new.gd'])
         self.assertEqual('full-mvg', unknown['recommendation'])
+        self.assertEqual('pilot', unknown['manifest_coverage_mode'])
+        self.assertEqual('unit-test-pilot', unknown['manifest_scope_id'])
+        self.assertEqual([], unknown['manifest_blocking_task_ids'])
         self.assertEqual(['Game.Godot/new.gd'], unknown['unmapped_changes'])
         self.assertFalse(unknown['authorizes_test_exclusion'])
 

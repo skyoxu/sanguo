@@ -78,5 +78,17 @@
       "challenge": "disconnect-mainmenu-input",
       "challenge_failure_marker": "MVG_MAINMENU_INPUT_DID_NOT_OPEN_CONFIG"
     }
-  ]
+  ],
+  "coverage": {
+    "mode": "pilot",
+    "scope_id": "sanguo-boot-pilot",
+    "required_flow_ids": [
+      "mainmenu-config-and-boot"
+    ],
+    "blocking_task_ids": [],
+    "excluded_claims": [
+      "This pilot covers only the Sanguo MainMenu configuration and boot handoff.",
+      "Critical/full MVG scope, save-resume completeness, visual quality and human gameplay approval remain outside this manifest."
+    ]
+  }
 }
