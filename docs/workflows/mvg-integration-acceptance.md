@@ -16,12 +16,14 @@
 
 默认样例是 `docs/testing/mvg/boot-pilot.json`。它只覆盖 MainMenu → 新游戏配置 → Sanguo 启动链，不代表整个 MVG。
 
+每个 MVG manifest 现在必须声明 `coverage`：`mode`（pilot/critical/full）、`scope_id`、与 flow 顺序完全一致的 `required_flow_ids`、真实的 `blocking_task_ids` 和非空 `excluded_claims`。Sanguo 当前 `boot-pilot` 明确保持 `mode=pilot`，Tasks 50/94/176 均为 done，因此 blocker 为空；这只证明启动链 pilot 可执行，不把一条 flow 冒充 critical/full。未来只有在 Sanguo 自己定义出至少 2 条 critical flow 或 3 条 full flow，并且所有 scoped tasks 都 done 后，才允许提升对应 mode。
+
 - flow：可观察 outcome、真实 task_ids、显式 source_paths、handoffs、test_ids。
 - handoff：producer_task / consumer_task / owner_task、contract_ref、behavior、test_ids。
 - test：唯一 id、kind（dotnet/gdunit）、state、仓库相对 path、evidence_level、min_tests；dotnet 还需精确 class selector。
 - planned 允许测试文件暂不存在；run 必须全部 implemented 且文件存在。
 
-`recommend` 比较选定 revision 与 manifest 中的 source_paths、contract_ref、测试路径。明确命中时可以给出 related-first 运行优先级；任何未知文件、未映射变化、无命中或 Git 比较失败都回退 full-mvg。无论哪种推荐，`required_tests` 始终保持完整，`authorizes_test_exclusion=false`。这是一层 MVG 回归建议，不替代正式 Impact Index，也不能把“没有找到映射”解释成“不受影响”。
+`recommend` 比较选定 revision 与 manifest 中的 source_paths、contract_ref、测试路径。明确命中时可以给出 related-first 运行优先级；任何未知文件、未映射变化、无命中或 Git 比较失败都回退 full-mvg。这里的 `full-mvg` 只表示运行当前 manifest 的全部 required_tests，不自动代表产品级 full coverage；输出同时携带 `manifest_coverage_mode`、`manifest_scope_id`、`manifest_blocking_task_ids`。无论哪种推荐，`required_tests` 始终保持完整，`authorizes_test_exclusion=false`。这是一层 MVG 回归建议，不替代正式 Impact Index，也不能把“没有找到映射”解释成“不受影响”。
 
 ## Windows 命令
 
@@ -58,4 +60,4 @@ py -3 scripts/python/run_mvg_mutation_probe.py --snapshot commit --revision HEAD
 
 ## CI 与人工验收
 
-`.github/workflows/mvg-integration.yml` 对本入口及 pilot 相关改动运行 Windows 启动试点；mutation 仅在手动 dispatch 时可选。它不修改分支保护或既有 profile 门禁。完整 MVG 的范围、视觉/手感、平衡、性能代表性仍需要人确认；机器报告不能替代试玩结论。
+`.github/workflows/mvg-integration.yml` 对本入口及 pilot 相关改动运行 Windows 启动试点，并先验证 file-level reconciliation manifests、canonical migration ledger 与 generic canonical PR identity；mutation 仅在手动 dispatch 时可选。当前 workflow 名称仍保留 Pilot，因为 Sanguo 尚未声明 target-native critical/full flow inventory。它不修改分支保护或既有 profile 门禁。完整 MVG 的范围、视觉/手感、平衡、性能代表性仍需要人确认；机器报告不能替代试玩结论。
