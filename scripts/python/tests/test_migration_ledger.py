@@ -11,6 +11,7 @@ from check_migration_ledger import (
     duplicate_pr_errors,
     extract_migration_key,
     find_record_for_pr,
+    pr_claims_canonical_identity,
     validate_ledger,
 )
 
@@ -79,6 +80,35 @@ class MigrationLedgerTests(unittest.TestCase):
         }
         self.assertEqual("migration-a", find_record_for_pr(doc, pr)["id"])
         self.assertEqual(key, extract_migration_key(pr["body"]))
+
+    def test_bookkeeping_pr_without_canonical_identity_is_not_treated_as_migration_pr(self):
+        doc = base_doc()
+        pr = {
+            "number": 259,
+            "body": "Final bookkeeping for a completed migration.",
+            "head": {"ref": "chore/close-migration-ledger"},
+        }
+        self.assertIsNone(find_record_for_pr(doc, pr))
+        self.assertFalse(pr_claims_canonical_identity(doc, pr))
+
+    def test_unmapped_marker_still_claims_canonical_identity(self):
+        doc = base_doc()
+        pr = {
+            "number": 259,
+            "body": "Migration-Key: skyoxu/newrouge@" + "c" * 40 + "->skyoxu/sanguo",
+            "head": {"ref": "feat/other"},
+        }
+        self.assertIsNone(find_record_for_pr(doc, pr))
+        self.assertTrue(pr_claims_canonical_identity(doc, pr))
+
+    def test_matching_target_branch_claims_canonical_identity_even_without_marker(self):
+        doc = base_doc()
+        pr = {
+            "number": 259,
+            "body": "marker omitted",
+            "head": {"ref": "feat/migration-a"},
+        }
+        self.assertTrue(pr_claims_canonical_identity(doc, pr))
 
     def test_duplicate_open_pr_marker_is_rejected(self):
         doc = base_doc()
