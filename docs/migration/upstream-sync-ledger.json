@@ -100,7 +100,7 @@
       "target_pr": 256,
       "target_branch": "feat/align-mvg-impact-evolution-20260918",
       "target_base": "95f8ff659296f51822c323be2366fbb713c501f3",
-      "status": "open",
+      "status": "merged",
       "mode": "adapted",
       "scope": [
         "mvg-acceptance",
@@ -127,7 +127,10 @@
       ],
       "evidence": {
         "mvg_workflow_run": 35344470746,
-        "mvg_artifact": 10546029218
+        "mvg_artifact": 10546029218,
+        "target_merge_commit": "9bc31a698235074531a41b1369677fe0cd705102",
+        "knowledge_publication_pr": 258,
+        "knowledge_publication_merge_commit": "b0aa97919c86aafb853abb5eadfd55e2045e99ba"
       },
       "historical_gap_sources": [
         {
