@@ -149,6 +149,21 @@ def find_record_for_pr(doc: dict[str, Any], pr: dict[str, Any]) -> dict[str, Any
     return candidates[0]
 
 
+def pr_claims_canonical_identity(doc: dict[str, Any], pr: dict[str, Any]) -> bool:
+    number = pr.get("number")
+    head = pr.get("head") if isinstance(pr.get("head"), dict) else {}
+    branch = str(head.get("ref") or "")
+    body_key = extract_migration_key(str(pr.get("body") or ""))
+    return bool(
+        body_key
+        or any(
+            isinstance(row, dict)
+            and (row.get("target_pr") == number or row.get("target_branch") == branch)
+            for row in doc.get("records", [])
+        )
+    )
+
+
 def list_open_prs(repository: str, token: str) -> list[dict[str, Any]]:
     if not repository or not token:
         raise ValueError("GITHUB_REPOSITORY and GITHUB_TOKEN are required for duplicate PR checks")
@@ -211,7 +226,10 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 record = find_record_for_pr(doc, current_pr)
                 if record is None:
-                    errors.append("current PR does not map uniquely to a ledger record")
+                    if pr_claims_canonical_identity(doc, current_pr):
+                        errors.append("current PR does not map uniquely to a ledger record")
+                    else:
+                        print("MIGRATION_LEDGER open_pr_check=skipped reason=current_pr_not_canonical")
                 else:
                     open_prs = list_open_prs(
                         os.environ.get("GITHUB_REPOSITORY", ""),
