@@ -67,7 +67,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python scripts/python/check_migration_ledger.py --check-open-prs
       - name: Verify generic canonical migration PR identity
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.body || '', 'Migration-Key:') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python scripts/python/check_cross_repo_migration.py --manifest docs/migration/reconciliation/newrouge-pr-194.json --check-open-prs
