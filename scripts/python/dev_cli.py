@@ -186,6 +186,7 @@ def cmd_run_local_hard_checks(args: argparse.Namespace) -> int:
         out_dir=args.out_dir,
         run_id=args.run_id,
         timeout_sec=args.timeout_sec,
+        skip_project_health=bool(args.skip_project_health),
         run_fn=run,
     )
 
@@ -317,6 +318,114 @@ def cmd_serve_project_health(args: argparse.Namespace) -> int:
     return run(build_serve_project_health_cmd(args))
 
 
+def cmd_run_chapter3_guarded(args: argparse.Namespace) -> int:
+    """Run one scripted Chapter 3 command inside the start/end attempt guard."""
+
+    from run_chapter3_guarded import run_guarded
+    command = list(args.command or [])
+    if command and command[0] == "--":
+        command = command[1:]
+    try:
+        rc, result = run_guarded(
+            Path(args.repo_root).resolve(),
+            trigger_run_id=args.trigger_run_id,
+            command=command,
+            triplet_status_on_success=args.triplet_status_on_success,
+            write_planning=bool(args.write_planning_artifacts),
+            publish_if_eligible=bool(args.publish_if_eligible),
+        )
+    except ValueError as exc:
+        print(json.dumps({
+            "schema_version": "chapter3.guarded-run-summary.v1",
+            "status": "failed",
+            "trigger_run_id": args.trigger_run_id,
+            "reason": str(exc),
+        }, ensure_ascii=False))
+        return 2
+    print(json.dumps(result, ensure_ascii=False))
+    return rc
+
+
+def cmd_run_chapter5_guarded(args: argparse.Namespace) -> int:
+    """Run one scripted Chapter 5 command inside the start/end attempt guard."""
+
+    from run_chapter5_guarded import run_guarded
+    command = list(args.command or [])
+    if command and command[0] == "--":
+        command = command[1:]
+    try:
+        rc, result = run_guarded(
+            Path(args.repo_root).resolve(),
+            trigger_run_id=args.trigger_run_id,
+            command=command,
+            write_planning=bool(args.write_planning_artifacts),
+            publish_if_eligible=bool(args.publish_if_eligible),
+        )
+    except ValueError as exc:
+        print(json.dumps({
+            "schema_version": "chapter5.guarded-run-summary.v1",
+            "status": "failed",
+            "trigger_run_id": args.trigger_run_id,
+            "reason": str(exc),
+        }, ensure_ascii=False))
+        return 2
+    print(json.dumps(result, ensure_ascii=False))
+    return rc
+
+
+def cmd_refresh_knowledge(args: argparse.Namespace) -> int:
+    """Refresh a registered Chapter closure topology attempt/stable view."""
+
+    from refresh_chapter_knowledge import begin_run_attempt, run as refresh
+    root = Path(args.repo_root).resolve()
+    try:
+        if bool(args.begin_run):
+            if args.write_planning_artifacts or args.publish_if_eligible:
+                raise ValueError("--begin-run cannot write planning artifacts or publish")
+            result = begin_run_attempt(
+                root,
+                source=args.source,
+                trigger_run_id=args.trigger_run_id,
+            )
+        else:
+            result = refresh(
+                root,
+                source=args.source,
+                trigger_run_id=args.trigger_run_id,
+                refresh_local=bool(args.refresh_local),
+                write_planning=bool(args.write_planning_artifacts),
+                publish_if_eligible=bool(args.publish_if_eligible),
+                triplet_status=args.triplet_status,
+                source_manifest_path=root / args.source_manifest,
+                ledger_path=root / args.ledger,
+                semantics_path=root / args.semantics,
+                capabilities_path=root / args.capabilities,
+                edges_path=root / args.edges,
+                candidates_path=root / args.candidates,
+                report_path=root / args.report,
+                coverage_path=root / args.coverage,
+                triplet_attestation_path=root / args.triplet_attestation,
+                reconciliation_path=root / args.reconciliation,
+                readiness_path=root / args.readiness,
+            )
+    except ValueError as exc:
+        print(json.dumps({
+            "source": args.source,
+            "trigger_run_id": args.trigger_run_id,
+            "local_refresh_status": "failed",
+            "publication_status": "deferred",
+            "publication_reason": str(exc),
+        }, ensure_ascii=False))
+        return 2
+    print(json.dumps(result, ensure_ascii=False))
+    failed = (
+        result.get("local_refresh_status") == "failed"
+        or result.get("chapter_closure_status") == "knowledge_refresh_failed"
+        or result.get("publication_status") == "failed"
+    )
+    return 2 if failed else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Dev CLI for Godot+C# template (AI-friendly entrypoint)",
@@ -365,6 +474,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_lh.add_argument("--out-dir", default="")
     p_lh.add_argument("--run-id", default="")
     p_lh.add_argument("--timeout-sec", type=int, default=5)
+    p_lh.add_argument(
+        "--skip-project-health",
+        action="store_true",
+        help="skip the repo-health prelude; required when local hard checks run as a Chapter 6 side effect",
+    )
     p_lh.set_defaults(func=cmd_run_local_hard_checks)
 
     # run-local-hard-checks-preflight
@@ -652,6 +766,65 @@ def build_parser() -> argparse.ArgumentParser:
     p_srv.add_argument("--repo-root", default=".")
     p_srv.add_argument("--port", type=int, default=0)
     p_srv.set_defaults(func=cmd_serve_project_health)
+
+    p_ch3_guard = sub.add_parser(
+        "run-chapter3-guarded",
+        help="run a scripted Chapter 3 command with guaranteed start/end Attempt Preview refresh",
+    )
+    p_ch3_guard.add_argument("--repo-root", default=".")
+    p_ch3_guard.add_argument("--trigger-run-id", required=True)
+    p_ch3_guard.add_argument(
+        "--triplet-status-on-success",
+        choices=["passed", "blocked", "unknown"],
+        default="unknown",
+    )
+    p_ch3_guard.add_argument("--write-planning-artifacts", action="store_true")
+    p_ch3_guard.add_argument("--publish-if-eligible", action="store_true")
+    p_ch3_guard.add_argument("command", nargs=argparse.REMAINDER)
+    p_ch3_guard.set_defaults(func=cmd_run_chapter3_guarded)
+
+    p_ch5_guard = sub.add_parser(
+        "run-chapter5-guarded",
+        help="run a scripted Chapter 5 command with guaranteed start/end Attempt Preview refresh",
+    )
+    p_ch5_guard.add_argument("--repo-root", default=".")
+    p_ch5_guard.add_argument("--trigger-run-id", required=True)
+    p_ch5_guard.add_argument("--write-planning-artifacts", action="store_true")
+    p_ch5_guard.add_argument("--publish-if-eligible", action="store_true")
+    p_ch5_guard.add_argument("command", nargs=argparse.REMAINDER)
+    p_ch5_guard.set_defaults(func=cmd_run_chapter5_guarded)
+
+    p_refresh = sub.add_parser(
+        "refresh-knowledge",
+        help="refresh a registered Chapter 3/5 topology attempt and optional stable/publication state",
+    )
+    p_refresh.add_argument("--repo-root", default=".")
+    p_refresh.add_argument("--source", choices=["chapter3", "chapter5"], required=True)
+    p_refresh.add_argument("--trigger-run-id", required=True)
+    p_refresh.add_argument(
+        "--begin-run",
+        action="store_true",
+        help="record a Chapter 3/5 run-start attempt before expensive/model-backed work",
+    )
+    p_refresh.add_argument("--refresh-local", action="store_true")
+    p_refresh.add_argument("--write-planning-artifacts", action="store_true")
+    p_refresh.add_argument("--publish-if-eligible", action="store_true")
+    p_refresh.add_argument("--triplet-status", choices=["passed", "blocked", "unknown"], default="unknown")
+    p_refresh.add_argument("--source-manifest", default="logs/ci/task-generation/source-manifest.v1.json")
+    p_refresh.add_argument("--ledger", default="logs/ci/task-generation/source-blocks.v1.json")
+    p_refresh.add_argument("--semantics", default="logs/ci/task-generation/semantic-requirements.v1.json")
+    p_refresh.add_argument("--capabilities", default="logs/ci/task-generation/capabilities.v1.json")
+    p_refresh.add_argument("--edges", default="logs/ci/task-generation/topology-edges.v1.json")
+    p_refresh.add_argument("--candidates", default="logs/ci/task-generation/task-candidates.enriched.json")
+    p_refresh.add_argument("--report", default="logs/ci/task-generation/semantic-conservation-report.json")
+    p_refresh.add_argument("--coverage", default="logs/ci/task-generation/coverage-report.json")
+    p_refresh.add_argument(
+        "--triplet-attestation",
+        default="logs/ci/task-generation/triplet-baseline-attestation.json",
+    )
+    p_refresh.add_argument("--reconciliation", default="logs/ci/chapter5/reconciliation/latest.json")
+    p_refresh.add_argument("--readiness", default="logs/ci/chapter5/readiness/latest.json")
+    p_refresh.set_defaults(func=cmd_refresh_knowledge)
 
     from run_mvg_acceptance import register_arguments, run as run_mvg
     p_mvg = sub.add_parser("run-mvg-acceptance", help="Plan or run isolated MVG integration evidence")
