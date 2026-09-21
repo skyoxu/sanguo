@@ -18,18 +18,20 @@ from _knowledge_locator_core import locate, tokens
 from _project_health_tasks import attach_task_scenes, task_details, task_page, task_summary
 from _project_health_navigation import ASSET_SUFFIXES, CONFIG_SUFFIXES, build_navigation
 from _godot_scene_graph import build_scene_graph
+from _semantic_topology import attach_scene_design_trace, load_topology_from_snapshot
 from impact_analysis_index import build_and_publish_index
 from impact_analysis_index import ImpactIndexError
 from impact_analyzer import ImpactAnalyzer
 
 CONFIG = 'scripts/python/project_health_knowledge_config.json'
 REF = 'refs/heads/main'
-SOURCE_PATHS = ['.taskmaster/tasks', 'docs/prd', 'docs/adr', 'docs/architecture',
+STRUCTURAL_SOURCE_PATHS = ['docs/planning/semantic-topology']
+SOURCE_PATHS = ['.taskmaster/tasks', 'docs/prd', 'docs/gdd', 'docs/adr', 'docs/architecture',
                 'docs/agents', 'docs/workflows', 'Game.Core', 'Game.Godot',
                 'Game.Core.Tests', 'Tests.Godot', 'README.md', 'AGENTS.md',
                 'DELIVERY_PROFILE.md', 'workflow.md', 'docs/testing-framework.md']
 SOURCE_PATH_BINDINGS = dict(zip(
-    ('tasks', 'product_requirements', 'architecture_decisions', 'architecture', 'agent_rules',
+    ('tasks', 'product_requirements', 'game_design', 'architecture_decisions', 'architecture', 'agent_rules',
      'workflows', 'domain_code', 'engine_code', 'domain_tests', 'engine_tests', 'project_entry',
      'repository_rules', 'delivery_profile', 'root_workflow', 'testing_rules'),
     SOURCE_PATHS,
@@ -200,12 +202,12 @@ def scan(root: Path) -> dict:
             trusted = LocalMainSnapshot(root, REF)
             revision = trusted.commit
         else:
-            trusted = DirectorySnapshot(root, config['source_paths'] + config['gdd_paths'] + ['knowledge/policies'])
+            trusted = DirectorySnapshot(root, config['source_paths'] + config['gdd_paths'] + STRUCTURAL_SOURCE_PATHS + ['knowledge/policies'])
             revision = trusted.commit
         required = ['.taskmaster/tasks/tasks.json', '.taskmaster/tasks/tasks_back.json',
                     '.taskmaster/tasks/tasks_gameplay.json', 'knowledge/policies/consumer-policies.v1.json',
                     'knowledge/policies/source-exclusions.v1.json', *config['gdd_paths']]
-        allowed = config['source_paths'] + config['gdd_paths'] + ['knowledge/policies', 'project.godot']
+        allowed = config['source_paths'] + config['gdd_paths'] + STRUCTURAL_SOURCE_PATHS + ['knowledge/policies', 'project.godot']
         for prefix in config['source_paths'] + config['gdd_paths']:
             if not any(p == prefix or p.startswith(prefix.rstrip('/') + '/') for p in trusted.paths):
                 raise ValueError('Configured source does not exist: ' + prefix)
@@ -234,7 +236,9 @@ def scan(root: Path) -> dict:
                     pass
         details = task_details(trusted)
         attach_task_scenes(details, sources, config['task_scene_bindings'])
+        semantic_topology = load_topology_from_snapshot(trusted, details, identity_kind='main')
         scene_graph = build_scene_graph(sources, details, known_paths=trusted.paths)
+        attach_scene_design_trace(scene_graph, semantic_topology, details)
         previous_index_path = root / 'docs/knowledge/catalog/godot-elements.json'
         previous_index = read_json(previous_index_path) if previous_index_path.exists() else None
         file_manifest = sorted(set(sources) | {p for p in trusted.paths
@@ -252,7 +256,8 @@ def scan(root: Path) -> dict:
                   'snapshot': None, 'summary': task_summary(details), 'tasks': details,
                   'gdd_files': gdds, 'config': config, 'index': index,
                   'catalog': catalog, 'policies': policies, 'projections': projections,
-                  'sources': sources, 'scene_graph': scene_graph, 'godot_elements': godot_elements,
+                  'sources': sources, 'scene_graph': scene_graph, 'semantic_topology': semantic_topology,
+                  'godot_elements': godot_elements,
                   'file_manifest': file_manifest,
                   'publication': {'main_commit': publication.get('main_commit'),
                   'matches_scan': publication.get('main_commit') == revision,
