@@ -106,27 +106,131 @@ def repo_slug(repo_root: Path) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "-", repo_root.name).strip("-") or "repo"
 
 
-def build_summary(repo_root: Path, out_dir: Path) -> dict[str, Any]:
+def build_summary(
+    repo_root: Path,
+    out_dir: Path,
+    semantic_requirements: Path | None = None,
+) -> dict[str, Any]:
     candidates = load_tasks(out_dir / "task-candidates.enriched.json")
     filtered = filtered_tasks_json(repo_root)
     coverage = json.loads((out_dir / "coverage-report.json").read_text(encoding="utf-8"))
     quality = json.loads((out_dir / "task-intents.quality.json").read_text(encoding="utf-8"))
+    ledger = json.loads((out_dir / "source-blocks.v1.json").read_text(encoding="utf-8"))
+    legacy_index = json.loads((out_dir / "requirements.index.json").read_text(encoding="utf-8"))
+
+    blocks = [row for row in ledger.get("blocks", []) if isinstance(row, dict)]
+    semantic_doc: dict[str, Any] | None = None
+    if semantic_requirements is not None and semantic_requirements.is_file():
+        payload = json.loads(semantic_requirements.read_text(encoding="utf-8"))
+        if payload.get("schema_version") == "newrouge.semantic-requirements.v1":
+            semantic_doc = payload
+
+    source_layer = {
+        "status": "complete" if blocks else "empty",
+        "source_block_count": len(blocks),
+        "source_count": len({
+            str(row.get("source_path")) for row in blocks if row.get("source_path")
+        }),
+        "parser_inventory": ledger.get("parser_inventory", {}),
+        "delta": ledger.get("delta", {}),
+    }
+
+    if semantic_doc is None:
+        semantic_layer = {
+            "status": "not_run",
+            "reason": "no reviewed semantic-requirements input supplied",
+            "requirement_count": None,
+            "delivery_requirement_count": None,
+            "accounted_block_count": None,
+            "source_accounting_coverage": None,
+        }
+    else:
+        requirements = [
+            row for row in semantic_doc.get("requirements", [])
+            if isinstance(row, dict)
+        ]
+        accounting = [
+            row for row in semantic_doc.get("source_accounting", [])
+            if isinstance(row, dict) and row.get("block_id")
+        ]
+        accounted_ids = {str(row["block_id"]) for row in accounting}
+        delivery = [
+            row for row in requirements
+            if row.get("delivery_relevant") is True
+            and str(row.get("status", "active")).casefold() == "active"
+        ]
+        semantic_layer = {
+            "status": "available",
+            "source_revision": semantic_doc.get("source_revision"),
+            "requirement_count": len(requirements),
+            "delivery_requirement_count": len(delivery),
+            "accounted_block_count": len(accounted_ids),
+            "source_accounting_coverage": (
+                round(len(accounted_ids) / len(blocks), 6) if blocks else 1.0
+            ),
+            "unresolved_delivery_potential_count": sum(
+                1 for row in accounting
+                if str(row.get("disposition") or "").casefold() == "unresolved"
+                and row.get("delivery_potential") is True
+            ),
+        }
+
+    task_layer = {
+        "status": coverage.get("status"),
+        "candidate_count": len(candidates),
+        "mature_filtered_task_count": len(filtered),
+        "candidate_to_filtered_ratio": (
+            round(len(candidates) / len(filtered), 3) if filtered else None
+        ),
+        "candidate_delta_vs_filtered": len(candidates) - len(filtered),
+        "coverage_model": coverage.get("coverage_model"),
+        "missing_blocking_count": coverage.get("missing_blocking_count"),
+        "intent_quality_status": quality.get("status"),
+        "intent_quality_issue_count": quality.get("issue_count"),
+    }
+
+    legacy_anchor_count = len(legacy_index.get("anchors", []))
     return {
-        "schema": "chapter3.regression-check.v1",
+        "schema": "chapter3.regression-check.v2",
         "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
         "repo_root": str(repo_root),
         "simulation_dir": str(out_dir),
+        "layers": {
+            "source": source_layer,
+            "semantic": semantic_layer,
+            "task": task_layer,
+        },
+        "shadow_compare": {
+            "legacy_requirement_anchor_count": legacy_anchor_count,
+            "source_block_count": len(blocks),
+            "legacy_anchor_to_source_block_ratio": (
+                round(legacy_anchor_count / len(blocks), 4) if blocks else None
+            ),
+            "mature_filtered_task_count": len(filtered),
+            "candidate_count": len(candidates),
+            "candidate_delta_vs_filtered": len(candidates) - len(filtered),
+            "semantic_requirement_count": (
+                semantic_layer.get("requirement_count")
+                if semantic_layer.get("status") == "available" else None
+            ),
+        },
+        # Compatibility keys retained for existing report consumers.
         "candidate_count": len(candidates),
         "filtered_tasks_json_count": len(filtered),
-        "candidate_to_filtered_ratio": round(len(candidates) / len(filtered), 3) if filtered else None,
-        "candidate_delta_vs_filtered": len(candidates) - len(filtered),
+        "candidate_to_filtered_ratio": task_layer["candidate_to_filtered_ratio"],
+        "candidate_delta_vs_filtered": task_layer["candidate_delta_vs_filtered"],
         "coverage_status": coverage.get("status"),
         "missing_blocking_count": coverage.get("missing_blocking_count"),
         "intent_quality_status": quality.get("status"),
         "intent_quality_issue_count": quality.get("issue_count"),
         "intent_quality_issue_counts": quality.get("issue_counts", {}),
+        "source_block_count": len(blocks),
+        "legacy_requirement_anchor_count": legacy_anchor_count,
+        "legacy_anchor_to_source_block_ratio": (
+            round(legacy_anchor_count / len(blocks), 4) if blocks else None
+        ),
+        "source_parser_inventory": ledger.get("parser_inventory", {}),
     }
-
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run a read-only Chapter 3 regression simulation.")
@@ -141,6 +245,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--epics-path", action="append", default=[])
     parser.add_argument("--stories-path", action="append", default=[])
     parser.add_argument("--source-glob", action="append", default=[])
+    parser.add_argument(
+        "--semantic-requirements",
+        default="",
+        help="Optional reviewed semantic-requirements.v1.json used only for semantic-layer shadow metrics.",
+    )
     args = parser.parse_args(argv)
 
     template_root = Path(args.template_root).resolve()
@@ -155,6 +264,8 @@ def main(argv: list[str] | None = None) -> int:
         out_dir = template_root / out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    source_manifest = out_dir / "source-manifest.v1.json"
+    source_blocks = out_dir / "source-blocks.v1.json"
     requirements = out_dir / "requirements.index.json"
     intents = out_dir / "task-intents.normalized.json"
     quality = out_dir / "task-intents.quality.json"
@@ -168,12 +279,30 @@ def main(argv: list[str] | None = None) -> int:
         [
             "py",
             "-3",
-            "scripts/python/extract_requirement_anchors.py",
+            "scripts/python/build_source_ledger.py",
             "--repo-root",
             str(repo_root),
             "--mode",
             args.mode,
             *add_typed_sources(args),
+            "--manifest-out",
+            str(source_manifest),
+            "--out",
+            str(source_blocks),
+        ],
+    )
+    run(
+        template_root,
+        [
+            "py",
+            "-3",
+            "scripts/python/extract_requirement_anchors.py",
+            "--repo-root",
+            str(repo_root),
+            "--mode",
+            args.mode,
+            "--ledger-input",
+            str(source_blocks),
             "--out",
             str(requirements),
         ],
@@ -192,6 +321,8 @@ def main(argv: list[str] | None = None) -> int:
             args.id_prefix,
             "--requirements",
             str(requirements),
+            "--semantics",
+            str(out_dir / "legacy-shadow-no-semantics.json"),
             "--split-profile",
             args.split_profile,
             "--out",
@@ -220,16 +351,30 @@ def main(argv: list[str] | None = None) -> int:
         ],
     )
     run(template_root, ["py", "-3", "scripts/python/enrich_task_candidates.py", "--repo-root", str(repo_root), "--candidates", str(candidates), "--out", str(enriched)])
-    run(template_root, ["py", "-3", "scripts/python/audit_task_candidate_coverage.py", "--repo-root", str(repo_root), "--requirements", str(requirements), "--candidates", str(enriched), "--out", str(coverage)])
+    run(template_root, [
+        "py", "-3", "scripts/python/audit_task_candidate_coverage.py",
+        "--repo-root", str(repo_root),
+        "--requirements", str(requirements),
+        "--semantics", str(out_dir / "legacy-shadow-no-semantics.json"),
+        "--candidates", str(enriched),
+        "--out", str(coverage),
+    ])
     run(template_root, ["py", "-3", "scripts/python/compile_task_triplet.py", "--repo-root", str(repo_root), "--mode", args.mode, "--candidates", str(enriched), "--coverage", str(coverage), "--out", str(patch)])
 
-    summary = build_summary(repo_root, out_dir)
+    semantic_path = None
+    if args.semantic_requirements:
+        semantic_path = Path(args.semantic_requirements)
+        if not semantic_path.is_absolute():
+            semantic_path = repo_root / semantic_path
+    summary = build_summary(repo_root, out_dir, semantic_path)
     write_json(out_dir / "regression-summary.json", summary)
     print(
         "CHAPTER3_REGRESSION "
         f"repo={repo_root.name} candidates={summary['candidate_count']} "
         f"filtered_tasks={summary['filtered_tasks_json_count']} "
         f"coverage={summary['coverage_status']} quality={summary['intent_quality_status']} "
+        f"source_blocks={summary['source_block_count']} legacy_anchors={summary['legacy_requirement_anchor_count']} "
+        f"semantic={summary['layers']['semantic']['status']} "
         f"out={out_dir / 'regression-summary.json'}"
     )
     return 0
