@@ -29,7 +29,7 @@ def _scene_graph_for_state(root: Path, state: dict) -> dict:
     return build_scene_graph(sources, state.get('tasks') or [], known_paths=state.get('file_manifest') or tuple(sources))
 
 
-def _capture_element_manifest(root: Path, task_id: str) -> dict:
+def _capture_element_manifest(root: Path, task_id: str, out_dir: Path) -> dict:
     latest = root / 'logs/ci/project-health-knowledge/latest.json'
     state = json.loads(latest.read_text(encoding='utf-8')) if latest.exists() else {}
     graph = _scene_graph_for_state(root, state)
@@ -81,10 +81,10 @@ def _capture_element_manifest(root: Path, task_id: str) -> dict:
         'documentation_gaps': gaps,
         'blocking': False,
     }
-    out = root / 'docs/knowledge/generated' / f'chapter6-task-{task_id}-elements.json'
-    out.parent.mkdir(parents=True, exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / 'knowledge-capture-candidate.json'
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    gaps_out = root / 'docs/knowledge/generated' / f'chapter6-task-{task_id}-documentation-gaps.md'
+    gaps_out = out_dir / 'documentation-gaps.md'
     lines = [f'# Chapter 6 documentation gaps: task {task_id}', '',
              'Generated from deterministic scan. These gaps are non-blocking follow-up items.', '']
     if gaps:
@@ -93,7 +93,8 @@ def _capture_element_manifest(root: Path, task_id: str) -> dict:
         lines.append('- No documentation gaps detected.')
     gaps_out.write_text('\n'.join(lines) + '\n', encoding='utf-8')
     return {'path': str(out.relative_to(root)).replace('\\', '/'),
-            'elements': len(elements), 'documentation_gaps': len(gaps), 'blocking': False}
+            'elements': len(elements), 'documentation_gaps': len(gaps), 'blocking': False,
+            'scope': 'task-local-staging'}
 
 
 def _semantic_prompt_entries(entries: list[dict]) -> list[dict]:
@@ -228,7 +229,7 @@ def _build_semantic_prompt(prompt_entries: list[dict]) -> str:
             json.dumps(prompt_entries, ensure_ascii=False, separators=(',', ':')))
 
 
-def _semantic_enrich(root: Path, task_id: str, backend: str) -> dict:
+def _semantic_enrich(root: Path, task_id: str, backend: str, out_dir: Path) -> dict:
     sys.path.insert(0, str(root / 'scripts/sc'))
     from _llm_backend import run_llm_exec
     links = root / 'docs/knowledge/generated/task-resource-links.json'
@@ -241,7 +242,8 @@ def _semantic_enrich(root: Path, task_id: str, backend: str) -> dict:
     candidates += scenes[:8]
     prompt_entries = _semantic_prompt_entries(candidates)
     prompt = _build_semantic_prompt(prompt_entries)
-    out = root / 'docs/knowledge/generated' / f'task-{task_id}-semantic.json'
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / 'semantic-candidate.json'
     rc, trace, command = 1, '', []
     validation_error = None
     model = None
@@ -266,26 +268,33 @@ def _semantic_enrich(root: Path, task_id: str, backend: str) -> dict:
 
 
 def run(root: Path, task_id: str, write_task_refs: bool = False, semantic: bool = False, llm_backend: str = 'codex-cli') -> dict:
-    commands = [
-        [sys.executable, str(root / 'scripts/python/dev_cli.py'), 'project-health-scan', '--repo-root', str(root)],
-        [sys.executable, str(root / 'scripts/python/dev_cli.py'), 'generate-knowledge-links', '--repo-root', str(root), '--task-id', task_id] + (['--write-task-refs'] if write_task_refs else []),
-        [sys.executable, str(root / 'scripts/python/dev_cli.py'), 'init-knowledge-catalog', '--repo-root', str(root), '--validate'],
-    ]
-    steps = []
-    for command in commands:
-        proc = subprocess.run(command, cwd=root, text=True, encoding='utf-8', capture_output=True)
-        steps.append({'command': command, 'returncode': proc.returncode, 'stdout': proc.stdout[-2000:], 'stderr': proc.stderr[-2000:]})
-        if proc.returncode:
-            return {'status': 'knowledge_capture_failed', 'task_id': task_id, 'stop_step': len(steps), 'steps': steps}
-    capture = _capture_element_manifest(root, task_id)
+    """Capture task-local candidates only; never refresh/publish global Knowledge."""
+    if write_task_refs:
+        return {
+            'status': 'knowledge_capture_failed',
+            'task_id': task_id,
+            'reason': 'chapter6_global_task_ref_write_forbidden',
+            'global_refresh': 'forbidden',
+            'steps': [],
+        }
+    out_dir = root / 'logs/ci/chapter6-knowledge' / f'task-{task_id}'
+    capture = _capture_element_manifest(root, task_id, out_dir)
+    result = {
+        'status': 'knowledge_captured',
+        'task_id': task_id,
+        'capture': capture,
+        'steps': [],
+        'global_refresh': 'not_performed',
+        'publication': 'not_performed',
+        'project_health_scan': 'not_performed',
+        'kcp_pointer_mutation': 'forbidden',
+    }
     if semantic:
-        semantic_result = _semantic_enrich(root, task_id, llm_backend)
-        return {'status': 'knowledge_captured', 'task_id': task_id, 'capture': capture, 'semantic_status': semantic_result, 'steps': steps}
-    return {'status': 'knowledge_captured', 'task_id': task_id, 'capture': capture, 'steps': steps}
-
+        result['semantic_status'] = _semantic_enrich(root, task_id, llm_backend, out_dir)
+    return result
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(); parser.add_argument('--repo-root', type=Path, default=Path.cwd()); parser.add_argument('--task-id', required=True); parser.add_argument('--write-task-refs', action='store_true'); parser.add_argument('--semantic', action='store_true'); parser.add_argument('--llm-backend', default='codex-cli')
+    parser = argparse.ArgumentParser(); parser.add_argument('--repo-root', type=Path, default=Path.cwd()); parser.add_argument('--task-id', required=True); parser.add_argument('--write-task-refs', action='store_true', help='legacy flag; rejected because Chapter 6 cannot mutate global/task Knowledge refs'); parser.add_argument('--semantic', action='store_true'); parser.add_argument('--llm-backend', default='codex-cli')
     args = parser.parse_args(argv)
     result = run(args.repo_root.resolve(), args.task_id, args.write_task_refs, args.semantic, args.llm_backend)
     print(json.dumps(result, ensure_ascii=False)); return 0 if result['status'] == 'knowledge_captured' else 1
