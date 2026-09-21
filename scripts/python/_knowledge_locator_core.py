@@ -85,6 +85,42 @@ def _task_identity_line(module: dict[str, Any], query: str, lines: list[str]) ->
     return None
 
 
+def _topology_node_match(
+    module: dict[str, Any], query: str, query_tokens: list[str]
+) -> tuple[dict[str, Any], int, bool] | None:
+    folded_query = query.casefold().strip()
+    best: tuple[dict[str, Any], int, bool] | None = None
+    for node in module.get("topology_nodes", []):
+        if not isinstance(node, dict):
+            continue
+        node_id = str(node.get("node_id", ""))
+        searchable = " ".join(
+            (
+                node_id,
+                str(node.get("node_type", "")),
+                str(node.get("search_text", "")),
+                " ".join(str(value) for value in node.get("related_task_ids", [])),
+                " ".join(
+                    str(source.get("path", ""))
+                    for source in node.get("authority_sources", [])
+                    if isinstance(source, dict)
+                ),
+            )
+        ).casefold()
+        matches = sum(token in searchable for token in query_tokens)
+        coverage = matches / max(1, len(query_tokens))
+        exact = bool(node_id) and folded_query == node_id.casefold()
+        phrase = bool(folded_query) and folded_query in searchable
+        if not exact and not phrase and coverage < 0.5:
+            continue
+        score = matches * 20 + (180 if exact else 0) + (35 if phrase else 0)
+        if best is None or score > best[1] or (
+            score == best[1] and node_id.casefold() < str(best[0].get("node_id", "")).casefold()
+        ):
+            best = (node, score, exact)
+    return best
+
+
 def _best_location(module: dict[str, Any], query: str, query_tokens: list[str]) -> tuple[str, int, int, str]:
     content = str(module.get("content", ""))
     lines = content.splitlines()
@@ -124,7 +160,8 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
         coverage = matches / max(1, len(qtokens))
         phrase = query.casefold().strip() in searchable
         exact = _explicit(query, module)
-        if not exact and not phrase and coverage < 0.5:
+        topology_match = _topology_node_match(module, query, qtokens)
+        if not exact and not phrase and coverage < 0.5 and topology_match is None:
             continue
         path_folded = source_path.casefold()
         title_folded = title.casefold()
@@ -137,16 +174,27 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
             score += 25
         if exact:
             score += 100
+        topology_node = None
+        topology_exact = False
+        if topology_match is not None:
+            topology_node, topology_score, topology_exact = topology_match
+            score += topology_score
         policy_exact_path = source_path in exact_policy_paths
         entrypoint_token_matches = path_token_matches + title_token_matches
         policy_entrypoint_boosted = policy_exact_path and entrypoint_token_matches > 0
         if policy_entrypoint_boosted:
             score += POLICY_EXACT_PATH_BONUS
-        anchor, line_start, line_end, location_strategy = _best_location(module, query, qtokens)
+        if topology_node is not None:
+            anchor = "topology:" + str(topology_node.get("node_type")) + ":" + str(topology_node.get("node_id"))
+            line_start = int(topology_node.get("line_start", 1))
+            line_end = int(topology_node.get("line_end", line_start))
+            location_strategy = "topology-node"
+        else:
+            anchor, line_start, line_end, location_strategy = _best_location(module, query, qtokens)
         task_identity_match = location_strategy == "task-identity"
         if task_identity_match:
             score += TASK_IDENTITY_BONUS
-        ranked[str(module_id)] = (score, source_path.casefold(), {
+        candidate = {
             "module_id": module_id,
             "path": source_path,
             "anchor": anchor,
@@ -157,10 +205,10 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
             "status": module["status"],
             "provenance": ["catalog-v1", catalog["source_snapshot"]["ref"]],
             "rank_evidence": {
-                "strategy": "hybrid-token",
+                "strategy": "topology-node" if topology_node is not None else "hybrid-token",
                 "score": score,
                 "token_matches": matches,
-                "confidence": "high" if exact or (phrase and coverage == 1) else "medium",
+                "confidence": "high" if topology_exact or exact or (phrase and coverage == 1) else "medium",
                 "policy_exact_path": policy_exact_path,
                 "entrypoint_token_matches": entrypoint_token_matches,
                 "policy_exact_path_bonus": POLICY_EXACT_PATH_BONUS if policy_entrypoint_boosted else 0,
@@ -168,7 +216,13 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
                 "task_identity_bonus": TASK_IDENTITY_BONUS if task_identity_match else 0,
                 "location_strategy": location_strategy,
             },
-        })
+        }
+        if topology_node is not None:
+            candidate["topology_node"] = {
+                key: value for key, value in topology_node.items()
+                if key not in {"search_text"}
+            }
+        ranked[str(module_id)] = (score, source_path.casefold(), candidate)
         base.append((score, module))
     for score, module in base:
         for relation in module.get("relations", []):
