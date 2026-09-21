@@ -2,14 +2,27 @@
 from __future__ import annotations
 
 import re
-from pathlib import PurePosixPath
+import subprocess
+from pathlib import Path, PurePosixPath
 from typing import Any
+
+from _knowledge_catalog_builder import _eligible_source, _excluded, normalize_path
 
 POLICY_EXACT_PATH_BONUS = 128
 TASK_IDENTITY_BONUS = 256
 TASK_SOURCE_PREFIX = ".taskmaster/tasks/"
 TASK_VIEW_ID = re.compile(r"\b(?:GM|NG)-\d+\b", re.IGNORECASE)
 TASK_NUMBER = re.compile(r"\btask\s+(?:id\s*)?(\d+)\b", re.IGNORECASE)
+
+PUBLICATION_CONTROL_PLANE_INPUT_FILES = {
+    "scripts/python/_knowledge_catalog_builder.py",
+    "scripts/python/_knowledge_locator_core.py",
+    "scripts/python/publish_knowledge_catalog.py",
+}
+PUBLICATION_CONTROL_PLANE_INPUT_PREFIXES = (
+    "knowledge/policies/",
+    "knowledge/evaluation/",
+)
 
 
 def tokens(query: str) -> list[str]:
@@ -85,6 +98,42 @@ def _task_identity_line(module: dict[str, Any], query: str, lines: list[str]) ->
     return None
 
 
+def _topology_node_match(
+    module: dict[str, Any], query: str, query_tokens: list[str]
+) -> tuple[dict[str, Any], int, bool] | None:
+    folded_query = query.casefold().strip()
+    best: tuple[dict[str, Any], int, bool] | None = None
+    for node in module.get("topology_nodes", []):
+        if not isinstance(node, dict):
+            continue
+        node_id = str(node.get("node_id", ""))
+        searchable = " ".join(
+            (
+                node_id,
+                str(node.get("node_type", "")),
+                str(node.get("search_text", "")),
+                " ".join(str(value) for value in node.get("related_task_ids", [])),
+                " ".join(
+                    str(source.get("path", ""))
+                    for source in node.get("authority_sources", [])
+                    if isinstance(source, dict)
+                ),
+            )
+        ).casefold()
+        matches = sum(token in searchable for token in query_tokens)
+        coverage = matches / max(1, len(query_tokens))
+        exact = bool(node_id) and folded_query == node_id.casefold()
+        phrase = bool(folded_query) and folded_query in searchable
+        if not exact and not phrase and coverage < 0.5:
+            continue
+        score = matches * 20 + (180 if exact else 0) + (35 if phrase else 0)
+        if best is None or score > best[1] or (
+            score == best[1] and node_id.casefold() < str(best[0].get("node_id", "")).casefold()
+        ):
+            best = (node, score, exact)
+    return best
+
+
 def _best_location(module: dict[str, Any], query: str, query_tokens: list[str]) -> tuple[str, int, int, str]:
     content = str(module.get("content", ""))
     lines = content.splitlines()
@@ -124,7 +173,8 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
         coverage = matches / max(1, len(qtokens))
         phrase = query.casefold().strip() in searchable
         exact = _explicit(query, module)
-        if not exact and not phrase and coverage < 0.5:
+        topology_match = _topology_node_match(module, query, qtokens)
+        if not exact and not phrase and coverage < 0.5 and topology_match is None:
             continue
         path_folded = source_path.casefold()
         title_folded = title.casefold()
@@ -137,16 +187,27 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
             score += 25
         if exact:
             score += 100
+        topology_node = None
+        topology_exact = False
+        if topology_match is not None:
+            topology_node, topology_score, topology_exact = topology_match
+            score += topology_score
         policy_exact_path = source_path in exact_policy_paths
         entrypoint_token_matches = path_token_matches + title_token_matches
         policy_entrypoint_boosted = policy_exact_path and entrypoint_token_matches > 0
         if policy_entrypoint_boosted:
             score += POLICY_EXACT_PATH_BONUS
-        anchor, line_start, line_end, location_strategy = _best_location(module, query, qtokens)
+        if topology_node is not None:
+            anchor = "topology:" + str(topology_node.get("node_type")) + ":" + str(topology_node.get("node_id"))
+            line_start = int(topology_node.get("line_start", 1))
+            line_end = int(topology_node.get("line_end", line_start))
+            location_strategy = "topology-node"
+        else:
+            anchor, line_start, line_end, location_strategy = _best_location(module, query, qtokens)
         task_identity_match = location_strategy == "task-identity"
         if task_identity_match:
             score += TASK_IDENTITY_BONUS
-        ranked[str(module_id)] = (score, source_path.casefold(), {
+        candidate = {
             "module_id": module_id,
             "path": source_path,
             "anchor": anchor,
@@ -157,10 +218,10 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
             "status": module["status"],
             "provenance": ["catalog-v1", catalog["source_snapshot"]["ref"]],
             "rank_evidence": {
-                "strategy": "hybrid-token",
+                "strategy": "topology-node" if topology_node is not None else "hybrid-token",
                 "score": score,
                 "token_matches": matches,
-                "confidence": "high" if exact or (phrase and coverage == 1) else "medium",
+                "confidence": "high" if topology_exact or exact or (phrase and coverage == 1) else "medium",
                 "policy_exact_path": policy_exact_path,
                 "entrypoint_token_matches": entrypoint_token_matches,
                 "policy_exact_path_bonus": POLICY_EXACT_PATH_BONUS if policy_entrypoint_boosted else 0,
@@ -168,7 +229,13 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
                 "task_identity_bonus": TASK_IDENTITY_BONUS if task_identity_match else 0,
                 "location_strategy": location_strategy,
             },
-        })
+        }
+        if topology_node is not None:
+            candidate["topology_node"] = {
+                key: value for key, value in topology_node.items()
+                if key not in {"search_text"}
+            }
+        ranked[str(module_id)] = (score, source_path.casefold(), candidate)
         base.append((score, module))
     for score, module in base:
         for relation in module.get("relations", []):
@@ -188,3 +255,79 @@ def locate(request: dict[str, Any], catalog: dict[str, Any], policy: dict[str, A
             })
     ordered = sorted(ranked.values(), key=lambda item: (-item[0], item[1]))
     return {"status": "matched" if ordered else "insufficient_match", "candidates": [item[2] for item in ordered[:max_candidates]]}
+
+
+def _publication_relevant(path: str, exclusions: dict[str, Any]) -> bool:
+    normalized = normalize_path(path)
+    if normalized in PUBLICATION_CONTROL_PLANE_INPUT_FILES:
+        return True
+    if normalized.startswith(PUBLICATION_CONTROL_PLANE_INPUT_PREFIXES):
+        return True
+    return _eligible_source(normalized) and not _excluded(normalized, exclusions)
+
+
+def publication_freshness_reason(
+    root: Path,
+    published_commit: str,
+    authority_ref: str,
+    exclusions: dict[str, Any],
+) -> str | None:
+    """Return why a publication is stale, or None when current authority inputs are equivalent.
+
+    Main may advance after publication without staling the catalog when all intervening changes
+    are outside Knowledge inputs. Generated publication outputs are intentionally not eligible
+    sources, so committing catalogs/indexes/projections/snapshots does not invalidate itself.
+    """
+    if not published_commit or not authority_ref:
+        return "authority_binding_invalid"
+
+    current = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "--verify", authority_ref],
+        text=True,
+        encoding="utf-8",
+        capture_output=True,
+        check=False,
+    )
+    if current.returncode:
+        return "authority_ref_unavailable"
+
+    published = subprocess.run(
+        ["git", "-C", str(root), "cat-file", "-e", f"{published_commit}^{{commit}}"],
+        capture_output=True,
+        check=False,
+    )
+    if published.returncode:
+        return "published_commit_unavailable"
+
+    ancestor = subprocess.run(
+        ["git", "-C", str(root), "merge-base", "--is-ancestor", published_commit, current.stdout.strip()],
+        capture_output=True,
+        check=False,
+    )
+    if ancestor.returncode != 0:
+        return "authority_ref_diverged"
+
+    changed = subprocess.run(
+        [
+            "git", "-C", str(root), "diff", "--no-renames", "--name-only", "-z",
+            published_commit, current.stdout.strip(),
+        ],
+        capture_output=True,
+        check=False,
+    )
+    if changed.returncode:
+        return "authority_diff_failed"
+
+    for raw in changed.stdout.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            path = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            return "authority_path_encoding_invalid"
+        try:
+            if _publication_relevant(path, exclusions):
+                return "authority_inputs_changed"
+        except ValueError:
+            return "authority_path_invalid"
+    return None
