@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from _godot_scene_graph import build_scene_graph
+from _semantic_topology import load_workspace_topology
 from project_health_knowledge import CONFIG, safe_file, write_json, validate_config, load_config, read_json, base_dir
 
 
@@ -146,6 +147,31 @@ def handler_factory(root: Path):
                     self.cli('status')
                 elif parsed.path == '/api/knowledge/config':
                     self.send(load_config(root))
+                elif parsed.path == '/api/knowledge/topology':
+                    mode = params.get('mode', ['main'])[0]
+                    if mode == 'main':
+                        snapshot = base_dir(root) / 'latest.json'
+                        state = read_json(snapshot) if snapshot.exists() else {}
+                        topology = state.get('semantic_topology')
+                        if not isinstance(topology, dict):
+                            topology = {
+                                'schema_version': 'newrouge.semantic-topology-view.v1',
+                                'available': False, 'fresh': False,
+                                'identity': {'kind': 'main', 'revision': state.get('revision')},
+                                'status': 'legacy_unmapped',
+                                'reason': 'No semantic topology is attached to the current main scan',
+                                'nodes': {'source_blocks': [], 'requirements': [], 'capabilities': [], 'tasks': [], 'acceptance': []},
+                                'edges': [], 'task_trace': {}, 'summary': {}, 'problems': [],
+                            }
+                        self.send(topology)
+                    elif mode == 'workspace':
+                        workspace_view = params.get('view', ['attempt'])[0]
+                        if workspace_view not in ('attempt', 'stable', 'stabilized'):
+                            self.send({'reason': 'Unknown workspace topology view'}, 400)
+                        else:
+                            self.send(load_workspace_topology(root, workspace_view))
+                    else:
+                        self.send({'reason': 'Unknown topology identity'}, 400)
                 elif parsed.path == '/api/knowledge/scene-graph':
                     state, graph = scene_graph_snapshot(root)
                     self.send({'revision': state.get('revision'), 'file_manifest': state.get('file_manifest', []), **graph})
@@ -181,11 +207,16 @@ def handler_factory(root: Path):
                 elif parsed.path == '/knowledge/scenes':
                     self.send(Path(__file__).with_name('project_health_scenes.html').read_text(encoding='utf-8'),
                               content_type='text/html; charset=utf-8')
+                elif parsed.path == '/knowledge/topology':
+                    self.send(Path(__file__).with_name('project_health_topology.html').read_text(encoding='utf-8'),
+                              content_type='text/html; charset=utf-8')
                 elif parsed.path == '/knowledge/scenes/unreachable':
                     self.send(Path(__file__).with_name('project_health_unreachable.html').read_text(encoding='utf-8'),
                               content_type='text/html; charset=utf-8')
                 elif parsed.path == '/knowledge/scenes.js':
                     self.send(Path(__file__).with_name('project_health_scenes.js').read_text(encoding='utf-8'), content_type='text/javascript')
+                elif parsed.path == '/knowledge/topology.js':
+                    self.send(Path(__file__).with_name('project_health_topology.js').read_text(encoding='utf-8'), content_type='text/javascript')
                 elif parsed.path == '/knowledge/unreachable.js':
                     self.send(Path(__file__).with_name('project_health_unreachable.js').read_text(encoding='utf-8'), content_type='text/javascript')
                 elif parsed.path in ('/knowledge/app.js', '/knowledge/style.css'):
