@@ -1,6 +1,6 @@
 ---
 name: workflow-chapter5-semantics-stabilization
-description: Run the fixed Chapter 5 conditional semantics stabilization workflow from workflow.md. Use when a business repo needs task triplet semantics stabilization, lightweight semantic lanes, batch instability handling, acceptance extraction guardrails, or idempotent Chapter 5 recovery before Chapter 6.
+description: Run the fixed Chapter 5 semantic reconciliation workflow from workflow.md. Use when a business repo needs Independent Extraction B, global orphan/omission audit, bidirectional Requirement/Acceptance validation, dependency/overlap stabilization, readiness gating, Knowledge refresh, or the legacy lightweight acceptance lane before Chapter 6.
 ---
 
 # Workflow Chapter 5 Semantics Stabilization
@@ -17,7 +17,8 @@ Operate Chapter 5 from `workflow.md` idempotently for a business repository that
 - Keep generated code, scripts, tests, comments, and log messages in English.
 - Do not modify the business repo unless the user explicitly asks for that change.
 - Do not rerun expensive steps before reading existing recovery artifacts.
-- During Knowledge Control Plane migration, Locator candidates are shadow-only and cannot satisfy acceptance/semantic obligations without direct-source reread and consumer judgment.
+- During Knowledge Control Plane migration, Locator candidates are shadow-only. Complete source scope comes from the authoritative manifest/Ledger A, never task refs.
+- Chapter 5 is a registered closure producer: every run may update Last Attempt, but only READY or policy-allowed CONCERNS may advance Latest Stabilized.
 
 ## Repository Layout
 
@@ -29,11 +30,13 @@ Use this skill to stabilize task semantics before daily task execution enters th
 
 ## Default Lane
 
-Start with the lightweight single-task lane. Escalate to batch instability only when repeated semantic drift or extraction failure is proven by logs.
+Build or reuse one revision-bound Independent Extraction B snapshot from the complete authoritative source scope, then reconcile only the target Task against that global inventory. Keep the existing lightweight lane for acceptance authoring; batch escalation remains conditional.
 
 ## Primary Command Or Action
 
-`Inspect task triplets, overlays, acceptance refs, and semantic review tier before paying for any batch lane.`
+`py -3 scripts/python/chapter5_semantic_reconciliation.py prepare && <independent review of every block> && py -3 scripts/python/chapter5_semantic_reconciliation.py compile && py -3 scripts/python/chapter5_semantic_reconciliation.py reconcile --task-id <id> --decisions <decisions.json>`
+
+The audit scope comes from the Chapter 3 source manifest and Source Block Ledger, never from `task.semantic_refs` or `capability_refs`.
 
 ## Evidence Rule
 
@@ -50,13 +53,16 @@ A `logs/ci/knowledge-context/**` bundle is optional shadow routing evidence only
 
 ## Idempotent Procedure
 
-1. Resolve the target business repo as a sibling of the template repo.
-2. Check task triplet validity before semantic stabilization work.
-3. Optionally run the Chapter 5 shadow knowledge preflight from `docs/workflows/knowledge-context-shadow.md`. If it returns `fallback_required`, continue from direct authoritative sources.
-4. Run lightweight semantic checks before any batch lane.
-5. Treat acceptance extraction failure as a stop-and-fix signal, not a reason to add more downstream review.
-6. Escalate to batch instability only when the same failure family repeats across tasks.
-7. Record durable rule feedback only when a repeated workflow rule gap is proven.
+1. Resolve the target business repo, allocate a `trigger_run_id`, and immediately record `py -3 scripts/python/dev_cli.py refresh-knowledge --source chapter5 --trigger-run-id <run-id> --begin-run`. Scripted automation must wrap its child workflow with `py -3 scripts/python/dev_cli.py run-chapter5-guarded --trigger-run-id <run-id> -- <command...>` so both start and final Attempt refresh are guaranteed. Then verify Chapter 3 source manifest/Ledger A plus Chapter 4 overlay/contract backlinks.
+2. Run `chapter5_semantic_reconciliation.py prepare`. A cache hit is reusable only when `source_manifest_sha`, `source_block_ledger_sha`, `parser_revision`, and `extractor_revision` match exactly.
+3. Independently review every candidate `raw_source`; fill `delivery_potential`, obligations, or a valid disposition. Do not consult Task mappings to decide which blocks to omit.
+4. Run `chapter5_semantic_reconciliation.py compile`; an incomplete source scope or unreviewed block is blocking.
+5. Before task-local acceptance work, run `reconcile --task-id <id>` so global `missing_in_ch3` / `orphan_delivery_semantic` findings are visible even when no Task references the source semantic. Lexical similarity is diagnostic only: every semantic match verdict must be explicit and include rationale; otherwise readiness is BLOCKED.
+6. Use the existing lightweight lane to stabilize acceptance. Then provide `acceptance_links` that bind each Acceptance to Requirement/ADR/Contract authority and test refs, plus explicit `authority_decisions` for every relevant ADR/Contract (`compatible | conflict | out_of_scope` with rationale), and rerun reconciliation.
+7. Resolve provisional dependencies with explicit relation/reason/evidence and record each overlap candidate as `keep_separate`, `merge_recommended`, or `overlap_justified` with rationale.
+8. Apply task corrections only when readiness is closable. `BLOCKED` must not enter Chapter 6; `CONCERNS` needs explicit policy allowance.
+9. End every interactive Chapter 5 run with `py -3 scripts/python/dev_cli.py refresh-knowledge --source chapter5 --trigger-run-id <run-id> --refresh-local --reconciliation <path> --readiness <path>`. Guarded scripted runs do this automatically. The refresh revalidates the same full input fingerprint (source, semantic requirements, Task/Acceptance/dependency surface, Overlay/Contract/ADR bytes and authority review) before stable promotion.
+10. Treat acceptance extraction failure as a stop-and-fix signal and escalate batch instability only when the same failure family repeats.
 
 ## Stop-Loss Signals
 
@@ -66,6 +72,7 @@ A `logs/ci/knowledge-context/**` bundle is optional shadow routing evidence only
 - The same deterministic failure fingerprint appears repeatedly.
 - The next action would duplicate work already covered by task, overlay, candidate, or manifest evidence.
 - A Locator candidate cannot be re-read/hash-verified from repository authority; reject it and use the direct-source path.
+- Extraction B source scope is incomplete, stale, or task-selected; stop before task-local reconciliation.
 
 ## Business Evidence References
 
