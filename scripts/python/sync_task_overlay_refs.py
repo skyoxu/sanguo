@@ -14,9 +14,16 @@ import argparse
 import datetime as dt
 import json
 import re
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+_PYTHON_DIR = Path(__file__).resolve().parent
+if str(_PYTHON_DIR) not in sys.path:
+    sys.path.insert(0, str(_PYTHON_DIR))
+
+from check_task_contract_refs import _load_allowed_events
 
 
 OVERLAY_PRD_RE = re.compile(r"^docs/architecture/overlays/([^/]+)/08(?:/|$)")
@@ -317,6 +324,22 @@ def _ensure_overlay_files_exist(root: Path, paths: OverlayPaths) -> list[str]:
     return [rel for rel in required if not (root / rel).exists()]
 
 
+def _active_semantic_requirement_ids(root: Path) -> set[str] | None:
+    path = root / "logs/ci/task-generation/semantic-requirements.v1.json"
+    if not path.is_file():
+        return None
+    payload = _load_json(path)
+    if not isinstance(payload, dict) or payload.get("schema_version") != "newrouge.semantic-requirements.v1":
+        raise ValueError("Invalid Chapter 3 semantic requirements artifact.")
+    return {
+        str(row.get("requirement_id"))
+        for row in payload.get("requirements", [])
+        if isinstance(row, dict)
+        and row.get("requirement_id")
+        and str(row.get("status", "active")).strip().lower() == "active"
+    }
+
+
 def _refs_for_task(paths: OverlayPaths) -> list[str]:
     ordered = [
         paths.index,
@@ -382,6 +405,9 @@ def sync_view(
     *,
     skip_done: bool,
     master_done_task_ids: set[str],
+    active_requirement_ids: set[str] | None = None,
+    allowed_contract_refs: set[str] | None = None,
+    repo_root: Path | None = None,
 ) -> tuple[list[dict[str, Any]], FileSyncResult]:
     tasks = _load_json(view_path)
     if not isinstance(tasks, list):
@@ -401,8 +427,48 @@ def sync_view(
                 continue
         task_id = str(task.get("id", "")).strip()
         current = _normalize_refs(task.get("overlay_refs"))
+        if repo_root is not None:
+            stale_overlay_refs = sorted(
+                ref for ref in current
+                if ref.startswith("docs/architecture/overlays/") and not (repo_root / ref).is_file()
+            )
+            if stale_overlay_refs:
+                raise ValueError(
+                    f"{view_path.name}: task {task_id or task.get('taskmaster_id')} has stale overlay refs: {stale_overlay_refs}"
+                )
+        task_changed = False
         if current != expected:
             task["overlay_refs"] = expected
+            task_changed = True
+
+        semantic_refs = _normalize_refs(task.get("semantic_refs") or task.get("requirement_ids"))
+        contract_refs = _normalize_refs(task.get("contractRefs"))
+        if contract_refs and allowed_contract_refs is not None:
+            stale_contracts = sorted(set(contract_refs) - allowed_contract_refs)
+            if stale_contracts:
+                raise ValueError(
+                    f"{view_path.name}: task {task_id or task.get('taskmaster_id')} has stale contract refs: {stale_contracts}"
+                )
+        if semantic_refs:
+            if active_requirement_ids is None:
+                raise ValueError(
+                    f"{view_path.name}: task {task_id or task.get('taskmaster_id')} has semantic_refs but Chapter 3 semantic artifact is missing"
+                )
+            stale = sorted(set(semantic_refs) - active_requirement_ids)
+            if stale:
+                raise ValueError(
+                    f"{view_path.name}: task {task_id or task.get('taskmaster_id')} has stale semantic refs: {stale}"
+                )
+            overlay_map = {ref: list(semantic_refs) for ref in expected}
+            if task.get("overlay_requirement_refs") != overlay_map:
+                task["overlay_requirement_refs"] = overlay_map
+                task_changed = True
+            if contract_refs:
+                contract_map = {ref: list(semantic_refs) for ref in contract_refs}
+                if task.get("contract_requirement_refs") != contract_map:
+                    task["contract_requirement_refs"] = contract_map
+                    task_changed = True
+        if task_changed:
             changed_ids.append(task_id or str(task.get("taskmaster_id", "?")))
 
     return tasks, FileSyncResult(
@@ -412,6 +478,65 @@ def sync_view(
         changed_ids=changed_ids,
         skipped_done_tasks=skipped_done,
     )
+
+
+
+def build_chapter4_gap_report(
+    back_payload: list[dict[str, Any]],
+    gameplay_payload: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Emit machine-readable Chapter 4 semantic/architecture gaps without rewriting source authority."""
+    gaps: list[dict[str, Any]] = []
+    for view_name, rows in (("tasks_back", back_payload), ("tasks_gameplay", gameplay_payload)):
+        for task in rows:
+            if not isinstance(task, dict):
+                continue
+            task_id = _canonical_taskmaster_id(
+                task.get("taskmaster_id") if task.get("taskmaster_id") is not None else task.get("id")
+            ) or ""
+            semantic_refs = _normalize_refs(task.get("semantic_refs") or task.get("requirement_ids"))
+            overlay_refs = _normalize_refs(task.get("overlay_refs"))
+            overlay_map = task.get("overlay_requirement_refs")
+            contract_refs = _normalize_refs(task.get("contractRefs"))
+            contract_map = task.get("contract_requirement_refs")
+            if semantic_refs and (
+                not overlay_refs
+                or not isinstance(overlay_map, dict)
+                or any(
+                    not set(semantic_refs).issubset(set(_normalize_refs(overlay_map.get(ref))))
+                    for ref in overlay_refs
+                )
+            ):
+                gaps.append({
+                    "gap_type": "semantic_gap",
+                    "task_id": task_id,
+                    "view": view_name,
+                    "requirement_refs": semantic_refs,
+                    "reason": "semantic requirements are not fully backlink-bound to Chapter 4 overlay scope",
+                    "action": "route_to_chapter4_author_or_source_owner",
+                })
+            if contract_refs and (
+                not isinstance(contract_map, dict)
+                or any(
+                    not set(semantic_refs).issubset(set(_normalize_refs(contract_map.get(ref))))
+                    for ref in contract_refs
+                )
+            ):
+                gaps.append({
+                    "gap_type": "architecture_gap",
+                    "task_id": task_id,
+                    "view": view_name,
+                    "requirement_refs": semantic_refs,
+                    "contract_refs": contract_refs,
+                    "reason": "contract authority cannot be traced back to the task semantic requirements",
+                    "action": "route_to_architecture_or_contract_owner",
+                })
+    return {
+        "schema_version": "newrouge.chapter4-semantic-gap-report.v1",
+        "status": "blocked" if gaps else "passed",
+        "gap_count": len(gaps),
+        "gaps": gaps,
+    }
 
 
 def _write_summary(
@@ -527,20 +652,41 @@ def main() -> int:
 
     master_payload_for_done = _load_json(tasks_json_path)
     master_done_ids = _done_master_task_ids(master_payload_for_done)
+    active_requirement_ids = _active_semantic_requirement_ids(root)
+    allowed_contract_refs = _load_allowed_events(root)
     master_payload, master_result = sync_master(tasks_json_path, paths, skip_done=bool(args.skip_done))
     back_payload, back_result = sync_view(
         tasks_back_path,
         paths,
         skip_done=bool(args.skip_done),
         master_done_task_ids=master_done_ids,
+        active_requirement_ids=active_requirement_ids,
+        allowed_contract_refs=allowed_contract_refs,
+        repo_root=root,
     )
     gameplay_payload, gameplay_result = sync_view(
         tasks_gameplay_path,
         paths,
         skip_done=bool(args.skip_done),
         master_done_task_ids=master_done_ids,
+        active_requirement_ids=active_requirement_ids,
+        allowed_contract_refs=allowed_contract_refs,
+        repo_root=root,
     )
     results = [master_result, back_result, gameplay_result]
+    gap_report = build_chapter4_gap_report(back_payload, gameplay_payload)
+    gap_path = root / "logs" / "ci" / _today() / "task-overlays" / "chapter4-semantic-gap-report.json"
+    gap_path.parent.mkdir(parents=True, exist_ok=True)
+    gap_path.write_text(json.dumps(gap_report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if gap_report["status"] != "passed":
+        summary_path = _write_summary(
+            root, True, "fail", "chapter4-semantic-or-architecture-gap", paths, results, [], tasks_dir
+        )
+        print(
+            f"SYNC_TASK_OVERLAY_REFS status=fail gaps={gap_report['gap_count']} "
+            f"gap_report={gap_path.as_posix()} summary={summary_path.as_posix()}"
+        )
+        return 2
 
     do_write = bool(args.write)
     if do_write:

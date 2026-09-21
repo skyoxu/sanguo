@@ -9,6 +9,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from _chapter7_profile import load_chapter7_profile, task_id_in_scope, task_scope
+
 TASKS_JSON = Path('.taskmaster/tasks/tasks.json')
 TASKS_BACK = Path('.taskmaster/tasks/tasks_back.json')
 TASKS_GAMEPLAY = Path('.taskmaster/tasks/tasks_gameplay.json')
@@ -228,11 +230,13 @@ def build_summary(
     tasks_back_path: Path = TASKS_BACK,
     tasks_gameplay_path: Path = TASKS_GAMEPLAY,
     overlay_root_path: Path = OVERLAY_ROOT,
+    chapter7_profile_path: Path | None = None,
 ) -> dict[str, Any]:
     tasks_json_path = _resolve_path(tasks_json_path)
     tasks_back_path = _resolve_path(tasks_back_path)
     tasks_gameplay_path = _resolve_path(tasks_gameplay_path)
     overlay_root_path = _resolve_path(overlay_root_path)
+    profile = load_chapter7_profile(repo_root=repo_root, profile_path=chapter7_profile_path)
     missing = _missing_task_files(repo_root, tasks_json_path, tasks_back_path, tasks_gameplay_path)
     if missing:
         return {
@@ -243,6 +247,7 @@ def build_summary(
             'repo_root': str(repo_root).replace('\\', '/'),
             'source_files': [str(tasks_json_path).replace('\\', '/'), str(tasks_back_path).replace('\\', '/'), str(tasks_gameplay_path).replace('\\', '/')],
             'overlay_root': str(overlay_root_path).replace('\\', '/'),
+            'task_scope': task_scope(profile),
             'missing_source_files': missing,
             'completed_master_tasks_count': 0,
             'needed_wiring_features_count': 0,
@@ -251,7 +256,13 @@ def build_summary(
         }
 
     master_tasks = _load_master_tasks(repo_root, tasks_json_path)
-    done_master = [task for task in master_tasks if str(task.get('status') or '').lower() == 'done']
+    done_master = [
+        task
+        for task in master_tasks
+        if str(task.get('status') or '').lower() == 'done'
+        and isinstance(task.get('id'), int)
+        and task_id_in_scope(profile, int(task['id']))
+    ]
     back_tasks = _load_view_tasks(repo_root, tasks_back_path)
     gameplay_tasks = _load_view_tasks(repo_root, tasks_gameplay_path)
     back_by_tm: dict[int, list[dict[str, Any]]] = {}
@@ -290,6 +301,8 @@ def build_summary(
             'test_refs': _merge_refs(*[item.get('test_refs') or [] for item in [*gameplay_views, *back_views]]),
             'acceptance': _merge_refs(*[item.get('acceptance') or [] for item in [*gameplay_views, *back_views]]),
             'contract_refs': _merge_refs(*[item.get('contractRefs') or [] for item in [*gameplay_views, *back_views]]),
+            'semantic_refs': _merge_refs(*[item.get('semantic_refs') or item.get('requirement_ids') or [] for item in [*gameplay_views, *back_views]]),
+            'capability_refs': _merge_refs(*[item.get('capability_refs') or [] for item in [*gameplay_views, *back_views]]),
             'overlay_requirement_ids': _merge_refs(*[[item['requirement_id']] for item in overlay_requirements]),
             'overlay_expected_logs': _merge_refs(
                 *[[value for value in item.get('expected_logs', [])] for item in overlay_requirements],
@@ -310,6 +323,7 @@ def build_summary(
         'repo_root': str(repo_root).replace('\\', '/'),
         'source_files': [str(tasks_json_path).replace('\\', '/'), str(tasks_back_path).replace('\\', '/'), str(tasks_gameplay_path).replace('\\', '/')],
         'overlay_root': str(overlay_root_path).replace('\\', '/'),
+        'task_scope': task_scope(profile),
         'completed_master_tasks_count': len(done_master),
         'needed_wiring_features_count': len(needed),
         'feature_family_counts': families,
@@ -324,6 +338,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--tasks-back-path', default=str(TASKS_BACK))
     parser.add_argument('--tasks-gameplay-path', default=str(TASKS_GAMEPLAY))
     parser.add_argument('--overlay-root-path', default=str(OVERLAY_ROOT))
+    parser.add_argument('--chapter7-profile-path', default='')
     parser.add_argument('--out', default='')
     args = parser.parse_args(argv)
 
@@ -334,6 +349,7 @@ def main(argv: list[str] | None = None) -> int:
         tasks_back_path=Path(args.tasks_back_path),
         tasks_gameplay_path=Path(args.tasks_gameplay_path),
         overlay_root_path=Path(args.overlay_root_path),
+        chapter7_profile_path=Path(args.chapter7_profile_path) if args.chapter7_profile_path else None,
     )
     out = Path(args.out) if args.out else (repo_root / 'logs' / 'ci' / _today() / 'chapter7-ui-wiring-inputs' / 'summary.json')
     out.parent.mkdir(parents=True, exist_ok=True)

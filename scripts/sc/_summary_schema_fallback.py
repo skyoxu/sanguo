@@ -91,6 +91,7 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         "step_duration_totals",
         "step_duration_avg",
         "dominant_cost_phase",
+        "chapter5_semantic_evidence",
     }
     for key in required:
         if key not in payload:
@@ -151,6 +152,21 @@ def validate_pipeline_without_jsonschema(payload: dict[str, Any]) -> list[str]:
         errors.append("$.latest_summary_signals: must be object when present")
     if "chapter6_hints" in payload and not isinstance(payload.get("chapter6_hints"), dict):
         errors.append("$.chapter6_hints: must be object when present")
+    if "chapter5_semantic_evidence" in payload:
+        evidence = payload.get("chapter5_semantic_evidence")
+        if not isinstance(evidence, dict):
+            errors.append("$.chapter5_semantic_evidence: must be object when present")
+        else:
+            expected_keys = {"path", "readiness", "reconciliation_sha256"}
+            if set(evidence) != expected_keys:
+                errors.append("$.chapter5_semantic_evidence: must contain exactly path/readiness/reconciliation_sha256")
+            if not _is_non_empty_string(evidence.get("path")):
+                errors.append("$.chapter5_semantic_evidence.path: must be non-empty string")
+            if str(evidence.get("readiness") or "") not in {"READY", "CONCERNS"}:
+                errors.append("$.chapter5_semantic_evidence.readiness: must be READY or CONCERNS")
+            sha = str(evidence.get("reconciliation_sha256") or "")
+            if not re.fullmatch(r"sha256:[0-9a-f]{64}", sha):
+                errors.append("$.chapter5_semantic_evidence.reconciliation_sha256: must be sha256:<64 lowercase hex>")
     if "recommended_action" in payload and not _is_non_empty_string(payload.get("recommended_action")):
         errors.append("$.recommended_action: must be non-empty string when present")
     if "recommended_action_why" in payload and not _is_non_empty_string(payload.get("recommended_action_why")):
@@ -321,7 +337,19 @@ def validate_sc_acceptance_without_jsonschema(payload: dict[str, Any]) -> list[s
         "security_modes",
         "arg_validation",
     }
-    allowed = required | {"run_id", "task_id", "title", "steps", "task_requirements", "metrics", "risk_summary", "step_plan"}
+    allowed = required | {
+        "run_id",
+        "task_id",
+        "title",
+        "adr_refs",
+        "chapter_refs",
+        "test_refs",
+        "steps",
+        "task_requirements",
+        "metrics",
+        "risk_summary",
+        "step_plan",
+    }
     for key in required:
         if key not in payload:
             errors.append(f"$.{key}: missing required property")

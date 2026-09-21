@@ -215,6 +215,7 @@ def build_local_hard_checks_cmd(*, profile_policy: dict[str, str], godot_bin: st
         "run-local-hard-checks",
         "--delivery-profile",
         str(profile_policy["delivery_profile"]),
+        "--skip-project-health",
     ]
     if str(godot_bin).strip():
         cmd += ["--godot-bin", str(godot_bin)]
@@ -497,9 +498,6 @@ def build_orchestration_decision(
     post_review_route: dict[str, Any],
     final_route: dict[str, Any],
     resume_payload: dict[str, Any] | None = None,
-    frozen_context: str = "",
-    impact_report: str = "",
-    revision: str = "",
 ) -> dict[str, Any]:
     initial_route_eval = _evaluate_route_state(initial_route, allow_needs_fix=True)
     post_review_route_eval = _evaluate_route_state(post_review_route, allow_needs_fix=True)
@@ -769,6 +767,28 @@ def _parse_json_stdout(stdout: str) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+def _is_missing_latest_run_step(step: dict[str, Any]) -> bool:
+    stderr_tail = str(step.get("stderr_tail") or "").strip().lower()
+    stdout_tail = str(step.get("stdout_tail") or "").strip().lower()
+    marker = "no latest run index found"
+    return marker in stderr_tail or marker in stdout_tail
+
+
+def _fresh_start_route_payload() -> dict[str, Any]:
+    return {
+        "preferred_lane": "inspect-first",
+        "run_id": "n/a",
+        "latest_reason": "n/a",
+        "blocked_by": "n/a",
+        "latest_run_type": "n/a",
+        "latest_artifact_integrity": "n/a",
+        "chapter6_next_action": "n/a",
+        "chapter6_can_skip_6_7": "n/a",
+        "chapter6_can_go_to_6_8": "n/a",
+        "forbidden_commands": [],
+    }
+
+
 def _run_json_step(out_dir: Path, *, name: str, cmd: list[str]) -> tuple[dict[str, Any], dict[str, Any]]:
     rc, stdout, stderr = _run_cmd(cmd, cwd=_repo_root())
     log_path = _write_step_log(out_dir, name=name, cmd=cmd, stdout=stdout, stderr=stderr, rc=rc)
@@ -782,40 +802,6 @@ def _run_json_step(out_dir: Path, *, name: str, cmd: list[str]) -> tuple[dict[st
     }
     payload = _parse_json_stdout(stdout) if rc == 0 else {}
     return step, payload
-
-
-def _is_missing_latest_run_index(step: dict[str, Any]) -> bool:
-    text = f"{step.get('stdout_tail') or ''}\n{step.get('stderr_tail') or ''}".lower()
-    return "no latest run index found" in text
-
-
-def _mark_missing_latest_as_nonblocking(step: dict[str, Any]) -> dict[str, Any]:
-    updated = dict(step)
-    updated["original_rc"] = updated.get("rc")
-    updated["rc"] = 0
-    updated["recovered_as"] = "no-latest-run-index"
-    return updated
-
-
-def _missing_latest_payload(task_id: str) -> dict[str, Any]:
-    return {
-        "task_id": str(task_id),
-        "run_id": "n/a",
-        "recommended_action": "",
-        "recommended_command": "",
-        "forbidden_commands": [],
-        "latest_reason": "n/a",
-        "missing_recovery_reason": "no-latest-run-index",
-        "latest_run_type": "n/a",
-        "latest_reuse_mode": "n/a",
-        "latest_artifact_integrity": "n/a",
-        "preferred_lane": "inspect-first",
-        "blocked_by": "n/a",
-        "chapter6_next_action": "",
-        "chapter6_can_skip_6_7": False,
-        "chapter6_can_go_to_6_8": False,
-        "chapter6_blocked_by": "",
-    }
 
 
 def _run_plain_step(out_dir: Path, *, name: str, cmd: list[str]) -> dict[str, Any]:
@@ -918,17 +904,18 @@ def main() -> int:
     }
 
     resume_step, resume_payload = _run_json_step(out_dir, name="resume-task", cmd=build_resume_task_cmd(task_id))
-    if int(resume_step["rc"]) != 0 and _is_missing_latest_run_index(resume_step):
-        resume_step = _mark_missing_latest_as_nonblocking(resume_step)
-        resume_payload = _missing_latest_payload(task_id)
     summary["steps"].append(resume_step)
     summary["resume"] = resume_payload
     if int(resume_step["rc"]) != 0:
-        summary["status"] = "fail"
-        summary["stop_reason"] = "resume-task"
-        _write_json(out_dir / "summary.json", summary)
-        print(f"SINGLE_TASK_CHAPTER6 status=fail task={task_id} stop=resume-task")
-        return 1
+        if _is_missing_latest_run_step(resume_step):
+            resume_payload = {}
+            summary["resume"] = resume_payload
+        else:
+            summary["status"] = "fail"
+            summary["stop_reason"] = "resume-task"
+            _write_json(out_dir / "summary.json", summary)
+            print(f"SINGLE_TASK_CHAPTER6 status=fail task={task_id} stop=resume-task")
+            return 1
 
     record_residual = str(profile_policy["record_residual"]).strip().lower() == "true"
     initial_route_step, initial_route = _run_json_step(
@@ -936,17 +923,18 @@ def main() -> int:
         name="chapter6-route-initial",
         cmd=build_chapter6_route_cmd(task_id, record_residual=record_residual),
     )
-    if int(initial_route_step["rc"]) != 0 and _is_missing_latest_run_index(initial_route_step):
-        initial_route_step = _mark_missing_latest_as_nonblocking(initial_route_step)
-        initial_route = _missing_latest_payload(task_id)
     summary["steps"].append(initial_route_step)
     summary["initial_route"] = initial_route
     if int(initial_route_step["rc"]) != 0:
-        summary["status"] = "fail"
-        summary["stop_reason"] = "chapter6-route-initial"
-        _write_json(out_dir / "summary.json", summary)
-        print(f"SINGLE_TASK_CHAPTER6 status=fail task={task_id} stop=chapter6-route-initial")
-        return 1
+        if _is_missing_latest_run_step(initial_route_step):
+            initial_route = _fresh_start_route_payload()
+            summary["initial_route"] = initial_route
+        else:
+            summary["status"] = "fail"
+            summary["stop_reason"] = "chapter6-route-initial"
+            _write_json(out_dir / "summary.json", summary)
+            print(f"SINGLE_TASK_CHAPTER6 status=fail task={task_id} stop=chapter6-route-initial")
+            return 1
 
     plan = build_execution_plan(
         task_id=task_id,

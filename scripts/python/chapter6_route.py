@@ -5,6 +5,8 @@ import argparse
 import json
 import sys
 from pathlib import Path
+
+from chapter5_semantic_reconciliation import load_task_readiness
 from typing import Any
 
 
@@ -247,6 +249,30 @@ def route_chapter6(
     record_residual: bool = False,
 ) -> tuple[int, dict[str, Any]]:
     root = Path(repo_root).resolve()
+    readiness_ok, readiness, readiness_reason = load_task_readiness(root, str(task_id or "").strip())
+    if not readiness_ok:
+        return 3, {
+            "task_id": str(task_id or "").strip(),
+            "run_id": str(run_id or "").strip(),
+            "preferred_lane": "blocked",
+            "recommended_command": (
+                f"py -3 scripts/python/chapter5_semantic_reconciliation.py check-readiness --task-id {str(task_id or '').strip()}"
+            ),
+            "forbidden_commands": ["Chapter 6 RED/GREEN/REFACTOR"],
+            "reviewer_anchor_hit": False,
+            "changed_paths": [],
+            "six_eight_worthwhile": False,
+            "full_67_recommended": False,
+            "repo_noise_classification": "task-issue",
+            "repo_noise_reason": readiness_reason,
+            "recommended_action": "blocked",
+            "recommended_action_why": "Chapter 5 readiness must allow closure before Chapter 6.",
+            "latest_reason": readiness_reason,
+            "chapter6_next_action": "return_to_chapter5",
+            "blocked_by": "chapter5_readiness",
+            "chapter5_readiness": readiness,
+            "residual_recording": {"eligible": False, "performed": False},
+        }
     _, payload = build_resume_payload(
         repo_root=root,
         task_id=str(task_id or "").strip(),
@@ -286,13 +312,6 @@ def route_chapter6(
 
     preferred_lane = "inspect-first"
     recommended_command = str(payload.get("recommended_command") or "").strip() or str(candidate_commands.get("inspect") or "").strip()
-    latest_reason = str(latest_summary_signals.get("reason") or "").strip().lower()
-    failed_step = str(failure.get("step") or failure.get("step_name") or failure.get("failed_step") or "").strip().lower()
-    llm_review_step_failed = (
-        "sc-llm-review" in latest_reason
-        or failed_step == "sc-llm-review"
-        or str(chapter6_hints.get("next_action") or "").strip().lower() == "needs-fix-fast"
-    )
 
     if repo_noise_classification == "repo-noise":
         preferred_lane = "repo-noise-stop"
@@ -300,7 +319,7 @@ def route_chapter6(
     elif str(chapter6_hints.get("blocked_by") or "").strip().lower() == "artifact_integrity":
         preferred_lane = "inspect-first"
         recommended_command = str(candidate_commands.get("rerun") or recommended_command)
-    elif (str(failure.get("code") or "").strip().lower() == "step-failed" and not llm_review_step_failed) or str(chapter6_hints.get("blocked_by") or "").strip().lower() in {
+    elif str(failure.get("code") or "").strip().lower() == "step-failed" or str(chapter6_hints.get("blocked_by") or "").strip().lower() in {
         "deterministic_failure",
         "sc_test_retry_stop_loss",
         "waste_signals",
@@ -406,7 +425,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     root = Path(str(args.repo_root or REPO_ROOT)).resolve()
     try:
-        _, payload = route_chapter6(
+        route_rc, payload = route_chapter6(
             repo_root=root,
             task_id=task_id,
             latest=latest,
@@ -436,10 +455,10 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(compact, ensure_ascii=False))
         else:
             print("\n".join(f"{key}={value}" for key, value in compact.items()))
-        return 0
+        return route_rc
 
     print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0
+    return route_rc
 
 
 if __name__ == "__main__":

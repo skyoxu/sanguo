@@ -96,10 +96,12 @@ def build_step_plan(
     configuration: str,
     godot_bin: str,
     timeout_sec: int,
+    include_project_health: bool = True,
 ) -> list[dict[str, Any]]:
     unit_dir = repo_root() / "logs" / "unit" / today_str()
-    steps: list[dict[str, Any]] = [
-        {
+    steps: list[dict[str, Any]] = []
+    if include_project_health:
+        steps.append({
             "name": "project-health-scan",
             "cmd": ["py", "-3", "scripts/python/project_health_scan.py", "--repo-root", "."],
             "artifacts": {
@@ -109,7 +111,8 @@ def build_step_plan(
                     "/",
                 ),
             },
-        },
+        })
+    steps.extend([
         {
             "name": "gate-bundle-hard",
             "cmd": build_gate_bundle_hard_cmd(
@@ -131,7 +134,7 @@ def build_step_plan(
                 "summary_file": str(unit_dir / "summary.json").replace("\\", "/"),
             },
         },
-    ]
+    ])
     if godot_bin:
         gdunit_dir = repo_root() / "logs" / "e2e" / "dev-cli" / "local-hard-checks-gdunit-hard"
         smoke_root = repo_root() / "logs" / "ci" / today_str() / "smoke"
@@ -198,8 +201,11 @@ def build_repair_guide(
     status: str,
     failed_step: str,
     godot_bin: str,
+    skip_project_health: bool = False,
 ) -> dict[str, Any]:
     rerun_cmd = ["py", "-3", "scripts/python/dev_cli.py", "run-local-hard-checks"]
+    if skip_project_health:
+        rerun_cmd.append("--skip-project-health")
     if godot_bin:
         rerun_cmd += ["--godot-bin", godot_bin]
     if requested_run_id:
