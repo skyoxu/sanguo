@@ -1,116 +1,52 @@
 #!/usr/bin/env python3
-"""Extract stable requirement anchors from planning documents.
+"""Compatibility adapter from the full Chapter 3 source ledger to legacy anchors.
 
-This script is deterministic. It does not ask an LLM to invent tasks. It builds
-an auditable requirements index that later task-candidate generation must cover.
+The complete source ledger is always built first. Requirement-like detection is
+retained only as a compatibility hint for older downstream consumers and never
+removes a source block from the ledger.
 """
 
 from __future__ import annotations
 
 import argparse
 import datetime as dt
-import hashlib
 import json
 import re
 from pathlib import Path
 from typing import Any
 
-DEFAULT_SOURCE_GLOBS = [
-    "docs/prd/**/*.md",
-    "docs/gdd/**/*.md",
-    "docs/epics/**/*.md",
-    "docs/stories/**/*.md",
-]
+from build_source_ledger import (
+    DEFAULT_SOURCE_GLOBS,
+    build_ledger,
+    collect_patterns,
+    requirement_like_hint,
+    write_json,
+)
+
 PRIORITY_RE = re.compile(r"\b(P0|P1|P2|P3)\b", re.IGNORECASE)
 REQ_RE = re.compile(r"\b(REQ|AC|GDD|PRD|FR|NFR)[-_ ]?(\d{1,5})\b", re.IGNORECASE)
 REFS_RE = re.compile(r"\bRefs:\s*(.+)$", re.IGNORECASE)
-PATH_ONLY_RE = re.compile(r"^[-*]?\s*`?[\w./\\-]+\.(json|md|cs|gd|yml|yaml|txt|save)`?\s*$", re.IGNORECASE)
-TASK_REF_ONLY_RE = re.compile(r"^[-*]?\s*T\d+\s+`[^`]+`\s*$", re.IGNORECASE)
+PATH_ONLY_RE = re.compile(r"^[-*]?\s*[\w./\\-]+\.(json|md|cs|gd|yml|yaml|txt|save)\s*$", re.IGNORECASE)
+TASK_REF_ONLY_RE = re.compile(r"^[-*]?\s*T\d+\s+.+$", re.IGNORECASE)
 REFS_ONLY_RE = re.compile(r"^[-*]?\s*[\w./\\-]+\s+(ADR-Refs|Test-Refs|Refs):\s*$", re.IGNORECASE)
 
 
-def sha12(text: str) -> str:
-    return hashlib.sha1(text.encode("utf-8")).hexdigest()[:12]
-
-
-def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="replace")
-
-
-def rel(path: Path, root: Path) -> str:
-    return path.relative_to(root).as_posix()
-
-
-def expand_source_arg(root: Path, value: str) -> list[str]:
-    raw = Path(value)
-    candidate = raw if raw.is_absolute() else root / raw
-    if any(ch in value for ch in "*?[]"):
-        return [value]
-    if candidate.is_dir():
-        rel = candidate.relative_to(root).as_posix() if candidate.is_relative_to(root) else candidate.as_posix()
-        return [f"{rel}/**/*.md"]
-    return [value]
-
-
-def iter_sources(root: Path, patterns: list[str]) -> list[Path]:
-    files: list[Path] = []
-    for pattern in patterns:
-        direct = Path(pattern)
-        candidate = direct if direct.is_absolute() else root / direct
-        if candidate.is_file():
-            files.append(candidate)
-            continue
-        files.extend(p for p in root.glob(pattern) if p.is_file())
-    return sorted(set(files))
-
-
-def split_blocks(text: str) -> list[tuple[int, str]]:
-    blocks: list[tuple[int, str]] = []
-    current: list[str] = []
-    start = 1
-    for lineno, line in enumerate(text.splitlines(), 1):
-        stripped = line.strip()
-        starts_block = bool(stripped.startswith("#") or stripped.startswith("-") or re.match(r"\d+[.)]\s+", stripped))
-        if starts_block and current:
-            blocks.append((start, "\n".join(current).strip()))
-            current = []
-            start = lineno
-        if stripped:
-            if not current:
-                start = lineno
-            current.append(line.rstrip())
-    if current:
-        blocks.append((start, "\n".join(current).strip()))
-    return blocks
-
-
-def is_requirement_like(block: str) -> bool:
-    stripped = block.strip()
-    if is_reference_only_block(stripped):
-        return False
-    low = block.lower()
-    signals = [
-        "must ", "shall ", "should ", "acceptance", "refs:", "requirement", "scenario",
-        "validate", "gate", "task", "feature", "player", "system", "p0", "p1",
-    ]
-    return any(signal in low for signal in signals) or bool(REQ_RE.search(block))
-
-
 def is_reference_only_block(block: str) -> bool:
-    """Skip traceability/list noise that does not describe a requirement."""
     lines = [line.strip() for line in block.splitlines() if line.strip()]
     if len(lines) != 1:
         return False
     line = lines[0]
-    if REFS_ONLY_RE.match(line):
-        return True
-    if PATH_ONLY_RE.match(line):
-        return True
-    if TASK_REF_ONLY_RE.match(line):
+    if REFS_ONLY_RE.match(line) or PATH_ONLY_RE.match(line) or TASK_REF_ONLY_RE.match(line):
         return True
     if line.startswith(("- ", "* ")) and re.fullmatch(r"[-*]\s*[\w./\\-]+", line):
         return True
     return False
+
+
+def is_requirement_like(block: str) -> bool:
+    if is_reference_only_block(block.strip()):
+        return False
+    return requirement_like_hint(block)
 
 
 def infer_priority(block: str) -> str:
@@ -118,11 +54,9 @@ def infer_priority(block: str) -> str:
     return match.group(1).upper() if match else "P2"
 
 
-def infer_kind(path: Path, block: str) -> str:
-    low = path.as_posix().lower() + "\n" + block.lower()
-    if "acceptance" in low or "refs:" in low:
-        return "acceptance"
-    if "/gdd/" in low:
+def infer_kind(source_path: str) -> str:
+    low = source_path.replace("\\", "/").lower()
+    if "/gdd/" in low or low.endswith("/gdd.md"):
         return "gdd"
     if "/prd/" in low:
         return "prd"
@@ -130,10 +64,6 @@ def infer_kind(path: Path, block: str) -> str:
         return "epic"
     if "/stories/" in low or "story" in low:
         return "story"
-    if "/overlays/" in low:
-        return "overlay"
-    if "/adr/" in low:
-        return "adr"
     return "requirement"
 
 
@@ -145,7 +75,7 @@ def explicit_id(block: str) -> str | None:
 
 
 def extract_refs(block: str) -> list[str]:
-    refs: list[str] = []
+    refs = []
     for line in block.splitlines():
         match = REFS_RE.search(line)
         if match:
@@ -153,66 +83,108 @@ def extract_refs(block: str) -> list[str]:
     return sorted(set(refs))
 
 
+def anchors_from_ledger(ledger: dict[str, Any]) -> list[dict[str, Any]]:
+    anchors = []
+    seen = set()
+    for block in ledger.get("blocks", []):
+        if not isinstance(block, dict):
+            continue
+        raw = str(block.get("raw_text") or "")
+        if not is_requirement_like(raw):
+            continue
+        source_path = str(block.get("source_path") or "")
+        stable = explicit_id(raw) or "REQ-" + str(block.get("block_id", "SB-UNKNOWN")).removeprefix("SB-")
+        if stable in seen:
+            stable = stable + "-" + str(block.get("content_hash", ""))[-8:].upper()
+        seen.add(stable)
+        anchors.append({
+            "requirement_id": stable,
+            "source_block_id": block.get("block_id"),
+            "source_path": source_path,
+            "line": int(block.get("line_start") or 1),
+            "line_end": int(block.get("line_end") or block.get("line_start") or 1),
+            "kind": infer_kind(source_path),
+            "priority": infer_priority(raw),
+            "text": " ".join(raw.split())[:1200],
+            "refs": extract_refs(raw),
+            "content_hash": str(block.get("content_hash") or "").removeprefix("sha256:")[:12],
+            "requirement_like_hint": True,
+        })
+    return anchors
+
+
 def extract(root: Path, patterns: list[str], mode: str) -> dict[str, Any]:
-    anchors: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for path in iter_sources(root, patterns):
-        text = read_text(path)
-        for line_no, block in split_blocks(text):
-            if not is_requirement_like(block):
-                continue
-            source_rel = rel(path, root)
-            stable = explicit_id(block) or f"REQ-{sha12(source_rel + ':' + str(line_no) + ':' + block)}"
-            if stable in seen:
-                stable = f"{stable}-{sha12(block)}"
-            seen.add(stable)
-            anchors.append({
-                "requirement_id": stable,
-                "source_path": source_rel,
-                "line": line_no,
-                "kind": infer_kind(path, block),
-                "priority": infer_priority(block),
-                "text": re.sub(r"\s+", " ", block).strip()[:1200],
-                "refs": extract_refs(block),
-                "content_hash": sha12(block),
-            })
+    manifest, ledger = build_ledger(root, patterns or DEFAULT_SOURCE_GLOBS, mode)
+    anchors = anchors_from_ledger(ledger)
     return {
         "schema": "task-generation.requirements-index.v1",
         "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
         "mode": mode,
-        "source_globs": patterns,
+        "source_revision": ledger.get("source_revision"),
+        "source_manifest_sha256": manifest.get("manifest_sha256"),
+        "source_block_count": len(ledger.get("blocks", [])),
         "anchor_count": len(anchors),
+        "compatibility_filter": "requirement-like-hint-only",
         "anchors": anchors,
     }
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Extract requirement anchors for task triplet generation.")
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", default=".")
-    parser.add_argument("--source-glob", action="append", default=[], help="Explicit source glob or file path. May be repeated.")
-    parser.add_argument("--prd-path", action="append", default=[], help="PRD directory, file, or glob. May be repeated.")
-    parser.add_argument("--gdd-path", action="append", default=[], help="GDD directory, file, or glob. May be repeated.")
-    parser.add_argument("--epics-path", action="append", default=[], help="Epics directory, file, or glob. May be repeated.")
-    parser.add_argument("--stories-path", action="append", default=[], help="Stories directory, file, or glob. May be repeated.")
+    parser.add_argument("--source-glob", action="append", default=[])
+    parser.add_argument("--prd-path", action="append", default=[])
+    parser.add_argument("--gdd-path", action="append", default=[])
+    parser.add_argument("--epics-path", action="append", default=[])
+    parser.add_argument("--stories-path", action="append", default=[])
     parser.add_argument("--mode", choices=["init", "add"], default="init")
+    parser.add_argument("--previous-ledger", default="")
+    parser.add_argument("--ledger-input", default="")
+    parser.add_argument("--manifest-out", default="logs/ci/task-generation/source-manifest.v1.json")
+    parser.add_argument("--source-blocks-out", default="logs/ci/task-generation/source-blocks.v1.json")
     parser.add_argument("--out", default="logs/ci/task-generation/requirements.index.json")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     root = Path(args.repo_root).resolve()
-    typed_sources = []
-    for values in [args.prd_path, args.gdd_path, args.epics_path, args.stories_path]:
-        for value in values:
-            typed_sources.extend(expand_source_arg(root, value))
-    explicit_sources = []
-    for value in args.source_glob:
-        explicit_sources.extend(expand_source_arg(root, value))
-    patterns = typed_sources + explicit_sources
-    if not patterns:
-        patterns = DEFAULT_SOURCE_GLOBS
-    data = extract(root, patterns, args.mode)
-    out = root / args.out
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"requirements_index={out} anchors={data['anchor_count']}")
+    if args.ledger_input:
+        ledger_path = root / args.ledger_input
+        if not ledger_path.is_file():
+            print(f"requirements_adapter_error=ledger input not found: {ledger_path}")
+            return 2
+        ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+        manifest = {
+            "manifest_sha256": ledger.get("source_manifest_sha256"),
+            "source_revision": ledger.get("source_revision"),
+        }
+    else:
+        patterns, explicit = collect_patterns(root, args)
+        previous = None
+        previous_path = root / args.previous_ledger if args.previous_ledger else root / args.source_blocks_out
+        if args.mode == "add" and previous_path.is_file():
+            previous = json.loads(previous_path.read_text(encoding="utf-8"))
+        try:
+            manifest, ledger = build_ledger(root, patterns, args.mode, explicit, previous)
+        except ValueError as exc:
+            print(f"requirements_adapter_error={exc}")
+            return 2
+        write_json(root / args.manifest_out, manifest)
+        write_json(root / args.source_blocks_out, ledger)
+    anchors = anchors_from_ledger(ledger)
+    index = {
+        "schema": "task-generation.requirements-index.v1",
+        "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "mode": args.mode,
+        "source_revision": ledger.get("source_revision"),
+        "source_manifest_sha256": manifest.get("manifest_sha256"),
+        "source_block_count": len(ledger.get("blocks", [])),
+        "anchor_count": len(anchors),
+        "compatibility_filter": "requirement-like-hint-only",
+        "anchors": anchors,
+    }
+    write_json(root / args.out, index)
+    print(
+        f"requirements_index={root / args.out} anchors={len(anchors)} "
+        f"source_blocks={len(ledger.get('blocks', []))}"
+    )
     return 0
 
 

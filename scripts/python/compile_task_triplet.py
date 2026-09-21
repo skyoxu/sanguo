@@ -10,12 +10,10 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
-import re
 from pathlib import Path
 from typing import Any
 
 TASKS_DIR = Path(".taskmaster/tasks")
-TASK_ID_PATTERN = re.compile(r"^(?P<prefix>[A-Za-z]+)-(?P<number>\d{4})$")
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -39,6 +37,8 @@ def normalize_task(candidate: dict[str, Any], target: str) -> dict[str, Any]:
         "priority": str(candidate.get("priority") or "P2"),
         "layer": str(candidate.get("layer") or "feature"),
         "depends_on": list(candidate.get("depends_on") or []),
+        "dependency_status": str(candidate.get("dependency_status") or "provisional"),
+        "dependency_reason": str(candidate.get("dependency_reason") or "Chapter 3 dependency skeleton"),
         "adr_refs": list(candidate.get("adr_refs") or []),
         "chapter_refs": list(candidate.get("chapter_refs") or []),
         "overlay_refs": list(candidate.get("overlay_refs") or []),
@@ -51,55 +51,16 @@ def normalize_task(candidate: dict[str, Any], target: str) -> dict[str, Any]:
         "evidence_refs": list(candidate.get("evidence_refs") or []),
         "source_refs": list(candidate.get("source_refs") or []),
         "requirement_ids": list(candidate.get("requirement_ids") or []),
+        "semantic_refs": list(candidate.get("semantic_refs") or candidate.get("requirement_ids") or []),
+        "capability_refs": list(candidate.get("capability_refs") or []),
+        "complexity_score": int(candidate.get("complexity_score") or 1),
+        "implementation_files": list(candidate.get("implementation_files") or []),
+        "implementation_overlap_candidates": list(candidate.get("implementation_overlap_candidates") or []),
+        "file_churn_signal": str(candidate.get("file_churn_signal") or "low"),
         "taskmaster_exported": False,
         "semantic_review_tier": "targeted",
     }
     return task
-
-
-def parse_task_id(value: object) -> tuple[str, int] | None:
-    match = TASK_ID_PATTERN.match(str(value or "").strip())
-    if not match:
-        return None
-    return match.group("prefix"), int(match.group("number"))
-
-
-def next_task_number(existing: list[dict[str, Any]], prefix: str) -> int:
-    numbers = [
-        parsed[1]
-        for task in existing
-        if (parsed := parse_task_id(task.get("id"))) and parsed[0] == prefix
-    ]
-    return (max(numbers) if numbers else 0) + 1
-
-
-def renumber_for_add_mode(
-    candidates: list[dict[str, Any]],
-    back_existing: list[dict[str, Any]],
-    gameplay_existing: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    if not candidates:
-        return candidates
-    parsed_ids = [parse_task_id(candidate.get("id")) for candidate in candidates]
-    prefixes = {parsed[0] for parsed in parsed_ids if parsed}
-    if len(prefixes) != 1 or any(parsed is None for parsed in parsed_ids):
-        raise SystemExit("add mode requires generated candidates to use one stable prefixed id format like SG-0001")
-
-    prefix = next(iter(prefixes))
-    next_number = next_task_number(back_existing + gameplay_existing, prefix)
-    mapping: dict[str, str] = {}
-    renumbered: list[dict[str, Any]] = []
-    for offset, candidate in enumerate(candidates):
-        old_id = str(candidate.get("id"))
-        new_id = f"{prefix}-{next_number + offset:04d}"
-        mapping[old_id] = new_id
-
-    for candidate in candidates:
-        updated = dict(candidate)
-        updated["id"] = mapping[str(candidate.get("id"))]
-        updated["depends_on"] = [mapping.get(str(dep), str(dep)) for dep in candidate.get("depends_on", [])]
-        renumbered.append(updated)
-    return renumbered
 
 
 def target_for(candidate: dict[str, Any]) -> str:
@@ -123,7 +84,7 @@ def append_unique(existing: list[dict[str, Any]], new_tasks: list[dict[str, Any]
     return existing, added
 
 
-def main(argv: list[str] | None = None) -> int:
+def main() -> int:
     parser = argparse.ArgumentParser(description="Compile task candidates into task triplet view files.")
     parser.add_argument("--repo-root", default=".")
     parser.add_argument("--candidates", default="logs/ci/task-generation/task-candidates.enriched.json")
@@ -131,21 +92,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", choices=["init", "add"], default="add")
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--out", default="logs/ci/task-generation/task-triplet.patch.json")
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
     root = Path(args.repo_root).resolve()
     candidates = load_json(root / args.candidates, {}).get("candidates", [])
     coverage = load_json(root / args.coverage, {"status": "unknown"})
     if coverage.get("status") != "ok":
         raise SystemExit("coverage report is not ok; refusing to compile triplet")
-    tasks_dir = root / TASKS_DIR
-    back_path = tasks_dir / "tasks_back.json"
-    gameplay_path = tasks_dir / "tasks_gameplay.json"
-    back_existing = load_json(back_path, [])
-    gameplay_existing = load_json(gameplay_path, [])
-    if not isinstance(back_existing, list) or not isinstance(gameplay_existing, list):
-        raise SystemExit("task view files must be JSON lists")
-    if args.mode == "add":
-        candidates = renumber_for_add_mode(candidates, back_existing, gameplay_existing)
     back_new: list[dict[str, Any]] = []
     gameplay_new: list[dict[str, Any]] = []
     for candidate in candidates:
@@ -173,6 +125,13 @@ def main(argv: list[str] | None = None) -> int:
     out = root / args.out
     write_json(out, patch)
     if args.write:
+        tasks_dir = root / TASKS_DIR
+        back_path = tasks_dir / "tasks_back.json"
+        gameplay_path = tasks_dir / "tasks_gameplay.json"
+        back_existing = load_json(back_path, [])
+        gameplay_existing = load_json(gameplay_path, [])
+        if not isinstance(back_existing, list) or not isinstance(gameplay_existing, list):
+            raise SystemExit("task view files must be JSON lists")
         back_updated, back_added = append_unique(back_existing, back_new)
         gameplay_updated, gameplay_added = append_unique(gameplay_existing, gameplay_new)
         write_json(back_path, back_updated)
@@ -184,3 +143,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
