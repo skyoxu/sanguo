@@ -77,6 +77,8 @@ def normalize_candidate(raw: dict[str, Any], fallback_id: str, mode: str) -> dic
         "priority": str(raw.get("priority") or "P2"),
         "layer": str(raw.get("layer") or "feature"),
         "depends_on": list(raw.get("depends_on") or []),
+        "dependency_status": str(raw.get("dependency_status") or "provisional"),
+        "dependency_reason": str(raw.get("dependency_reason") or "generation skeleton"),
         "adr_refs": list(raw.get("adr_refs") or []),
         "chapter_refs": list(raw.get("chapter_refs") or []),
         "overlay_refs": list(raw.get("overlay_refs") or []),
@@ -87,6 +89,9 @@ def normalize_candidate(raw: dict[str, Any], fallback_id: str, mode: str) -> dic
         "test_strategy": list(raw.get("test_strategy") or []),
         "source_refs": source_refs,
         "requirement_ids": requirement_ids,
+        "semantic_refs": [str(x) for x in raw.get("semantic_refs", requirement_ids)],
+        "capability_refs": [str(x) for x in raw.get("capability_refs", [])],
+        "complexity_score": int(raw.get("complexity_score") or max(1, min(7, len(requirement_ids) or 1))),
         "covered_anchor_count": int(raw.get("covered_anchor_count") or len(requirement_ids)),
         "generation_mode": mode,
     }
