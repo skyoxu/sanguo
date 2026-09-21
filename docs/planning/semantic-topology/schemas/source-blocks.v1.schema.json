@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "newrouge.source-blocks.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "blocks"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "newrouge.source-blocks.v1"
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "block_id",
+          "source_path",
+          "line_start",
+          "line_end",
+          "content_hash",
+          "source_sha256"
+        ],
+        "properties": {
+          "block_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "heading_path": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "line_start": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "line_end": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^(?:sha256:)?[0-9a-f]{64}$"
+          },
+          "raw_text": {
+            "type": "string"
+          },
+          "json_pointer": {
+            "type": "string"
+          },
+          "source_char_start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "source_char_end_exclusive": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}

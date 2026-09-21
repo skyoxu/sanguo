@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "newrouge.topology-overrides.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "overrides"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "newrouge.topology-overrides.v1"
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "override_id",
+          "target_type",
+          "target_id",
+          "reason",
+          "reviewed_by"
+        ],
+        "properties": {
+          "override_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reviewed_by": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

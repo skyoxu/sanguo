@@ -27,6 +27,7 @@ ROOT_EXACT_SOURCES = {
 
 SOURCE_PREFIXES = (
     "docs/knowledge/catalog/",
+    "docs/planning/semantic-topology/",
     ".agents/skills/",
     "docs/agents/",
     "docs/prd/",
@@ -199,7 +200,176 @@ def _anchors(content: str, fallback: str) -> list[dict[str, Any]]:
     return result
 
 
+def _json_id_line(content: str, field: str, value: str) -> int:
+    quoted = json.dumps(str(value), ensure_ascii=False)
+    marker = f'"{field}"'
+    for index, line in enumerate(content.splitlines(), 1):
+        if marker in line and quoted in line:
+            return index
+    return 1
+
+
+def _topology_nodes(path: str, content: str) -> list[dict[str, Any]]:
+    if not path.startswith("docs/planning/semantic-topology/") or "/schemas/" in path:
+        return []
+    try:
+        document = json.loads(content)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(document, dict):
+        return []
+
+    specs = {
+        "source-blocks.v1.json": ("source_block", "blocks", "block_id"),
+        "semantic-requirements.v1.json": ("requirement", "requirements", "requirement_id"),
+        "capabilities.v1.json": ("capability", "capabilities", "capability_id"),
+    }
+    name = PurePosixPath(path).name
+    if name not in specs:
+        return []
+    node_type, list_key, id_key = specs[name]
+    rows = document.get(list_key, [])
+    if not isinstance(rows, list):
+        return []
+
+    result: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get(id_key), str) or not row[id_key]:
+            continue
+        node_id = row[id_key]
+        line = _json_id_line(content, id_key, node_id)
+        searchable = " ".join(
+            str(row.get(key, ""))
+            for key in ("statement", "title", "description", "kind", "source_path")
+        ).strip()
+        node = {
+            "node_type": node_type,
+            "node_id": node_id,
+            "line_start": line,
+            "line_end": line,
+            "search_text": searchable,
+            "related_nodes": [],
+            "related_task_ids": [],
+        }
+        if node_type == "source_block":
+            node["authority_sources"] = [{
+                "source_block_id": node_id,
+                "path": row.get("source_path"),
+                "source_sha256": row.get("source_sha256") or row.get("source_file_sha256"),
+                "line_start": row.get("line_start"),
+                "line_end": row.get("line_end"),
+            }]
+        elif node_type == "requirement":
+            node["source_block_ids"] = [
+                str(value) for value in row.get("source_block_ids", [])
+                if value is not None
+            ]
+            node["capability_ids"] = [
+                str(value) for value in row.get("capability_ids", [])
+                if value is not None
+            ]
+        elif node_type == "capability":
+            node["requirement_ids"] = [
+                str(value) for value in row.get("requirement_ids", row.get("covers", []))
+                if value is not None
+            ]
+        result.append(node)
+    return result
+
+
+def _enrich_topology_nodes(modules: list[dict[str, Any]]) -> None:
+    lookup: dict[tuple[str, str], dict[str, Any]] = {}
+    module_by_path = {module["source_path"]: module for module in modules}
+    for module in modules:
+        nodes = _topology_nodes(module["source_path"], module["content"])
+        if nodes:
+            module["topology_nodes"] = nodes
+            for node in nodes:
+                lookup[(node["node_type"], node["node_id"])] = node
+
+    edges_module = module_by_path.get(
+        "docs/planning/semantic-topology/topology-edges.v1.json"
+    )
+    edges: list[dict[str, Any]] = []
+    if edges_module:
+        try:
+            document = json.loads(edges_module["content"])
+            if isinstance(document, dict) and isinstance(document.get("edges"), list):
+                edges = [edge for edge in document["edges"] if isinstance(edge, dict)]
+        except json.JSONDecodeError:
+            edges = []
+
+    for edge in edges:
+        source_type = str(edge.get("source_type", ""))
+        source_id = str(edge.get("source_id", ""))
+        target_type = str(edge.get("target_type", ""))
+        target_id = str(edge.get("target_id", ""))
+        relation = str(edge.get("relation", ""))
+        source = lookup.get((source_type, source_id))
+        target = lookup.get((target_type, target_id))
+        if source is not None and target_id:
+            source["related_nodes"].append({
+                "node_type": target_type, "node_id": target_id,
+                "relation": relation, "direction": "out",
+            })
+            if target_type == "task" and target_id not in source["related_task_ids"]:
+                source["related_task_ids"].append(target_id)
+        if target is not None and source_id:
+            target["related_nodes"].append({
+                "node_type": source_type, "node_id": source_id,
+                "relation": relation, "direction": "in",
+            })
+            if source_type == "task" and source_id not in target["related_task_ids"]:
+                target["related_task_ids"].append(source_id)
+
+    # Resolve authority sources before capability rollups so file ordering cannot affect output.
+    for (node_type, _), node in lookup.items():
+        if node_type != "requirement":
+            continue
+        authority_sources = []
+        for block_id in node.get("source_block_ids", []):
+            block = lookup.get(("source_block", block_id))
+            if block:
+                authority_sources.extend(block.get("authority_sources", []))
+        node["authority_sources"] = authority_sources
+
+    for (node_type, _), node in lookup.items():
+        if node_type == "requirement":
+            capability_ids = set(node.get("capability_ids", []))
+            capability_ids.update(
+                str(item.get("node_id"))
+                for item in node.get("related_nodes", [])
+                if item.get("node_type") == "capability" and item.get("node_id")
+            )
+            for capability_id in sorted(capability_ids):
+                capability = lookup.get(("capability", capability_id))
+                if capability:
+                    for task_id in capability.get("related_task_ids", []):
+                        if task_id not in node["related_task_ids"]:
+                            node["related_task_ids"].append(task_id)
+        elif node_type == "capability":
+            authority_sources = []
+            for requirement_id in node.get("requirement_ids", []):
+                requirement = lookup.get(("requirement", requirement_id))
+                if requirement:
+                    authority_sources.extend(requirement.get("authority_sources", []))
+            node["authority_sources"] = authority_sources
+
+    for module in modules:
+        for node in module.get("topology_nodes", []):
+            node["related_task_ids"].sort()
+            node["related_nodes"] = sorted(
+                node["related_nodes"],
+                key=lambda item: (
+                    item.get("node_type", ""), item.get("node_id", ""),
+                    item.get("direction", ""), item.get("relation", ""),
+                ),
+            )
+
+
 def _status(path: str, content: str) -> tuple[str, bool]:
+    if path.startswith("docs/planning/semantic-topology/schemas/"):
+        return "active", False
     if path.startswith("docs/adr/") and "/addenda/" not in path:
         match = STATUS.search(content)
         raw = match.group(1).strip().casefold() if match else "unmarked"
@@ -231,6 +401,8 @@ def _classification(path: str) -> tuple[str, tuple[str, ...], str, str]:
         return "toolchain", ("delivery", "game-runtime"), "toolchain-document", "repository-authority"
     if path.startswith("docs/knowledge/catalog/"):
         return "game-runtime", ("game-design", "delivery"), "resource-knowledge", "resource-guide"
+    if path.startswith("docs/planning/semantic-topology/"):
+        return "game-design", ("delivery", "game-runtime"), "semantic-topology", "derived-planning-topology"
     if path == "README.md":
         return "game-design", ("toolchain", "delivery"), "repository-overview", "repository-overview"
     if path.startswith(("docs/prd/", "docs/gdd/", "docs/game-type-guides/")) or path == ".taskmaster/docs/prd.txt":
@@ -321,6 +493,8 @@ def build_layers(
             }
         )
         sources.append({"path": path, "sha256": digest, "source_role": role})
+
+    _enrich_topology_nodes(modules)
 
     by_id = {module["module_id"]: module for module in modules}
     for module in modules:
