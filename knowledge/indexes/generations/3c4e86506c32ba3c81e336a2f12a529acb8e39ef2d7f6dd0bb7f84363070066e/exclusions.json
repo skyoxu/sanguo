@@ -1,0 +1,83 @@
+{
+  "rules": [
+    {
+      "disposition": "excluded",
+      "id": "logs",
+      "path_prefix": "logs",
+      "reason": "Run evidence is not global repository truth."
+    },
+    {
+      "disposition": "excluded",
+      "id": "backup",
+      "path_prefix": "backup",
+      "reason": "Backup content must not outrank current sources."
+    },
+    {
+      "disposition": "excluded",
+      "id": "migration",
+      "path_prefix": "docs/migration",
+      "reason": "Migration records are historical unless explicitly requested."
+    },
+    {
+      "disposition": "excluded",
+      "id": "godot-cache",
+      "path_prefix": ".godot",
+      "reason": "Engine cache is generated."
+    },
+    {
+      "disposition": "excluded",
+      "id": "bin",
+      "path_pattern": "**/bin/**",
+      "reason": "Build output is generated."
+    },
+    {
+      "disposition": "excluded",
+      "id": "obj",
+      "path_pattern": "**/obj/**",
+      "reason": "Build output is generated."
+    },
+    {
+      "disposition": "excluded",
+      "id": "skill-business-evidence",
+      "path_pattern": ".agents/skills/**/references/business-repos/**",
+      "reason": "Generated business-repository regression evidence is empirical input, not repository policy or authority."
+    },
+    {
+      "disposition": "excluded",
+      "id": "workflow-examples",
+      "path_prefix": "docs/workflows/examples",
+      "reason": "Examples are illustrative artifacts and must not satisfy current repository authority queries."
+    },
+    {
+      "disposition": "excluded",
+      "id": "workflow-templates",
+      "path_prefix": "docs/workflows/templates",
+      "reason": "Template seeds are not current repository-instance facts; model them separately if repository-template lifecycle is introduced."
+    },
+    {
+      "disposition": "excluded",
+      "id": "knowledge-derived",
+      "path_prefix": "knowledge/catalogs",
+      "reason": "Derived catalogs cannot recursively become source truth."
+    },
+    {
+      "disposition": "excluded",
+      "id": "knowledge-snapshots",
+      "path_prefix": "knowledge/snapshots",
+      "reason": "Derived snapshots cannot recursively become source truth."
+    },
+    {
+      "disposition": "excluded",
+      "id": "knowledge-projections",
+      "path_prefix": "knowledge/projections",
+      "reason": "Consumer projections are derived state."
+    },
+    {
+      "disposition": "excluded",
+      "id": "knowledge-indexes",
+      "path_prefix": "knowledge/indexes",
+      "reason": "Publication indexes are derived state."
+    }
+  ],
+  "schema_version": "newrouge.knowledge-source-exclusions.v1"
+}

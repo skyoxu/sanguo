@@ -1,0 +1,118 @@
+{
+  "cases": [
+    {
+      "consumer": "repository-session",
+      "forbidden_path_prefixes": [
+        "logs/",
+        "backup/",
+        "docs/migration/"
+      ],
+      "id": "repository-rules",
+      "must_include": [
+        {
+          "any_paths": [
+            "AGENTS.md"
+          ],
+          "domains": [
+            "toolchain"
+          ],
+          "statuses": [
+            "active"
+          ]
+        }
+      ],
+      "query": "Repository Guide Context Reset startup order"
+    },
+    {
+      "consumer": "repository-session",
+      "forbidden_path_prefixes": [
+        "logs/"
+      ],
+      "id": "workflow-authority",
+      "must_include": [
+        {
+          "any_paths": [
+            "workflow.md"
+          ],
+          "domains": [
+            "toolchain"
+          ],
+          "statuses": [
+            "active"
+          ]
+        }
+      ],
+      "query": "workflow Chapter 6 single task daily loop"
+    },
+    {
+      "consumer": "chapter4",
+      "id": "architecture-index",
+      "must_include": [
+        {
+          "any_paths": [
+            "docs/architecture/ADR_INDEX_GODOT.md"
+          ],
+          "domains": [
+            "game-runtime"
+          ],
+          "statuses": [
+            "active"
+          ]
+        }
+      ],
+      "query": "ADR index Godot accepted proposed superseded"
+    },
+    {
+      "consumer": "chapter4",
+      "id": "contract-authority",
+      "must_include": [
+        {
+          "any_path_prefixes": [
+            "docs/adr/",
+            "Game.Core/Contracts/"
+          ],
+          "domains": [
+            "game-runtime"
+          ]
+        }
+      ],
+      "query": "Game.Core Contracts SSoT"
+    },
+    {
+      "consumer": "chapter6",
+      "id": "task-delivery-context",
+      "must_include": [
+        {
+          "any_path_prefixes": [
+            ".taskmaster/tasks/",
+            "execution-plans/"
+          ],
+          "domains": [
+            "delivery"
+          ]
+        }
+      ],
+      "query": "taskmaster overlay refs acceptance linkage"
+    },
+    {
+      "consumer": "review",
+      "forbidden_path_prefixes": [
+        "logs/"
+      ],
+      "id": "review-no-log-authority",
+      "must_include": [
+        {
+          "any_path_prefixes": [
+            "docs/workflows/",
+            ".agents/skills/"
+          ],
+          "domains": [
+            "toolchain"
+          ]
+        }
+      ],
+      "query": "review pipeline run protocol delivery profile"
+    }
+  ],
+  "schema_version": "newrouge.knowledge-evaluation-suite.v1"
+}

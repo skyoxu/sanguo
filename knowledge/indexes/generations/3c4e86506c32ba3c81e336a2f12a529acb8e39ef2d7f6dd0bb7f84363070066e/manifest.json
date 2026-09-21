@@ -1,0 +1,16 @@
+{
+  "artifacts": {
+    "catalog": "sha256:20d80a2b166f1bfb8e984e96248b48700326701e0723a11db1813eb410718f53",
+    "evaluation": "sha256:e680d9516a5436f21863e4d81eb167d4368792a7fad1b478470789f7e109b52b",
+    "exclusions": "sha256:a6f18dee5ae098a4b0f7f6774cebd9e60d15100b9208c4a414fa302be4f60381",
+    "policies": "sha256:8114be88992423204e7fd2c3785bdfff232f907104516c73c54139ada1cb5402",
+    "projections": "sha256:31315d6453e635a4dde83363fa009da2e006d5980e95eb6eb5460f44ba7b9031",
+    "query_suite": "sha256:49b92029f5357760fe4f7e2255afd0c4ae70dbd0ec107268a0796810bfcf170e",
+    "snapshot": "sha256:c59ca3755f8d4c47e12fd50167505cc261099c1713516da9d54bda4fb7721015"
+  },
+  "authority_ref": "refs/heads/main",
+  "generation_id": "3c4e86506c32ba3c81e336a2f12a529acb8e39ef2d7f6dd0bb7f84363070066e",
+  "main_commit": "bbdb1f2c5ff911ce54a90bc80e142a2dfd0ecd01",
+  "schema_version": "newrouge.knowledge-publication-generation.v1",
+  "source_snapshot_id": "154d4c85797add442e80ffdc118a769fab538a551547daedc80a6d375b396a7b"
+}
