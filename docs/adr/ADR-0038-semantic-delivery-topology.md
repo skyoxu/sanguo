@@ -1,0 +1,29 @@
+# ADR-0038: Semantic Delivery Topology
+
+- Status: Accepted
+- Date: 2026-09-20
+- Context:
+  - The repository currently has strong authority boundaries for GDD/PRD, ADR/architecture, Taskmaster, acceptance, Knowledge and Project Health, but no governed intermediate topology that traces original design semantics through delivery artifacts.
+  - Direct GDD → Task compression makes omissions difficult to distinguish from intentionally deferred or globally owned constraints.
+  - The change must not replace Taskmaster, reopen locked engine/architecture choices, or make generated Knowledge a second source of truth.
+- Decision:
+  - Add a derived semantic delivery topology under `docs/planning/semantic-topology/**`.
+  - The topology contains Source Blocks, Semantic Requirements, optional Capabilities and typed edges to Task/Acceptance/ADR/Contract/Test/Scene evidence.
+  - Original repository sources remain authority. A Source Block is only a revision-bound locator; normalized statements never outrank their original source.
+  - Capability is optional grouping and has no task status, sprint or completion semantics.
+  - Taskmaster triplet remains the sole task-state authority.
+  - Every topology artifact is revision/hash-bound. Stale or missing artifacts are reported explicitly and never guessed.
+  - Project Health exposes read-only Main and Workspace/Chapter-run topology identities. Main authority remains bound to `refs/heads/main`; Workspace is preview-only and cannot update canonical KCP pointers.
+  - Scene/runtime evidence may navigate back to design semantics but never becomes acceptance proof by itself.
+  - KCP may index topology locations, but Locator remains location-only and consumers must re-read authoritative sources.
+- Consequences:
+  - Design-to-delivery omissions and orphan relationships can become machine-visible without adding another workflow lifecycle.
+  - Chapter 3 and Chapter 5 can later become registered topology producers/validators without changing Chapter ordering.
+  - Existing repositories without topology artifacts remain usable and show `legacy_unmapped` instead of fabricated mappings.
+  - Additional schemas, validators and UI surfaces must preserve revision identity and avoid Main/Workspace mixing.
+- Supersedes: None
+- References:
+  - `docs/adr/ADR-0035-repository-knowledge-control-plane.md`
+  - `docs/adr/ADR-0036-project-health-investigation.md`
+  - `docs/planning/semantic-topology/README.md`
+  - `docs/workflows/project-health-knowledge.md`

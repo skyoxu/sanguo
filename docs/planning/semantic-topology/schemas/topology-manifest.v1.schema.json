@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "newrouge.semantic-topology-manifest.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "source_revision",
+    "source_manifest_sha256",
+    "schema_revision",
+    "generator_revision",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "newrouge.semantic-topology-manifest.v1"
+    },
+    "source_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_manifest_sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "repository_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "schema_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generator_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "object",
+      "required": [
+        "docs/planning/semantic-topology/source-blocks.v1.json",
+        "docs/planning/semantic-topology/semantic-requirements.v1.json",
+        "docs/planning/semantic-topology/capabilities.v1.json",
+        "docs/planning/semantic-topology/topology-edges.v1.json"
+      ],
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      }
+    }
+  }
+}
