@@ -1,0 +1,343 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 195,
+    "merge_commit": "8ea54ff88be511a2b5611254a78116f52464d335",
+    "changed_file_count": 36,
+    "changed_files": [
+      "docs/PROJECT_DOCUMENTATION_INDEX.md",
+      "docs/adr/ADR-0035-repository-knowledge-control-plane.md",
+      "docs/adr/ADR-0036-project-health-investigation.md",
+      "docs/adr/ADR-0038-semantic-delivery-topology.md",
+      "docs/agents/13-rag-sources-and-session-ssot.md",
+      "docs/architecture/ADR_INDEX_GODOT.md",
+      "docs/architecture/base/08-crosscutting-and-feature-slices.base.md",
+      "docs/planning/semantic-topology/README.md",
+      "docs/planning/semantic-topology/schemas/capabilities.v1.schema.json",
+      "docs/planning/semantic-topology/schemas/semantic-requirements.v1.schema.json",
+      "docs/planning/semantic-topology/schemas/source-blocks.v1.schema.json",
+      "docs/planning/semantic-topology/schemas/topology-edges.v1.schema.json",
+      "docs/planning/semantic-topology/schemas/topology-manifest.v1.schema.json",
+      "docs/planning/semantic-topology/schemas/topology-overrides.v1.schema.json",
+      "docs/workflows/gate-bundle.md",
+      "docs/workflows/project-health-knowledge.md",
+      "docs/workflows/script-entrypoints-index.md",
+      "knowledge/README.md",
+      "knowledge/policies/consumer-policies.v1.json",
+      "scripts/browser/project_health.spec.js",
+      "scripts/python/_knowledge_catalog_builder.py",
+      "scripts/python/_project_health_http.py",
+      "scripts/python/_semantic_topology.py",
+      "scripts/python/project_health_knowledge.html",
+      "scripts/python/project_health_knowledge.py",
+      "scripts/python/project_health_knowledge_config.json",
+      "scripts/python/project_health_scenes.html",
+      "scripts/python/project_health_scenes.js",
+      "scripts/python/project_health_topology.html",
+      "scripts/python/project_health_topology.js",
+      "scripts/python/run_gate_bundle.py",
+      "scripts/python/tests/test_semantic_topology.py",
+      "scripts/python/tests/test_semantic_topology_http.py",
+      "scripts/python/validate_semantic_topology.py",
+      "scripts/sc/tests/test_project_health_knowledge.py",
+      "workflow.md"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo",
+    "pr": 261,
+    "branch": "feat/reconcile-newrouge-195-215-20260921",
+    "migration_key": "skyoxu/newrouge@2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf->skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": "docs/PROJECT_DOCUMENTATION_INDEX.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/PROJECT_DOCUMENTATION_INDEX.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/adr/ADR-0035-repository-knowledge-control-plane.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/adr/ADR-0035-repository-knowledge-control-plane.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/adr/ADR-0036-project-health-investigation.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/adr/ADR-0036-project-health-investigation.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/adr/ADR-0038-semantic-delivery-topology.md",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/adr/ADR-0038-semantic-delivery-topology.md"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/agents/13-rag-sources-and-session-ssot.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/agents/13-rag-sources-and-session-ssot.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/architecture/ADR_INDEX_GODOT.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/architecture/ADR_INDEX_GODOT.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/architecture/base/08-crosscutting-and-feature-slices.base.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/architecture/base/08-crosscutting-and-feature-slices.base.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/planning/semantic-topology/README.md",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/planning/semantic-topology/README.md"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/planning/semantic-topology/schemas/capabilities.v1.schema.json",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/planning/semantic-topology/schemas/capabilities.v1.schema.json"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/planning/semantic-topology/schemas/semantic-requirements.v1.schema.json",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/planning/semantic-topology/schemas/semantic-requirements.v1.schema.json"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/planning/semantic-topology/schemas/source-blocks.v1.schema.json",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/planning/semantic-topology/schemas/source-blocks.v1.schema.json"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/planning/semantic-topology/schemas/topology-edges.v1.schema.json",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/planning/semantic-topology/schemas/topology-edges.v1.schema.json"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/planning/semantic-topology/schemas/topology-manifest.v1.schema.json",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/planning/semantic-topology/schemas/topology-manifest.v1.schema.json"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/planning/semantic-topology/schemas/topology-overrides.v1.schema.json",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/planning/semantic-topology/schemas/topology-overrides.v1.schema.json"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/workflows/gate-bundle.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/gate-bundle.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/workflows/project-health-knowledge.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/project-health-knowledge.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/workflows/script-entrypoints-index.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/script-entrypoints-index.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "knowledge/README.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "knowledge/README.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "knowledge/policies/consumer-policies.v1.json",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "knowledge/policies/consumer-policies.v1.json"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/browser/project_health.spec.js",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/browser/project_health.spec.js"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/python/_knowledge_catalog_builder.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/_knowledge_catalog_builder.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/_project_health_http.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/_project_health_http.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/_semantic_topology.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/_semantic_topology.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_health_knowledge.html",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_health_knowledge.html"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_health_knowledge.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_health_knowledge.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_health_knowledge_config.json",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/project_health_knowledge_config.json"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/python/project_health_scenes.html",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/project_health_scenes.html"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/python/project_health_scenes.js",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/python/project_health_scenes.js"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/python/project_health_topology.html",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_health_topology.html"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_health_topology.js",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_health_topology.js"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/run_gate_bundle.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/run_gate_bundle.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_semantic_topology.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_semantic_topology.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_semantic_topology_http.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_semantic_topology_http.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/validate_semantic_topology.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/validate_semantic_topology.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/sc/tests/test_project_health_knowledge.py",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/sc/tests/test_project_health_knowledge.py"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "workflow.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "workflow.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    }
+  ]
+}

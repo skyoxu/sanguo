@@ -1,0 +1,298 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 201,
+    "merge_commit": "da64f423e5a7ea3df485b4630a848bc5588af173",
+    "changed_file_count": 31,
+    "changed_files": [
+      ".agents/skills/maintain-knowledge-base/SKILL.md",
+      ".agents/skills/workflow-chapter3-task-triplet-baseline/SKILL.md",
+      "AGENTS.md",
+      "README.md",
+      "docs/adr/ADR-0035-repository-knowledge-control-plane.md",
+      "docs/workflows/README.md",
+      "docs/workflows/gate-bundle.md",
+      "docs/workflows/project-health-knowledge.md",
+      "docs/workflows/script-entrypoints-index.md",
+      "scripts/browser/project_health.spec.js",
+      "scripts/python/_project_health_http.py",
+      "scripts/python/_semantic_topology.py",
+      "scripts/python/audit_task_candidate_coverage.py",
+      "scripts/python/build_source_ledger.py",
+      "scripts/python/compile_task_triplet.py",
+      "scripts/python/dev_cli.py",
+      "scripts/python/enrich_task_candidates.py",
+      "scripts/python/extract_requirement_anchors.py",
+      "scripts/python/generate_task_candidates_from_sources.py",
+      "scripts/python/normalize_task_intents.py",
+      "scripts/python/project_health_topology.html",
+      "scripts/python/project_health_topology.js",
+      "scripts/python/project_semantics_from_sources.py",
+      "scripts/python/refresh_chapter_knowledge.py",
+      "scripts/python/run_chapter3_regression_check.py",
+      "scripts/python/run_gate_bundle.py",
+      "scripts/python/tests/test_chapter3_semantic_conservation.py",
+      "scripts/python/tests/test_chapter3_task_generation.py",
+      "scripts/python/update_workflow_chapter_skills.py",
+      "scripts/python/validate_semantic_conservation.py",
+      "workflow.md"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo",
+    "pr": 261,
+    "branch": "feat/reconcile-newrouge-195-215-20260921",
+    "migration_key": "skyoxu/newrouge@2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf->skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": ".agents/skills/maintain-knowledge-base/SKILL.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        ".agents/skills/maintain-knowledge-base/SKILL.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": ".agents/skills/workflow-chapter3-task-triplet-baseline/SKILL.md",
+      "classification": "copy_exact",
+      "target_paths": [
+        ".agents/skills/workflow-chapter3-task-triplet-baseline/SKILL.md"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "AGENTS.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "AGENTS.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "README.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "README.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/adr/ADR-0035-repository-knowledge-control-plane.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/adr/ADR-0035-repository-knowledge-control-plane.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/workflows/README.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/README.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/workflows/gate-bundle.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/gate-bundle.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/workflows/project-health-knowledge.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/project-health-knowledge.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "docs/workflows/script-entrypoints-index.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/script-entrypoints-index.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/browser/project_health.spec.js",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/browser/project_health.spec.js"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/python/_project_health_http.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/_project_health_http.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/_semantic_topology.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/_semantic_topology.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/audit_task_candidate_coverage.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/audit_task_candidate_coverage.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/build_source_ledger.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/build_source_ledger.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/compile_task_triplet.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/compile_task_triplet.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/dev_cli.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/dev_cli.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/enrich_task_candidates.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/enrich_task_candidates.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/extract_requirement_anchors.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/extract_requirement_anchors.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/generate_task_candidates_from_sources.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/generate_task_candidates_from_sources.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/normalize_task_intents.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/normalize_task_intents.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_health_topology.html",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_health_topology.html"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_health_topology.js",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_health_topology.js"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_semantics_from_sources.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_semantics_from_sources.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/refresh_chapter_knowledge.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/refresh_chapter_knowledge.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/run_chapter3_regression_check.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/run_chapter3_regression_check.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/run_gate_bundle.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/run_gate_bundle.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_chapter3_semantic_conservation.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_chapter3_semantic_conservation.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_chapter3_task_generation.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_chapter3_task_generation.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/update_workflow_chapter_skills.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/update_workflow_chapter_skills.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/validate_semantic_conservation.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/validate_semantic_conservation.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "workflow.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "workflow.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    }
+  ]
+}
