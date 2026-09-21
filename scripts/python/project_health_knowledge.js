@@ -348,7 +348,28 @@ async function search(target) {
   const freshness=result.snapshot_freshness;el('snapshot-warning').hidden=!freshness.stale;
   el('snapshot-warning').textContent=freshness.stale?`Snapshot is stale. Results describe ${freshness.snapshot_revision}; current HEAD is ${freshness.current_revision}.`:'';
   renderActionable(result);
-  el('knowledge').replaceChildren(); for(const hit of result.knowledge) {const p=document.createElement('p');p.append(sourceLink(hit.path), hit.dictionary ? ` · ${hit.dictionary.description}` : ` · line ${hit.line_start} · ${hit.matched_query}`);el('knowledge').append(p);}
+  el('knowledge').replaceChildren();
+  for(const hit of result.knowledge) {
+    const p=document.createElement('p');
+    p.append(sourceLink(hit.path), hit.dictionary ? ` · ${hit.dictionary.description}` : ` · line ${hit.line_start} · ${hit.matched_query}`);
+    const node=hit.topology_node;
+    if(node){
+      p.append(document.createTextNode(` · ${node.node_type} ${node.node_id}`));
+      const focus=document.createElement('a');
+      focus.href='/knowledge/topology?mode=main&focus='+encodeURIComponent(node.node_type+':'+node.node_id);
+      focus.textContent='Open topology node';
+      focus.dataset.topologyKind=node.node_type;
+      focus.dataset.topologyId=node.node_id;
+      p.append(document.createTextNode(' · '),focus);
+      if((node.related_task_ids||[]).length) p.append(document.createTextNode(' · Tasks '+node.related_task_ids.join(', ')));
+      for(const source of node.authority_sources||[]){
+        if(!source?.path) continue;
+        const hash=source.source_sha256 ? ' @ '+String(source.source_sha256).replace(/^sha256:/,'').slice(0,12) : '';
+        p.append(document.createTextNode(' · Authority '+source.path+hash));
+      }
+    }
+    el('knowledge').append(p);
+  }
   el('supplements').replaceChildren();for(const hit of result.gdd_supplements) el('supplements').append(sourceLink(hit.path));
   el('targets').replaceChildren();el('target-count').textContent=`${result.impact_target_total} candidate targets; showing at most 80. ${result.impact_skipped_methods.length} unsupported method signatures omitted (details in evidence JSON). Narrow the query if needed. Select one to analyze.`;
   for(const hit of result.impact_targets) el('targets').append(button(hit.type+' · '+hit.id,()=>search({type:hit.type,id:hit.id})));
