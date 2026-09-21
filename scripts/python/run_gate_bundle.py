@@ -343,9 +343,13 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
                 "scripts.python.tests.test_chapter3_semantic_conservation",
                 "scripts.python.tests.test_chapter5_semantic_reconciliation",
                 "scripts.python.tests.test_chapter7_ui_wiring",
-                "scripts.sc.tests.test_generate_knowledge_links",
+                "scripts.python.tests.test_generate_knowledge_links",
                 "scripts.sc.tests.test_godot_scene_graph",
-                "scripts.sc.tests.test_project_health_navigation",
+                "scripts.sc.tests.test_project_health_sanguo_config",
+                "scripts.sc.tests.test_project_health_http_surface",
+                "scripts.sc.tests.test_project_health_cli_status",
+                "scripts.sc.tests.test_project_health_knowledge",
+                "scripts.sc.tests.test_dev_cli_project_health_commands",
                 "scripts.sc.tests.test_project_health_runtime_snapshot",
                 "scripts.sc.tests.test_project_health_server",
                 "scripts.sc.tests.test_chapter6_knowledge",
@@ -357,12 +361,20 @@ def _hard_gate_commands(task_files: list[str], task_links_max_warnings: int = -1
             "cmd": ["py", "-3", "scripts/python/validate_semantic_topology.py"],
         },
         {
+            "name": "cross_repo_migration_reconciliation",
+            "cmd": ["py", "-3", "scripts/python/check_cross_repo_migration.py", "--require-manifests"],
+        },
+        {
             "name": "check_gate_bundle_consistency",
             "cmd": ["py", "-3", "scripts/python/check_gate_bundle_consistency.py"],
         },
         {
             "name": "check_workflow_gate_enforcement",
             "cmd": ["py", "-3", "scripts/python/check_workflow_gate_enforcement.py"],
+        },
+        {
+            "name": "signal_compliance_workflow_hard_gate",
+            "cmd": ["py", "-3", "scripts/python/check_signal_compliance_workflow_hard_gate.py"],
         },
         {
             "name": "chapter7_ui_wiring_gate",
