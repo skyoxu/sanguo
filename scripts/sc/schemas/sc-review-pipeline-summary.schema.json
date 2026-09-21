@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sanguo.local/schemas/sc-review-pipeline-summary.schema.json",
+  "$id": "https://newrouge.local/schemas/sc-review-pipeline-summary.schema.json",
   "title": "sc-review-pipeline summary",
   "type": "object",
   "additionalProperties": false,
@@ -145,6 +145,32 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/step"
+      }
+    },
+    "chapter5_semantic_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "readiness",
+        "reconciliation_sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "readiness": {
+          "type": "string",
+          "enum": [
+            "READY",
+            "CONCERNS"
+          ]
+        },
+        "reconciliation_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
       }
     }
   },

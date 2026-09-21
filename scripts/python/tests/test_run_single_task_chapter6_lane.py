@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import sys
 import tempfile
@@ -31,6 +32,80 @@ lane = _load_module("single_task_chapter6_lane_module", "scripts/python/run_sing
 
 
 class RunSingleTaskChapter6LaneTests(unittest.TestCase):
+    def test_chapter6_handoff_pauses_before_review_and_fork(self) -> None:
+        for fork in (False, True):
+            with self.subTest(fork=fork), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                out_dir = root / "logs/ci/chapter6"
+                revision = "a" * 40
+                frozen = {
+                    "schema_version": "newrouge.knowledge-frozen-context.v1",
+                    "freeze_state": "frozen", "consumer": "chapter6",
+                    "task_id": "15", "snapshot": {"commit": revision},
+                }
+                frozen_path = root / "frozen.json"
+                frozen_path.write_text(json.dumps(frozen), encoding="utf-8")
+                report = {
+                    "schema_version": "newrouge.impact-analysis.v1", "status": "ok",
+                    "repository_revision": revision, "index_id": "idx-test",
+                    "index_sha256": "b" * 64, "target": {"kind": "file", "identity": "x"},
+                    "risk_level": "unknown",
+                    "knowledge_binding": {
+                        "consumer": "chapter6", "task_id": "15",
+                        "frozen_context_path": "frozen.json",
+                        "frozen_context_sha256": hashlib.sha256(frozen_path.read_bytes()).hexdigest(),
+                        "decision_set_sha256": "c" * 64, "freeze_point": "before-red",
+                        "publication_generation": "gen", "publication_sha256": "d" * 64,
+                    },
+                }
+                report_path = root / "report.json"
+                report_path.write_text(json.dumps(report), encoding="utf-8")
+                manifest_path = root / "run-manifest.v1.json"
+                manifest_path.write_text(json.dumps({
+                    "schema_version": "newrouge.impact-analysis-run-manifest.v1",
+                    "run_id": "test-run",
+                    "report_path": "report.json",
+                    "report_sha256": hashlib.sha256(report_path.read_bytes()).hexdigest(),
+                    "repository_revision": revision,
+                    "status": "ok",
+                }), encoding="utf-8")
+                before = (frozen_path.read_bytes(), report_path.read_bytes(), manifest_path.read_bytes())
+                argv = ["chapter6", "--task-id", "15", "--out-dir", str(out_dir),
+                        "--frozen-context", "frozen.json", "--impact-report", "report.json",
+                        "--revision", revision]
+                resume = {"task_id": "15", "recommended_action": "continue"}
+                route = lane._fresh_start_route_payload()
+                if fork:
+                    resume["approval"] = {"required_action": "fork", "status": "approved",
+                                          "allowed_actions": ["fork", "inspect"], "blocked_actions": ["resume"]}
+                    route = {"preferred_lane": "inspect-first", "run_id": "run-15",
+                             "latest_reason": "approval_required:fork", "blocked_by": "approval_approved"}
+                calls = []
+
+                def json_step(*args, name, cmd):
+                    self.assertIn(name, {"resume-task", "chapter6-route-initial"})
+                    return {"name": name, "rc": 0, "cmd": cmd}, resume if name == "resume-task" else route
+
+                def plain_step(*args, name, cmd):
+                    calls.append(name)
+                    self.assertNotIn("scripts/sc/run_review_pipeline.py", cmd)
+                    return {"name": name, "rc": 0, "cmd": cmd}
+
+                with (mock.patch.object(sys, "argv", argv),
+                      mock.patch.object(lane, "_repo_root", return_value=root),
+                      mock.patch.object(lane, "_run_json_step", side_effect=json_step),
+                      mock.patch.object(lane, "_run_plain_step", side_effect=plain_step)):
+                    rc = lane.main()
+                self.assertEqual(rc, 1)
+                self.assertEqual(calls, [] if fork else ["check-tdd-plan", "red-first", "green", "refactor"])
+                summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+                self.assertEqual(summary["status"], "blocked")
+                self.assertEqual(summary["stop_reason"], "review_context_required")
+                self.assertEqual(summary["pending_step"], "review-pipeline-fork" if fork else "review-pipeline")
+                self.assertIn("review", summary["next_action"])
+                self.assertEqual([s["name"] for s in summary["steps"]][2:], calls)
+                self.assertEqual(before, (frozen_path.read_bytes(), report_path.read_bytes(), manifest_path.read_bytes()))
+
     def test_handoff_builder_forwards_all_arguments(self) -> None:
         cmd = lane.build_review_pipeline_cmd(
             "15",
@@ -40,6 +115,7 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
             impact_report="logs/ci/impact-report.json",
             revision="a" * 40,
         )
+
         self.assertEqual(
             [
                 "--frozen-context", "logs/ci/context.frozen.json",
@@ -58,27 +134,10 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
             consumer="chapter6",
             task_id="15",
         )
+
         self.assertFalse(result.ok)
         self.assertEqual("invalid_kcp_binding", result.code)
         self.assertEqual(11, result.exit_code)
-
-    def test_review_context_plan_stops_at_pending_review(self) -> None:
-        plan = {
-            "status": "planned",
-            "stop_reason": "",
-            "steps": [
-                {"name": "resume-task", "cmd": ["resume"]},
-                {"name": "red-first", "cmd": ["red"]},
-                {"name": "review-pipeline", "cmd": ["review"]},
-                {"name": "local-hard-checks", "cmd": ["hard"]},
-            ],
-        }
-        stopped = lane._stop_plan_at_review_context_boundary(plan)
-        self.assertEqual("blocked", stopped["status"])
-        self.assertEqual("review_context_required", stopped["stop_reason"])
-        self.assertEqual("review-pipeline", stopped["pending_step"])
-        self.assertEqual(["resume-task", "red-first", "review-pipeline"], [step["name"] for step in stopped["steps"]])
-        self.assertIn("consumer=review", stopped["next_action"])
 
     def test_resolve_profile_policy_should_default_to_p0_for_playable_ea(self) -> None:
         policy = lane.resolve_profile_policy("playable-ea")
@@ -97,6 +156,14 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
         self.assertEqual("P1", policy["fix_through"])
         self.assertEqual("draft", policy["execution_plan_policy"])
         self.assertEqual("auto", policy["red_verify"])
+
+    def test_chapter6_69_command_is_no_project_health(self) -> None:
+        cmd = lane.build_local_hard_checks_cmd(
+            profile_policy=lane.resolve_profile_policy("fast-ship"),
+            godot_bin="",
+        )
+        self.assertIn("--skip-project-health", cmd)
+        self.assertNotIn("project-health-scan", cmd)
 
     def test_plan_should_run_full_lane_when_initial_route_has_no_real_recovery_bundle(self) -> None:
         initial_route = {
@@ -849,105 +916,89 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
             self.assertEqual("P1", payload["profile_policy"]["fix_through"])
             self.assertEqual("check-tdd-plan", payload["steps"][2]["name"])
 
-    def test_main_should_treat_missing_latest_recovery_as_new_task_lane(self) -> None:
+    def test_main_self_check_with_handoff_should_preview_review_boundary(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            out_dir = root / "logs" / "ci" / "chapter6-new-task"
+            out_dir = root / "logs" / "ci" / "chapter6-self-check-handoff"
+            revision = "a" * 40
+            frozen_path = root / "frozen.json"
+            frozen_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "newrouge.knowledge-frozen-context.v1",
+                        "freeze_state": "frozen",
+                        "consumer": "chapter6",
+                        "task_id": "15",
+                        "snapshot": {"commit": revision},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            report_path = root / "report.json"
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "newrouge.impact-analysis.v1",
+                        "status": "ok",
+                        "repository_revision": revision,
+                        "index_id": "idx-test",
+                        "index_sha256": "b" * 64,
+                        "target": {"kind": "file", "identity": "x"},
+                        "risk_level": "unknown",
+                        "knowledge_binding": {
+                            "consumer": "chapter6",
+                            "task_id": "15",
+                            "frozen_context_path": "frozen.json",
+                            "frozen_context_sha256": hashlib.sha256(frozen_path.read_bytes()).hexdigest(),
+                            "decision_set_sha256": "c" * 64,
+                            "freeze_point": "before-red",
+                            "publication_generation": "gen",
+                            "publication_sha256": "d" * 64,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (root / "run-manifest.v1.json").write_text(json.dumps({
+                "schema_version": "newrouge.impact-analysis-run-manifest.v1",
+                "run_id": "test-run",
+                "report_path": "report.json",
+                "report_sha256": hashlib.sha256(report_path.read_bytes()).hexdigest(),
+                "repository_revision": revision,
+                "status": "ok",
+            }), encoding="utf-8")
             argv = [
                 "run_single_task_chapter6_lane.py",
-                "--task-id",
-                "198",
-                "--godot-bin",
-                "C:/Godot/Godot.exe",
-                "--delivery-profile",
-                "fast-ship",
-                "--out-dir",
-                str(out_dir),
+                "--task-id", "15",
+                "--godot-bin", "C:/Godot/Godot.exe",
+                "--delivery-profile", "fast-ship",
+                "--self-check",
+                "--out-dir", str(out_dir),
+                "--frozen-context", "frozen.json",
+                "--impact-report", "report.json",
+                "--revision", revision,
             ]
-            executed_steps: list[str] = []
-
-            json_steps = iter(
-                [
-                    (
-                        {
-                            "name": "resume-task",
-                            "cmd": [],
-                            "rc": 2,
-                            "stdout_tail": "",
-                            "stderr_tail": "ERROR: failed to build task resume summary: No latest run index found. Pass --latest or provide enough filters.",
-                            "log": "resume.log",
-                        },
-                        {},
-                    ),
-                    (
-                        {
-                            "name": "chapter6-route-initial",
-                            "cmd": [],
-                            "rc": 2,
-                            "stdout_tail": "",
-                            "stderr_tail": "ERROR: failed to route chapter6 recovery: No latest run index found. Pass --latest or provide enough filters.",
-                            "log": "route.log",
-                        },
-                        {},
-                    ),
-                    (
-                        {
-                            "name": "chapter6-route-post-review",
-                            "cmd": [],
-                            "rc": 0,
-                            "stdout_tail": "",
-                            "stderr_tail": "",
-                            "log": "route-post.log",
-                        },
-                        {
-                            "preferred_lane": "inspect-first",
-                            "run_id": "run-198",
-                            "chapter6_next_action": "continue",
-                        },
-                    ),
-                    (
-                        {
-                            "name": "chapter6-route-post-needs-fix",
-                            "cmd": [],
-                            "rc": 0,
-                            "stdout_tail": "",
-                            "stderr_tail": "",
-                            "log": "route-final.log",
-                        },
-                        {"preferred_lane": "inspect-first", "run_id": "run-198"},
-                    ),
-                ]
-            )
-
-            def fake_run_json_step(*_args, **_kwargs):
-                return next(json_steps)
-
-            def fake_run_plain_step(*_args, name, cmd, **_kwargs):
-                executed_steps.append(str(name))
-                return {
-                    "name": name,
-                    "cmd": list(cmd),
-                    "rc": 0,
-                    "stdout_tail": "",
-                    "stderr_tail": "",
-                    "log": f"{name}.log",
-                }
-
             with (
                 mock.patch.object(sys, "argv", argv),
                 mock.patch.object(lane, "_repo_root", return_value=root),
-                mock.patch.object(lane, "_run_json_step", side_effect=fake_run_json_step),
-                mock.patch.object(lane, "_run_plain_step", side_effect=fake_run_plain_step),
             ):
                 rc = lane.main()
 
             self.assertEqual(0, rc)
-            self.assertIn("check-tdd-plan", executed_steps)
-            self.assertIn("review-pipeline", executed_steps)
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("ok", payload["status"])
-            self.assertEqual("no-latest-run-index", payload["resume"]["missing_recovery_reason"])
-            self.assertEqual("no-latest-run-index", payload["initial_route"]["missing_recovery_reason"])
+            self.assertEqual("blocked", payload["plan_status"])
+            self.assertEqual("review_context_required", payload["stop_reason"])
+            self.assertEqual("review-pipeline", payload["pending_step"])
+            self.assertIn("consumer=review", payload["next_action"])
+            self.assertEqual(
+                ["resume-task", "chapter6-route-initial", "check-tdd-plan", "red-first", "green", "refactor", "review-pipeline"],
+                [step["name"] for step in payload["steps"]],
+            )
+            review_cmd = payload["steps"][-1]["cmd"]
+            self.assertEqual("frozen.json", review_cmd[review_cmd.index("--frozen-context") + 1])
+            self.assertEqual("report.json", review_cmd[review_cmd.index("--impact-report") + 1])
+            self.assertEqual(revision, review_cmd[review_cmd.index("--revision") + 1])
 
     def test_main_should_stop_before_running_forbidden_review_pipeline_command(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -1100,6 +1151,23 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
                             "run_id": "n/a",
                             "latest_reason": "n/a",
                             "blocked_by": "n/a",
+                        },
+                    ),
+                    (
+                        {
+                            "name": "chapter6-route-post-review",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "route-post-review.log",
+                        },
+                        {
+                            "preferred_lane": "inspect-first",
+                            "run_id": "run-132",
+                            "latest_reason": "pipeline_clean",
+                            "blocked_by": "",
+                            "chapter6_next_action": "continue",
                         },
                     ),
                     (
@@ -1399,6 +1467,112 @@ class RunSingleTaskChapter6LaneTests(unittest.TestCase):
             payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
             self.assertEqual("complete", payload["status"])
             self.assertEqual("continue", payload["stop_reason"])
+
+    def test_main_should_treat_missing_latest_run_as_fresh_task_start(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out_dir = root / "logs" / "ci" / "chapter6-fresh-task"
+            argv = [
+                "run_single_task_chapter6_lane.py",
+                "--task-id",
+                "132",
+                "--godot-bin",
+                "C:/Godot/Godot.exe",
+                "--delivery-profile",
+                "fast-ship",
+                "--out-dir",
+                str(out_dir),
+            ]
+            executed_steps: list[str] = []
+            def fake_run_json_step(*_args, name, **_kwargs):
+                payloads = {
+                    "resume-task": (
+                        {
+                            "name": "resume-task",
+                            "cmd": [],
+                            "rc": 2,
+                            "stdout_tail": "",
+                            "stderr_tail": "ERROR: failed to build task resume summary: No latest run index found. Pass --latest or provide enough filters.",
+                            "log": "resume.log",
+                        },
+                        {},
+                    ),
+                    "chapter6-route-initial": (
+                        {
+                            "name": "chapter6-route-initial",
+                            "cmd": [],
+                            "rc": 2,
+                            "stdout_tail": "",
+                            "stderr_tail": "ERROR: failed to route chapter6 recovery: No latest run index found. Pass --latest or provide enough filters.",
+                            "log": "route-initial.log",
+                        },
+                        {},
+                    ),
+                    "chapter6-route-post-review": (
+                        {
+                            "name": "chapter6-route-post-review",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "route-post-review.log",
+                        },
+                        {
+                            "preferred_lane": "inspect-first",
+                            "run_id": "run-132",
+                            "latest_reason": "pipeline_clean",
+                            "blocked_by": "",
+                            "chapter6_next_action": "continue",
+                        },
+                    ),
+                    "inspect-local-hard-checks": (
+                        {
+                            "name": "inspect-local-hard-checks",
+                            "cmd": [],
+                            "rc": 0,
+                            "stdout_tail": "",
+                            "stderr_tail": "",
+                            "log": "inspect-local-hard-checks.log",
+                        },
+                        {"status": "ok"},
+                    ),
+                }
+                return payloads[name]
+
+            def fake_run_plain_step(*_args, name, cmd, **_kwargs):
+                executed_steps.append(str(name))
+                return {
+                    "name": name,
+                    "cmd": list(cmd),
+                    "rc": 0,
+                    "stdout_tail": "",
+                    "stderr_tail": "",
+                    "log": f"{name}.log",
+                }
+
+            with (
+                mock.patch.object(sys, "argv", argv),
+                mock.patch.object(lane, "_repo_root", return_value=root),
+                mock.patch.object(lane, "_run_json_step", side_effect=fake_run_json_step),
+                mock.patch.object(lane, "_run_plain_step", side_effect=fake_run_plain_step),
+            ):
+                rc = lane.main()
+
+            self.assertEqual(0, rc)
+            self.assertEqual(
+                [
+                    "check-tdd-plan",
+                    "red-first",
+                    "green",
+                    "refactor",
+                    "review-pipeline",
+                    "local-hard-checks-preflight",
+                    "local-hard-checks",
+                ],
+                executed_steps,
+            )
+            payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual("ok", payload["status"])
 
     def test_parse_json_stdout_should_extract_payload_from_mixed_output(self) -> None:
         stdout = 'INFO preparing route\n{\n  "preferred_lane": "run-6.8",\n  "blocked_by": "rerun_guard"\n}\nDone\n'

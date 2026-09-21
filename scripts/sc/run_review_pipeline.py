@@ -17,6 +17,9 @@ import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'python'))
+from chapter5_semantic_reconciliation import load_task_readiness, reconciliation_path_for_task
 from typing import Any
 
 from agent_to_agent_review import write_agent_review
@@ -1843,6 +1846,14 @@ def main() -> int:
     if not task_id:
         print("[sc-review-pipeline] ERROR: invalid --task-id")
         return 2
+    readiness_ok, readiness_payload, readiness_reason = load_task_readiness(repo_root(), task_id)
+    if not readiness_ok:
+        print(
+            "[sc-review-pipeline] ERROR: chapter5_readiness: "
+            + readiness_reason
+            + "; return to Chapter 5 before Review."
+        )
+        return 12
     if bool(args.allow_overwrite) and bool(args.force_new_run_id):
         print("[sc-review-pipeline] ERROR: --allow-overwrite and --force-new-run-id are mutually exclusive.")
         return 2
@@ -1970,6 +1981,58 @@ def main() -> int:
         print("[sc-review-pipeline] ERROR: no existing pipeline run found for resume/abort/fork.")
         return 2
 
+    reconciliation_path = reconciliation_path_for_task(repo_root(), task_id)
+    try:
+        reconciliation_payload = json.loads(reconciliation_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"[sc-review-pipeline] ERROR: chapter5_reconciliation: cannot read validated evidence: {exc}")
+        return 12
+    chapter5_semantic_evidence = {
+        "schema_version": "newrouge.review-chapter5-semantic-evidence.v1",
+        "task_id": task_id,
+        "readiness": readiness_payload.get("readiness"),
+        "closure_allowed": readiness_payload.get("closure_allowed"),
+        "source_revision": readiness_payload.get("source_revision"),
+        "extraction_b_snapshot_id": readiness_payload.get("extraction_b_snapshot_id"),
+        "reconciliation_sha256": readiness_payload.get("reconciliation_sha256"),
+        "reconciliation_summary": reconciliation_payload.get("summary", {}),
+        "acceptance_coverage": reconciliation_payload.get("acceptance_coverage", {}),
+        "acceptance_findings": [
+            row for row in reconciliation_payload.get("findings", [])
+            if isinstance(row, dict) and row.get("finding_type") == "acceptance"
+        ],
+        "global_semantic_findings": [
+            row for row in reconciliation_payload.get("findings", [])
+            if isinstance(row, dict)
+            and row.get("finding_type") in {"source_semantic", "semantic_sink", "task_claim"}
+        ],
+        "policy": {
+            "requirement_authority": "read-only",
+            "review_may_redefine_requirement": False,
+            "semantic_conflict_route": "chapter5_or_source_owner",
+        },
+    }
+    chapter5_evidence_path = out_dir / "chapter5-semantic-evidence.json"
+    if (args.resume or args.fork) and chapter5_evidence_path.exists():
+        try:
+            prior_evidence = json.loads(chapter5_evidence_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            prior_evidence = None
+        if prior_evidence != chapter5_semantic_evidence:
+            print("[sc-review-pipeline] ERROR: chapter5_readiness: resume/fork semantic evidence mismatch")
+            return 12
+    else:
+        try:
+            write_json(chapter5_evidence_path, chapter5_semantic_evidence)
+        except OSError as exc:
+            print(f"[sc-review-pipeline] ERROR: chapter5_reconciliation: cannot persist review evidence: {exc}")
+            return 12
+    summary["chapter5_semantic_evidence"] = {
+        "path": str(chapter5_evidence_path).replace("\\", "/"),
+        "readiness": readiness_payload.get("readiness"),
+        "reconciliation_sha256": readiness_payload.get("reconciliation_sha256"),
+    }
+
     if handoff.ok and handoff.identity is not None:
         if source_handoff_identity is not None and source_handoff_identity != handoff.identity:
             print("[sc-review-pipeline] ERROR: invalid_kcp_binding: resume/fork handoff identity mismatch")
@@ -2061,6 +2124,8 @@ def main() -> int:
         "strict": llm_strict,
         "diff_mode": llm_diff_mode,
         "task_id": task_id,
+        "chapter5_semantic_evidence_path": str(chapter5_evidence_path).replace("\\", "/"),
+        "chapter5_readiness": readiness_payload.get("readiness"),
     }
     if bool(llm_reviewer_subset.get("applied")):
         llm_execution_context["derived_reviewer_subset"] = dict(llm_reviewer_subset)

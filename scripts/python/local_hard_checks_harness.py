@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import os
 import subprocess
 import sys
 import uuid
@@ -55,27 +54,6 @@ def _run_step_default(cmd: list[str]) -> int:
     return proc.returncode
 
 
-def _run_step_with_optional_smoke_env(step_name: str, cmd: list[str], runner: Callable[[list[str]], int]) -> int:
-    if step_name != "smoke-strict":
-        return int(runner(cmd))
-
-    original_exit_on_ready = os.environ.get("GD_SMOKE_EXIT_ON_READY")
-    original_exit_delay = os.environ.get("GD_SMOKE_EXIT_DELAY_SEC")
-    try:
-        os.environ["GD_SMOKE_EXIT_ON_READY"] = "1"
-        os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = "0.25"
-        return int(runner(cmd))
-    finally:
-        if original_exit_on_ready is None:
-            os.environ.pop("GD_SMOKE_EXIT_ON_READY", None)
-        else:
-            os.environ["GD_SMOKE_EXIT_ON_READY"] = original_exit_on_ready
-        if original_exit_delay is None:
-            os.environ.pop("GD_SMOKE_EXIT_DELAY_SEC", None)
-        else:
-            os.environ["GD_SMOKE_EXIT_DELAY_SEC"] = original_exit_delay
-
-
 def run_local_hard_checks(
     *,
     solution: str = "",
@@ -86,6 +64,7 @@ def run_local_hard_checks(
     out_dir: str = "",
     run_id: str = "",
     timeout_sec: int = 5,
+    skip_project_health: bool = False,
     run_fn: Callable[[list[str]], int] | None = None,
 ) -> int:
     resolved_solution = resolve_test_solution_arg(solution)
@@ -147,6 +126,7 @@ def run_local_hard_checks(
         configuration=configuration,
         godot_bin=godot_bin,
         timeout_sec=timeout_sec,
+        include_project_health=not skip_project_health,
     ):
         name = str(step["name"])
         cmd = [str(x) for x in step["cmd"]]
@@ -163,7 +143,7 @@ def run_local_hard_checks(
             status="running",
             details={"cmd": cmd},
         )
-        step_rc = _run_step_with_optional_smoke_env(name, cmd, runner)
+        step_rc = int(runner(cmd))
         step_status = "ok" if step_rc == 0 else "fail"
         write_step_log(step_log, cmd=cmd, rc=step_rc, status=step_status, artifacts=artifacts)
         append_run_event(
@@ -222,6 +202,7 @@ def run_local_hard_checks(
         status=str(summary["status"]),
         failed_step=str(summary["failed_step"]),
         godot_bin=godot_bin,
+        skip_project_health=skip_project_health,
     )
 
     if not persist_sidecars(
