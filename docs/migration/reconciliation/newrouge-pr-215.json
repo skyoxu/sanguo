@@ -11,27 +11,30 @@
     ]
   },
   "target": {
-    "repo": "skyoxu/sanguo",
-    "pr": 261,
-    "branch": "feat/reconcile-newrouge-195-215-20260921",
-    "migration_key": "skyoxu/newrouge@2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf->skyoxu/sanguo"
+    "repo": "skyoxu/sanguo"
   },
   "entries": [
     {
       "source_path": "scripts/python/audit_task_intents_quality.py",
-      "classification": "copy_exact",
+      "classification": "adapt_target_native",
       "target_paths": [
         "scripts/python/audit_task_intents_quality.py"
       ],
-      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state. Ported into Sanguo and validated under target-native regression gates.",
+      "validation_paths": [
+        "scripts/python/tests/test_chapter3_task_generation.py"
+      ]
     },
     {
       "source_path": "scripts/python/tests/test_chapter3_task_generation.py",
-      "classification": "copy_exact",
+      "classification": "adapt_target_native",
       "target_paths": [
         "scripts/python/tests/test_chapter3_task_generation.py"
       ],
-      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state. Ported into Sanguo and validated under target-native regression gates.",
+      "validation_paths": [
+        "scripts/python/tests/test_chapter3_semantic_conservation.py"
+      ]
     }
   ]
 }
