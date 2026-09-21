@@ -82,6 +82,20 @@ def collect_test_paths(root: Path) -> list[str]:
     return sorted(paths)
 
 
+def collect_implementation_paths(root: Path) -> list[str]:
+    paths: list[str] = []
+    allowed = {".cs", ".gd", ".tscn", ".tres", ".json"}
+    for base_rel in ["Game.Core", "Game.Godot"]:
+        base = root / base_rel
+        if base.exists():
+            paths.extend(
+                rel(path, root)
+                for path in base.rglob("*")
+                if path.is_file() and path.suffix.lower() in allowed
+            )
+    return sorted(paths)
+
+
 def collect_contract_events(root: Path) -> list[dict[str, str]]:
     base = root / "Game.Core" / "Contracts"
     if not base.exists():
@@ -212,6 +226,7 @@ def enrich(root: Path, candidates: dict[str, Any]) -> dict[str, Any]:
     adr_ids = collect_adr_ids(root)
     overlays = collect_overlay_paths(root)
     tests = collect_test_paths(root)
+    implementation_paths = collect_implementation_paths(root)
     contract_events = collect_contract_events(root)
     known_events = {item["event"] for item in contract_events}
     existing = load_existing_tasks(root)
@@ -236,6 +251,9 @@ def enrich(root: Path, candidates: dict[str, Any]) -> dict[str, Any]:
         test_refs = [str(x) for x in ensure_list(task, "test_refs")]
         if not test_refs:
             test_refs.extend(match_by_words(task, tests, 6))
+        implementation_files = [str(x) for x in ensure_list(task, "implementation_files")]
+        if not implementation_files:
+            implementation_files.extend(match_by_words(task, implementation_paths, 8))
         contract_refs = [str(x) for x in ensure_list(task, "contractRefs") if str(x) in known_events]
         if not contract_refs and layer in {"core", "adapter"}:
             contract_refs.extend(match_contract_events(task, contract_events, 6))
@@ -262,6 +280,7 @@ def enrich(root: Path, candidates: dict[str, Any]) -> dict[str, Any]:
             "chapter_refs": sorted(set([str(x) for x in ensure_list(task, "chapter_refs")] + CHAPTER_DEFAULTS.get(layer, []))),
             "overlay_refs": unique(overlay_refs),
             "test_refs": unique(test_refs),
+            "implementation_files": unique(implementation_files),
             "contractRefs": unique(contract_refs),
             "acceptance": unique(acceptance),
             "test_strategy": unique(test_strategy),
@@ -270,6 +289,23 @@ def enrich(root: Path, candidates: dict[str, Any]) -> dict[str, Any]:
             "enrichment_status": "ok",
         })
         enriched.append(task)
+
+    by_path: dict[str, list[str]] = {}
+    for task in enriched:
+        task_id = str(task.get("id") or "")
+        for path in task.get("implementation_files", []):
+            by_path.setdefault(str(path), []).append(task_id)
+    for task in enriched:
+        task_id = str(task.get("id") or "")
+        overlaps = []
+        for path in task.get("implementation_files", []):
+            peers = sorted(set(by_path.get(str(path), [])) - {task_id})
+            if peers:
+                overlaps.append({"path": str(path), "other_task_ids": peers})
+        task["implementation_overlap_candidates"] = overlaps
+        task["file_churn_signal"] = (
+            "high" if len(overlaps) >= 3 else "medium" if overlaps else "low"
+        )
     return {
         "schema": "task-generation.enriched-candidates.v1",
         "generated_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -278,6 +314,7 @@ def enrich(root: Path, candidates: dict[str, Any]) -> dict[str, Any]:
             "adr_count": len(adr_ids),
             "overlay_count": len(overlays),
             "test_count": len(tests),
+            "implementation_path_count": len(implementation_paths),
             "contract_event_count": len(contract_events),
             "existing_task_count": len(existing),
         },

@@ -28,11 +28,15 @@ def write_json(path: Path, data: Any) -> None:
 
 def title_key(title: str) -> str:
     words = re.findall(r"[A-Za-z]+|\d+", title.lower())
-    if "part" in words:
-        idx = words.index("part")
-        if idx + 1 < len(words) and words[idx + 1].isdigit():
-            return " ".join(words[:2] + words[idx : idx + 2] + words[idx + 2 : idx + 6])
-    return " ".join(words[:8])
+    if words:
+        if "part" in words:
+            idx = words.index("part")
+            if idx + 1 < len(words) and words[idx + 1].isdigit():
+                return " ".join(words[:2] + words[idx : idx + 2] + words[idx + 2 : idx + 6])
+        return " ".join(words[:8])
+
+    unicode_parts = re.findall(r"[\w]+", title.casefold(), flags=re.UNICODE)
+    return " ".join(unicode_parts[:8])[:120]
 
 
 def audit(intents: dict[str, Any], max_anchors_per_intent: int) -> dict[str, Any]:
