@@ -357,6 +357,29 @@ def surface_aliases(profile: dict[str, Any], surface: str) -> list[str]:
 def task_creation_config(profile: dict[str, Any]) -> dict[str, Any]:
     return dict(profile.get("task_creation", {}))
 
+def task_scope(profile: dict[str, Any]) -> dict[str, int | None]:
+    raw = profile.get("task_scope", {})
+    if not isinstance(raw, dict):
+        return {"min_task_id": None, "max_task_id": None}
+    min_task_id = raw.get("min_task_id")
+    max_task_id = raw.get("max_task_id")
+    return {
+        "min_task_id": int(min_task_id) if isinstance(min_task_id, int) else None,
+        "max_task_id": int(max_task_id) if isinstance(max_task_id, int) else None,
+    }
+
+
+def task_id_in_scope(profile: dict[str, Any], task_id: int) -> bool:
+    scope = task_scope(profile)
+    min_task_id = scope.get("min_task_id")
+    max_task_id = scope.get("max_task_id")
+    if min_task_id is not None and task_id < min_task_id:
+        return False
+    if max_task_id is not None and task_id > max_task_id:
+        return False
+    return True
+
+
 
 def priority_for_bucket(profile: dict[str, Any], bucket: str) -> str:
     config = task_creation_config(profile).get("priority_by_bucket", {})
