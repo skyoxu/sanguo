@@ -17,7 +17,8 @@ Operate Chapter 6 from `workflow.md` idempotently for a business repository that
 - Keep generated code, scripts, tests, comments, and log messages in English.
 - Do not modify the business repo unless the user explicitly asks for that change.
 - Do not rerun expensive steps before reading existing recovery artifacts.
-- During Knowledge Control Plane migration, the Chapter 6 knowledge query is shadow-only and may run only before RED; RED/GREEN/REFACTOR must not silently widen semantic context.
+- Chapter 6 may query bounded Knowledge only before RED; a frozen context must not silently widen during RED/GREEN/REFACTOR.
+- Chapter 6 is not a global Knowledge producer. Execution, recovery, 6.7, 6.8, and 6.9 must not refresh Project Health, rebuild catalogs, or publish KCP as side effects.
 
 ## Repository Layout
 
@@ -56,7 +57,7 @@ A `logs/ci/knowledge-context/**` file is a separate shadow routing artifact. It 
 4. Use the TDD order 6.3, 6.4, 6.5, 6.6 before 6.7 unless recovery evidence says otherwise.
 5. Run 6.7 only when deterministic evidence is stale or required by changed implementation, tests, contracts, scripts, or runtime assets.
 6. Run 6.8 only when route evidence says Needs Fix cleanup is the right lane.
-7. Run 6.9 repository validation before commit or PR closure.
+7. Run 6.9 repository validation before commit or PR closure with `py -3 scripts/python/dev_cli.py run-local-hard-checks --skip-project-health ...`. The Chapter 6 path must never run Project Health scan, global Knowledge rebuild, or publication as an implicit side effect.
 
 ## Stop-Loss Signals
 

@@ -11,7 +11,10 @@ All output messages are in English to keep logs uniform.
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
+import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -54,6 +57,120 @@ def run(cmd: list[str]) -> int:
     print(f"[dev_cli] running: {' '.join(cmd)}")
     proc = subprocess.run(cmd, text=True)
     return proc.returncode
+
+
+def _create_openai_image_client(*, api_key: str, base_url: str, timeout: float):
+    try:
+        from openai import OpenAI  # type: ignore
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(f"failed to import openai SDK: {exc}") from exc
+
+    kwargs: dict[str, object] = {
+        "api_key": api_key,
+        "timeout": timeout,
+    }
+    if base_url:
+        kwargs["base_url"] = base_url
+    return OpenAI(**kwargs)
+
+
+def _read_prompt(args: argparse.Namespace) -> str:
+    if str(args.prompt or "").strip():
+        return str(args.prompt).strip()
+    if str(args.prompt_file or "").strip():
+        return Path(args.prompt_file).read_text(encoding="utf-8").strip()
+    raise ValueError("prompt is required via --prompt or --prompt-file")
+
+
+def cmd_generate_image(args: argparse.Namespace) -> int:
+    """Generate an image through the OpenAI-compatible image endpoint."""
+
+    try:
+        prompt = _read_prompt(args)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[dev_cli] error: {exc}", file=sys.stderr)
+        return 2
+
+    model = str(
+        args.model
+        or os.environ.get("AIARTMIRROR_IMAGE_MODEL")
+        or "gpt-image-2"
+    ).strip() or "gpt-image-2"
+    group = str(args.group or os.environ.get("AIARTMIRROR_IMAGE_GROUP") or "").strip()
+    base_url = str(args.base_url or os.environ.get("AIARTMIRROR_BASE_URL") or "").strip()
+    api_key_env = str(args.api_key_env or "AIARTMIRROR_API_KEY").strip() or "AIARTMIRROR_API_KEY"
+    api_key = str(os.environ.get(api_key_env) or "").strip()
+    output_path = Path(args.out)
+    manifest_path = Path(args.manifest_out) if str(args.manifest_out or "").strip() else None
+
+    manifest: dict[str, object] = {
+        "prompt": prompt,
+        "model": model,
+        "group": group or None,
+        "size": args.size,
+        "quality": args.quality,
+        "background": args.background or "",
+        "output_format": args.output_format,
+        "response_format": args.response_format,
+        "api_key_env": api_key_env,
+        "base_url": base_url or None,
+        "out": str(output_path),
+        "dry_run": bool(args.dry_run),
+    }
+
+    if args.dry_run:
+        if manifest_path is not None:
+            manifest_path.parent.mkdir(parents=True, exist_ok=True)
+            manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print("[dev_cli] generate-image dry-run complete")
+        return 0
+
+    if not api_key:
+        print(f"[dev_cli] error: environment variable {api_key_env} is not set", file=sys.stderr)
+        return 2
+
+    try:
+        client = _create_openai_image_client(api_key=api_key, base_url=base_url, timeout=float(args.timeout))
+        request_kwargs: dict[str, object] = {
+            "model": model,
+            "prompt": prompt,
+            "size": args.size,
+            "quality": args.quality,
+            "output_format": args.output_format,
+            "response_format": args.response_format,
+        }
+        if args.background:
+            request_kwargs["background"] = args.background
+        if group:
+            request_kwargs["extra_headers"] = {"X-Image-Group": group}
+        response = client.images.generate(**request_kwargs)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[dev_cli] error: image generation failed: {exc}", file=sys.stderr)
+        return 1
+
+    data = getattr(response, "data", None) or []
+    first = data[0] if data else None
+    if first is None:
+        print("[dev_cli] error: image generation returned no image payload", file=sys.stderr)
+        return 1
+
+    image_b64 = str(getattr(first, "b64_json", "") or "").strip()
+    if not image_b64:
+        print("[dev_cli] error: only b64_json image responses are currently supported", file=sys.stderr)
+        return 1
+
+    image_bytes = base64.b64decode(image_b64)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_bytes(image_bytes)
+
+    manifest["revised_prompt"] = str(getattr(first, "revised_prompt", "") or "").strip() or None
+    manifest["created"] = getattr(response, "created", None)
+    if manifest_path is not None:
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    print(f"[dev_cli] generated image: {output_path}")
+    return 0
 
 
 def cmd_run_ci_basic(args: argparse.Namespace) -> int:
@@ -186,6 +303,7 @@ def cmd_run_local_hard_checks(args: argparse.Namespace) -> int:
         out_dir=args.out_dir,
         run_id=args.run_id,
         timeout_sec=args.timeout_sec,
+        skip_project_health=bool(args.skip_project_health),
         run_fn=run,
     )
 
@@ -317,6 +435,134 @@ def cmd_serve_project_health(args: argparse.Namespace) -> int:
     return run(build_serve_project_health_cmd(args))
 
 
+def cmd_init_knowledge_catalog(args: argparse.Namespace) -> int:
+    from init_knowledge_catalog import initialize
+    result = initialize(Path(args.repo_root).resolve(), args.force, args.validate)
+    print(json.dumps(result, ensure_ascii=False))
+    return 0 if result.get("status") == "ok" else 1
+
+
+def cmd_generate_knowledge_links(args: argparse.Namespace) -> int:
+    from generate_knowledge_links import generate
+    print(json.dumps(generate(Path(args.repo_root).resolve(), set(args.task_ids or []), args.write_task_refs), ensure_ascii=False))
+    return 0
+
+
+def cmd_chapter6_knowledge(args: argparse.Namespace) -> int:
+    from chapter6_knowledge import run
+    result = run(Path(args.repo_root).resolve(), str(args.task_id), args.write_task_refs, args.semantic, args.llm_backend)
+    print(json.dumps(result, ensure_ascii=False))
+    return 0 if result.get("status") == "knowledge_captured" else 1
+
+
+def cmd_run_chapter3_guarded(args: argparse.Namespace) -> int:
+    """Run one scripted Chapter 3 command inside the start/end attempt guard."""
+
+    from run_chapter3_guarded import run_guarded
+    command = list(args.command or [])
+    if command and command[0] == "--":
+        command = command[1:]
+    try:
+        rc, result = run_guarded(
+            Path(args.repo_root).resolve(),
+            trigger_run_id=args.trigger_run_id,
+            command=command,
+            triplet_status_on_success=args.triplet_status_on_success,
+            write_planning=bool(args.write_planning_artifacts),
+            publish_if_eligible=bool(args.publish_if_eligible),
+        )
+    except ValueError as exc:
+        print(json.dumps({
+            "schema_version": "chapter3.guarded-run-summary.v1",
+            "status": "failed",
+            "trigger_run_id": args.trigger_run_id,
+            "reason": str(exc),
+        }, ensure_ascii=False))
+        return 2
+    print(json.dumps(result, ensure_ascii=False))
+    return rc
+
+
+def cmd_run_chapter5_guarded(args: argparse.Namespace) -> int:
+    """Run one scripted Chapter 5 command inside the start/end attempt guard."""
+
+    from run_chapter5_guarded import run_guarded
+    command = list(args.command or [])
+    if command and command[0] == "--":
+        command = command[1:]
+    try:
+        rc, result = run_guarded(
+            Path(args.repo_root).resolve(),
+            trigger_run_id=args.trigger_run_id,
+            command=command,
+            write_planning=bool(args.write_planning_artifacts),
+            publish_if_eligible=bool(args.publish_if_eligible),
+        )
+    except ValueError as exc:
+        print(json.dumps({
+            "schema_version": "chapter5.guarded-run-summary.v1",
+            "status": "failed",
+            "trigger_run_id": args.trigger_run_id,
+            "reason": str(exc),
+        }, ensure_ascii=False))
+        return 2
+    print(json.dumps(result, ensure_ascii=False))
+    return rc
+
+
+def cmd_refresh_knowledge(args: argparse.Namespace) -> int:
+    """Refresh a registered Chapter closure topology attempt/stable view."""
+
+    from refresh_chapter_knowledge import begin_run_attempt, run as refresh
+    root = Path(args.repo_root).resolve()
+    try:
+        if bool(args.begin_run):
+            if args.write_planning_artifacts or args.publish_if_eligible:
+                raise ValueError("--begin-run cannot write planning artifacts or publish")
+            result = begin_run_attempt(
+                root,
+                source=args.source,
+                trigger_run_id=args.trigger_run_id,
+            )
+        else:
+            result = refresh(
+                root,
+                source=args.source,
+                trigger_run_id=args.trigger_run_id,
+                refresh_local=bool(args.refresh_local),
+                write_planning=bool(args.write_planning_artifacts),
+                publish_if_eligible=bool(args.publish_if_eligible),
+                triplet_status=args.triplet_status,
+                source_manifest_path=root / args.source_manifest,
+                ledger_path=root / args.ledger,
+                semantics_path=root / args.semantics,
+                capabilities_path=root / args.capabilities,
+                edges_path=root / args.edges,
+                candidates_path=root / args.candidates,
+                report_path=root / args.report,
+                coverage_path=root / args.coverage,
+                triplet_attestation_path=root / args.triplet_attestation,
+                reconciliation_path=root / args.reconciliation,
+                readiness_path=root / args.readiness,
+            )
+    except ValueError as exc:
+        print(json.dumps({
+            "source": args.source,
+            "trigger_run_id": args.trigger_run_id,
+            "local_refresh_status": "failed",
+            "publication_status": "deferred",
+            "publication_reason": str(exc),
+        }, ensure_ascii=False))
+        return 2
+    print(json.dumps(result, ensure_ascii=False))
+    failed = (
+        result.get("local_refresh_status") == "failed"
+        or result.get("chapter_closure_status") == "knowledge_refresh_failed"
+        or result.get("publication_status") == "failed"
+    )
+    return 2 if failed else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Dev CLI for Godot+C# template (AI-friendly entrypoint)",
@@ -365,6 +611,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_lh.add_argument("--out-dir", default="")
     p_lh.add_argument("--run-id", default="")
     p_lh.add_argument("--timeout-sec", type=int, default=5)
+    p_lh.add_argument(
+        "--skip-project-health",
+        action="store_true",
+        help="skip the repo-health prelude; required when local hard checks run as a Chapter 6 side effect",
+    )
     p_lh.set_defaults(func=cmd_run_local_hard_checks)
 
     # run-local-hard-checks-preflight
@@ -389,6 +640,28 @@ def build_parser() -> argparse.ArgumentParser:
     p_gf = sub.add_parser("run-gdunit-full", help="run broad GdUnit tests (Adapters+Security+Integration+UI)")
     p_gf.add_argument("--godot-bin", required=True)
     p_gf.set_defaults(func=cmd_run_gdunit_full)
+
+    # generate-image
+    p_gi = sub.add_parser(
+        "generate-image",
+        help="generate one image through the OpenAI-compatible image endpoint used by asset skills",
+    )
+    p_gi.add_argument("--prompt", default="")
+    p_gi.add_argument("--prompt-file", default="")
+    p_gi.add_argument("--out", required=True)
+    p_gi.add_argument("--manifest-out", default="")
+    p_gi.add_argument("--model", default="")
+    p_gi.add_argument("--group", default="")
+    p_gi.add_argument("--size", default="1024x1024")
+    p_gi.add_argument("--quality", default="high")
+    p_gi.add_argument("--output-format", default="png")
+    p_gi.add_argument("--response-format", default="b64_json")
+    p_gi.add_argument("--background", default="")
+    p_gi.add_argument("--api-key-env", default="AIARTMIRROR_API_KEY")
+    p_gi.add_argument("--base-url", default="")
+    p_gi.add_argument("--timeout", type=float, default=120.0)
+    p_gi.add_argument("--dry-run", action="store_true")
+    p_gi.set_defaults(func=cmd_generate_image)
 
     # run-preflight
     p_pf = sub.add_parser("run-preflight", help="run local pre-flight checks (dotnet --info + core tests)")
@@ -652,6 +925,83 @@ def build_parser() -> argparse.ArgumentParser:
     p_srv.add_argument("--repo-root", default=".")
     p_srv.add_argument("--port", type=int, default=0)
     p_srv.set_defaults(func=cmd_serve_project_health)
+
+    p_knowledge = sub.add_parser("init-knowledge-catalog", help="初始化 docs/knowledge 项目资源知识目录")
+    p_knowledge.add_argument("--repo-root", default=".")
+    p_knowledge.add_argument("--force", action="store_true")
+    p_knowledge.add_argument("--validate", action="store_true")
+    p_knowledge.set_defaults(func=cmd_init_knowledge_catalog)
+    p_links = sub.add_parser("generate-knowledge-links", help="从最新扫描生成 Chapter 6 资源关联")
+    p_links.add_argument("--repo-root", default=".")
+    p_links.add_argument("--task-id", action="append", dest="task_ids")
+    p_links.add_argument("--write-task-refs", action="store_true")
+    p_links.set_defaults(func=cmd_generate_knowledge_links)
+    p_c6k = sub.add_parser("chapter6-knowledge", help="执行 Chapter 6 资源知识捕获阶段")
+    p_c6k.add_argument("--repo-root", default=".")
+    p_c6k.add_argument("--task-id", required=True)
+    p_c6k.add_argument("--write-task-refs", action="store_true")
+    p_c6k.add_argument("--semantic", action="store_true")
+    p_c6k.add_argument("--llm-backend", default="codex-cli")
+    p_c6k.set_defaults(func=cmd_chapter6_knowledge)
+
+    p_ch3_guard = sub.add_parser(
+        "run-chapter3-guarded",
+        help="run a scripted Chapter 3 command with guaranteed start/end Attempt Preview refresh",
+    )
+    p_ch3_guard.add_argument("--repo-root", default=".")
+    p_ch3_guard.add_argument("--trigger-run-id", required=True)
+    p_ch3_guard.add_argument(
+        "--triplet-status-on-success",
+        choices=["passed", "blocked", "unknown"],
+        default="unknown",
+    )
+    p_ch3_guard.add_argument("--write-planning-artifacts", action="store_true")
+    p_ch3_guard.add_argument("--publish-if-eligible", action="store_true")
+    p_ch3_guard.add_argument("command", nargs=argparse.REMAINDER)
+    p_ch3_guard.set_defaults(func=cmd_run_chapter3_guarded)
+
+    p_ch5_guard = sub.add_parser(
+        "run-chapter5-guarded",
+        help="run a scripted Chapter 5 command with guaranteed start/end Attempt Preview refresh",
+    )
+    p_ch5_guard.add_argument("--repo-root", default=".")
+    p_ch5_guard.add_argument("--trigger-run-id", required=True)
+    p_ch5_guard.add_argument("--write-planning-artifacts", action="store_true")
+    p_ch5_guard.add_argument("--publish-if-eligible", action="store_true")
+    p_ch5_guard.add_argument("command", nargs=argparse.REMAINDER)
+    p_ch5_guard.set_defaults(func=cmd_run_chapter5_guarded)
+
+    p_refresh = sub.add_parser(
+        "refresh-knowledge",
+        help="refresh a registered Chapter 3/5 topology attempt and optional stable/publication state",
+    )
+    p_refresh.add_argument("--repo-root", default=".")
+    p_refresh.add_argument("--source", choices=["chapter3", "chapter5"], required=True)
+    p_refresh.add_argument("--trigger-run-id", required=True)
+    p_refresh.add_argument(
+        "--begin-run",
+        action="store_true",
+        help="record a Chapter 3/5 run-start attempt before expensive/model-backed work",
+    )
+    p_refresh.add_argument("--refresh-local", action="store_true")
+    p_refresh.add_argument("--write-planning-artifacts", action="store_true")
+    p_refresh.add_argument("--publish-if-eligible", action="store_true")
+    p_refresh.add_argument("--triplet-status", choices=["passed", "blocked", "unknown"], default="unknown")
+    p_refresh.add_argument("--source-manifest", default="logs/ci/task-generation/source-manifest.v1.json")
+    p_refresh.add_argument("--ledger", default="logs/ci/task-generation/source-blocks.v1.json")
+    p_refresh.add_argument("--semantics", default="logs/ci/task-generation/semantic-requirements.v1.json")
+    p_refresh.add_argument("--capabilities", default="logs/ci/task-generation/capabilities.v1.json")
+    p_refresh.add_argument("--edges", default="logs/ci/task-generation/topology-edges.v1.json")
+    p_refresh.add_argument("--candidates", default="logs/ci/task-generation/task-candidates.enriched.json")
+    p_refresh.add_argument("--report", default="logs/ci/task-generation/semantic-conservation-report.json")
+    p_refresh.add_argument("--coverage", default="logs/ci/task-generation/coverage-report.json")
+    p_refresh.add_argument(
+        "--triplet-attestation",
+        default="logs/ci/task-generation/triplet-baseline-attestation.json",
+    )
+    p_refresh.add_argument("--reconciliation", default="logs/ci/chapter5/reconciliation/latest.json")
+    p_refresh.add_argument("--readiness", default="logs/ci/chapter5/readiness/latest.json")
+    p_refresh.set_defaults(func=cmd_refresh_knowledge)
 
     from run_mvg_acceptance import register_arguments, run as run_mvg
     p_mvg = sub.add_parser("run-mvg-acceptance", help="Plan or run isolated MVG integration evidence")

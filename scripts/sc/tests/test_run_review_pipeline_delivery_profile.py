@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import hashlib
 import re
 import subprocess
 import sys
@@ -22,6 +23,25 @@ sys.path.insert(0, str(SC_DIR))
 
 import run_review_pipeline as run_review_pipeline_module  # noqa: E402
 from _taskmaster import TaskmasterTriplet  # noqa: E402
+from chapter5_semantic_reconciliation import (  # noqa: E402
+    DEFAULT_CH3_SEMANTICS,
+    DEFAULT_EXTRACTION_SNAPSHOT,
+    DEFAULT_READINESS_DIR,
+    DEFAULT_RECONCILIATION_DIR,
+    DEFAULT_SOURCE_LEDGER,
+    DEFAULT_SOURCE_MANIFEST,
+    EXTRACTOR_REVISION,
+    PARSER_REVISION,
+    READINESS_SCHEMA,
+    RECONCILIATION_SCHEMA,
+    SNAPSHOT_SCHEMA,
+    _canonical_sha,
+    _load_task_rows,
+    _task_bundle,
+    build_cache_key,
+    build_chapter5_input_fingerprint,
+    build_task_authority_scope,
+)
 
 
 def _extract_out_dir(output: str) -> Path:
@@ -47,6 +67,159 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
         )
         self._review_preflight_patcher.start()
         self.addCleanup(self._review_preflight_patcher.stop)
+        self._chapter5_fixture_paths: dict[Path, bytes | None] = {}
+        self._install_chapter5_ready_fixture(task_id="1")
+        self.addCleanup(self._restore_chapter5_ready_fixture)
+
+    def _remember_fixture_path(self, path: Path) -> None:
+        if path not in self._chapter5_fixture_paths:
+            self._chapter5_fixture_paths[path] = path.read_bytes() if path.exists() else None
+
+    def _write_fixture_json(self, path: Path, payload: dict) -> None:
+        self._remember_fixture_path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    def _install_chapter5_ready_fixture(self, *, task_id: str) -> None:
+        source_path = REPO_ROOT / "logs/ci/chapter5-test-source.md"
+        self._remember_fixture_path(source_path)
+        source_path.parent.mkdir(parents=True, exist_ok=True)
+        source_text = "# Test source\n\nStable review fixture.\n"
+        source_path.write_text(source_text, encoding="utf-8")
+        source_rel = source_path.relative_to(REPO_ROOT).as_posix()
+        source_sha = hashlib.sha256(source_text.encode("utf-8")).hexdigest()
+        manifest_path = REPO_ROOT / DEFAULT_SOURCE_MANIFEST
+        ledger_path = REPO_ROOT / DEFAULT_SOURCE_LEDGER
+        revision = "test-review-ready"
+        manifest = {
+            "schema_version": "chapter3.source-manifest.v1",
+            "source_revision": revision,
+            "manifest_sha256": "sha256:test-review-manifest",
+            "block_count": 1,
+            "sources": [{
+                "path": source_rel,
+                "source_type": "gdd",
+                "sha256": "sha256:" + source_sha,
+                "block_count": 1,
+            }],
+        }
+        ledger = {
+            "schema_version": "newrouge.source-blocks.v1",
+            "source_revision": revision,
+            "source_manifest_sha256": manifest["manifest_sha256"],
+            "blocks": [{
+                "block_id": "SB-TEST-1",
+                "source_path": source_rel,
+                "line_start": 1,
+                "line_end": 3,
+                "raw_text": source_text.rstrip(),
+                "content_hash": "sha256:" + hashlib.sha256(source_text.rstrip().encode("utf-8")).hexdigest(),
+                "source_sha256": "sha256:" + source_sha,
+            }],
+        }
+        self._write_fixture_json(manifest_path, manifest)
+        self._write_fixture_json(ledger_path, ledger)
+        cache_key = build_cache_key(
+            manifest_path,
+            ledger_path,
+            manifest,
+            parser_revision=PARSER_REVISION,
+            extractor_revision=EXTRACTOR_REVISION,
+        )
+        snapshot_id = "EXB-" + _canonical_sha(cache_key)[:20].upper()
+        snapshot_payload = {
+            "schema_version": SNAPSHOT_SCHEMA,
+            "status": "complete",
+            "source_revision": revision,
+            "cache_key": cache_key,
+            "extraction_b_snapshot_id": snapshot_id,
+            "semantic_inventory": [],
+        }
+        self._write_fixture_json(REPO_ROOT / DEFAULT_EXTRACTION_SNAPSHOT, snapshot_payload)
+        semantics_path = REPO_ROOT / DEFAULT_CH3_SEMANTICS
+        self._write_fixture_json(semantics_path, {
+            "schema_version": "newrouge.semantic-requirements.v1",
+            "source_revision": revision,
+            "source_manifest_sha256": manifest["manifest_sha256"],
+            "source_accounting": [],
+            "requirements": [],
+        })
+        task = _task_bundle(_load_task_rows(REPO_ROOT), str(task_id))
+        authority_scope, authority_errors = build_task_authority_scope(REPO_ROOT, task)
+        self.assertEqual([], authority_errors)
+        authority_reconciliation = [
+            {
+                "authority_type": kind[:-1] if kind.endswith("s") else kind,
+                "authority_ref": str(item.get("ref") or ""),
+                "authority_sha256": item.get("sha256"),
+                "status": "compatible",
+                "rationale": "Test fixture binds current repository authority bytes.",
+            }
+            for kind in ("contracts", "adrs")
+            for item in authority_scope.get(kind, [])
+            if isinstance(item, dict) and str(item.get("ref") or "").strip()
+        ]
+        input_fingerprint = build_chapter5_input_fingerprint(
+            REPO_ROOT,
+            manifest_path=manifest_path,
+            ledger_path=ledger_path,
+            snapshot=snapshot_payload,
+            semantics_path=semantics_path,
+            task=task,
+            authority_scope=authority_scope,
+            authority_reconciliation=authority_reconciliation,
+        )
+        reconciliation = {
+            "schema_version": RECONCILIATION_SCHEMA,
+            "task_id": str(task_id),
+            "source_revision": revision,
+            "cache_key": cache_key,
+            "extraction_b_snapshot_id": snapshot_id,
+            "global_audit_completed": True,
+            "authority_scope": authority_scope,
+            "authority_reconciliation": authority_reconciliation,
+            "input_fingerprint": input_fingerprint,
+            "findings": [],
+            "summary": {"blocking_count": 0, "concern_count": 0},
+        }
+        reconciliation_path = REPO_ROOT / DEFAULT_RECONCILIATION_DIR / f"task-{task_id}.json"
+        self._write_fixture_json(reconciliation_path, reconciliation)
+        self._write_fixture_json(REPO_ROOT / DEFAULT_READINESS_DIR / f"task-{task_id}.json", {
+            "schema_version": READINESS_SCHEMA,
+            "task_id": str(task_id),
+            "source_revision": revision,
+            "cache_key": cache_key,
+            "extraction_b_snapshot_id": snapshot_id,
+            "reconciliation_sha256": "sha256:" + _canonical_sha(reconciliation),
+            "input_fingerprint": input_fingerprint,
+            "readiness": "READY",
+            "closure_allowed": True,
+            "allow_concerns": False,
+            "blocking_findings": [],
+            "concerns": [],
+        })
+
+    def _restore_chapter5_ready_fixture(self) -> None:
+        for path, original in sorted(self._chapter5_fixture_paths.items(), key=lambda item: len(item[0].parts), reverse=True):
+            if original is None:
+                try:
+                    path.unlink()
+                except FileNotFoundError:
+                    pass
+            else:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(original)
+
+    def test_review_blocks_when_chapter5_readiness_is_blocked(self) -> None:
+        readiness_path = REPO_ROOT / DEFAULT_READINESS_DIR / "task-1.json"
+        payload = json.loads(readiness_path.read_text(encoding="utf-8"))
+        payload["readiness"] = "BLOCKED"
+        payload["closure_allowed"] = False
+        readiness_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        argv = [str(SCRIPT), "--task-id", "1", "--dry-run", "--skip-test"]
+        with mock.patch.object(sys, "argv", argv):
+            rc = run_review_pipeline_module.main()
+        self.assertEqual(12, rc)
 
     @contextmanager
     def _refactor_summary_fixture(self, *, task_id: str = "1"):
@@ -235,6 +408,12 @@ class RunReviewPipelineDeliveryProfileTests(unittest.TestCase):
         self.assertEqual('ok', summary['status'])
         self.assertEqual('full', summary['run_type'])
         self.assertEqual('pipeline_clean', summary['reason'])
+        self.assertEqual('READY', summary['chapter5_semantic_evidence']['readiness'])
+        chapter5_evidence = json.loads((out_dir / 'chapter5-semantic-evidence.json').read_text(encoding='utf-8'))
+        self.assertEqual('newrouge.review-chapter5-semantic-evidence.v1', chapter5_evidence['schema_version'])
+        self.assertEqual('READY', chapter5_evidence['readiness'])
+        self.assertIn('acceptance_coverage', chapter5_evidence)
+        self.assertFalse(chapter5_evidence['policy']['review_may_redefine_requirement'])
         self.assertEqual('pass', agent_review['review_verdict'])
         self.assertEqual('full', latest['run_type'])
         self.assertEqual('pipeline_clean', latest['reason'])
