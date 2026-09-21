@@ -22,10 +22,7 @@
     ]
   },
   "target": {
-    "repo": "skyoxu/sanguo",
-    "pr": 261,
-    "branch": "feat/reconcile-newrouge-195-215-20260921",
-    "migration_key": "skyoxu/newrouge@2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf->skyoxu/sanguo"
+    "repo": "skyoxu/sanguo"
   },
   "entries": [
     {
