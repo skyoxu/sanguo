@@ -1,0 +1,37 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 197,
+    "merge_commit": "e2c30b5aa3c6dc2e10ae5f88539cb017fa884468",
+    "changed_file_count": 2,
+    "changed_files": [
+      "docs/adr/ADR-0038-semantic-delivery-topology.md",
+      "docs/architecture/ADR_INDEX_GODOT.md"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo",
+    "pr": 261,
+    "branch": "feat/reconcile-newrouge-195-215-20260921",
+    "migration_key": "skyoxu/newrouge@2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf->skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": "docs/adr/ADR-0038-semantic-delivery-topology.md",
+      "classification": "copy_exact",
+      "target_paths": [
+        "docs/adr/ADR-0038-semantic-delivery-topology.md"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/architecture/ADR_INDEX_GODOT.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/architecture/ADR_INDEX_GODOT.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    }
+  ]
+}

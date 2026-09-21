@@ -1,0 +1,64 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 213,
+    "merge_commit": "1277a84ea0d035e15f9f659d7a051009e3a29638",
+    "changed_file_count": 5,
+    "changed_files": [
+      ".agents/skills/workflow-chapter3-task-triplet-baseline/SKILL.md",
+      "scripts/python/normalize_task_intents.py",
+      "scripts/python/tests/test_chapter3_semantic_conservation.py",
+      "scripts/python/update_workflow_chapter_skills.py",
+      "workflow.md"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo",
+    "pr": 261,
+    "branch": "feat/reconcile-newrouge-195-215-20260921",
+    "migration_key": "skyoxu/newrouge@2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf->skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": ".agents/skills/workflow-chapter3-task-triplet-baseline/SKILL.md",
+      "classification": "copy_exact",
+      "target_paths": [
+        ".agents/skills/workflow-chapter3-task-triplet-baseline/SKILL.md"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/normalize_task_intents.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/normalize_task_intents.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_chapter3_semantic_conservation.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_chapter3_semantic_conservation.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/update_workflow_chapter_skills.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/update_workflow_chapter_skills.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "workflow.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "workflow.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    }
+  ]
+}

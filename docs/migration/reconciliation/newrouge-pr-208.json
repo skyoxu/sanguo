@@ -1,0 +1,343 @@
+{
+  "schema_version": "repo.cross-repo-migration-reconciliation.v1",
+  "source": {
+    "repo": "skyoxu/newrouge",
+    "pr": 208,
+    "merge_commit": "a03fa68716c0fd44e2d2b148640509834d8db0c8",
+    "changed_file_count": 36,
+    "changed_files": [
+      ".agents/skills/workflow-chapter5-semantics-stabilization/SKILL.md",
+      ".agents/skills/workflow-chapter6-single-task-daily-loop/SKILL.md",
+      "docs/workflows/project-health-knowledge.md",
+      "knowledge/README.md",
+      "knowledge/policies/consumer-policies.v1.json",
+      "scripts/browser/project_health.spec.js",
+      "scripts/python/_project_health_http.py",
+      "scripts/python/_semantic_topology.py",
+      "scripts/python/chapter5_semantic_reconciliation.py",
+      "scripts/python/chapter6_knowledge.py",
+      "scripts/python/chapter6_route.py",
+      "scripts/python/collect_ui_wiring_inputs.py",
+      "scripts/python/dev_cli.py",
+      "scripts/python/local_hard_checks_harness.py",
+      "scripts/python/local_hard_checks_support.py",
+      "scripts/python/project_health_topology.html",
+      "scripts/python/project_health_topology.js",
+      "scripts/python/refresh_chapter_knowledge.py",
+      "scripts/python/run_gate_bundle.py",
+      "scripts/python/run_single_task_chapter6_lane.py",
+      "scripts/python/sync_task_overlay_refs.py",
+      "scripts/python/tests/test_chapter3_semantic_conservation.py",
+      "scripts/python/tests/test_chapter5_semantic_reconciliation.py",
+      "scripts/python/tests/test_chapter7_ui_wiring.py",
+      "scripts/python/tests/test_run_single_task_chapter6_lane.py",
+      "scripts/python/tests/test_semantic_topology.py",
+      "scripts/python/tests/test_semantic_topology_http.py",
+      "scripts/python/update_workflow_chapter_skills.py",
+      "scripts/sc/_summary_schema_fallback.py",
+      "scripts/sc/run_review_pipeline.py",
+      "scripts/sc/schemas/sc-review-pipeline-summary.schema.json",
+      "scripts/sc/tests/test_chapter6_knowledge.py",
+      "scripts/sc/tests/test_local_hard_checks_harness.py",
+      "scripts/sc/tests/test_run_review_pipeline_delivery_profile.py",
+      "scripts/sc/tests/test_sync_task_overlay_refs.py",
+      "workflow.md"
+    ]
+  },
+  "target": {
+    "repo": "skyoxu/sanguo",
+    "pr": 261,
+    "branch": "feat/reconcile-newrouge-195-215-20260921",
+    "migration_key": "skyoxu/newrouge@2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf->skyoxu/sanguo"
+  },
+  "entries": [
+    {
+      "source_path": ".agents/skills/workflow-chapter5-semantics-stabilization/SKILL.md",
+      "classification": "copy_exact",
+      "target_paths": [
+        ".agents/skills/workflow-chapter5-semantics-stabilization/SKILL.md"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": ".agents/skills/workflow-chapter6-single-task-daily-loop/SKILL.md",
+      "classification": "copy_exact",
+      "target_paths": [
+        ".agents/skills/workflow-chapter6-single-task-daily-loop/SKILL.md"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "docs/workflows/project-health-knowledge.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "docs/workflows/project-health-knowledge.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "knowledge/README.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "knowledge/README.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "knowledge/policies/consumer-policies.v1.json",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "knowledge/policies/consumer-policies.v1.json"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/browser/project_health.spec.js",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "scripts/browser/project_health.spec.js"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    },
+    {
+      "source_path": "scripts/python/_project_health_http.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/_project_health_http.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/_semantic_topology.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/_semantic_topology.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/chapter5_semantic_reconciliation.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/chapter5_semantic_reconciliation.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/chapter6_knowledge.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/chapter6_knowledge.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/chapter6_route.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/chapter6_route.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/collect_ui_wiring_inputs.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/collect_ui_wiring_inputs.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/dev_cli.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/dev_cli.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/local_hard_checks_harness.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/local_hard_checks_harness.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/local_hard_checks_support.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/local_hard_checks_support.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_health_topology.html",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_health_topology.html"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/project_health_topology.js",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/project_health_topology.js"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/refresh_chapter_knowledge.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/refresh_chapter_knowledge.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/run_gate_bundle.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/run_gate_bundle.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/run_single_task_chapter6_lane.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/run_single_task_chapter6_lane.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/sync_task_overlay_refs.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/sync_task_overlay_refs.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_chapter3_semantic_conservation.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_chapter3_semantic_conservation.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_chapter5_semantic_reconciliation.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_chapter5_semantic_reconciliation.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_chapter7_ui_wiring.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_chapter7_ui_wiring.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_run_single_task_chapter6_lane.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_run_single_task_chapter6_lane.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_semantic_topology.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_semantic_topology.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/tests/test_semantic_topology_http.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/tests/test_semantic_topology_http.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/python/update_workflow_chapter_skills.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/python/update_workflow_chapter_skills.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/sc/_summary_schema_fallback.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/sc/_summary_schema_fallback.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/sc/run_review_pipeline.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/sc/run_review_pipeline.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/sc/schemas/sc-review-pipeline-summary.schema.json",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/sc/schemas/sc-review-pipeline-summary.schema.json"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/sc/tests/test_chapter6_knowledge.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/sc/tests/test_chapter6_knowledge.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/sc/tests/test_local_hard_checks_harness.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/sc/tests/test_local_hard_checks_harness.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/sc/tests/test_run_review_pipeline_delivery_profile.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/sc/tests/test_run_review_pipeline_delivery_profile.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "scripts/sc/tests/test_sync_task_overlay_refs.py",
+      "classification": "copy_exact",
+      "target_paths": [
+        "scripts/sc/tests/test_sync_task_overlay_refs.py"
+      ],
+      "rationale": "Repository-neutral implementation/schema/test is ported from the final upstream state."
+    },
+    {
+      "source_path": "workflow.md",
+      "classification": "adapt_target_native",
+      "target_paths": [
+        "workflow.md"
+      ],
+      "rationale": "Sanguo retains repository-specific authority/configuration/content; upstream behavior is reconciled without wholesale replacement."
+    }
+  ]
+}

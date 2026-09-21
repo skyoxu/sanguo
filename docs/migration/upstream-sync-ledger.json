@@ -151,6 +151,62 @@
       ],
       "reconciliation_manifests": "docs/migration/reconciliation/newrouge-pr-183.json .. newrouge-pr-194.json",
       "final_source_boundary": "548af63fb1aa2e220dff0042161671acd23b36d5"
+    },
+    {
+      "id": "newrouge-semantic-topology-chapters-20260921",
+      "migration_key": "skyoxu/newrouge@2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf->skyoxu/sanguo",
+      "source_prs": [
+        195,
+        196,
+        197,
+        199,
+        200,
+        201,
+        203,
+        206,
+        208,
+        211,
+        213,
+        215,
+        216
+      ],
+      "source_commits": [
+        "8ea54ff88be511a2b5611254a78116f52464d335",
+        "74805d8f2f8cf4ea2b006d9d68e07a25ae510ba1",
+        "e2c30b5aa3c6dc2e10ae5f88539cb017fa884468",
+        "ad101856b196c0ee535f616598bf36d2952930f0",
+        "616abc8f38dacce443821f92d2be57c8f1e005df",
+        "da64f423e5a7ea3df485b4630a848bc5588af173",
+        "a7ef0c6a06ea3d82de132a980680f4978bbf9008",
+        "1c4eeca11b26585ba84e8e2d4b1047fa1d8a372e",
+        "a03fa68716c0fd44e2d2b148640509834d8db0c8",
+        "7cccd08a9764aea267a4f778b8a597a6e45de1a9",
+        "1277a84ea0d035e15f9f659d7a051009e3a29638",
+        "f18c3a8c29accb89956c70e1a434ce0cb9798741",
+        "2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf"
+      ],
+      "target_pr": 261,
+      "target_branch": "feat/reconcile-newrouge-195-215-20260921",
+      "target_base": "472ea9f4127a41717e954a846ed10b3abffe9ddf",
+      "status": "open",
+      "mode": "adapted",
+      "scope": [
+        "semantic-topology",
+        "chapter3-semantic-conservation",
+        "chapter3-task-quality",
+        "chapter5-semantic-reconciliation",
+        "chapter6-knowledge-boundary",
+        "chapter7-lineage",
+        "review-readiness",
+        "knowledge-refresh"
+      ],
+      "excluded": [
+        "Sanguo Taskmaster/business content",
+        "Sanguo Project Health repository configuration and business-specific browser fixtures",
+        "derived Knowledge publication state"
+      ],
+      "reconciliation_manifests": "docs/migration/reconciliation/newrouge-pr-195.json .. newrouge-pr-216.json (merged source PRs only)",
+      "final_source_boundary": "2e2fbdd15afcfedcf93416e0d60cd6cad4a2dfaf"
     }
   ]
 }
